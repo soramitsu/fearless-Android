@@ -65,8 +65,6 @@ class DbStorageCache(
             .mapList { mapStorageEntryFromLocal(it) }
             .first()
     }
-
-
 }
 
 private fun mapStorageEntryToLocal(

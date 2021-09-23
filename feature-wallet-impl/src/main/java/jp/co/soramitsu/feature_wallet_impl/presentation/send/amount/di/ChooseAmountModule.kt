@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountViewModel
@@ -47,6 +48,7 @@ class ChooseAmountModule {
             transferValidityChecks,
             walletConstants,
             recipientAddress,
+            AssetPayload.stub(), // TODO pass payload from previous screen
             phishingWarning
         )
     }

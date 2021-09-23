@@ -208,7 +208,7 @@ class PayoutRepository(
         val prefsKeys = prefsKeyMapping.values.map(Map<BigInteger, String>::values).flatten()
         val ledgerKeys = controllerMapping.values.toList()
 
-        val allResults = bulkRetriever.queryKeys(socketService,exposureClippedKeys + prefsKeys + ledgerKeys)
+        val allResults = bulkRetriever.queryKeys(socketService, exposureClippedKeys + prefsKeys + ledgerKeys)
 
         val ledgerStorage = stakingModule.storage("Ledger")
         val ledgerKeysMapping = controllerMapping.mapValuesNotNull { (_, key) ->

@@ -79,8 +79,6 @@ class WssSubstrateSource(
                     .filter { it.phase is Phase.ApplyExtrinsic }
                     .associateBy { (it.phase as Phase.ApplyExtrinsic).extrinsicId.toInt() }
 
-
-
                 buildExtrinsics(runtime, statuses, block.block.extrinsics)
             },
             at = blockHash
@@ -108,7 +106,6 @@ class WssSubstrateSource(
             }
         }.filterNotNull()
     }
-
 
     private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer): ExtrinsicBuilder {
         return transfer(

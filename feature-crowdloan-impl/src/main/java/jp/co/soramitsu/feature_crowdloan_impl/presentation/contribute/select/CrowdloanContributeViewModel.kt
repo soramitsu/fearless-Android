@@ -141,7 +141,7 @@ class CrowdloanContributeViewModel(
         .share()
 
     val unlockHintFlow = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.displayName)
+        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol)
     }
         .inBackground()
         .share()
@@ -238,12 +238,12 @@ class CrowdloanContributeViewModel(
     private fun loadFee(amount: BigDecimal, bonusActiveState: CustomContributionState.Active?) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
+            feeConstructor = { token ->
                 val additionalSubmission = bonusActiveState?.let {
                     additionalOnChainSubmission(it.payload, it.customFlow, amount, customContributeManager)
                 }
 
-                contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additionalSubmission)
+                contributionInteractor.estimateFee(payload.paraId, amount, token, additionalSubmission)
             },
             onRetryCancelled = ::backClicked
         )

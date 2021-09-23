@@ -29,12 +29,10 @@ import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.ResourceManagerImpl
 import jp.co.soramitsu.common.utils.QrCodeGenerator
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import java.security.SecureRandom
 import java.util.Random
 
@@ -152,10 +150,8 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
-    fun provideDefaultPagedKeysRetriever(
-        socketProperty: SuspendableProperty<SocketService>
-    ): BulkRetriever {
-        return BulkRetriever(socketProperty)
+    fun provideDefaultPagedKeysRetriever(): BulkRetriever {
+        return BulkRetriever()
     }
 
     @Provides

@@ -4,7 +4,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelize
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 
 interface WalletRouter {
-    fun openAssetDetails(type: Token.Type)
+    fun openAssetDetails(assetPayload: AssetPayload)
 
     fun back()
 

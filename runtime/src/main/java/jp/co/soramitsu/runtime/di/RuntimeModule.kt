@@ -4,15 +4,8 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.di.scope.ApplicationScope
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.StorageDao
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
-import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
-import jp.co.soramitsu.feature_account_api.data.extrinsic.FeeEstimator
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.runtime.RuntimeUpdater
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.MortalityConstructor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -32,33 +25,13 @@ class RuntimeModule {
 
     @Provides
     @ApplicationScope
-    fun provideRuntimeUpdater(
-        accountRepository: AccountRepository,
-        connectionProperty: SuspendableProperty<SocketService>,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        chainRegistry: ChainRegistry,
-    ) = RuntimeUpdater(
-        accountRepository,
-        runtimeProperty,
-        connectionProperty,
-        chainRegistry
-    )
-
-    @Provides
-    @ApplicationScope
-    fun provideRuntimeProperty() = SuspendableProperty<RuntimeSnapshot>()
-
-    @Provides
-    @ApplicationScope
     fun provideExtrinsicBuilderFactory(
-        accountRepository: AccountRepository,
         rpcCalls: RpcCalls,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        chainRegistry: ChainRegistry,
         mortalityConstructor: MortalityConstructor,
     ) = ExtrinsicBuilderFactory(
-        accountRepository,
         rpcCalls,
-        runtimeProperty,
+        chainRegistry,
         mortalityConstructor
     )
 
@@ -68,43 +41,29 @@ class RuntimeModule {
         storageDao: StorageDao,
     ): StorageCache = DbStorageCache(storageDao)
 
-    @Provides
-    @ApplicationScope
-    fun provideFeeEstimator(
-        rpcCalls: RpcCalls,
-        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
-    ): jp.co.soramitsu.feature_account_api.data.extrinsic.FeeEstimator = jp.co.soramitsu.feature_account_api.data.extrinsic.FeeEstimator(rpcCalls, extrinsicBuilderFactory)
-
-    @Provides
-    @ApplicationScope
-    fun provideExtrinsicService(
-        rpcCalls: RpcCalls,
-        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
-    ): jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService = jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService(rpcCalls, extrinsicBuilderFactory)
 
     @Provides
     @Named(LOCAL_STORAGE_SOURCE)
     @ApplicationScope
     fun provideLocalStorageSource(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        chainRegistry: ChainRegistry,
         storageCache: StorageCache,
-    ): StorageDataSource = LocalStorageSource(runtimeProperty, storageCache)
+    ): StorageDataSource = LocalStorageSource(chainRegistry, storageCache)
 
     @Provides
     @Named(REMOTE_STORAGE_SOURCE)
     @ApplicationScope
     fun provideRemoteStorageSource(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        connectionProperty: SuspendableProperty<SocketService>,
+        chainRegistry: ChainRegistry,
         bulkRetriever: BulkRetriever,
-    ): StorageDataSource = RemoteStorageSource(runtimeProperty, connectionProperty, bulkRetriever)
+    ): StorageDataSource = RemoteStorageSource(chainRegistry, bulkRetriever)
 
     @Provides
     @ApplicationScope
     fun provideChainStateRepository(
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    ) = ChainStateRepository(localStorageSource, runtimeProperty)
+        chainRegistry: ChainRegistry
+    ) = ChainStateRepository(localStorageSource, chainRegistry)
 
     @Provides
     @ApplicationScope
@@ -112,4 +71,10 @@ class RuntimeModule {
         chainStateRepository: ChainStateRepository,
         rpcCalls: RpcCalls,
     ) = MortalityConstructor(rpcCalls, chainStateRepository)
+
+    @Provides
+    @ApplicationScope
+    fun provideSubstrateCalls(
+        chainRegistry: ChainRegistry
+    ) = RpcCalls(chainRegistry)
 }

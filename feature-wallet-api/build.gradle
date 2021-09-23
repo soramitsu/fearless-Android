@@ -30,4 +30,6 @@ dependencies {
 
     api project(':core-api')
     api project(':core-db')
+
+    testImplementation project(':test-shared')
 }

@@ -61,7 +61,7 @@ suspend fun SecretStoreV2.getMetaAccountKeypair(
     mapKeypairStructToKeypair(keypairStruct)
 }
 
-private fun mapKeypairStructToKeypair(struct: EncodableStruct<KeyPairSchema>) : Keypair {
+private fun mapKeypairStructToKeypair(struct: EncodableStruct<KeyPairSchema>): Keypair {
     return Keypair(
         publicKey = struct[KeyPairSchema.PublicKey],
         privateKey = struct[KeyPairSchema.PrivateKey],

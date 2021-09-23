@@ -253,9 +253,8 @@ class StakingViewModel(
             selectedChain,
             stakingState
         ) {
-            addressIconGenerator.createAddressModel(selectedChain.a, sizeInDp, account.name)        }
-            .map {  }
+            addressIconGenerator.createAddressModel(selectedChain.a, sizeInDp, account.name)
+        }
+            .map { }
     }
-
-
 }

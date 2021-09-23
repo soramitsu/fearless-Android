@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
@@ -41,9 +42,9 @@ private const val KEY_TOKEN = "KEY_TOKEN"
 class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
     companion object {
-        fun getBundle(type: Token.Type): Bundle {
+        fun getBundle(assetPayload: AssetPayload): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_TOKEN, type)
+                putParcelable(KEY_TOKEN, assetPayload)
             }
         }
     }
@@ -93,7 +94,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = arguments!![KEY_TOKEN] as Token.Type
+        val token = arguments!![KEY_TOKEN] as AssetPayload
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -113,7 +114,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         viewModel.assetLiveData.observe { asset ->
             balanceDetailTokenIcon.setImageResource(asset.token.configuration.icon)
-            balanceDetailTokenName.text = asset.token.configuration.networkType.readableName
+            balanceDetailTokenName.text = asset.token.configuration.name
 
             asset.token.dollarRate?.let {
                 balanceDetailDollarGroup.visibility = View.VISIBLE

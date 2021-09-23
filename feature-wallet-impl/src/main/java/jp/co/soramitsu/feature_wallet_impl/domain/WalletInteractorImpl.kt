@@ -214,7 +214,8 @@ class WalletInteractorImpl(
     override suspend fun createFileInTempStorageAndRetrieveAsset(
         chainId: ChainId,
         chainAssetId: Int,
-        fileName: String): Result<Pair<File, Asset>> {
+        fileName: String
+    ): Result<Pair<File, Asset>> {
         return runCatching {
             val file = fileProvider.getFileInExternalCacheStorage(fileName)
 

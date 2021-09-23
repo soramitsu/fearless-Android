@@ -22,7 +22,8 @@ abstract class OperationDao {
         """
         SELECT * FROM operations WHERE $ID_FILTER
         ORDER BY (case when status = :statusUp then 0 else 1 end), time DESC
-        """)
+        """
+    )
     abstract fun observe(
         address: String,
         chainId: String,

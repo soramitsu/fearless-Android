@@ -79,18 +79,21 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         observeTransferChecks(viewModel, viewModel::warningConfirmed, viewModel::errorAcknowledged)
 
         viewModel.assetLiveData.observe {
+            val chainAsset = it.token.configuration
+
             confirmTransferBalance.text = it.available.formatTokenAmount(it.token.configuration)
-        }
 
-        with(viewModel.transferDraft) {
-            confirmTransferToken.setTextIcon(type.icon)
-            confirmTransferToken.setMessage(type.displayName)
+            with(viewModel.transferDraft) {
+                // TODO wallet - icon
+//            confirmTransferToken.setTextIcon(chainAsset.icon)
+                confirmTransferToken.setMessage(chainAsset.symbol)
 
-            confirmTransferFee.text = fee.formatTokenAmount(type)
+                confirmTransferFee.text = fee.formatTokenAmount(chainAsset)
 
-            confirmTransferTotal.text = totalTransaction.formatTokenAmount(type)
+                confirmTransferTotal.text = totalTransaction.formatTokenAmount(chainAsset)
 
-            confirmTransferAmount.setMessage(amount.toPlainString())
+                confirmTransferAmount.setMessage(amount.toPlainString())
+            }
         }
 
         viewModel.recipientModel.observe {

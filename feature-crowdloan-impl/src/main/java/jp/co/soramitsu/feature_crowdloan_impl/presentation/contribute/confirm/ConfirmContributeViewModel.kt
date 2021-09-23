@@ -161,11 +161,9 @@ class ConfirmContributeViewModel(
                 }
 
                 contributionInteractor.contribute(
-                    originAddress = selectedAddressModelFlow.first().address,
                     parachainId = payload.paraId,
                     contribution = payload.amount,
-                    token = assetFlow.first().token,
-                    additionalSubmission
+                    additional = additionalSubmission
                 )
             }
                 .onFailure(::showError)

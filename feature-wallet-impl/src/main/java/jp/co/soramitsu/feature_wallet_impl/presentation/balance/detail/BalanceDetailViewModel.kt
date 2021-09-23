@@ -7,12 +7,12 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
@@ -23,8 +23,7 @@ import kotlinx.coroutines.launch
 class BalanceDetailViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
-    private val chainId: ChainId,
-    private val assetId: Int,
+    private val assetPayload: AssetPayload,
     private val buyMixin: BuyMixin.Presentation,
     private val transactionHistoryMixin: TransactionHistoryMixin,
 ) : BaseViewModel(),
@@ -39,7 +38,7 @@ class BalanceDetailViewModel(
 
     val assetLiveData = currentAssetFlow().asLiveData()
 
-    val buyEnabled = buyMixin.isBuyEnabled(chainId, assetId                                         )
+    val buyEnabled = buyMixin.isBuyEnabled(assetPayload.chainId, assetPayload.chainAssetId)
 
     override fun onCleared() {
         super.onCleared()
@@ -85,7 +84,7 @@ class BalanceDetailViewModel(
 
     fun buyClicked() {
         viewModelScope.launch {
-            buyMixin.buyClicked(chainId, assetId)
+            buyMixin.buyClicked(assetPayload.chainId, assetPayload.chainAssetId)
         }
     }
 
@@ -96,7 +95,7 @@ class BalanceDetailViewModel(
     }
 
     private fun currentAssetFlow(): Flow<AssetModel> {
-        return interactor.assetFlow(chainId, assetId)
+        return interactor.assetFlow(assetPayload.chainId, assetPayload.chainAssetId)
             .map { mapAssetToAssetModel(it) }
     }
 }

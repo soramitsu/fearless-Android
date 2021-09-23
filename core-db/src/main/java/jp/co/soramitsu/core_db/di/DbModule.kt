@@ -13,6 +13,7 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
@@ -95,9 +96,16 @@ class DbModule {
     fun provideStakingTotalRewardDao(appDatabase: AppDatabase): StakingTotalRewardDao {
         return appDatabase.stakingTotalRewardDao()
     }
+
     @Provides
     @ApplicationScope
     fun provideChainDao(appDatabase: AppDatabase): ChainDao {
         return appDatabase.chainDao()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideMetaAccountDao(appDatabase: AppDatabase): MetaAccountDao {
+        return appDatabase.metaAccountDao()
     }
 }

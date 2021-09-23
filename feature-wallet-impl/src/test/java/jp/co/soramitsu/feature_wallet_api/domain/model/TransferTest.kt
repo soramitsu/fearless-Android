@@ -1,17 +1,28 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import java.math.BigDecimal
 
-private val TOKEN_TYPE = Token.Type.WND
 private val EXISTENTIAL_DEPOSIT = BigDecimal("0.01").setScale(10)
 
 @Suppress("UnnecessaryVariable")
 @RunWith(MockitoJUnitRunner::class)
 class TransferTest {
+
+    @Mock
+    lateinit var chainAsset: Chain.Asset
+
+    @Before
+    fun setup() {
+        `when`(chainAsset.precision).thenReturn(18)
+    }
 
     @Test
     fun `should find ok status`() {
@@ -83,5 +94,5 @@ class TransferTest {
         assertEquals(status, TransferValidityLevel.Error.Status.DeadRecipient)
     }
 
-    private fun createTransfer(amount: BigDecimal) = Transfer("test", amount, TOKEN_TYPE)
+    private fun createTransfer(amount: BigDecimal) = Transfer("test", amount, chainAsset)
 }

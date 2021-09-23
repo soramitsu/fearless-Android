@@ -62,6 +62,7 @@ val MigrateStorageCacheToChainId_27_28 = object : Migration(27, 28) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("DROP TABLE storage")
 
+        // TODO migrations
         database.execSQL(
             """
             CREATE TABLE `storage` (

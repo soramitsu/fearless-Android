@@ -26,7 +26,7 @@ class MakePayoutValidationsModule {
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
                 originAddressExtractor = { it.originAddress },
-                tokenTypeExtractor = { it.tokenType }
+                chainAssetExtractor = { it.chainAsset }
             ),
             errorProducer = { PayoutValidationFailure.CannotPayFee }
         )

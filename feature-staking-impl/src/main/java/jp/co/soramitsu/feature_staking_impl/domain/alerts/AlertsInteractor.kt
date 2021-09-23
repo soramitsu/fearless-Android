@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.minimumStake
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.runtime.state.chainAndAsset
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -79,7 +80,7 @@ class AlertsInteractor(
             val minimalStakeInPlanks = minimumStake(exposures.values, minimumNominatorBond)
 
             if (
-                // do not show alert for validators
+            // do not show alert for validators
                 state !is StakingState.Stash.Validator &&
                 asset.bondedInPlanks < minimalStakeInPlanks &&
                 // prevent alert for situation where all tokens are being unbounded
@@ -112,15 +113,15 @@ class AlertsInteractor(
     )
 
     fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = flow {
-        val chain = stakingState.chain
+        val (chain, chainAsset) = sharedState.chainAndAsset()
 
-        val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator()
+        val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id)
         val minimumNominatorBond = stakingRepository.minimumNominatorBond(chain.id)
 
         val alertsFlow = combine(
             stakingRepository.electedExposuresInActiveEra(chain.id),
-            walletRepository.assetFlow(c),
-            stakingRepository.observeActiveEraIndex(networkType)
+            walletRepository.assetFlow(stakingState.accountId, chainAsset),
+            stakingRepository.observeActiveEraIndex(chain.id)
         ) { exposures, asset, activeEra ->
 
             val context = AlertContext(

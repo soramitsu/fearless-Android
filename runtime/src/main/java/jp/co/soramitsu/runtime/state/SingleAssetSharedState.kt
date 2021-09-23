@@ -22,3 +22,5 @@ interface SingleAssetSharedState : ChainIdHolder {
 suspend fun SingleAssetSharedState.chain() = selectedAsset.first().chain
 
 suspend fun SingleAssetSharedState.chainAsset() = selectedAsset.first().asset
+
+suspend fun SingleAssetSharedState.chainAndAsset() = selectedAsset.first()

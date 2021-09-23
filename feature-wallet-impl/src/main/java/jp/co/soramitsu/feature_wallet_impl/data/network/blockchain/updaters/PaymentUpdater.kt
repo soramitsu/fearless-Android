@@ -9,10 +9,10 @@ import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.model.OperationLocal
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
@@ -25,6 +25,7 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -36,17 +37,16 @@ class PaymentUpdater(
     private val assetCache: AssetCache,
     private val operationDao: OperationDao,
     private val chainRegistry: ChainRegistry,
-    override val scope: AccountUpdateScope
+    override val scope: AccountUpdateScope,
+    private val chainId: ChainId = Node.NetworkType.POLKADOT.chainId,
 ) : Updater {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
-        val chainId = Node.NetworkType.POLKADOT.chainId
-
-        val accountId = scope.getAccount(chainId).accountIdHex.fromHex()
         val chain = chainRegistry.getChain(chainId)
 
+        val accountId = scope.getAccount().accountIdIn(chain)!!
         val runtime = chainRegistry.getRuntime(chainId)
 
         val key = runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
@@ -64,7 +64,7 @@ class PaymentUpdater(
     }
 
     private suspend fun fetchTransfers(blockHash: String, chain: Chain, accountId: AccountId) {
-        val result = substrateSource.fetchAccountTransfersInBlock(blockHash, accountId)
+        val result = substrateSource.fetchAccountTransfersInBlock(chainId, blockHash, accountId)
 
         val blockTransfers = result.getOrNull() ?: return
 

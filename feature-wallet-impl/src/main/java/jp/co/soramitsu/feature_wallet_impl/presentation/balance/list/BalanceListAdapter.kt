@@ -77,7 +77,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
 
     fun bind(asset: AssetModel, itemHandler: BalanceListAdapter.ItemAssetHandler) = with(containerView) {
         itemAssetImage.setImageResource(asset.token.configuration.icon)
-        itemAssetNetwork.text = asset.token.configuration.networkType.readableName
+        itemAssetNetwork.text = asset.token.configuration.name
 
         bindDollarInfo(asset)
 
@@ -85,7 +85,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
 
         bindTotal(asset)
 
-        itemAssetToken.text = asset.token.configuration.displayName
+        itemAssetToken.text = asset.token.configuration.symbol
 
         setOnClickListener { itemHandler.assetClicked(asset) }
     }

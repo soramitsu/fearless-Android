@@ -93,6 +93,6 @@ class RpcCalls(
     suspend fun getBlockHash(chainId: ChainId, blockNumber: BlockNumber? = null): String {
         return socketFor(chainId).executeAsync(GetBlockHashRequest(blockNumber), mapper = pojo<String>().nonNull())
     }
-    
+
     private fun socketFor(chainId: ChainId) = chainRegistry.getConnection(chainId).socketService
 }

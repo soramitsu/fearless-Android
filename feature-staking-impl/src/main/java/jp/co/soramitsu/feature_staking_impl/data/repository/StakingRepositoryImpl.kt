@@ -166,7 +166,7 @@ class StakingRepositoryImpl(
     )
 
     override suspend fun getValidatorPrefs(
-        chainId: ChainId, 
+        chainId: ChainId,
         accountIdsHex: List<String>,
     ): AccountIdMap<ValidatorPrefs?> {
         return remoteStorage.queryKeys(
@@ -284,7 +284,7 @@ class StakingRepositoryImpl(
         ).filterNotNull()
     }
 
-    override suspend fun ledger(chainId: ChainId,address: String) = remoteStorage.query(
+    override suspend fun ledger(chainId: ChainId, address: String) = remoteStorage.query(
         keyBuilder = { it.metadata.staking().storage("Ledger").storageKey(it, address.toAccountId()) },
         binding = { scale, runtime -> scale?.let { bindStakingLedger(it, runtime) } },
         chainId = chainId

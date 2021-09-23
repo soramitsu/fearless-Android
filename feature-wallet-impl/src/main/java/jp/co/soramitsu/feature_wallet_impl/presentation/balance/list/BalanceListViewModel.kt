@@ -13,6 +13,7 @@ import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
@@ -49,7 +50,7 @@ class BalanceListViewModel(
     private val primaryTokenLiveData = balanceLiveData.map { it.assetModels.first().token.configuration }
 
     val buyEnabledLiveData = primaryTokenLiveData.map(initial = false) {
-        buyMixin.isBuyEnabled(it)
+        buyMixin.isBuyEnabled(it.chainId, it.id)
     }
 
     fun sync() {
@@ -83,7 +84,12 @@ class BalanceListViewModel(
     }
 
     fun assetClicked(asset: AssetModel) {
-        router.openAssetDetails(asset.token.configuration)
+        val payload = AssetPayload(
+            chainId =  asset.token.configuration.chainId,
+            chainAssetId = asset.token.configuration.id
+        )
+
+        router.openAssetDetails(payload)
     }
 
     fun sendClicked() {
@@ -95,10 +101,10 @@ class BalanceListViewModel(
     }
 
     fun buyClicked() {
-        val address = currentAddressModelLiveData.value?.address ?: return
-        val token = primaryTokenLiveData.value ?: return
-
-        buyMixin.buyClicked(token, address)
+//        val address = currentAddressModelLiveData.value?.address ?: return
+//        val token = primaryTokenLiveData.value ?: return
+//
+//        buyMixin.buyClicked(token, address)
     }
 
     fun avatarClicked() {

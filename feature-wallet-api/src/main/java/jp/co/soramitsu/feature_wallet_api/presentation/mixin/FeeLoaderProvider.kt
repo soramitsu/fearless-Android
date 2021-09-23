@@ -1,16 +1,14 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.common.mixin
+package jp.co.soramitsu.feature_wallet_api.presentation.mixin
 
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.mixin.api.RetryPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
-import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.CoroutineScope

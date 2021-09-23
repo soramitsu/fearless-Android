@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
@@ -16,10 +17,10 @@ class AssetUseCaseImpl(
     override fun currentAssetFlow() = combineTransform(
         accountRepository.selectedMetaAccountFlow(),
         sharedState.selectedAsset
-    ) { selectedMetaAccount, (_, chainAsset) ->
+    ) { selectedMetaAccount, (chain, chainAsset) ->
         emitAll(
             walletRepository.assetFlow(
-                metaId = selectedMetaAccount.id,
+                accountId= selectedMetaAccount.accountIdIn(chain)!!,
                 chainAsset = chainAsset
             )
         )

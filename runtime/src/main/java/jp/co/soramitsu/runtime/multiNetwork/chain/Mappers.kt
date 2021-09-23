@@ -15,7 +15,7 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
-private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Section.Type) : String = sectionType.name
+private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Section.Type): String = sectionType.name
 private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
 
 fun mapChainRemoteToChain(

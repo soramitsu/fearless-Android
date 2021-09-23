@@ -4,4 +4,3 @@ interface ChainIdHolder {
 
     suspend fun chainId(): String
 }
-

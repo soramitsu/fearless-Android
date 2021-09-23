@@ -2,15 +2,9 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.karura
 
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
-import jp.co.soramitsu.common.utils.toAddress
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
-import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.karura.KaruraApi
-import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.karura.VerifyKaruraParticipationRequest
 import java.math.BigDecimal
 
 class KaruraContributeInteractor(
@@ -20,36 +14,35 @@ class KaruraContributeInteractor(
     val fearlessReferralCode: String,
 ) {
 
+    // TODO crowdloan
     suspend fun registerInBonusProgram(referralCode: String, amount: BigDecimal): Result<Unit> = runCatching {
         httpExceptionHandler.wrap {
-            val selectedAccount = accountRepository.getSelectedAccount()
-
-            val networkType = selectedAccount.network.type
-
-            val accountAddress = when (networkType) {
-                // karura backend requires kusama address even in rococo
-                Node.NetworkType.ROCOCO -> selectedAccount.address.toAccountId().toAddress(Node.NetworkType.KUSAMA)
-                else -> selectedAccount.address
-            }
-
-            val token = Token.Type.fromNetworkType(networkType)
-
-            val amountInPlanks = token.planksFromAmount(amount)
-
-            val baseUrl = KaruraApi.getBaseUrl(networkType)
-
-            val statement = karuraApi.getStatement(baseUrl).statement
-
-            val signature = accountRepository.signWithAccount(selectedAccount, statement.toByteArray())
-
-            val request = VerifyKaruraParticipationRequest(
-                address = accountAddress,
-                amount = amountInPlanks,
-                referral = referralCode,
-                signature = signature.toHexString(withPrefix = true)
-            )
-
-            karuraApi.applyForBonus(baseUrl, request)
+//            val selectedAccount = accountRepository.getSelectedMetaAccount()
+//
+//            val accountAddress = when (networkType) {
+//                // karura backend requires kusama address even in rococo
+//                Node.NetworkType.ROCOCO -> selectedAccount.address.toAccountId().toAddress(Node.NetworkType.KUSAMA)
+//                else -> selectedAccount.address
+//            }
+//
+//            val (chain, chainAsset) = crowdloanSharedState.chainAndAsset()
+//
+//            val amountInPlanks = chainAsset.planksFromAmount(amount)
+//
+//            val baseUrl = KaruraApi.getBaseUrl(networkType)
+//
+//            val statement = karuraApi.getStatement(baseUrl).statement
+//
+//            val signature = accountRepository.signWithAccount(selectedAccount, statement.toByteArray())
+//
+//            val request = VerifyKaruraParticipationRequest(
+//                address = accountAddress,
+//                amount = amountInPlanks,
+//                referral = referralCode,
+//                signature = signature.toHexString(withPrefix = true)
+//            )
+//
+//            karuraApi.applyForBonus(baseUrl, request)
         }
     }
 

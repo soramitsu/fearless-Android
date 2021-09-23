@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.networkType
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
@@ -32,7 +33,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChe
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -65,8 +65,7 @@ class ChooseAmountViewModel(
     private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val walletConstants: WalletConstants,
     private val recipientAddress: String,
-    private val chainId: ChainId,
-    private val chainAssetId: Int,
+    private val assetPayload: AssetPayload,
     private val phishingAddress: PhishingWarningMixin
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
@@ -95,7 +94,7 @@ class ChooseAmountViewModel(
     val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
 
     val assetLiveData = liveData {
-        val asset = interactor.getCurrentAsset()
+        val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
 
         emit(mapAssetToAssetModel(asset))
     }
@@ -180,7 +179,7 @@ class ChooseAmountViewModel(
         .distinctUntilChanged()
         .onEach { _feeLoadingLiveData.postValue(true) }
         .mapLatest<BigDecimal, Fee?> { amount ->
-            val asset = interactor.getCurrentAsset()
+            val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
             val transfer = Transfer(recipientAddress, amount, asset.token.configuration)
 
             interactor.getTransferFee(transfer)
@@ -204,7 +203,7 @@ class ChooseAmountViewModel(
         checkingEnoughFundsLiveData.value = true
 
         viewModelScope.launch {
-            val asset = interactor.getCurrentAsset()
+            val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
             val transfer = Transfer(recipientAddress, fee.transferAmount, asset.token.configuration)
 
             val result = interactor.checkTransferValidityStatus(transfer)
@@ -235,9 +234,8 @@ class ChooseAmountViewModel(
 
     private fun buildTransferDraft(): TransferDraft? {
         val fee = feeLiveData.value ?: return null
-        val asset = assetLiveData.value ?: return null
 
-        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token.configuration, recipientAddress)
+        return TransferDraft(fee.transferAmount, fee.feeAmount, assetPayload, recipientAddress)
     }
 
     private fun retryLoadFee() {

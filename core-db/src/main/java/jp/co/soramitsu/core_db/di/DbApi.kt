@@ -5,6 +5,7 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
@@ -35,4 +36,6 @@ interface DbApi {
     fun stakingTotalRewardDao(): StakingTotalRewardDao
 
     fun chainDao(): ChainDao
+
+    fun metaAccountDao(): MetaAccountDao
 }

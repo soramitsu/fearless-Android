@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
@@ -90,7 +89,6 @@ class StakingUpdatersModule {
     @FeatureScope
     fun provideStakingLedgerUpdater(
         stakingRepository: StakingRepository,
-        socketProperty: SuspendableProperty<SocketService>,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountStakingDao: AccountStakingDao,
         assetCache: AssetCache,
@@ -98,7 +96,6 @@ class StakingUpdatersModule {
         accountUpdateScope: AccountUpdateScope
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
-            socketProperty,
             stakingRepository,
             runtimeProperty,
             accountStakingDao,

@@ -85,7 +85,7 @@ class ChainRegistry(
     suspend fun getChain(chainId: String) = chainsById.first().getValue(chainId)
 }
 
-suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: Int) : Pair<Chain, Chain.Asset> {
+suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: Int): Pair<Chain, Chain.Asset> {
     val chain = chainsById.first().getValue(chainId)
 
     return chain to chain.assetsById.getValue(assetId)

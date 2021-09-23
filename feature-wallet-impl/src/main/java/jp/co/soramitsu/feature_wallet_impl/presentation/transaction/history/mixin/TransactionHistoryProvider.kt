@@ -71,7 +71,12 @@ class TransactionHistoryProvider(
     }
 
     override suspend fun syncFirstOperationsPage(): Result<*> {
-        return walletInteractor.syncOperationsFirstPage(TransactionStateMachine.PAGE_SIZE, filters = historyFiltersProvider.allFilters)
+        return walletInteractor.syncOperationsFirstPage(
+            chainId = chainId,
+            chainAssetId = assetId,
+            pageSize = TransactionStateMachine.PAGE_SIZE,
+            filters = historyFiltersProvider.allFilters
+        )
     }
 
     override fun transactionClicked(transactionModel: OperationModel) {
@@ -122,7 +127,7 @@ class TransactionHistoryProvider(
 
     private fun loadNewPage(sideEffect: TransactionStateMachine.SideEffect.LoadPage) {
         launch {
-            walletInteractor.getOperations(sideEffect.pageSize, sideEffect.nextCursor, sideEffect.filters)
+            walletInteractor.getOperations(chainId, assetId, sideEffect.pageSize, sideEffect.nextCursor, sideEffect.filters)
                 .onFailure {
                     performTransition(Action.PageError(error = it))
                 }.onSuccess {

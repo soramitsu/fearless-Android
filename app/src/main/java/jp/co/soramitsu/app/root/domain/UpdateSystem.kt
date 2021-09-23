@@ -1,36 +1,38 @@
 package jp.co.soramitsu.app.root.domain
 
 import jp.co.soramitsu.common.data.network.StorageSubscriptionBuilder
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.hasModule
+import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.subscribeUsing
-import jp.co.soramitsu.runtime.RuntimeUpdater
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.runtime.multiNetwork.getSocket
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
 
+// TODO update system - split
 class UpdateSystem(
-    private val runtimeUpdater: RuntimeUpdater,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val updaters: List<Updater>,
-    private val socketProperty: SuspendableProperty<SocketService>,
+    private val chainRegistry: ChainRegistry,
 ) {
 
-    init {
-        runtimeUpdater.sync()
-    }
+    fun start(): Flow<Updater.SideEffect> = flow {
+        val firstChain = chainRegistry.getChain(Node.NetworkType.POLKADOT.chainId)
+        val socket = chainRegistry.getSocket(firstChain.id)
+        val runtime = chainRegistry.getRuntime(firstChain.id)
 
-    fun start(): Flow<Updater.SideEffect> = socketProperty.observe().flatMapLatest { socket ->
         val scopeFlows = updaters.groupBy(Updater::scope).map { (scope, scopeUpdaters) ->
             scope.invalidationFlow().flatMapLatest {
-                val runtimeMetadata = runtimeProperty.get().metadata
+                val runtimeMetadata = runtime.metadata
 
                 val subscriptionBuilder = StorageSubscriptionBuilder.create(socket)
 
@@ -48,6 +50,7 @@ class UpdateSystem(
             }
         }
 
-        scopeFlows.merge()
+        emitAll(scopeFlows.merge())
+
     }.flowOn(Dispatchers.Default)
 }

@@ -191,9 +191,6 @@ fun mapNodeToOperation(
 
 private val Chain.Asset.extrinsicIcon
     get() = when (this) {
-//        Token.Type.DOT -> R.drawable.ic_extrinsic_polkadot
-//        Token.Type.KSM -> R.drawable.ic_extrinsic_kusama
-//        Token.Type.WND -> R.drawable.ic_extrinsic_westend
         else -> R.drawable.ic_extrinsic_polkadot // TODO wallet - extrinsicIcon
     }
 

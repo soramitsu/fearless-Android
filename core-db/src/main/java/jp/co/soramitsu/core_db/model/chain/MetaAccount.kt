@@ -98,4 +98,4 @@ class EmbeddedJoinedMetaAccountInfo(
 
     @Embedded
     override val chainAccounts: List<ChainAccountLocal>,
-): JoinedMetaAccountInfo
+) : JoinedMetaAccountInfo

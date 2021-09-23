@@ -17,12 +17,10 @@ import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
 import jp.co.soramitsu.fearless_utils.wsrpc.request.RequestExecutor
-import jp.co.soramitsu.runtime.rpc.RpcCalls
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -130,21 +128,9 @@ class NetworkModule {
     ) = SocketSingleRequestExecutor(mapper, logger, socketFactory, resourceManager)
 
     @Provides
-    fun provideNetworkStateMixin(
-        socketProperty: SuspendableProperty<SocketService>
-    ): NetworkStateMixin = NetworkStateProvider(socketProperty)
+    fun provideNetworkStateMixin(): NetworkStateMixin = NetworkStateProvider()
 
     @Provides
     @ApplicationScope
     fun provideJsonMapper() = Gson()
-
-    @Provides
-    @ApplicationScope
-    fun provideSubstrateCalls(
-        socketProperty: SuspendableProperty<SocketService>
-    ) = jp.co.soramitsu.runtime.rpc.RpcCalls(socketProperty)
-
-    @Provides
-    @ApplicationScope
-    fun provideSocketProperty() = SuspendableProperty<SocketService>()
 }
