@@ -4,17 +4,17 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
-import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositoryImpl
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeModule
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
@@ -31,12 +31,12 @@ class CrowdloanFeatureModule {
     fun crowdloanRepository(
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         crowdloanMetadataApi: ParachainMetadataApi,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        chainRegistry: ChainRegistry,
         accountRepository: AccountRepository,
     ): CrowdloanRepository = CrowdloanRepositoryImpl(
         remoteStorageSource,
         accountRepository,
-        runtimeProperty,
+        chainRegistry,
         crowdloanMetadataApi
     )
 
@@ -45,8 +45,14 @@ class CrowdloanFeatureModule {
     fun provideCrowdloanInteractor(
         accountRepository: AccountRepository,
         crowdloanRepository: CrowdloanRepository,
+        sharedState: CrowdloanSharedState,
         chainStateRepository: ChainStateRepository
-    ) = CrowdloanInteractor(accountRepository, crowdloanRepository, chainStateRepository)
+    ) = CrowdloanInteractor(
+        accountRepository,
+        crowdloanRepository,
+        sharedState,
+        chainStateRepository
+    )
 
     @Provides
     @FeatureScope
@@ -58,15 +64,15 @@ class CrowdloanFeatureModule {
     @FeatureScope
     fun provideCrowdloanContributeInteractor(
         extrinsicService: ExtrinsicService,
-        feeEstimator: FeeEstimator,
         accountRepository: AccountRepository,
         chainStateRepository: ChainStateRepository,
+        sharedState: CrowdloanSharedState,
         crowdloanRepository: CrowdloanRepository
     ) = CrowdloanContributeInteractor(
         extrinsicService,
-        feeEstimator,
         accountRepository,
         chainStateRepository,
+        sharedState,
         crowdloanRepository
     )
 }

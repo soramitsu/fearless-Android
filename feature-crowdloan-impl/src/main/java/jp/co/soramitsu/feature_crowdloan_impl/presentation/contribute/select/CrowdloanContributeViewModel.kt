@@ -238,12 +238,12 @@ class CrowdloanContributeViewModel(
     private fun loadFee(amount: BigDecimal, bonusActiveState: CustomContributionState.Active?) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { token ->
+            feeConstructor = {
                 val additionalSubmission = bonusActiveState?.let {
                     additionalOnChainSubmission(it.payload, it.customFlow, amount, customContributeManager)
                 }
 
-                contributionInteractor.estimateFee(payload.paraId, amount, token, additionalSubmission)
+                contributionInteractor.estimateFee(payload.paraId, amount, additionalSubmission)
             },
             onRetryCancelled = ::backClicked
         )

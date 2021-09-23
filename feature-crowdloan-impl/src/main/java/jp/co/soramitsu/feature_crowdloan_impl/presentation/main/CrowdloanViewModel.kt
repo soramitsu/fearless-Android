@@ -8,10 +8,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.formatTimeLeft
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
@@ -23,6 +23,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -36,6 +39,7 @@ class CrowdloanViewModel(
     private val assetUseCase: AssetUseCase,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
+    private val crowdloanSharedState: CrowdloanSharedState,
     private val router: CrowdloanRouter
 ) : BaseViewModel() {
 
@@ -43,7 +47,7 @@ class CrowdloanViewModel(
         .share()
 
     val mainDescription = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.displayName)
+        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.symbol)
     }
 
     private val groupedCrowdloansFlow = interactor.crowdloansFlow()
@@ -56,9 +60,11 @@ class CrowdloanViewModel(
         .share()
 
     val crowdloanModelsFlow = groupedCrowdloansFlow.combine(assetFlow) { groupedCrowdloans, asset ->
+        val chain = crowdloanSharedState.chain()
+
         groupedCrowdloans
             .mapKeys { (statusClass, values) -> mapCrowdloanStatusToUi(statusClass, values.size) }
-            .mapValues { (_, crowdloans) -> crowdloans.map { mapCrowdloanToCrowdloanModel(it, asset) } }
+            .mapValues { (_, crowdloans) -> crowdloans.map { mapCrowdloanToCrowdloanModel(chain, it, asset) } }
             .toListWithHeaders()
     }
         .withLoading()
@@ -79,13 +85,17 @@ class CrowdloanViewModel(
         }
     }
 
-    private suspend fun mapCrowdloanToCrowdloanModel(crowdloan: Crowdloan, asset: Asset): CrowdloanModel {
+    private suspend fun mapCrowdloanToCrowdloanModel(
+        chain: Chain,
+        crowdloan: Crowdloan,
+        asset: Asset
+    ): CrowdloanModel {
         val token = asset.token
 
         val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
         val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
 
-        val depositorAddress = crowdloan.fundInfo.depositor.toAddress(token.configuration.networkType)
+        val depositorAddress = chain.addressOf(crowdloan.fundInfo.depositor)
 
         val icon = if (crowdloan.parachainMetadata != null) {
             CrowdloanModel.Icon.FromLink(crowdloan.parachainMetadata.iconLink)
