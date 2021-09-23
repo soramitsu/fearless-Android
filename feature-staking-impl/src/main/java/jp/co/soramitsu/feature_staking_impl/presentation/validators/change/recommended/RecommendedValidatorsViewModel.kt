@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -21,6 +22,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setRecommendedValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -80,8 +82,10 @@ class RecommendedValidatorsViewModel(
         validators: List<Validator>,
         token: Token
     ): List<ValidatorModel> {
+        val chain = interactor.getSelectedChain()
+
         return validators.map {
-            mapValidatorToValidatorModel(it, addressIconGenerator, token)
+            mapValidatorToValidatorModel(chain, it, addressIconGenerator, token)
         }
     }
 

@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsToErrors
@@ -48,7 +49,9 @@ class ValidatorDetailsViewModel(
         .inBackground()
 
     val validatorDetails = maxNominators.combine(assetFlow) { maxNominators, asset ->
-        mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset, maxNominators, iconGenerator, resourceManager)
+        val chain = interactor.getSelectedChain()
+
+        mapValidatorDetailsParcelToValidatorDetailsModel(chain, validator, asset, maxNominators, iconGenerator, resourceManager)
     }
         .inBackground()
         .asLiveData()

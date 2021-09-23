@@ -8,24 +8,19 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
-import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -35,15 +30,7 @@ import javax.inject.Named
 
 interface StakingFeatureDependencies {
 
-    fun tokenUseCase(): TokenUseCase
-
     fun computationalCache(): ComputationalCache
-
-    fun feeLoaderMixin(): FeeLoaderMixin.Presentation
-
-    fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
-
-    fun connectionProperty(): SuspendableProperty<SocketService>
 
     fun accountRepository(): AccountRepository
 
@@ -84,8 +71,6 @@ interface StakingFeatureDependencies {
     fun gson(): Gson
 
     fun addressxDisplayUseCase(): AddressDisplayUseCase
-
-    fun feeEstimator(): FeeEstimator
 
     fun extrinsicService(): ExtrinsicService
 

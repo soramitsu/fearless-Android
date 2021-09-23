@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
@@ -27,6 +28,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.Valid
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -81,8 +84,13 @@ class SelectCustomValidatorsViewModel(
         shownValidators,
         selectedValidators,
         tokenFlow,
-        ::convertToModels
-    ).inBackground().share()
+    ) { shown, selected, token ->
+        val chain = interactor.getSelectedChain()
+
+        convertToModels(chain, shown, selected, token)
+    }
+        .inBackground()
+        .share()
 
     val selectedTitle = shownValidators.map {
         resourceManager.getString(R.string.staking_custom_header_validators_title, it.size, recommendator().availableValidators.size)
@@ -196,12 +204,14 @@ class SelectCustomValidatorsViewModel(
     }
 
     private suspend fun convertToModels(
+        chain: Chain,
         validators: List<Validator>,
         selectedValidators: Set<Validator>,
-        token: Token
+        token: Token,
     ): List<ValidatorModel> {
         return validators.map { validator ->
             mapValidatorToValidatorModel(
+                chain = chain,
                 validator = validator,
                 createIcon = {
                     iconsCache.getOrPut(it) {

@@ -5,19 +5,23 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.error.accountIdNotFound
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class RewardCalculatorFactory(
-    private val stakingRepository: StakingRepository
+    private val stakingRepository: StakingRepository,
+    private val sharedState: StakingSharedState,
 ) {
 
     suspend fun create(
         exposures: AccountIdMap<Exposure>,
         validatorsPrefs: AccountIdMap<ValidatorPrefs?>
     ): RewardCalculator = withContext(Dispatchers.Default) {
-        val totalIssuance = stakingRepository.getTotalIssuance()
+        val chainId = sharedState.chainId()
+
+        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
 
         val validators = exposures.keys.mapNotNull { accountIdHex ->
             val exposure = exposures[accountIdHex] ?: accountIdNotFound(accountIdHex)
@@ -39,8 +43,10 @@ class RewardCalculatorFactory(
     }
 
     suspend fun create(): RewardCalculator = withContext(Dispatchers.Default) {
-        val exposures = stakingRepository.getActiveElectedValidatorsExposures()
-        val validatorsPrefs = stakingRepository.getValidatorPrefs(exposures.keys.toList())
+        val chainId = sharedState.chainId()
+
+        val exposures = stakingRepository.getActiveElectedValidatorsExposures(chainId)
+        val validatorsPrefs = stakingRepository.getValidatorPrefs(chainId, exposures.keys.toList())
 
         create(exposures, validatorsPrefs)
     }

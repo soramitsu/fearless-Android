@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.domain
+package jp.co.soramitsu.feature_wallet_api.domain.implementations
 
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn

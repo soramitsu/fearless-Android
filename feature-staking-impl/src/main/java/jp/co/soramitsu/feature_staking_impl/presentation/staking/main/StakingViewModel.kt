@@ -31,6 +31,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.Stak
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.cancelChildren
@@ -158,7 +159,7 @@ class StakingViewModel(
     }
 
     private fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {
-        val formattedFiat = token.fiatAmount(amount).formatAsCurrency()
+        val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency()
         val formattedAmount = amount.formatTokenAmount(token.configuration)
 
         return buildString {
@@ -249,12 +250,8 @@ class StakingViewModel(
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
-        return combine(
-            selectedChain,
-            stakingState
-        ) {
-            addressIconGenerator.createAddressModel(selectedChain.a, sizeInDp, account.name)
+        return interactor.selectedAccountProjectionFlow().map {
+            addressIconGenerator.createAddressModel(it.address, CURRENT_ICON_SIZE, it.name)
         }
-            .map { }
     }
 }

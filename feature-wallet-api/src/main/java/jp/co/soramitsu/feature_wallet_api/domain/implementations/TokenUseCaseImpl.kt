@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.domain
+package jp.co.soramitsu.feature_wallet_api.domain.implementations
 
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository

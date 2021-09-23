@@ -5,6 +5,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.ProfitablePayoutValidation
@@ -19,6 +20,7 @@ class MakePayoutValidationsModule {
     @Provides
     @FeatureScope
     fun provideFeeValidation(
+        stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository,
     ): PayoutFeeValidation {
         return EnoughToPayFeesValidation(
@@ -26,7 +28,8 @@ class MakePayoutValidationsModule {
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
                 originAddressExtractor = { it.originAddress },
-                chainAssetExtractor = { it.chainAsset }
+                chainAssetExtractor = { it.chainAsset },
+                stakingSharedState = stakingSharedState
             ),
             errorProducer = { PayoutValidationFailure.CannotPayFee }
         )

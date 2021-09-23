@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.validators.current.search
 
 import android.annotation.SuppressLint
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
@@ -12,7 +11,6 @@ import kotlinx.coroutines.withContext
 
 class SearchCustomValidatorsInteractor(
     private val validatorProvider: ValidatorProvider,
-    private val accountRepository: AccountRepository,
     private val sharedState: StakingSharedState
 ) {
 

@@ -5,6 +5,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.NotZeroBalanceValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.IsNotControllerAccountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerFeeValidation
@@ -29,20 +30,24 @@ class SetControllerValidationsModule {
     @FeatureScope
     @Provides
     fun provideControllerValidation(
+        stakingSharedState: StakingSharedState,
         stakingRepository: StakingRepository
     ) = IsNotControllerAccountValidation(
         stakingRepository = stakingRepository,
         controllerAddressProducer = { it.controllerAddress },
-        errorProducer = { SetControllerValidationFailure.ALREADY_CONTROLLER }
+        errorProducer = { SetControllerValidationFailure.ALREADY_CONTROLLER },
+        sharedState = stakingSharedState
     )
 
     @FeatureScope
     @Provides
     fun provideZeroBalanceControllerValidation(
+        stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository
     ): NotZeroBalanceValidation {
         return NotZeroBalanceValidation(
-            walletRepository = walletRepository
+            walletRepository = walletRepository,
+            stakingSharedState = stakingSharedState
         )
     }
 
