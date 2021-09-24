@@ -37,7 +37,8 @@ fun chainOf(
     types = null,
     prefix = 0,
     isTestNet = false,
-    isEthereumBased = false
+    isEthereumBased = false,
+    externalApi = null
 )
 
 fun ChainLocal.nodeOf(
@@ -56,7 +57,8 @@ fun ChainLocal.assetOf(
     chainId = id,
     symbol = symbol,
     id = assetId,
-    precision = 10
+    precision = 10,
+    priceId = null
 )
 
 suspend fun ChainDao.addChain(joinedChainInfo: JoinedChainInfo) {

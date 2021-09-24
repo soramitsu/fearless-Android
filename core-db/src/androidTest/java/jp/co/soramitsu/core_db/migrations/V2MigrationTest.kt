@@ -229,7 +229,8 @@ class V2MigrationTest {
                 ethereumPublicKey = getBlob(getColumnIndex(Column.ETHEREUM_PUBKEY)),
                 ethereumAddress = getString(getColumnIndex(Column.ETHEREUM_ADDRESS)),
                 name = getString(getColumnIndex(Column.NAME)),
-                isSelected = getInt(getColumnIndex(Column.IS_SELECTED)) == 1
+                isSelected = getInt(getColumnIndex(Column.IS_SELECTED)) == 1,
+                position = getInt(getColumnIndex(Column.POSITION))
             )
 
             metaAccount.id = getLong(getColumnIndex(Column.ID))

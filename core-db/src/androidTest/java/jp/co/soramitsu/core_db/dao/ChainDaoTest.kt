@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import jp.co.soramitsu.core_db.AppDatabase
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -38,6 +39,20 @@ class ChainDaoTest : DaoTest<ChainDao>(AppDatabase::chainDao){
 
         val nodesCursor = db.query("SELECT * FROM chain_nodes", emptyArray())
         assertEquals(0, nodesCursor.count)
+    }
+
+    @Test
+    fun shouldNotDeleteRuntimeCacheEntryAfterChainUpdate() = runBlocking {
+        val chainInfo = createTestChain("0x00")
+
+        dao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
+        dao.updateRemoteRuntimeVersion(chainInfo.chain.id, remoteVersion = 1)
+
+        dao.update(newOrUpdated = listOf(chainInfo), removed = emptyList())
+
+        val runtimeEntry = dao.runtimeInfo(chainInfo.chain.id)
+
+        assertNotNull(runtimeEntry)
     }
 
     @Test
