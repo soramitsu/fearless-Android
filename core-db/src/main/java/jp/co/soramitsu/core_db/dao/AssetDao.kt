@@ -27,6 +27,8 @@ interface AssetReadOnlyCache {
     fun observeAsset(accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken>
 
     suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken?
+
+    suspend fun getAsset(metaId: Long, chainId: String, symbol: String): AssetWithToken?
 }
 
 @Dao
@@ -47,6 +49,9 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
     abstract override suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken?
+
+    @Query(RETRIEVE_ASSET_SQL_META_ID)
+    abstract override suspend fun getAsset(metaId: Long, chainId: String, symbol: String): AssetWithToken?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)

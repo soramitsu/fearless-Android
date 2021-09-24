@@ -16,7 +16,7 @@ class AccountStakingScope(
     private val sharedStakingState: StakingSharedState
 ) : UpdateScope {
 
-    override suspend fun invalidationFlow(): Flow<Any> {
+    override fun invalidationFlow(): Flow<Any> {
         return combineTransform(
             sharedStakingState.selectedAsset,
             accountRepository.selectedMetaAccountFlow()

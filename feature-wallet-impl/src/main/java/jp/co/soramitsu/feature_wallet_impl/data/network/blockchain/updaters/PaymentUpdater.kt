@@ -65,6 +65,8 @@ class PaymentUpdater(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val chain = chainRegistry.getChain(chainId)
 
+        val metaAccount = scope.getAccount()
+
         val accountId = scope.getAccount().accountIdIn(chain) ?: return emptyFlow()
         val runtime = chainRegistry.getRuntime(chainId)
 
@@ -74,7 +76,7 @@ class PaymentUpdater(
             .onEach { change ->
                 val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
 
-                assetCache.updateAsset(accountId, chain.utilityAsset, newAccountInfo)
+                assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset, newAccountInfo)
 
                 fetchTransfers(change.block, chain, accountId)
             }

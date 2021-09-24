@@ -15,12 +15,12 @@ interface SideEffectScope {
 
 interface UpdateScope {
 
-    suspend fun invalidationFlow(): Flow<Any>
+     fun invalidationFlow(): Flow<Any>
 }
 
 object GlobalScope : UpdateScope {
 
-    override suspend fun invalidationFlow() = flowOf(Unit)
+    override fun invalidationFlow() = flowOf(Unit)
 }
 
 interface GlobalScopeUpdater : Updater {
