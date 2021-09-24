@@ -30,7 +30,7 @@ data class Chain(
         val chainId: ChainId,
         val symbol: String,
         val precision: Int,
-        val name: String?,
+        val name: String,
     )
 
     data class Node(

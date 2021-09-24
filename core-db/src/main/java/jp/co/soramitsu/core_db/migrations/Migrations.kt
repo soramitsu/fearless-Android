@@ -189,7 +189,7 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             CREATE TABLE IF NOT EXISTS `chain_assets` (
             `id` INTEGER NOT NULL,
             `chainId` TEXT NOT NULL,
-            `name` TEXT,
+            `name` TEXT NOT NULL,
             `symbol` TEXT NOT NULL,
             `precision` INTEGER NOT NULL,
             `priceId` TEXT,

@@ -34,7 +34,7 @@ fun mapChainRemoteToChain(
             id = it.assetId,
             symbol = it.symbol,
             precision = it.precision,
-            name = it.name,
+            name = it.name ?: chainRemote.name,
             priceId = it.priceId
         )
     }
@@ -95,7 +95,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             id = it.id,
             symbol = it.symbol,
             precision = it.precision,
-            name = it.name ?: chainLocal.chain.name,
+            name = it.name,
             chainId = it.chainId,
             priceId = it.priceId
         )
