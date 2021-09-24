@@ -206,7 +206,8 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `syncedVersion` INTEGER NOT NULL,
             `remoteVersion` INTEGER NOT NULL, 
             PRIMARY KEY(`chainId`),
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+            )
             """.trimIndent()
         )
         database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_runtimes_chainId` ON `chain_runtimes` (`chainId`)")
@@ -239,8 +240,9 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `cryptoType` TEXT NOT NULL,
             PRIMARY KEY(`metaId`,
             `chainId`),
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION ,
-            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
             """.trimIndent()
         )
 

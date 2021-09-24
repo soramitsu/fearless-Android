@@ -12,7 +12,8 @@ import androidx.room.Index
             entity = ChainLocal::class,
             parentColumns = ["id"],
             childColumns = ["chainId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE,
+            deferred = true
         )
     ],
     indices = [

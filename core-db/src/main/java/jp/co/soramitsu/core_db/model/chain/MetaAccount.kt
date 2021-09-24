@@ -46,14 +46,14 @@ class MetaAccountLocal(
     var id: Long = 0
 }
 
-// TOTO modify migrations for meta_accounts and chain_accounts
 @Entity(
     tableName = "chain_accounts",
     foreignKeys = [
         ForeignKey(
             parentColumns = ["id"],
             childColumns = ["chainId"],
-            entity = ChainLocal::class
+            entity = ChainLocal::class,
+            deferred = true
         ),
         ForeignKey(
             parentColumns = ["id"],

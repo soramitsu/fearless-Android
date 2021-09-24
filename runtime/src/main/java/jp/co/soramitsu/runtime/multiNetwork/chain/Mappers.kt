@@ -95,7 +95,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             id = it.id,
             symbol = it.symbol,
             precision = it.precision,
-            name = it.name,
+            name = it.name ?: chainLocal.chain.name,
             chainId = it.chainId,
             priceId = it.priceId
         )
