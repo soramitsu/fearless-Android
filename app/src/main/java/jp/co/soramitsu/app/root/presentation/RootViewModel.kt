@@ -25,7 +25,7 @@ class RootViewModel(
     private var willBeClearedForLanguageChange = false
 
     init {
-        interactor.runUpdateSystem()
+        interactor.runBalancesUpdate()
             .onEach { handleUpdatesSideEffect(it) }
             .launchIn(this)
 

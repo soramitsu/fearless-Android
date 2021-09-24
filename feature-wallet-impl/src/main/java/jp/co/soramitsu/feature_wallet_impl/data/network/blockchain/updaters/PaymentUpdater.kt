@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
+import android.util.Log
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.system
@@ -27,10 +28,29 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.onEach
+
+class PaymentUpdaterFactory(
+    private val substrateSource: SubstrateRemoteSource,
+    private val assetCache: AssetCache,
+    private val operationDao: OperationDao,
+    private val chainRegistry: ChainRegistry,
+    private val scope: AccountUpdateScope,
+) {
+
+    fun create(chainId: ChainId) : PaymentUpdater {
+        return PaymentUpdater(
+            substrateSource,
+            assetCache,
+            operationDao,
+            chainRegistry,
+            scope,
+            chainId
+        )
+    }
+}
 
 class PaymentUpdater(
     private val substrateSource: SubstrateRemoteSource,
@@ -46,20 +66,25 @@ class PaymentUpdater(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val chain = chainRegistry.getChain(chainId)
 
-        val accountId = scope.getAccount().accountIdIn(chain)!!
+        Log.d("RX", "Starting balance updater for $chainId")
+
+        val accountId = scope.getAccount().accountIdIn(chain) ?: return emptyFlow()
         val runtime = chainRegistry.getRuntime(chainId)
 
         val key = runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+
+        Log.d("RX", "Subscribing for balance in $chainId")
 
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
                 val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
 
+                Log.d("RX", "Received new balance info in $chainId")
+
                 assetCache.updateAsset(accountId, chain.utilityAsset, newAccountInfo)
 
                 fetchTransfers(change.block, chain, accountId)
             }
-            .flowOn(Dispatchers.IO)
             .noSideAffects()
     }
 

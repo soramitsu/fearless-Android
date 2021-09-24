@@ -34,7 +34,7 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Query(
         """
-       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId
+       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId ORDER BY a.tokenSymbol, a.chainId
     """
     )
     abstract override fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>

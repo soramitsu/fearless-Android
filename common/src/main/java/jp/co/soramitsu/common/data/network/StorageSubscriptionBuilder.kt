@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 
 class StorageSubscriptionBuilder(
     override val socketService: SocketService,
-    val proxy: StorageSubscriptionMultiplexer.Builder
+    private val proxy: StorageSubscriptionMultiplexer.Builder
 ) : SubscriptionBuilder {
 
     companion object {
@@ -26,4 +26,6 @@ class StorageSubscriptionBuilder(
         return proxy.subscribe(key)
             .map { StorageChange(it.block, it.key, it.value) }
     }
+
+    fun build() = proxy.build()
 }

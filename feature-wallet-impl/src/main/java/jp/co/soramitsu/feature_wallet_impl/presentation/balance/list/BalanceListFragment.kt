@@ -13,16 +13,11 @@ import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.showState
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListActions
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
-import kotlinx.android.synthetic.main.fragment_balance_list.container
-import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
@@ -38,9 +33,9 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     }
 
     override fun initViews() {
-        container.applyInsetter {
+        balanceListContent.applyInsetter {
             type(statusBars = true) {
-                margin()
+                padding()
             }
         }
 
@@ -49,29 +44,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         adapter = BalanceListAdapter(this)
         balanceListAssets.adapter = adapter
 
-        transfersContainer.initializeBehavior(anchorView = balanceListContent)
-
-        transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
-
-        transfersContainer.setSlidingStateListener(this::setRefreshEnabled)
-        transfersContainer.setFilterClickListener { viewModel.filterClicked() }
-
-        transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
-
         walletContainer.setOnRefreshListener {
             viewModel.sync()
-        }
-
-        balanceListActions.send.setOnClickListener {
-            viewModel.sendClicked()
-        }
-
-        balanceListActions.receive.setOnClickListener {
-            viewModel.receiveClicked()
-        }
-
-        balanceListActions.buy.setOnClickListener {
-            viewModel.buyClicked()
         }
 
         balanceListAvatar.setOnClickListener {
@@ -96,12 +70,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
     override fun subscribe(viewModel: BalanceListViewModel) {
         viewModel.sync()
-
-        setupBuyIntegration(viewModel)
-
-        viewModel.state.observe(transfersContainer::showState)
-
-        viewModel.buyEnabledLiveData.observe(balanceListActions.buy::setEnabled)
 
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)

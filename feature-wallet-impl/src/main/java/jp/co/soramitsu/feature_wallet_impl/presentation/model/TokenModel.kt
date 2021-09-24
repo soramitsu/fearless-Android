@@ -13,8 +13,8 @@ class TokenModel(
 ) {
     val rateChangeColorRes = determineChangeColor()
 
-    private fun determineChangeColor(): Int? {
-        if (recentRateChange == null) return null
+    private fun determineChangeColor(): Int {
+        if (recentRateChange == null) return R.color.gray2
 
         return if (recentRateChange.isNonNegative) R.color.green else R.color.red
     }

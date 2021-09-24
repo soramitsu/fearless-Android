@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.domain
 
+import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.ExternalProvider
@@ -11,7 +12,7 @@ class RootInteractor(
     private val walletRepository: WalletRepository,
 ) {
 
-    fun runUpdateSystem(): Flow<Updater.SideEffect> = updateSystem.start()
+    fun runBalancesUpdate(): Flow<Updater.SideEffect> = updateSystem.start()
 
     fun isBuyProviderRedirectLink(link: String) = ExternalProvider.REDIRECT_URL_BASE in link
 

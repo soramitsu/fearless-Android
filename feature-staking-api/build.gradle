@@ -28,6 +28,7 @@ dependencies {
     implementation coroutinesDep
 
     implementation fearlessLibDep
+    implementation daggerDep
 
     implementation project(':runtime')
     implementation project(':common')

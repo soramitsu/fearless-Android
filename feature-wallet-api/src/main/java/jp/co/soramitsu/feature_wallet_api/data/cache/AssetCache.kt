@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 class AssetCache(
     private val tokenDao: TokenDao,
     private val accountRepository: AccountRepository,
-    private val assetDao: AssetDao
+    private val assetDao: AssetDao,
 ) : AssetReadOnlyCache by assetDao {
 
     private val assetUpdateMutex = Mutex()
@@ -24,7 +24,7 @@ class AssetCache(
     suspend fun updateAsset(
         accountId: AccountId,
         chainAsset: Chain.Asset,
-        builder: (local: AssetLocal) -> AssetLocal
+        builder: (local: AssetLocal) -> AssetLocal,
     ) = withContext(Dispatchers.IO) {
         val findMetaAccount = accountRepository.findMetaAccount(accountId)
 
@@ -33,6 +33,8 @@ class AssetCache(
             val chainId = chainAsset.chainId
 
             assetUpdateMutex.withLock {
+                tokenDao.ensureToken(symbol)
+
                 val cachedAsset = assetDao.getAsset(accountId, chainId, symbol)?.asset ?: AssetLocal.createEmpty(accountId, symbol, chainId, metaId = it.id)
 
                 val newAsset = builder.invoke(cachedAsset)
@@ -44,7 +46,7 @@ class AssetCache(
 
     suspend fun updateToken(
         symbol: String,
-        builder: (local: TokenLocal) -> TokenLocal
+        builder: (local: TokenLocal) -> TokenLocal,
     ) = withContext(Dispatchers.IO) {
         assetUpdateMutex.withLock {
             val tokenLocal = tokenDao.getToken(symbol) ?: TokenLocal.createEmpty(symbol)

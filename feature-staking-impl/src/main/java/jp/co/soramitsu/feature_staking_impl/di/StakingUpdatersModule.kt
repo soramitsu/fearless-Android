@@ -5,10 +5,10 @@ import dagger.Provides
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountNominationsUpdater
@@ -30,6 +30,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.hist
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
 
 @Module
 class StakingUpdatersModule {
@@ -243,7 +244,7 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
-    fun provideStakingUpdaters(
+    fun provideStakingUpdaterSystem(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
         totalIssuanceUpdater: TotalIssuanceUpdater,
@@ -258,8 +259,11 @@ class StakingUpdatersModule {
         minBondUpdater: MinBondUpdater,
         maxNominatorsUpdater: MaxNominatorsUpdater,
         counterForNominatorsUpdater: CounterForNominatorsUpdater,
-    ) = StakingUpdaters(
-        updaters = arrayOf(
+
+        chainRegistry: ChainRegistry,
+        stakingSharedState: StakingSharedState
+    ): UpdateSystem = SingleChainUpdateSystem(
+        updaters = listOf(
             activeEraUpdater,
             validatorExposureUpdater,
             totalIssuanceUpdater,
@@ -274,6 +278,8 @@ class StakingUpdatersModule {
             minBondUpdater,
             maxNominatorsUpdater,
             counterForNominatorsUpdater,
-        )
+        ),
+        chainRegistry = chainRegistry,
+        singleAssetSharedState = stakingSharedState
     )
 }

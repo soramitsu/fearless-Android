@@ -23,6 +23,8 @@ dependencies {
     implementation project(":feature-account-api")
     implementation project(":common")
 
+    implementation daggerDep
+
     implementation fearlessLibDep
 
     implementation androidDep

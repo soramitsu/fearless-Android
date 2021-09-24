@@ -44,3 +44,8 @@ interface Updater : SideEffectScope {
 
     interface SideEffect
 }
+
+interface UpdateSystem {
+
+    fun start(): Flow<Updater.SideEffect>
+}

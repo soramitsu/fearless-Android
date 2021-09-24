@@ -21,4 +21,9 @@ abstract class TokenDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertToken(token: TokenLocal)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun insertTokenOrIgnore(token: TokenLocal)
+
+    suspend fun ensureToken(symbol: String) = insertTokenOrIgnore(TokenLocal.createEmpty(symbol))
 }

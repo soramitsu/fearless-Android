@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
@@ -15,7 +16,7 @@ import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
-import jp.co.soramitsu.feature_wallet_api.di.WalletUpdaters
+import jp.co.soramitsu.feature_wallet_api.di.Wallet
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -26,7 +27,8 @@ import jp.co.soramitsu.feature_wallet_impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdater
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.BalancesUpdateSystem
+import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdaterFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
@@ -169,28 +171,29 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun providePaymentUpdater(
+    fun providePaymentUpdaterFactory(
         remoteSource: SubstrateRemoteSource,
         assetCache: AssetCache,
         operationDao: OperationDao,
         accountUpdateScope: AccountUpdateScope,
         chainRegistry: ChainRegistry,
-    ): PaymentUpdater {
-        return PaymentUpdater(
-            remoteSource,
-            assetCache,
-            operationDao,
-            chainRegistry,
-            accountUpdateScope
-        )
-    }
+    ) = PaymentUpdaterFactory(
+        remoteSource,
+        assetCache,
+        operationDao,
+        chainRegistry,
+        accountUpdateScope
+    )
 
     @Provides
+    @Wallet
     @FeatureScope
     fun provideFeatureUpdaters(
-        paymentUpdater: PaymentUpdater,
-    ): WalletUpdaters = WalletUpdaters(
-        updaters = arrayOf(paymentUpdater)
+        chainRegistry: ChainRegistry,
+        paymentUpdaterFactory: PaymentUpdaterFactory,
+    ): UpdateSystem = BalancesUpdateSystem(
+        chainRegistry,
+        paymentUpdaterFactory,
     )
 
     @Provides

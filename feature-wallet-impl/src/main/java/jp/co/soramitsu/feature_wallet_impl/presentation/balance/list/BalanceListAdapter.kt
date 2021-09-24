@@ -97,19 +97,17 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
     }
 
     fun bindRecentChange(asset: AssetModel) = with(containerView) {
-        asset.token.recentRateChange?.let {
-            itemAssetRateChange.setTextColorRes(asset.token.rateChangeColorRes!!)
-            itemAssetRateChange.text = it.formatAsChange()
-        }
+        itemAssetRateChange.setTextColorRes(asset.token.rateChangeColorRes)
+        itemAssetRateChange.text = asset.token.recentRateChange?.formatAsChange()
     }
 
     fun bindDollarInfo(asset: AssetModel) = with(containerView) {
-        asset.token.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
+        itemAssetRate.text = asset.token.dollarRate?.formatAsCurrency()
         bindDollarAmount(asset.dollarAmount)
     }
 
     private fun bindDollarAmount(dollarAmount: BigDecimal?) {
-        dollarAmount?.let { containerView.itemAssetDollarAmount.text = it.formatAsCurrency() }
+        containerView.itemAssetDollarAmount.text = dollarAmount?.formatAsCurrency()
     }
 }
 

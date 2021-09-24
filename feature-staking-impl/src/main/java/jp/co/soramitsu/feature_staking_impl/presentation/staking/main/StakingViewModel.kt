@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -59,6 +61,7 @@ class StakingViewModel(
     private val redeemValidationSystem: ManageStakingValidationSystem,
     private val bondMoreValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
+    private val stakingUpdateSystem: UpdateSystem
 ) : BaseViewModel(),
     Validatable by validationExecutor {
 
@@ -114,6 +117,11 @@ class StakingViewModel(
         .map { loadingState -> loadingState.map { alerts -> alerts.map(::mapAlertToAlertModel) } }
         .inBackground()
         .asLiveData()
+
+    init {
+        stakingUpdateSystem.start()
+            .launchIn(this)
+    }
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
         return when (alert) {

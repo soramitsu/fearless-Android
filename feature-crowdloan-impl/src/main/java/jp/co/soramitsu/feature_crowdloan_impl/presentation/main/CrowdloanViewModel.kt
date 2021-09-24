@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.resources.formatTimeLeft
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
@@ -28,6 +29,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -40,7 +42,8 @@ class CrowdloanViewModel(
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val crowdloanSharedState: CrowdloanSharedState,
-    private val router: CrowdloanRouter
+    private val router: CrowdloanRouter,
+    private val crowdloanUpdateSystem: UpdateSystem
 ) : BaseViewModel() {
 
     private val assetFlow = assetUseCase.currentAssetFlow()
@@ -70,6 +73,11 @@ class CrowdloanViewModel(
         .withLoading()
         .inBackground()
         .share()
+
+    init {
+        crowdloanUpdateSystem.start()
+            .launchIn(this)
+    }
 
     private fun mapCrowdloanStatusToUi(statusClass: KClass<out Crowdloan.State>, statusCount: Int): CrowdloanStatusModel {
         return when (statusClass) {
