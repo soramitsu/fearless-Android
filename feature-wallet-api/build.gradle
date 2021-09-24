@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 
 android {
@@ -14,6 +15,8 @@ android {
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
+
+        jvmTarget = '1.8'
     }
 }
 

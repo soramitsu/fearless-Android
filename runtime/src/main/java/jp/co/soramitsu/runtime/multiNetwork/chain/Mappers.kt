@@ -8,6 +8,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
 private const val ETHEREUM_OPTION = "ethereumBased"
+private const val CROWDLOAN_OPTION = "crowdloans"
 private const val TESTNET_OPTION = "testnet"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
@@ -17,6 +18,17 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
 
 private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Section.Type): String = sectionType.name
 private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
+
+private fun mapStakingStringToStakingType(stakingString: String?) : Chain.Asset.StakingType {
+    return when(stakingString) {
+        null -> Chain.Asset.StakingType.UNSUPPORTED
+        "relaychain" -> Chain.Asset.StakingType.RELAYCHAIN
+        else -> Chain.Asset.StakingType.UNSUPPORTED
+    }
+}
+
+private fun mapStakingTypeToLocal(stakingType: Chain.Asset.StakingType): String = stakingType.name
+private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Chain.Asset.StakingType = enumValueOf(stakingTypeLocal)
 
 fun mapChainRemoteToChain(
     chainRemote: ChainRemote,
@@ -36,7 +48,8 @@ fun mapChainRemoteToChain(
             symbol = it.symbol,
             precision = it.precision,
             name = it.name ?: chainRemote.name,
-            priceId = it.priceId
+            priceId = it.priceId,
+            staking = mapStakingStringToStakingType(it.staking)
         )
     }
 
@@ -78,7 +91,8 @@ fun mapChainRemoteToChain(
             externalApi = externalApi,
             addressPrefix = addressPrefix,
             isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
-            isTestNet = TESTNET_OPTION in optionsOrEmpty
+            isTestNet = TESTNET_OPTION in optionsOrEmpty,
+            hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty
         )
     }
 }
@@ -99,7 +113,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             precision = it.precision,
             name = it.name,
             chainId = it.chainId,
-            priceId = it.priceId
+            priceId = it.priceId,
+            staking = mapStakingTypeFromLocal(it.staking)
         )
     }
 
@@ -139,7 +154,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             externalApi = externalApi,
             addressPrefix = prefix,
             isEthereumBased = isEthereumBased,
-            isTestNet = isTestNet
+            isTestNet = isTestNet,
+            hasCrowdloans = hasCrowdloans
         )
     }
 }
@@ -160,7 +176,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             precision = it.precision,
             chainId = chain.id,
             name = it.name,
-            priceId = it.priceId
+            priceId = it.priceId,
+            staking = mapStakingTypeToLocal(it.staking)
         )
     }
 
@@ -198,7 +215,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             prefix = addressPrefix,
             externalApi = externalApi,
             isEthereumBased = isEthereumBased,
-            isTestNet = isTestNet
+            isTestNet = isTestNet,
+            hasCrowdloans = hasCrowdloans
         )
     }
 

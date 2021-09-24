@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.di
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
@@ -70,9 +71,9 @@ class CrowdloanFeatureModule {
     @Provides
     @FeatureScope
     fun provideStakingSharedState(
-        accountRepository: AccountRepository,
-        chainRegistry: ChainRegistry
-    ) = CrowdloanSharedState(accountRepository, chainRegistry)
+        chainRegistry: ChainRegistry,
+        preferences: Preferences,
+    ) = CrowdloanSharedState(chainRegistry, preferences)
 
     @Provides
     @FeatureScope

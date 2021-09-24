@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.storage.StorageCache
@@ -102,9 +103,9 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideStakingSharedState(
-        accountRepository: AccountRepository,
-        chainRegistry: ChainRegistry
-    ) = StakingSharedState(accountRepository, chainRegistry)
+        chainRegistry: ChainRegistry,
+        preferences: Preferences
+    ) = StakingSharedState(chainRegistry, preferences)
 
     @Provides
     @FeatureScope

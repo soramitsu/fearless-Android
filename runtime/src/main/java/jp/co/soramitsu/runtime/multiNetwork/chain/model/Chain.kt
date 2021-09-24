@@ -13,6 +13,7 @@ data class Chain(
     val types: Types?,
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
+    val hasCrowdloans: Boolean,
     val parentId: String?,
 ) {
 
@@ -31,8 +32,14 @@ data class Chain(
         val chainId: ChainId,
         val symbol: String,
         val precision: Int,
+        val staking: StakingType,
         val name: String,
-    )
+    ) {
+
+        enum class StakingType {
+            UNSUPPORTED, RELAYCHAIN
+        }
+    }
 
     data class Node(
         val url: String,

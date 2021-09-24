@@ -66,8 +66,17 @@ class PreferencesImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun stringFlow(field: String): Flow<String?> = callbackFlow {
-        send(getString(field))
+    override fun stringFlow(
+        field: String,
+        initialValue: String?
+    ): Flow<String?> = callbackFlow {
+        if (contains(field)) {
+            send(getString(field))
+        } else {
+            putString(field, initialValue)
+
+            send(initialValue)
+        }
 
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == field) {

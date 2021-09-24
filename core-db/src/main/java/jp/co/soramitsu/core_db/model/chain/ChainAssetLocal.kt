@@ -25,5 +25,6 @@ class ChainAssetLocal(
     val name: String,
     val symbol: String,
     val priceId: String?,
+    val staking: String,
     val precision: Int
 )

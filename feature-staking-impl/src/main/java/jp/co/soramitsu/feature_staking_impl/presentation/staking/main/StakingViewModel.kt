@@ -17,6 +17,7 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
@@ -31,6 +32,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.Staking
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
@@ -40,6 +43,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -61,7 +65,9 @@ class StakingViewModel(
     private val redeemValidationSystem: ManageStakingValidationSystem,
     private val bondMoreValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
-    private val stakingUpdateSystem: UpdateSystem
+    private val stakingUpdateSystem: UpdateSystem,
+    private val sharedState: StakingSharedState,
+    private val assetUseCase: AssetUseCase,
 ) : BaseViewModel(),
     Validatable by validationExecutor {
 
@@ -80,6 +86,12 @@ class StakingViewModel(
         .share()
 
     private val selectedChain = interactor.selectedChainFlow()
+        .share()
+
+    val selectedAssetFlow = assetUseCase.currentAssetFlow().map {
+        mapAssetToAssetModel(it, resourceManager)
+    }
+        .inBackground()
         .share()
 
     val networkInfoStateLiveData = selectedChain
@@ -261,5 +273,9 @@ class StakingViewModel(
         return interactor.selectedAccountProjectionFlow().map {
             addressIconGenerator.createAddressModel(it.address, CURRENT_ICON_SIZE, it.name)
         }
+    }
+
+    fun assetSelectorClicked() {
+        
     }
 }

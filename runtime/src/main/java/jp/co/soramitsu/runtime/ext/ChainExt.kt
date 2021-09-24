@@ -18,7 +18,10 @@ val Chain.typesUsage: TypesUsage
     }
 
 val Chain.utilityAsset
-    get() = assets.first { it.id == 0 }
+    get() = assets.first(Chain.Asset::isUtilityAsset)
+
+val Chain.Asset.isUtilityAsset: Boolean
+    get() = id == 0
 
 val Chain.genesisHash: String
     get() = id

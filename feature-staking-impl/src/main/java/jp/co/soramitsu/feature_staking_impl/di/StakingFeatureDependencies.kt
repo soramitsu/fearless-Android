@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
+import coil.ImageLoader
 import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.memory.ComputationalCache
@@ -7,6 +8,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.storage.StorageCache
@@ -84,4 +86,8 @@ interface StakingFeatureDependencies {
     fun localStorageSource(): StorageDataSource
 
     fun chainRegistry(): ChainRegistry
+
+    fun imageLoader(): ImageLoader
+
+    fun preferences(): Preferences
 }

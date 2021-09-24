@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
@@ -23,6 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeSt
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewModel
+import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import javax.inject.Named
 
 @Module(includes = [ViewModelModule::class])
@@ -62,6 +64,8 @@ class StakingModule {
         @Named(SYSTEM_MANAGE_STAKING_BOND_MORE) bondMoreValidationSystem: ManageStakingValidationSystem,
         validationExecutor: ValidationExecutor,
         stakingUpdateSystem: UpdateSystem,
+        sharedState: StakingSharedState,
+        assetUseCase: AssetUseCase,
     ): ViewModel {
         return StakingViewModel(
             interactor,
@@ -73,7 +77,9 @@ class StakingModule {
             redeemValidationSystem,
             bondMoreValidationSystem,
             validationExecutor,
-            stakingUpdateSystem
+            stakingUpdateSystem,
+            sharedState,
+            assetUseCase
         )
     }
 

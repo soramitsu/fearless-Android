@@ -164,6 +164,7 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `prefix` INTEGER NOT NULL,
             `isEthereumBased` INTEGER NOT NULL,
             `isTestNet` INTEGER NOT NULL,
+            `hasCrowdloans` INTEGER NOT NULL,
             `url` TEXT,
             `overridesCommon` INTEGER,
             `staking_url` TEXT,
@@ -196,6 +197,7 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `symbol` TEXT NOT NULL,
             `precision` INTEGER NOT NULL,
             `priceId` TEXT,
+            `staking` TEXT NOT NULL,
             PRIMARY KEY(`chainId`, `id`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()

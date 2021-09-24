@@ -5,5 +5,6 @@ class ChainAssetRemote(
     val symbol: String,
     val precision: Int,
     val priceId: String?,
-    val name: String?
+    val name: String?,
+    val staking: String?
 )

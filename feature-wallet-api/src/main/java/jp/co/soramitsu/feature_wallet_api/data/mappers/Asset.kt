@@ -13,16 +13,19 @@ fun mapAssetToAssetModel(
     asset: Asset,
     resourceManager: ResourceManager,
     retrieveAmount: (Asset) -> BigDecimal = Asset::transferable,
-    @StringRes patternId: Int = R.string.common_available_format
+    @StringRes patternId: Int? = R.string.common_available_format
 ): AssetModel {
     val amount = retrieveAmount(asset).formatTokenAmount(asset.token.configuration)
+    val formattedAmount = patternId?.let { resourceManager.getString(patternId, amount) } ?: amount
 
     return with(asset) {
         AssetModel(
+            asset.token.configuration.chainId,
+            asset.token.configuration.id,
             token.configuration.icon,
             token.configuration.iconUrl,
             token.configuration.symbol,
-            resourceManager.getString(patternId, amount)
+            formattedAmount
         )
     }
 }

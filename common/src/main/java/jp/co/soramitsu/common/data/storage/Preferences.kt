@@ -28,5 +28,5 @@ interface Preferences {
 
     fun saveCurrentLanguage(languageIsoCode: String)
 
-    fun stringFlow(field: String): Flow<String?>
+    fun stringFlow(field: String, initialValue: String? = null): Flow<String?>
 }
