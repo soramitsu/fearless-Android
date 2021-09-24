@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
-import android.util.Log
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.system
