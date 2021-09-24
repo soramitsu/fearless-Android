@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.di
 
 import android.content.ContentResolver
+import coil.ImageLoader
 import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -90,4 +91,6 @@ interface WalletFeatureDependencies {
     fun localStorageSource(): StorageDataSource
 
     fun extrinsicService(): ExtrinsicService
+
+    fun imageLoader(): ImageLoader
 }

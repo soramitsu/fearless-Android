@@ -40,7 +40,7 @@ class PaymentUpdaterFactory(
     private val scope: AccountUpdateScope,
 ) {
 
-    fun create(chainId: ChainId) : PaymentUpdater {
+    fun create(chainId: ChainId): PaymentUpdater {
         return PaymentUpdater(
             substrateSource,
             assetCache,

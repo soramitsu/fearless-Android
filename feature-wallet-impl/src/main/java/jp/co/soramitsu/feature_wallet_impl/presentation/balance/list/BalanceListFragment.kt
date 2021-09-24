@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -19,8 +19,11 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
+import javax.inject.Inject
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     private lateinit var adapter: BalanceListAdapter
 
@@ -41,7 +44,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         hideKeyboard()
 
-        adapter = BalanceListAdapter(this)
+        adapter = BalanceListAdapter(imageLoader, this)
         balanceListAssets.adapter = adapter
 
         walletContainer.setOnRefreshListener {
@@ -51,11 +54,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         balanceListAvatar.setOnClickListener {
             viewModel.avatarClicked()
         }
-    }
-
-    private fun setRefreshEnabled(bottomSheetState: Int) {
-        val bottomSheetCollapsed = BottomSheetBehavior.STATE_COLLAPSED == bottomSheetState
-        walletContainer.isEnabled = bottomSheetCollapsed
     }
 
     override fun inject() {

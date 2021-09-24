@@ -35,7 +35,6 @@ class BalanceListViewModel(
 
     val balanceLiveData = balanceFlow().asLiveData()
 
-
     fun sync() {
         viewModelScope.launch {
             val result = interactor.syncAssetsRates()

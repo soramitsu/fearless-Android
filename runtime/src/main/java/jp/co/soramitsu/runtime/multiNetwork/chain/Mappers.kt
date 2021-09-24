@@ -30,6 +30,7 @@ fun mapChainRemoteToChain(
 
     val assets = chainRemote.assets.map {
         Chain.Asset(
+            iconUrl = chainRemote.icon,
             chainId = chainRemote.chainId,
             id = it.assetId,
             symbol = it.symbol,
@@ -92,6 +93,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
 
     val assets = chainLocal.assets.map {
         Chain.Asset(
+            iconUrl = chainLocal.chain.icon,
             id = it.id,
             symbol = it.symbol,
             precision = it.precision,

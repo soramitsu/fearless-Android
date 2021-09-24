@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.ImageLoader
+import coil.load
 import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.format
@@ -14,7 +16,6 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
-import jp.co.soramitsu.feature_wallet_api.data.mappers.icon
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import kotlinx.android.extensions.LayoutContainer
@@ -32,7 +33,8 @@ val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRat
 val recentChangeExtractor = { assetModel: AssetModel -> assetModel.token.recentRateChange }
 
 class BalanceListAdapter(
-    private val itemHandler: ItemAssetHandler
+    private val imageLoader: ImageLoader,
+    private val itemHandler: ItemAssetHandler,
 ) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
 
     interface ItemAssetHandler {
@@ -42,7 +44,7 @@ class BalanceListAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssetViewHolder {
         val view = parent.inflateChild(R.layout.item_asset)
 
-        return AssetViewHolder(view)
+        return AssetViewHolder(view, imageLoader)
     }
 
     override fun onBindViewHolder(holder: AssetViewHolder, position: Int) {
@@ -64,7 +66,10 @@ class BalanceListAdapter(
     }
 }
 
-class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+class AssetViewHolder(
+    override val containerView: View,
+    private val imageLoader: ImageLoader,
+) : RecyclerView.ViewHolder(containerView), LayoutContainer {
     init {
         with(containerView) {
             val background = with(context) {
@@ -76,7 +81,7 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
     }
 
     fun bind(asset: AssetModel, itemHandler: BalanceListAdapter.ItemAssetHandler) = with(containerView) {
-        itemAssetImage.setImageResource(asset.token.configuration.icon)
+        itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
         itemAssetNetwork.text = asset.token.configuration.name
 
         bindDollarInfo(asset)
