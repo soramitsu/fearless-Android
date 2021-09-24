@@ -22,9 +22,9 @@ class MortalityConstructor(
         val finalizedHash = rpcCalls.getFinalizedHead(chainId)
 
         val bestHeader = rpcCalls.getBlockHeader(chainId)
-        val finalizedHeader = rpcCalls.getBlockHeader(finalizedHash)
+        val finalizedHeader = rpcCalls.getBlockHeader(chainId, finalizedHash)
 
-        val currentHeader = bestHeader.parentHash?.let { rpcCalls.getBlockHeader(it) } ?: bestHeader
+        val currentHeader = bestHeader.parentHash?.let { rpcCalls.getBlockHeader(chainId, it) } ?: bestHeader
 
         val currentNumber = currentHeader.number
         val finalizedNumber = finalizedHeader.number

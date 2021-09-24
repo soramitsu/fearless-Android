@@ -56,6 +56,8 @@ class FeeLoaderProvider(
                     )
                 )
 
+                feeResult.exceptionOrNull()?.printStackTrace()
+
                 FeeStatus.Error
             }
 

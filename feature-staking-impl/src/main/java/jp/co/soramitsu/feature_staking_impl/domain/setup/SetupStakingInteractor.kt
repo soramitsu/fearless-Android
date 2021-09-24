@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.setup
 
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
@@ -66,10 +67,11 @@ class SetupStakingInteractor(
         chain: Chain,
         chainAsset: Chain.Asset,
         controllerAddress: String,
-        validatorAccountIds: List<String>,
+        validatorAccountIdsHex: List<String>,
         bondPayload: BondPayload?,
     ) {
-        val targets = validatorAccountIds.map(chain::multiAddressOf)
+        val validatorsIds = validatorAccountIdsHex.map(String::fromHex)
+        val targets = validatorsIds.map(chain::multiAddressOf)
 
         bondPayload?.let {
             val amountInPlanks = chainAsset.planksFromAmount(it.amount)
