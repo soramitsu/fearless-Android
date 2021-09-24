@@ -205,8 +205,7 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `chainId` TEXT NOT NULL,
             `syncedVersion` INTEGER NOT NULL,
             `remoteVersion` INTEGER NOT NULL, 
-            PRIMARY KEY(`chainId`),
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+            PRIMARY KEY(`chainId`)
             )
             """.trimIndent()
         )

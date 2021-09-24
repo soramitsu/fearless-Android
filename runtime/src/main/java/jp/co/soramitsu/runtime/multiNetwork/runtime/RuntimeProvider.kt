@@ -85,9 +85,9 @@ class RuntimeProvider(
                 // types were synced and new hash is different from current one
                 (runtimeSyncResult.typesHash != null &&  currentVersion.ownTypesHash != runtimeSyncResult.typesHash)
             ) {
-                Log.d("RX", "currentVersion == null: ${currentVersion == null}, " +
-                    "metadata hashes not equal: ${currentVersion?.metadataHash != runtimeSyncResult.metadataHash} " +
-                    "own types not equal: ${ currentVersion?.ownTypesHash != runtimeSyncResult.typesHash} " +
+                Log.d("RX", "currentVersion is null: ${currentVersion == null}, " +
+                    "metadata: ${(runtimeSyncResult.metadataHash != null && currentVersion?.metadataHash != runtimeSyncResult.metadataHash)} " +
+                    "types: ${(runtimeSyncResult.typesHash != null &&  currentVersion?.ownTypesHash != runtimeSyncResult.typesHash)} " +
                     "for chain: $chainId")
                 constructNewRuntime(typesUsage)
             }
