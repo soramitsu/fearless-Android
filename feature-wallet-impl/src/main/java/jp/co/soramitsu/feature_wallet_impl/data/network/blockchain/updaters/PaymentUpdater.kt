@@ -66,20 +66,14 @@ class PaymentUpdater(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val chain = chainRegistry.getChain(chainId)
 
-        Log.d("RX", "Starting balance updater for $chainId")
-
         val accountId = scope.getAccount().accountIdIn(chain) ?: return emptyFlow()
         val runtime = chainRegistry.getRuntime(chainId)
 
         val key = runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
 
-        Log.d("RX", "Subscribing for balance in $chainId")
-
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
                 val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
-
-                Log.d("RX", "Received new balance info in $chainId")
 
                 assetCache.updateAsset(accountId, chain.utilityAsset, newAccountInfo)
 
