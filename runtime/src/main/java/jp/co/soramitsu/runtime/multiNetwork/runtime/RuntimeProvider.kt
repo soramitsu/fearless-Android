@@ -1,6 +1,5 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
-import android.util.Log
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -85,10 +84,6 @@ class RuntimeProvider(
                 // types were synced and new hash is different from current one
                 (runtimeSyncResult.typesHash != null &&  currentVersion.ownTypesHash != runtimeSyncResult.typesHash)
             ) {
-                Log.d("RX", "currentVersion is null: ${currentVersion == null}, " +
-                    "metadata: ${(runtimeSyncResult.metadataHash != null && currentVersion?.metadataHash != runtimeSyncResult.metadataHash)} " +
-                    "types: ${(runtimeSyncResult.typesHash != null &&  currentVersion?.ownTypesHash != runtimeSyncResult.typesHash)} " +
-                    "for chain: $chainId")
                 constructNewRuntime(typesUsage)
             }
         }
@@ -120,16 +115,10 @@ class RuntimeProvider(
             invalidateRuntime()
 
             runCatching {
-                Log.d("RX", "Constructing runtime for $chainId")
-
                 runtimeFactory.constructRuntime(chainId, typesUsage)?.also {
-                    Log.d("RX", "Constructed runtime for $chainId")
-
                     runtimeFlow.emit(it)
                 }
             }.onFailure {
-                Log.d("RX", "Error constructing runtime for $chainId ($it)")
-
                 when (it) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)
                     BaseTypesNotInCacheException -> baseTypeSynchronizer.cacheNotFound()
