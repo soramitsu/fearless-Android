@@ -15,7 +15,7 @@ interface SideEffectScope {
 
 interface UpdateScope {
 
-     fun invalidationFlow(): Flow<Any>
+    fun invalidationFlow(): Flow<Any>
 }
 
 object GlobalScope : UpdateScope {
