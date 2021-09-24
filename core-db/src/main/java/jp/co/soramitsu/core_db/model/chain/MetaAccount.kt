@@ -23,6 +23,7 @@ class MetaAccountLocal(
     val ethereumAddress: String?,
     val name: String,
     val isSelected: Boolean,
+    val position: Int,
 ) {
 
     companion object Table {
@@ -38,6 +39,7 @@ class MetaAccountLocal(
 
             const val NAME = "name"
             const val IS_SELECTED = "isSelected"
+            const val POSITION = "position"
             const val ID = "id"
         }
     }

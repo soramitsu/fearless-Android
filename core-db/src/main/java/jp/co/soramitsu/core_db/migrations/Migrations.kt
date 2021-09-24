@@ -226,7 +226,9 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `ethereumPublicKey` BLOB,
             `ethereumAddress` TEXT,
             `name` TEXT NOT NULL,
-            `isSelected` INTEGER NOT NULL)
+            `isSelected` INTEGER NOT NULL,
+            `position` INTEGER NOT NULL
+            )
             """.trimIndent()
         )
         database.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
@@ -240,8 +242,7 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `publicKey` BLOB NOT NULL,
             `accountId` BLOB NOT NULL,
             `cryptoType` TEXT NOT NULL,
-            PRIMARY KEY(`metaId`,
-            `chainId`),
+            PRIMARY KEY(`metaId`, `chainId`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
             FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
             )

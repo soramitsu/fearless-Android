@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.map
@@ -17,6 +18,7 @@ import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed
 import jp.co.soramitsu.core_db.converters.CryptoTypeConverters
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
@@ -44,6 +46,9 @@ class V2Migration(
 
         val migratingAccounts = getAccounts(database)
 
+        val ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+        val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
+
         migratingAccounts.forEachIndexed { index, account ->
             val secrets = storeV1.getSecuritySource(account.address) ?: return@forEachIndexed // Possible RO account, ignore such accounts
 
@@ -57,9 +62,9 @@ class V2Migration(
             val seed = (secrets as? WithSeed)?.let(WithSeed::seed)
 
             val ethereumKeypair = mnemonic?.let {
-                val ethereumSeed = EthereumSeedFactory.deriveSeed32(it.words, password = null).seed // do not use any password during migration
+                val ethereumSeed = EthereumSeedFactory.deriveSeed32(it.words, password = decodedEthereumDerivationPath.password).seed
 
-                EthereumKeypairFactory.generate(ethereumSeed, junctions = emptyList())
+                EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
             }
 
             val secretsV2 = MetaAccountSecrets(
@@ -68,7 +73,7 @@ class V2Migration(
                 seed = seed,
                 substrateDerivationPath = derivationPath,
                 ethereumKeypair = ethereumKeypair,
-                ethereumDerivationPath = null // do not use any derivation path during migration
+                ethereumDerivationPath = ethereumDerivationPath
             )
 
             val isSelected = index == 0 // mark first account as selected
@@ -80,7 +85,8 @@ class V2Migration(
                 ethereumPublicKey = ethereumKeypair?.publicKey,
                 ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 name = account.name,
-                isSelected = isSelected
+                isSelected = isSelected,
+                position = index
             )
 
             val metaId = insertMetaAccount(metaAccount, database)
@@ -120,6 +126,7 @@ class V2Migration(
                 put(MetaAccountLocal.Table.Column.SUBSTRATE_CRYPTO_TYPE, cryptoTypeConverters.from(substrateCryptoType))
                 put(MetaAccountLocal.Table.Column.SUBSTRATE_PUBKEY, substratePublicKey)
                 put(MetaAccountLocal.Table.Column.IS_SELECTED, isSelected)
+                put(MetaAccountLocal.Table.Column.POSITION, position)
             }
         }
 
