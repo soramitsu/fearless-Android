@@ -34,7 +34,7 @@ class RuntimeProvider(
     private var currentConstructionJob: Job? = null
 
     suspend fun get(): RuntimeSnapshot {
-        val runtime =  runtimeFlow.first()
+        val runtime = runtimeFlow.first()
 
         return runtime.runtime
     }
@@ -82,7 +82,7 @@ class RuntimeProvider(
                 // metadata was synced and new hash is different from current one
                 (runtimeSyncResult.metadataHash != null && currentVersion.metadataHash != runtimeSyncResult.metadataHash) ||
                 // types were synced and new hash is different from current one
-                (runtimeSyncResult.typesHash != null &&  currentVersion.ownTypesHash != runtimeSyncResult.typesHash)
+                (runtimeSyncResult.typesHash != null && currentVersion.ownTypesHash != runtimeSyncResult.typesHash)
             ) {
                 constructNewRuntime(typesUsage)
             }

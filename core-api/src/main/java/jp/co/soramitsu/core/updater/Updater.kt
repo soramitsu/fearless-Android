@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.transform
  */
 interface SideEffectScope {
 
-    fun <T> Flow<T>.noSideAffects(): Flow<Updater.SideEffect> = transform {  }
+    fun <T> Flow<T>.noSideAffects(): Flow<Updater.SideEffect> = transform { }
 }
 
 interface UpdateScope {

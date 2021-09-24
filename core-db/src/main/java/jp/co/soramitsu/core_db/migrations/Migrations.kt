@@ -125,7 +125,8 @@ val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
 
         // operationsMi
         database.execSQL("DROP TABLE operations")
-        database.execSQL("""
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `operations` (`id` TEXT NOT NULL,
             `address` TEXT NOT NULL,
             `chainId` TEXT NOT NULL,
@@ -146,13 +147,15 @@ val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
             `validator` TEXT,
             PRIMARY KEY(`id`, `address`, `chainId`, `chainAssetId`)
             )
-        """.trimIndent())
+            """.trimIndent()
+        )
     }
 }
 
 val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("""
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `chains` (
             `id` TEXT NOT NULL,
             `parentId` TEXT,
@@ -167,9 +170,9 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `staking_type` TEXT,
             `history_url` TEXT,
             `history_type` TEXT,
-            PRIMARY KEY(`id`))""".trimIndent()
+            PRIMARY KEY(`id`))
+            """.trimIndent()
         )
-
 
         database.execSQL(
             """

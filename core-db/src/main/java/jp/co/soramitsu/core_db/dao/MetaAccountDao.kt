@@ -74,5 +74,5 @@ interface MetaAccountDao {
     fun getMetaAccountInfo(
         accountId: AccountId,
         ethereumAddress: String = accountId.toHexString()
-    ) : RelationJoinedMetaAccountInfo?
+    ): RelationJoinedMetaAccountInfo?
 }
