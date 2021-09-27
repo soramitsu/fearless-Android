@@ -16,7 +16,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toByteArray
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.LeaseEntry
@@ -28,8 +27,8 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.mapParachainMetadataRemoteToParachainMetadata
-import jp.co.soramitsu.runtime.ext.runtimeCacheName
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
@@ -42,7 +41,6 @@ private const val CONTRIBUTIONS_CHILD_SUFFIX = "crowdloan"
 
 class CrowdloanRepositoryImpl(
     private val remoteStorage: StorageDataSource,
-    private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
     private val parachainMetadataApi: ParachainMetadataApi
 ) : CrowdloanRepository {
@@ -75,13 +73,13 @@ class CrowdloanRepositoryImpl(
         return leases.any { it?.accountId.contentEquals(bidderAccount) }
     }
 
-    override suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata> {
+    override suspend fun getParachainMetadata(chain: Chain): Map<ParaId, ParachainMetadata> {
         return withContext(Dispatchers.Default) {
-            val networkType = accountRepository.currentNetworkType()
-
-            parachainMetadataApi.getParachainMetadata(networkType.runtimeCacheName())
-                .associateBy { it.paraid }
-                .mapValues { (_, remoteMetadata) -> mapParachainMetadataRemoteToParachainMetadata(remoteMetadata) }
+            chain.externalApi?.crowdloans?.let { section ->
+                parachainMetadataApi.getParachainMetadata(section.url)
+                    .associateBy { it.paraid }
+                    .mapValues { (_, remoteMetadata) -> mapParachainMetadataRemoteToParachainMetadata(remoteMetadata) }
+            } ?: emptyMap()
         }
     }
 

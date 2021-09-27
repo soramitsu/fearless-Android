@@ -6,6 +6,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorSource
+import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -22,7 +23,7 @@ class ValidatorRecommendatorFactory(
     }
 
     private suspend fun loadValidators(lifecycle: Lifecycle) = computationalCache.useCache(ELECTED_VALIDATORS_CACHE, lifecycle) {
-        validatorProvider.getValidators(sharedState.chainId(), ValidatorSource.Elected)
+        validatorProvider.getValidators(sharedState.chain(), ValidatorSource.Elected)
     }
 
     suspend fun create(lifecycle: Lifecycle): ValidatorRecommendator = withContext(Dispatchers.IO) {

@@ -95,10 +95,8 @@ class CrowdloanFeatureModule {
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         crowdloanMetadataApi: ParachainMetadataApi,
         chainRegistry: ChainRegistry,
-        accountRepository: AccountRepository,
     ): CrowdloanRepository = CrowdloanRepositoryImpl(
         remoteStorageSource,
-        accountRepository,
         chainRegistry,
         crowdloanMetadataApi
     )

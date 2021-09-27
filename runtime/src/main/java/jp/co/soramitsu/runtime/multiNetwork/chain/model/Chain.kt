@@ -48,11 +48,12 @@ data class Chain(
 
     data class ExternalApi(
         val staking: Section?,
-        val history: Section?
+        val history: Section?,
+        val crowdloans: Section?
     ) {
         data class Section(val type: Type, val url: String) {
             enum class Type {
-                SUBQUERY, UNKNOWN
+                SUBQUERY, GITHUB, UNKNOWN
             }
         }
     }

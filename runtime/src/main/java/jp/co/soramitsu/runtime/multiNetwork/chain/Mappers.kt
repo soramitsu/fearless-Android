@@ -5,6 +5,7 @@ import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
 private const val ETHEREUM_OPTION = "ethereumBased"
@@ -13,6 +14,7 @@ private const val TESTNET_OPTION = "testnet"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
     "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
+    "github" -> Chain.ExternalApi.Section.Type.GITHUB
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
@@ -29,6 +31,27 @@ private fun mapStakingStringToStakingType(stakingString: String?) : Chain.Asset.
 
 private fun mapStakingTypeToLocal(stakingType: Chain.Asset.StakingType): String = stakingType.name
 private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Chain.Asset.StakingType = enumValueOf(stakingTypeLocal)
+
+private fun mapSectionRemoteToSection(sectionRemote: ChainExternalApiRemote.Section?) = sectionRemote?.let {
+    Chain.ExternalApi.Section(
+        type = mapSectionTypeRemoteToSectionType(sectionRemote.type),
+        url = sectionRemote.url
+    )
+}
+
+private fun mapSectionLocalToSection(sectionLocal: ChainLocal.ExternalApi.Section?) = sectionLocal?.let {
+    Chain.ExternalApi.Section(
+        type = mapSectionTypeLocalToSectionType(sectionLocal.type),
+        url = sectionLocal.url
+    )
+}
+
+private fun mapSectionToSectionLocal(sectionLocal: Chain.ExternalApi.Section?) = sectionLocal?.let {
+    ChainLocal.ExternalApi.Section(
+        type = mapSectionTypeToSectionTypeLocal(sectionLocal.type),
+        url = sectionLocal.url
+    )
+}
 
 fun mapChainRemoteToChain(
     chainRemote: ChainRemote,
@@ -62,18 +85,9 @@ fun mapChainRemoteToChain(
 
     val externalApi = chainRemote.externalApi?.let { externalApi ->
         Chain.ExternalApi(
-            history = externalApi.history?.let { section ->
-                Chain.ExternalApi.Section(
-                    type = mapSectionTypeRemoteToSectionType(section.type),
-                    url = section.url
-                )
-            },
-            staking = externalApi.staking?.let { section ->
-                Chain.ExternalApi.Section(
-                    type = mapSectionTypeRemoteToSectionType(section.type),
-                    url = section.url
-                )
-            }
+            history = mapSectionRemoteToSection(externalApi.history),
+            staking = mapSectionRemoteToSection(externalApi.staking),
+            crowdloans = mapSectionRemoteToSection(externalApi.crowdloans),
         )
     }
 
@@ -127,18 +141,9 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
 
     val externalApi = chainLocal.chain.externalApi?.let { externalApi ->
         Chain.ExternalApi(
-            staking = externalApi.staking?.let { section ->
-                Chain.ExternalApi.Section(
-                    type = mapSectionTypeLocalToSectionType(section.type),
-                    url = section.url
-                )
-            },
-            history = externalApi.history?.let { section ->
-                Chain.ExternalApi.Section(
-                    type = mapSectionTypeLocalToSectionType(section.type),
-                    url = section.url
-                )
-            }
+            staking = mapSectionLocalToSection(externalApi.staking),
+            history = mapSectionLocalToSection(externalApi.history),
+            crowdloans = mapSectionLocalToSection(externalApi.crowdloans)
         )
     }
 
@@ -190,18 +195,9 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
 
     val externalApi = chain.externalApi?.let { externalApi ->
         ChainLocal.ExternalApi(
-            staking = externalApi.staking?.let { section ->
-                ChainLocal.ExternalApi.Section(
-                    type = mapSectionTypeToSectionTypeLocal(section.type),
-                    url = section.url
-                )
-            },
-            history = externalApi.history?.let { section ->
-                ChainLocal.ExternalApi.Section(
-                    type = mapSectionTypeToSectionTypeLocal(section.type),
-                    url = section.url
-                )
-            }
+            staking = mapSectionToSectionLocal(externalApi.staking),
+            history = mapSectionToSectionLocal(externalApi.history),
+            crowdloans = mapSectionToSectionLocal(externalApi.crowdloans)
         )
     }
 

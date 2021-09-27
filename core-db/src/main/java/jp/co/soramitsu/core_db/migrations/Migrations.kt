@@ -172,6 +172,8 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `staking_type` TEXT,
             `history_url` TEXT,
             `history_type` TEXT,
+            `crowdloans_url` TEXT,
+            `crowdloans_type` TEXT,
             PRIMARY KEY(`id`))
             """.trimIndent()
         )

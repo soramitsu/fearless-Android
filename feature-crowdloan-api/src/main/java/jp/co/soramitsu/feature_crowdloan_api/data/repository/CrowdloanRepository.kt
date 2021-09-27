@@ -5,6 +5,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Cont
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.TrieIndex
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
@@ -18,7 +19,7 @@ interface CrowdloanRepository {
 
     suspend fun getWinnerInfo(chainId: ChainId, funds: Map<ParaId, FundInfo>): Map<ParaId, Boolean>
 
-    suspend fun getParachainMetadata(): Map<ParaId, ParachainMetadata>
+    suspend fun getParachainMetadata(chain: Chain): Map<ParaId, ParachainMetadata>
 
     suspend fun getContribution(chainId: ChainId, accountId: AccountId, paraId: ParaId, trieIndex: TrieIndex): Contribution?
 

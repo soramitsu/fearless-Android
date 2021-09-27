@@ -12,9 +12,13 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.state.chain
+import jp.co.soramitsu.runtime.state.selectedChainFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -60,17 +64,15 @@ class CrowdloanInteractor(
 ) {
 
     fun crowdloansFlow(): Flow<GroupedCrowdloans> {
-        return flow {
-            val chain = crowdloanSharedState.chain()
+        return crowdloanSharedState.selectedChainFlow().flatMapLatest { chain ->
             val chainId = chain.id
 
             if (crowdloanRepository.isCrowdloansAvailable(chainId).not()) {
-                emit(emptyMap())
-                return@flow
+               return@flatMapLatest flowOf(emptyMap())
             }
 
             val parachainMetadatas = runCatching {
-                crowdloanRepository.getParachainMetadata()
+                crowdloanRepository.getParachainMetadata(chain)
             }.getOrDefault(emptyMap())
 
             val metaAccount = accountRepository.getSelectedMetaAccount()
@@ -111,7 +113,7 @@ class CrowdloanInteractor(
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
             }
 
-            emitAll(withBlockUpdates)
+            withBlockUpdates
         }
     }
 }

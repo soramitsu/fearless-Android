@@ -230,12 +230,10 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         identityRepository: IdentityRepository,
         rewardCalculatorFactory: RewardCalculatorFactory,
-        accountRepository: AccountRepository,
         stakingConstantsRepository: StakingConstantsRepository,
     ) = ValidatorProvider(
         stakingRepository,
         identityRepository,
-        accountRepository,
         rewardCalculatorFactory,
         stakingConstantsRepository
     )

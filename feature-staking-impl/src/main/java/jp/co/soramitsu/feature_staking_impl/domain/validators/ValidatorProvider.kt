@@ -13,6 +13,8 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 sealed class ValidatorSource {
@@ -25,17 +27,17 @@ sealed class ValidatorSource {
 class ValidatorProvider(
     private val stakingRepository: StakingRepository,
     private val identityRepository: IdentityRepository,
-    private val accountRepository: AccountRepository,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val stakingConstantsRepository: StakingConstantsRepository,
 ) {
 
     suspend fun getValidators(
-        chainId: ChainId,
+        chain: Chain,
         source: ValidatorSource,
         cachedExposures: AccountIdMap<Exposure>? = null,
     ): List<Validator> {
-        val networkType = accountRepository.currentNetworkType()
+        val chainId = chain.id
+
         val electedValidatorExposures = cachedExposures ?: stakingRepository.getActiveElectedValidatorsExposures(chainId)
 
         val requestedValidatorIds = when (source) {
@@ -72,7 +74,7 @@ class ValidatorProvider(
                 electedInfo = electedInfo,
                 prefs = prefs,
                 identity = identities[accountIdHex],
-                address = accountIdHex.fromHex().toAddress(networkType)
+                address = chain.addressOf(accountIdHex.fromHex())
             )
         }
     }
