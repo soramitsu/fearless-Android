@@ -5,7 +5,7 @@ import retrofit2.http.Path
 
 interface DefinitionsFetcher {
 
-    @GET("https://raw.githubusercontent.com/polkascan/py-scale-codec/master/scalecodec/type_registry/{fileName}")
+    @GET("https://raw.githubusercontent.com/valentunn/py-scale-codec/fearless_stable/scalecodec/type_registry/{fileName}")
     suspend fun getDefinitionsByFile(@Path("fileName") fileName: String): String
 }
 
