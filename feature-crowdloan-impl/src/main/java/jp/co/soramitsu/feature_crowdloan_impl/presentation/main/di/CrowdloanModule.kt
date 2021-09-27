@@ -33,6 +33,7 @@ class CrowdloanModule {
         crowdloanSharedState: CrowdloanSharedState,
         router: CrowdloanRouter,
         crowdloanUpdateSystem: UpdateSystem,
+        sharedState: CrowdloanSharedState,
         assetSelectorFactory: AssetSelectorMixin.Presentation.Factory
     ): ViewModel {
         return CrowdloanViewModel(
@@ -42,6 +43,7 @@ class CrowdloanModule {
             resourceManager,
             crowdloanSharedState,
             router,
+            sharedState,
             crowdloanUpdateSystem,
             assetSelectorFactory
         )

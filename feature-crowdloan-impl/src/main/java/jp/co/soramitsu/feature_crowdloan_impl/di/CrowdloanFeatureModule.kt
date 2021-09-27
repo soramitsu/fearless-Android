@@ -106,12 +106,10 @@ class CrowdloanFeatureModule {
     fun provideCrowdloanInteractor(
         accountRepository: AccountRepository,
         crowdloanRepository: CrowdloanRepository,
-        sharedState: CrowdloanSharedState,
         chainStateRepository: ChainStateRepository
     ) = CrowdloanInteractor(
         accountRepository,
         crowdloanRepository,
-        sharedState,
         chainStateRepository
     )
 

@@ -8,17 +8,12 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Fund
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
-import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
-import jp.co.soramitsu.runtime.state.chain
-import jp.co.soramitsu.runtime.state.selectedChainFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -59,16 +54,17 @@ typealias GroupedCrowdloans = GroupedList<KClass<out Crowdloan.State>, Crowdloan
 class CrowdloanInteractor(
     private val accountRepository: AccountRepository,
     private val crowdloanRepository: CrowdloanRepository,
-    private val crowdloanSharedState: CrowdloanSharedState,
     private val chainStateRepository: ChainStateRepository,
 ) {
 
-    fun crowdloansFlow(): Flow<GroupedCrowdloans> {
-        return crowdloanSharedState.selectedChainFlow().flatMapLatest { chain ->
+    fun crowdloansFlow(chain: Chain): Flow<GroupedCrowdloans> {
+        return flow {
             val chainId = chain.id
 
             if (crowdloanRepository.isCrowdloansAvailable(chainId).not()) {
-               return@flatMapLatest flowOf(emptyMap())
+                emit(emptyMap())
+
+                return@flow
             }
 
             val parachainMetadatas = runCatching {
@@ -113,7 +109,7 @@ class CrowdloanInteractor(
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
             }
 
-            withBlockUpdates
+            emitAll(withBlockUpdates)
         }
     }
 }
