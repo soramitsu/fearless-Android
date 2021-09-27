@@ -175,10 +175,10 @@ class StakingInteractor(
         }
     }
 
-    suspend fun observeNetworkInfoState(chainId: ChainId): Flow<NetworkInfo> {
+    suspend fun observeNetworkInfoState(chainId: ChainId): Flow<NetworkInfo> = withContext(Dispatchers.Default) {
         val lockupPeriod = getLockupPeriodInDays(chainId)
 
-        return stakingRepository.electedExposuresInActiveEra(chainId).map { exposuresMap ->
+        stakingRepository.electedExposuresInActiveEra(chainId).map { exposuresMap ->
             val exposures = exposuresMap.values
 
             val minimumNominatorBond = stakingRepository.minimumNominatorBond(chainId)
@@ -192,14 +192,16 @@ class StakingInteractor(
         }
     }
 
-    suspend fun getLockupPeriodInDays() = getLockupPeriodInDays(stakingSharedState.chainId())
+    suspend fun getLockupPeriodInDays() = withContext(Dispatchers.Default) {
+        getLockupPeriodInDays(stakingSharedState.chainId())
+    }
 
     fun selectedChainFlow() = stakingSharedState.assetWithChainWithChain.map { it.chain }
 
-    suspend fun getEraHoursLength(): Int {
+    suspend fun getEraHoursLength(): Int = withContext(Dispatchers.Default){
         val chainId = stakingSharedState.chainId()
 
-        return HOURS_IN_DAY / stakingRepository.erasPerDay(chainId)
+        HOURS_IN_DAY / stakingRepository.erasPerDay(chainId)
     }
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>> {
@@ -257,13 +259,13 @@ class StakingInteractor(
         }
     }
 
-    suspend fun getProjectedAccount(address: String): StakingAccount {
+    suspend fun getProjectedAccount(address: String): StakingAccount = withContext(Dispatchers.Default) {
         val chain = stakingSharedState.chain()
         val accountId = chain.accountIdOf(address)
 
         val metaAccount = accountRepository.findMetaAccount(accountId)!!
 
-        return mapAccountToStakingAccount(chain, metaAccount)
+        mapAccountToStakingAccount(chain, metaAccount)
     }
 
     suspend fun getSelectedAccountProjection(): StakingAccount = withContext(Dispatchers.Default) {
@@ -272,13 +274,17 @@ class StakingInteractor(
         mapAccountToStakingAccount(account)
     }
 
-    suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination {
-        return stakingRepository.getRewardDestination(accountStakingState)
+    suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination = withContext(Dispatchers.Default) {
+        stakingRepository.getRewardDestination(accountStakingState)
     }
 
-    suspend fun maxValidatorsPerNominator(): Int = stakingConstantsRepository.maxValidatorsPerNominator(stakingSharedState.chainId())
+    suspend fun maxValidatorsPerNominator(): Int = withContext(Dispatchers.Default) {
+        stakingConstantsRepository.maxValidatorsPerNominator(stakingSharedState.chainId())
+    }
 
-    suspend fun maxRewardedNominators(): Int = stakingConstantsRepository.maxRewardedNominatorPerValidator(stakingSharedState.chainId())
+    suspend fun maxRewardedNominators(): Int = withContext(Dispatchers.Default) {
+        stakingConstantsRepository.maxRewardedNominatorPerValidator(stakingSharedState.chainId())
+    }
 
     fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
         return selectedAccountStakingStateFlow()

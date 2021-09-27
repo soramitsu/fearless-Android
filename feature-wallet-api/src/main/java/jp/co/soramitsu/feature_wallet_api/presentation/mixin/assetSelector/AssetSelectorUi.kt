@@ -24,7 +24,7 @@ fun <V> BaseFragment<V>.setupAssetSelector(
         view.setState(imageLoader, it)
     }
 
-    viewModel.assetSelectorMixin.showAssetChooser.observe {
+    viewModel.assetSelectorMixin.showAssetChooser.observeEvent {
         AssetSelectorBottomSheet(
             imageLoader = imageLoader,
             context = requireContext(),

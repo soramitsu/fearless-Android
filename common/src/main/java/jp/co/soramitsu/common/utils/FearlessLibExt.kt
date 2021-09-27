@@ -105,8 +105,19 @@ fun RuntimeMetadata.slots() = module(Modules.SLOTS)
 
 fun RuntimeMetadata.session() = module(Modules.SESSION)
 
-fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapKeys: Collection<T>): Map<String, T> {
-    return singleMapKeys.associateBy { storageKey(runtime, it) }
+fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapArguments: Collection<T>): Map<String, T> {
+    return singleMapArguments.associateBy { storageKey(runtime, it) }
+}
+
+inline fun <K, T> StorageEntry.storageKeys(
+    runtime: RuntimeSnapshot,
+    singleMapArguments: Collection<T>,
+    argumentTransform: (T) -> K
+): Map<String, K> {
+    return singleMapArguments.associateBy(
+        keySelector = { storageKey(runtime, it) },
+        valueTransform = { argumentTransform(it) }
+    )
 }
 
 fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!

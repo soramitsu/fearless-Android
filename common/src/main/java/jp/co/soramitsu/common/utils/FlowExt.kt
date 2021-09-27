@@ -106,7 +106,6 @@ fun <T> Flow<T>.zipWithPrevious(): Flow<Pair<T?, T>> = flow {
 }
 
 fun <T> singleReplaySharedFlow() = MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-fun <T> eventSharedFlow() = MutableSharedFlow<T>(replay = 0, onBufferOverflow = BufferOverflow.DROP_OLDEST, extraBufferCapacity = 1)
 
 fun <T> Flow<T>.inBackground() = flowOn(Dispatchers.Default)
 

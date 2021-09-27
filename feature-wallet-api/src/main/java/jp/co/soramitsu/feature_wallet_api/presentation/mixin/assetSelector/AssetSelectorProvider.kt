@@ -1,7 +1,8 @@
 package jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector
 
+import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.eventSharedFlow
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
@@ -34,7 +35,7 @@ private class AssetSelectorProvider(
     private val scope: CoroutineScope,
 ) : AssetSelectorMixin.Presentation, CoroutineScope by scope {
 
-    override val showAssetChooser = eventSharedFlow<DynamicListBottomSheet.Payload<AssetModel>>()
+    override val showAssetChooser = MutableLiveData<Event<DynamicListBottomSheet.Payload<AssetModel>>>()
 
     override val selectedAssetFlow: Flow<Asset> = assetUseCase.currentAssetFlow()
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
@@ -55,7 +56,7 @@ private class AssetSelectorProvider(
 
             val selectedModel = models.first { it.chainAssetId == selectedChainAsset.id && it.chainId == selectedChainAsset.chainId }
 
-            showAssetChooser.emit(DynamicListBottomSheet.Payload(models, selectedModel))
+            showAssetChooser.value = Event(DynamicListBottomSheet.Payload(models, selectedModel))
         }
     }
 

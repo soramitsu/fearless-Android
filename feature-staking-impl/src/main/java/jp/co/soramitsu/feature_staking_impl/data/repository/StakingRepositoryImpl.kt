@@ -10,9 +10,11 @@ import jp.co.soramitsu.common.utils.hasModule
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -182,7 +184,7 @@ class StakingRepositoryImpl(
         )
     }
 
-    override suspend fun getSlashes(chainId: ChainId, accountIdsHex: List<String>) = withContext(Dispatchers.Default) {
+    override suspend fun getSlashes(chainId: ChainId, accountIdsHex: List<String>): AccountIdMap<Boolean> = withContext(Dispatchers.Default) {
         val runtime = runtimeFor(chainId)
 
         val storage = runtime.metadata.staking().storage("SlashingSpans")
@@ -194,8 +196,16 @@ class StakingRepositoryImpl(
         val slashDeferDurationConstant = runtime.metadata.staking().constant("SlashDeferDuration")
         val slashDeferDuration = bindSlashDeferDuration(slashDeferDurationConstant, runtime)
 
+        val accountIds = accountIdsHex.map { it.fromHex() }
+
         remoteStorage.queryKeys(
-            keysBuilder = { storage.storageKeys(runtime, accountIdsHex) },
+            keysBuilder = {
+                storage.storageKeys(
+                    runtime = runtime,
+                    singleMapArguments = accountIds,
+                    argumentTransform = { it.toHexString() }
+                )
+            },
             binding = { scale, _ ->
                 val span = scale?.let { bindSlashingSpans(it, runtime, returnType) }
 

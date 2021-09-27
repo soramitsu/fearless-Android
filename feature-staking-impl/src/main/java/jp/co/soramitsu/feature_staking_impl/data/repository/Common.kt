@@ -10,8 +10,4 @@ fun StorageEntry.accountMapStorageKeys(runtime: RuntimeSnapshot, accountIdsHex: 
     return accountIdsHex.map { storageKey(runtime, it.fromHex()) }
 }
 
-fun <A> StorageEntry.storageKeys(runtime: RuntimeSnapshot, firstArguments: List<A>): Map<A, String> {
-    return firstArguments.associateWith { storageKey(runtime, it) }
-}
-
 fun String.accountIdFromMapKey() = fromHex().takeLast(32).toByteArray().toHexString()
