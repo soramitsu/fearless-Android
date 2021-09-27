@@ -198,7 +198,7 @@ class StakingInteractor(
 
     fun selectedChainFlow() = stakingSharedState.assetWithChainWithChain.map { it.chain }
 
-    suspend fun getEraHoursLength(): Int = withContext(Dispatchers.Default){
+    suspend fun getEraHoursLength(): Int = withContext(Dispatchers.Default) {
         val chainId = stakingSharedState.chainId()
 
         HOURS_IN_DAY / stakingRepository.erasPerDay(chainId)
