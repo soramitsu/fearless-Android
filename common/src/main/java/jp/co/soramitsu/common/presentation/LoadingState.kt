@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
-
 sealed class LoadingState<T> {
 
     class Loading<T> : LoadingState<T>()

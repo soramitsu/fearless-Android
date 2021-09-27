@@ -24,7 +24,7 @@ class AccountStakingScope(
         ).flatMapLatest { (chainWithAsset, account) ->
             val (chain, chainAsset) = chainWithAsset
 
-            accountStakingDao.observeDistinct(chain.id,  chainAsset.id, account.accountIdIn(chain)!!)
+            accountStakingDao.observeDistinct(chain.id, chainAsset.id, account.accountIdIn(chain)!!)
         }
     }
 

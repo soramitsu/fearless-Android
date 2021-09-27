@@ -58,7 +58,8 @@ interface StakingRepository {
     fun stakingStateFlow(
         chain: Chain,
         chainAsset: Chain.Asset,
-        accountId: AccountId): Flow<StakingState>
+        accountId: AccountId
+    ): Flow<StakingState>
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>>
 

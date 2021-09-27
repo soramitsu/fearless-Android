@@ -42,7 +42,7 @@ class AssetSelectorView @JvmOverloads constructor(
     }
 
     fun setBackgroundStyle(style: BackgroundStyle) = with(context) {
-        val baseBackground = when(style) {
+        val baseBackground = when (style) {
             BackgroundStyle.BLURRED -> getCutCornerDrawable(R.color.blurColor)
             BackgroundStyle.BORDERED -> getIdleDrawable()
         }

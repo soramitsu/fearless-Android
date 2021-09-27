@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
-import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
@@ -70,7 +69,7 @@ class WalletRepositoryImpl(
             assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
             assetsLocal.map { asset ->
-             mapAssetToLocalAsset(chainsById, asset)
+                mapAssetToLocalAsset(chainsById, asset)
             }
         }
     }

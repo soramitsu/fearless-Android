@@ -1,10 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain.validators
 
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository

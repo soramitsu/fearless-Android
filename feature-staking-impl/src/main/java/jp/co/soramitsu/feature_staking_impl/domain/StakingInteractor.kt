@@ -222,7 +222,7 @@ class StakingInteractor(
     }
 
     fun selectedAccountStakingStateFlow() = selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
-       selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
+        selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
     }
 
     suspend fun getAccountProjectionsInSelectedChains() = withContext(Dispatchers.Default) {

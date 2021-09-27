@@ -45,7 +45,6 @@ private class AssetSelectorProvider(
         }
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
-
     override fun assetSelectorClicked() {
         launch {
             val availableToSelect = assetUseCase.availableAssetsToSelect()

@@ -67,11 +67,11 @@ abstract class SingleAssetSharedState(
         return assetWithChainWithChain.first().chain.id
     }
 
-    private fun encode(chainId: ChainId, chainAssetId: Int) : String {
+    private fun encode(chainId: ChainId, chainAssetId: Int): String {
         return "$chainId$DELIMITER$chainAssetId"
     }
 
-    private fun decode(value: String) : Pair<ChainId, Int> {
+    private fun decode(value: String): Pair<ChainId, Int> {
         val (chainId, chainAssetRaw) = value.split(DELIMITER)
 
         return chainId to chainAssetRaw.toInt()

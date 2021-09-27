@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.data.storage
 
 import android.content.SharedPreferences
-import android.util.Log
 import jp.co.soramitsu.core.model.Language
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose

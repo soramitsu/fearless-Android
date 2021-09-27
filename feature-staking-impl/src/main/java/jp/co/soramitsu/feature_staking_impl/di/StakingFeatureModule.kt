@@ -64,7 +64,6 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderProvid
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 

@@ -15,7 +15,7 @@ fun <V> BaseFragment<V>.setupAssetSelector(
     view: AssetSelectorView,
     viewModel: V,
     imageLoader: ImageLoader
-) where V: BaseViewModel, V: WithAssetSelector {
+) where V : BaseViewModel, V : WithAssetSelector {
     view.onClick {
         viewModel.assetSelectorMixin.assetSelectorClicked()
     }

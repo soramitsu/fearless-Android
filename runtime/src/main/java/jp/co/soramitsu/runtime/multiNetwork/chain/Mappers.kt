@@ -21,8 +21,8 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
 private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Section.Type): String = sectionType.name
 private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
 
-private fun mapStakingStringToStakingType(stakingString: String?) : Chain.Asset.StakingType {
-    return when(stakingString) {
+private fun mapStakingStringToStakingType(stakingString: String?): Chain.Asset.StakingType {
+    return when (stakingString) {
         null -> Chain.Asset.StakingType.UNSUPPORTED
         "relaychain" -> Chain.Asset.StakingType.RELAYCHAIN
         else -> Chain.Asset.StakingType.UNSUPPORTED

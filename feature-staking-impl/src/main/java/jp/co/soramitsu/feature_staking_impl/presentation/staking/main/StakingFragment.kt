@@ -25,7 +25,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
-import jp.co.soramitsu.feature_wallet_api.presentation.view.AssetSelectorBottomSheet
 import kotlinx.android.synthetic.main.fragment_staking.stakingAlertsInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingAssetSelector
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
@@ -101,7 +100,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
 
         viewModel.stakingViewStateFlow.observe { loadingState ->
-            when(loadingState) {
+            when (loadingState) {
                 is LoadingState.Loading -> {
                     startStakingBtn.setVisible(false)
                     stakingEstimate.setVisible(false)
