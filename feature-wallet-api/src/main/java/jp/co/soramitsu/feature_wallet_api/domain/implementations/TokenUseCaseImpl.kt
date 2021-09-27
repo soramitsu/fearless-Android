@@ -5,6 +5,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chainAsset
+import jp.co.soramitsu.runtime.state.selectedAssetFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 
@@ -20,7 +21,7 @@ class TokenUseCaseImpl(
     }
 
     override fun currentTokenFlow(): Flow<Token> {
-        return sharedState.selectedAsset.flatMapLatest { (_, chainAsset) ->
+        return sharedState.selectedAssetFlow().flatMapLatest { chainAsset ->
             tokenRepository.observeToken(chainAsset)
         }
     }

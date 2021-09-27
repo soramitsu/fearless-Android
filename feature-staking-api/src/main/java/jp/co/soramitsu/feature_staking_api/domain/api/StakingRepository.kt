@@ -55,7 +55,10 @@ interface StakingRepository {
 
     suspend fun getSlashingSpan(chainId: ChainId, accountId: AccountId): SlashingSpans?
 
-    fun stakingStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState>
+    fun stakingStateFlow(
+        chain: Chain,
+        chainAsset: Chain.Asset,
+        accountId: AccountId): Flow<StakingState>
 
     fun stakingStoriesFlow(): Flow<List<StakingStory>>
 

@@ -115,10 +115,11 @@ val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
             """
                 CREATE TABLE IF NOT EXISTS `account_staking_accesses` (
                 `chainId` TEXT NOT NULL,
+                `chainAssetId` INTEGER NOT NULL,
                 `accountId` BLOB NOT NULL,
                 `stashId` BLOB,
                 `controllerId` BLOB,
-                PRIMARY KEY(`chainId`, `accountId`)
+                PRIMARY KEY(`chainId`, `chainAssetId`, `accountId`)
                 )
             """.trimIndent()
         )

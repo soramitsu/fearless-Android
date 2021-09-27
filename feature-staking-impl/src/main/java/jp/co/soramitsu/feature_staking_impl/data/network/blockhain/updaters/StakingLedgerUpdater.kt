@@ -57,7 +57,7 @@ class StakingLedgerUpdater(
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
 
-        val (chain, chainAsset) = stakingSharedState.selectedAsset.first()
+        val (chain, chainAsset) = stakingSharedState.selectedAssetWithChain.first()
         val runtime = chainRegistry.getRuntime(chain.id)
 
         val currentAccountId = scope.getAccount().accountIdIn(chain)!! // TODO ethereum
@@ -71,7 +71,7 @@ class StakingLedgerUpdater(
 
                 subscribeToLedger(storageSubscriptionBuilder.socketService, runtime, chain.id, controllerId)
             }.onEach { ledgerWithController ->
-                updateAccountStaking(chain.id, currentAccountId, ledgerWithController)
+                updateAccountStaking(chain.id, chainAsset.id, currentAccountId, ledgerWithController)
 
                 ledgerWithController?.let {
                     val era = stakingRepository.getActiveEraIndex(chain.id)
@@ -92,17 +92,19 @@ class StakingLedgerUpdater(
 
     private suspend fun updateAccountStaking(
         chainId: String,
+        chainAssetId: Int,
         accountId: AccountId,
         ledgerWithController: LedgerWithController?,
     ) {
 
         val accountStaking = AccountStakingLocal(
             chainId = chainId,
+            chainAssetId = chainAssetId,
             accountId = accountId,
             stakingAccessInfo = ledgerWithController?.let {
                 AccountStakingLocal.AccessInfo(
                     stashId = it.ledger.stashId,
-                    controllerId = it.controllerId
+                    controllerId = it.controllerId,
                 )
             }
         )

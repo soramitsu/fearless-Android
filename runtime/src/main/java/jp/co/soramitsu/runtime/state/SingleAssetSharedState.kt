@@ -10,10 +10,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
@@ -31,7 +29,7 @@ abstract class SingleAssetSharedState(
         val asset: Chain.Asset,
     )
 
-    val selectedAsset: Flow<SelectedAsset> = preferences.stringFlow(
+    val selectedAssetWithChain: Flow<SelectedAsset> = preferences.stringFlow(
         field = preferencesKey,
         initialValueProducer = {
             val defaultAsset = availableToSelect().first()
@@ -66,7 +64,7 @@ abstract class SingleAssetSharedState(
     }
 
     override suspend fun chainId(): String {
-        return selectedAsset.first().chain.id
+        return selectedAssetWithChain.first().chain.id
     }
 
     private fun encode(chainId: ChainId, chainAssetId: Int) : String {
@@ -80,12 +78,15 @@ abstract class SingleAssetSharedState(
     }
 }
 
-fun SingleAssetSharedState.selectedChainFlow() = selectedAsset
+fun SingleAssetSharedState.selectedChainFlow() = selectedAssetWithChain
     .map { it.chain }
     .distinctUntilChanged()
 
-suspend fun SingleAssetSharedState.chain() = selectedAsset.first().chain
+suspend fun SingleAssetSharedState.chain() = selectedAssetWithChain.first().chain
 
-suspend fun SingleAssetSharedState.chainAsset() = selectedAsset.first().asset
+suspend fun SingleAssetSharedState.chainAsset() = selectedAssetWithChain.first().asset
 
-suspend fun SingleAssetSharedState.chainAndAsset() = selectedAsset.first()
+suspend fun SingleAssetSharedState.chainAndAsset() = selectedAssetWithChain.first()
+
+fun SingleAssetSharedState.selectedAssetFlow() = selectedAssetWithChain
+    .map { it.asset }

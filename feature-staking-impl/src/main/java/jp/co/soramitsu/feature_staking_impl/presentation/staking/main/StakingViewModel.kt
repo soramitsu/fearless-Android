@@ -104,7 +104,7 @@ class StakingViewModel(
         mapAssetToAssetModel(it, resourceManager, patternId = null)
     }
         .inBackground()
-        .share()
+        .asLiveData()
 
     val networkInfoStateLiveData = selectedChain
         .distinctUntilChanged()

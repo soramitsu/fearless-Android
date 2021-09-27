@@ -213,8 +213,12 @@ class StakingRepositoryImpl(
         )
     }
 
-    override fun stakingStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState> {
-        return accountStakingDao.observeDistinct(chain.id, accountId)
+    override fun stakingStateFlow(
+        chain: Chain,
+        chainAsset: Chain.Asset,
+        accountId: AccountId
+    ): Flow<StakingState> {
+        return accountStakingDao.observeDistinct(chain.id, chainAsset.id, accountId)
             .flatMapLatest { accountStaking ->
                 val accessInfo = accountStaking.stakingAccessInfo
 
