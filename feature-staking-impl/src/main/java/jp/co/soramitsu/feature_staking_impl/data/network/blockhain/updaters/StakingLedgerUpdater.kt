@@ -57,7 +57,7 @@ class StakingLedgerUpdater(
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
 
-        val (chain, chainAsset) = stakingSharedState.selectedAssetWithChain.first()
+        val (chain, chainAsset) = stakingSharedState.assetWithChainWithChain.first()
         val runtime = chainRegistry.getRuntime(chain.id)
 
         val currentAccountId = scope.getAccount().accountIdIn(chain)!! // TODO ethereum

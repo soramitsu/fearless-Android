@@ -41,7 +41,7 @@ class SetupStakingInteractor(
         validatorAccountIds: List<String>,
         bondPayload: BondPayload?,
     ): BigInteger {
-        val (chain, chainAsset) = stakingSharedState.selectedAssetWithChain.first()
+        val (chain, chainAsset) = stakingSharedState.assetWithChainWithChain.first()
 
         return extrinsicService.estimateFee(chain) {
             formExtrinsic(chain, chainAsset, controllerAddress, validatorAccountIds, bondPayload)
@@ -53,7 +53,7 @@ class SetupStakingInteractor(
         validatorAccountIds: List<String>,
         bondPayload: BondPayload?,
     ) = withContext(Dispatchers.Default) {
-        val (chain, chainAsset) = stakingSharedState.selectedAssetWithChain.first()
+        val (chain, chainAsset) = stakingSharedState.assetWithChainWithChain.first()
         val accountId = chain.accountIdOf(controllerAddress)
 
         runCatching {

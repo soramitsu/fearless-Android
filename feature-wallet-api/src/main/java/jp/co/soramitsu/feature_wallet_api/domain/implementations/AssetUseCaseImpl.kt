@@ -19,7 +19,7 @@ class AssetUseCaseImpl(
 
     override fun currentAssetFlow() = combine(
         accountRepository.selectedMetaAccountFlow(),
-        sharedState.selectedAssetWithChain,
+        sharedState.assetWithChainWithChain,
         ::Pair
     ).flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
         val (chain, chainAsset) = chainAndAsset

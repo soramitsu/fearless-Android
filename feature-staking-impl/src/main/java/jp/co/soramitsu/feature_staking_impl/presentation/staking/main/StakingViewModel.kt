@@ -5,13 +5,17 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.flatMapLoading
 import jp.co.soramitsu.common.presentation.map
+import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.eventSharedFlow
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -41,17 +45,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -85,12 +85,17 @@ class StakingViewModel(
 
     private val stakingStateScope = viewModelScope.childScope(supervised = true)
 
-    private val stakingState = interactor.selectedAccountStakingStateFlow()
+    private val selectionState = interactor.selectionStateFlow()
         .share()
 
-    val stakingViewStateFlow = stakingState
+    private val loadingStakingState = selectionState
+        .withLoading { (account, assetWithToken) ->
+            interactor.selectedAccountStakingStateFlow(account, assetWithToken)
+        }.share()
+
+    val stakingViewStateFlow = loadingStakingState
         .onEach { stakingStateScope.coroutineContext.cancelChildren() }
-        .map { transformStakingState(it) }
+        .mapLoading(::transformStakingState)
         .inBackground()
         .share()
 
@@ -132,9 +137,11 @@ class StakingViewModel(
         }
     }
 
-    val alertsFlow = stakingState
-        .withLoading(alertsInteractor::getAlertsFlow)
-        .map { loadingState -> loadingState.map { alerts -> alerts.map(::mapAlertToAlertModel) } }
+    val alertsFlow = loadingStakingState
+        .flatMapLoading {
+            alertsInteractor.getAlertsFlow(it)
+                .mapList(::mapAlertToAlertModel)
+        }
         .inBackground()
         .asLiveData()
 
@@ -239,7 +246,8 @@ class StakingViewModel(
         validationSystem: ManageStakingValidationSystem,
         action: () -> Unit,
     ) = launch {
-        val stashState = stakingState.first() as? StakingState.Stash ?: return@launch
+        val stakingState = (loadingStakingState.first() as? LoadingState.Loaded)?.data
+        val stashState = stakingState as? StakingState.Stash ?: return@launch
 
         validationExecutor.requireValid(
             validationSystem,

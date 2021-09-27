@@ -7,7 +7,6 @@ import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
-import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.chainAndAsset
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -20,7 +19,7 @@ class AccountStakingScope(
 
     override fun invalidationFlow(): Flow<Any> {
         return combineToPair(
-            sharedStakingState.selectedAssetWithChain,
+            sharedStakingState.assetWithChainWithChain,
             accountRepository.selectedMetaAccountFlow()
         ).flatMapLatest { (chainWithAsset, account) ->
             val (chain, chainAsset) = chainWithAsset

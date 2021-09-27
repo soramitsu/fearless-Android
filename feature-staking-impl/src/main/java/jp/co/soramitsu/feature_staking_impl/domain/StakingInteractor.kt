@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculator
@@ -40,12 +41,12 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -193,7 +194,7 @@ class StakingInteractor(
 
     suspend fun getLockupPeriodInDays() = getLockupPeriodInDays(stakingSharedState.chainId())
 
-    fun selectedChainFlow() = stakingSharedState.selectedAssetWithChain.map { it.chain }
+    fun selectedChainFlow() = stakingSharedState.assetWithChainWithChain.map { it.chain }
 
     suspend fun getEraHoursLength(): Int {
         val chainId = stakingSharedState.chainId()
@@ -205,14 +206,23 @@ class StakingInteractor(
         return stakingRepository.stakingStoriesFlow()
     }
 
-    fun selectedAccountStakingStateFlow() = combineToPair(
+    fun selectionStateFlow() = combineToPair(
         accountRepository.selectedMetaAccountFlow(),
-        stakingSharedState.selectedAssetWithChain
-    ).flatMapLatest { (selectedAccount, assetWithChain) ->
-        val (chain, chainAsset) = assetWithChain
-        val accountId = selectedAccount.accountIdIn(chain)!! // TODO may be null for ethereum chains
+        stakingSharedState.assetWithChainWithChain
+    )
 
-        stakingRepository.stakingStateFlow(chain, chainAsset, accountId)
+    fun selectedAccountStakingStateFlow(
+        metaAccount: MetaAccount,
+        assetWithChain: SingleAssetSharedState.AssetWithChain
+    ) = flow {
+        val (chain, chainAsset) = assetWithChain
+        val accountId = metaAccount.accountIdIn(chain)!! // TODO may be null for ethereum chains
+
+        emitAll(stakingRepository.stakingStateFlow(chain, chainAsset, accountId))
+    }
+
+    fun selectedAccountStakingStateFlow() = selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
+       selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
     }
 
     suspend fun getAccountProjectionsInSelectedChains() = withContext(Dispatchers.Default) {
@@ -227,7 +237,7 @@ class StakingInteractor(
 
     fun assetFlow(accountAddress: String): Flow<Asset> {
         return flow {
-            val (chain, chainAsset) = stakingSharedState.selectedAssetWithChain.first()
+            val (chain, chainAsset) = stakingSharedState.assetWithChainWithChain.first()
 
             emitAll(
                 walletRepository.assetFlow(
@@ -240,7 +250,7 @@ class StakingInteractor(
 
     fun selectedAccountProjectionFlow(): Flow<StakingAccount> {
         return combine(
-            stakingSharedState.selectedAssetWithChain,
+            stakingSharedState.assetWithChainWithChain,
             accountRepository.selectedMetaAccountFlow()
         ) { (chain, _), account ->
             mapAccountToStakingAccount(chain, account)

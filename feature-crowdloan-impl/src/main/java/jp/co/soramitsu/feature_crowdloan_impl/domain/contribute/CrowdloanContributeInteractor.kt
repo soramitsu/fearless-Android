@@ -34,7 +34,7 @@ class CrowdloanContributeInteractor(
     fun crowdloanStateFlow(
         parachainId: ParaId,
         parachainMetadata: ParachainMetadata? = null
-    ): Flow<Crowdloan> = crowdloanSharedState.selectedAssetWithChain.flatMapLatest { (chain, _) ->
+    ): Flow<Crowdloan> = crowdloanSharedState.assetWithChainWithChain.flatMapLatest { (chain, _) ->
         val selectedMetaAccount = accountRepository.getSelectedMetaAccount()
         val accountId = selectedMetaAccount.accountIdIn(chain)!! // TODO optional for ethereum chains
 

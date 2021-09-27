@@ -24,12 +24,12 @@ abstract class SingleAssetSharedState(
     private val preferences: Preferences
 ) : ChainIdHolder {
 
-    data class SelectedAsset(
+    data class AssetWithChain(
         val chain: Chain,
         val asset: Chain.Asset,
     )
 
-    val selectedAssetWithChain: Flow<SelectedAsset> = preferences.stringFlow(
+    val assetWithChainWithChain: Flow<AssetWithChain> = preferences.stringFlow(
         field = preferencesKey,
         initialValueProducer = {
             val defaultAsset = availableToSelect().first()
@@ -44,7 +44,7 @@ abstract class SingleAssetSharedState(
             val chain = chainRegistry.getChain(chainId)
             val chainAsset = chain.assetsById.getValue(chainAssetId)
 
-            SelectedAsset(chain, chainAsset)
+            AssetWithChain(chain, chainAsset)
         }
         .inBackground()
         .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
@@ -64,7 +64,7 @@ abstract class SingleAssetSharedState(
     }
 
     override suspend fun chainId(): String {
-        return selectedAssetWithChain.first().chain.id
+        return assetWithChainWithChain.first().chain.id
     }
 
     private fun encode(chainId: ChainId, chainAssetId: Int) : String {
@@ -78,15 +78,15 @@ abstract class SingleAssetSharedState(
     }
 }
 
-fun SingleAssetSharedState.selectedChainFlow() = selectedAssetWithChain
+fun SingleAssetSharedState.selectedChainFlow() = assetWithChainWithChain
     .map { it.chain }
     .distinctUntilChanged()
 
-suspend fun SingleAssetSharedState.chain() = selectedAssetWithChain.first().chain
+suspend fun SingleAssetSharedState.chain() = assetWithChainWithChain.first().chain
 
-suspend fun SingleAssetSharedState.chainAsset() = selectedAssetWithChain.first().asset
+suspend fun SingleAssetSharedState.chainAsset() = assetWithChainWithChain.first().asset
 
-suspend fun SingleAssetSharedState.chainAndAsset() = selectedAssetWithChain.first()
+suspend fun SingleAssetSharedState.chainAndAsset() = assetWithChainWithChain.first()
 
-fun SingleAssetSharedState.selectedAssetFlow() = selectedAssetWithChain
+fun SingleAssetSharedState.selectedAssetFlow() = assetWithChainWithChain
     .map { it.asset }
