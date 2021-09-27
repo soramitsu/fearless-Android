@@ -17,7 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetCon
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set.bondSetControllerValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 

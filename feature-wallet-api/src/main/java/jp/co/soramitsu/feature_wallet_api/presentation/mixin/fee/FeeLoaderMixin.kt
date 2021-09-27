@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_api.presentation.mixin
+package jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee
 
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.base.BaseViewModel

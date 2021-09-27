@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_api.presentation.mixin
+package jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee
 
 import android.widget.ProgressBar
 import android.widget.TextView
