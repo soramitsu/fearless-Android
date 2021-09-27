@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.state
 
 import jp.co.soramitsu.common.data.holders.ChainIdHolder
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -30,16 +31,14 @@ abstract class SingleAssetSharedState(
         val asset: Chain.Asset,
     )
 
-    val selectedAsset: Flow<SelectedAsset> = flow {
-        val defaultAsset = availableToSelect().first()
+    val selectedAsset: Flow<SelectedAsset> = preferences.stringFlow(
+        field = preferencesKey,
+        initialValueProducer = {
+            val defaultAsset = availableToSelect().first()
 
-        val delegate = preferences.stringFlow(
-            field = preferencesKey,
-            initialValue = encode(defaultAsset.chainId, defaultAsset.id)
-        )
-
-        emitAll(delegate)
-    }
+            encode(defaultAsset.chainId, defaultAsset.id)
+        }
+    )
         .filterNotNull()
         .map { encoded ->
             val (chainId, chainAssetId) = decode(encoded)
@@ -49,6 +48,7 @@ abstract class SingleAssetSharedState(
 
             SelectedAsset(chain, chainAsset)
         }
+        .inBackground()
         .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableToSelect(): List<Chain.Asset> {

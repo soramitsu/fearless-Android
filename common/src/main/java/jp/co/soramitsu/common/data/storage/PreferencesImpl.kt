@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.storage
 
 import android.content.SharedPreferences
+import android.util.Log
 import jp.co.soramitsu.core.model.Language
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -12,6 +13,7 @@ class PreferencesImpl(
 ) : Preferences {
 
     companion object {
+
         private const val PREFS_SELECTED_LANGUAGE = "selected_language"
     }
 
@@ -68,17 +70,21 @@ class PreferencesImpl(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun stringFlow(
         field: String,
-        initialValue: String?
+        initialValueProducer: (suspend () -> String)?
     ): Flow<String?> = callbackFlow {
         if (contains(field)) {
             send(getString(field))
         } else {
+            val initialValue = initialValueProducer?.invoke()
+
             putString(field, initialValue)
 
             send(initialValue)
         }
 
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            Log.d("RX", "Key change: $key")
+
             if (key == field) {
                 offer(getString(field))
             }
@@ -86,7 +92,11 @@ class PreferencesImpl(
 
         sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
 
+        Log.d("RX", "Started: $field")
+
         awaitClose {
+            Log.d("RX", "Closed: $field")
+
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }

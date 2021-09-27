@@ -70,7 +70,7 @@ class CrowdloanFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideStakingSharedState(
+    fun provideCrowdloanSharedState(
         chainRegistry: ChainRegistry,
         preferences: Preferences,
     ) = CrowdloanSharedState(chainRegistry, preferences)

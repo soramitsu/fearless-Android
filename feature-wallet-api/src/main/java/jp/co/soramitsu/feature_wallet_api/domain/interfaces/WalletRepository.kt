@@ -17,6 +17,8 @@ interface WalletRepository {
 
     fun assetsFlow(metaId: Long): Flow<List<Asset>>
 
+    suspend fun getAssets(metaId: Long): List<Asset>
+
     suspend fun syncAssetsRates()
 
     fun assetFlow(
@@ -28,6 +30,7 @@ interface WalletRepository {
         accountId: AccountId,
         chainAsset: Chain.Asset
     ): Asset?
+
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,

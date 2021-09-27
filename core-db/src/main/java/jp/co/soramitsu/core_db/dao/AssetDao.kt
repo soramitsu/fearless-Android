@@ -19,8 +19,14 @@ private const val RETRIEVE_ASSET_SQL_ACCOUNT_ID = """
             a.accountId = :accountId and a.chainId = :chainId AND a.tokenSymbol = :symbol
 """
 
+private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
+       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId ORDER BY a.tokenSymbol, a.chainId
+"""
+
 interface AssetReadOnlyCache {
+
     fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
+    suspend fun getAssets(metaId: Long): List<AssetWithToken>
 
     fun observeAsset(metaId: Long, chainId: String, symbol: String): Flow<AssetWithToken>
 
@@ -34,12 +40,11 @@ interface AssetReadOnlyCache {
 @Dao
 abstract class AssetDao : AssetReadOnlyCache {
 
-    @Query(
-        """
-       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId ORDER BY a.tokenSymbol, a.chainId
-    """
-    )
+    @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
     abstract override fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
+
+    @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
+    abstract override suspend fun getAssets(metaId: Long): List<AssetWithToken>
 
     @Query(RETRIEVE_ASSET_SQL_META_ID)
     abstract override fun observeAsset(metaId: Long, chainId: String, symbol: String): Flow<AssetWithToken>

@@ -6,4 +6,6 @@ import kotlinx.coroutines.flow.Flow
 interface AssetUseCase {
 
     fun currentAssetFlow(): Flow<Asset>
+
+    suspend fun availableAssetsToSelect(): List<Asset>
 }

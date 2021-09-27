@@ -6,6 +6,8 @@ import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.model.AssetLocal
+import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -68,11 +70,27 @@ class WalletRepositoryImpl(
             assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
             assetsLocal.map { asset ->
-                val chainAsset = chainsById.getValue(asset.asset.chainId).assetsBySymbol.getValue(asset.token.symbol)
-
-                mapAssetLocalToAsset(asset, chainAsset = chainAsset)
+             mapAssetToLocalAsset(chainsById, asset)
             }
         }
+    }
+
+    override suspend fun getAssets(metaId: Long): List<Asset> = withContext(Dispatchers.Default) {
+        val chainsById = chainRegistry.chainsById.first()
+        val assetsLocal = assetCache.getAssets(metaId)
+
+        assetsLocal.map {
+            mapAssetToLocalAsset(chainsById, it)
+        }
+    }
+
+    private fun mapAssetToLocalAsset(
+        chainsById: Map<ChainId, Chain>,
+        assetLocal: AssetWithToken
+    ): Asset {
+        val chainAsset = chainsById.getValue(assetLocal.asset.chainId).assetsBySymbol.getValue(assetLocal.token.symbol)
+
+        return mapAssetLocalToAsset(assetLocal, chainAsset = chainAsset)
     }
 
     override suspend fun syncAssetsRates() {

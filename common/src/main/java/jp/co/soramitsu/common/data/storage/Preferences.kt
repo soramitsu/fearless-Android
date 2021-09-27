@@ -3,6 +3,8 @@ package jp.co.soramitsu.common.data.storage
 import jp.co.soramitsu.core.model.Language
 import kotlinx.coroutines.flow.Flow
 
+typealias InitialValueProducer<T> = suspend () -> T
+
 interface Preferences {
     fun contains(field: String): Boolean
 
@@ -28,5 +30,8 @@ interface Preferences {
 
     fun saveCurrentLanguage(languageIsoCode: String)
 
-    fun stringFlow(field: String, initialValue: String? = null): Flow<String?>
+    fun stringFlow(
+        field: String,
+        initialValueProducer: InitialValueProducer<String>? = null
+    ): Flow<String?>
 }

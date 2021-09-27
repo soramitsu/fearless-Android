@@ -8,11 +8,13 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
+import jp.co.soramitsu.common.utils.eventSharedFlow
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
@@ -38,8 +40,14 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.state.chainAsset
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -48,6 +56,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
 private const val CURRENT_ICON_SIZE = 40
@@ -85,11 +94,14 @@ class StakingViewModel(
         .inBackground()
         .share()
 
+    private val _showAssetChooser = eventSharedFlow<DynamicListBottomSheet.Payload<AssetModel>>()
+    val showAssetChooser: Flow<DynamicListBottomSheet.Payload<AssetModel>> = _showAssetChooser
+
     private val selectedChain = interactor.selectedChainFlow()
         .share()
 
     val selectedAssetFlow = assetUseCase.currentAssetFlow().map {
-        mapAssetToAssetModel(it, resourceManager)
+        mapAssetToAssetModel(it, resourceManager, patternId = null)
     }
         .inBackground()
         .share()
@@ -110,10 +122,6 @@ class StakingViewModel(
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
-    fun avatarClicked() {
-        router.openChangeAccountFromStaking()
-    }
-
     val networkInfoTitle = selectedChain
         .map { it.name }
         .share()
@@ -133,6 +141,30 @@ class StakingViewModel(
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
+    }
+
+    fun assetSelectorClicked() {
+        launch {
+            val availableToSelect = assetUseCase.availableAssetsToSelect()
+
+            val models = withContext(Dispatchers.Default) {
+                availableToSelect.map { mapAssetToAssetModel(it, resourceManager, patternId = null) }
+            }
+
+            val selectedChainAsset = sharedState.chainAsset()
+
+            val selectedModel = models.first { it.chainAssetId == selectedChainAsset.id && it.chainId == selectedChainAsset.chainId }
+
+            _showAssetChooser.emit(DynamicListBottomSheet.Payload(models, selectedModel))
+        }
+    }
+
+    fun assetSelected(model: AssetModel) {
+        sharedState.update(model.chainId, model.chainAssetId)
+    }
+
+    fun avatarClicked() {
+        router.openChangeAccountFromStaking()
     }
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
@@ -273,9 +305,5 @@ class StakingViewModel(
         return interactor.selectedAccountProjectionFlow().map {
             addressIconGenerator.createAddressModel(it.address, CURRENT_ICON_SIZE, it.name)
         }
-    }
-
-    fun assetSelectorClicked() {
-        
     }
 }
