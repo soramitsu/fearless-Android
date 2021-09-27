@@ -21,11 +21,14 @@ import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImp
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorFactory
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
 
@@ -46,6 +49,17 @@ class CrowdloanFeatureModule {
         walletRepository,
         accountRepository,
         sharedState
+    )
+
+    @Provides
+    fun provideAssetSelectorMixinFactory(
+        assetUseCase: AssetUseCase,
+        singleAssetSharedState: CrowdloanSharedState,
+        resourceManager: ResourceManager
+    ): AssetSelectorMixin.Presentation.Factory = AssetSelectorFactory(
+        assetUseCase,
+        singleAssetSharedState,
+        resourceManager
     )
 
     @Provides

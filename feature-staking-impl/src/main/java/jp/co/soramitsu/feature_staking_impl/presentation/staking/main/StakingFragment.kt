@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
 import jp.co.soramitsu.feature_wallet_api.presentation.view.AssetSelectorBottomSheet
 import kotlinx.android.synthetic.main.fragment_staking.stakingAlertsInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingAssetSelector
@@ -62,10 +63,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
 
         stakingNetworkInfo.storyItemHandler = viewModel::storyClicked
-
-        stakingAssetSelector.onClick {
-            viewModel.assetSelectorClicked()
-        }
     }
 
     override fun inject() {
@@ -81,19 +78,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     @ExperimentalTime
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
-
-        viewModel.showAssetChooser.observe {
-            AssetSelectorBottomSheet(
-                imageLoader = imageLoader,
-                context = requireContext(),
-                payload = it,
-                onClicked = viewModel::assetSelected
-            ).show()
-        }
-
-        viewModel.selectedAssetFlow.observe {
-            stakingAssetSelector.setState(imageLoader, it)
-        }
+        setupAssetSelector(stakingAssetSelector, viewModel, imageLoader)
 
         viewModel.alertsFlow.observe { loadingState ->
             when (loadingState) {

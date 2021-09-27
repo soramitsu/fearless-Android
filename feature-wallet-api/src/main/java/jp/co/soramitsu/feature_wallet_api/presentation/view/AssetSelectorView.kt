@@ -6,8 +6,11 @@ import android.view.View
 import android.widget.LinearLayout
 import coil.ImageLoader
 import coil.load
+import jp.co.soramitsu.common.utils.getEnum
+import jp.co.soramitsu.common.utils.useAttributes
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
+import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
 import kotlinx.android.synthetic.main.view_asset_selector.view.assetSelectorBalance
@@ -20,12 +23,31 @@ class AssetSelectorView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
+    enum class BackgroundStyle {
+        BLURRED, BORDERED
+    }
+
     init {
         View.inflate(context, R.layout.view_asset_selector, this)
 
-        with(context) {
-            background = addRipple(getCutCornerDrawable(R.color.blurColor))
+        attrs?.let {
+            applyAttributes(it)
         }
+    }
+
+    private fun applyAttributes(attributes: AttributeSet) = context.useAttributes(attributes, R.styleable.AssetSelectorView) {
+        val backgroundStyle: BackgroundStyle = it.getEnum(R.styleable.AssetSelectorView_backgroundStyle, BackgroundStyle.BORDERED)
+
+        setBackgroundStyle(backgroundStyle)
+    }
+
+    fun setBackgroundStyle(style: BackgroundStyle) = with(context) {
+        val baseBackground = when(style) {
+            BackgroundStyle.BLURRED -> getCutCornerDrawable(R.color.blurColor)
+            BackgroundStyle.BORDERED -> getIdleDrawable()
+        }
+
+        background = addRipple(baseBackground)
     }
 
     fun onClick(action: (View) -> Unit) {

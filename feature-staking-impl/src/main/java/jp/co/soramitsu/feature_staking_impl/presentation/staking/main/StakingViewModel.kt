@@ -44,9 +44,12 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
 import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -75,13 +78,12 @@ class StakingViewModel(
     private val bondMoreValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
     private val stakingUpdateSystem: UpdateSystem,
-    private val sharedState: StakingSharedState,
-    private val assetUseCase: AssetUseCase,
+    private val assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
 ) : BaseViewModel(),
+    WithAssetSelector,
     Validatable by validationExecutor {
 
-    private val currentAssetFlow = interactor.currentAssetFlow()
-        .share()
+    override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
 
     private val stakingStateScope = viewModelScope.childScope(supervised = true)
 
@@ -99,22 +101,13 @@ class StakingViewModel(
         .inBackground()
         .share()
 
-    private val _showAssetChooser = eventSharedFlow<DynamicListBottomSheet.Payload<AssetModel>>()
-    val showAssetChooser: Flow<DynamicListBottomSheet.Payload<AssetModel>> = _showAssetChooser
-
     private val selectedChain = interactor.selectedChainFlow()
         .share()
-
-    val selectedAssetFlow = assetUseCase.currentAssetFlow().map {
-        mapAssetToAssetModel(it, resourceManager, patternId = null)
-    }
-        .inBackground()
-        .asLiveData()
 
     val networkInfoStateLiveData = selectedChain
         .distinctUntilChanged()
         .withLoading { chain ->
-            interactor.observeNetworkInfoState(chain.id).combine(currentAssetFlow) { networkInfo, asset ->
+            interactor.observeNetworkInfoState(chain.id).combine(assetSelectorMixin.selectedAssetFlow) { networkInfo, asset ->
                 transformNetworkInfo(asset, networkInfo)
             }
         }
@@ -148,26 +141,6 @@ class StakingViewModel(
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
-    }
-
-    fun assetSelectorClicked() {
-        launch {
-            val availableToSelect = assetUseCase.availableAssetsToSelect()
-
-            val models = withContext(Dispatchers.Default) {
-                availableToSelect.map { mapAssetToAssetModel(it, resourceManager, patternId = null) }
-            }
-
-            val selectedChainAsset = sharedState.chainAsset()
-
-            val selectedModel = models.first { it.chainAssetId == selectedChainAsset.id && it.chainId == selectedChainAsset.chainId }
-
-            _showAssetChooser.emit(DynamicListBottomSheet.Payload(models, selectedModel))
-        }
-    }
-
-    fun assetSelected(model: AssetModel) {
-        sharedState.update(model.chainId, model.chainAssetId)
     }
 
     fun avatarClicked() {
@@ -224,7 +197,7 @@ class StakingViewModel(
         return buildString {
             append(formattedAmount)
 
-            formattedFiat.let {
+            formattedFiat?.let {
                 append(" ($it)")
             }
         }
@@ -261,18 +234,28 @@ class StakingViewModel(
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
         is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
             accountStakingState,
-            currentAssetFlow,
+            assetSelectorMixin.selectedAssetFlow,
             stakingStateScope,
             ::showError
         )
 
-        is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(currentAssetFlow, accountStakingState, stakingStateScope, ::showError)
+        is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(
+            assetSelectorMixin.selectedAssetFlow,
+            accountStakingState,
+            stakingStateScope,
+            ::showError
+        )
 
-        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, stakingStateScope, ::showError)
+        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(
+            assetSelectorMixin.selectedAssetFlow,
+            accountStakingState,
+            stakingStateScope,
+            ::showError
+        )
 
         is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState(
             accountStakingState,
-            currentAssetFlow,
+            assetSelectorMixin.selectedAssetFlow,
             stakingStateScope,
             ::showError
         )

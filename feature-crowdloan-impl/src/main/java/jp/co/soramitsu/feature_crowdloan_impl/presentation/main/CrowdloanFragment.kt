@@ -14,6 +14,8 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanAssetSelector
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
@@ -59,6 +61,8 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
     }
 
     override fun subscribe(viewModel: CrowdloanViewModel) {
+        setupAssetSelector(crowdloanAssetSelector, viewModel, imageLoader)
+
         viewModel.crowdloanModelsFlow.observe { loadingState ->
             crowdloanList.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isNotEmpty())
             crowdloanPlaceholder.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isEmpty())

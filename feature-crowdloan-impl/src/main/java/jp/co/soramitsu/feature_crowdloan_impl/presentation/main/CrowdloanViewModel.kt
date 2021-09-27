@@ -24,9 +24,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorFactory
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.state.chain
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -43,8 +47,11 @@ class CrowdloanViewModel(
     private val resourceManager: ResourceManager,
     private val crowdloanSharedState: CrowdloanSharedState,
     private val router: CrowdloanRouter,
-    private val crowdloanUpdateSystem: UpdateSystem
-) : BaseViewModel() {
+    private val crowdloanUpdateSystem: UpdateSystem,
+    assetSelectorFactory: AssetSelectorMixin.Presentation.Factory,
+) : BaseViewModel(), WithAssetSelector {
+
+    override val assetSelectorMixin = assetSelectorFactory.create(scope = this)
 
     private val assetFlow = assetUseCase.currentAssetFlow()
         .share()
