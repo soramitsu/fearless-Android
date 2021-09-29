@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.data.secrets.v2
 import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 import kotlinx.coroutines.Dispatchers
@@ -22,24 +23,28 @@ class SecretStoreV2(
         encryptedPreferences.getDecryptedString(metaAccountKey(metaId, ACCESS_SECRETS))?.let(MetaAccountSecrets::read)
     }
 
-    suspend fun putChainAccountSecrets(metaId: Long, chainId: String, secrets: EncodableStruct<ChainAccountSecrets>) = withContext(Dispatchers.IO) {
-        encryptedPreferences.putEncryptedString(chainAccountKey(metaId, chainId, ACCESS_SECRETS), secrets.toHexString())
+    suspend fun putChainAccountSecrets(metaId: Long, accountId: ByteArray, secrets: EncodableStruct<ChainAccountSecrets>) = withContext(Dispatchers.IO) {
+        encryptedPreferences.putEncryptedString(chainAccountKey(metaId, accountId, ACCESS_SECRETS), secrets.toHexString())
     }
 
-    suspend fun getChainAccountSecrets(metaId: Long, chainId: String): EncodableStruct<ChainAccountSecrets>? = withContext(Dispatchers.IO) {
-        encryptedPreferences.getDecryptedString(chainAccountKey(metaId, chainId, ACCESS_SECRETS))?.let(ChainAccountSecrets::read)
+    suspend fun getChainAccountSecrets(metaId: Long, accountId: ByteArray): EncodableStruct<ChainAccountSecrets>? = withContext(Dispatchers.IO) {
+        encryptedPreferences.getDecryptedString(chainAccountKey(metaId, accountId, ACCESS_SECRETS))?.let(ChainAccountSecrets::read)
     }
 
-    private fun chainAccountKey(metaId: Long, chainId: String, secretName: String) = "$metaId:$chainId:$secretName"
+    suspend fun hasChainSecrets(metaId: Long, accountId: ByteArray) = withContext(Dispatchers.Default) {
+        encryptedPreferences.hasKey(chainAccountKey(metaId, accountId, ACCESS_SECRETS))
+    }
+
+    private fun chainAccountKey(metaId: Long, accountId: ByteArray, secretName: String) = "$metaId:${accountId.toHexString()}:$secretName"
 
     private fun metaAccountKey(metaId: Long, secretName: String) = "$metaId:$secretName"
 }
 
 suspend fun SecretStoreV2.getChainAccountKeypair(
     metaId: Long,
-    chainId: String,
+    accountId: ByteArray,
 ): Keypair = withContext(Dispatchers.Default) {
-    val secrets = getChainAccountSecrets(metaId, chainId) ?: error("No secrets found for meta account $metaId in chain $chainId")
+    val secrets = getChainAccountSecrets(metaId, accountId) ?: error("No secrets found for meta account $metaId for account ${accountId.toHexString()}")
 
     val keypairStruct = secrets[ChainAccountSecrets.Keypair]
 

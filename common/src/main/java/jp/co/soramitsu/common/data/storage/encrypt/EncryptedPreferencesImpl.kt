@@ -15,4 +15,8 @@ class EncryptedPreferencesImpl(
         val encryptedString = preferences.getString(field)
         return encryptedString?.let { encryptionUtil.decrypt(it) }
     }
+
+    override fun hasKey(field: String): Boolean {
+        return preferences.contains(field)
+    }
 }
