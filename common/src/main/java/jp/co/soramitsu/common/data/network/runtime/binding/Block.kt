@@ -5,6 +5,8 @@ import java.math.BigInteger
 
 typealias BlockNumber = BigInteger
 
+typealias BlockHash = String
+
 fun bindBlockNumber(scale: String, runtime: RuntimeSnapshot): BlockNumber {
     val type = runtime.typeRegistry["BlockNumber"] ?: incompatible()
 

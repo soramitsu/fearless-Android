@@ -1,8 +1,8 @@
 buildscript {
     ext {
         // App version
-        versionName = '1.9.0'
-        versionCode = 20
+        versionName = '1.9.5'
+        versionCode = 25
 
         // SDK and tools
         compileSdkVersion = 29
@@ -42,7 +42,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.79'
+        fearlessLibVersion = '1.0.86'
 
         gifVersion = '1.2.19'
 
@@ -139,6 +139,8 @@ buildscript {
         androidTestRunnerDep = 'androidx.test:runner:1.4.0'
         androidTestRulesDep = 'androidx.test:rules:1.4.0'
         androidJunitDep = 'androidx.test.ext:junit:1.1.3'
+
+        roomTestsDep = "androidx.room:room-testing:$architectureComponentVersion"
     }
 
     repositories {

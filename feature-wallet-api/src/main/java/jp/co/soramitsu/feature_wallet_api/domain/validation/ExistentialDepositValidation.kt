@@ -16,7 +16,9 @@ class ExistentialDepositValidation<P, E>(
 ) : Validation<P, E> {
 
     override suspend fun validate(value: P): ValidationStatus<E> {
-        val existentialDeposit = tokenProducer(value).amountFromPlanks(walletConstants.existentialDeposit())
+        val token = tokenProducer(value)
+        val existentialDepositInPlanks = walletConstants.existentialDeposit(token.configuration.chainId)
+        val existentialDeposit = token.amountFromPlanks(existentialDepositInPlanks)
 
         val totalBalance = totalBalanceProducer(value)
         val fee = feeProducer(value)

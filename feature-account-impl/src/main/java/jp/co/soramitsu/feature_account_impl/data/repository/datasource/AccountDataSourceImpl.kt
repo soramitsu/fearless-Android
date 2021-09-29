@@ -1,30 +1,31 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import com.google.gson.Gson
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SecuritySource
-import jp.co.soramitsu.core.model.SigningData
-import jp.co.soramitsu.core.model.WithDerivationPath
-import jp.co.soramitsu.core.model.WithMnemonic
-import jp.co.soramitsu.core.model.WithSeed
+import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
-import jp.co.soramitsu.fearless_utils.scale.Schema
-import jp.co.soramitsu.fearless_utils.scale.byteArray
-import jp.co.soramitsu.fearless_utils.scale.invoke
-import jp.co.soramitsu.fearless_utils.scale.string
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapChainAccountToAccount
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapMetaAccountLocalToMetaAccount
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapMetaAccountToAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -37,39 +38,18 @@ private const val PREFS_PIN_CODE = "pin_code"
 
 private const val PREFS_SELECTED_ACCOUNT = "selected_address"
 
-private const val PREFS_SELECTED_NODE = "node"
-
-private const val PREFS_SECURITY_SOURCE_MASK = "security_source_%s"
-
-private const val MOVED_ACTIVE_NODE_TO_DB = "MOVED_ACTIVE_NODE_TO_DB"
-
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
-
-enum class SourceType {
-    CREATE, SEED, MNEMONIC, JSON, UNSPECIFIED
-}
-
-object SourceInternal : Schema<SourceInternal>() {
-    val Type by string()
-
-    val PrivateKey by byteArray()
-    val PublicKey by byteArray()
-
-    val Nonce by byteArray().optional()
-
-    val Seed by byteArray().optional()
-    val Mnemonic by string().optional()
-
-    val DerivationPath by string().optional()
-}
 
 class AccountDataSourceImpl(
     private val preferences: Preferences,
     private val encryptedPreferences: EncryptedPreferences,
     private val nodeDao: NodeDao,
     private val jsonMapper: Gson,
-    accountDataMigration: AccountDataMigration
-) : AccountDataSource {
+    private val metaAccountDao: MetaAccountDao,
+    private val chainRegistry: ChainRegistry,
+    secretStoreV1: SecretStoreV1,
+    accountDataMigration: AccountDataMigration,
+) : AccountDataSource, SecretStoreV1 by secretStoreV1 {
 
     init {
         migrateIfNeeded(accountDataMigration)
@@ -83,8 +63,40 @@ class AccountDataSourceImpl(
 
     private val selectedAccountFlow = createAccountFlow()
 
+    private val selectedMetaAccountLocal = metaAccountDao.selectedMetaAccountInfoFlow()
+        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
+
+    private val selectedMetaAccountFlow = combine(
+        chainRegistry.chainsById,
+        selectedMetaAccountLocal.filterNotNull(),
+        ::mapMetaAccountLocalToMetaAccount
+    )
+        .inBackground()
+        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
+
     private val selectedNodeFlow = nodeDao.activeNodeFlow()
         .map { it?.let(::mapNodeLocalToNode) }
+        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
+
+    /**
+     * Fast lookup table for accessing account based on accountId
+     */
+    override val selectedAccountMapping = selectedMetaAccountFlow.map { metaAccount ->
+        val mapping = metaAccount.chainAccounts.mapValuesTo(mutableMapOf<String, Account?>()) { (_, chainAccount) ->
+            mapChainAccountToAccount(metaAccount, chainAccount)
+        }
+
+        val chains = chainRegistry.chainsById.first()
+
+        chains.forEach { (chainId, chain) ->
+            if (chainId !in mapping) {
+                mapping[chainId] = mapMetaAccountToAccount(chain, metaAccount)
+            }
+        }
+
+        mapping
+    }
+        .inBackground()
         .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     override suspend fun saveAuthType(authType: AuthType) = withContext(Dispatchers.IO) {
@@ -117,59 +129,7 @@ class AccountDataSourceImpl(
 
     override suspend fun getSelectedNode(): Node? = selectedNodeFlow.first()
 
-    override suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource) = withContext(Dispatchers.Default) {
-        val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
-
-        val signingData = source.signingData
-        val seed = (source as? WithSeed)?.seed
-        val mnemonic = (source as? WithMnemonic)?.mnemonic
-        val derivationPath = (source as? WithDerivationPath)?.derivationPath
-
-        val toSave = SourceInternal {
-            it[SourceInternal.Type] = getSourceType(source).name
-
-            it[SourceInternal.PrivateKey] = signingData.privateKey
-            it[SourceInternal.PublicKey] = signingData.publicKey
-            it[SourceInternal.Nonce] = signingData.nonce
-
-            it[SourceInternal.Seed] = seed
-            it[SourceInternal.Mnemonic] = mnemonic
-            it[SourceInternal.DerivationPath] = derivationPath
-        }
-
-        val raw = SourceInternal.toHexString(toSave)
-
-        encryptedPreferences.putEncryptedString(key, raw)
-    }
-
-    override suspend fun getSecuritySource(accountAddress: String): SecuritySource? = withContext(Dispatchers.Default) {
-        val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
-
-        val raw = encryptedPreferences.getDecryptedString(key) ?: return@withContext null
-        val internalSource = SourceInternal.read(raw)
-
-        val signingData = SigningData(
-            publicKey = internalSource[SourceInternal.PublicKey],
-            privateKey = internalSource[SourceInternal.PrivateKey],
-            nonce = internalSource[SourceInternal.Nonce]
-        )
-
-        val seed = internalSource[SourceInternal.Seed]
-        val mnemonic = internalSource[SourceInternal.Mnemonic]
-        val derivationPath = internalSource[SourceInternal.DerivationPath]
-
-        when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
-            SourceType.CREATE -> SecuritySource.Specified.Create(seed, signingData, mnemonic!!, derivationPath)
-            SourceType.SEED -> SecuritySource.Specified.Seed(seed, signingData, derivationPath)
-            SourceType.JSON -> SecuritySource.Specified.Json(seed, signingData)
-            SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic!!, derivationPath)
-            SourceType.UNSPECIFIED -> SecuritySource.Unspecified(signingData)
-        }
-    }
-
-    override suspend fun anyAccountSelected(): Boolean = withContext(Dispatchers.IO) {
-        preferences.contains(PREFS_SELECTED_ACCOUNT)
-    }
+    override suspend fun anyAccountSelected(): Boolean = selectedMetaAccountLocal.first() != null
 
     override suspend fun saveSelectedAccount(account: Account) = withContext(Dispatchers.Default) {
         val raw = jsonMapper.toJson(account)
@@ -199,12 +159,36 @@ class AccountDataSourceImpl(
         return selectedAccountFlow.replayCache.firstOrNull() ?: retrieveAccountFromStorage()
     }
 
+    override suspend fun getSelectedMetaAccount(): MetaAccount {
+        return selectedMetaAccountFlow.first()
+    }
+
+    override fun selectedMetaAccountFlow(): Flow<MetaAccount> = selectedMetaAccountFlow
+
+    override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
+        return metaAccountDao.getMetaAccountInfo(accountId)?.let {
+            mapMetaAccountLocalToMetaAccount(chainRegistry.chainsById.first(), it)
+        }
+    }
+
+    override suspend fun allMetaAccounts(): List<MetaAccount> {
+        val chainsById = chainRegistry.chainsById.first()
+
+        return metaAccountDao.getJoinedMetaAccountsInfo().map {
+            mapMetaAccountLocalToMetaAccount(chainsById, it)
+        }
+    }
+
     override suspend fun getSelectedLanguage(): Language = withContext(Dispatchers.IO) {
         preferences.getCurrentLanguage() ?: throw IllegalArgumentException("No language selected")
     }
 
     override suspend fun changeSelectedLanguage(language: Language) = withContext(Dispatchers.IO) {
         preferences.saveCurrentLanguage(language.iso)
+    }
+
+    override suspend fun accountExists(accountId: AccountId): Boolean {
+        return metaAccountDao.isMetaAccountExists(accountId)
     }
 
     private fun createAccountFlow(): MutableSharedFlow<Account> {
@@ -224,16 +208,6 @@ class AccountDataSourceImpl(
             ?: throw IllegalArgumentException("No account selected")
 
         jsonMapper.fromJson(raw, Account::class.java)
-    }
-
-    private fun getSourceType(securitySource: SecuritySource): SourceType {
-        return when (securitySource) {
-            is SecuritySource.Specified.Create -> SourceType.CREATE
-            is SecuritySource.Specified.Mnemonic -> SourceType.MNEMONIC
-            is SecuritySource.Specified.Json -> SourceType.JSON
-            is SecuritySource.Specified.Seed -> SourceType.SEED
-            else -> SourceType.UNSPECIFIED
-        }
     }
 
     private inline fun async(crossinline action: suspend () -> Unit) {

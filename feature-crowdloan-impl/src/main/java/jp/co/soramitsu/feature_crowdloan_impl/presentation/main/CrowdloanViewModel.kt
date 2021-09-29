@@ -4,14 +4,17 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.list.toValueList
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.formatTimeLeft
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
@@ -23,8 +26,14 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import kotlinx.coroutines.flow.combine
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.state.chain
+import jp.co.soramitsu.runtime.state.selectedChainFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -36,34 +45,52 @@ class CrowdloanViewModel(
     private val assetUseCase: AssetUseCase,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    private val router: CrowdloanRouter
-) : BaseViewModel() {
+    private val crowdloanSharedState: CrowdloanSharedState,
+    private val router: CrowdloanRouter,
+    private val sharedState: CrowdloanSharedState,
+    private val crowdloanUpdateSystem: UpdateSystem,
+    assetSelectorFactory: AssetSelectorMixin.Presentation.Factory,
+) : BaseViewModel(), WithAssetSelector {
+
+    override val assetSelectorMixin = assetSelectorFactory.create(scope = this)
 
     private val assetFlow = assetUseCase.currentAssetFlow()
         .share()
 
     val mainDescription = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_main_description, it.token.type.displayName)
+        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.symbol)
     }
 
-    private val groupedCrowdloansFlow = interactor.crowdloansFlow()
+    private val selectedChain = sharedState.selectedChainFlow()
+        .share()
+
+    private val groupedCrowdloansFlow = selectedChain.withLoading {
+        interactor.crowdloansFlow(it)
+    }
         .inBackground()
         .share()
 
     private val crowdloansFlow = groupedCrowdloansFlow
-        .map { it.toValueList() }
+        .mapLoading { it.toValueList() }
         .inBackground()
         .share()
 
-    val crowdloanModelsFlow = groupedCrowdloansFlow.combine(assetFlow) { groupedCrowdloans, asset ->
+    val crowdloanModelsFlow = groupedCrowdloansFlow.mapLoading { groupedCrowdloans ->
+        val asset = assetFlow.first()
+        val chain = crowdloanSharedState.chain()
+
         groupedCrowdloans
             .mapKeys { (statusClass, values) -> mapCrowdloanStatusToUi(statusClass, values.size) }
-            .mapValues { (_, crowdloans) -> crowdloans.map { mapCrowdloanToCrowdloanModel(it, asset) } }
+            .mapValues { (_, crowdloans) -> crowdloans.map { mapCrowdloanToCrowdloanModel(chain, it, asset) } }
             .toListWithHeaders()
     }
-        .withLoading()
         .inBackground()
         .share()
+
+    init {
+        crowdloanUpdateSystem.start()
+            .launchIn(this)
+    }
 
     private fun mapCrowdloanStatusToUi(statusClass: KClass<out Crowdloan.State>, statusCount: Int): CrowdloanStatusModel {
         return when (statusClass) {
@@ -79,13 +106,17 @@ class CrowdloanViewModel(
         }
     }
 
-    private suspend fun mapCrowdloanToCrowdloanModel(crowdloan: Crowdloan, asset: Asset): CrowdloanModel {
+    private suspend fun mapCrowdloanToCrowdloanModel(
+        chain: Chain,
+        crowdloan: Crowdloan,
+        asset: Asset
+    ): CrowdloanModel {
         val token = asset.token
 
         val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
+        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
 
-        val depositorAddress = crowdloan.fundInfo.depositor.toAddress(token.type.networkType)
+        val depositorAddress = chain.addressOf(crowdloan.fundInfo.depositor)
 
         val icon = if (crowdloan.parachainMetadata != null) {
             CrowdloanModel.Icon.FromLink(crowdloan.parachainMetadata.iconLink)
@@ -104,12 +135,13 @@ class CrowdloanViewModel(
         }
 
         val myContributionDisplay = crowdloan.myContribution?.let {
-            val myContributionFormatted = token.amountFromPlanks(it.amount).formatTokenAmount(token.type)
+            val myContributionFormatted = token.amountFromPlanks(it.amount).formatTokenAmount(token.configuration)
 
             resourceManager.getString(R.string.crowdloan_contribution_format, myContributionFormatted)
         }
 
         return CrowdloanModel(
+            relaychainId = chain.id,
             parachainId = crowdloan.parachainId,
             title = crowdloan.parachainMetadata?.name ?: crowdloan.parachainId.toString(),
             description = crowdloan.parachainMetadata?.description ?: depositorAddress,
@@ -128,7 +160,8 @@ class CrowdloanViewModel(
 
     fun crowdloanClicked(paraId: ParaId) {
         launch {
-            val crowdloan = crowdloansFlow.first().firstOrNull { it.parachainId == paraId } ?: return@launch
+            val crowdloans = crowdloansFlow.first() as? LoadingState.Loaded ?: return@launch
+            val crowdloan = crowdloans.data.firstOrNull { it.parachainId == paraId } ?: return@launch
 
             val payload = ContributePayload(
                 paraId = crowdloan.parachainId,

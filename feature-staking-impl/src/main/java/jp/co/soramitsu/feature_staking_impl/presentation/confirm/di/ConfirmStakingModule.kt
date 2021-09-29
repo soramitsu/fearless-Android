@@ -15,14 +15,13 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.confirm.ConfirmStakingViewModel
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmStakingModule {
@@ -42,7 +41,6 @@ class ConfirmStakingModule {
         setupStakingSharedState: SetupStakingSharedState,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         externalAccountActions: ExternalAccountActions.Presentation,
-        recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory
     ): ViewModel {
         return ConfirmStakingViewModel(
             router,
@@ -55,8 +53,7 @@ class ConfirmStakingModule {
             setupStakingInteractor,
             feeLoaderMixin,
             externalAccountActions,
-            validationExecutor,
-            recommendationSettingsProviderFactory
+            validationExecutor
         )
     }
 

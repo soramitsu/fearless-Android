@@ -58,6 +58,100 @@ class UpdateDefaultNodesList(
     }
 }
 
+val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+
+        // assets
+        database.execSQL("DROP TABLE assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `tokenSymbol` TEXT NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `metaId` INTEGER NOT NULL,
+            `freeInPlanks` TEXT NOT NULL,
+            `reservedInPlanks` TEXT NOT NULL,
+            `miscFrozenInPlanks` TEXT NOT NULL,
+            `feeFrozenInPlanks` TEXT NOT NULL,
+            `bondedInPlanks` TEXT NOT NULL,
+            `redeemableInPlanks` TEXT NOT NULL,
+            `unbondingInPlanks` TEXT NOT NULL,
+            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`)
+            )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+
+        // storage
+        database.execSQL("DROP TABLE storage")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `storage` (
+                `storageKey` TEXT NOT NULL,
+                `content` TEXT,
+                `chainId` TEXT NOT NULL,
+                PRIMARY KEY(`chainId`, `storageKey`)
+                )
+            """.trimIndent()
+        )
+
+        // tokens
+        database.execSQL("DROP TABLE tokens")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `tokens` (
+                `symbol` TEXT NOT NULL,
+                `dollarRate` TEXT,
+                `recentRateChange` TEXT,
+                PRIMARY KEY(`symbol`)
+                )
+            """.trimIndent()
+        )
+
+        // staking state
+        database.execSQL("DROP TABLE account_staking_accesses")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `account_staking_accesses` (
+                `chainId` TEXT NOT NULL,
+                `chainAssetId` INTEGER NOT NULL,
+                `accountId` BLOB NOT NULL,
+                `stashId` BLOB,
+                `controllerId` BLOB,
+                PRIMARY KEY(`chainId`, `chainAssetId`, `accountId`)
+                )
+            """.trimIndent()
+        )
+
+        // operationsMi
+        database.execSQL("DROP TABLE operations")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `operations` (`id` TEXT NOT NULL,
+            `address` TEXT NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `chainAssetId` INTEGER NOT NULL,
+            `time` INTEGER NOT NULL,
+            `status` INTEGER NOT NULL,
+            `source` INTEGER NOT NULL,
+            `operationType` INTEGER NOT NULL,
+            `module` TEXT,
+            `call` TEXT,
+            `amount` TEXT,
+            `sender` TEXT,
+            `receiver` TEXT,
+            `hash` TEXT,
+            `fee` TEXT,
+            `isReward` INTEGER,
+            `era` INTEGER,
+            `validator` TEXT,
+            PRIMARY KEY(`id`, `address`, `chainId`, `chainAssetId`)
+            )
+            """.trimIndent()
+        )
+    }
+}
 
 val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
     override fun migrate(database: SupportSQLiteDatabase) {
@@ -71,8 +165,15 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `prefix` INTEGER NOT NULL,
             `isEthereumBased` INTEGER NOT NULL,
             `isTestNet` INTEGER NOT NULL,
+            `hasCrowdloans` INTEGER NOT NULL,
             `url` TEXT,
             `overridesCommon` INTEGER,
+            `staking_url` TEXT,
+            `staking_type` TEXT,
+            `history_url` TEXT,
+            `history_type` TEXT,
+            `crowdloans_url` TEXT,
+            `crowdloans_type` TEXT,
             PRIMARY KEY(`id`))
             """.trimIndent()
         )
@@ -95,9 +196,11 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             CREATE TABLE IF NOT EXISTS `chain_assets` (
             `id` INTEGER NOT NULL,
             `chainId` TEXT NOT NULL,
-            `name` TEXT,
+            `name` TEXT NOT NULL,
             `symbol` TEXT NOT NULL,
             `precision` INTEGER NOT NULL,
+            `priceId` TEXT,
+            `staking` TEXT NOT NULL,
             PRIMARY KEY(`chainId`, `id`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
@@ -110,38 +213,50 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `chainId` TEXT NOT NULL,
             `syncedVersion` INTEGER NOT NULL,
             `remoteVersion` INTEGER NOT NULL, 
-            PRIMARY KEY(`chainId`),
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            PRIMARY KEY(`chainId`)
+            )
             """.trimIndent()
         )
         database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_runtimes_chainId` ON `chain_runtimes` (`chainId`)")
 
         database.execSQL("DROP TABLE IF EXISTS `runtimeCache`")
 
-        database.execSQL("""
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `meta_accounts` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             `substratePublicKey` BLOB NOT NULL,
             `substrateCryptoType` TEXT NOT NULL,
+            `substrateAccountId` BLOB NOT NULL,
             `ethereumPublicKey` BLOB,
+            `ethereumAddress` TEXT,
             `name` TEXT NOT NULL,
-            `isSelected` INTEGER NOT NULL)""".trimIndent()
+            `isSelected` INTEGER NOT NULL,
+            `position` INTEGER NOT NULL
+            )
+            """.trimIndent()
         )
-        
-        database.execSQL("""
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `meta_accounts` (`substrateAccountId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `meta_accounts` (`ethereumAddress`)")
+
+        database.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `chain_accounts` (
             `metaId` INTEGER NOT NULL,
             `chainId` TEXT NOT NULL,
             `publicKey` BLOB NOT NULL,
+            `accountId` BLOB NOT NULL,
             `cryptoType` TEXT NOT NULL,
-            PRIMARY KEY(`metaId`,
-            `chainId`),
-            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION ,
-            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )""".trimIndent()
+            PRIMARY KEY(`metaId`, `chainId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
         )
-        
-        database.execSQL("""
-            CREATE UNIQUE INDEX IF NOT EXISTS `index_chain_accounts_metaId_chainId` ON `chain_accounts` (`metaId`, `chainId`)""".trimIndent())
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
     }
 }
 

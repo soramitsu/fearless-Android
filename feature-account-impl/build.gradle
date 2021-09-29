@@ -38,6 +38,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', "*.aar"])
     implementation project(':core-db')
     implementation project(':common')
+    implementation project(':runtime')
     implementation project(':feature-account-api')
 
     implementation kotlinDep

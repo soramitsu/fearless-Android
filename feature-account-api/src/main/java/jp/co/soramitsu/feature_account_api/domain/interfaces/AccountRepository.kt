@@ -5,8 +5,10 @@ import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import kotlinx.coroutines.flow.Flow
 
 class AccountAlreadyExistsException : Exception()
@@ -31,6 +33,14 @@ interface AccountRepository {
 
     suspend fun getSelectedAccount(): Account
 
+    suspend fun getSelectedAccount(chainId: String): Account
+    suspend fun getSelectedMetaAccount(): MetaAccount
+    fun selectedMetaAccountFlow(): Flow<MetaAccount>
+
+    suspend fun findMetaAccount(accountId: ByteArray): MetaAccount?
+
+    suspend fun allMetaAccounts(): List<MetaAccount>
+
     suspend fun getPreferredCryptoType(): CryptoType
 
     suspend fun isAccountSelected(): Boolean
@@ -51,7 +61,7 @@ interface AccountRepository {
 
     suspend fun getAccountOrNull(address: String): Account?
 
-    suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account>
+    suspend fun getMyAccounts(query: String, chainId: String): Set<Account>
 
     suspend fun importFromMnemonic(
         keyString: String,
@@ -84,8 +94,6 @@ interface AccountRepository {
 
     suspend fun generateMnemonic(): List<String>
 
-    suspend fun isInCurrentNetwork(address: String): Boolean
-
     suspend fun isBiometricEnabled(): Boolean
 
     suspend fun setBiometricOn()
@@ -95,8 +103,6 @@ interface AccountRepository {
     suspend fun updateAccount(newAccount: Account)
 
     fun nodesFlow(): Flow<List<Node>>
-
-    fun selectedNodeFlow(): Flow<Node>
 
     fun selectedNetworkTypeFlow(): Flow<Node.NetworkType>
 
@@ -111,8 +117,6 @@ interface AccountRepository {
     suspend fun selectedLanguage(): Language
 
     suspend fun changeLanguage(language: Language)
-
-    suspend fun getCurrentSecuritySource(): SecuritySource
 
     suspend fun getSecuritySource(accountAddress: String): SecuritySource
 
@@ -135,5 +139,5 @@ interface AccountRepository {
 
     suspend fun generateRestoreJson(account: Account, password: String): String
 
-    suspend fun isAccountExists(accountAddress: String): Boolean
+    suspend fun isAccountExists(accountId: AccountId): Boolean
 }

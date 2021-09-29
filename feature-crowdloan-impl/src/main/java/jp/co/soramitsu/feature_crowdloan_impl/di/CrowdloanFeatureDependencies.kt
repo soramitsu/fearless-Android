@@ -6,24 +6,21 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.storage.StorageCache
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
-import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
-import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
@@ -34,15 +31,9 @@ interface CrowdloanFeatureDependencies {
 
     fun walletConstants(): WalletConstants
 
-    fun feeLoaderMixin(): FeeLoaderMixin.Presentation
-
     fun storageCache(): StorageCache
 
     fun imageLoader(): ImageLoader
-
-    fun assetUseCase(): AssetUseCase
-
-    fun runtimeProperty(): SuspendableProperty<RuntimeSnapshot>
 
     fun accountRepository(): AccountRepository
 
@@ -66,8 +57,6 @@ interface CrowdloanFeatureDependencies {
 
     fun addressxDisplayUseCase(): AddressDisplayUseCase
 
-    fun feeEstimator(): FeeEstimator
-
     fun extrinsicService(): ExtrinsicService
 
     fun validationExecutor(): ValidationExecutor
@@ -79,4 +68,8 @@ interface CrowdloanFeatureDependencies {
     fun localStorageSource(): StorageDataSource
 
     fun chainStateRepository(): ChainStateRepository
+
+    fun chainRegistry(): ChainRegistry
+
+    fun preferences(): Preferences
 }

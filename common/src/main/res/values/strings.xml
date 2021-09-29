@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_assets">Assets</string>
+
     <string name="common_event">Event</string>
     <string name="common_copy_id">Copy id</string>
     <string name="common_details">Details</string>

@@ -3,11 +3,11 @@ package jp.co.soramitsu.feature_account_impl.data.repository
 import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
-import jp.co.soramitsu.common.data.mappers.mapKeyPairToSigningData
-import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
 import jp.co.soramitsu.common.resources.LanguagesHolder
+import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.JsonFormer
@@ -16,33 +16,36 @@ import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.model.WithJson
+import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.bip39.MnemonicLength
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
+import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -52,9 +55,6 @@ class AccountRepositoryImpl(
     private val accountDataSource: AccountDataSource,
     private val accountDao: AccountDao,
     private val nodeDao: NodeDao,
-    private val bip39: Bip39,
-    private val junctionDecoder: JunctionDecoder,
-    private val keypairFactory: KeypairFactory,
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
@@ -115,12 +115,36 @@ class AccountRepositoryImpl(
         }
     }
 
+    // TODO remove
     override fun selectedAccountFlow(): Flow<Account> {
-        return accountDataSource.selectedAccountFlow()
+        return accountDataSource.selectedAccountMapping.map {
+            it.getValue(Node.NetworkType.POLKADOT.chainId)!!
+        }
     }
 
+    // TODO remove
     override suspend fun getSelectedAccount(): Account {
-        return accountDataSource.getSelectedAccount()
+        return getSelectedAccount(Node.NetworkType.POLKADOT.chainId)
+    }
+
+    override suspend fun getSelectedAccount(chainId: String): Account {
+        return accountDataSource.selectedAccountMapping.first().getValue(chainId)!!
+    }
+
+    override suspend fun getSelectedMetaAccount(): MetaAccount {
+        return accountDataSource.getSelectedMetaAccount()
+    }
+
+    override fun selectedMetaAccountFlow(): Flow<MetaAccount> {
+        return accountDataSource.selectedMetaAccountFlow()
+    }
+
+    override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
+        return accountDataSource.findMetaAccount(accountId)
+    }
+
+    override suspend fun allMetaAccounts(): List<MetaAccount> {
+        return accountDataSource.allMetaAccounts()
     }
 
     override suspend fun getPreferredCryptoType(): CryptoType {
@@ -170,12 +194,14 @@ class AccountRepositoryImpl(
         return accountDao.getAccount(address)?.let { mapAccountLocalToAccount(it) }
     }
 
-    override suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account> {
-        return withContext(Dispatchers.Default) {
-            accountDao.getAccounts(query, networkType)
-                .map { mapAccountLocalToAccount(it) }
-                .toSet()
-        }
+    override suspend fun getMyAccounts(query: String, chainId: String): Set<Account> {
+//        return withContext(Dispatchers.Default) {
+//            accountDao.getAccounts(query, networkType)
+//                .map { mapAccountLocalToAccount(it) }
+//                .toSet()
+//        }
+
+        return emptySet() // TODO wallet
     }
 
     override suspend fun importFromMnemonic(
@@ -207,17 +233,20 @@ class AccountRepositoryImpl(
         return withContext(Dispatchers.Default) {
             val seedBytes = Hex.decode(seed.removePrefix("0x"))
 
-            val keys = keypairFactory.generate(
+            val derivationPathOrNull = derivationPath.nullIfEmpty()
+            val decodedDerivationPath = derivationPathOrNull?.let {
+                SubstrateJunctionDecoder.decode(it)
+            }
+
+            val keys = SubstrateKeypairFactory.generate(
                 mapCryptoTypeToEncryption(selectedEncryptionType),
                 seedBytes,
-                derivationPath
+                decodedDerivationPath?.junctions.orEmpty()
             )
-
-            val signingData = mapKeyPairToSigningData(keys)
 
             val address = keys.publicKey.toAddress(networkType)
 
-            val securitySource = SecuritySource.Specified.Seed(seedBytes, signingData, derivationPath)
+            val securitySource = SecuritySource.Specified.Seed(seedBytes, keys, derivationPath)
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
 
@@ -245,9 +274,7 @@ class AccountRepositoryImpl(
 
                 val cryptoType = mapEncryptionToCryptoType(encryptionType)
 
-                val signingData = mapKeyPairToSigningData(keypair)
-
-                val securitySource = SecuritySource.Specified.Json(seed, signingData)
+                val securitySource = SecuritySource.Specified.Json(seed, keypair)
 
                 val actualAddress = keypair.publicKey.toAddress(networkType)
 
@@ -276,24 +303,9 @@ class AccountRepositoryImpl(
 
     override suspend fun generateMnemonic(): List<String> {
         return withContext(Dispatchers.Default) {
-            val mnemonic = bip39.generateMnemonic(MnemonicLength.TWELVE)
+            val generationResult = MnemonicCreator.randomMnemonic(Mnemonic.Length.TWELVE)
 
-            mnemonic.split(" ")
-        }
-    }
-
-    override suspend fun isInCurrentNetwork(address: String): Boolean {
-        val currentAccount = getSelectedAccount()
-
-        return try {
-            val otherAddressByte = address.addressByte()
-            val currentAddressByte = currentAccount.address.addressByte()
-
-            address.toAccountId() // decoded without exception
-
-            otherAddressByte == currentAddressByte
-        } catch (_: Exception) {
-            false
+            generationResult.wordList
         }
     }
 
@@ -336,12 +348,6 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getCurrentSecuritySource(): SecuritySource {
-        val account = getSelectedAccount()
-
-        return accountDataSource.getSecuritySource(account.address)!!
-    }
-
     override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
         return accountDataSource.getSecuritySource(accountAddress)!!
     }
@@ -352,13 +358,12 @@ class AccountRepositoryImpl(
             require(securitySource is WithJson)
 
             val seed = (securitySource.jsonFormer() as? JsonFormer.Seed)?.seed
-            val keypair = mapSigningDataToKeypair(securitySource.signingData)
 
             val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
             val runtimeConfiguration = account.network.type.runtimeConfiguration
 
             jsonSeedEncoder.generate(
-                keypair = keypair,
+                keypair = securitySource.keypair,
                 seed = seed,
                 password = password,
                 name = account.name.orEmpty(),
@@ -369,8 +374,8 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun isAccountExists(accountAddress: String): Boolean {
-        return accountDao.accountExists(accountAddress)
+    override suspend fun isAccountExists(accountId: AccountId): Boolean {
+        return accountDataSource.accountExists(accountId)
     }
 
     override fun nodesFlow(): Flow<List<Node>> {
@@ -380,13 +385,9 @@ class AccountRepositoryImpl(
             .flowOn(Dispatchers.Default)
     }
 
-    override fun selectedNodeFlow(): Flow<Node> {
-        return accountDataSource.selectedNodeFlow()
-    }
-
+    // TODO compatibility stub
     override fun selectedNetworkTypeFlow(): Flow<Node.NetworkType> {
-        return selectedAccountFlow().map { it.network.type }
-            .distinctUntilChanged()
+        return flowOf(Node.NetworkType.POLKADOT)
     }
 
     override fun getLanguages(): List<Language> {
@@ -431,31 +432,39 @@ class AccountRepositoryImpl(
     }
 
     override fun createQrAccountContent(account: Account): String {
-        val payload = QrSharing.Payload(account.address, account.publicKey.fromHex(), account.name)
+        val payload = QrSharing.Payload(account.address, account.accountIdHex.fromHex(), account.name)
 
         return QrSharing.encode(payload)
     }
 
     private suspend fun saveFromMnemonic(
         accountName: String,
-        mnemonic: String,
+        mnemonicWords: String,
         derivationPath: String,
         cryptoType: CryptoType,
         networkType: Node.NetworkType,
         isImport: Boolean,
     ): Account {
         return withContext(Dispatchers.Default) {
-            val entropy = bip39.generateEntropy(mnemonic)
-            val password = junctionDecoder.getPassword(derivationPath)
-            val seed = bip39.generateSeed(entropy, password)
-            val keys = keypairFactory.generate(mapCryptoTypeToEncryption(cryptoType), seed, derivationPath)
+            val derivationPathOrNull = derivationPath.nullIfEmpty()
+            val decodedDerivationPath = derivationPathOrNull?.let {
+                SubstrateJunctionDecoder.decode(it)
+            }
+
+            val derivationResult = SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
+
+            val keys = SubstrateKeypairFactory.generate(
+                encryptionType = mapCryptoTypeToEncryption(cryptoType),
+                seed = derivationResult.seed,
+                decodedDerivationPath?.junctions.orEmpty()
+            )
+
             val address = keys.publicKey.toAddress(networkType)
-            val signingData = mapKeyPairToSigningData(keys)
 
             val securitySource: SecuritySource.Specified = if (isImport) {
-                SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic, derivationPath)
+                SecuritySource.Specified.Mnemonic(derivationResult.seed, keys, derivationResult.mnemonic.words, derivationPathOrNull)
             } else {
-                SecuritySource.Specified.Create(seed, signingData, mnemonic, derivationPath)
+                SecuritySource.Specified.Create(derivationResult.seed, keys, derivationResult.mnemonic.words, derivationPathOrNull)
             }
 
             val publicKeyEncoded = Hex.toHexString(keys.publicKey)
@@ -482,7 +491,7 @@ class AccountRepositoryImpl(
             Account(
                 address = address,
                 name = username,
-                publicKey = publicKey,
+                accountIdHex = publicKey,
                 cryptoType = CryptoType.values()[accountLocal.cryptoType],
                 network = network,
                 position = position
@@ -499,7 +508,7 @@ class AccountRepositoryImpl(
                 username = nameLocal,
                 cryptoType = cryptoType.ordinal,
                 networkType = network.type,
-                publicKey = publicKey,
+                publicKey = accountIdHex,
                 position = position
             )
         }

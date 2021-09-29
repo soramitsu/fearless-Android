@@ -19,6 +19,18 @@
         app:layout_constraintTop_toTopOf="parent"
         app:titleText="@string/crowdloan_crowdloan" />
 
+    <jp.co.soramitsu.feature_wallet_api.presentation.view.AssetSelectorView
+        android:id="@+id/crowdloanAssetSelector"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:backgroundStyle="bordered"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/crowdloanToolbar" />
+
     <TextView
         android:id="@+id/crowdloanMainDescription"
         style="@style/TextAppearance.Soramitsu.Body1"
@@ -29,7 +41,7 @@
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/crowdloanToolbar"
+        app:layout_constraintTop_toBottomOf="@id/crowdloanAssetSelector"
         tools:text="@string/crowdloan_main_description" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -56,12 +68,12 @@
         android:drawablePadding="18dp"
         android:gravity="center"
         android:text="@string/crowdloan_empty_message"
-        app:layout_constraintVertical_bias="0.45"
         app:drawableTopCompat="@drawable/ic_placeholder"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/crowdloanMainDescription" />
+        app:layout_constraintTop_toBottomOf="@id/crowdloanMainDescription"
+        app:layout_constraintVertical_bias="0.45" />
 
     <ProgressBar
         android:id="@+id/crowdloanProgress"

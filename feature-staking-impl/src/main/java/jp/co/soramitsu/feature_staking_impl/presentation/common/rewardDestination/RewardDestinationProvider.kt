@@ -6,18 +6,20 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.DAYS_IN_YEAR
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,6 +34,7 @@ class RewardDestinationProvider(
     private val interactor: StakingInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
+    private val sharedState: StakingSharedState,
     private val accountDisplayUseCase: AddressDisplayUseCase
 ) : RewardDestinationMixin.Presentation {
 
@@ -50,7 +53,7 @@ class RewardDestinationProvider(
 
     override fun payoutClicked(scope: CoroutineScope) {
         scope.launch {
-            val currentAccount = interactor.getSelectedAccount()
+            val currentAccount = interactor.getSelectedAccountProjection()
 
             rewardDestinationModelFlow.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
         }
@@ -100,8 +103,8 @@ class RewardDestinationProvider(
         return when (rewardDestination) {
             RewardDestination.Restake -> RewardDestinationModel.Restake
             is RewardDestination.Payout -> {
-                val networkType = interactor.getSelectedNetworkType()
-                val addressModel = generateDestinationModel(rewardDestination.targetAccountId.toAddress(networkType))
+                val chain = sharedState.chain()
+                val addressModel = generateDestinationModel(chain.addressOf(rewardDestination.targetAccountId))
 
                 RewardDestinationModel.Payout(addressModel)
             }
@@ -109,7 +112,7 @@ class RewardDestinationProvider(
     }
 
     private suspend fun accountsInCurrentNetwork(): List<AddressModel> {
-        return interactor.getAccountsInCurrentNetwork()
+        return interactor.getAccountProjectionsInSelectedChains()
             .map { generateDestinationModel(it) }
     }
 

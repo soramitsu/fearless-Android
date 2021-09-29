@@ -9,20 +9,25 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 
-private const val SELECT_QUERY = "SELECT * FROM account_staking_accesses WHERE address = :address"
+private const val SELECT_QUERY = """
+    SELECT * FROM account_staking_accesses
+    WHERE accountId = :accountId AND chainId = :chainId AND chainAssetId = :chainAssetId
+    """
 
 @Dao
 abstract class AccountStakingDao {
 
     @Query(SELECT_QUERY)
-    abstract suspend fun get(address: String): AccountStakingLocal
+    abstract suspend fun get(chainId: String, chainAssetId: Int, accountId: ByteArray): AccountStakingLocal
 
     @Query(SELECT_QUERY)
-    abstract fun observeInternal(address: String): Flow<AccountStakingLocal>
+    protected abstract fun observeInternal(chainId: String, chainAssetId: Int, accountId: ByteArray): Flow<AccountStakingLocal>
 
-    fun observeDistinct(address: String) = observeInternal(address)
-        .filterNotNull()
-        .distinctUntilChanged()
+    fun observeDistinct(chainId: String, chainAssetId: Int, accountId: ByteArray): Flow<AccountStakingLocal> {
+        return observeInternal(chainId, chainAssetId, accountId)
+            .filterNotNull()
+            .distinctUntilChanged()
+    }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insert(accountStaking: AccountStakingLocal)

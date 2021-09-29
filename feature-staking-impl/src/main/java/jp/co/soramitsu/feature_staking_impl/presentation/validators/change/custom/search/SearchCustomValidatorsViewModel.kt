@@ -12,6 +12,8 @@ import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.common.utils.withLoadingSingle
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -45,6 +47,7 @@ class SearchCustomValidatorsViewModel(
     private val router: StakingRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: SearchCustomValidatorsInteractor,
+    private val stakingInteractor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
@@ -85,9 +88,12 @@ class SearchCustomValidatorsViewModel(
         foundValidatorsState,
         currentTokenFlow
     ) { selectedValidators, foundValidatorsState, token ->
+        val chain = stakingInteractor.getSelectedChain()
+
         foundValidatorsState.map { validators ->
             validators?.map { validator ->
                 mapValidatorToValidatorModel(
+                    chain = chain,
                     validator = validator,
                     iconGenerator = addressIconGenerator,
                     token = token,

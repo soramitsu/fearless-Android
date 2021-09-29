@@ -24,7 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingShar
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -105,10 +105,10 @@ class SetupStakingViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                val address = interactor.getSelectedAccount().address
+            feeConstructor = {
+                val address = interactor.getSelectedAccountProjection().address
 
-                setupStakingInteractor.estimateMaxSetupStakingFee(asset.token.type, address)
+                setupStakingInteractor.estimateMaxSetupStakingFee(address)
             },
             onRetryCancelled = ::backClicked
         )
@@ -119,11 +119,9 @@ class SetupStakingViewModel(
             val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
             val amount = parsedAmountFlow.first()
-            val tokenType = assetFlow.first().token.type
-            val currentAccountAddress = interactor.getSelectedAccount().address
+            val currentAccountAddress = interactor.getSelectedAccountProjection().address
 
             val payload = SetupStakingPayload(
-                tokenType = tokenType,
                 bondAmount = amount,
                 controllerAddress = currentAccountAddress,
                 maxFee = fee,

@@ -1,45 +1,47 @@
 package jp.co.soramitsu.core.model
 
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+
 sealed class SecuritySource(
-    val signingData: SigningData
+    val keypair: Keypair
 ) {
 
     open class Specified(
         final override val seed: ByteArray?,
-        signingData: SigningData
-    ) : SecuritySource(signingData), WithJson, WithSeed {
+        keypair: Keypair
+    ) : SecuritySource(keypair), WithJson, WithSeed {
 
         override fun jsonFormer() = jsonFormer(seed)
 
         class Create(
             seed: ByteArray?,
-            signingData: SigningData,
+            keypair: Keypair,
             override val mnemonic: String,
             override val derivationPath: String?
-        ) : Specified(seed, signingData), WithMnemonic, WithDerivationPath
+        ) : Specified(seed, keypair), WithMnemonic, WithDerivationPath
 
         class Seed(
             seed: ByteArray?,
-            signingData: SigningData,
+            keypair: Keypair,
             override val derivationPath: String?
-        ) : Specified(seed, signingData), WithDerivationPath
+        ) : Specified(seed, keypair), WithDerivationPath
 
         class Mnemonic(
             seed: ByteArray?,
-            signingData: SigningData,
+            keypair: Keypair,
             override val mnemonic: String,
             override val derivationPath: String?
-        ) : Specified(seed, signingData), WithMnemonic, WithDerivationPath
+        ) : Specified(seed, keypair), WithMnemonic, WithDerivationPath
 
         class Json(
             seed: ByteArray?,
-            signingData: SigningData
-        ) : Specified(seed, signingData)
+            keypair: Keypair
+        ) : Specified(seed, keypair)
     }
 
     open class Unspecified(
-        signingData: SigningData
-    ) : SecuritySource(signingData)
+        keypair: Keypair
+    ) : SecuritySource(keypair)
 }
 
 interface WithMnemonic {

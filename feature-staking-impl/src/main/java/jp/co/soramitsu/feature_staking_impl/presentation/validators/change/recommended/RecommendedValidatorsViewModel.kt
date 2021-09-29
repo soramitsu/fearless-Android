@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -81,8 +82,10 @@ class RecommendedValidatorsViewModel(
         validators: List<Validator>,
         token: Token
     ): List<ValidatorModel> {
+        val chain = interactor.getSelectedChain()
+
         return validators.map {
-            mapValidatorToValidatorModel(it, addressIconGenerator, token)
+            mapValidatorToValidatorModel(chain, it, addressIconGenerator, token)
         }
     }
 

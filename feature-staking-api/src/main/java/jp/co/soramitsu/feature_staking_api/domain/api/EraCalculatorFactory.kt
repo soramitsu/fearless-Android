@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_api.domain.api
 
 import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import java.math.BigInteger
 
 /**
@@ -68,16 +69,16 @@ class EraTimeCalculator(
 }
 
 class EraTimeCalculatorFactory(val repository: StakingRepository) {
-    suspend fun create(): EraTimeCalculator {
+    suspend fun create(chainId: ChainId): EraTimeCalculator {
         val startRequestTime = System.currentTimeMillis().toBigInteger()
-        val sessionLength = repository.sessionLength()
-        val eraLength = repository.eraLength()
-        val blockCreationTime = repository.blockCreationTime()
-        val currentSessionIndex = repository.currentSessionIndex()
-        val currentSlot = repository.currentSlot()
-        val genesisSlot = repository.genesisSlot()
-        val activeEra = repository.getActiveEraIndex()
-        val eraStartSessionIndex = repository.eraStartSessionIndex(activeEra)
+        val sessionLength = repository.sessionLength(chainId)
+        val eraLength = repository.eraLength(chainId)
+        val blockCreationTime = repository.blockCreationTime(chainId)
+        val currentSessionIndex = repository.currentSessionIndex(chainId)
+        val currentSlot = repository.currentSlot(chainId)
+        val genesisSlot = repository.genesisSlot(chainId)
+        val activeEra = repository.getActiveEraIndex(chainId)
+        val eraStartSessionIndex = repository.eraStartSessionIndex(chainId, activeEra)
 
         return EraTimeCalculator(
             startRequestTime,

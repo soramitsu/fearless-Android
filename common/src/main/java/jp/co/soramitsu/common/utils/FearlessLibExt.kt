@@ -5,6 +5,9 @@ import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNullableNumberConstant
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.seed.SeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -27,6 +30,11 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import java.io.ByteArrayOutputStream
+
+val BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH: String
+    get() = "//44//60//0/0"
+
+fun BIP32JunctionDecoder.default() = decode(DEFAULT_DERIVATION_PATH)
 
 fun StorageEntry.defaultInHex() = default.toHexString(withPrefix = true)
 
@@ -97,8 +105,19 @@ fun RuntimeMetadata.slots() = module(Modules.SLOTS)
 
 fun RuntimeMetadata.session() = module(Modules.SESSION)
 
-fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapKeys: Collection<T>): Map<String, T> {
-    return singleMapKeys.associateBy { storageKey(runtime, it) }
+fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapArguments: Collection<T>): Map<String, T> {
+    return singleMapArguments.associateBy { storageKey(runtime, it) }
+}
+
+inline fun <K, T> StorageEntry.storageKeys(
+    runtime: RuntimeSnapshot,
+    singleMapArguments: Collection<T>,
+    argumentTransform: (T) -> K
+): Map<String, K> {
+    return singleMapArguments.associateBy(
+        keySelector = { storageKey(runtime, it) },
+        valueTransform = { argumentTransform(it) }
+    )
 }
 
 fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!
@@ -111,6 +130,14 @@ private const val UINT_32_BYTES = 4
 fun String.u32ArgumentFromStorageKey() = uint32.fromHex(takeLast(HEX_SYMBOLS_PER_BYTE * UINT_32_BYTES)).toLong().toBigInteger()
 
 fun ByteArray.decodeToInt() = fromUnsignedBytes().toInt()
+
+fun SeedFactory.createSeed32(length: Mnemonic.Length, password: String?) = cropSeedTo32Bytes(createSeed(length, password))
+
+fun SeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = cropSeedTo32Bytes(deriveSeed(mnemonicWords, password))
+
+private fun cropSeedTo32Bytes(seedResult: SeedFactory.Result): SeedFactory.Result {
+    return SeedFactory.Result(seed = seedResult.seed.copyOfRange(0, 32), seedResult.mnemonic)
+}
 
 object Modules {
     const val STAKING = "Staking"

@@ -43,9 +43,11 @@ abstract class ChainDao {
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
 
     @Query("SELECT * FROM chains")
+    @Transaction
     abstract suspend fun getJoinChainInfo(): List<JoinedChainInfo>
 
     @Query("SELECT * FROM chains")
+    @Transaction
     abstract fun joinChainInfoFlow(): Flow<List<JoinedChainInfo>>
 
     @Query("SELECT * FROM chain_runtimes WHERE chainId = :chainId")

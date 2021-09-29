@@ -4,6 +4,8 @@ import android.content.Context
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.AppDatabase
@@ -11,6 +13,7 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
@@ -34,8 +37,10 @@ class DbModule {
     fun provideAppDatabase(
         context: Context,
         prefsToDbActiveNodeMigrator: PrefsToDbActiveNodeMigrator,
+        storeV1: SecretStoreV1,
+        storeV2: SecretStoreV2
     ): AppDatabase {
-        return AppDatabase.get(context, prefsToDbActiveNodeMigrator)
+        return AppDatabase.get(context, prefsToDbActiveNodeMigrator, storeV1, storeV2)
     }
 
     @Provides
@@ -91,9 +96,16 @@ class DbModule {
     fun provideStakingTotalRewardDao(appDatabase: AppDatabase): StakingTotalRewardDao {
         return appDatabase.stakingTotalRewardDao()
     }
+
     @Provides
     @ApplicationScope
     fun provideChainDao(appDatabase: AppDatabase): ChainDao {
         return appDatabase.chainDao()
+    }
+
+    @Provides
+    @ApplicationScope
+    fun provideMetaAccountDao(appDatabase: AppDatabase): MetaAccountDao {
+        return appDatabase.metaAccountDao()
     }
 }

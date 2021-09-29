@@ -8,7 +8,7 @@ data class AccountModel(
     val address: String,
     val name: String?,
     val image: PictureDrawable,
-    val publicKey: String,
+    val accountIdHex: String,
     val position: Int,
     val cryptoTypeModel: CryptoTypeModel,
     val network: Network

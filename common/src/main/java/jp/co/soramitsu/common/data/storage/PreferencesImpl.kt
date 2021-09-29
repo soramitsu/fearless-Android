@@ -11,7 +11,17 @@ class PreferencesImpl(
     private val sharedPreferences: SharedPreferences
 ) : Preferences {
 
+    /*
+    SharedPreferencesImpl stores listeners in a WeakHashMap,
+    meaning listener is subject to GC if it is not kept anywhere else.
+    This is not a problem until a stringFlow() call is followed later by shareIn() or stateIn(),
+    which cause listener to be GC-ed (TODO - research why).
+    To avoid that, store strong references to listeners until corresponding flow is closed.
+    */
+    private val listeners = mutableSetOf<SharedPreferences.OnSharedPreferenceChangeListener>()
+
     companion object {
+
         private const val PREFS_SELECTED_LANGUAGE = "selected_language"
     }
 
@@ -66,8 +76,19 @@ class PreferencesImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun stringFlow(field: String): Flow<String?> = callbackFlow {
-        send(getString(field))
+    override fun stringFlow(
+        field: String,
+        initialValueProducer: (suspend () -> String)?
+    ): Flow<String?> = callbackFlow {
+        if (contains(field)) {
+            send(getString(field))
+        } else {
+            val initialValue = initialValueProducer?.invoke()
+
+            putString(field, initialValue)
+
+            send(initialValue)
+        }
 
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == field) {
@@ -75,9 +96,11 @@ class PreferencesImpl(
             }
         }
 
+        listeners.add(listener)
         sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
 
         awaitClose {
+            listeners.remove(listener)
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }

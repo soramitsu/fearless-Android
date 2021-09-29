@@ -13,12 +13,10 @@ import jp.co.soramitsu.common.data.network.ExternalAnalyzerLinks
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
-import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import jp.co.soramitsu.fearless_utils.wsrpc.recovery.Reconnector
@@ -130,21 +128,9 @@ class NetworkModule {
     ) = SocketSingleRequestExecutor(mapper, logger, socketFactory, resourceManager)
 
     @Provides
-    fun provideNetworkStateMixin(
-        socketProperty: SuspendableProperty<SocketService>
-    ): NetworkStateMixin = NetworkStateProvider(socketProperty)
+    fun provideNetworkStateMixin(): NetworkStateMixin = NetworkStateProvider()
 
     @Provides
     @ApplicationScope
     fun provideJsonMapper() = Gson()
-
-    @Provides
-    @ApplicationScope
-    fun provideSubstrateCalls(
-        socketProperty: SuspendableProperty<SocketService>
-    ) = RpcCalls(socketProperty)
-
-    @Provides
-    @ApplicationScope
-    fun provideSocketProperty() = SuspendableProperty<SocketService>()
 }

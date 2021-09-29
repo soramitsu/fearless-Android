@@ -4,15 +4,13 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.di.scope.FeatureScope
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.feature_staking_api.di.StakingUpdaters
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountNominationsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
@@ -31,6 +29,8 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.hist
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalValidatorRewardPointsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
 
 @Module
 class StakingUpdatersModule {
@@ -39,50 +39,61 @@ class StakingUpdatersModule {
     @FeatureScope
     fun provideAccountStakingScope(
         accountRepository: AccountRepository,
-        accountStakingDao: AccountStakingDao
-    ) = AccountStakingScope(accountRepository, accountStakingDao)
+        accountStakingDao: AccountStakingDao,
+        sharedState: StakingSharedState,
+    ) = AccountStakingScope(
+        accountRepository,
+        accountStakingDao,
+        sharedState
+    )
 
     @Provides
     @FeatureScope
     fun provideActiveEraUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        storageCache: StorageCache
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
+        storageCache: StorageCache,
     ) = ActiveEraUpdater(
-        runtimeProperty,
+        sharedState,
+        chainRegistry,
         storageCache
     )
 
     @Provides
     @FeatureScope
     fun provideElectedNominatorsUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
         bulkRetriever: BulkRetriever,
         storageCache: StorageCache,
-        accountRepository: AccountRepository,
     ) = ValidatorExposureUpdater(
-        runtimeProperty,
         bulkRetriever,
-        accountRepository,
+        sharedState,
+        chainRegistry,
         storageCache
     )
 
     @Provides
     @FeatureScope
     fun provideTotalInsuranceUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        storageCache: StorageCache
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
+        storageCache: StorageCache,
     ) = TotalIssuanceUpdater(
-        runtimeProperty,
-        storageCache
+        sharedState,
+        storageCache,
+        chainRegistry
     )
 
     @Provides
     @FeatureScope
     fun provideCurrentEraUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-        storageCache: StorageCache
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
+        storageCache: StorageCache,
     ) = CurrentEraUpdater(
-        runtimeProperty,
+        sharedState,
+        chainRegistry,
         storageCache
     )
 
@@ -90,17 +101,17 @@ class StakingUpdatersModule {
     @FeatureScope
     fun provideStakingLedgerUpdater(
         stakingRepository: StakingRepository,
-        socketProperty: SuspendableProperty<SocketService>,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
         accountStakingDao: AccountStakingDao,
         assetCache: AssetCache,
         storageCache: StorageCache,
-        accountUpdateScope: AccountUpdateScope
+        accountUpdateScope: AccountUpdateScope,
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
-            socketProperty,
             stakingRepository,
-            runtimeProperty,
+            sharedState,
+            chainRegistry,
             accountStakingDao,
             storageCache,
             assetCache,
@@ -113,9 +124,13 @@ class StakingUpdatersModule {
     fun provideAccountValidatorPrefsUpdater(
         storageCache: StorageCache,
         scope: AccountStakingScope,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
     ) = AccountValidatorPrefsUpdater(
-        scope, storageCache, runtimeProperty
+        scope,
+        storageCache,
+        sharedState,
+        chainRegistry,
     )
 
     @Provides
@@ -123,9 +138,13 @@ class StakingUpdatersModule {
     fun provideAccountNominationsUpdater(
         storageCache: StorageCache,
         scope: AccountStakingScope,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
     ) = AccountNominationsUpdater(
-        scope, storageCache, runtimeProperty
+        scope,
+        storageCache,
+        sharedState,
+        chainRegistry,
     )
 
     @Provides
@@ -133,37 +152,43 @@ class StakingUpdatersModule {
     fun provideAccountRewardDestinationUpdater(
         storageCache: StorageCache,
         scope: AccountStakingScope,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
     ) = AccountRewardDestinationUpdater(
-        scope, storageCache, runtimeProperty
+        scope,
+        storageCache,
+        sharedState,
+        chainRegistry,
     )
 
     @Provides
     @FeatureScope
     fun provideHistoryDepthUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
         storageCache: StorageCache,
     ) = HistoryDepthUpdater(
-        runtimeProperty, storageCache
+        sharedState,
+        chainRegistry, storageCache
     )
 
     @Provides
     @FeatureScope
     fun provideHistoricalMediator(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
         bulkRetriever: BulkRetriever,
         stakingRepository: StakingRepository,
-        accountRepository: AccountRepository,
         storageCache: StorageCache,
     ) = HistoricalUpdateMediator(
         historicalUpdaters = listOf(
             HistoricalTotalValidatorRewardUpdater(),
             HistoricalValidatorRewardPointsUpdater(),
         ),
-        runtimeProperty = runtimeProperty,
+        stakingSharedState = sharedState,
+        chainRegistry = chainRegistry,
         bulkRetriever = bulkRetriever,
         stakingRepository = stakingRepository,
-        accountRepository = accountRepository,
         storageCache = storageCache
     )
 
@@ -172,33 +197,54 @@ class StakingUpdatersModule {
     fun provideAccountControllerBalanceUpdater(
         assetCache: AssetCache,
         scope: AccountStakingScope,
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>
-    ) = AccountControllerBalanceUpdater(scope, runtimeProperty, assetCache)
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
+    ) = AccountControllerBalanceUpdater(
+        scope,
+        sharedState,
+        chainRegistry,
+        assetCache
+    )
 
     @Provides
     @FeatureScope
     fun provideMinBondUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
         storageCache: StorageCache,
-    ) = MinBondUpdater(runtimeProperty, storageCache)
+    ) = MinBondUpdater(
+        sharedState,
+        chainRegistry,
+        storageCache
+    )
 
     @Provides
     @FeatureScope
     fun provideMaxNominatorsUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
         storageCache: StorageCache,
-    ) = MaxNominatorsUpdater(runtimeProperty, storageCache)
+    ) = MaxNominatorsUpdater(
+        storageCache,
+        sharedState,
+        chainRegistry
+    )
 
     @Provides
     @FeatureScope
     fun provideCounterForNominatorsUpdater(
-        runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
         storageCache: StorageCache,
-    ) = CounterForNominatorsUpdater(runtimeProperty, storageCache)
+    ) = CounterForNominatorsUpdater(
+        sharedState,
+        chainRegistry,
+        storageCache
+    )
 
     @Provides
     @FeatureScope
-    fun provideStakingUpdaters(
+    fun provideStakingUpdaterSystem(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
         totalIssuanceUpdater: TotalIssuanceUpdater,
@@ -213,8 +259,11 @@ class StakingUpdatersModule {
         minBondUpdater: MinBondUpdater,
         maxNominatorsUpdater: MaxNominatorsUpdater,
         counterForNominatorsUpdater: CounterForNominatorsUpdater,
-    ) = StakingUpdaters(
-        updaters = arrayOf(
+
+        chainRegistry: ChainRegistry,
+        stakingSharedState: StakingSharedState
+    ): UpdateSystem = SingleChainUpdateSystem(
+        updaters = listOf(
             activeEraUpdater,
             validatorExposureUpdater,
             totalIssuanceUpdater,
@@ -229,6 +278,8 @@ class StakingUpdatersModule {
             minBondUpdater,
             maxNominatorsUpdater,
             counterForNominatorsUpdater,
-        )
+        ),
+        chainRegistry = chainRegistry,
+        singleAssetSharedState = stakingSharedState
     )
 }

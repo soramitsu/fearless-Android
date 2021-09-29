@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.list.toValueList
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -14,6 +13,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
@@ -26,6 +26,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.mode
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
@@ -60,8 +62,10 @@ class CurrentValidatorsViewModel(
         .share()
 
     val currentValidatorModelsLiveData = groupedCurrentValidatorsFlow.combine(tokenFlow) { gropedList, token ->
+        val chain = stakingInteractor.getSelectedChain()
+
         gropedList.mapKeys { (statusGroup, _) -> mapNominatedValidatorStatusToUiModel(statusGroup) }
-            .mapValues { (_, nominatedValidators) -> nominatedValidators.map { mapNominatedValidatorToUiModel(it, token) } }
+            .mapValues { (_, nominatedValidators) -> nominatedValidators.map { mapNominatedValidatorToUiModel(chain, it, token) } }
             .toListWithHeaders()
     }
         .withLoading()
@@ -76,16 +80,20 @@ class CurrentValidatorsViewModel(
         .inBackground()
         .share()
 
-    private suspend fun mapNominatedValidatorToUiModel(nominatedValidator: NominatedValidator, token: Token): NominatedValidatorModel {
+    private suspend fun mapNominatedValidatorToUiModel(
+        chain: Chain,
+        nominatedValidator: NominatedValidator,
+        token: Token
+    ): NominatedValidatorModel {
         val validator = nominatedValidator.validator
 
         val nominationFormatted = (nominatedValidator.status as? NominatedValidator.Status.Active)?.let { activeStatus ->
-            val amountFormatted = token.type.amountFromPlanks(activeStatus.nomination).formatTokenAmount(token.type)
+            val amountFormatted = token.configuration.amountFromPlanks(activeStatus.nomination).formatTokenAmount(token.configuration)
 
             resourceManager.getString(R.string.staking_your_nominated_format, amountFormatted)
         }
 
-        val validatorAddress = validator.accountIdHex.fromHex().toAddress(token.type.networkType)
+        val validatorAddress = chain.addressOf(validator.accountIdHex.fromHex())
 
         return NominatedValidatorModel(
             addressModel = iconGenerator.createAddressModel(validatorAddress, AddressIconGenerator.SIZE_MEDIUM, validator.identity?.display),

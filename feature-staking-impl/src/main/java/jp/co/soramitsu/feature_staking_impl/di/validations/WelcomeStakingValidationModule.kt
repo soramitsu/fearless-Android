@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingMaxNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationFailure
 
@@ -15,11 +16,13 @@ class WelcomeStakingValidationModule {
     @Provides
     @FeatureScope
     fun provideMaxNominatorsReachedValidation(
+        stakingSharedState: StakingSharedState,
         stakingRepository: StakingRepository
     ) = WelcomeStakingMaxNominatorsValidation(
         stakingRepository = stakingRepository,
         errorProducer = { WelcomeStakingValidationFailure.MAX_NOMINATORS_REACHED },
-        isAlreadyNominating = { false }
+        isAlreadyNominating = { false },
+        sharedState = stakingSharedState
     )
 
     @Provides

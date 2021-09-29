@@ -1,15 +1,15 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
 import jp.co.soramitsu.common.list.GroupedList
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
+import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -57,29 +57,34 @@ class CrowdloanInteractor(
     private val chainStateRepository: ChainStateRepository,
 ) {
 
-    fun crowdloansFlow(): Flow<GroupedCrowdloans> {
+    fun crowdloansFlow(chain: Chain): Flow<GroupedCrowdloans> {
         return flow {
-            if (crowdloanRepository.isCrowdloansAvailable().not()) {
+            val chainId = chain.id
+
+            if (crowdloanRepository.isCrowdloansAvailable(chainId).not()) {
                 emit(emptyMap())
+
                 return@flow
             }
 
             val parachainMetadatas = runCatching {
-                crowdloanRepository.getParachainMetadata()
+                crowdloanRepository.getParachainMetadata(chain)
             }.getOrDefault(emptyMap())
 
-            val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis()
-            val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod()
-            val networkType = accountRepository.currentNetworkType()
-            val accountId = accountRepository.getSelectedAccount().address.toAccountId()
+            val metaAccount = accountRepository.getSelectedMetaAccount()
 
-            val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(networkType).map { currentBlockNumber ->
-                val fundInfos = crowdloanRepository.allFundInfos()
+            val accountId = metaAccount.accountIdIn(chain)!! // TODO ethereum
+
+            val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis(chainId)
+            val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod(chainId)
+
+            val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(chainId).map { currentBlockNumber ->
+                val fundInfos = crowdloanRepository.allFundInfos(chainId)
 
                 val contributionKeys = fundInfos.mapValues { (_, fundInfo) -> fundInfo.trieIndex }
 
-                val contributions = crowdloanRepository.getContributions(accountId, contributionKeys)
-                val winnerInfo = crowdloanRepository.getWinnerInfo(fundInfos)
+                val contributions = crowdloanRepository.getContributions(chainId, accountId, contributionKeys)
+                val winnerInfo = crowdloanRepository.getWinnerInfo(chainId, fundInfos)
 
                 fundInfos.values
                     .map { fundInfo ->

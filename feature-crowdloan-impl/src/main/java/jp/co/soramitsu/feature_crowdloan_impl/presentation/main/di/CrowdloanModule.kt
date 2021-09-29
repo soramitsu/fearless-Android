@@ -10,10 +10,13 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.CrowdloanViewModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 
 @Module(includes = [ViewModelModule::class])
 class CrowdloanModule {
@@ -26,14 +29,22 @@ class CrowdloanModule {
         assetUseCase: AssetUseCase,
         resourceManager: ResourceManager,
         iconGenerator: AddressIconGenerator,
-        router: CrowdloanRouter
+        crowdloanSharedState: CrowdloanSharedState,
+        router: CrowdloanRouter,
+        crowdloanUpdateSystem: UpdateSystem,
+        sharedState: CrowdloanSharedState,
+        assetSelectorFactory: AssetSelectorMixin.Presentation.Factory
     ): ViewModel {
         return CrowdloanViewModel(
             interactor,
             assetUseCase,
             iconGenerator,
             resourceManager,
-            router
+            crowdloanSharedState,
+            router,
+            sharedState,
+            crowdloanUpdateSystem,
+            assetSelectorFactory
         )
     }
 

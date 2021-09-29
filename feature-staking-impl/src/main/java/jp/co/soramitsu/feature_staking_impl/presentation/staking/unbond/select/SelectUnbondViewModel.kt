@@ -23,9 +23,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondPa
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -113,12 +112,11 @@ class SelectUnbondViewModel(
     private fun loadFee(amount: BigDecimal) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                val amountInPlanks = asset.token.planksFromAmount(amount)
+            feeConstructor = { token ->
+                val amountInPlanks = token.planksFromAmount(amount)
+                val asset = assetFlow.first()
 
-                val feeInPlanks = unbondInteractor.estimateFee(accountStakingFlow.first(), asset.bondedInPlanks, amountInPlanks)
-
-                asset.token.amountFromPlanks(feeInPlanks)
+                unbondInteractor.estimateFee(accountStakingFlow.first(), asset.bondedInPlanks, amountInPlanks)
             },
             onRetryCancelled = ::backClicked
         )
@@ -138,7 +136,6 @@ class SelectUnbondViewModel(
                 asset = asset,
                 fee = fee,
                 amount = parsedAmountFlow.first(),
-                tokenType = asset.token.type
             )
 
             validationExecutor.requireValid(

@@ -26,6 +26,8 @@ dependencies {
 
     implementation kotlinDep
 
+    implementation project(':common')
+
     api jUnitDep
     api mockitoDep
 

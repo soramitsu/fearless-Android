@@ -1,6 +1,6 @@
 package jp.co.soramitsu.common.data.network.rpc
 
-import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -13,19 +13,21 @@ import kotlinx.coroutines.withContext
 class GetKeysPagedRequest(
     keyPrefix: String,
     pageSize: Int,
-    fullKeyOffset: String? = null
+    fullKeyOffset: String?,
+    at: BlockHash?
 ) : RuntimeRequest(
     method = "state_getKeysPaged",
     params = listOfNotNull(
         keyPrefix,
         pageSize,
-        fullKeyOffset
+        fullKeyOffset,
+        at
     )
 )
 
 class QueryStorageAtRequest(
     keys: List<String>,
-    at: String? = null
+    at: String?
 ) : RuntimeRequest(
     method = "state_queryStorageAt",
     params = listOfNotNull(
@@ -46,23 +48,24 @@ class QueryStorageAtResponse(
 private const val DEFAULT_PAGE_SIZE = 1000
 
 class BulkRetriever(
-    private val connectionProperty: SuspendableProperty<SocketService>,
     private val pageSize: Int = DEFAULT_PAGE_SIZE
 ) {
 
-    suspend fun retrieveAllKeys(keyPrefix: String): List<String> = withContext(Dispatchers.IO) {
+    suspend fun retrieveAllKeys(
+        socketService: SocketService,
+        keyPrefix: String,
+        at: BlockHash? = null
+    ): List<String> = withContext(Dispatchers.IO) {
         val result = mutableListOf<String>()
 
         var currentOffset: String? = null
 
-        val socket = connectionProperty.get()
-
         while (true) {
             ensureActive()
 
-            val request = GetKeysPagedRequest(keyPrefix, DEFAULT_PAGE_SIZE, currentOffset)
+            val request = GetKeysPagedRequest(keyPrefix, DEFAULT_PAGE_SIZE, currentOffset, at)
 
-            val page = socket.executeAsync(request, mapper = pojoList<String>().nonNull())
+            val page = socketService.executeAsync(request, mapper = pojoList<String>().nonNull())
 
             result += page
 
@@ -74,16 +77,19 @@ class BulkRetriever(
         result
     }
 
-    suspend fun queryKeys(keys: List<String>): Map<String, String?> = withContext(Dispatchers.IO) {
+    suspend fun queryKeys(
+        socketService: SocketService,
+        keys: List<String>,
+        at: BlockHash? = null
+    ): Map<String, String?> = withContext(Dispatchers.IO) {
         val chunks = keys.chunked(pageSize)
-        val socket = connectionProperty.get()
 
         chunks.fold(mutableMapOf()) { acc, chunk ->
             ensureActive()
 
-            val request = QueryStorageAtRequest(chunk)
+            val request = QueryStorageAtRequest(chunk, at)
 
-            val chunkValues = socket.executeAsync(request, mapper = pojoList<QueryStorageAtResponse>().nonNull())
+            val chunkValues = socketService.executeAsync(request, mapper = pojoList<QueryStorageAtResponse>().nonNull())
                 .first().changesAsMap()
 
             acc.putAll(chunkValues)
@@ -95,4 +101,8 @@ class BulkRetriever(
     private fun isLastPage(page: List<String>) = page.size < pageSize
 }
 
-suspend fun BulkRetriever.queryKey(key: String): String? = queryKeys(listOf(key)).values.first()
+suspend fun BulkRetriever.queryKey(
+    socketService: SocketService,
+    key: String,
+    at: BlockHash? = null
+): String? = queryKeys(socketService, listOf(key), at).values.first()

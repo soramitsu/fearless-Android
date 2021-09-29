@@ -10,11 +10,11 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
+import jp.co.soramitsu.feature_wallet_api.data.mappers.icon
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
@@ -91,10 +91,10 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.assetLiveData.observe {
-            chooseAmountBalance.text = it.available.formatTokenAmount(it.token.type)
+            chooseAmountBalance.text = it.available.formatTokenAmount(it.token.configuration)
 
-            chooseAmountToken.setTextIcon(it.token.type.icon)
-            chooseAmountToken.setMessage(it.token.type.displayName)
+            chooseAmountToken.setTextIcon(it.token.configuration.icon)
+            chooseAmountToken.setMessage(it.token.configuration.symbol)
         }
 
         viewModel.feeErrorLiveData.observeEvent {

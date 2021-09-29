@@ -35,7 +35,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -141,7 +141,7 @@ class CrowdloanContributeViewModel(
         .share()
 
     val unlockHintFlow = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.type.displayName)
+        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol)
     }
         .inBackground()
         .share()
@@ -179,7 +179,7 @@ class CrowdloanContributeViewModel(
         val token = asset.token
 
         val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
+        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
 
         val timeLeft = when (val state = crowdloan.state) {
             Crowdloan.State.Finished -> resourceManager.getString(R.string.transaction_status_completed)
@@ -238,12 +238,12 @@ class CrowdloanContributeViewModel(
     private fun loadFee(amount: BigDecimal, bonusActiveState: CustomContributionState.Active?) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
+            feeConstructor = {
                 val additionalSubmission = bonusActiveState?.let {
                     additionalOnChainSubmission(it.payload, it.customFlow, amount, customContributeManager)
                 }
 
-                contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additionalSubmission)
+                contributionInteractor.estimateFee(payload.paraId, amount, additionalSubmission)
             },
             onRetryCancelled = ::backClicked
         )

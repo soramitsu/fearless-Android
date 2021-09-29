@@ -1,7 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
+import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import java.util.concurrent.ConcurrentHashMap
 

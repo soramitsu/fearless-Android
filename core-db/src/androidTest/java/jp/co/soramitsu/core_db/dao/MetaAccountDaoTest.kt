@@ -76,13 +76,17 @@ class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) 
         substrateCryptoType = CryptoType.SR25519,
         ethereumPublicKey = null,
         name = "Test",
-        isSelected = false
+        isSelected = false,
+        substrateAccountId = byteArrayOf(),
+        ethereumAddress = null,
+        position = 0
     )
 
     private fun chainAccount(metaId: Long) = ChainAccountLocal(
         metaId = metaId,
         chainId = CHAIN_ID,
         publicKey = byteArrayOf(),
-        cryptoType = CryptoType.SR25519
+        cryptoType = CryptoType.SR25519,
+        accountId = byteArrayOf()
     )
 }

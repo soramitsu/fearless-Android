@@ -145,7 +145,7 @@ sealed class StakeViewState<S>(
             currentAssetFlow
         ) { summary, asset ->
             val token = asset.token
-            val tokenType = token.type
+            val tokenType = token.configuration
 
             StakeSummaryModel(
                 status = summary.status,

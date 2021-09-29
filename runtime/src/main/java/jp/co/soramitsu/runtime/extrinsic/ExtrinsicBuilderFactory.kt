@@ -1,75 +1,62 @@
 package jp.co.soramitsu.runtime.extrinsic
 
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
-import jp.co.soramitsu.common.data.mappers.mapSigningDataToKeypair
-import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
-import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
-import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.multiAddressFromId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.runtime.ext.addressFromPublicKey
+import jp.co.soramitsu.runtime.ext.genesisHash
+import jp.co.soramitsu.runtime.ext.multiAddressOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private val FAKE_CRYPTO_TYPE = CryptoType.SR25519
 
 class ExtrinsicBuilderFactory(
-    private val accountRepository: AccountRepository,
     private val rpcCalls: RpcCalls,
-    private val keypairFactory: KeypairFactory,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val chainRegistry: ChainRegistry,
     private val mortalityConstructor: MortalityConstructor,
 ) {
 
     /**
-     * Can be executed with arbitary address
+     * Create with fake keypair
      * Should be primarily used for fee calculation
      */
-    suspend fun createWithFakeKeyPair(
-        accountAddress: String,
-    ) = create(accountAddress, generateFakeKeyPair(), FAKE_CRYPTO_TYPE)
+    suspend fun create(
+        chain: Chain,
+    ) = create(chain, generateFakeKeyPair(), FAKE_CRYPTO_TYPE)
 
     /**
-     * Require account to be present in database and have keypair saved locally
+     * Create with real keypair
      */
     suspend fun create(
-        accountAddress: String,
-    ): ExtrinsicBuilder {
-        val account = accountRepository.getAccount(accountAddress)
-
-        val securitySource = accountRepository.getSecuritySource(account.address)
-        val keypair = mapSigningDataToKeypair(securitySource.signingData)
-
-        return create(accountAddress, keypair, account.cryptoType)
-    }
-
-    private suspend fun create(
-        accountAddress: String,
+        chain: Chain,
         keypair: Keypair,
         cryptoType: CryptoType,
     ): ExtrinsicBuilder {
-        val nonce = rpcCalls.getNonce(accountAddress)
-        val runtimeVersion = rpcCalls.getRuntimeVersion()
-        val mortality = mortalityConstructor.constructMortality()
+        val accountAddress = chain.addressFromPublicKey(keypair.publicKey)
 
-        val runtimeConfiguration = accountAddress.networkType().runtimeConfiguration
+        val nonce = rpcCalls.getNonce(chain.id, accountAddress)
+        val runtimeVersion = rpcCalls.getRuntimeVersion(chain.id)
+        val mortality = mortalityConstructor.constructMortality(chain.id)
 
         return ExtrinsicBuilder(
-            runtime = runtimeProperty.get(),
+            runtime = chainRegistry.getRuntime(chain.id),
             keypair = keypair,
             nonce = nonce,
             runtimeVersion = runtimeVersion,
-            genesisHash = runtimeConfiguration.genesisHash.fromHex(),
+            genesisHash = chain.genesisHash.fromHex(),
             blockHash = mortality.blockHash.fromHex(),
             era = mortality.era,
             encryptionType = mapCryptoTypeToEncryption(cryptoType),
-            accountIdentifier = multiAddressFromId(accountAddress.toAccountId())
+            accountIdentifier = bindMultiAddress(chain.multiAddressOf(accountAddress))
         )
     }
 
@@ -77,6 +64,6 @@ class ExtrinsicBuilderFactory(
         val cryptoType = mapCryptoTypeToEncryption(FAKE_CRYPTO_TYPE)
         val emptySeed = ByteArray(32) { 1 }
 
-        keypairFactory.generate(cryptoType, emptySeed, "")
+        SubstrateKeypairFactory.generate(cryptoType, emptySeed, junctions = emptyList())
     }
 }

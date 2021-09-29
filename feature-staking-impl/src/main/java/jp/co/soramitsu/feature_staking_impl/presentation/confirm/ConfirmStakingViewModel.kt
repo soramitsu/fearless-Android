@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.progressConsumer
@@ -23,7 +22,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.setup.BondPayload
 import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
@@ -35,8 +34,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingShar
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.runtime.ext.addressOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
@@ -62,7 +61,6 @@ class ConfirmStakingViewModel(
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val validationExecutor: ValidationExecutor,
-    private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
 ) : BaseViewModel(),
     Retriable,
     Validatable by validationExecutor,
@@ -168,7 +166,7 @@ class ConfirmStakingViewModel(
 
     fun originAccountClicked() {
         viewModelScope.launch {
-            val account = interactor.getSelectedAccount()
+            val account = interactor.getSelectedAccountProjection()
 
             val payload = ExternalAccountActions.Payload(account.address, account.network.type)
 
@@ -195,7 +193,6 @@ class ConfirmStakingViewModel(
                 val token = controllerAssetFlow.first().token
 
                 setupStakingInteractor.calculateSetupStakingFee(
-                    tokenType = token.type,
                     controllerAddress = controllerAddressFlow.first(),
                     validatorAccountIds = prepareNominations(),
                     bondPayload = bondPayload
@@ -211,8 +208,8 @@ class ConfirmStakingViewModel(
         return when (rewardDestination) {
             is RewardDestination.Restake -> RewardDestinationModel.Restake
             is RewardDestination.Payout -> {
-                val networkType = interactor.getSelectedNetworkType()
-                val address = rewardDestination.targetAccountId.toAddress(networkType)
+                val chain = interactor.getSelectedChain()
+                val address = chain.addressOf(rewardDestination.targetAccountId)
                 val name = addressDisplayUseCase(address)
 
                 val addressModel = generateDestinationModel(address, name)
@@ -226,10 +223,7 @@ class ConfirmStakingViewModel(
 
     private fun sendTransactionIfValid() = requireFee { fee ->
         launch {
-            val tokenType = controllerAssetFlow.first().token.type
-
             val payload = SetupStakingPayload(
-                tokenType = tokenType,
                 maxFee = fee,
                 controllerAddress = controllerAddressFlow.first(),
                 bondAmount = bondPayload?.amount,
@@ -243,17 +237,13 @@ class ConfirmStakingViewModel(
                 validationFailureTransformer = { stakingValidationFailure(payload, it, resourceManager) },
                 progressConsumer = _showNextProgress.progressConsumer()
             ) {
-                sendTransaction(payload, tokenType)
+                sendTransaction(payload)
             }
         }
     }
 
-    private fun sendTransaction(
-        setupStakingPayload: SetupStakingPayload,
-        tokenType: Token.Type,
-    ) = launch {
+    private fun sendTransaction(setupStakingPayload: SetupStakingPayload) = launch {
         val setupResult = setupStakingInteractor.setupStaking(
-            tokenType = tokenType,
             controllerAddress = setupStakingPayload.controllerAddress,
             validatorAccountIds = prepareNominations(),
             bondPayload = bondPayload

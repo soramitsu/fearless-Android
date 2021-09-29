@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsToErrors
@@ -48,7 +49,9 @@ class ValidatorDetailsViewModel(
         .inBackground()
 
     val validatorDetails = maxNominators.combine(assetFlow) { maxNominators, asset ->
-        mapValidatorDetailsParcelToValidatorDetailsModel(validator, asset, maxNominators, iconGenerator, resourceManager)
+        val chain = interactor.getSelectedChain()
+
+        mapValidatorDetailsParcelToValidatorDetailsModel(chain, validator, asset, maxNominators, iconGenerator, resourceManager)
     }
         .inBackground()
         .asLiveData()
@@ -80,16 +83,16 @@ class ValidatorDetailsViewModel(
         require(validatorStake is ValidatorStakeParcelModel.Active)
 
         val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
-        val ownStakeFormatted = ownStake.formatTokenAmount(asset.token.type)
+        val ownStakeFormatted = ownStake.formatTokenAmount(asset.token.configuration)
         val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency()
 
         val nominatorsStakeValue = validatorStake.nominators.sumByBigInteger(NominatorParcelModel::value)
         val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
-        val nominatorsStakeFormatted = nominatorsStake.formatTokenAmount(asset.token.type)
+        val nominatorsStakeFormatted = nominatorsStake.formatTokenAmount(asset.token.configuration)
         val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency()
 
         val totalStake = asset.token.amountFromPlanks(validatorStake.totalStake)
-        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
+        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
         val totalStakeFiatFormatted = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
 
         ValidatorStakeBottomSheet.Payload(

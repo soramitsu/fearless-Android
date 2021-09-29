@@ -24,8 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemVal
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -74,7 +73,7 @@ class RedeemViewModel(
 
     val originAddressModelLiveData = accountStakingFlow.map {
         val address = it.controllerAddress
-        val account = interactor.getAccount(address)
+        val account = interactor.getProjectedAccount(address)
 
         iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
     }
@@ -104,11 +103,7 @@ class RedeemViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                val feeInPlanks = redeemInteractor.estimateFee(accountStakingFlow.first())
-
-                asset.token.amountFromPlanks(feeInPlanks)
-            },
+            feeConstructor = { redeemInteractor.estimateFee(accountStakingFlow.first()) },
             onRetryCancelled = ::backClicked
         )
     }

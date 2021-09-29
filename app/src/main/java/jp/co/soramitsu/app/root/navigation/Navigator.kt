@@ -62,7 +62,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.
 import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
@@ -444,8 +444,8 @@ class Navigator :
         navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId))
     }
 
-    override fun openAssetDetails(type: Token.Type) {
-        val bundle = BalanceDetailFragment.getBundle(type)
+    override fun openAssetDetails(assetPayload: AssetPayload) {
+        val bundle = BalanceDetailFragment.getBundle(assetPayload)
 
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
     }

@@ -1,42 +1,49 @@
 package jp.co.soramitsu.runtime.storage.source
 
-import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
 import jp.co.soramitsu.core.model.StorageEntry
 import jp.co.soramitsu.core.storage.StorageCache
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class LocalStorageSource(
-    runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    chainRegistry: ChainRegistry,
     private val storageCache: StorageCache,
-) : BaseStorageSource(runtimeProperty) {
+) : BaseStorageSource(chainRegistry) {
 
-    override suspend fun query(key: String): String? {
-        return storageCache.getEntry(key).content
+    override suspend fun query(key: String, chainId: String, at: BlockHash?): String? {
+        requireWithoutAt(at)
+
+        return storageCache.getEntry(key, chainId).content
     }
 
-    override suspend fun queryKeys(keys: List<String>): Map<String, String?> {
-        return storageCache.getEntries(keys).associateBy(
+    override suspend fun queryKeys(keys: List<String>, chainId: String, at: BlockHash?): Map<String, String?> {
+        requireWithoutAt(at)
+
+        return storageCache.getEntries(keys, chainId).associateBy(
             keySelector = StorageEntry::storageKey,
             valueTransform = StorageEntry::content
         )
     }
 
-    override suspend fun observe(key: String, networkType: Node.NetworkType): Flow<String?> {
-        return storageCache.observeEntry(key, networkType)
+    override suspend fun observe(key: String, chainId: String): Flow<String?> {
+        return storageCache.observeEntry(key, chainId)
             .map { it.content }
     }
 
-    override suspend fun queryByPrefix(prefix: String): Map<String, String?> {
-        return storageCache.getEntries(prefix).associateBy(
+    override suspend fun queryByPrefix(prefix: String, chainId: String): Map<String, String?> {
+        return storageCache.getEntries(prefix, chainId).associateBy(
             keySelector = StorageEntry::storageKey,
             valueTransform = StorageEntry::content
         )
     }
 
-    override suspend fun queryChildState(storageKey: String, childKey: String): String? {
+    override suspend fun queryChildState(storageKey: String, childKey: String, chainId: String): String? {
         throw NotImplementedError("Child state queries are not yet supported in local storage")
+    }
+
+    private fun requireWithoutAt(at: BlockHash?) = require(at == null) {
+        "`At` parameter is not supported in local storage"
     }
 }

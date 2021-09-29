@@ -10,6 +10,7 @@ import jp.co.soramitsu.test_shared.thenThrowUnsafe
 import jp.co.soramitsu.test_shared.whenever
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
@@ -154,6 +155,59 @@ class RuntimeProviderTest {
 
                 verifyReconstructionStarted()
             }
+        }
+    }
+
+    @Test
+    fun `should not reconstruct runtime if types and runtime were not synced`() {
+        runBlocking {
+            initProvider()
+
+            currentChainTypesHash("Hash")
+            currentMetadataHash("Hash")
+
+            chainSyncFlow.emit(SyncResult(chain.id, metadataHash =  null, typesHash = null))
+
+            verifyReconstructionNotStarted()
+        }
+    }
+
+    @Test
+    fun `should wait until current job is finished before consider reconstructing runtime on runtime sync event`() {
+        runBlocking {
+            whenever(runtimeFactory.constructRuntime(any(), any())).thenAnswer {
+                runBlocking { chainSyncFlow.first() }  // ensure runtime wont be returned until chainSyncFlow event
+
+                constructedRuntime
+            }
+
+            initProvider()
+
+            currentChainTypesHash("Hash")
+            currentMetadataHash("Hash")
+
+            chainSyncFlow.emit(SyncResult(chain.id, metadataHash =  null, typesHash = null))
+
+            verifyReconstructionNotStarted()
+        }
+    }
+    @Test
+    fun `should wait until current job is finished before consider reconstructing runtime on types sync event`() {
+        runBlocking {
+            whenever(runtimeFactory.constructRuntime(any(), any())).thenAnswer {
+                runBlocking { baseTypeSyncFlow.first() } // ensure runtime wont be returned until baseTypeSyncFlow event
+
+                constructedRuntime
+            }
+
+            initProvider()
+
+            currentChainTypesHash("Hash")
+            currentMetadataHash("Hash")
+
+            baseTypeSyncFlow.emit("New hash")
+
+            verifyReconstructionNotStarted()
         }
     }
 

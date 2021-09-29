@@ -1,10 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
-import jp.co.soramitsu.common.data.network.updaters.insert
-import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.staking
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
@@ -16,22 +12,28 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
+import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.isRedeemableIn
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_api.domain.model.sumStaking
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.StakingUpdater
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.runtime.network.updaters.insert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -40,24 +42,25 @@ import java.math.BigInteger
 
 class LedgerWithController(
     val ledger: StakingLedger,
-    val controllerId: AccountId
+    val controllerId: AccountId,
 )
 
 class StakingLedgerUpdater(
-    private val socketProperty: SuspendableProperty<SocketService>,
     private val stakingRepository: StakingRepository,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+    private val stakingSharedState: StakingSharedState,
+    private val chainRegistry: ChainRegistry,
     private val accountStakingDao: AccountStakingDao,
     private val storageCache: StorageCache,
     private val assetCache: AssetCache,
-    override val scope: AccountUpdateScope
+    override val scope: AccountUpdateScope,
 ) : StakingUpdater {
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
-        val accountAddress = scope.getAccount().address
-        val currentAccountId = accountAddress.toAccountId()
-        val networkType = accountAddress.networkType()
-        val runtime = runtimeProperty.get()
+
+        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+        val runtime = chainRegistry.getRuntime(chain.id)
+
+        val currentAccountId = scope.getAccount().accountIdIn(chain)!! // TODO ethereum
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
 
@@ -66,38 +69,42 @@ class StakingLedgerUpdater(
                 // assume we're controller, if no controller found
                 val controllerId = change.value?.fromHex() ?: currentAccountId
 
-                subscribeToLedger(controllerId)
+                subscribeToLedger(storageSubscriptionBuilder.socketService, runtime, chain.id, controllerId)
             }.onEach { ledgerWithController ->
-                updateAccountStaking(accountAddress, ledgerWithController)
+                updateAccountStaking(chain.id, chainAsset.id, currentAccountId, ledgerWithController)
 
                 ledgerWithController?.let {
-                    val era = stakingRepository.getActiveEraIndex()
+                    val era = stakingRepository.getActiveEraIndex(chain.id)
 
-                    val stashAddress = it.ledger.stashId.toAddress(networkType)
-                    val controllerAddress = it.controllerId.toAddress(networkType)
+                    val stashId = it.ledger.stashId
+                    val controllerId = it.controllerId
 
-                    updateAssetStaking(stashAddress, it.ledger, era)
+                    updateAssetStaking(it.ledger.stashId, chainAsset, it.ledger, era)
 
-                    if (controllerAddress != stashAddress) {
-                        updateAssetStaking(controllerAddress, it.ledger, era)
+                    if (!stashId.contentEquals(controllerId)) {
+                        updateAssetStaking(controllerId, chainAsset, it.ledger, era)
                     }
-                } ?: updateAssetStakingForEmptyLedger(accountAddress)
+                } ?: updateAssetStakingForEmptyLedger(currentAccountId, chainAsset)
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()
     }
 
     private suspend fun updateAccountStaking(
-        accountAddress: String,
-        ledgerWithController: LedgerWithController?
+        chainId: String,
+        chainAssetId: Int,
+        accountId: AccountId,
+        ledgerWithController: LedgerWithController?,
     ) {
 
         val accountStaking = AccountStakingLocal(
-            address = accountAddress,
+            chainId = chainId,
+            chainAssetId = chainAssetId,
+            accountId = accountId,
             stakingAccessInfo = ledgerWithController?.let {
                 AccountStakingLocal.AccessInfo(
                     stashId = it.ledger.stashId,
-                    controllerId = it.controllerId
+                    controllerId = it.controllerId,
                 )
             }
         )
@@ -105,20 +112,27 @@ class StakingLedgerUpdater(
         accountStakingDao.insert(accountStaking)
     }
 
-    private suspend fun subscribeToLedger(controllerId: AccountId): Flow<LedgerWithController?> {
-        val runtime = runtimeProperty.get()
-
+    private suspend fun subscribeToLedger(
+        socketService: SocketService,
+        runtime: RuntimeSnapshot,
+        chainId: String,
+        controllerId: AccountId,
+    ): Flow<LedgerWithController?> {
         val key = runtime.metadata.staking().storage("Ledger").storageKey(runtime, controllerId)
         val request = SubscribeStorageRequest(key)
 
-        return socketProperty.get().subscriptionFlow(request)
+        return socketService.subscriptionFlow(request)
             .map { it.storageChange() }
-            .onEach { storageCache.insert(StorageChange(it.block, key, it.getSingleChange())) }
+            .onEach {
+                val storageChange = StorageChange(it.block, key, it.getSingleChange())
+
+                storageCache.insert(storageChange, chainId)
+            }
             .map {
                 val change = it.getSingleChange()
 
                 if (change != null) {
-                    val ledger = bindStakingLedger(change, runtimeProperty.get())
+                    val ledger = bindStakingLedger(change, runtime)
 
                     LedgerWithController(ledger, controllerId)
                 } else {
@@ -128,11 +142,12 @@ class StakingLedgerUpdater(
     }
 
     private suspend fun updateAssetStaking(
-        accountAddress: String,
+        accountId: AccountId,
+        chainAsset: Chain.Asset,
         stakingLedger: StakingLedger,
-        era: BigInteger
+        era: BigInteger,
     ) {
-        return assetCache.updateAsset(accountAddress) { cached ->
+        assetCache.updateAsset(accountId, chainAsset) { cached ->
 
             val redeemable = stakingLedger.sumStaking { it.isRedeemableIn(era) }
             val unbonding = stakingLedger.sumStaking { it.isUnbondingIn(era) }
@@ -145,8 +160,11 @@ class StakingLedgerUpdater(
         }
     }
 
-    private suspend fun updateAssetStakingForEmptyLedger(accountAddress: String) {
-        return assetCache.updateAsset(accountAddress) { cached ->
+    private suspend fun updateAssetStakingForEmptyLedger(
+        accountId: AccountId,
+        chainAsset: Chain.Asset,
+    ) {
+        assetCache.updateAsset(accountId, chainAsset) { cached ->
             cached.copy(
                 redeemableInPlanks = BigInteger.ZERO,
                 unbondingInPlanks = BigInteger.ZERO,

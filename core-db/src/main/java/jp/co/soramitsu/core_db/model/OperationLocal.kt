@@ -5,13 +5,14 @@ import java.math.BigInteger
 
 @Entity(
     tableName = "operations",
-    primaryKeys = ["id", "address"]
+    primaryKeys = ["id", "address", "chainId", "chainAssetId"]
 )
 data class OperationLocal(
     val id: String,
     val address: String,
+    val chainId: String,
+    val chainAssetId: Int,
     val time: Long,
-    val tokenType: TokenLocal.Type,
     val status: Status,
     val source: Source,
     val operationType: Type,
@@ -42,8 +43,9 @@ data class OperationLocal(
 
         fun manualTransfer(
             hash: String,
-            accountAddress: String,
-            tokenType: TokenLocal.Type,
+            address: String,
+            chainId: String,
+            chainAssetId: Int,
             amount: BigInteger,
             senderAddress: String,
             receiverAddress: String,
@@ -53,9 +55,10 @@ data class OperationLocal(
         ) = OperationLocal(
             id = hash,
             hash = hash,
-            address = accountAddress,
+            address = address,
+            chainId = chainId,
+            chainAssetId = chainAssetId,
             time = System.currentTimeMillis(),
-            tokenType = tokenType,
             amount = amount,
             sender = senderAddress,
             receiver = receiverAddress,

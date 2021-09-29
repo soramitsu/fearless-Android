@@ -4,7 +4,6 @@ import dagger.Component
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core_db.di.DbApi
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 
 @Component(
     modules = [
@@ -22,7 +21,6 @@ abstract class RuntimeComponent : RuntimeApi {
         dependencies = [
             CommonApi::class,
             DbApi::class,
-            AccountFeatureApi::class
         ]
     )
     interface RuntimeDependenciesComponent : RuntimeDependencies

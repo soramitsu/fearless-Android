@@ -101,7 +101,7 @@ class PayoutsListViewModel(
         statistics: PendingPayoutsStatistics,
     ): PendingPayoutsStatisticsModel {
         val token = interactor.currentAssetFlow().first().token
-        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.type)
+        val totalAmount = token.amountFromPlanks(statistics.totalAmountInPlanks).formatTokenAmount(token.configuration)
 
         val payouts = statistics.payouts.map { mapPayoutToPayoutModel(token, it) }
 
@@ -121,7 +121,7 @@ class PayoutsListViewModel(
                 timeLeft = timeLeft,
                 createdAt = createdAt,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
-                amount = amount.formatTokenChange(token.type, isIncome = true),
+                amount = amount.formatTokenChange(token.configuration, isIncome = true),
                 amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
             )
         }

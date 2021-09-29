@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.google.android.material.bottomsheet.BottomSheetBehavior
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -13,19 +13,17 @@ import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.showState
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListActions
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
-import kotlinx.android.synthetic.main.fragment_balance_list.container
-import kotlinx.android.synthetic.main.fragment_balance_list.transfersContainer
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
+import javax.inject.Inject
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     private lateinit var adapter: BalanceListAdapter
 
@@ -38,50 +36,24 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     }
 
     override fun initViews() {
-        container.applyInsetter {
+        balanceListContent.applyInsetter {
             type(statusBars = true) {
-                margin()
+                padding()
             }
         }
 
         hideKeyboard()
 
-        adapter = BalanceListAdapter(this)
+        adapter = BalanceListAdapter(imageLoader, this)
         balanceListAssets.adapter = adapter
-
-        transfersContainer.initializeBehavior(anchorView = balanceListContent)
-
-        transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
-
-        transfersContainer.setSlidingStateListener(this::setRefreshEnabled)
-        transfersContainer.setFilterClickListener { viewModel.filterClicked() }
-
-        transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
 
         walletContainer.setOnRefreshListener {
             viewModel.sync()
         }
 
-        balanceListActions.send.setOnClickListener {
-            viewModel.sendClicked()
-        }
-
-        balanceListActions.receive.setOnClickListener {
-            viewModel.receiveClicked()
-        }
-
-        balanceListActions.buy.setOnClickListener {
-            viewModel.buyClicked()
-        }
-
         balanceListAvatar.setOnClickListener {
             viewModel.avatarClicked()
         }
-    }
-
-    private fun setRefreshEnabled(bottomSheetState: Int) {
-        val bottomSheetCollapsed = BottomSheetBehavior.STATE_COLLAPSED == bottomSheetState
-        walletContainer.isEnabled = bottomSheetCollapsed
     }
 
     override fun inject() {
@@ -96,12 +68,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
     override fun subscribe(viewModel: BalanceListViewModel) {
         viewModel.sync()
-
-        setupBuyIntegration(viewModel)
-
-        viewModel.state.observe(transfersContainer::showState)
-
-        viewModel.buyEnabledLiveData.observe(balanceListActions.buy::setEnabled)
 
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)

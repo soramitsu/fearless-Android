@@ -1,55 +1,86 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
-import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
 
 interface WalletRepository {
 
-    fun assetsFlow(accountAddress: String): Flow<List<Asset>>
+    fun assetsFlow(metaId: Long): Flow<List<Asset>>
 
-    suspend fun syncAssetsRates(account: WalletAccount)
+    suspend fun getAssets(metaId: Long): List<Asset>
 
-    fun assetFlow(accountAddress: String, type: Token.Type): Flow<Asset>
+    suspend fun syncAssetsRates()
 
-    suspend fun getAsset(accountAddress: String, type: Token.Type): Asset?
+    fun assetFlow(
+        accountId: AccountId,
+        chainAsset: Chain.Asset
+    ): Flow<Asset>
 
-    suspend fun syncAsset(account: WalletAccount, type: Token.Type)
+    suspend fun getAsset(
+        accountId: AccountId,
+        chainAsset: Chain.Asset
+    ): Asset?
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,
         filters: Set<TransactionFilter>,
-        account: WalletAccount
+        accountId: AccountId,
+        chain: Chain,
+        chainAsset: Chain.Asset
     )
 
     suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
         filters: Set<TransactionFilter>,
-        currentAccount: WalletAccount
+        accountId: AccountId,
+        chain: Chain,
+        chainAsset: Chain.Asset
     ): CursorPage<Operation>
 
-    fun operationsFirstPageFlow(currentAccount: WalletAccount): Flow<CursorPage<Operation>>
+    fun operationsFirstPageFlow(
+        accountId: AccountId,
+        chain: Chain,
+        chainAsset: Chain.Asset
+    ): Flow<CursorPage<Operation>>
 
-    suspend fun getContacts(account: WalletAccount, query: String): Set<String>
+    suspend fun getContacts(
+        accountId: AccountId,
+        chain: Chain,
+        query: String
+    ): Set<String>
 
-    suspend fun getTransferFee(accountAddress: String, transfer: Transfer): Fee
+    suspend fun getTransferFee(
+        chain: Chain,
+        transfer: Transfer
+    ): Fee
 
-    suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal)
+    suspend fun performTransfer(
+        accountId: AccountId,
+        chain: Chain,
+        transfer: Transfer,
+        fee: BigDecimal
+    )
 
-    suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer): TransferValidityStatus
+    suspend fun checkTransferValidity(
+        accountId: AccountId,
+        chain: Chain,
+        transfer: Transfer
+    ): TransferValidityStatus
 
     suspend fun updatePhishingAddresses()
 
-    suspend fun isAddressFromPhishingList(address: String): Boolean
+    suspend fun isAccountIdFromPhishingList(accountId: AccountId): Boolean
 
-    suspend fun getAccountFreeBalance(accountAddress: String): BigInteger
+    suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId): BigInteger
 }

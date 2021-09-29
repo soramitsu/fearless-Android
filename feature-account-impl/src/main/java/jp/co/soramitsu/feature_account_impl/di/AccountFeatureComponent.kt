@@ -26,6 +26,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.details.di.NodeDet
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.di.NodesComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.di.PinCodeComponent
 import jp.co.soramitsu.feature_account_impl.presentation.profile.di.ProfileComponent
+import jp.co.soramitsu.runtime.di.RuntimeApi
 
 @Component(
     dependencies = [
@@ -88,6 +89,7 @@ interface AccountFeatureComponent : AccountFeatureApi {
     @Component(
         dependencies = [
             CommonApi::class,
+            RuntimeApi::class,
             DbApi::class
         ]
     )

@@ -22,7 +22,9 @@ import androidx.room.Index
 class ChainAssetLocal(
     val id: Int,
     val chainId: String,
-    val name: String?,
+    val name: String,
     val symbol: String,
+    val priceId: String?,
+    val staking: String,
     val precision: Int
 )

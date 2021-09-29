@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -23,16 +24,21 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
 import kotlinx.android.synthetic.main.fragment_staking.stakingAlertsInfo
+import kotlinx.android.synthetic.main.fragment_staking.stakingAssetSelector
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
 import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
 import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
+import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,6 +77,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     @ExperimentalTime
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
+        setupAssetSelector(stakingAssetSelector, viewModel, imageLoader)
 
         viewModel.alertsFlow.observe { loadingState ->
             when (loadingState) {
@@ -86,57 +93,69 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                 }
 
                 is LoadingState.Loading -> {
+                    stakingAlertsInfo.makeVisible()
                     stakingAlertsInfo.showLoading()
                 }
             }
         }
 
-        viewModel.stakingViewStateFlow.observe { stakingState ->
-            startStakingBtn.setVisible(stakingState is WelcomeViewState)
-            stakingEstimate.setVisible(stakingState is WelcomeViewState)
-            stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)
-
-            when (stakingState) {
-                is NominatorViewState -> {
-                    stakingStakeSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
+        viewModel.stakingViewStateFlow.observe { loadingState ->
+            when (loadingState) {
+                is LoadingState.Loading -> {
+                    startStakingBtn.setVisible(false)
+                    stakingEstimate.setVisible(false)
+                    stakingStakeSummary.setVisible(false)
                 }
+                is LoadingState.Loaded -> {
+                    val stakingState = loadingState.data
 
-                is ValidatorViewState -> {
-                    stakingStakeSummary.bindStakeSummary(stakingState, ::mapValidatorStatus)
-                }
+                    startStakingBtn.setVisible(stakingState is WelcomeViewState)
+                    stakingEstimate.setVisible(stakingState is WelcomeViewState)
+                    stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)
 
-                is StashNoneViewState -> {
-                    stakingStakeSummary.bindStakeSummary(stakingState, ::mapStashNoneStatus)
-                }
+                    when (stakingState) {
+                        is NominatorViewState -> {
+                            stakingStakeSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
+                        }
 
-                is WelcomeViewState -> {
-                    observeValidations(stakingState)
+                        is ValidatorViewState -> {
+                            stakingStakeSummary.bindStakeSummary(stakingState, ::mapValidatorStatus)
+                        }
 
-                    stakingState.assetLiveData.observe {
-                        stakingEstimate.setAssetImageResource(it.tokenIconRes)
-                        stakingEstimate.setAssetName(it.tokenName)
-                        stakingEstimate.setAssetBalance(it.assetBalance)
-                    }
+                        is StashNoneViewState -> {
+                            stakingStakeSummary.bindStakeSummary(stakingState, ::mapStashNoneStatus)
+                        }
 
-                    stakingState.amountFiat.observe { amountFiat ->
-                        stakingEstimate.showAssetBalanceDollarAmount()
-                        stakingEstimate.setAssetBalanceDollarAmount(amountFiat)
-                    }
+                        is WelcomeViewState -> {
+                            observeValidations(stakingState)
 
-                    stakingState.returns.observe { rewards ->
-                        stakingEstimate.hideReturnsLoading()
-                        stakingEstimate.populateMonthEstimation(rewards.monthly)
-                        stakingEstimate.populateYearEstimation(rewards.yearly)
-                    }
+                            stakingState.assetLiveData.observe {
+                                stakingEstimate.setAssetImageResource(it.tokenIconRes)
+                                stakingEstimate.setAssetName(it.tokenName)
+                                stakingEstimate.setAssetBalance(it.assetBalance)
+                            }
 
-                    stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
+                            stakingState.amountFiat.observe { amountFiat ->
+                                stakingEstimate.showAssetBalanceDollarAmount()
+                                stakingEstimate.setAssetBalanceDollarAmount(amountFiat)
+                            }
 
-                    startStakingBtn.setOnClickListener { stakingState.nextClicked() }
+                            stakingState.returns.observe { rewards ->
+                                stakingEstimate.hideReturnsLoading()
+                                stakingEstimate.populateMonthEstimation(rewards.monthly)
+                                stakingEstimate.populateYearEstimation(rewards.yearly)
+                            }
 
-                    stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
+                            stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
 
-                    stakingState.showRewardEstimationEvent.observeEvent {
-                        StakingRewardEstimationBottomSheet(requireContext(), it).show()
+                            startStakingBtn.setOnClickListener { stakingState.nextClicked() }
+
+                            stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
+
+                            stakingState.showRewardEstimationEvent.observeEvent {
+                                StakingRewardEstimationBottomSheet(requireContext(), it).show()
+                            }
+                        }
                     }
                 }
             }

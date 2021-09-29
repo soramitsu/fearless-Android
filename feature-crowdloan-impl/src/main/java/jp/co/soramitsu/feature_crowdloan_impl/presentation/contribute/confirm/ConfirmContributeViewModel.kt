@@ -27,7 +27,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -161,11 +161,9 @@ class ConfirmContributeViewModel(
                 }
 
                 contributionInteractor.contribute(
-                    originAddress = selectedAddressModelFlow.first().address,
                     parachainId = payload.paraId,
                     contribution = payload.amount,
-                    token = assetFlow.first().token,
-                    additionalSubmission
+                    additional = additionalSubmission
                 )
             }
                 .onFailure(::showError)

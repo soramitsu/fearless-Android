@@ -2,9 +2,12 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
-import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import java.math.BigInteger
 
 class TransferExtrinsicWithStatus(
     val extrinsic: TransferExtrinsic,
@@ -12,20 +15,26 @@ class TransferExtrinsicWithStatus(
 )
 
 interface SubstrateRemoteSource {
-    suspend fun getAccountInfo(address: String): AccountInfo
+
+    suspend fun getAccountInfo(
+        chainId: ChainId,
+        accountId: AccountId
+    ): AccountInfo
 
     suspend fun getTransferFee(
-        accountAddress: String,
-        transfer: Transfer,
-    ): FeeResponse
+        chain: Chain,
+        transfer: Transfer
+    ): BigInteger
 
     suspend fun performTransfer(
-        accountAddress: String,
+        accountId: ByteArray,
+        chain: Chain,
         transfer: Transfer,
     ): String
 
     suspend fun fetchAccountTransfersInBlock(
+        chainId: ChainId,
         blockHash: String,
-        accountAddress: String,
+        accountId: ByteArray
     ): Result<List<TransferExtrinsicWithStatus>>
 }

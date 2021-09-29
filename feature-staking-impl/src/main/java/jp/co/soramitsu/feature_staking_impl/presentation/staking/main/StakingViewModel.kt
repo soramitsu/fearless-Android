@@ -5,15 +5,19 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.flatMapLoading
 import jp.co.soramitsu.common.presentation.map
+import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
+import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
@@ -35,11 +39,14 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -60,27 +67,37 @@ class StakingViewModel(
     private val redeemValidationSystem: ManageStakingValidationSystem,
     private val bondMoreValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
+    private val stakingUpdateSystem: UpdateSystem,
+    private val assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
 ) : BaseViewModel(),
+    WithAssetSelector,
     Validatable by validationExecutor {
 
-    private val currentAssetFlow = interactor.currentAssetFlow()
-        .share()
+    override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
 
     private val stakingStateScope = viewModelScope.childScope(supervised = true)
 
-    private val stakingState = interactor.selectedAccountStakingStateFlow()
+    private val selectionState = interactor.selectionStateFlow()
         .share()
 
-    val stakingViewStateFlow = stakingState
+    private val loadingStakingState = selectionState
+        .withLoading { (account, assetWithToken) ->
+            interactor.selectedAccountStakingStateFlow(account, assetWithToken)
+        }.share()
+
+    val stakingViewStateFlow = loadingStakingState
         .onEach { stakingStateScope.coroutineContext.cancelChildren() }
-        .map { transformStakingState(it) }
+        .mapLoading(::transformStakingState)
         .inBackground()
         .share()
 
-    val networkInfoStateLiveData = interactor.selectedNetworkTypeFLow()
+    private val selectedChain = interactor.selectedChainFlow()
+        .share()
+
+    val networkInfoStateLiveData = selectedChain
         .distinctUntilChanged()
-        .withLoading { networkType ->
-            interactor.observeNetworkInfoState(networkType).combine(currentAssetFlow) { networkInfo, asset ->
+        .withLoading { chain ->
+            interactor.observeNetworkInfoState(chain.id).combine(assetSelectorMixin.selectedAssetFlow) { networkInfo, asset ->
                 transformNetworkInfo(asset, networkInfo)
             }
         }
@@ -93,13 +110,9 @@ class StakingViewModel(
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
-    fun avatarClicked() {
-        router.openChangeAccountFromStaking()
-    }
-
-    val networkInfoTitle = currentAssetFlow
-        .map { mapAssetToNetworkInfoTitle(it) }
-        .asLiveData()
+    val networkInfoTitle = selectedChain
+        .map { it.name }
+        .share()
 
     fun storyClicked(story: StakingStoryModel) {
         if (story.elements.isNotEmpty()) {
@@ -107,11 +120,22 @@ class StakingViewModel(
         }
     }
 
-    val alertsFlow = stakingState
-        .withLoading(alertsInteractor::getAlertsFlow)
-        .map { loadingState -> loadingState.map { alerts -> alerts.map(::mapAlertToAlertModel) } }
+    val alertsFlow = loadingStakingState
+        .flatMapLoading {
+            alertsInteractor.getAlertsFlow(it)
+                .mapList(::mapAlertToAlertModel)
+        }
         .inBackground()
         .asLiveData()
+
+    init {
+        stakingUpdateSystem.start()
+            .launchIn(this)
+    }
+
+    fun avatarClicked() {
+        router.openChangeAccountFromStaking()
+    }
 
     private fun mapAlertToAlertModel(alert: Alert): AlertModel {
         return when (alert) {
@@ -158,7 +182,7 @@ class StakingViewModel(
 
     private fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {
         val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency()
-        val formattedAmount = amount.formatTokenAmount(token.type)
+        val formattedAmount = amount.formatTokenAmount(token.configuration)
 
         return buildString {
             append(formattedAmount)
@@ -185,7 +209,8 @@ class StakingViewModel(
         validationSystem: ManageStakingValidationSystem,
         action: () -> Unit,
     ) = launch {
-        val stashState = stakingState.first() as? StakingState.Stash ?: return@launch
+        val stakingState = (loadingStakingState.first() as? LoadingState.Loaded)?.data
+        val stashState = stakingState as? StakingState.Stash ?: return@launch
 
         validationExecutor.requireValid(
             validationSystem,
@@ -199,18 +224,28 @@ class StakingViewModel(
     private fun transformStakingState(accountStakingState: StakingState) = when (accountStakingState) {
         is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
             accountStakingState,
-            currentAssetFlow,
+            assetSelectorMixin.selectedAssetFlow,
             stakingStateScope,
             ::showError
         )
 
-        is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(currentAssetFlow, accountStakingState, stakingStateScope, ::showError)
+        is StakingState.Stash.None -> stakingViewStateFactory.createStashNoneState(
+            assetSelectorMixin.selectedAssetFlow,
+            accountStakingState,
+            stakingStateScope,
+            ::showError
+        )
 
-        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(currentAssetFlow, accountStakingState, stakingStateScope, ::showError)
+        is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(
+            assetSelectorMixin.selectedAssetFlow,
+            accountStakingState,
+            stakingStateScope,
+            ::showError
+        )
 
         is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState(
             accountStakingState,
-            currentAssetFlow,
+            assetSelectorMixin.selectedAssetFlow,
             stakingStateScope,
             ::showError
         )
@@ -223,12 +258,12 @@ class StakingViewModel(
 
     private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {
         val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.type)
+        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
 
         val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
 
         val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-        val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.type)
+        val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
 
         val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency()
 
@@ -247,16 +282,9 @@ class StakingViewModel(
         }
     }
 
-    private fun mapAssetToNetworkInfoTitle(asset: Asset): String {
-        return resourceManager.getString(R.string.staking_main_network_title, asset.token.type.networkType.readableName)
-    }
-
     private fun currentAddressModelFlow(): Flow<AddressModel> {
-        return interactor.selectedAccountFlow()
-            .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
-    }
-
-    private suspend fun generateAddressModel(account: StakingAccount, sizeInDp: Int): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
+        return interactor.selectedAccountProjectionFlow().map {
+            addressIconGenerator.createAddressModel(it.address, CURRENT_ICON_SIZE, it.name)
+        }
     }
 }

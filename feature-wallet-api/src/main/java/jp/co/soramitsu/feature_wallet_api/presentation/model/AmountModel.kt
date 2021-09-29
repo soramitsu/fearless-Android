@@ -29,7 +29,7 @@ fun mapAmountToAmountModel(
     val fiatAmount = token.fiatAmount(amount)
 
     return AmountModel(
-        token = amount.formatTokenAmount(token.type),
+        token = amount.formatTokenAmount(token.configuration),
         fiat = fiatAmount?.formatAsCurrency()
     )
 }

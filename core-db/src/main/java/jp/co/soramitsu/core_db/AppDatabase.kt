@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.core_db.converters.CryptoTypeConverters
 import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
@@ -33,11 +35,13 @@ import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
+import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_27_28
 import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.core_db.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.core_db.migrations.UpdateDefaultNodesList
+import jp.co.soramitsu.core_db.migrations.V2Migration
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
@@ -57,7 +61,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 26,
+    version = 28,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -95,6 +99,8 @@ abstract class AppDatabase : RoomDatabase() {
         fun get(
             context: Context,
             prefsToDbActiveNodeMigrator: PrefsToDbActiveNodeMigrator,
+            storeV1: SecretStoreV1,
+            storeV2: SecretStoreV2
         ): AppDatabase {
             if (instance == null) {
                 instance = Room.databaseBuilder(
@@ -117,7 +123,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
                     .addMigrations(AddOperationsTablesToDb_23_24)
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 24))
-                    .addMigrations(AddChainRegistryTables_25_26)
+                    .addMigrations(AddChainRegistryTables_25_26, V2Migration(storeV1, storeV2), MigrateTablesToV2_27_28)
                     .build()
             }
             return instance!!

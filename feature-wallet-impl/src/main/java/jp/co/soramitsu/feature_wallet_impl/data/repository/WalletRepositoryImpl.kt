@@ -4,26 +4,23 @@ import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
-import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
-import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
@@ -36,17 +33,21 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.getSubQueryPath
 import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
+import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
-import java.util.Locale
-import kotlin.time.ExperimentalTime
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -58,75 +59,90 @@ class WalletRepositoryImpl(
     private val walletConstants: WalletConstants,
     private val phishingAddressDao: PhishingAddressDao,
     private val cursorStorage: TransferCursorStorage,
-    private val coingeckoApi: CoingeckoApi
+    private val coingeckoApi: CoingeckoApi,
+    private val chainRegistry: ChainRegistry,
 ) : WalletRepository {
 
-    override fun assetsFlow(accountAddress: String): Flow<List<Asset>> {
-        return assetCache.observeAssets(accountAddress)
-            .mapList(::mapAssetLocalToAsset)
-    }
-
-    override suspend fun syncAssetsRates(account: WalletAccount) = coroutineScope {
-        val networkType = account.network.type
-        val priceStats = getAssetPriceCoingecko(networkType)
-
-        updateAssetRates(account, priceStats)
-    }
-
-    override fun assetFlow(accountAddress: String, type: Token.Type): Flow<Asset> {
-        return assetCache.observeAsset(accountAddress, mapTokenTypeToTokenTypeLocal(type))
-            .map { mapAssetLocalToAsset(it) }
-    }
-
-    override suspend fun getAsset(accountAddress: String, type: Token.Type): Asset? {
-        val assetLocal = assetCache.getAsset(accountAddress, mapTokenTypeToTokenTypeLocal(type))
-
-        return assetLocal?.let(::mapAssetLocalToAsset)
-    }
-
-    override suspend fun syncAsset(account: WalletAccount, type: Token.Type) {
-        return syncAssetsRates(account)
-    }
-
-    override fun operationsFirstPageFlow(currentAccount: WalletAccount): Flow<CursorPage<Operation>> {
-        return operationDao.observe(currentAccount.address)
-            .mapList(::mapOperationLocalToOperation)
-            .mapLatest { operations ->
-                val cursor = cursorStorage.awaitCursor(currentAccount.address)
-
-                CursorPage(cursor, operations)
+    override fun assetsFlow(metaId: Long): Flow<List<Asset>> {
+        return combine(
+            chainRegistry.chainsById,
+            assetCache.observeAssets(metaId)
+        ) { chainsById, assetsLocal ->
+            assetsLocal.map { asset ->
+                mapAssetToLocalAsset(chainsById, asset)
             }
+        }
     }
 
-    @ExperimentalTime
+    override suspend fun getAssets(metaId: Long): List<Asset> = withContext(Dispatchers.Default) {
+        val chainsById = chainRegistry.chainsById.first()
+        val assetsLocal = assetCache.getAssets(metaId)
+
+        assetsLocal.map {
+            mapAssetToLocalAsset(chainsById, it)
+        }
+    }
+
+    private fun mapAssetToLocalAsset(
+        chainsById: Map<ChainId, Chain>,
+        assetLocal: AssetWithToken
+    ): Asset {
+        val chainAsset = chainsById.getValue(assetLocal.asset.chainId).assetsBySymbol.getValue(assetLocal.token.symbol)
+
+        return mapAssetLocalToAsset(assetLocal, chainAsset = chainAsset)
+    }
+
+    override suspend fun syncAssetsRates() {
+        val firstChain = chainRegistry.currentChains.first().first()
+        val asset = firstChain.utilityAsset
+
+        asset.priceId?.let {
+            val priceStats = getAssetPriceCoingecko(it)
+
+            updateAssetRates(asset.symbol, priceStats)
+        }
+    }
+
+    override fun assetFlow(accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset> {
+        return assetCache.observeAsset(accountId, chainAsset.chainId, chainAsset.symbol)
+            .map { mapAssetLocalToAsset(it, chainAsset) }
+    }
+
+    override suspend fun getAsset(accountId: AccountId, chainAsset: Chain.Asset): Asset? {
+        val assetLocal = assetCache.getAsset(accountId, chainAsset.chainId, chainAsset.symbol)
+
+        return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset) }
+    }
+
     override suspend fun syncOperationsFirstPage(
         pageSize: Int,
         filters: Set<TransactionFilter>,
-        account: WalletAccount,
+        accountId: AccountId,
+        chain: Chain,
+        chainAsset: Chain.Asset
     ) {
-        val page = getOperations(pageSize, cursor = null, filters, account)
-        val accountAddress = account.address
+        val accountAddress = chain.addressOf(accountId)
+        val page = getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
 
-        val elements = page.map { mapOperationToOperationLocalDb(it, OperationLocal.Source.SUBQUERY) }
+        val elements = page.map { mapOperationToOperationLocalDb(it, chainAsset, OperationLocal.Source.SUBQUERY) }
 
-        operationDao.insertFromSubquery(accountAddress, elements)
-        cursorStorage.saveCursor(account.address, page.nextCursor)
+        operationDao.insertFromSubquery(accountAddress, chain.id, chainAsset.id, elements)
+        cursorStorage.saveCursor(chain.id, chainAsset.id, accountId, page.nextCursor)
     }
 
-    @ExperimentalTime
     override suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
         filters: Set<TransactionFilter>,
-        currentAccount: WalletAccount,
+        accountId: AccountId,
+        chain: Chain,
+        chainAsset: Chain.Asset,
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
-            val path = currentAccount.address.networkType().getSubQueryPath()
-
             val response = walletOperationsApi.getOperationsHistory(
-                path,
+                url = chain.externalApi!!.history!!.url, // TODO external api is optional
                 SubqueryHistoryRequest(
-                    currentAccount.address,
+                    accountAddress = chain.addressOf(accountId),
                     pageSize,
                     cursor,
                     filters
@@ -135,96 +151,135 @@ class WalletRepositoryImpl(
 
             val pageInfo = response.historyElements.pageInfo
 
-            val tokenType = Token.Type.fromNetworkType(currentAccount.network.type)
-
-            val operations = response.historyElements.nodes.map {
-
-                mapNodeToOperation(it, tokenType)
-            }
+            val operations = response.historyElements.nodes.map { mapNodeToOperation(it, chainAsset) }
 
             CursorPage(pageInfo.endCursor, operations)
         }
     }
 
-    override suspend fun getContacts(account: WalletAccount, query: String): Set<String> {
-        return operationDao.getContacts(query, account.address).toSet()
+    override fun operationsFirstPageFlow(
+        accountId: AccountId,
+        chain: Chain,
+        chainAsset: Chain.Asset
+    ): Flow<CursorPage<Operation>> {
+        val accountAddress = chain.addressOf(accountId)
+
+        return operationDao.observe(accountAddress, chain.id, chainAsset.id)
+            .mapList {
+                mapOperationLocalToOperation(it, chainAsset)
+            }
+            .mapLatest { operations ->
+                val cursor = cursorStorage.awaitCursor(chain.id, chainAsset.id, accountId)
+
+                CursorPage(cursor, operations)
+            }
     }
 
-    override suspend fun getTransferFee(accountAddress: String, transfer: Transfer): Fee {
-        val feeRemote = substrateSource.getTransferFee(accountAddress, transfer)
-
-        return mapFeeRemoteToFee(feeRemote, transfer)
+    override suspend fun getContacts(
+        accountId: AccountId,
+        chain: Chain,
+        query: String
+    ): Set<String> {
+        return operationDao.getContacts(query, chain.addressOf(accountId), chain.id).toSet()
     }
 
-    override suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal) {
-        val operationHash = substrateSource.performTransfer(accountAddress, transfer)
+    override suspend fun getTransferFee(chain: Chain, transfer: Transfer): Fee {
+        val fee = substrateSource.getTransferFee(chain, transfer)
 
-        val operation = createOperation(operationHash, transfer, accountAddress, fee, OperationLocal.Source.APP)
+        return mapFeeRemoteToFee(fee, transfer)
+    }
+
+    override suspend fun performTransfer(
+        accountId: AccountId,
+        chain: Chain,
+        transfer: Transfer,
+        fee: BigDecimal
+    ) {
+        val operationHash = substrateSource.performTransfer(accountId, chain, transfer)
+        val accountAddress = chain.addressOf(accountId)
+
+        val operation = createOperation(
+            operationHash,
+            transfer,
+            accountAddress,
+            fee,
+            OperationLocal.Source.APP
+        )
 
         operationDao.insert(operation)
     }
 
-    override suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer): TransferValidityStatus {
-        val feeResponse = getTransferFee(accountAddress, transfer)
+    override suspend fun checkTransferValidity(
+        accountId: AccountId,
+        chain: Chain,
+        transfer: Transfer
+    ): TransferValidityStatus {
+        val feeResponse = getTransferFee(chain, transfer)
 
-        val tokenType = transfer.tokenType
+        val chainAsset = transfer.chainAsset
 
-        val recipientInfo = substrateSource.getAccountInfo(transfer.recipient)
+        val recipientInfo = substrateSource.getAccountInfo(chain.id, chain.accountIdOf(transfer.recipient))
         val totalRecipientBalanceInPlanks = recipientInfo.totalBalance
-        val totalRecipientBalance = tokenType.amountFromPlanks(totalRecipientBalanceInPlanks)
+        val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetCache.getAsset(accountAddress, mapTokenTypeToTokenTypeLocal(transfer.tokenType))!!
-        val asset = mapAssetLocalToAsset(assetLocal)
+        val assetLocal = assetCache.getAsset(accountId, chainAsset.chainId, chainAsset.symbol)!!
+        val asset = mapAssetLocalToAsset(assetLocal, chainAsset)
 
-        val existentialDepositInPlanks = walletConstants.existentialDeposit()
-        val existentialDeposit = tokenType.amountFromPlanks(existentialDepositInPlanks)
+        val existentialDepositInPlanks = walletConstants.existentialDeposit(chain.id)
+        val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
         return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
     }
 
+    // TODO adapt for ethereum chains
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
-        val publicKeys = phishingApi.getPhishingAddresses().values.flatten()
+        val accountIds = phishingApi.getPhishingAddresses().values.flatten()
             .map { it.toAccountId().toHexString(withPrefix = true) }
 
-        val phishingAddressesLocal = publicKeys.map(::PhishingAddressLocal)
+        val phishingAddressesLocal = accountIds.map(::PhishingAddressLocal)
 
         phishingAddressDao.clearTable()
         phishingAddressDao.insert(phishingAddressesLocal)
     }
 
-    override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.Default) {
+    // TODO adapt for ethereum chains
+    override suspend fun isAccountIdFromPhishingList(accountId: AccountId) = withContext(Dispatchers.Default) {
         val phishingAddresses = phishingAddressDao.getAllAddresses()
 
-        val addressPublicKey = address.toAccountId().toHexString(withPrefix = true)
-
-        phishingAddresses.contains(addressPublicKey)
+        phishingAddresses.contains(accountId.toHexString(withPrefix = true))
     }
 
-    override suspend fun getAccountFreeBalance(accountAddress: String) =
-        substrateSource.getAccountInfo(accountAddress).data.free
+    override suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId) =
+        substrateSource.getAccountInfo(chainId, accountId).data.free
 
-    private fun createOperation(hash: String, transfer: Transfer, senderAddress: String, fee: BigDecimal, source: OperationLocal.Source) =
+    private fun createOperation(
+        hash: String,
+        transfer: Transfer,
+        senderAddress: String,
+        fee: BigDecimal,
+        source: OperationLocal.Source
+    ) =
         OperationLocal.manualTransfer(
             hash = hash,
-            accountAddress = senderAddress,
-            tokenType = mapTokenTypeToTokenTypeLocal(transfer.tokenType),
+            address = senderAddress,
+            chainAssetId = transfer.chainAsset.id,
+            chainId = transfer.chainAsset.chainId,
             amount = transfer.amountInPlanks,
             senderAddress = senderAddress,
             receiverAddress = transfer.recipient,
-            fee = transfer.tokenType.planksFromAmount(fee),
+            fee = transfer.chainAsset.planksFromAmount(fee),
             status = OperationLocal.Status.PENDING,
             source = source
         )
 
     private suspend fun updateAssetRates(
-        account: WalletAccount,
+        symbol: String,
         priceStats: Map<String, PriceInfo>?,
-    ) = assetCache.updateToken(account.address.networkType()) { cached ->
-        val network = account.address.networkType().toString().toLowerCase(Locale.ROOT)
+    ) = assetCache.updateToken(symbol) { cached ->
+        val priceStat = priceStats?.values?.first()
 
-        val price = priceStats?.get(network)?.price
-
-        val change = priceStats?.get(network)?.rateChange
+        val price = priceStat?.price
+        val change = priceStat?.rateChange
 
         cached.copy(
             dollarRate = price,
@@ -232,8 +287,8 @@ class WalletRepositoryImpl(
         )
     }
 
-    private suspend fun getAssetPriceCoingecko(networkType: Node.NetworkType): Map<String, PriceInfo> {
-        return apiCall { coingeckoApi.getAssetPrice(networkType.toString(), "usd", true) }
+    private suspend fun getAssetPriceCoingecko(priceId: String): Map<String, PriceInfo> {
+        return apiCall { coingeckoApi.getAssetPrice(priceId, "usd", true) }
     }
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)

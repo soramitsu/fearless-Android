@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
@@ -16,11 +17,14 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
-class ChainService(
+data class ChainService(
     val runtimeProvider: RuntimeProvider,
     val connection: ChainConnection
 )
@@ -59,6 +63,12 @@ class ChainRegistry(
 
             all
         }
+        .filter { it.isNotEmpty() }
+        .distinctUntilChanged()
+        .inBackground()
+        .shareIn(this, SharingStarted.Eagerly, replay = 1)
+
+    val chainsById = currentChains.map { chains -> chains.associateBy { it.id } }
         .inBackground()
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
@@ -68,8 +78,24 @@ class ChainRegistry(
         baseTypeSynchronizer.sync()
     }
 
-    fun getService(chainId: String) = ChainService(
-        runtimeProvider = runtimeProviderPool.getRuntimeProvider(chainId),
-        connection = connectionPool.getConnection(chainId)
-    )
+    fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
+
+    fun getRuntimeProvider(chainId: String) = runtimeProviderPool.getRuntimeProvider(chainId)
+
+    suspend fun getChain(chainId: String) = chainsById.first().getValue(chainId)
 }
+
+suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: Int): Pair<Chain, Chain.Asset> {
+    val chain = chainsById.first().getValue(chainId)
+
+    return chain to chain.assetsById.getValue(assetId)
+}
+
+suspend fun ChainRegistry.getRuntime(chainId: String) = getRuntimeProvider(chainId).get()
+
+suspend fun ChainRegistry.getSocket(chainId: String) = getConnection(chainId).socketService
+
+fun ChainRegistry.getService(chainId: String) = ChainService(
+    runtimeProvider = getRuntimeProvider(chainId),
+    connection = getConnection(chainId)
+)

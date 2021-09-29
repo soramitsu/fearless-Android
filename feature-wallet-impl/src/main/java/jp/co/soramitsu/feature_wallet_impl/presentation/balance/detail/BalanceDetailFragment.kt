@@ -12,14 +12,14 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.feature_wallet_api.data.mappers.icon
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.showState
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetaiActions
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailAvailableAmount
@@ -42,9 +42,9 @@ private const val KEY_TOKEN = "KEY_TOKEN"
 class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
     companion object {
-        fun getBundle(type: Token.Type): Bundle {
+        fun getBundle(assetPayload: AssetPayload): Bundle {
             return Bundle().apply {
-                putSerializable(KEY_TOKEN, type)
+                putParcelable(KEY_TOKEN, assetPayload)
             }
         }
     }
@@ -94,7 +94,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = arguments!![KEY_TOKEN] as Token.Type
+        val token = arguments!![KEY_TOKEN] as AssetPayload
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -113,8 +113,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         setupBuyIntegration(viewModel)
 
         viewModel.assetLiveData.observe { asset ->
-            balanceDetailTokenIcon.setImageResource(asset.token.type.icon)
-            balanceDetailTokenName.text = asset.token.type.networkType.readableName
+            balanceDetailTokenIcon.setImageResource(asset.token.configuration.icon)
+            balanceDetailTokenName.text = asset.token.configuration.name
 
             asset.token.dollarRate?.let {
                 balanceDetailDollarGroup.visibility = View.VISIBLE
@@ -129,7 +129,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
             asset.dollarAmount?.let { balanceDetailDollarAmount.text = it.formatAsCurrency() }
 
-            balanceDetailTotal.text = asset.total.formatTokenAmount(asset.token.type)
+            balanceDetailTotal.text = asset.total.formatTokenAmount(asset.token.configuration)
 
             balanceDetailFrozenAmount.text = asset.frozen.format()
             balanceDetailAvailableAmount.text = asset.available.format()

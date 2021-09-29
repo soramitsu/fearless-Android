@@ -5,10 +5,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
-import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeLocalToTokenType
-import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -16,6 +13,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryH
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigInteger
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
@@ -64,8 +62,11 @@ private fun Operation.rewardOrNull() = type as? Operation.Type.Reward
 private fun Operation.transferOrNull() = type as? Operation.Type.Transfer
 private fun Operation.extrinsicOrNull() = type as? Operation.Type.Extrinsic
 
-@ExperimentalTime
-fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.Source): OperationLocal {
+fun mapOperationToOperationLocalDb(
+    operation: Operation,
+    chainAsset: Chain.Asset,
+    source: OperationLocal.Source,
+): OperationLocal {
     val typeLocal = when (operation.type) {
         is Operation.Type.Transfer -> OperationLocal.Type.TRANSFER
         is Operation.Type.Reward -> OperationLocal.Type.REWARD
@@ -77,7 +78,8 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
             id = id,
             address = address,
             time = time,
-            tokenType = mapTokenTypeToTokenTypeLocal(tokenType),
+            chainId = chainAsset.chainId,
+            chainAssetId = chainAsset.id,
             module = extrinsicOrNull()?.module,
             call = extrinsicOrNull()?.call,
             amount = type.operationAmount,
@@ -95,7 +97,10 @@ fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.
     }
 }
 
-fun mapOperationLocalToOperation(operationLocal: OperationLocal): Operation {
+fun mapOperationLocalToOperation(
+    operationLocal: OperationLocal,
+    chainAsset: Chain.Asset,
+): Operation {
     with(operationLocal) {
         val operationType = when (operationType) {
             OperationLocal.Type.EXTRINSIC -> Operation.Type.Extrinsic(
@@ -129,15 +134,15 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal): Operation {
             address = address,
             type = operationType,
             time = time,
-            tokenType = mapTokenTypeLocalToTokenType(tokenType),
+            chainAsset = chainAsset,
         )
     }
 }
 
-@ExperimentalTime
+@OptIn(ExperimentalTime::class)
 fun mapNodeToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
-    tokenType: Token.Type,
+    tokenType: Chain.Asset,
 ): Operation {
     val type: Operation.Type = when {
 
@@ -180,19 +185,16 @@ fun mapNodeToOperation(
         address = node.address,
         type = type,
         time = node.timestamp.toLong().seconds.toLongMilliseconds(),
-        tokenType = tokenType,
+        chainAsset = tokenType,
     )
 }
 
-private val Token.Type.extrinsicIcon
+private val Chain.Asset.extrinsicIcon
     get() = when (this) {
-        Token.Type.DOT -> R.drawable.ic_extrinsic_polkadot
-        Token.Type.KSM -> R.drawable.ic_extrinsic_kusama
-        Token.Type.WND -> R.drawable.ic_extrinsic_westend
-        else -> R.drawable.ic_extrinsic_polkadot
+        else -> R.drawable.ic_extrinsic_polkadot // TODO wallet - extrinsicIcon
     }
 
-private fun Token.Type.formatPlanks(planks: BigInteger, negative: Boolean): String {
+private fun Chain.Asset.formatPlanks(planks: BigInteger, negative: Boolean): String {
     val amount = amountFromPlanks(planks)
 
     val withoutSign = amount.formatTokenAmount(this)
@@ -207,16 +209,16 @@ private val Operation.Type.Transfer.isIncome
 private val Operation.Type.Transfer.displayAddress
     get() = if (isIncome) sender else receiver
 
-private fun formatAmount(tokenType: Token.Type, transfer: Operation.Type.Transfer): String {
-    return tokenType.formatPlanks(transfer.amount, negative = !transfer.isIncome)
+private fun formatAmount(chainAsset: Chain.Asset, transfer: Operation.Type.Transfer): String {
+    return chainAsset.formatPlanks(transfer.amount, negative = !transfer.isIncome)
 }
 
-private fun formatAmount(tokenType: Token.Type, reward: Operation.Type.Reward): String {
-    return tokenType.formatPlanks(reward.amount, negative = !reward.isReward)
+private fun formatAmount(chainAsset: Chain.Asset, reward: Operation.Type.Reward): String {
+    return chainAsset.formatPlanks(reward.amount, negative = !reward.isReward)
 }
 
-private fun formatFee(tokenType: Token.Type, extrinsic: Operation.Type.Extrinsic): String {
-    return tokenType.formatPlanks(extrinsic.fee, negative = true)
+private fun formatFee(chainAsset: Chain.Asset, extrinsic: Operation.Type.Extrinsic): String {
+    return chainAsset.formatPlanks(extrinsic.fee, negative = true)
 }
 
 private fun mapStatusToStatusAppearance(status: Operation.Status): OperationStatusAppearance {
@@ -248,7 +250,7 @@ suspend fun mapOperationToOperationModel(
                 OperationModel(
                     id = id,
                     time = time,
-                    amount = formatAmount(tokenType, operationType),
+                    amount = formatAmount(chainAsset, operationType),
                     amountColorRes = if (operationType.isReward) R.color.green else R.color.white,
                     header = resourceManager.getString(
                         if (operationType.isReward) R.string.staking_reward else R.string.staking_slash
@@ -269,7 +271,7 @@ suspend fun mapOperationToOperationModel(
                 OperationModel(
                     id = id,
                     time = time,
-                    amount = formatAmount(tokenType, operationType),
+                    amount = formatAmount(chainAsset, operationType),
                     amountColorRes = amountColor,
                     header = nameIdentifier.nameOrAddress(operationType.displayAddress),
                     statusAppearance = statusAppearance,
@@ -285,11 +287,11 @@ suspend fun mapOperationToOperationModel(
                 OperationModel(
                     id = id,
                     time = time,
-                    amount = formatFee(tokenType, operationType),
+                    amount = formatFee(chainAsset, operationType),
                     amountColorRes = amountColor,
                     header = operationType.formattedCall(),
                     statusAppearance = statusAppearance,
-                    operationIcon = resourceManager.getDrawable(tokenType.extrinsicIcon),
+                    operationIcon = resourceManager.getDrawable(chainAsset.extrinsicIcon),
                     subHeader = operationType.formattedModule()
                 )
             }
@@ -299,7 +301,7 @@ suspend fun mapOperationToOperationModel(
 
 fun mapOperationToParcel(
     operation: Operation,
-    resourceManager: ResourceManager
+    resourceManager: ResourceManager,
 ): OperationParcelizeModel {
     with(operation) {
         return when (val operationType = operation.type) {
@@ -308,7 +310,7 @@ fun mapOperationToParcel(
                 val feeOrZero = operationType.fee ?: BigInteger.ZERO
 
                 val feeFormatted = operationType.fee?.let {
-                    tokenType.formatPlanks(it, negative = true)
+                    chainAsset.formatPlanks(it, negative = true)
                 } ?: resourceManager.getString(R.string.common_unknown)
 
                 val total = operationType.amount + feeOrZero
@@ -317,12 +319,12 @@ fun mapOperationToParcel(
                     time = time,
                     address = address,
                     hash = operationType.hash,
-                    amount = formatAmount(operation.tokenType, operationType),
+                    amount = formatAmount(operation.chainAsset, operationType),
                     receiver = operationType.receiver,
                     sender = operationType.sender,
                     fee = feeFormatted,
                     isIncome = operationType.isIncome,
-                    total = tokenType.formatPlanks(total, negative = !operationType.isIncome),
+                    total = chainAsset.formatPlanks(total, negative = !operationType.isIncome),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
                 )
             }
@@ -332,7 +334,7 @@ fun mapOperationToParcel(
                     eventId = id,
                     address = address,
                     time = time,
-                    amount = formatAmount(tokenType, operationType),
+                    amount = formatAmount(chainAsset, operationType),
                     isReward = operationType.isReward,
                     era = operationType.era,
                     validator = operationType.validator,
@@ -346,7 +348,7 @@ fun mapOperationToParcel(
                     hash = operationType.hash,
                     module = operationType.formattedModule(),
                     call = operationType.formattedCall(),
-                    fee = formatFee(tokenType, operationType),
+                    fee = formatFee(chainAsset, operationType),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
                 )
             }

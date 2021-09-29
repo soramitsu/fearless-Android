@@ -1,0 +1,13 @@
+package jp.co.soramitsu.test_shared
+
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+
+class HashMapEncryptedPreferences : EncryptedPreferences {
+    private val delegate = mutableMapOf<String, String>()
+
+    override fun putEncryptedString(field: String, value: String) {
+        delegate[field] = value
+    }
+
+    override fun getDecryptedString(field: String): String? = delegate[field]
+}

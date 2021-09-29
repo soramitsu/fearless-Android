@@ -2,23 +2,16 @@ package jp.co.soramitsu.core_db.model
 
 import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.ForeignKey
 
 @Suppress("EqualsOrHashCode")
 @Entity(
     tableName = "account_staking_accesses",
-    foreignKeys = [
-        ForeignKey(
-            entity = AccountLocal::class,
-            parentColumns = ["address"],
-            childColumns = ["address"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    primaryKeys = ["address"]
+    primaryKeys = ["chainId", "chainAssetId", "accountId"]
 )
 class AccountStakingLocal(
-    val address: String,
+    val chainId: String,
+    val chainAssetId: Int,
+    val accountId: ByteArray,
     @Embedded
     val stakingAccessInfo: AccessInfo?
 ) {
@@ -33,7 +26,9 @@ class AccountStakingLocal(
 
     override fun equals(other: Any?): Boolean {
         return other is AccountStakingLocal &&
-            other.address == address &&
-            other.stakingAccessInfo == stakingAccessInfo
+            other.chainId == chainId &&
+            other.accountId.contentEquals(accountId) &&
+            other.stakingAccessInfo == stakingAccessInfo &&
+            other.chainAssetId == chainAssetId
     }
 }

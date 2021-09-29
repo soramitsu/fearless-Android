@@ -23,7 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.bondMoreVa
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -71,7 +71,7 @@ class ConfirmBondMoreViewModel(
 
     val originAddressModelLiveData = liveData {
         val address = payload.stashAddress
-        val account = interactor.getAccount(address)
+        val account = interactor.getProjectedAccount(address)
 
         val addressModel = iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
 
@@ -97,7 +97,7 @@ class ConfirmBondMoreViewModel(
             stashAddress = payload.stashAddress,
             fee = payload.fee,
             amount = payload.amount,
-            tokenType = assetFlow.first().token.type
+            chainAsset = assetFlow.first().token.configuration
         )
 
         validationExecutor.requireValid(

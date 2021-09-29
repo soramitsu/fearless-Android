@@ -2,38 +2,37 @@ package jp.co.soramitsu.core_db.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import java.math.BigInteger
 
 @Entity(
     tableName = "assets",
-    primaryKeys = ["token", "accountAddress"],
-    foreignKeys = [
-        ForeignKey(
-            entity = TokenLocal::class,
-            parentColumns = ["type"],
-            childColumns = ["token"]
-        )
-    ]
+    primaryKeys = ["tokenSymbol", "chainId", "accountId"],
 )
 data class AssetLocal(
-    val token: TokenLocal.Type,
-    @ColumnInfo(index = true) val accountAddress: String,
+    val tokenSymbol: String,
+    val chainId: String,
+    val accountId: AccountId,
+    @ColumnInfo(index = true) val metaId: Long,
     val freeInPlanks: BigInteger,
     val reservedInPlanks: BigInteger,
     val miscFrozenInPlanks: BigInteger,
     val feeFrozenInPlanks: BigInteger,
     val bondedInPlanks: BigInteger,
     val redeemableInPlanks: BigInteger,
-    val unbondingInPlanks: BigInteger
+    val unbondingInPlanks: BigInteger,
 ) {
     companion object {
         fun createEmpty(
-            type: TokenLocal.Type,
-            accountAddress: String
+            accountId: AccountId,
+            symbol: String,
+            chainId: String,
+            metaId: Long
         ) = AssetLocal(
-            token = type,
-            accountAddress = accountAddress,
+            tokenSymbol = symbol,
+            chainId = chainId,
+            accountId = accountId,
+            metaId = metaId,
             freeInPlanks = BigInteger.ZERO,
             reservedInPlanks = BigInteger.ZERO,
             miscFrozenInPlanks = BigInteger.ZERO,

@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -14,12 +16,21 @@ android {
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
+
+        jvmTarget = '1.8'
     }
 }
 
 dependencies {
     implementation coroutinesDep
+    implementation project(':runtime')
+    implementation project(":feature-account-api")
     implementation project(":common")
+
+    implementation androidDep
+    implementation materialDep
+
+    implementation daggerDep
 
     implementation fearlessLibDep
 
@@ -28,4 +39,6 @@ dependencies {
 
     api project(':core-api')
     api project(':core-db')
+
+    testImplementation project(':test-shared')
 }

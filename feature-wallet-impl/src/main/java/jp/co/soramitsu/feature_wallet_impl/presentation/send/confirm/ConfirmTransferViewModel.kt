@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -24,6 +25,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -56,7 +58,7 @@ class ConfirmTransferViewModel(
         }
     }
 
-    val assetLiveData = interactor.assetFlow(transferDraft.type)
+    val assetLiveData = interactor.assetFlow(transferDraft.assetPayload.chainId, transferDraft.assetPayload.chainAssetId)
         .map(::mapAssetToAssetModel)
         .asLiveData()
 
@@ -65,7 +67,8 @@ class ConfirmTransferViewModel(
     }
 
     fun copyRecipientAddressClicked() {
-        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, transferDraft.type.networkType)
+        val networkType = Node.NetworkType.findByGenesis(transferDraft.assetPayload.chainId)!! // TODO stub
+        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, networkType)
 
         externalAccountActions.showExternalActions(payload)
     }
@@ -74,7 +77,8 @@ class ConfirmTransferViewModel(
         val assetModel = assetLiveData.value ?: return
 
         launch {
-            val existentialDeposit = assetModel.token.type.amountFromPlanks(walletConstants.existentialDeposit())
+            val amountInPlanks = walletConstants.existentialDeposit(assetModel.token.configuration.chainId)
+            val existentialDeposit = assetModel.token.configuration.amountFromPlanks(amountInPlanks)
 
             _showBalanceDetailsEvent.value = Event(BalanceDetailsBottomSheet.Payload(assetModel, transferDraft, existentialDeposit))
         }
@@ -93,12 +97,13 @@ class ConfirmTransferViewModel(
     }
 
     private fun performTransfer(suppressWarnings: Boolean) {
+        val chainAsset = assetLiveData.value?.token?.configuration ?: return
         val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
 
         _transferSubmittingLiveData.value = true
 
         viewModelScope.launch {
-            val result = interactor.performTransfer(createTransfer(), transferDraft.fee, maxAllowedStatusLevel)
+            val result = interactor.performTransfer(createTransfer(chainAsset), transferDraft.fee, maxAllowedStatusLevel)
 
             if (result.isSuccess) {
                 router.finishSendFlow()
@@ -127,12 +132,12 @@ class ConfirmTransferViewModel(
         return addressIconGenerator.createAddressModel(transferDraft.recipientAddress, ICON_IN_DP)
     }
 
-    private fun createTransfer(): Transfer {
+    private fun createTransfer(token: Chain.Asset): Transfer {
         return with(transferDraft) {
             Transfer(
                 recipient = recipientAddress,
                 amount = amount,
-                tokenType = type
+                chainAsset = token
             )
         }
     }
