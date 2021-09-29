@@ -29,7 +29,7 @@ val Chain.genesisHash: String
 
 fun Chain.addressOf(accountId: ByteArray): String {
     return if (isEthereumBased) {
-        accountId.toHexString(withPrefix = false)
+        accountId.ethereumAddressToHex()
     } else {
         accountId.toAddress(addressPrefix.toByte())
     }
