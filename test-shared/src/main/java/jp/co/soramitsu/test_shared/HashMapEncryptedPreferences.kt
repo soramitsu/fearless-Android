@@ -10,4 +10,6 @@ class HashMapEncryptedPreferences : EncryptedPreferences {
     }
 
     override fun getDecryptedString(field: String): String? = delegate[field]
+
+    override fun hasKey(field: String): Boolean = field in delegate
 }

@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.map
@@ -24,6 +25,7 @@ import jp.co.soramitsu.core_db.AppDatabase
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal.Table.Column
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
@@ -48,10 +50,16 @@ private val CRYPTO_TYPE = EncryptionType.SR25519
 private val SUBSTRATE_KEYPAIR = SubstrateKeypairFactory.generate(CRYPTO_TYPE, seed = SUBSTRATE_SEED, junctions = emptyList())
 
 private const val DERIVATION_PATH = "//test"
-private val ETHEREUM_SEED = EthereumSeedFactory.deriveSeed32(MNEMONIC_WORDS, password = null).seed
+
+private val ETHEREUM_DERIVATION_PATH = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+private val DECODED_ETHEREUM_DERIVATION_PATH = BIP32JunctionDecoder.decode(ETHEREUM_DERIVATION_PATH)
+private val ETHEREUM_SEED = EthereumSeedFactory.deriveSeed32(
+    mnemonicWords = MNEMONIC_WORDS,
+    password = DECODED_ETHEREUM_DERIVATION_PATH.password
+).seed
 private val ETHEREUM_KEYPAIR = EthereumKeypairFactory.generate(
     seed = ETHEREUM_SEED,
-    junctions = emptyList()
+    junctions = DECODED_ETHEREUM_DERIVATION_PATH.junctions
 )
 
 private const val NAME = "TEST"
@@ -178,7 +186,7 @@ class V2MigrationTest {
 
         if (withEthereum) {
             assertArrayEquals(ETHEREUM_KEYPAIR.publicKey, ethereumPublicKey)
-            assertEquals(ETHEREUM_KEYPAIR.publicKey.ethereumAddressFromPublicKey(), ethereumAddress)
+            assertArrayEquals(ETHEREUM_KEYPAIR.publicKey.ethereumAddressFromPublicKey(), ethereumAddress)
         } else {
             assertNull(ethereumAddress)
             assertNull(ethereumPublicKey)
@@ -197,6 +205,7 @@ class V2MigrationTest {
         val expectedEntropy = MNEMONIC.entropy.takeIf { withEntropy }
         val expectedSeed = SUBSTRATE_SEED.takeIf { withSeed }
         val expectedEthereumKeypair = ETHEREUM_KEYPAIR.takeIf { withEthereum }
+        val expectedEthereumDerivationPath = ETHEREUM_DERIVATION_PATH.takeIf { withEthereum }
         val expectedDerivationPath = DERIVATION_PATH.takeIf { withDerivationPath }
 
         assertArrayEquals(expectedEntropy, metaAccountSecrets[MetaAccountSecrets.Entropy])
@@ -206,7 +215,7 @@ class V2MigrationTest {
         assertEquals(expectedDerivationPath, metaAccountSecrets[MetaAccountSecrets.SubstrateDerivationPath])
 
         assertCorrectKeypair(expectedEthereumKeypair, metaAccountSecrets[MetaAccountSecrets.EthereumKeypair])
-        assertNull(metaAccountSecrets[MetaAccountSecrets.EthereumDerivationPath])
+        assertEquals(expectedEthereumDerivationPath, metaAccountSecrets[MetaAccountSecrets.EthereumDerivationPath])
     }
 
     private fun assertCorrectKeypair(
@@ -227,7 +236,7 @@ class V2MigrationTest {
                 substrateCryptoType = enumValueOf(getString(getColumnIndex(Column.SUBSTRATE_CRYPTO_TYPE))),
                 substrateAccountId = getBlob(getColumnIndex(Column.SUBSTRATE_ACCOUNT_ID)),
                 ethereumPublicKey = getBlob(getColumnIndex(Column.ETHEREUM_PUBKEY)),
-                ethereumAddress = getString(getColumnIndex(Column.ETHEREUM_ADDRESS)),
+                ethereumAddress = getBlob(getColumnIndex(Column.ETHEREUM_ADDRESS)),
                 name = getString(getColumnIndex(Column.NAME)),
                 isSelected = getInt(getColumnIndex(Column.IS_SELECTED)) == 1,
                 position = getInt(getColumnIndex(Column.POSITION))

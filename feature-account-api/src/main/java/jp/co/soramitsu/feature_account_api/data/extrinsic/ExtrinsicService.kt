@@ -9,7 +9,6 @@ import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.cryptoTypeIn
-import jp.co.soramitsu.feature_account_api.domain.model.hasChainAccountIn
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
@@ -28,7 +27,7 @@ class ExtrinsicService(
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit,
     ): Result<String> = runCatching {
         val metaAccount = accountRepository.findMetaAccount(accountId) ?: error("No meta account found accessing ${accountId.toHexString()}")
-        val keypair = secretStoreV2.getKeypairFor(chain, metaAccount)
+        val keypair = secretStoreV2.getKeypairFor(metaAccount, chain, accountId)
 
         val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, metaAccount.cryptoTypeIn(chain))
 
@@ -52,9 +51,13 @@ class ExtrinsicService(
         return rpcCalls.getExtrinsicFee(chain.id, extrinsic)
     }
 
-    private suspend fun SecretStoreV2.getKeypairFor(chain: Chain, metaAccount: MetaAccount): Keypair {
-        return if (metaAccount.hasChainAccountIn(chain.id)) {
-            getChainAccountKeypair(metaAccount.id, chain.id)
+    private suspend fun SecretStoreV2.getKeypairFor(
+        metaAccount: MetaAccount,
+        chain: Chain,
+        accountId: ByteArray,
+    ): Keypair {
+        return if (hasChainSecrets(metaAccount.id, accountId)) {
+            getChainAccountKeypair(metaAccount.id, accountId)
         } else {
             getMetaAccountKeypair(metaAccount.id, chain.isEthereumBased)
         }

@@ -1,8 +1,7 @@
 package jp.co.soramitsu.feature_account_api.domain.model
 
+import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -14,7 +13,7 @@ class MetaAccount(
     val substratePublicKey: ByteArray,
     val substrateCryptoType: CryptoType,
     val substrateAccountId: ByteArray,
-    val ethereumAddress: String?,
+    val ethereumAddress: ByteArray?,
     val ethereumPublicKey: ByteArray?,
     val isSelected: Boolean,
     val name: String,
@@ -42,7 +41,7 @@ fun MetaAccount.cryptoTypeIn(chain: Chain): CryptoType {
 fun MetaAccount.addressIn(chain: Chain): String? {
     return when {
         hasChainAccountIn(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
-        chain.isEthereumBased -> ethereumAddress
+        chain.isEthereumBased -> ethereumAddress?.ethereumAddressToHex()
         else -> substrateAccountId.toAddress(chain.addressPrefix.toByte())
     }
 }
@@ -50,11 +49,7 @@ fun MetaAccount.addressIn(chain: Chain): String? {
 fun MetaAccount.accountIdIn(chain: Chain): ByteArray? {
     return when {
         hasChainAccountIn(chain.id) -> chainAccounts.getValue(chain.id).accountId
-        chain.isEthereumBased -> ethereumAddress?.fromHex()
+        chain.isEthereumBased -> ethereumAddress
         else -> substrateAccountId
     }
-}
-
-fun MetaAccount.hexAccountIdIn(chain: Chain): String? {
-    return accountIdIn(chain)?.toHexString()
 }

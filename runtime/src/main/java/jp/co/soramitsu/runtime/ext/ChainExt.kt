@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.ext
 
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
+import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
@@ -28,7 +29,7 @@ val Chain.genesisHash: String
 
 fun Chain.addressOf(accountId: ByteArray): String {
     return if (isEthereumBased) {
-        accountId.toHexString(withPrefix = false)
+        accountId.ethereumAddressToHex()
     } else {
         accountId.toAddress(addressPrefix.toByte())
     }
@@ -56,7 +57,7 @@ fun Chain.multiAddressOf(accountId: ByteArray): MultiAddress {
 
 fun Chain.addressFromPublicKey(publicKey: ByteArray): String {
     return if (isEthereumBased) {
-        publicKey.ethereumAddressFromPublicKey()
+        publicKey.ethereumAddressFromPublicKey().ethereumAddressToHex()
     } else {
         publicKey.toAddress(addressPrefix.toByte())
     }

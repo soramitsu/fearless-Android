@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 private const val META_ID = 1L
-private const val CHAIN_ID = "1"
+private val ACCOUNT_ID = byteArrayOf(1)
 
 @RunWith(JUnit4::class)
 class SecretStoreV2Test {
@@ -24,6 +24,7 @@ class SecretStoreV2Test {
 
     @Test
     fun `should save and retrieve meta account secrets`() = runBlocking {
+
         val secrets = createMetaSecrets()
 
         secretStore.putMetaAccountSecrets(META_ID, secrets)
@@ -38,9 +39,9 @@ class SecretStoreV2Test {
     fun `should save and retrieve chain account secrets`() = runBlocking {
         val secrets = createChainSecrets()
 
-        secretStore.putChainAccountSecrets(META_ID, CHAIN_ID, secrets)
+        secretStore.putChainAccountSecrets(META_ID, ACCOUNT_ID, secrets)
 
-        val secretsFromStore = secretStore.getChainAccountSecrets(META_ID, CHAIN_ID)
+        val secretsFromStore = secretStore.getChainAccountSecrets(META_ID, ACCOUNT_ID)
 
         requireNotNull(secretsFromStore)
         assertArrayEquals(secrets[ChainAccountSecrets.Keypair][PrivateKey], secretsFromStore[ChainAccountSecrets.Keypair][PrivateKey])
@@ -56,7 +57,7 @@ class SecretStoreV2Test {
         val chainSecrets = createChainSecrets(derivationPath = "/2")
 
         secretStore.putMetaAccountSecrets(metaId = 11, metaSecrets)
-        secretStore.putChainAccountSecrets(metaId = 1, chainId="1", chainSecrets)
+        secretStore.putChainAccountSecrets(metaId = 1, accountId= ACCOUNT_ID, chainSecrets)
 
         val secretsFromStore = secretStore.getMetaAccountSecrets(11)
 
