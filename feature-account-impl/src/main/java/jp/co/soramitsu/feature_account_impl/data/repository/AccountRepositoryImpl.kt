@@ -21,6 +21,7 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
@@ -37,7 +38,9 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
@@ -147,6 +150,14 @@ class AccountRepositoryImpl(
         return accountDataSource.allMetaAccounts()
     }
 
+    override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
+        return accountDataSource.lightMetaAccountsFlow()
+    }
+
+    override suspend fun selectMetaAccount(metaId: Long) {
+        return accountDataSource.selectMetaAccount(metaId)
+    }
+
     override suspend fun getPreferredCryptoType(): CryptoType {
         return accountDataSource.getPreferredCryptoType()
     }
@@ -172,12 +183,6 @@ class AccountRepositoryImpl(
         )
 
         selectAccount(account)
-    }
-
-    override fun accountsFlow(): Flow<List<Account>> {
-        return accountDao.accountsFlow()
-            .mapList(::mapAccountLocalToAccount)
-            .flowOn(Dispatchers.Default)
     }
 
     override suspend fun getAccounts(): List<Account> {
@@ -325,10 +330,8 @@ class AccountRepositoryImpl(
         return accountDao.updateAccount(mapAccountToAccountLocal(newAccount))
     }
 
-    override suspend fun updateAccounts(accounts: List<Account>) {
-        val accountsLocal = accounts.map(::mapAccountToAccountLocal)
-
-        return accountDao.updateAccounts(accountsLocal)
+    override suspend fun updateAccountsOrdering(accountOrdering: List<MetaAccountOrdering>) {
+        return accountDataSource.updateAccountPositions(accountOrdering)
     }
 
     override suspend fun deleteAccount(address: String) {

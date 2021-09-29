@@ -38,7 +38,7 @@ interface AccountRouter : SecureRouter {
 
     fun openAddAccount()
 
-    fun openAccountDetails(address: String)
+    fun openAccountDetails(metaAccountId: Long)
 
     fun openEditAccounts()
 

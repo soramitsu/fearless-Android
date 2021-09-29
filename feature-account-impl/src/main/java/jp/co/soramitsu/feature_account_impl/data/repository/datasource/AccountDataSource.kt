@@ -4,10 +4,13 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core_db.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
@@ -41,6 +44,10 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun findMetaAccount(accountId: ByteArray): MetaAccount?
 
     suspend fun allMetaAccounts(): List<MetaAccount>
+
+    fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
+    suspend fun selectMetaAccount(metaId: Long)
+    suspend fun updateAccountPositions(accountOrdering: List<MetaAccountOrdering>)
 
     suspend fun getPreferredCryptoType(): CryptoType
 

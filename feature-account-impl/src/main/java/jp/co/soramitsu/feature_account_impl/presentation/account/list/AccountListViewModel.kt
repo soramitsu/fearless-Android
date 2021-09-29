@@ -1,11 +1,12 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
-import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
 import kotlinx.coroutines.launch
 
 enum class AccountChosenNavDirection {
@@ -19,24 +20,22 @@ class AccountListViewModel(
     accountListingMixin: AccountListingMixin,
 ) : BaseViewModel() {
 
-    val accountListingLiveData = accountListingMixin.accountListingFlow().asLiveData()
+    val accountsFlow = accountListingMixin.accountsFlow()
+        .inBackground()
+        .share()
 
-    val selectedAccountLiveData = accountListingMixin.selectedAccountFlow().asLiveData()
-
-    fun infoClicked(accountModel: AccountModel) {
-        accountRouter.openAccountDetails(accountModel.address)
+    fun infoClicked(accountModel: LightMetaAccountUi) {
+        accountRouter.openAccountDetails(accountModel.id)
     }
 
     fun editClicked() {
         accountRouter.openEditAccounts()
     }
 
-    fun selectAccountClicked(accountModel: AccountModel) {
-        viewModelScope.launch {
-            accountInteractor.selectAccount(accountModel.address)
+    fun selectAccountClicked(account: LightMetaAccountUi) = launch {
+        accountInteractor.selectMetaAccount(account.id)
 
-            dispatchNavigation()
-        }
+        dispatchNavigation()
     }
 
     private fun dispatchNavigation() {

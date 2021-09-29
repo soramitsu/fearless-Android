@@ -10,12 +10,12 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
@@ -137,21 +137,16 @@ class AccountInteractorImpl(
         return accountRepository.currentNetworkType()
     }
 
-    override suspend fun getSelectedAccount() = accountRepository.getSelectedAccount()
-
     override suspend fun getNetworks(): List<Network> {
         return accountRepository.getNetworks()
     }
 
-    override fun groupedAccountsFlow(): Flow<List<Any>> {
-        return accountRepository.accountsFlow()
-            .map(::mergeAccountsWithNetworks)
+    override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
+        return accountRepository.lightMetaAccountsFlow()
     }
 
-    override suspend fun selectAccount(address: String) {
-        val account = accountRepository.getAccount(address)
-
-        accountRepository.selectAccount(account)
+    override suspend fun selectMetaAccount(metaId: Long) {
+        accountRepository.selectMetaAccount(metaId)
     }
 
     override suspend fun updateAccountName(account: Account, newName: String) {
@@ -166,12 +161,12 @@ class AccountInteractorImpl(
         return accountRepository.deleteAccount(address)
     }
 
-    override suspend fun updateAccountPositionsInNetwork(newOrdering: List<Account>) {
-        val updatedAccounts = withContext(Dispatchers.Default) {
-            newOrdering.mapIndexed { index, account -> account.copy(position = index) }
+    override suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>) = with(Dispatchers.Default) {
+        val ordering = idsInNewOrder.mapIndexed { index, id ->
+            MetaAccountOrdering(id, index)
         }
 
-        accountRepository.updateAccounts(updatedAccounts)
+        accountRepository.updateAccountsOrdering(ordering)
     }
 
     // TODO refactor - now logic relies on the implementation of AccountRepository
@@ -181,14 +176,6 @@ class AccountInteractorImpl(
 
         if (account.address == newAccount.address) {
             accountRepository.selectAccount(newAccount)
-        }
-    }
-
-    private suspend fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
-        return withContext(Dispatchers.Default) {
-            accounts.groupBy { it.network.type }
-                .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
-                .flatten()
         }
     }
 

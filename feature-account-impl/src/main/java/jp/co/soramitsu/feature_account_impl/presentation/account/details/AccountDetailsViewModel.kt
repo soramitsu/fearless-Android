@@ -41,12 +41,12 @@ class AccountDetailsViewModel(
     private val iconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val resourceManager: ResourceManager,
-    val accountAddress: String
+    val metaId: Long
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
     private val accountNameChanges = MutableSharedFlow<String>()
 
     val accountLiveData = liveData {
-        emit(getAccount(accountAddress))
+        emit(getAccount(metaId))
     }
 
     val networkModel = accountLiveData.map { mapNetworkTypeToNetworkModel(it.network.type) }
@@ -68,7 +68,7 @@ class AccountDetailsViewModel(
         accountRouter.back()
     }
 
-    private suspend fun getAccount(accountAddress: String): AccountModel {
+    private suspend fun getAccount(metaId: Long): AccountModel {
         val account = accountInteractor.getAccount(accountAddress)
 
         val icon = iconGenerator.createAddressIcon(accountAddress, ACCOUNT_ICON_SIZE_DP)

@@ -5,16 +5,21 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapChainAccountToAccount
+import jp.co.soramitsu.feature_account_impl.data.mappers.mapMetaAccountLocalToLightMetaAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapMetaAccountToAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
@@ -177,6 +182,24 @@ class AccountDataSourceImpl(
         return metaAccountDao.getJoinedMetaAccountsInfo().map {
             mapMetaAccountLocalToMetaAccount(chainsById, it)
         }
+    }
+
+    override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
+        return metaAccountDao.metaAccountsFlow().mapList {
+            mapMetaAccountLocalToLightMetaAccount(it)
+        }
+    }
+
+    override suspend fun selectMetaAccount(metaId: Long) {
+        metaAccountDao.selectMetaAccount(metaId)
+    }
+
+    override suspend fun updateAccountPositions(accountOrdering: List<MetaAccountOrdering>) = withContext(Dispatchers.Default) {
+        val positionUpdates = accountOrdering.map {
+            MetaAccountPositionUpdate(id = it.id, position = it.position)
+        }
+
+        metaAccountDao.updatePositions(positionUpdates)
     }
 
     override suspend fun getSelectedLanguage(): Language = withContext(Dispatchers.IO) {

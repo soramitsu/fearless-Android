@@ -2,19 +2,17 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.edit
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_impl.data.mappers.mapAccountModelToAccount
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
 
-data class UnsyncedSwapPayload(val newState: List<Any>, val from: Int, val to: Int)
+data class UnsyncedSwapPayload(val newState: List<LightMetaAccountUi>)
 
 class EditAccountsViewModel(
     private val accountInteractor: AccountInteractor,
@@ -22,13 +20,14 @@ class EditAccountsViewModel(
     accountListingMixin: AccountListingMixin
 ) : BaseViewModel() {
 
-    private val _deleteConfirmationLiveData = MutableLiveData<Event<AccountModel>>()
-    val deleteConfirmationLiveData: LiveData<Event<AccountModel>> = _deleteConfirmationLiveData
+    private val _deleteConfirmationLiveData = MutableLiveData<Event<Long>>()
+    val deleteConfirmationLiveData: LiveData<Event<Long>> = _deleteConfirmationLiveData
 
-    private val _unsyncedSwapLiveData = MutableLiveData<UnsyncedSwapPayload?>()
-    val unsyncedSwapLiveData: LiveData<UnsyncedSwapPayload?> = _unsyncedSwapLiveData
+    private val _unsyncedSwapLiveData = MutableLiveData<UnsyncedSwapPayload>()
+    val unsyncedSwapLiveData: LiveData<UnsyncedSwapPayload> = _unsyncedSwapLiveData
 
-    val accountListingLiveData = accountListingMixin.accountListingFlow().asLiveData()
+    val accountListingLiveData = accountListingMixin.accountsFlow()
+        .share()
 
     fun doneClicked() {
         accountRouter.back()
@@ -38,61 +37,42 @@ class EditAccountsViewModel(
         accountRouter.backToMainScreen()
     }
 
-    fun deleteClicked(account: AccountModel) {
-        viewModelScope.launch {
-            val selectedAccount = accountInteractor.getSelectedAccount()
-
-            if (selectedAccount.address != account.address) {
-                _deleteConfirmationLiveData.value = Event(account)
-            }
+    fun deleteClicked(account: LightMetaAccountUi) = launch {
+        if (!account.isSelected) {
+            _deleteConfirmationLiveData.value = Event(account.id)
         }
     }
 
-    fun deleteConfirmed(account: AccountModel) {
-        viewModelScope.launch {
-            accountInteractor.deleteAccount(account.address)
+    fun deleteConfirmed(metaId: Long) {
+        launch {
+            accountInteractor.deleteAccount(metaId)
         }
     }
 
     fun onItemDrag(from: Int, to: Int) {
-        val currentState = _unsyncedSwapLiveData.value?.newState
-            ?: accountListingLiveData.value!!.groupedAccounts
+        launch {
+            val currentState = _unsyncedSwapLiveData.value?.newState
+                ?: accountListingLiveData.first()
 
-        val fromElement = currentState[from]
-        val toElement = currentState[to]
-
-        if (isSwapable(fromElement, toElement)) {
             val newUnsyncedState = currentState.toMutableList()
 
             newUnsyncedState.add(to, newUnsyncedState.removeAt(from))
 
-            _unsyncedSwapLiveData.value = UnsyncedSwapPayload(newUnsyncedState, from, to)
+            _unsyncedSwapLiveData.value = UnsyncedSwapPayload(newUnsyncedState)
         }
     }
 
     fun onItemDrop() {
         val unsyncedState = _unsyncedSwapLiveData.value?.newState ?: return
 
-        viewModelScope.launch {
-            val accountsToUpdate = unsyncedState.filterIsInstance<AccountModel>()
-                .mapIndexed { index: Int, accountModel: AccountModel ->
-                    mapAccountModelToAccount(accountModel, index)
-                }
+        launch {
+            val idsInNewOrder = unsyncedState.map(LightMetaAccountUi::id)
 
-            accountInteractor.updateAccountPositionsInNetwork(accountsToUpdate)
+            accountInteractor.updateAccountPositionsInNetwork(idsInNewOrder)
         }
     }
 
     fun addAccountClicked() {
         accountRouter.openAddAccount()
     }
-}
-
-@OptIn(ExperimentalContracts::class)
-private fun isSwapable(fromElement: Any, toElement: Any): Boolean {
-    contract {
-        returns(true) implies (fromElement is AccountModel && toElement is AccountModel)
-    }
-
-    return fromElement is AccountModel && toElement is AccountModel && fromElement.network.type == toElement.network.type
 }

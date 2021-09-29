@@ -8,7 +8,9 @@ import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import kotlinx.coroutines.flow.Flow
 
 class AccountAlreadyExistsException : Exception()
@@ -41,6 +43,9 @@ interface AccountRepository {
 
     suspend fun allMetaAccounts(): List<MetaAccount>
 
+    fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
+    suspend fun selectMetaAccount(metaId: Long)
+
     suspend fun getPreferredCryptoType(): CryptoType
 
     suspend fun isAccountSelected(): Boolean
@@ -52,8 +57,6 @@ interface AccountRepository {
         derivationPath: String,
         networkType: Node.NetworkType
     )
-
-    fun accountsFlow(): Flow<List<Account>>
 
     suspend fun getAccounts(): List<Account>
 
@@ -106,7 +109,7 @@ interface AccountRepository {
 
     fun selectedNetworkTypeFlow(): Flow<Node.NetworkType>
 
-    suspend fun updateAccounts(accounts: List<Account>)
+    suspend fun updateAccountsOrdering(accountOrdering: List<MetaAccountOrdering>)
 
     suspend fun deleteAccount(address: String)
 

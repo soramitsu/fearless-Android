@@ -7,6 +7,8 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import kotlinx.coroutines.flow.Flow
 
 interface AccountInteractor {
@@ -67,19 +69,17 @@ interface AccountInteractor {
 
     suspend fun selectedNetworkType(): Node.NetworkType
 
-    suspend fun getSelectedAccount(): Account
-
     suspend fun getNetworks(): List<Network>
 
-    fun groupedAccountsFlow(): Flow<List<Any>>
+    fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
 
-    suspend fun selectAccount(address: String)
+    suspend fun selectMetaAccount(metaId: Long)
 
     suspend fun updateAccountName(account: Account, newName: String)
 
-    suspend fun deleteAccount(address: String)
+    suspend fun deleteAccount(metaId: Long)
 
-    suspend fun updateAccountPositionsInNetwork(newOrdering: List<Account>)
+    suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>)
 
     fun nodesFlow(): Flow<List<Node>>
 

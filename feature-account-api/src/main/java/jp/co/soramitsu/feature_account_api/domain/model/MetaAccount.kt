@@ -7,17 +7,53 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
-class MetaAccount(
+class MetaAccountOrdering(
     val id: Long,
+    val position: Int,
+)
+
+interface LightMetaAccount {
+    val id: Long
+    val substratePublicKey: ByteArray
+    val substrateCryptoType: CryptoType
+    val substrateAccountId: ByteArray
+    val ethereumAddress: String?
+    val ethereumPublicKey: ByteArray?
+    val isSelected: Boolean
+    val name: String
+}
+
+fun LightMetaAccount(
+    id: Long,
+    substratePublicKey: ByteArray,
+    substrateCryptoType: CryptoType,
+    substrateAccountId: ByteArray,
+    ethereumAddress: String?,
+    ethereumPublicKey: ByteArray?,
+    isSelected: Boolean,
+    name: String,
+) = object : LightMetaAccount {
+    override val id: Long = id
+    override val substratePublicKey: ByteArray = substratePublicKey
+    override val substrateCryptoType: CryptoType = substrateCryptoType
+    override val substrateAccountId: ByteArray = substrateAccountId
+    override val ethereumAddress: String? = ethereumAddress
+    override val ethereumPublicKey: ByteArray? = ethereumPublicKey
+    override val isSelected: Boolean = isSelected
+    override val name: String = name
+}
+
+class MetaAccount(
+    override val id: Long,
     val chainAccounts: Map<ChainId, ChainAccount>,
-    val substratePublicKey: ByteArray,
-    val substrateCryptoType: CryptoType,
-    val substrateAccountId: ByteArray,
-    val ethereumAddress: ByteArray?,
-    val ethereumPublicKey: ByteArray?,
-    val isSelected: Boolean,
-    val name: String,
-) {
+    override val substratePublicKey: ByteArray,
+    override val substrateCryptoType: CryptoType,
+    override val substrateAccountId: ByteArray,
+    override val ethereumAddress: ByteArray?,
+    override val ethereumPublicKey: ByteArray?,
+    override val isSelected: Boolean,
+    override val name: String,
+): LightMetaAccount {
 
     class ChainAccount(
         val metaId: Long,

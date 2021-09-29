@@ -21,14 +21,14 @@ import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNam
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNode
 import kotlinx.android.synthetic.main.fragment_account_details.fearlessToolbar
 
-private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
+private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
 class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
 
     companion object {
-        fun getBundle(accountAddress: String): Bundle {
+        fun getBundle(metaAccountId: Long): Bundle {
             return Bundle().apply {
-                putString(ACCOUNT_ADDRESS_KEY, accountAddress)
+                putLong(ACCOUNT_ID_KEY, metaAccountId)
             }
         }
     }
@@ -56,14 +56,14 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>() {
     }
 
     override fun inject() {
-        val address = arguments!![ACCOUNT_ADDRESS_KEY] as String
+        val metaId = argument<Long>(ACCOUNT_ID_KEY)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .accountDetailsComponentFactory()
-            .create(this, address)
+            .create(this, metaId)
             .inject(this)
     }
 

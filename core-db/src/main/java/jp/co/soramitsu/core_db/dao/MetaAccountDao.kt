@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
+import jp.co.soramitsu.core_db.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.core_db.model.chain.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +44,15 @@ interface MetaAccountDao {
     @Query("SELECT * FROM meta_accounts")
     @Transaction
     fun getJoinedMetaAccountsInfo(): List<RelationJoinedMetaAccountInfo>
+
+    @Query("SELECT * FROM meta_accounts")
+    fun metaAccountsFlow(): Flow<List<MetaAccountLocal>>
+
+    @Query("UPDATE meta_accounts SET isSelected = (id = :metaId)")
+    suspend fun selectMetaAccount(metaId: Long)
+
+    @Update
+    suspend fun updatePositions(updates: List<MetaAccountPositionUpdate>)
 
     @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
     @Transaction

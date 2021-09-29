@@ -426,8 +426,8 @@ class Navigator :
         }
     }
 
-    override fun openAccountDetails(address: String) {
-        val extras = AccountDetailsFragment.getBundle(address)
+    override fun openAccountDetails(metaAccountId: Long) {
+        val extras = AccountDetailsFragment.getBundle(metaAccountId)
 
         navController?.navigate(R.id.action_accountsFragment_to_accountDetailsFragment, extras)
     }

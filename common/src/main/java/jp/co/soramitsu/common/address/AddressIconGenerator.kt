@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.address
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.exceptions.AddressFormatException
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,8 +30,13 @@ class AddressIconGenerator(
     @Throws(AddressFormatException::class)
     suspend fun createAddressIcon(accountAddress: String, sizeInDp: Int) = withContext(Dispatchers.Default) {
         val addressId = accountAddress.toAccountId()
+
+        createAddressIcon(addressId, sizeInDp)
+    }
+
+    suspend fun createAddressIcon(accountId: AccountId, sizeInDp: Int) = withContext(Dispatchers.Default) {
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
 
-        iconGenerator.getSvgImage(addressId, sizeInPx)
+        iconGenerator.getSvgImage(accountId, sizeInPx)
     }
 }
