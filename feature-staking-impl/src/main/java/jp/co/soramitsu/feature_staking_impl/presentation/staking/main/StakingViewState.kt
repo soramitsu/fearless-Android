@@ -278,7 +278,6 @@ class WelcomeViewState(
     val assetLiveData = currentAssetFlow.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData(scope)
 
     val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency() }
-        .filterNotNull()
         .asLiveData(scope)
 
     private val rewardCalculator = scope.async { rewardCalculatorFactory.create() }

@@ -10,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
@@ -97,8 +98,8 @@ class AmountView @JvmOverloads constructor(
         stakingAssetBalance.text = balance
     }
 
-    fun setAssetBalanceDollarAmount(dollarAmount: String) {
-        stakingAssetDollarAmount.text = dollarAmount
+    fun setAssetBalanceDollarAmount(dollarAmount: String?) {
+        stakingAssetDollarAmount.setTextOrHide(dollarAmount)
     }
 
     fun hideAssetDollarAmount() {
