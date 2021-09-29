@@ -73,7 +73,7 @@ class V2Migration(
                 seed = seed,
                 substrateDerivationPath = derivationPath,
                 ethereumKeypair = ethereumKeypair,
-                ethereumDerivationPath = ethereumDerivationPath
+                ethereumDerivationPath = ethereumDerivationPath.takeIf { ethereumKeypair != null }
             )
 
             val isSelected = index == 0 // mark first account as selected
