@@ -5,10 +5,8 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
-import jp.co.soramitsu.core_db.model.chain.ChainAccountWithParent
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.model.chain.RelationJoinedMetaAccountInfo
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 

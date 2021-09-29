@@ -93,6 +93,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun syncAssetsRates() {
+        // TODO FLW-1147 - coingecko integration
         val firstChain = chainRegistry.currentChains.first().first()
         val asset = firstChain.utilityAsset
 

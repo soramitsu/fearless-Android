@@ -2,8 +2,6 @@ package jp.co.soramitsu.feature_account_api.domain.model
 
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
