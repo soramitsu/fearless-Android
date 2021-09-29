@@ -227,7 +227,7 @@ class V2MigrationTest {
                 substrateCryptoType = enumValueOf(getString(getColumnIndex(Column.SUBSTRATE_CRYPTO_TYPE))),
                 substrateAccountId = getBlob(getColumnIndex(Column.SUBSTRATE_ACCOUNT_ID)),
                 ethereumPublicKey = getBlob(getColumnIndex(Column.ETHEREUM_PUBKEY)),
-                ethereumAddress = getString(getColumnIndex(Column.ETHEREUM_ADDRESS)),
+                ethereumAddress = getBlob(getColumnIndex(Column.ETHEREUM_ADDRESS)),
                 name = getString(getColumnIndex(Column.NAME)),
                 isSelected = getInt(getColumnIndex(Column.IS_SELECTED)) == 1,
                 position = getInt(getColumnIndex(Column.POSITION))

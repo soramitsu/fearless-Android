@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.Flow
 private const val FIND_BY_ADDRESS_QUERY = """
         SELECT * FROM meta_accounts 
         WHERE substrateAccountId = :accountId
-        OR ethereumAddress = :ethereumAddress
+        OR ethereumAddress = :accountId
         OR  id = (
             SELECT id FROM meta_accounts AS m
                 INNER JOIN chain_accounts as c ON m.id = c.metaId
@@ -53,26 +53,9 @@ interface MetaAccountDao {
     @Transaction
     fun selectedMetaAccountInfoFlow(): Flow<RelationJoinedMetaAccountInfo?>
 
-    @Query("SELECT * FROM meta_accounts AS m INNER JOIN chain_accounts as c ON m.id = c.metaId WHERE  c.accountId = :accountId")
-    fun findChainAccountByAccountId(
-        accountId: AccountId,
-    ): ChainAccountWithParent?
-
-    @Query("SELECT * FROM meta_accounts WHERE substrateAccountId = :accountId or ethereumAddress = :ethereumAddress")
-    fun findMetaAccountByAccountId(
-        accountId: AccountId,
-        ethereumAddress: String
-    ): RelationJoinedMetaAccountInfo?
-
     @Query("SELECT EXISTS ($FIND_BY_ADDRESS_QUERY)")
-    fun isMetaAccountExists(
-        accountId: AccountId,
-        ethereumAddress: String = accountId.toHexString()
-    ): Boolean
+    fun isMetaAccountExists(accountId: AccountId): Boolean
 
     @Query(FIND_BY_ADDRESS_QUERY)
-    fun getMetaAccountInfo(
-        accountId: AccountId,
-        ethereumAddress: String = accountId.toHexString()
-    ): RelationJoinedMetaAccountInfo?
+    fun getMetaAccountInfo(accountId: AccountId): RelationJoinedMetaAccountInfo?
 }

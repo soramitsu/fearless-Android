@@ -17,15 +17,17 @@ fun String.hmacSHA256(secret: String): ByteArray {
     return chiper.doFinal(this.toByteArray())
 }
 
-fun ByteArray.ethereumAddressFromPublicKey(): String {
+fun ByteArray.ethereumAddressFromPublicKey(): ByteArray {
     val decompressed = if (size == 64) {
         this
     } else {
         ECDSAUtils.decompressed(this)
     }
 
-    return decompressed.keccak256().copyLast(20).toHexString(withPrefix = false)
+    return decompressed.keccak256().copyLast(20)
 }
+
+fun ByteArray.ethereumAddressToHex() = toHexString(withPrefix = true)
 
 fun ByteArray.substrateAccountId(): ByteArray {
     return if (size > 32) {

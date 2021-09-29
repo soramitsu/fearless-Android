@@ -229,7 +229,7 @@ val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
             `substrateCryptoType` TEXT NOT NULL,
             `substrateAccountId` BLOB NOT NULL,
             `ethereumPublicKey` BLOB,
-            `ethereumAddress` TEXT,
+            `ethereumAddress` BLOB,
             `name` TEXT NOT NULL,
             `isSelected` INTEGER NOT NULL,
             `position` INTEGER NOT NULL

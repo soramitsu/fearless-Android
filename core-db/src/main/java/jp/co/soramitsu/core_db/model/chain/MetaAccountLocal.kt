@@ -20,7 +20,7 @@ class MetaAccountLocal(
     val substrateCryptoType: CryptoType,
     val substrateAccountId: ByteArray,
     val ethereumPublicKey: ByteArray?,
-    val ethereumAddress: String?,
+    val ethereumAddress: ByteArray?,
     val name: String,
     val isSelected: Boolean,
     val position: Int,
