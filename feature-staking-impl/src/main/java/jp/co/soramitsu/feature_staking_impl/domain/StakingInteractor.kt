@@ -196,7 +196,7 @@ class StakingInteractor(
         getLockupPeriodInDays(stakingSharedState.chainId())
     }
 
-    fun selectedChainFlow() = stakingSharedState.assetWithChainWithChain.map { it.chain }
+    fun selectedChainFlow() = stakingSharedState.assetWithChain.map { it.chain }
 
     suspend fun getEraHoursLength(): Int = withContext(Dispatchers.Default) {
         val chainId = stakingSharedState.chainId()
@@ -210,7 +210,7 @@ class StakingInteractor(
 
     fun selectionStateFlow() = combineToPair(
         accountRepository.selectedMetaAccountFlow(),
-        stakingSharedState.assetWithChainWithChain
+        stakingSharedState.assetWithChain
     )
 
     fun selectedAccountStakingStateFlow(
@@ -239,7 +239,7 @@ class StakingInteractor(
 
     fun assetFlow(accountAddress: String): Flow<Asset> {
         return flow {
-            val (chain, chainAsset) = stakingSharedState.assetWithChainWithChain.first()
+            val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
 
             emitAll(
                 walletRepository.assetFlow(
@@ -252,7 +252,7 @@ class StakingInteractor(
 
     fun selectedAccountProjectionFlow(): Flow<StakingAccount> {
         return combine(
-            stakingSharedState.assetWithChainWithChain,
+            stakingSharedState.assetWithChain,
             accountRepository.selectedMetaAccountFlow()
         ) { (chain, _), account ->
             mapAccountToStakingAccount(chain, account)

@@ -29,7 +29,7 @@ abstract class SingleAssetSharedState(
         val asset: Chain.Asset,
     )
 
-    val assetWithChainWithChain: Flow<AssetWithChain> = preferences.stringFlow(
+    val assetWithChain: Flow<AssetWithChain> = preferences.stringFlow(
         field = preferencesKey,
         initialValueProducer = {
             val defaultAsset = availableToSelect().first()
@@ -64,7 +64,7 @@ abstract class SingleAssetSharedState(
     }
 
     override suspend fun chainId(): String {
-        return assetWithChainWithChain.first().chain.id
+        return assetWithChain.first().chain.id
     }
 
     private fun encode(chainId: ChainId, chainAssetId: Int): String {
@@ -78,15 +78,15 @@ abstract class SingleAssetSharedState(
     }
 }
 
-fun SingleAssetSharedState.selectedChainFlow() = assetWithChainWithChain
+fun SingleAssetSharedState.selectedChainFlow() = assetWithChain
     .map { it.chain }
     .distinctUntilChanged()
 
-suspend fun SingleAssetSharedState.chain() = assetWithChainWithChain.first().chain
+suspend fun SingleAssetSharedState.chain() = assetWithChain.first().chain
 
-suspend fun SingleAssetSharedState.chainAsset() = assetWithChainWithChain.first().asset
+suspend fun SingleAssetSharedState.chainAsset() = assetWithChain.first().asset
 
-suspend fun SingleAssetSharedState.chainAndAsset() = assetWithChainWithChain.first()
+suspend fun SingleAssetSharedState.chainAndAsset() = assetWithChain.first()
 
-fun SingleAssetSharedState.selectedAssetFlow() = assetWithChainWithChain
+fun SingleAssetSharedState.selectedAssetFlow() = assetWithChain
     .map { it.asset }

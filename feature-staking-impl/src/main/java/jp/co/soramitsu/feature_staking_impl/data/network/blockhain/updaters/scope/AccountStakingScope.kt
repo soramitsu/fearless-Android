@@ -19,7 +19,7 @@ class AccountStakingScope(
 
     override fun invalidationFlow(): Flow<Any> {
         return combineToPair(
-            sharedStakingState.assetWithChainWithChain,
+            sharedStakingState.assetWithChain,
             accountRepository.selectedMetaAccountFlow()
         ).flatMapLatest { (chainWithAsset, account) ->
             val (chain, chainAsset) = chainWithAsset
