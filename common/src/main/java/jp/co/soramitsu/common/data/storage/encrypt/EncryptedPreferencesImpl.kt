@@ -21,6 +21,6 @@ class EncryptedPreferencesImpl(
     }
 
     override fun removeKey(field: String) {
-        preferences.contains(field)
+        preferences.removeField(field)
     }
 }
