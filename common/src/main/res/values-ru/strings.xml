@@ -30,7 +30,7 @@
     <string name="language_title">Язык</string>
     <string name="connection_management_title">Сети</string>
     <string name="onboarding_create_account">Создать аккаунт</string>
-    <string name="username_setup_choose_title">Ник Кошелька</string>
+    <string name="username_setup_choose_title">Имя</string>
     <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
     <string name="common_no_screenshot_title">Не делайте скриншоты</string>
     <string name="common_no_screenshot_message">Не делайте скриншоты, которые могут быть собраны сторонними вредоносными программами</string>
@@ -78,7 +78,7 @@
     <string name="about_telegram">Присоединяйтесь к группе Telegram</string>
     <string name="common_email_chooser_title">Выберите приложение для работы с почтой</string>
     <string name="common_skip_process">Пропустить</string>
-    <string name="account_info_title">Кошелёк</string>
+    <string name="account_info_title">Аккаунт</string>
     <string name="account_export">Экспорт аккаунта</string>
     <string name="common_copied">Скопировано в буфер обмена</string>
     <string name="connections_add_connection">Добавить соединение</string>

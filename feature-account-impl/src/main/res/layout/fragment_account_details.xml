@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         app:dividerVisible="false"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/account_info_title" />
+        app:titleText="@string/account_info_title_2_0" />
 
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/accountDetailsNameField"

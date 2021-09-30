@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="profile_accounts_title_2_0">Wallets</string>
+    <string name="username_setup_choose_title_2_0">Wallet nickname</string>
+    <string name="account_info_title_2_0">Wallet</string>
+
     <string name="account_shared_secret">Accounts with a shared secret</string>
-    <string name="account_custom_secret">accounts with a changed secret</string>
+    <string name="account_custom_secret">Accounts with a changed secret</string>
 
     <string name="wallet_assets">Assets</string>
 
@@ -47,7 +51,7 @@ transfers will appear here</string>
     <string name="language_title">Language</string>
     <string name="connection_management_title">Networks</string>
     <string name="onboarding_create_account">Create account</string>
-    <string name="username_setup_choose_title">Wallet nickname</string>
+    <string name="username_setup_choose_title">Name</string>
     <string name="username_setup_hint">This name will be displayed only for you and stored locally on your mobile device.</string>
     <string name="common_no_screenshot_title">Do not take screenshots</string>
     <string name="common_no_screenshot_message">Do not take screenshots, which may be collected by third-party malware</string>
@@ -95,7 +99,7 @@ transfers will appear here</string>
     <string name="about_telegram">Join Telegram Group</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
-    <string name="account_info_title">Wallet</string>
+    <string name="account_info_title">Account</string>
     <string name="account_export">Export account</string>
     <string name="common_copied">Copied to clipboard</string>
     <string name="connections_add_connection">Add connection</string>
