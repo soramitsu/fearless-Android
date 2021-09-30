@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
 import kotlinx.android.synthetic.main.fragment_accounts.addAccount
 import kotlinx.android.synthetic.main.fragment_edit_accounts.accountsList
@@ -62,7 +61,7 @@ class AccountEditFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsA
         viewModel.deleteConfirmationLiveData.observeEvent(::showDeleteConfirmation)
 
         viewModel.unsyncedSwapLiveData.observe { payload ->
-           adapter.submitList(payload.newState)
+            adapter.submitList(payload.newState)
         }
     }
 

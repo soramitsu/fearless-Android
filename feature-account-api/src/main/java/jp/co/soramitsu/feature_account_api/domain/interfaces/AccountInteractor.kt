@@ -8,7 +8,6 @@ import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import kotlinx.coroutines.flow.Flow
 
 interface AccountInteractor {

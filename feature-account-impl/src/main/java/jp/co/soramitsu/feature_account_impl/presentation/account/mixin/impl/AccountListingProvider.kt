@@ -7,7 +7,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
-import kotlinx.coroutines.flow.map
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class AccountListingProvider(
@@ -17,7 +16,6 @@ class AccountListingProvider(
 
     override fun accountsFlow() = accountInteractor.lightMetaAccountsFlow()
         .mapList { mapMetaAccountToUi(it, addressIconGenerator) }
-
 
     private suspend fun mapMetaAccountToUi(
         metaAccount: LightMetaAccount,

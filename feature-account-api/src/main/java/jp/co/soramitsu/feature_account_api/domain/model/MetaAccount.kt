@@ -53,7 +53,7 @@ class MetaAccount(
     override val ethereumPublicKey: ByteArray?,
     override val isSelected: Boolean,
     override val name: String,
-): LightMetaAccount {
+) : LightMetaAccount {
 
     class ChainAccount(
         val metaId: Long,

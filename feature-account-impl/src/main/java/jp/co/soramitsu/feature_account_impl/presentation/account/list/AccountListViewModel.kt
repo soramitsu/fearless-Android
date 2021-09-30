@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
 import kotlinx.coroutines.launch
 

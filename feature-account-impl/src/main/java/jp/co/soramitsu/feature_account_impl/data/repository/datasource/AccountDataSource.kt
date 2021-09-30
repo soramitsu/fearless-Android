@@ -4,7 +4,6 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core_db.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType

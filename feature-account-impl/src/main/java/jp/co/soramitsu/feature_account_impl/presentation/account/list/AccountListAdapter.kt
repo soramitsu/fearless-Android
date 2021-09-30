@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
@@ -52,4 +51,3 @@ class AccountHolder(view: View) : GroupedListHolder(view) {
         }
     }
 }
-

@@ -58,7 +58,7 @@ class CachingAddressIconGenerator(
     ): PictureDrawable = withContext(Dispatchers.Default) {
         val key = "${accountId.toHexString()}:$sizeInDp$backgroundColorRes"
 
-        Log.d("RX", "Generating ${key} by caching generator")
+        Log.d("RX", "Generating $key by caching generator")
 
         cache.getOrPut(key) {
             delegate.createAddressIcon(accountId, sizeInDp, backgroundColorRes)
@@ -70,7 +70,6 @@ class StatelessAddressIconGenerator(
     private val iconGenerator: IconGenerator,
     private val resourceManager: ResourceManager
 ) : AddressIconGenerator {
-
 
     override suspend fun createAddressIcon(
         accountId: AccountId,
