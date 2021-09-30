@@ -83,8 +83,9 @@ class AccountDetailsViewModel(
 
     private suspend fun mapChainAccountProjectionToUi(accountInChain: AccountInChain) = with(accountInChain) {
         val address = projection?.address ?: resourceManager.getString(R.string.account_no_chain_projection)
-        val accountIcon = projection?.let { iconGenerator.createAddressIcon(it.accountId, AddressIconGenerator.SIZE_SMALL) }
-            ?: resourceManager.getDrawable(R.drawable.ic_warning_filled)
+        val accountIcon = projection?.let {
+            iconGenerator.createAddressIcon(it.accountId, AddressIconGenerator.SIZE_SMALL, backgroundColorRes = R.color.account_icon_dark)
+        } ?: resourceManager.getDrawable(R.drawable.ic_warning_filled)
 
         AccountInChainUi(
             chainName = chain.name,

@@ -1,6 +1,9 @@
 package jp.co.soramitsu.common.address
 
 import android.graphics.drawable.PictureDrawable
+import android.util.Log
+import androidx.annotation.ColorRes
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.exceptions.AddressFormatException
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -21,7 +24,11 @@ interface AddressIconGenerator {
         const val SIZE_BIG = 32
     }
 
-    suspend fun createAddressIcon(accountId: AccountId, sizeInDp: Int): PictureDrawable
+    suspend fun createAddressIcon(
+        accountId: AccountId,
+        sizeInDp: Int,
+        @ColorRes backgroundColorRes: Int = R.color.account_icon_light
+    ): PictureDrawable
 }
 
 @Throws(AddressFormatException::class)
@@ -44,11 +51,17 @@ class CachingAddressIconGenerator(
 
     val cache = ConcurrentHashMap<String, PictureDrawable>()
 
-    override suspend fun createAddressIcon(accountId: AccountId, sizeInDp: Int): PictureDrawable = withContext(Dispatchers.Default) {
-        val key = "${accountId.toHexString()}:$sizeInDp"
+    override suspend fun createAddressIcon(
+        accountId: AccountId,
+        sizeInDp: Int,
+        @ColorRes backgroundColorRes: Int
+    ): PictureDrawable = withContext(Dispatchers.Default) {
+        val key = "${accountId.toHexString()}:$sizeInDp$backgroundColorRes"
+
+        Log.d("RX", "Generating ${key} by caching generator")
 
         cache.getOrPut(key) {
-            delegate.createAddressIcon(accountId, sizeInDp)
+            delegate.createAddressIcon(accountId, sizeInDp, backgroundColorRes)
         }
     }
 }
@@ -59,9 +72,14 @@ class StatelessAddressIconGenerator(
 ) : AddressIconGenerator {
 
 
-    override suspend fun createAddressIcon(accountId: AccountId, sizeInDp: Int) = withContext(Dispatchers.Default) {
+    override suspend fun createAddressIcon(
+        accountId: AccountId,
+        sizeInDp: Int,
+        @ColorRes backgroundColorRes: Int
+    ) = withContext(Dispatchers.Default) {
         val sizeInPx = resourceManager.measureInPx(sizeInDp)
+        val backgroundColor = resourceManager.getColor(backgroundColorRes)
 
-        iconGenerator.getSvgImage(accountId, sizeInPx)
+        iconGenerator.getSvgImage(accountId, sizeInPx, backgroundColor = backgroundColor)
     }
 }

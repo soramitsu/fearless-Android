@@ -34,5 +34,8 @@
     <color name="black3">@color/gray3</color>
     <color name="black4">@color/gray4</color>
 
+    <color name="account_icon_light">#eeeeee</color>
+    <color name="account_icon_dark">@color/black</color>
+
     <color name="error_red">#FF3B30</color>
 </resources>
