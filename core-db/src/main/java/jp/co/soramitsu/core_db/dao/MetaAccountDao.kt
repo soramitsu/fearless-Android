@@ -1,6 +1,7 @@
 package jp.co.soramitsu.core_db.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -51,7 +52,7 @@ interface MetaAccountDao {
     @Query("UPDATE meta_accounts SET isSelected = (id = :metaId)")
     suspend fun selectMetaAccount(metaId: Long)
 
-    @Update
+    @Update(entity = MetaAccountLocal::class)
     suspend fun updatePositions(updates: List<MetaAccountPositionUpdate>)
 
     @Query("SELECT * FROM meta_accounts WHERE id = :metaId")
@@ -66,5 +67,12 @@ interface MetaAccountDao {
     fun isMetaAccountExists(accountId: AccountId): Boolean
 
     @Query(FIND_BY_ADDRESS_QUERY)
+    @Transaction
     fun getMetaAccountInfo(accountId: AccountId): RelationJoinedMetaAccountInfo?
+
+    @Query("UPDATE meta_accounts SET name = :newName WHERE id = :metaId")
+    suspend fun updateName(metaId: Long, newName: String)
+
+    @Query("DELETE FROM meta_accounts WHERE id = :metaId")
+    suspend fun delete(metaId: Long)
 }

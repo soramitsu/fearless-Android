@@ -75,8 +75,6 @@ interface AccountInteractor {
 
     suspend fun selectMetaAccount(metaId: Long)
 
-    suspend fun updateAccountName(account: Account, newName: String)
-
     suspend fun deleteAccount(metaId: Long)
 
     suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>)

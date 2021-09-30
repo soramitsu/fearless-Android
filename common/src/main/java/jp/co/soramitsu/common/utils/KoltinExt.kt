@@ -27,6 +27,10 @@ inline fun <T> List<T>.sumByBigDecimal(extractor: (T) -> BigDecimal) = fold(BigD
     acc + extractor(element)
 }
 
+inline fun <reified T> Any?.castOrNull(): T? {
+    return this as? T
+}
+
 fun <K, V> Map<K, V>.reversed() = HashMap<V, K>().also { newMap ->
     entries.forEach { newMap[it.value] = it.key }
 }

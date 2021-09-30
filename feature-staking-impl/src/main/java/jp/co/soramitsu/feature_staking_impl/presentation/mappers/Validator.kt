@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency

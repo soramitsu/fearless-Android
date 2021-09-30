@@ -18,7 +18,7 @@
             android:id="@+id/fearlessToolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:textRight="@string/common_edit"
+            app:textRight="@string/common_done"
             app:titleText="@string/profile_accounts_title" />
 
         <androidx.recyclerview.widget.RecyclerView

@@ -75,6 +75,10 @@ class PreferencesImpl(
         sharedPreferences.edit().putString(PREFS_SELECTED_LANGUAGE, languageIsoCode).apply()
     }
 
+    override fun removeField(field: String) {
+        sharedPreferences.edit().remove(field).apply()
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun stringFlow(
         field: String,

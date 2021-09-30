@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.di.modules.Caching
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -69,6 +70,9 @@ interface CommonApi {
     fun provideSocketSingleRequestExecutor(): SocketSingleRequestExecutor
 
     fun addressIconGenerator(): AddressIconGenerator
+
+    @Caching
+    fun cachingAddressIconGenerator(): AddressIconGenerator
 
     fun networkStateMixin(): NetworkStateMixin
 

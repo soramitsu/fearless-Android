@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.current
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.list.toValueList

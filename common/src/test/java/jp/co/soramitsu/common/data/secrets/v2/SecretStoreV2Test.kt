@@ -65,6 +65,23 @@ class SecretStoreV2Test {
         assertEquals( metaSecrets[SubstrateDerivationPath], secretsFromStore[SubstrateDerivationPath])
     }
 
+    @Test
+    fun `should delete secrets`() = runBlocking {
+        val metaSecrets = createMetaSecrets()
+        val chainSecrets = createChainSecrets()
+
+        secretStore.putMetaAccountSecrets(metaId = META_ID, metaSecrets)
+        secretStore.putChainAccountSecrets(metaId = META_ID, accountId = ACCOUNT_ID, chainSecrets)
+
+        secretStore.clearSecrets(META_ID, chainAccountIds = listOf(ACCOUNT_ID))
+
+        val metaSecretsLocal = secretStore.getMetaAccountSecrets(META_ID)
+        assertNull(metaSecretsLocal)
+
+        val chainSecretsLocal = secretStore.getChainAccountSecrets(META_ID, ACCOUNT_ID)
+        assertNull(chainSecretsLocal)
+    }
+
     private fun createMetaSecrets(
         derivationPath: String? = null,
     ): EncodableStruct<MetaAccountSecrets> {

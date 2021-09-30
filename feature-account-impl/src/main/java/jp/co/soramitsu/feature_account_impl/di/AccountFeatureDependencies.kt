@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.di
 
 import android.content.Context
+import coil.ImageLoader
 import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -9,6 +10,7 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.di.modules.Caching
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -52,6 +54,9 @@ interface AccountFeatureDependencies {
 
     fun addressIconGenerator(): AddressIconGenerator
 
+    @Caching
+    fun cachingIconGenerator(): AddressIconGenerator
+
     fun random(): Random
 
     fun secretStoreV1(): SecretStoreV1
@@ -65,4 +70,6 @@ interface AccountFeatureDependencies {
     fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
 
     fun rpcCalls(): RpcCalls
+
+    fun imageLoader(): ImageLoader
 }

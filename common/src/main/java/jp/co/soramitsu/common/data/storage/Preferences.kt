@@ -30,6 +30,8 @@ interface Preferences {
 
     fun saveCurrentLanguage(languageIsoCode: String)
 
+    fun removeField(field: String)
+
     fun stringFlow(
         field: String,
         initialValueProducer: InitialValueProducer<String>? = null

@@ -138,6 +138,10 @@ class AccountRepositoryImpl(
         return accountDataSource.getSelectedMetaAccount()
     }
 
+    override suspend fun getMetaAccount(metaId: Long): MetaAccount {
+        return accountDataSource.getMetaAccount(metaId)
+    }
+
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> {
         return accountDataSource.selectedMetaAccountFlow()
     }
@@ -156,6 +160,10 @@ class AccountRepositoryImpl(
 
     override suspend fun selectMetaAccount(metaId: Long) {
         return accountDataSource.selectMetaAccount(metaId)
+    }
+
+    override suspend fun updateMetaAccountName(metaId: Long, newName: String) {
+        return accountDataSource.updateMetaAccountName(metaId, newName)
     }
 
     override suspend fun getPreferredCryptoType(): CryptoType {
@@ -183,6 +191,10 @@ class AccountRepositoryImpl(
         )
 
         selectAccount(account)
+    }
+
+    override suspend fun deleteAccount(metaId: Long) {
+        accountDataSource.deleteMetaAccount(metaId)
     }
 
     override suspend fun getAccounts(): List<Account> {
@@ -326,16 +338,8 @@ class AccountRepositoryImpl(
         return accountDataSource.saveAuthType(AuthType.PINCODE)
     }
 
-    override suspend fun updateAccount(newAccount: Account) {
-        return accountDao.updateAccount(mapAccountToAccountLocal(newAccount))
-    }
-
     override suspend fun updateAccountsOrdering(accountOrdering: List<MetaAccountOrdering>) {
         return accountDataSource.updateAccountPositions(accountOrdering)
-    }
-
-    override suspend fun deleteAccount(address: String) {
-        return accountDao.remove(address)
     }
 
     override suspend fun processAccountJson(json: String): ImportJsonData {
@@ -386,11 +390,6 @@ class AccountRepositoryImpl(
             .mapList { mapNodeLocalToNode(it) }
             .filter { it.isNotEmpty() }
             .flowOn(Dispatchers.Default)
-    }
-
-    // TODO compatibility stub
-    override fun selectedNetworkTypeFlow(): Flow<Node.NetworkType> {
-        return flowOf(Node.NetworkType.POLKADOT)
     }
 
     override fun getLanguages(): List<Language> {

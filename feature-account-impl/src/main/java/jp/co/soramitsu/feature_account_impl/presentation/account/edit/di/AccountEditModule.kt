@@ -24,9 +24,8 @@ class AccountEditModule {
     @ScreenScope
     fun provideAccountListingMixin(
         interactor: AccountInteractor,
-        resourceManager: ResourceManager,
         addressIconGenerator: AddressIconGenerator
-    ): AccountListingMixin = AccountListingProvider(interactor, resourceManager, addressIconGenerator)
+    ): AccountListingMixin = AccountListingProvider(interactor, addressIconGenerator)
 
     @Provides
     @IntoMap

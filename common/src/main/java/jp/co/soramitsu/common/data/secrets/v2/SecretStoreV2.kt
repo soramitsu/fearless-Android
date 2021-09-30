@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.secrets.v1.Keypair
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,13 @@ class SecretStoreV2(
 
     suspend fun hasChainSecrets(metaId: Long, accountId: ByteArray) = withContext(Dispatchers.Default) {
         encryptedPreferences.hasKey(chainAccountKey(metaId, accountId, ACCESS_SECRETS))
+    }
+
+    suspend fun clearSecrets(metaId: Long, chainAccountIds: List<AccountId>) = withContext(Dispatchers.Default) {
+        chainAccountIds.map { chainAccountKey(metaId, it, ACCESS_SECRETS) }
+            .onEach(encryptedPreferences::removeKey)
+
+        encryptedPreferences.removeKey(metaAccountKey(metaId, ACCESS_SECRETS))
     }
 
     private fun chainAccountKey(metaId: Long, accountId: ByteArray, secretName: String) = "$metaId:${accountId.toHexString()}:$secretName"

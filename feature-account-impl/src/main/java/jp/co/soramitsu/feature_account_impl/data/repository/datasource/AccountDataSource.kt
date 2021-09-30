@@ -57,4 +57,8 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun changeSelectedLanguage(language: Language)
 
     suspend fun accountExists(accountId: AccountId): Boolean
+    suspend fun getMetaAccount(metaId: Long): MetaAccount
+
+    suspend fun updateMetaAccountName(metaId: Long, newName: String)
+    suspend fun deleteMetaAccount(metaId: Long)
 }

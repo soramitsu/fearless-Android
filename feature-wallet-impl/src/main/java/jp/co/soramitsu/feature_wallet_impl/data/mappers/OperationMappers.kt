@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.core_db.model.OperationLocal

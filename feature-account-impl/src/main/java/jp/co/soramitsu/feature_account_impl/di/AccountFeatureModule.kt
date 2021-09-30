@@ -34,6 +34,7 @@ import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDa
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
+import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -116,6 +117,7 @@ class AccountFeatureModule {
         accountDataMigration: AccountDataMigration,
         metaAccountDao: MetaAccountDao,
         chainRegistry: ChainRegistry,
+        secretStoreV2: SecretStoreV2,
     ): AccountDataSource {
         return AccountDataSourceImpl(
             preferences,
@@ -124,6 +126,7 @@ class AccountFeatureModule {
             jsonMapper,
             metaAccountDao,
             chainRegistry,
+            secretStoreV2,
             secretStoreV1,
             accountDataMigration
         )
@@ -175,4 +178,14 @@ class AccountFeatureModule {
     fun provideAccountUseCase(
         accountRepository: AccountRepository,
     ) = SelectedAccountUseCase(accountRepository)
+
+    @Provides
+    @FeatureScope
+    fun provideAccountDetailsInteractor(
+        accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry,
+    ) = AccountDetailsInteractor(
+        accountRepository,
+        chainRegistry
+    )
 }

@@ -7,4 +7,6 @@ interface EncryptedPreferences {
     fun getDecryptedString(field: String): String?
 
     fun hasKey(field: String): Boolean
+
+    fun removeKey(field: String)
 }

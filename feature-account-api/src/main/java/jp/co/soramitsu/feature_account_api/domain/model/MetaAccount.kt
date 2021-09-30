@@ -17,7 +17,7 @@ interface LightMetaAccount {
     val substratePublicKey: ByteArray
     val substrateCryptoType: CryptoType
     val substrateAccountId: ByteArray
-    val ethereumAddress: String?
+    val ethereumAddress: ByteArray?
     val ethereumPublicKey: ByteArray?
     val isSelected: Boolean
     val name: String
@@ -28,7 +28,7 @@ fun LightMetaAccount(
     substratePublicKey: ByteArray,
     substrateCryptoType: CryptoType,
     substrateAccountId: ByteArray,
-    ethereumAddress: String?,
+    ethereumAddress: ByteArray?,
     ethereumPublicKey: ByteArray?,
     isSelected: Boolean,
     name: String,
@@ -37,7 +37,7 @@ fun LightMetaAccount(
     override val substratePublicKey: ByteArray = substratePublicKey
     override val substrateCryptoType: CryptoType = substrateCryptoType
     override val substrateAccountId: ByteArray = substrateAccountId
-    override val ethereumAddress: String? = ethereumAddress
+    override val ethereumAddress: ByteArray? = ethereumAddress
     override val ethereumPublicKey: ByteArray? = ethereumPublicKey
     override val isSelected: Boolean = isSelected
     override val name: String = name

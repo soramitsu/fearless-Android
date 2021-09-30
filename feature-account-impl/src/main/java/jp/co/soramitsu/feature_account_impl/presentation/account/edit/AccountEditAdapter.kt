@@ -27,7 +27,7 @@ class EditAccountsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EditAccountHolder {
-        return EditAccountHolder(parent.inflateChild(R.layout.item_account), dragHelper)
+        return EditAccountHolder(parent.inflateChild(R.layout.item_edit_account), dragHelper)
     }
 
     override fun onBindViewHolder(holder: EditAccountHolder, position: Int) {

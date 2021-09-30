@@ -19,4 +19,8 @@ class EncryptedPreferencesImpl(
     override fun hasKey(field: String): Boolean {
         return preferences.contains(field)
     }
+
+    override fun removeKey(field: String) {
+        preferences.contains(field)
+    }
 }

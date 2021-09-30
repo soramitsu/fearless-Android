@@ -37,6 +37,7 @@ interface AccountRepository {
 
     suspend fun getSelectedAccount(chainId: String): Account
     suspend fun getSelectedMetaAccount(): MetaAccount
+    suspend fun getMetaAccount(metaId: Long): MetaAccount
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
 
     suspend fun findMetaAccount(accountId: ByteArray): MetaAccount?
@@ -45,6 +46,8 @@ interface AccountRepository {
 
     fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
     suspend fun selectMetaAccount(metaId: Long)
+
+    suspend fun updateMetaAccountName(metaId: Long, newName: String)
 
     suspend fun getPreferredCryptoType(): CryptoType
 
@@ -57,6 +60,8 @@ interface AccountRepository {
         derivationPath: String,
         networkType: Node.NetworkType
     )
+
+    suspend fun deleteAccount(metaId: Long)
 
     suspend fun getAccounts(): List<Account>
 
@@ -103,15 +108,9 @@ interface AccountRepository {
 
     suspend fun setBiometricOff()
 
-    suspend fun updateAccount(newAccount: Account)
-
     fun nodesFlow(): Flow<List<Node>>
 
-    fun selectedNetworkTypeFlow(): Flow<Node.NetworkType>
-
     suspend fun updateAccountsOrdering(accountOrdering: List<MetaAccountOrdering>)
-
-    suspend fun deleteAccount(address: String)
 
     suspend fun processAccountJson(json: String): ImportJsonData
 

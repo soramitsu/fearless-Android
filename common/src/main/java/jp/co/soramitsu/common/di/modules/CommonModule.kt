@@ -10,6 +10,8 @@ import coil.decode.SvgDecoder
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.CachingAddressIconGenerator
+import jp.co.soramitsu.common.address.StatelessAddressIconGenerator
 import jp.co.soramitsu.common.data.FileProviderImpl
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
@@ -35,8 +37,13 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import java.security.SecureRandom
 import java.util.Random
+import javax.inject.Qualifier
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class Caching
 
 @Module
 class CommonModule {
@@ -122,7 +129,13 @@ class CommonModule {
     fun provideAddressModelCreator(
         resourceManager: ResourceManager,
         iconGenerator: IconGenerator
-    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, resourceManager)
+    ): AddressIconGenerator = StatelessAddressIconGenerator(iconGenerator, resourceManager)
+
+    @Provides
+    @Caching
+    fun provideCachingAddressModelCreator(
+        delegate: AddressIconGenerator
+    ): AddressIconGenerator = CachingAddressIconGenerator(delegate)
 
     @Provides
     @ApplicationScope

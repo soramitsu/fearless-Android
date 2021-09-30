@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.inBackground
@@ -11,6 +12,7 @@ import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -52,6 +54,7 @@ class AccountDataSourceImpl(
     private val jsonMapper: Gson,
     private val metaAccountDao: MetaAccountDao,
     private val chainRegistry: ChainRegistry,
+    private val secretStoreV2: SecretStoreV2,
     secretStoreV1: SecretStoreV1,
     accountDataMigration: AccountDataMigration,
 ) : AccountDataSource, SecretStoreV1 by secretStoreV1 {
@@ -212,6 +215,24 @@ class AccountDataSourceImpl(
 
     override suspend fun accountExists(accountId: AccountId): Boolean {
         return metaAccountDao.isMetaAccountExists(accountId)
+    }
+
+    override suspend fun getMetaAccount(metaId: Long): MetaAccount {
+        val joinedMetaAccountInfo = metaAccountDao.getJoinedMetaAccountInfo(metaId)
+
+        return mapMetaAccountLocalToMetaAccount(chainRegistry.chainsById.first(), joinedMetaAccountInfo)
+    }
+
+    override suspend fun updateMetaAccountName(metaId: Long, newName: String) {
+        metaAccountDao.updateName(metaId, newName)
+    }
+
+    override suspend fun deleteMetaAccount(metaId: Long) {
+        val joinedMetaAccountInfo = metaAccountDao.getJoinedMetaAccountInfo(metaId)
+        val chainAccountIds = joinedMetaAccountInfo.chainAccounts.map(ChainAccountLocal::accountId)
+
+        metaAccountDao.delete(metaId)
+        secretStoreV2.clearSecrets(metaId, chainAccountIds)
     }
 
     private fun createAccountFlow(): MutableSharedFlow<Account> {

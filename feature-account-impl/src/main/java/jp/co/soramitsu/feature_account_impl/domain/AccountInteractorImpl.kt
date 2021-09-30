@@ -16,10 +16,12 @@ import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsExcep
 import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
+
     override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
         return accountRepository.getSecuritySource(accountAddress)
     }
@@ -149,16 +151,8 @@ class AccountInteractorImpl(
         accountRepository.selectMetaAccount(metaId)
     }
 
-    override suspend fun updateAccountName(account: Account, newName: String) {
-        val newAccount = account.copy(name = newName)
-
-        accountRepository.updateAccount(newAccount)
-
-        maybeUpdateSelectedAccount(newAccount)
-    }
-
-    override suspend fun deleteAccount(address: String) {
-        return accountRepository.deleteAccount(address)
+    override suspend fun deleteAccount(metaId: Long) = withContext(Dispatchers.Default) {
+        accountRepository.deleteAccount(metaId)
     }
 
     override suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>) = with(Dispatchers.Default) {
