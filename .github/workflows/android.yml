@@ -20,6 +20,15 @@ jobs:
         distribution: 'adopt'
         cache: gradle
 
+    - name: Insert secrets
+      env:
+        MOONPAY_TEST_SECRET: ${{ secrets.MOONPAY_TEST_SECRET }},
+        SUBSCAN_API_KEY: ${{ secrets.SUBSCAN_API_KEY }},
+        MOONPAY_PRODUCTION_SECRET: ${{ secrets.MOONPAY_PRODUCTION_SECRET }}
+      run: echo MOONPAY_TEST_SECRET=\"$MOONPAY_TEST_SECRET\" > ./local.properties \
+            echo SUBSCAN_API_KEY=\"$SUBSCAN_API_KEY\" > ./local.properties \
+            echo MOONPAY_PRODUCTION_SECRET=\"$MOONPAY_PRODUCTION_SECRET\" > ./local.properties \
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
