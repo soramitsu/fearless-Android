@@ -25,8 +25,7 @@ jobs:
         MOONPAY_TEST_SECRET: ${{ secrets.MOONPAY_TEST_SECRET }},
         SUBSCAN_API_KEY: ${{ secrets.SUBSCAN_API_KEY }},
         MOONPAY_PRODUCTION_SECRET: ${{ secrets.MOONPAY_PRODUCTION_SECRET }}
-      run: ls . \ 
-            echo MOONPAY_TEST_SECRET=\"$MOONPAY_TEST_SECRET\"\\nSUBSCAN_API_KEY=\"$SUBSCAN_API_KEY\"\\nMOONPAY_PRODUCTION_SECRET=\"$MOONPAY_PRODUCTION_SECRET\" > ./local.properties \
+      run: echo MOONPAY_TEST_SECRET=\"$MOONPAY_TEST_SECRET\"\\nSUBSCAN_API_KEY=\"$SUBSCAN_API_KEY\"\\nMOONPAY_PRODUCTION_SECRET=\"$MOONPAY_PRODUCTION_SECRET\" > ./local.properties \
             echo $(<local.properties)
 
     - name: Grant execute permission for gradlew
