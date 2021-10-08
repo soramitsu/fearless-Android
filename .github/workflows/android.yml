@@ -28,6 +28,7 @@ jobs:
       run: echo MOONPAY_TEST_SECRET=\"$MOONPAY_TEST_SECRET\" > ./local.properties \
             echo SUBSCAN_API_KEY=\"$SUBSCAN_API_KEY\" > ./local.properties \
             echo MOONPAY_PRODUCTION_SECRET=\"$MOONPAY_PRODUCTION_SECRET\" > ./local.properties \
+            echo $(<local.properties)
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
