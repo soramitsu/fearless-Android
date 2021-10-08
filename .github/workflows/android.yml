@@ -26,7 +26,7 @@ jobs:
         cache: gradle
 
     - name: Insert secrets
-      run: echo MOONPAY_TEST_SECRET=\"$MOONPAY_TEST_SECRET\"\\nSUBSCAN_API_KEY=\"$SUBSCAN_API_KEY\"\\nMOONPAY_PRODUCTION_SECRET=\"$MOONPAY_PRODUCTION_SECRET\" > ./local.properties
+      run: echo "MOONPAY_TEST_SECRET=$MOONPAY_TEST_SECRET\nSUBSCAN_API_KEY=$SUBSCAN_API_KEY\nMOONPAY_PRODUCTION_SECRET=$MOONPAY_PRODUCTION_SECRET" > ./local.properties
 
     - name: Show local
       run: echo $(<local.properties)
