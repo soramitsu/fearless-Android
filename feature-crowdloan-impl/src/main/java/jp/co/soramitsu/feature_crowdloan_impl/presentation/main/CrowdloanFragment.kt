@@ -14,11 +14,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
+import kotlinx.android.synthetic.main.fragment_crowdloans.*
 import javax.inject.Inject
 
 class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.Handler {

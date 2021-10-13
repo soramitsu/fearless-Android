@@ -81,7 +81,7 @@ class CrowdloanInteractor(
                 val contributions = crowdloanRepository.getContributions(accountId, contributionKeys)
                 val winnerInfo = crowdloanRepository.getWinnerInfo(fundInfos)
 
-                fundInfos.values
+                val aa = fundInfos.values
                     .map { fundInfo ->
                         val paraId = fundInfo.paraId
 
@@ -102,6 +102,7 @@ class CrowdloanInteractor(
                     )
                     .groupBy { it.state::class }
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
+                aa
             }
 
             emitAll(withBlockUpdates)

@@ -9,15 +9,32 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.DynamicTypeRes
 import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.extentsions.GenericsExtension
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.substratePreParsePreset
-import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataSchema
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val TYPE_DEFINITIONS_DEFAULT = "default"
+
+/**
+ * westend block 7 500 000
+ */
+private val westendBlockHash = "0xa300b367c112c55e137a6fbba806975910695057ed0f7a3e37ac2fcbe19d70c1"
+
+/**
+ * kusama block 9 624 000
+ */
+private val kusamaBlockHash = "0x331cd3019b10cb639b6855e10f411bce33e65c2d129381907ac69f62bc054df9"
+
+/**
+ * polkadot block 7 227 700
+ */
+private val polkadotBlockHash = "0xe8af816df50b4cabb3f396b61d4574925b2aa6fae556626804aab22fea276234"
+
+class GetMetadataRequestHash(hash: String) : RuntimeRequest("state_getMetadata", listOf(hash))
 
 class ConstructionParams(
     val metadataRaw: String,
@@ -72,9 +89,15 @@ class RuntimeConstructor(
 
     private suspend fun getRuntimeParams(latestRuntimeVersion: Int, networkName: String): ConstructionParams {
         val cacheInfo = runtimeDao.getCacheEntry(networkName)
+        val hash = when (networkName.toLowerCase()) {
+            "kusama" -> kusamaBlockHash
+            "polkadot" -> polkadotBlockHash
+            else -> westendBlockHash
+        }
 
         val metadataRaw = if (latestRuntimeVersion == cacheInfo.latestAppliedVersion) {
-            val metadataRaw = runtimeCache.getRuntimeMetadata(networkName)!!
+            //val metadataRaw = runtimeCache.getRuntimeMetadata(networkName)!!
+            val metadataRaw = socketService.executeAsync(GetMetadataRequestHash(hash)).result as String
 
             if (latestRuntimeVersion <= cacheInfo.typesVersion) {
                 val (default, network) = networkTypesFromCache(networkName)
@@ -84,7 +107,7 @@ class RuntimeConstructor(
 
             metadataRaw
         } else {
-            val metadataRaw = socketService.executeAsync(GetMetadataRequest).result as String
+            val metadataRaw = socketService.executeAsync(GetMetadataRequestHash(hash)).result as String
 
             runtimeCache.saveRuntimeMetadata(networkName, metadataRaw)
             runtimeDao.updateLatestAppliedVersion(networkName, latestRuntimeVersion)

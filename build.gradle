@@ -42,7 +42,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.77'
+        fearlessLibVersion = '1.0.88'
 
         gifVersion = '1.2.19'
 
@@ -51,7 +51,7 @@ buildscript {
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
-        firebaseAppDistrVersion = '2.0.1'
+        firebaseAppDistrVersion = '2.1.1'
         playPublisherVersion = '2.5.0'
 
         wsVersion = "2.10"
@@ -143,7 +143,7 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.0'
+        classpath 'com.android.tools.build:gradle:7.0.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath 'com.google.gms:google-services:4.3.3'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"

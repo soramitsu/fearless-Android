@@ -1,17 +1,18 @@
 package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 
 import com.google.gson.Gson
+import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
-import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core.model.WithDerivationPath
 import jp.co.soramitsu.core.model.WithMnemonic
 import jp.co.soramitsu.core.model.WithSeed
 import jp.co.soramitsu.core_db.dao.NodeDao
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.fearless_utils.scale.invoke
@@ -120,7 +121,7 @@ class AccountDataSourceImpl(
     override suspend fun saveSecuritySource(accountAddress: String, source: SecuritySource) = withContext(Dispatchers.Default) {
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
-        val signingData = source.signingData
+        val keypair = source.keypair
         val seed = (source as? WithSeed)?.seed
         val mnemonic = (source as? WithMnemonic)?.mnemonic
         val derivationPath = (source as? WithDerivationPath)?.derivationPath
@@ -128,9 +129,9 @@ class AccountDataSourceImpl(
         val toSave = SourceInternal {
             it[SourceInternal.Type] = getSourceType(source).name
 
-            it[SourceInternal.PrivateKey] = signingData.privateKey
-            it[SourceInternal.PublicKey] = signingData.publicKey
-            it[SourceInternal.Nonce] = signingData.nonce
+            it[SourceInternal.PrivateKey] = keypair.privateKey
+            it[SourceInternal.PublicKey] = keypair.publicKey
+            it[SourceInternal.Nonce] = (keypair as? Sr25519Keypair)?.nonce
 
             it[SourceInternal.Seed] = seed
             it[SourceInternal.Mnemonic] = mnemonic
@@ -148,7 +149,7 @@ class AccountDataSourceImpl(
         val raw = encryptedPreferences.getDecryptedString(key) ?: return@withContext null
         val internalSource = SourceInternal.read(raw)
 
-        val signingData = SigningData(
+        val keypair = Keypair(
             publicKey = internalSource[SourceInternal.PublicKey],
             privateKey = internalSource[SourceInternal.PrivateKey],
             nonce = internalSource[SourceInternal.Nonce]
@@ -159,11 +160,11 @@ class AccountDataSourceImpl(
         val derivationPath = internalSource[SourceInternal.DerivationPath]
 
         when (SourceType.valueOf(internalSource[SourceInternal.Type])) {
-            SourceType.CREATE -> SecuritySource.Specified.Create(seed, signingData, mnemonic!!, derivationPath)
-            SourceType.SEED -> SecuritySource.Specified.Seed(seed, signingData, derivationPath)
-            SourceType.JSON -> SecuritySource.Specified.Json(seed, signingData)
-            SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic!!, derivationPath)
-            SourceType.UNSPECIFIED -> SecuritySource.Unspecified(signingData)
+            SourceType.CREATE -> SecuritySource.Specified.Create(seed, keypair, mnemonic!!, derivationPath)
+            SourceType.SEED -> SecuritySource.Specified.Seed(seed, keypair, derivationPath)
+            SourceType.JSON -> SecuritySource.Specified.Json(seed, keypair)
+            SourceType.MNEMONIC -> SecuritySource.Specified.Mnemonic(seed, keypair, mnemonic!!, derivationPath)
+            SourceType.UNSPECIFIED -> SecuritySource.Unspecified(keypair)
         }
     }
 

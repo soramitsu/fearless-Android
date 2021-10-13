@@ -54,11 +54,9 @@ class AccountControllerBalanceUpdater(
         }
 
         val key = runtime.metadata.system().storage("Account").storageKey(runtime, companionAddress.toAccountId())
-
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
                 val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
-
                 assetCache.updateAsset(companionAddress, newAccountInfo)
             }
             .flowOn(Dispatchers.IO)

@@ -47,7 +47,6 @@ class WssSubstrateSource(
 
         val response = socketService.executeAsync(request, mapper = pojo<String>())
         val accountInfo = response.result?.let { bindAccountInfo(it, runtimeProperty.get()) }
-
         return accountInfo ?: AccountInfo.empty()
     }
 
