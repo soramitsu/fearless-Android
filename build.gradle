@@ -1,15 +1,15 @@
 buildscript {
     ext {
         // App version
-        versionName = '1.9.6'
-        versionCode = 26
+        versionName = '1.9.8'
+        versionCode = 28
 
         // SDK and tools
         compileSdkVersion = 29
         minSdkVersion = 24
         targetSdkVersion = 29
 
-        kotlinVersion = '1.4.31'
+        kotlinVersion = '1.5.31'
 
         ktlintPinterestVersion = '0.40.0'
 
@@ -27,6 +27,7 @@ buildscript {
         javaxInjectVersion = '1'
 
         architectureComponentVersion = '2.2.0'
+        roomVersion = '2.3.0'
 
         retrofitVersion = '2.9.0'
         okhttpVersion = '3.8.0'
@@ -99,9 +100,9 @@ buildscript {
 
         permissionsDep = "com.github.florent37:runtime-permission-kotlin:$permissionsVersion"
 
-        roomDep = "androidx.room:room-runtime:$architectureComponentVersion"
-        roomKtxDep = "androidx.room:room-ktx:$architectureComponentVersion"
-        roomKapt = "androidx.room:room-compiler:$architectureComponentVersion"
+        roomDep = "androidx.room:room-runtime:$roomVersion"
+        roomKtxDep = "androidx.room:room-ktx:$roomVersion"
+        roomKapt = "androidx.room:room-compiler:$roomVersion"
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
@@ -145,7 +146,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:7.0.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath 'com.google.gms:google-services:4.3.3'
+        classpath 'com.google.gms:google-services:4.3.10'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
     }
