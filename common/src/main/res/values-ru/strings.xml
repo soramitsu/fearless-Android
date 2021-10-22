@@ -359,6 +359,7 @@
     <string name="staking_start_change_validators_custom_title">Стейкинг с выбранными валидаторами</string>
     <string name="common_applied">Применено</string>
     <string name="crowdloan_referral_code_invalid">Реферальный код недействителен. Пожалуйста, попробуйте другой.</string>
+    <string name="crowdloan_astar_referral_code_invalid">Реферальный адрес недействителен, допустимы только адреса Polkadot, пожалуйста, попробуйте снова.</string>
     <string name="staking_start_change_validators_custom_subtitle">Вы должны доверять своим валидаторам, чтобы они действовали грамотно и честно. Принятие решения исключительно на основе их текущей прибыльности может привести к снижению прибыли или даже потере средств.</string>
     <string name="staking_select_recommended">Выбрать рекомендованных</string>
     <string name="staking_select_custom">Выбрать самому</string>
