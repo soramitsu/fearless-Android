@@ -63,14 +63,14 @@
                     tools:text="Your KSM tokens will be returned after the leasing period." />
             </LinearLayout>
 
-            <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
-                android:id="@+id/crowdloanContributeFee"
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/crowdloanContributeLeasingPeriod"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
-                app:title="@string/network_fee" />
+                app:title="@string/crowdloan_leasing_period" />
 
             <jp.co.soramitsu.common.view.TableCellView
                 android:id="@+id/crowdloanContributeReward"
@@ -79,14 +79,6 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 app:title="@string/staking_validator_estimated_reward" />
-
-            <jp.co.soramitsu.common.view.TableCellView
-                android:id="@+id/crowdloanContributeLeasingPeriod"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                app:title="@string/crowdloan_leasing_period" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -102,13 +94,13 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_basic_circle_star_24" />
+                    android:src="@drawable/ic_bonus_star_24" />
 
                 <TextView
                     style="@style/TextAppearance.Soramitsu.Body1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="13dp"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:text="@string/common_bonus" />
 

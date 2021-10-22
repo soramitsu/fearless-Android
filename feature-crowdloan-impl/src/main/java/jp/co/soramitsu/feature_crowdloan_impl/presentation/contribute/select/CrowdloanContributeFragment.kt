@@ -25,7 +25,6 @@ import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBon
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonusReward
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeContainer
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeContinue
-import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeFee
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeLearnMore
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeLeasingPeriod
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeRaised
@@ -106,8 +105,6 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         viewModel.enteredFiatAmountFlow.observe {
             it?.let(crowdloanContributeAmount::setAssetBalanceDollarAmount)
         }
-
-        viewModel.feeLiveData.observe(crowdloanContributeFee::setFeeStatus)
 
         viewModel.estimatedRewardFlow.observe { reward ->
             crowdloanContributeReward.setVisible(reward != null)

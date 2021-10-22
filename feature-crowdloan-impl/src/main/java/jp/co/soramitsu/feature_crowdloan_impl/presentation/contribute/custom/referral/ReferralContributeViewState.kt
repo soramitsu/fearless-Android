@@ -1,8 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral
 
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
@@ -38,15 +36,13 @@ abstract class ReferralContributeViewState(
 
     val privacyAcceptedFlow = MutableStateFlow(false)
 
-    val applyFearlessTitle = createFearlessBonusTitle()
-
     val applyFearlessCodeEnabledFlow = enteredReferralCodeFlow.map {
         it != fearlessReferralCode
     }
 
     val learnBonusesTitle = LearnMoreModel(
         iconLink = customContributePayload.parachainMetadata.iconLink,
-        text = resourceManager.getString(R.string.crowdloan_learn, customContributePayload.parachainMetadata.name)
+        text = resourceManager.getString(R.string.crowdloan_learn_bonuses, customContributePayload.parachainMetadata.name)
     )
 
     private val bonusPayloadFlow = enteredReferralCodeFlow.map {
@@ -92,12 +88,6 @@ abstract class ReferralContributeViewState(
         validatePayload(payload)
 
         payload
-    }
-
-    private fun createFearlessBonusTitle(): String {
-        val percentage = bonusPercentage.fractionToPercentage().formatAsPercentage()
-
-        return resourceManager.getString(R.string.crowdloan_app_bonus_format, percentage)
     }
 
     protected fun previousPayload() = customContributePayload.previousBonusPayload as? ReferralCodePayload

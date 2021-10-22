@@ -255,6 +255,8 @@
     <string name="wallet_asset_buy_with">Купить с</string>
     <string name="wallet_filters_title">Фильтры</string>
     <string name="common_apply">Применять</string>
+    <string name="apply_fearless_wallet_bonus">Применить бонус Fearless Wallet</string>
+    <string name="applied_fearless_wallet_bonus">Бонус Fearless Wallet применён</string>
     <string name="common_reset">Сброс</string>
     <string name="wallet_filters_transfers">Переводы</string>
     <string name="wallet_filters_rewards_and_slashes">Вознаграждения и слэши</string>
@@ -337,6 +339,7 @@
     <string name="crowdloan_too_small_contribution_message">Минимально допустимая сумма вклада составляет %s .</string>
     <string name="crowdloan_too_small_contribution_title">Сумма вклада </string>
     <string name="crowdloan_learn">О краудлоуне %s</string>
+    <string name="crowdloan_learn_bonuses">О бонусах %s</string>
     <string name="common_time_left">Оставшееся время</string>
     <string name="crowdloan_contribute_title">Внести вклад в краудлоун</string>
     <string name="crowdloan_confirmation_name">%s краудлоун</string>
@@ -349,7 +352,6 @@
     <string name="crodloan_private_crowdloan_title">Приватный краудлоун</string>
     <string name="crodloan_private_crowdloan_message">Приватные краудлоуны пока не поддерживаются</string>
     <string name="common_bonus">Бонус</string>
-    <string name="crowdloan_app_bonus_format">Бонус Fearless Wallet (%s)</string>
     <string name="crowdloan_enter_referral">Введите реферальный код</string>
     <string name="staking_add_controller">Чтобы выполнить это действие, добавьте контроллер аккаунт %s в приложение</string>
     <string name="crowdloan_empty_bonus_title">Получите специальный бонус</string>

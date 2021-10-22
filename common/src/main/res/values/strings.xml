@@ -263,6 +263,8 @@ Derivation path: %s</string>
     <string name="wallet_asset_buy_with">Buy with</string>
     <string name="wallet_filters_title">Filters</string>
     <string name="common_apply">Apply</string>
+    <string name="apply_fearless_wallet_bonus">Tap to apply fearless wallet bonus</string>
+    <string name="applied_fearless_wallet_bonus">Fearless wallet bonus applied</string>
     <string name="common_reset">Reset</string>
     <string name="wallet_filters_transfers">Transfers</string>
     <string name="wallet_filters_rewards_and_slashes">Rewards and Slashes</string>
@@ -343,6 +345,7 @@ Derivation path: %s</string>
     <string name="crowdloan_too_small_contribution_message">The minimum allowed amount to contribute is %s.</string>
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>
     <string name="crowdloan_learn">Learn about %s\'s crowdloan</string>
+    <string name="crowdloan_learn_bonuses">Learn about %s\'s bonuses</string>
     <string name="common_time_left">Time left</string>
     <string name="crowdloan_contribute_title">Contribute to Crowdloan</string>
     <string name="crowdloan_confirmation_name">%s Crowdloan</string>
@@ -355,7 +358,6 @@ Derivation path: %s</string>
     <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
     <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
     <string name="common_bonus">Bonus</string>
-    <string name="crowdloan_app_bonus_format">Fearless Wallet bonus (%s)</string>
     <string name="crowdloan_enter_referral">Enter your referral code</string>
     <string name="staking_add_controller">Add controller account %s to the application to perform this action.</string>
     <string name="crowdloan_empty_bonus_title">Get a special bonus</string>

@@ -7,63 +7,36 @@
     tools:background="@color/black"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-    <TextView
-        android:id="@+id/referralFearlessBonusTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constrainedWidth="true"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        app:layout_constraintEnd_toStartOf="@+id/referralFearlessBonusApply"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="@string/crowdloan_fearless_bonus" />
-
-    <TextView
-        android:id="@+id/referralFearlessBonusApply"
-        style="@style/TextAppearance.Soramitsu.CapsTitle2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/primary_chip_background"
-        android:includeFontPadding="false"
-        android:paddingStart="12dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="6dp"
-        android:text="@string/common_apply"
-        android:textColor="@color/button_text_colors"
-        app:layout_constraintBottom_toBottomOf="@+id/referralFearlessBonusTitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/referralFearlessBonusTitle" />
-
-    <View
-        android:id="@+id/divider1"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="16dp"
-        android:background="@color/dividerGray"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/referralFearlessBonusTitle" />
-
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/referralReferralCodeInput"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="2dp"
         android:hint="@string/crowdloan_referral_code_invalid"
+        android:inputType="textMultiLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider1" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/referralFearlessBonusApply"
+        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/primary_chip_background"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:paddingStart="12dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp"
+        android:text="@string/apply_fearless_wallet_bonus"
+        android:textColor="@color/button_text_colors"
+        app:layout_constraintTop_toBottomOf="@+id/referralReferralCodeInput" />
 
     <jp.co.soramitsu.common.view.TableCellView
         android:id="@+id/referralBonus"
@@ -72,7 +45,7 @@
         android:layout_marginTop="18dp"
         app:layout_constraintEnd_toEndOf="@+id/referralReferralCodeInput"
         app:layout_constraintStart_toStartOf="@+id/referralReferralCodeInput"
-        app:layout_constraintTop_toBottomOf="@+id/referralReferralCodeInput"
+        app:layout_constraintTop_toBottomOf="@+id/referralFearlessBonusApply"
         app:title="@string/common_bonus" />
 
     <com.google.android.material.switchmaterial.SwitchMaterial

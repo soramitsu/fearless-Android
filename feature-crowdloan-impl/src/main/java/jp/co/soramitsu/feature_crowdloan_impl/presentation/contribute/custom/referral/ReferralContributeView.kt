@@ -20,7 +20,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.Cus
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralBonus
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralFearlessBonusApply
-import kotlinx.android.synthetic.main.view_referral_flow.view.referralFearlessBonusTitle
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralLearnMore
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacySwitch
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacyText
@@ -55,12 +54,10 @@ class ReferralContributeView @JvmOverloads constructor(
         referralReferralCodeInput.content.bindTo(viewState.enteredReferralCodeFlow, scope)
         referralPrivacySwitch.bindTo(viewState.privacyAcceptedFlow, scope)
 
-        referralFearlessBonusTitle.text = viewState.applyFearlessTitle
-
         viewState.applyFearlessCodeEnabledFlow.observe(scope) { enabled ->
             referralFearlessBonusApply.isEnabled = enabled
 
-            val applyBonusButtonText = if (enabled) R.string.common_apply else R.string.common_applied
+            val applyBonusButtonText = if (enabled) R.string.apply_fearless_wallet_bonus else R.string.applied_fearless_wallet_bonus
             referralFearlessBonusApply.setText(applyBonusButtonText)
         }
 
