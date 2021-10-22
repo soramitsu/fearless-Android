@@ -6,6 +6,8 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.astar.Ast
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeViewState
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import kotlinx.coroutines.flow.map
 
 class AstarContributeViewState(
     private val interactor: AstarContributeInteractor,
@@ -17,6 +19,17 @@ class AstarContributeViewState(
     fearlessReferralCode = interactor.fearlessReferralCode,
     bonusPercentage = ASTAR_BONUS_MULTIPLIER
 ) {
+    private val bonusPayloadFlow = enteredReferralCodeFlow.map {
+        createBonusPayload(it)
+    }
+
+    val bonusFriendFlow = bonusPayloadFlow.map {
+        require(it is AstarBonusPayload)
+
+        val tokenName = customContributePayload.parachainMetadata.token
+        it.calculateFriendBonus(customContributePayload.amount)?.formatTokenAmount(tokenName)
+    }
+
 
     override fun createBonusPayload(referralCode: String): ReferralCodePayload {
         return AstarBonusPayload(referralCode, customContributePayload.parachainMetadata.rewardRate)

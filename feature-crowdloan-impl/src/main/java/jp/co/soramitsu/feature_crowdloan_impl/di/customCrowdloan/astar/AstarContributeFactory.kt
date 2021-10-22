@@ -5,9 +5,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.astar.AstarContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarContributeSubmitter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeView
 import kotlinx.coroutines.CoroutineScope
 
 class AstarContributeFactory(
@@ -22,5 +22,5 @@ class AstarContributeFactory(
         return AstarContributeViewState(interactor, payload, resourceManager)
     }
 
-    override fun createView(context: Context) = ReferralContributeView(context)
+    override fun createView(context: Context) = AstarContributeView(context)
 }

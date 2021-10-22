@@ -26,7 +26,7 @@ import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacyTex
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
 import javax.inject.Inject
 
-class ReferralContributeView @JvmOverloads constructor(
+open class ReferralContributeView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
