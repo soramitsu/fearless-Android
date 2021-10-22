@@ -326,7 +326,8 @@ Derivation path: %s</string>
     <string name="staking_your_not_allocated_description">Others, who are active without your stake allocation.</string>
     <string name="staking_your_inactive_description">Validators who were not elected in this era.</string>
     <string name="crowdloan_crowdloan">Crowdloans</string>
-    <string name="crowdloan_main_description">Select parachains to contribute your %s. You will receive rewards if the parachain acquires a slot by the end of the auction.</string>
+    <string name="parachain_crowdloans">Parachain Crowdloans</string>
+    <string name="crowdloan_main_description">Select a Crowdloan Campaign that you wish to contribute to. You will receive rewards if the campaign wins a parachain slot at the auction.</string>
     <string name="crownloans_raised_format" formatted="false">Raised: %s of %s</string>
     <string name="crowdloan_active_section_format">Active (%s)</string>
     <string name="common_completed_with_count">Completed (%s)</string>
@@ -341,9 +342,10 @@ Derivation path: %s</string>
     <string name="crowdloan_cap_reached_title">Crowdloan cap exceeded</string>
     <string name="crowdloan_too_small_contribution_message">The minimum allowed amount to contribute is %s.</string>
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>
-    <string name="crowdloan_learn">Learn %s\'s crowdloan</string>
+    <string name="crowdloan_learn">Learn about %s\'s crowdloan</string>
     <string name="common_time_left">Time left</string>
-    <string name="crowdloan_contribute_title">Contribute to crowdloan</string>
+    <string name="crowdloan_contribute_title">Contribute to Crowdloan</string>
+    <string name="crowdloan_confirmation_name">%s Crowdloan</string>
     <string name="crowdloan_unlock_hint">Your %s tokens will be returned after the leasing period.</string>
     <string name="crowdloan_info">Crowdloan info</string>
     <string name="crowdloan_raised_amount" formatted="false">%s of %s</string>

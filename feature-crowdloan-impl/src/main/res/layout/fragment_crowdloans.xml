@@ -17,7 +17,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/crowdloan_crowdloan" />
+        app:titleText="@string/parachain_crowdloans" />
 
     <TextView
         android:id="@+id/crowdloanMainDescription"

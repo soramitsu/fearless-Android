@@ -320,7 +320,8 @@
     <string name="staking_your_not_allocated_description">Другие, которые активны без вашего стейка.</string>
     <string name="staking_your_inactive_description">Валидаторы, которые не были избраны в этой эре.</string>
     <string name="crowdloan_crowdloan">Краудлоуны</string>
-    <string name="crowdloan_main_description">Выберите парачейны для внесения своего вклада %s. Вы получите вознаграждение, если парачейн приобретет слот до конца аукциона.</string>
+    <string name="parachain_crowdloans">Краудлоуны парачейнов</string>
+    <string name="crowdloan_main_description">Выберите краудлоун копанию, в которой хотите участвовать. Вы получите вознаграждение, если компания выиграет парачейн слот на аукционе.</string>
     <string name="crownloans_raised_format" formatted="false">Собрано: %s из %s</string>
     <string name="crowdloan_active_section_format">Активные (%s)</string>
     <string name="common_completed_with_count">Завершённые (%s)</string>
@@ -338,6 +339,7 @@
     <string name="crowdloan_learn">О краудлоуне %s</string>
     <string name="common_time_left">Оставшееся время</string>
     <string name="crowdloan_contribute_title">Внести вклад в краудлоун</string>
+    <string name="crowdloan_confirmation_name">%s краудлоун</string>
     <string name="crowdloan_unlock_hint">Ваши %s токены будут возвращены обратно после срока лизинга парачейна.</string>
     <string name="crowdloan_info">Информация о краундлоуне</string>
     <string name="crowdloan_raised_amount" formatted="false">%s из %s</string>

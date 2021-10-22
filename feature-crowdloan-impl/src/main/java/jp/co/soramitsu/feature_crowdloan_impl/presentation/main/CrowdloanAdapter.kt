@@ -169,6 +169,7 @@ private class CrowdloanChildHolder(
 
     fun bindMyContribution(item: CrowdloanModel) {
         containerView.itemCrowdloanMyContribution.setVisible(item.myContribution != null)
+        containerView.itemCrowdloanMyContribution.setTextColorRes(R.color.colorAccent)
         containerView.itemCrowdloanMyContribution.text = item.myContribution
     }
 }

@@ -14,6 +14,15 @@
         android:layout_height="wrap_content"
         app:titleText="@string/common_confirm" />
 
+    <TextView
+        android:id="@+id/confirmContributeCrowloanTitle"
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/crowdloan_confirmation_name" />
+
     <jp.co.soramitsu.common.view.LabeledTextView
         android:layout_width="match_parent"
         android:id="@+id/confirmContributeOriginAcount"
@@ -82,6 +91,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            android:textSize="18sp"
             android:text="@string/common_confirm" />
     </LinearLayout>
 </LinearLayout>

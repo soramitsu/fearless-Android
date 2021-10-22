@@ -84,6 +84,7 @@ class ConfirmContributeViewModel(
         .share()
 
     val estimatedReward = payload.estimatedRewardDisplay
+    val title = payload.metadata?.name ?: payload.paraId.toString()
 
     private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(payload.paraId)
         .inBackground()

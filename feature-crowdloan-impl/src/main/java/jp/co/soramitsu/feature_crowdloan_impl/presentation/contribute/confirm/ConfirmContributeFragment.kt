@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContrib
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeBonus
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeConfirm
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeContainer
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeCrowloanTitle
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeFee
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeLeasingPeriod
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeOriginAcount
@@ -120,5 +121,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
 
             it?.let(confirmContributeBonus::showValue)
         }
+
+        confirmContributeCrowloanTitle.text = viewModel.title
     }
 }
