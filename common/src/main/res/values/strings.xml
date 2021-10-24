@@ -86,6 +86,9 @@ transfers will appear here</string>
     <string name="about_website">Official Website</string>
     <string name="about_github">Github Source Code</string>
     <string name="about_telegram">Join Telegram Group</string>
+    <string name="about_twitter">Follow on Twitter</string>
+    <string name="about_youtube">Subscribe on YouTube</string>
+    <string name="about_medium">Read on Medium</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
     <string name="account_info_title">Account</string>
@@ -458,4 +461,13 @@ to your account to avoid remaining stake.</string>
     <string name="wallet_extrinsic_details_title">Extrinsic details</string>
     <string name="transaction_details_extrinsic_fee">Fee</string>
     <string name="wallet_transfer_details_title">Transfer details</string>
+    <string name="moonbeam_ethereum_address">Moonbeam Ethereum address</string>
+    <string name="moonbeam_ethereum_address_incorrect">Moonbeam Ethereum address format is incorrect, please try again</string>
+    <string name="moonbeam_ethereum_reward">Rewards will be paid out to this address. You can use an existing Ethereum address. PLEASE ENSURE YOU HAVE THE PRIVATE KEYS FOR THIS ADDRESS.</string>
+    <string name="moonbeam_crowdloan_terms">Moonbeam Crowdloan Terms and Conditions</string>
+    <string name="moonbeam_registration">Moonbeam Crowdloan Registration</string>
+    <string name="moonbeam_signed_successful">You have successfully signed the terms and conditions for the Moonbeam Crowdloan and a transaction has been sent.\n\nThis is the hash of your transaction:</string>
+    <string name="moonbeam_registration_description">This transaction confirms that you agree to the Moonbeam Crowdloan Terms and Conditions.\nA signed system.remark extrinsic transaction will be sent as proof of your agreement.\nThis information will be processed and stored on the Polkadot Relay Chain.\nPlease note that this signing transaction will be subject to transaction fees on the Polkadot network.</string>
+    <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
+    <string name="transaction_successful">Transaction Successful</string>
 </resources>

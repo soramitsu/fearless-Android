@@ -22,6 +22,15 @@ class AboutViewModel(
     private val _websiteLiveData = MutableLiveData<String>()
     val websiteLiveData: LiveData<String> = _websiteLiveData
 
+    private val _twitterLiveData = MutableLiveData<String>()
+    val twitterLiveData: LiveData<String> = _twitterLiveData
+
+    private val _youtubeLiveData = MutableLiveData<String>()
+    val youtubeLiveData: LiveData<String> = _youtubeLiveData
+
+    private val _mediumLiveData = MutableLiveData<String>()
+    val mediumLiveData: LiveData<String> = _mediumLiveData
+
     private val _versionLiveData = MutableLiveData<String>()
     val versionLiveData: LiveData<String> = _versionLiveData
 
@@ -38,6 +47,9 @@ class AboutViewModel(
 
     init {
         _websiteLiveData.value = BuildConfig.WEBSITE_URL
+        _twitterLiveData.value = BuildConfig.TWITTER_URL
+        _youtubeLiveData.value = BuildConfig.YOUTUBE_URL
+        _mediumLiveData.value = BuildConfig.MEDIUM_URL
 
         val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
         _versionLiveData.value = "${resourceManager.getString(R.string.about_version)} $versionName"
@@ -52,6 +64,18 @@ class AboutViewModel(
 
     fun websiteClicked() {
         openBrowserEvent.value = Event(BuildConfig.WEBSITE_URL)
+    }
+
+    fun twitterClicked() {
+        openBrowserEvent.value = Event(BuildConfig.TWITTER_URL)
+    }
+
+    fun youtubeClicked() {
+        openBrowserEvent.value = Event(BuildConfig.YOUTUBE_URL)
+    }
+
+    fun mediumClicked() {
+        openBrowserEvent.value = Event(BuildConfig.MEDIUM_URL)
     }
 
     fun githubClicked() {

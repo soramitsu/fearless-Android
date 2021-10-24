@@ -11,17 +11,7 @@ import jp.co.soramitsu.common.utils.createSendEmailIntent
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_about.backIv
-import kotlinx.android.synthetic.main.fragment_about.emailText
-import kotlinx.android.synthetic.main.fragment_about.emailWrapper
-import kotlinx.android.synthetic.main.fragment_about.githubText
-import kotlinx.android.synthetic.main.fragment_about.githubWrapper
-import kotlinx.android.synthetic.main.fragment_about.privacyTv
-import kotlinx.android.synthetic.main.fragment_about.telegramText
-import kotlinx.android.synthetic.main.fragment_about.telegramWrapper
-import kotlinx.android.synthetic.main.fragment_about.termsTv
-import kotlinx.android.synthetic.main.fragment_about.websiteText
-import kotlinx.android.synthetic.main.fragment_about.websiteWrapper
+import kotlinx.android.synthetic.main.fragment_about.*
 
 class AboutFragment : BaseFragment<AboutViewModel>() {
 
@@ -32,6 +22,9 @@ class AboutFragment : BaseFragment<AboutViewModel>() {
     override fun initViews() {
         backIv.setOnClickListener { viewModel.backButtonPressed() }
         websiteWrapper.setOnClickListener { viewModel.websiteClicked() }
+        twitterWrapper.setOnClickListener { viewModel.twitterClicked() }
+        youtubeWrapper.setOnClickListener { viewModel.youtubeClicked() }
+        mediumWrapper.setOnClickListener { viewModel.mediumClicked() }
         githubWrapper.setOnClickListener { viewModel.githubClicked() }
         telegramWrapper.setOnClickListener { viewModel.telegramClicked() }
         emailWrapper.setOnClickListener { viewModel.emailClicked() }
@@ -49,6 +42,18 @@ class AboutFragment : BaseFragment<AboutViewModel>() {
     override fun subscribe(viewModel: AboutViewModel) {
         viewModel.websiteLiveData.observe {
             websiteText.text = it
+        }
+
+        viewModel.twitterLiveData.observe {
+            twitterText.text = it
+        }
+
+        viewModel.youtubeLiveData.observe {
+            youtubeText.text = it
+        }
+
+        viewModel.mediumLiveData.observe {
+            mediumText.text = it
         }
 
         viewModel.versionLiveData.observe {

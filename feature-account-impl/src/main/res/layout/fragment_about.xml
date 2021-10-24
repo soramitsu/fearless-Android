@@ -2,9 +2,9 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/black"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/black">
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -22,7 +22,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:id="@+id/backIv"
@@ -36,7 +37,8 @@
             android:padding="@dimen/x1"
             android:src="@drawable/ic_arrow_back_24dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:id="@+id/logoIv"
@@ -47,7 +49,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/bgIv"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/textView"
@@ -77,12 +80,13 @@
 
             <ImageView
                 android:id="@+id/websiteIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_monitor_blue_24"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_about_website"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
 
             <TextView
                 android:id="@+id/websiteTitle"
@@ -110,13 +114,14 @@
 
             <ImageView
                 android:id="@+id/websiteRightIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow_top_right_white_16"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_chevron_right_rounded_24"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/websiteTitle"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -144,12 +149,13 @@
 
             <ImageView
                 android:id="@+id/githubIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_github_blue_24"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_about_github"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
 
             <TextView
                 android:id="@+id/githubTitle"
@@ -179,11 +185,219 @@
                 android:id="@+id/githubRightIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow_top_right_white_16"
+                android:src="@drawable/ic_chevron_right_rounded_24"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/githubTitle"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/dividerGithubTwitter"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/gray3"
+            app:layout_constraintTop_toBottomOf="@id/githubWrapper" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/twitterWrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_primary_list_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="@dimen/x2"
+            android:paddingTop="@dimen/x1"
+            android:paddingEnd="@dimen/x2"
+            android:paddingBottom="@dimen/x1"
+            app:layout_constraintTop_toBottomOf="@id/dividerGithubTwitter">
+
+            <ImageView
+                android:id="@+id/twitterIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_about_twitter"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/twitterTitle"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:text="@string/about_twitter"
+                android:textColor="@color/white"
+                app:layout_constraintEnd_toStartOf="@id/twitterRightIcon"
+                app:layout_constraintStart_toEndOf="@id/twitterIcon"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/twitterText"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:textColor="@color/colorHint"
+                app:layout_constraintEnd_toStartOf="@id/twitterRightIcon"
+                app:layout_constraintStart_toEndOf="@id/twitterIcon"
+                app:layout_constraintTop_toBottomOf="@id/twitterTitle"
+                tools:text="https://twitter.com/fearlesswallet" />
+
+            <ImageView
+                android:id="@+id/twitterRightIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_chevron_right_rounded_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/twitterTitle"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/dividerTwitterYoutube"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/gray3"
+            app:layout_constraintTop_toBottomOf="@id/twitterWrapper" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/youtubeWrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_primary_list_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="@dimen/x2"
+            android:paddingTop="@dimen/x1"
+            android:paddingEnd="@dimen/x2"
+            android:paddingBottom="@dimen/x1"
+            app:layout_constraintTop_toBottomOf="@id/dividerTwitterYoutube">
+
+            <ImageView
+                android:id="@+id/youtubeIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_about_youtube"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/youtubeTitle"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:text="@string/about_youtube"
+                android:textColor="@color/white"
+                app:layout_constraintEnd_toStartOf="@id/youtubeRightIcon"
+                app:layout_constraintStart_toEndOf="@id/youtubeIcon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/youtubeText"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:textColor="@color/colorHint"
+                app:layout_constraintEnd_toStartOf="@id/youtubeRightIcon"
+                app:layout_constraintStart_toEndOf="@id/youtubeIcon"
+                app:layout_constraintTop_toBottomOf="@id/youtubeTitle"
+                tools:text="youtube.com/fearlesswallet" />
+
+            <ImageView
+                android:id="@+id/youtubeRightIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_chevron_right_rounded_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/youtubeTitle"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/dividerYoutubeMedium"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/gray3"
+            app:layout_constraintTop_toBottomOf="@id/youtubeWrapper" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/mediumWrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_primary_list_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="@dimen/x2"
+            android:paddingTop="@dimen/x1"
+            android:paddingEnd="@dimen/x2"
+            android:paddingBottom="@dimen/x1"
+            app:layout_constraintTop_toBottomOf="@id/dividerYoutubeMedium">
+
+            <ImageView
+                android:id="@+id/mediumIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_about_medium"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/mediumTitle"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:text="@string/about_medium"
+                android:textColor="@color/white"
+                app:layout_constraintEnd_toStartOf="@id/mediumRightIcon"
+                app:layout_constraintStart_toEndOf="@id/mediumIcon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/mediumText"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:textColor="@color/colorHint"
+                app:layout_constraintEnd_toStartOf="@id/mediumRightIcon"
+                app:layout_constraintStart_toEndOf="@id/mediumIcon"
+                app:layout_constraintTop_toBottomOf="@id/mediumTitle"
+                tools:text="medium.com/fearlesswallet" />
+
+            <ImageView
+                android:id="@+id/mediumRightIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_chevron_right_rounded_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/mediumTitle"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -194,7 +408,7 @@
             android:layout_marginStart="@dimen/x2"
             android:layout_marginEnd="@dimen/x2"
             android:background="@color/gray3"
-            app:layout_constraintTop_toBottomOf="@+id/githubWrapper" />
+            app:layout_constraintTop_toBottomOf="@id/mediumWrapper" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/telegramWrapper"
