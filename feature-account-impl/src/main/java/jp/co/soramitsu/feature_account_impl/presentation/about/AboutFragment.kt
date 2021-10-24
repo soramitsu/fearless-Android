@@ -27,9 +27,11 @@ class AboutFragment : BaseFragment<AboutViewModel>() {
         mediumWrapper.setOnClickListener { viewModel.mediumClicked() }
         githubWrapper.setOnClickListener { viewModel.githubClicked() }
         telegramWrapper.setOnClickListener { viewModel.telegramClicked() }
+        announcementWrapper.setOnClickListener { viewModel.announcementClicked() }
+        supportWrapper.setOnClickListener { viewModel.supportClicked() }
         emailWrapper.setOnClickListener { viewModel.emailClicked() }
-        termsTv.setOnClickListener { viewModel.termsClicked() }
-        privacyTv.setOnClickListener { viewModel.privacyClicked() }
+        termsWrapper.setOnClickListener { viewModel.termsClicked() }
+        privacyWrapper.setOnClickListener { viewModel.privacyClicked() }
     }
 
     override fun inject() {
@@ -62,6 +64,14 @@ class AboutFragment : BaseFragment<AboutViewModel>() {
 
         viewModel.telegramLiveData.observe {
             telegramText.text = it
+        }
+
+        viewModel.announcementLiveData.observe {
+            announcementText.text = it
+        }
+
+        viewModel.supportLiveData.observe {
+            supportText.text = it
         }
 
         viewModel.emailLiveData.observe {

@@ -37,6 +37,12 @@ class AboutViewModel(
     private val _telegramLiveData = MutableLiveData<String>()
     val telegramLiveData: LiveData<String> = _telegramLiveData
 
+    private val _announcementLiveData = MutableLiveData<String>()
+    val announcementLiveData: LiveData<String> = _announcementLiveData
+
+    private val _supportLiveData = MutableLiveData<String>()
+    val supportLiveData: LiveData<String> = _supportLiveData
+
     private val _emailLiveData = MutableLiveData<String>()
     val emailLiveData: LiveData<String> = _emailLiveData
 
@@ -55,6 +61,8 @@ class AboutViewModel(
         _versionLiveData.value = "${resourceManager.getString(R.string.about_version)} $versionName"
 
         _telegramLiveData.value = BuildConfig.TELEGRAM_URL
+        _announcementLiveData.value = BuildConfig.ANNOUNCEMENT_URL
+        _supportLiveData.value = BuildConfig.SUPPORT_URL
         _emailLiveData.value = BuildConfig.EMAIL
     }
 
@@ -84,6 +92,14 @@ class AboutViewModel(
 
     fun telegramClicked() {
         openBrowserEvent.value = Event(BuildConfig.TELEGRAM_URL)
+    }
+
+    fun announcementClicked() {
+        openBrowserEvent.value = Event(BuildConfig.ANNOUNCEMENT_URL)
+    }
+
+    fun supportClicked() {
+        openBrowserEvent.value = Event(BuildConfig.SUPPORT_URL)
     }
 
     fun emailClicked() {

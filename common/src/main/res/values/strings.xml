@@ -33,7 +33,7 @@ transfers will appear here</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
     <string name="about_version">App version</string>
-    <string name="about_contact_us">Contact Us</string>
+    <string name="about_contact_us">Contact Email</string>
     <string name="about_title">About</string>
     <string name="about_privacy">Privacy policy</string>
     <string name="about_terms">Terms and conditions</string>
@@ -85,10 +85,12 @@ transfers will appear here</string>
     <string name="account_add_already_exists_message">Account already exists. Please, try another one.</string>
     <string name="about_website">Official Website</string>
     <string name="about_github">Github Source Code</string>
-    <string name="about_telegram">Join Telegram Group</string>
+    <string name="about_telegram">Join on Telegram</string>
     <string name="about_twitter">Follow on Twitter</string>
     <string name="about_youtube">Subscribe on YouTube</string>
     <string name="about_medium">Read on Medium</string>
+    <string name="about_announcement">Receive Announcements</string>
+    <string name="about_support">Ask for Support</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
     <string name="account_info_title">Account</string>
