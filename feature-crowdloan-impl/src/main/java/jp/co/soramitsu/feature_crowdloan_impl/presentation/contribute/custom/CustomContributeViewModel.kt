@@ -19,7 +19,7 @@ class CustomContributeViewModel(
     addressModelGenerator: AddressIconGenerator,
 ) : BaseViewModel() {
 
-    val customFlowType = "Moonbeam" //payload.parachainMetadata.customFlow!!
+    val customFlowType = payload.parachainMetadata.customFlow!!
 
     private val _viewStateFlow = MutableStateFlow(customContributeManager.createNewState(customFlowType, viewModelScope, payload))
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow

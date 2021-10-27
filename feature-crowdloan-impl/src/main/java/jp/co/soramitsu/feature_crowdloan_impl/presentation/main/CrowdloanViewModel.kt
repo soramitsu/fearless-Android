@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ParachainMetadataParcelModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanStatusModel
@@ -140,10 +141,19 @@ class CrowdloanViewModel(
                 //todo check for moonbeam paraId
                 //todo health
                 //todo check terms signed
+                val moonBeamFlowMetadata = ParachainMetadataParcelModel(
+                    iconLink = payload.parachainMetadata?.iconLink.orEmpty(),
+                    name = "Moonbeam",
+                    description = payload.parachainMetadata?.description.orEmpty(),
+                    rewardRate = payload.parachainMetadata?.rewardRate,
+                    website = payload.parachainMetadata?.website.orEmpty(),
+                    customFlow = "Moonbeam",
+                    token = payload.parachainMetadata?.token.orEmpty()
+                )
                 val customContributePayload = CustomContributePayload(
                     paraId = 2002.toBigInteger(),
 //                    paraId = payload.paraId,
-                    parachainMetadata = payload.parachainMetadata!!,
+                    parachainMetadata = moonBeamFlowMetadata,
                     amount = BigDecimal.ZERO,
                     previousBonusPayload = router.latestCustomBonus,
                 )
