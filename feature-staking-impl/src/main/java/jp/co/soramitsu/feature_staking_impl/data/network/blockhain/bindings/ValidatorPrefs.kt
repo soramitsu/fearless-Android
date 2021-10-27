@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
@@ -19,8 +20,7 @@ fun bindPerbill(value: BigInteger): BigDecimal {
 }
 
 @UseCaseBinding
-fun bindValidatorPrefs(scale: String, runtime: RuntimeSnapshot): ValidatorPrefs {
-    val type = runtime.typeRegistry["ValidatorPrefs"] ?: incompatible()
+fun bindValidatorPrefs(scale: String, runtime: RuntimeSnapshot, type: Type<*>): ValidatorPrefs {
     val decoded = type.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
 
     return ValidatorPrefs(

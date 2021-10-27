@@ -1,5 +1,5 @@
 {
-  "runtime_id": 30,
+  "runtime_id": 9090,
   "types": {
     "Address": "MultiAddress",
     "LookupSource": "MultiAddress",
@@ -10,21 +10,21 @@
     "Keys": {
       "type": "struct",
       "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"],
-        ["para_validator", "AccountId"],
-        ["para_assignment", "AccountId"],
-        ["authority_discovery", "AccountId"]
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"],
+         ["para_validator", "AccountId"],
+         ["para_assignment", "AccountId"],
+         ["authority_discovery", "AccountId"]
       ]
     },
     "ValidatorPrefs": "ValidatorPrefsWithBlocked",
     "DispatchInfo": {
       "type": "struct",
       "type_mapping": [
-        ["weight", "Weight"],
-        ["class", "DispatchClass"],
-        ["paysFee", "Pays"]
+         ["weight", "Weight"],
+         ["class", "DispatchClass"],
+         ["paysFee", "Pays"]
       ]
     },
     "ProxyType": {
@@ -39,7 +39,8 @@
         "CancelProxy"
       ]
     },
-    "RefCount": "u32"
+    "RefCount": "u32",
+    "CompactAssignments": "CompactAssignmentsWith16"
   },
   "versioning": [
     {
@@ -48,11 +49,11 @@
         "OpenTip": {
           "type": "struct",
           "type_mapping": [
-            ["reason", "Hash"],
-            ["who", "AccountId"],
-            ["finder", "Option<OpenTipFinder>"],
-            ["closes", "Option<BlockNumber>"],
-            ["tips", "Vec<OpenTipTip>"]
+             ["reason", "Hash"],
+             ["who", "AccountId"],
+             ["finder", "Option<OpenTipFinder>"],
+             ["closes", "Option<BlockNumber>"],
+             ["tips", "Vec<OpenTipTip>"]
           ]
         }
       }
@@ -63,13 +64,13 @@
         "OpenTip": {
           "type": "struct",
           "type_mapping": [
-            ["reason", "Hash"],
-            ["who", "AccountId"],
-            ["finder", "AccountId"],
-            ["deposit", "Balance"],
-            ["closes", "Option<BlockNumber>"],
-            ["tips", "Vec<OpenTipTip>"],
-            ["findersFee", "bool"]
+             ["reason", "Hash"],
+             ["who", "AccountId"],
+             ["finder", "AccountId"],
+             ["deposit", "Balance"],
+             ["closes", "Option<BlockNumber>"],
+             ["tips", "Vec<OpenTipTip>"],
+             ["findersFee", "bool"]
           ]
         }
       }
@@ -83,7 +84,7 @@
     {
       "runtime_range": [23, null],
       "types": {
-        "CompactAssignments": "CompactAssignmentsFrom258"
+        "CompactAssignments": "CompactAssignmentsWith16"
       }
     },
     {
@@ -107,11 +108,11 @@
         "Keys": {
           "type": "struct",
           "type_mapping": [
-            ["grandpa", "AccountId"],
-            ["babe", "AccountId"],
-            ["im_online", "AccountId"],
-            ["authority_discovery", "AccountId"],
-            ["parachains", "AccountId"]
+             ["grandpa", "AccountId"],
+             ["babe", "AccountId"],
+             ["im_online", "AccountId"],
+             ["authority_discovery", "AccountId"],
+             ["parachains", "AccountId"]
           ]
         },
         "ValidatorPrefs": "ValidatorPrefsWithCommission"
@@ -126,12 +127,12 @@
         "Keys": {
           "type": "struct",
           "type_mapping": [
-            ["grandpa", "AccountId"],
-            ["babe", "AccountId"],
-            ["im_online", "AccountId"],
-            ["para_validator", "AccountId"],
-            ["para_assignment", "AccountId"],
-            ["authority_discovery", "AccountId"]
+             ["grandpa", "AccountId"],
+             ["babe", "AccountId"],
+             ["im_online", "AccountId"],
+             ["para_validator", "AccountId"],
+             ["para_assignment", "AccountId"],
+             ["authority_discovery", "AccountId"]
           ]
         },
         "ValidatorPrefs": "ValidatorPrefsWithBlocked"
@@ -149,5 +150,13 @@
         "AccountInfo": "AccountInfoWithTripleRefCount"
       }
     }
+  ],
+  "runtime_upgrades": [
+    [0, 0], [29231, 1], [188836, 5], [199405, 6], [214264, 7],
+    [244358, 8], [303079, 9], [314201, 10], [342400, 11], [443963, 12],
+    [528470, 13], [687751, 14], [746085, 15], [787923, 16], [799302, 17],
+    [1205128, 18], [1603423, 23], [1733218, 24], [2005673, 25], [2436698, 26],
+    [3613564, 27], [3899547, 28], [4345767, 29], [4876134, 30], [5661442, 9050],
+    [6321619, 9080], [6713249, 9090]
   ]
 }

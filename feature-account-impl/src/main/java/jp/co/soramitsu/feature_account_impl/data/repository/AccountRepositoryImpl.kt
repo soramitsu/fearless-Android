@@ -4,7 +4,11 @@ import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
 import jp.co.soramitsu.common.resources.LanguagesHolder
-import jp.co.soramitsu.common.utils.*
+import jp.co.soramitsu.common.utils.deriveSeed32
+import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.utils.networkType
+import jp.co.soramitsu.common.utils.nullIfEmpty
+import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.JsonFormer
 import jp.co.soramitsu.core.model.Language
@@ -16,6 +20,7 @@ import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
@@ -26,9 +31,9 @@ import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -241,7 +246,7 @@ class AccountRepositoryImpl(
             val newAccount = with(importData) {
                 val publicKeyEncoded = Hex.toHexString(keypair.publicKey)
 
-                val cryptoType = mapEncryptionToCryptoType(encryptionType)
+                val cryptoType = mapEncryptionToCryptoType(multiChainEncryption.encryptionType)
 
                 val securitySource = SecuritySource.Specified.Json(seed, keypair)
 
@@ -324,7 +329,7 @@ class AccountRepositoryImpl(
 
             with(importAccountMeta) {
                 val networkType = constructNetworkType(networkTypeIdentifier)
-                val cryptoType = mapEncryptionToCryptoType(encryptionType)
+                val cryptoType = mapEncryptionToCryptoType(encryption.encryptionType)
 
                 ImportJsonData(name, networkType, cryptoType)
             }
@@ -356,9 +361,9 @@ class AccountRepositoryImpl(
                 seed = seed,
                 password = password,
                 name = account.name.orEmpty(),
-                encryptionType = cryptoType,
+                multiChainEncryption = MultiChainEncryption.Substrate(cryptoType),
                 genesisHash = runtimeConfiguration.genesisHash,
-                addressByte = runtimeConfiguration.addressByte
+                address = securitySource.keypair.publicKey.toAddress(runtimeConfiguration.addressByte)
             )
         }
     }

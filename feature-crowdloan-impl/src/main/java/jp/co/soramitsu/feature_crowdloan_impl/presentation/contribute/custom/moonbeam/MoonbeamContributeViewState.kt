@@ -23,6 +23,5 @@ class MoonbeamContributeViewState(
     }
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {
-
     }
 }

@@ -1,5 +1,5 @@
 {
-  "runtime_id": 900,
+  "runtime_id": 9070,
   "types": {
     "Address": "MultiAddress",
     "LookupSource": "MultiAddress",
@@ -19,7 +19,8 @@
         "CancelProxy"
       ]
     },
-    "RefCount": "u32"
+    "RefCount": "u32",
+    "CompactAssignments": "CompactAssignmentsFrom258"
   },
   "versioning": [
     {
@@ -28,11 +29,11 @@
         "OpenTip": {
           "type": "struct",
           "type_mapping": [
-            ["reason", "Hash"],
-            ["who", "AccountId"],
-            ["finder", "Option<OpenTipFinder>"],
-            ["closes", "Option<BlockNumber>"],
-            ["tips", "Vec<OpenTipTip>"]
+             ["reason", "Hash"],
+             ["who", "AccountId"],
+             ["finder", "Option<OpenTipFinder>"],
+             ["closes", "Option<BlockNumber>"],
+             ["tips", "Vec<OpenTipTip>"]
           ]
         }
       }
@@ -43,13 +44,13 @@
         "OpenTip": {
           "type": "struct",
           "type_mapping": [
-            ["reason", "Hash"],
-            ["who", "AccountId"],
-            ["finder", "AccountId"],
-            ["deposit", "Balance"],
-            ["closes", "Option<BlockNumber>"],
-            ["tips", "Vec<OpenTipTip>"],
-            ["findersFee", "bool"]
+             ["reason", "Hash"],
+             ["who", "AccountId"],
+             ["finder", "AccountId"],
+             ["deposit", "Balance"],
+             ["closes", "Option<BlockNumber>"],
+             ["tips", "Vec<OpenTipTip>"],
+             ["findersFee", "bool"]
           ]
         }
       }
@@ -84,18 +85,18 @@
         "Heartbeat": {
           "type": "struct",
           "type_mapping": [
-            ["blockNumber", "BlockNumber"],
-            ["networkState", "OpaqueNetworkState"],
-            ["sessionIndex", "SessionIndex"],
-            ["authorityIndex", "AuthIndex"]
+             ["blockNumber", "BlockNumber"],
+             ["networkState", "OpaqueNetworkState"],
+             ["sessionIndex", "SessionIndex"],
+             ["authorityIndex", "AuthIndex"]
           ]
         },
         "DispatchInfo": {
           "type": "struct",
           "type_mapping": [
-            ["weight", "Weight"],
-            ["class", "DispatchClass"],
-            ["paysFee", "bool"]
+             ["weight", "Weight"],
+             ["class", "DispatchClass"],
+             ["paysFee", "bool"]
           ]
         }
       }
@@ -106,19 +107,19 @@
         "Heartbeat": {
           "type": "struct",
           "type_mapping": [
-            ["blockNumber", "BlockNumber"],
-            ["networkState", "OpaqueNetworkState"],
-            ["sessionIndex", "SessionIndex"],
-            ["authorityIndex", "AuthIndex"],
-            ["validatorsLen", "u32"]
+             ["blockNumber", "BlockNumber"],
+             ["networkState", "OpaqueNetworkState"],
+             ["sessionIndex", "SessionIndex"],
+             ["authorityIndex", "AuthIndex"],
+             ["validatorsLen", "u32"]
           ]
         },
         "DispatchInfo": {
           "type": "struct",
           "type_mapping": [
-            ["weight", "Weight"],
-            ["class", "DispatchClass"],
-            ["paysFee", "Pays"]
+             ["weight", "Weight"],
+             ["class", "DispatchClass"],
+             ["paysFee", "Pays"]
           ]
         }
       }
@@ -144,11 +145,11 @@
         "Keys": {
           "type": "struct",
           "type_mapping": [
-            ["grandpa", "AccountId"],
-            ["babe", "AccountId"],
-            ["im_online", "AccountId"],
-            ["authority_discovery", "AccountId"],
-            ["parachains", "AccountId"]
+             ["grandpa", "AccountId"],
+             ["babe", "AccountId"],
+             ["im_online", "AccountId"],
+             ["authority_discovery", "AccountId"],
+             ["parachains", "AccountId"]
           ]
         },
         "ValidatorPrefs": "ValidatorPrefsWithCommission"
@@ -180,5 +181,14 @@
         "Keys": "SessionKeys6"
       }
     }
+  ],
+  "runtime_upgrades": [
+    [214356, 4], [392764, 7], [409740, 8], [809976, 20], [877581, 24],
+    [879238, 25], [889472, 26], [902937, 27], [932751, 28], [991142, 29],
+    [1030162, 31], [1119657, 32], [1199282, 33], [1342534, 34], [1392263, 35],
+    [1431703, 36], [1433369, 37], [1490972, 41], [2087397, 43], [2316688, 44],
+    [2549864, 45], [3925782, 46], [3925843, 47], [4207800, 48], [4627944, 49],
+    [5124076, 50], [5478664, 900], [5482450, 9000], [5584305, 9010], [5784566, 9030],
+    [5879822, 9031], [5896856, 9032], [5897316, 9033], [6117927, 9050], [6210274, 9070]
   ]
 }

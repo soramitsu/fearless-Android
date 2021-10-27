@@ -5,6 +5,4 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.Cus
 
 class MoonbeamContributeSubmitter(
     private val interactor: MoonbeamContributeInteractor
-) : CustomContributeSubmitter {
-
-}
+) : CustomContributeSubmitter

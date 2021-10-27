@@ -6,15 +6,18 @@ import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
+import jp.co.soramitsu.common.data.network.runtime.binding.returnType
+import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.UnlockChunk
 
 @UseCaseBinding
 fun bindStakingLedger(scale: String, runtime: RuntimeSnapshot): StakingLedger {
-    val type = runtime.typeRegistry["StakingLedger"] ?: incompatible()
+    val type = runtime.metadata.staking().storage("Ledger").returnType()
     val dynamicInstance = type.fromHexOrNull(runtime, scale) ?: incompatible()
     requireType<Struct.Instance>(dynamicInstance)
 

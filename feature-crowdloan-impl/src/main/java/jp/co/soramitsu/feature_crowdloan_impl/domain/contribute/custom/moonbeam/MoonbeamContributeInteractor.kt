@@ -7,7 +7,4 @@ class MoonbeamContributeInteractor(
     private val moonbeamApi: MoonbeamApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     val fearlessReferralCode: String,
-) {
-
-
-}
+)

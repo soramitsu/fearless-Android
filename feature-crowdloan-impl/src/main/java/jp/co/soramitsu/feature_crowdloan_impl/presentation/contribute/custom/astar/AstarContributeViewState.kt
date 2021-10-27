@@ -30,7 +30,6 @@ class AstarContributeViewState(
         it.calculateFriendBonus(customContributePayload.amount)?.formatTokenAmount(tokenName)
     }
 
-
     override fun createBonusPayload(referralCode: String): ReferralCodePayload {
         return AstarBonusPayload(referralCode, customContributePayload.parachainMetadata.rewardRate)
     }

@@ -20,19 +20,19 @@ interface MoonbeamApi {
         @Path("address") address: String
     ): VerifyCheckResponse
 
-    //store user agreement
+    // store user agreement
     @POST("/agree-remark")
     suspend fun agreeRemark(
         @Body body: RemarkStoreRequest
     ): RemarkStoreResponse
 
-    //store remark transaction confirmation for given address
+    // store remark transaction confirmation for given address
     @POST("/verify-remark")
     suspend fun verifyRemark(
         @Body body: RemarkVerifyRequest
     ): RemarkVerifyResponse
 
-    //record the emails of people who submit contributions via the Liquid Crowdloan DOT
+    // record the emails of people who submit contributions via the Liquid Crowdloan DOT
     @POST("/make-signature")
     suspend fun makeSignature(
         @Body body: SignatureRequest

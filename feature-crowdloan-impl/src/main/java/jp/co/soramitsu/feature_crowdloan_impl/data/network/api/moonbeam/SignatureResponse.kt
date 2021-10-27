@@ -8,6 +8,6 @@ class SignatureResponse(
     @SerializedName("previous-total-contribution")
     val previousTotalContribution: String,
     val signature: String,
-    @SerializedName("time-stamp") //yyyy-mm-ddThh:mm:ss.ffffff
+    @SerializedName("time-stamp") // yyyy-mm-ddThh:mm:ss.ffffff
     val timeStamp: String,
 )

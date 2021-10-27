@@ -1,5 +1,5 @@
 {
-  "runtime_id": 2030,
+  "runtime_id": 9090,
   "types": {
     "Address": "MultiAddress",
     "LookupSource": "MultiAddress",
@@ -10,20 +10,20 @@
     "Keys": {
       "type": "struct",
       "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"],
-        ["para_validator", "AccountId"],
-        ["para_assignment", "AccountId"],
-        ["authority_discovery", "AccountId"]
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"],
+         ["para_validator", "AccountId"],
+         ["para_assignment", "AccountId"],
+         ["authority_discovery", "AccountId"]
       ]
     },
     "DispatchInfo": {
       "type": "struct",
       "type_mapping": [
-        ["weight", "Weight"],
-        ["class", "DispatchClass"],
-        ["paysFee", "Pays"]
+         ["weight", "Weight"],
+         ["class", "DispatchClass"],
+         ["paysFee", "Pays"]
       ]
     },
     "ProxyType": {
@@ -38,7 +38,8 @@
       ]
     },
     "RefCount": "u32",
-    "ValidatorPrefs": "ValidatorPrefsWithBlocked"
+    "ValidatorPrefs": "ValidatorPrefsWithBlocked",
+    "CompactAssignments":  "CompactAssignmentsWith24"
   },
   "versioning": [
     {
@@ -73,14 +74,14 @@
         "IdentityInfo": {
           "type": "struct",
           "type_mapping": [
-            ["additional", "Vec<IdentityInfoAdditional>"],
-            ["display", "Data"],
-            ["legal", "Data"],
-            ["web", "Data"],
-            ["riot", "Data"],
-            ["email", "Data"],
-            ["pgpFingerprint", "Option<H160>"],
-            ["image", "Data"]
+             ["additional", "Vec<IdentityInfoAdditional>"],
+             ["display", "Data"],
+             ["legal", "Data"],
+             ["web", "Data"],
+             ["riot", "Data"],
+             ["email", "Data"],
+             ["pgpFingerprint", "Option<H160>"],
+             ["image", "Data"]
           ]
         }
       }
@@ -91,15 +92,15 @@
         "IdentityInfo": {
           "type": "struct",
           "type_mapping": [
-            ["additional", "Vec<IdentityInfoAdditional>"],
-            ["display", "Data"],
-            ["legal", "Data"],
-            ["web", "Data"],
-            ["riot", "Data"],
-            ["email", "Data"],
-            ["pgpFingerprint", "Option<H160>"],
-            ["image", "Data"],
-            ["twitter", "Data"]
+             ["additional", "Vec<IdentityInfoAdditional>"],
+             ["display", "Data"],
+             ["legal", "Data"],
+             ["web", "Data"],
+             ["riot", "Data"],
+             ["email", "Data"],
+             ["pgpFingerprint", "Option<H160>"],
+             ["image", "Data"],
+             ["twitter", "Data"]
           ]
         }
       }
@@ -110,9 +111,9 @@
         "SlashingSpans": {
           "type": "struct",
           "type_mapping": [
-            ["spanIndex", "SpanIndex"],
-            ["lastStart", "EraIndex"],
-            ["prior", "Vec<EraIndex>"]
+             ["spanIndex", "SpanIndex"],
+             ["lastStart", "EraIndex"],
+             ["prior", "Vec<EraIndex>"]
           ]
         }
       }
@@ -123,10 +124,10 @@
         "SlashingSpans": {
           "type": "struct",
           "type_mapping": [
-            ["spanIndex", "SpanIndex"],
-            ["lastStart", "EraIndex"],
-            ["lastNonzeroSlash", "EraIndex"],
-            ["prior", "Vec<EraIndex>"]
+             ["spanIndex", "SpanIndex"],
+             ["lastStart", "EraIndex"],
+             ["lastNonzeroSlash", "EraIndex"],
+             ["prior", "Vec<EraIndex>"]
           ]
         }
       }
@@ -138,10 +139,10 @@
         "BalanceLock": {
           "type": "struct",
           "type_mapping": [
-            ["id", "LockIdentifier"],
-            ["amount", "Balance"],
-            ["until", "BlockNumber"],
-            ["reasons", "WithdrawReasons"]
+             ["id", "LockIdentifier"],
+             ["amount", "Balance"],
+             ["until", "BlockNumber"],
+             ["reasons", "WithdrawReasons"]
           ]
         }
       }
@@ -153,9 +154,9 @@
         "BalanceLock": {
           "type": "struct",
           "type_mapping": [
-            ["id", "LockIdentifier"],
-            ["amount", "Balance"],
-            ["reasons", "Reasons"]
+             ["id", "LockIdentifier"],
+             ["amount", "Balance"],
+             ["reasons", "Reasons"]
           ]
         }
       }
@@ -191,9 +192,9 @@
         "BalanceLock": {
           "type": "struct",
           "type_mapping": [
-            ["id", "LockIdentifier"],
-            ["amount", "Balance"],
-            ["reasons", "Reasons"]
+             ["id", "LockIdentifier"],
+             ["amount", "Balance"],
+             ["reasons", "Reasons"]
           ]
         }
       }
@@ -204,10 +205,10 @@
         "ReferendumInfo": {
           "type": "struct",
           "type_mapping": [
-            ["end", "BlockNumber"],
-            ["proposal", "Proposal"],
-            ["threshold", "VoteThreshold"],
-            ["delay", "BlockNumber"]
+             ["end", "BlockNumber"],
+             ["proposal", "Proposal"],
+             ["threshold", "VoteThreshold"],
+             ["delay", "BlockNumber"]
           ]
         }
       }
@@ -242,18 +243,18 @@
         "Heartbeat": {
           "type": "struct",
           "type_mapping": [
-            ["blockNumber", "BlockNumber"],
-            ["networkState", "OpaqueNetworkState"],
-            ["sessionIndex", "SessionIndex"],
-            ["authorityIndex", "AuthIndex"]
+             ["blockNumber", "BlockNumber"],
+             ["networkState", "OpaqueNetworkState"],
+             ["sessionIndex", "SessionIndex"],
+             ["authorityIndex", "AuthIndex"]
           ]
         },
         "DispatchInfo": {
           "type": "struct",
           "type_mapping": [
-            ["weight", "Weight"],
-            ["class", "DispatchClass"],
-            ["paysFee", "bool"]
+             ["weight", "Weight"],
+             ["class", "DispatchClass"],
+             ["paysFee", "bool"]
           ]
         }
       }
@@ -264,19 +265,19 @@
         "Heartbeat": {
           "type": "struct",
           "type_mapping": [
-            ["blockNumber", "BlockNumber"],
-            ["networkState", "OpaqueNetworkState"],
-            ["sessionIndex", "SessionIndex"],
-            ["authorityIndex", "AuthIndex"],
-            ["validatorsLen", "u32"]
+             ["blockNumber", "BlockNumber"],
+             ["networkState", "OpaqueNetworkState"],
+             ["sessionIndex", "SessionIndex"],
+             ["authorityIndex", "AuthIndex"],
+             ["validatorsLen", "u32"]
           ]
         },
         "DispatchInfo": {
           "type": "struct",
           "type_mapping": [
-            ["weight", "Weight"],
-            ["class", "DispatchClass"],
-            ["paysFee", "Pays"]
+             ["weight", "Weight"],
+             ["class", "DispatchClass"],
+             ["paysFee", "Pays"]
           ]
         }
       }
@@ -287,11 +288,11 @@
         "OpenTip": {
           "type": "struct",
           "type_mapping": [
-            ["reason", "Hash"],
-            ["who", "AccountId"],
-            ["finder", "Option<OpenTipFinder>"],
-            ["closes", "Option<BlockNumber>"],
-            ["tips", "Vec<OpenTipTip>"]
+             ["reason", "Hash"],
+             ["who", "AccountId"],
+             ["finder", "Option<OpenTipFinder>"],
+             ["closes", "Option<BlockNumber>"],
+             ["tips", "Vec<OpenTipTip>"]
           ]
         }
       }
@@ -302,13 +303,13 @@
         "OpenTip": {
           "type": "struct",
           "type_mapping": [
-            ["reason", "Hash"],
-            ["who", "AccountId"],
-            ["finder", "AccountId"],
-            ["deposit", "Balance"],
-            ["closes", "Option<BlockNumber>"],
-            ["tips", "Vec<OpenTipTip>"],
-            ["findersFee", "bool"]
+             ["reason", "Hash"],
+             ["who", "AccountId"],
+             ["finder", "AccountId"],
+             ["deposit", "Balance"],
+             ["closes", "Option<BlockNumber>"],
+             ["tips", "Vec<OpenTipTip>"],
+             ["findersFee", "bool"]
           ]
         }
       }
@@ -320,9 +321,15 @@
       }
     },
     {
-      "runtime_range": [2023, null],
+      "runtime_range": [2023, 9009],
       "types": {
-        "CompactAssignments": "CompactAssignmentsFrom258"
+        "CompactAssignments": "CompactAssignmentsWith16"
+      }
+    },
+    {
+      "runtime_range": [9010, null],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsWith24"
       }
     },
     {
@@ -346,11 +353,11 @@
         "Keys": {
           "type": "struct",
           "type_mapping": [
-            ["grandpa", "AccountId"],
-            ["babe", "AccountId"],
-            ["im_online", "AccountId"],
-            ["authority_discovery", "AccountId"],
-            ["parachains", "AccountId"]
+             ["grandpa", "AccountId"],
+             ["babe", "AccountId"],
+             ["im_online", "AccountId"],
+             ["authority_discovery", "AccountId"],
+             ["parachains", "AccountId"]
           ]
         },
         "ValidatorPrefs": "ValidatorPrefsWithCommission"
@@ -365,11 +372,11 @@
         "Keys": {
           "type": "struct",
           "type_mapping": [
-            ["grandpa", "AccountId"],
-            ["babe", "AccountId"],
-            ["im_online", "AccountId"],
-            ["authority_discovery", "AccountId"],
-            ["parachains", "AccountId"]
+             ["grandpa", "AccountId"],
+             ["babe", "AccountId"],
+             ["im_online", "AccountId"],
+             ["authority_discovery", "AccountId"],
+             ["parachains", "AccountId"]
           ]
         },
         "ValidatorPrefs": "ValidatorPrefsWithCommission"
@@ -383,12 +390,12 @@
         "Keys": {
           "type": "struct",
           "type_mapping": [
-            ["grandpa", "AccountId"],
-            ["babe", "AccountId"],
-            ["im_online", "AccountId"],
-            ["para_validator", "AccountId"],
-            ["para_assignment", "AccountId"],
-            ["authority_discovery", "AccountId"]
+             ["grandpa", "AccountId"],
+             ["babe", "AccountId"],
+             ["im_online", "AccountId"],
+             ["para_validator", "AccountId"],
+             ["para_assignment", "AccountId"],
+             ["authority_discovery", "AccountId"]
           ]
         },
         "ValidatorPrefs": "ValidatorPrefsWithBlocked"
@@ -406,5 +413,17 @@
         "AccountInfo": "AccountInfoWithTripleRefCount"
       }
     }
+  ],
+  "runtime_upgrades": [
+    [0, 1020], [26669, 1021], [38245, 1022], [54248, 1023], [59659, 1024],
+    [67651, 1025], [82191, 1027], [83238, 1028], [101503, 1029], [203466, 1030],
+    [295787, 1031], [461692, 1032], [504329, 1033], [569327, 1038], [587687, 1039],
+    [653183, 1040], [693488, 1042], [901442, 1045], [1375086, 1050], [1445458, 1051],
+    [1472960, 1052], [1475648, 1053], [1491596, 1054], [1574408, 1055], [2064961, 1058],
+    [2201991, 1062], [2671528, 2005], [2704202, 2007], [2728002, 2008], [2832534, 2011],
+    [2962294, 2012], [3240000, 2013], [3274408, 2015], [3323565, 2019], [3534175, 2022],
+    [3860281, 2023], [4143129, 2024], [4401242, 2025], [4841367, 2026], [5961600, 2027],
+    [6137912, 2028], [6561855, 2029], [7100891, 2030], [7468792, 9010], [7668600, 9030],
+    [7812476, 9040], [8010981, 9050], [8073833, 9070], [8555825, 9080], [8945245, 9090]
   ]
 }
