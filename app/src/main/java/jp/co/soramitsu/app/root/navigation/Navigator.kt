@@ -250,6 +250,10 @@ class Navigator :
         get() = navController!!.currentBackStackEntry!!.savedStateHandle
             .get(CrowdloanContributeFragment.KEY_BONUS_LIVE_DATA)
 
+    override fun openMoonbeamContribute(payload: CustomContributePayload) {
+        navController?.navigate(R.id.action_mainFragment_to_customContributeFragment, CustomContributeFragment.getBundle(payload))
+    }
+
     override fun openCustomContribute(payload: CustomContributePayload) {
         navController?.navigate(R.id.action_crowdloanContributeFragment_to_customContributeFragment, CustomContributeFragment.getBundle(payload))
     }

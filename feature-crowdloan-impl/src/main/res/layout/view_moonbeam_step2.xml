@@ -10,10 +10,11 @@
     <TextView
         android:id="@+id/tvMoonbeamRegistration"
         style="@style/TextAppearance.Soramitsu.Header4"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
         android:text="@string/moonbeam_registration" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
@@ -21,9 +22,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        app:actionIcon="@drawable/ic_more_vertical"
+        app:actionIcon="@null"
         app:label="@string/common_account"
         app:layout_constraintTop_toBottomOf="@id/tvMoonbeamRegistration" />
 
@@ -43,11 +44,10 @@
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="16dp"
         android:includeFontPadding="false"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
         android:text="@string/moonbeam_registration_description"
         android:textColor="@color/button_text_colors"
         app:layout_constraintEnd_toEndOf="parent"
@@ -58,8 +58,7 @@
         android:id="@+id/confirmContributeFee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:paddingHorizontal="16dp"
         android:background="@color/black4"
         app:layout_constraintBottom_toBottomOf="parent" />
 

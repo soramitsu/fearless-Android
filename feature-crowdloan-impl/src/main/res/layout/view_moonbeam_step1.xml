@@ -13,13 +13,15 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp">
 
             <TextView
                 android:id="@+id/tvMoonbeamTermsTitle"
                 style="@style/TextAppearance.Soramitsu.Body1"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/soramitsu_semibold"
                 android:text="@string/moonbeam_crowdloan_terms"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -29,14 +31,11 @@
                 style="@style/TextAppearance.Soramitsu.Body1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
                 android:includeFontPadding="false"
-                android:paddingStart="12dp"
-                android:paddingTop="6dp"
-                android:paddingEnd="12dp"
-                android:paddingBottom="6dp"
+                android:lineSpacingExtra="3sp"
                 android:textColor="@color/button_text_colors"
+                android:textSize="12sp"
                 app:layout_constraintTop_toBottomOf="@id/tvMoonbeamTermsTitle"
                 tools:text="By accessing the Moonbeam Crowdloan Application Moonbeam Crowdloan Application, you represent and warrant to the Moonbeam Foundation LTD. (Moonbeam Foundation) as follows:" />
 
@@ -55,6 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/crowdloan_privacy_policy"
+                android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@id/referralPrivacySwitch"
                 app:layout_constraintStart_toEndOf="@id/referralPrivacySwitch"
                 app:layout_constraintTop_toTopOf="@id/referralPrivacySwitch" />

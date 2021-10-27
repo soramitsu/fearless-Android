@@ -13,7 +13,7 @@ interface CustomContributeFactory {
 
     fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): CustomContributeViewState
 
-    fun createView(context: Context): CustomContributeView
+    fun createView(context: Context, step: Int = 0): CustomContributeView
 
     val submitter: CustomContributeSubmitter
 }

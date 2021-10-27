@@ -4,6 +4,7 @@ import android.content.Context
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.astar.AstarContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarContributeSubmitter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarContributeViewState
@@ -22,5 +23,5 @@ class AstarContributeFactory(
         return AstarContributeViewState(interactor, payload, resourceManager)
     }
 
-    override fun createView(context: Context) = AstarContributeView(context)
+    override fun createView(context: Context, step: Int): CustomContributeView = AstarContributeView(context)
 }

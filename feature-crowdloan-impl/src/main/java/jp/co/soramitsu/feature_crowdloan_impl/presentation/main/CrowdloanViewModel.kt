@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
@@ -25,6 +26,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import kotlin.reflect.KClass
 
 private const val ICON_SIZE_DP = 40
@@ -133,7 +135,23 @@ class CrowdloanViewModel(
                 parachainMetadata = crowdloan.parachainMetadata?.let(::mapParachainMetadataToParcel)
             )
 
-            router.openContribute(payload)
+
+            if (paraId == 2087.toBigInteger()) {
+                //todo check for moonbeam paraId
+                //todo health
+                //todo check terms signed
+                val customContributePayload = CustomContributePayload(
+                    paraId = 2002.toBigInteger(),
+//                    paraId = payload.paraId,
+                    parachainMetadata = payload.parachainMetadata!!,
+                    amount = BigDecimal.ZERO,
+                    previousBonusPayload = router.latestCustomBonus,
+                )
+
+                router.openMoonbeamContribute(customContributePayload)
+            } else {
+                router.openContribute(payload)
+            }
         }
     }
 }

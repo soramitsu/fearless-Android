@@ -14,10 +14,8 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
-import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeApply
-import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeContainer
-import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeToolbar
-import kotlinx.android.synthetic.main.fragment_custom_contribute.customFlowContainer
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
+import kotlinx.android.synthetic.main.fragment_custom_contribute.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -28,6 +26,8 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
     @Inject
     protected lateinit var contributionManager: CustomContributeManager
+
+    private val payload by lazy { argument<CustomContributePayload>(KEY_PAYLOAD) }
 
     companion object {
 
@@ -53,10 +53,23 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
         customContributeApply.prepareForProgress(viewLifecycleOwner)
         customContributeApply.setOnClickListener { viewModel.applyClicked() }
+
+//        val payload = argument<CustomContributePayload>(KEY_PAYLOAD)
+        if (payload.isMoonbeam) {
+            val title = when (payload.step) {
+                0, 2 -> payload.parachainMetadata.run {
+                    "$name ($token)"
+                }
+                1 -> getString(R.string.common_confirm)
+                else -> getString(R.string.common_bonus)
+            }
+
+            customContributeToolbar.setTitle(title)
+        }
     }
 
     override fun inject() {
-        val payload = argument<CustomContributePayload>(KEY_PAYLOAD)
+//        val payload = argument<CustomContributePayload>(KEY_PAYLOAD)
 
         FeatureUtils.getFeature<CrowdloanFeatureComponent>(
             requireContext(),
@@ -78,16 +91,33 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                     }
                     state is ApplyActionState.Available -> {
                         customContributeApply.setState(ButtonState.NORMAL)
-                        customContributeApply.setText(R.string.common_apply)
+//                        val payload = argument<CustomContributePayload>(KEY_PAYLOAD)
+                        if (payload.isMoonbeam) {
+                            when (payload.step) {
+                                0 -> customContributeApply.setText(R.string.common_continue)
+                                1 -> customContributeApply.setText(R.string.common_confirm)
+                                2 -> customContributeApply.setText(R.string.common_continue)
+                            }
+                        } else {
+                            customContributeApply.setText(R.string.common_apply)
+                        }
                     }
                 }
             }.collect()
         }
 
+        viewModel.selectedAddressModelFlow.observe { address ->
+            view?.findViewById<jp.co.soramitsu.common.view.LabeledTextView>(R.id.tvMoonbeamRegistrationAccount)?.let {
+                it.setMessage(address.nameOrAddress)
+                it.setTextIcon(address.image)
+            }
+        }
+
         viewModel.viewStateFlow.observe { viewState ->
             customFlowContainer.removeAllViews()
 
-            val newView = contributionManager.createView(viewModel.customFlowType, requireContext())
+            val step = (viewState as? MoonbeamContributeViewState)?.customContributePayload?.step ?: 0
+            val newView = contributionManager.createView(viewModel.customFlowType, requireContext(), step)
 
             customFlowContainer.addView(newView)
 

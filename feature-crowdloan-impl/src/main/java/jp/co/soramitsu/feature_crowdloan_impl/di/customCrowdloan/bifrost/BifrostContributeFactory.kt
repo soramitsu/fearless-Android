@@ -4,6 +4,7 @@ import android.content.Context
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.bifrost.BifrostContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.bifrost.BifrostContributeSubmitter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.bifrost.BifrostContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
@@ -23,5 +24,5 @@ class BifrostContributeFactory(
         return BifrostContributeViewState(interactor, payload, resourceManager, termsLink, interactor)
     }
 
-    override fun createView(context: Context) = ReferralContributeView(context)
+    override fun createView(context: Context, step: Int): CustomContributeView = ReferralContributeView(context)
 }

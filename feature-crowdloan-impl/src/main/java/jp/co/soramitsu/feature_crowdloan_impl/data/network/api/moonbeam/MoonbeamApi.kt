@@ -12,6 +12,9 @@ interface MoonbeamApi {
         const val BASE_URL_TEST = "https://wallet-test.api.purestake.xyz"
     }
 
+    @GET("//raw.githubusercontent.com/moonbeam-foundation/crowdloan-self-attestation/main/moonbeam/README.md")
+    suspend fun getTerms(): String
+
     @GET("/health")
     suspend fun getHealth(): Any?
 

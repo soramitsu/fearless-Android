@@ -9,5 +9,14 @@ class MoonbeamContributeInteractor(
     val fearlessReferralCode: String,
 ) {
 
+    suspend fun getHealth() = try {
+            moonbeamApi.getHealth()
+        } catch (e: Throwable) {
 
+        }
+
+
+    suspend fun getTerms(): String {
+        return httpExceptionHandler.wrap { moonbeamApi.getTerms() }
+    }
 }

@@ -27,8 +27,8 @@ class CustomContributeManager(
         return relevantFactory(flowType).submitter
     }
 
-    fun createView(flowType: String, context: Context): CustomContributeView {
-        return relevantFactory(flowType).createView(context)
+    fun createView(flowType: String, context: Context, step: Int): CustomContributeView {
+        return relevantFactory(flowType).createView(context, step)
     }
 
     private fun relevantFactory(flowType: String) = relevantFactoryOrNull(flowType) ?: noFactoryFound(flowType)

@@ -6,8 +6,10 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewModel
@@ -23,8 +25,10 @@ class CustomContributeModule {
         customContributeManager: CustomContributeManager,
         payload: CustomContributePayload,
         router: CrowdloanRouter,
+        accountUseCase: SelectedAccountUseCase,
+        addressIconGenerator: AddressIconGenerator,
     ): ViewModel {
-        return CustomContributeViewModel(customContributeManager, payload, router)
+        return CustomContributeViewModel(customContributeManager, payload, router, accountUseCase, addressIconGenerator)
     }
 
     @Provides
