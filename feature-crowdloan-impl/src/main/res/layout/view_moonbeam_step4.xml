@@ -26,7 +26,7 @@
                 android:text="@string/crowdloan_contribute_title" />
 
             <jp.co.soramitsu.common.view.AmountView
-                android:id="@+id/crowdloanContributeAmount"
+                android:id="@+id/moonbeamContributeAmount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -48,7 +48,7 @@
                     app:tint="@color/black2" />
 
                 <TextView
-                    android:id="@+id/crowdloanContributeUnlockHint"
+                    android:id="@+id/moonbeamContributeUnlockHint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
@@ -57,7 +57,7 @@
             </LinearLayout>
 
             <jp.co.soramitsu.common.view.TableCellView
-                android:id="@+id/crowdloanContributeLeasingPeriod"
+                android:id="@+id/moonbeamContributeLeasingPeriod"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -66,7 +66,7 @@
                 app:title="@string/crowdloan_leasing_period" />
 
             <jp.co.soramitsu.common.view.TableCellView
-                android:id="@+id/crowdloanContributeReward"
+                android:id="@+id/moonbeamContributeReward"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -115,7 +115,7 @@
                 android:text="@string/crowdloan_info" />
 
             <jp.co.soramitsu.common.view.TableCellView
-                android:id="@+id/crowdloanContributeRaised"
+                android:id="@+id/moonbeamContributeRaised"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -123,7 +123,7 @@
                 app:title="@string/crowdloan_raised" />
 
             <jp.co.soramitsu.common.view.TableCellView
-                android:id="@+id/crowdloanContributeTimeLeft"
+                android:id="@+id/moonbeamContributeTimeLeft"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -133,7 +133,7 @@
             <jp.co.soramitsu.common.view.GoNextView
                 android:layout_width="match_parent"
                 app:actionIcon="@drawable/ic_arrow_top_right_white_16"
-                android:id="@+id/crowdloanContributeLearnMore"
+                android:id="@+id/moonbeamContributeLearnMore"
                 android:layout_height="wrap_content" />
         </LinearLayout>
     </ScrollView>

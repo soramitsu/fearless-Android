@@ -28,5 +28,6 @@ class MoonbeamStep4Contribute @JvmOverloads constructor(
 
     override fun bind(viewState: CustomContributeViewState, scope: LifecycleCoroutineScope) {
 
+
     }
 }

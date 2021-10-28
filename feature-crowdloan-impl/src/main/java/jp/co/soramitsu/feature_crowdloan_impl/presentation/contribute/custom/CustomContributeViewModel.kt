@@ -3,13 +3,28 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.fractionToPercentage
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class CustomContributeViewModel(
     private val customContributeManager: CustomContributeManager,
@@ -17,6 +32,9 @@ class CustomContributeViewModel(
     private val router: CrowdloanRouter,
     accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
+    private val contributionInteractor: CrowdloanContributeInteractor,
+    private val resourceManager: ResourceManager,
+    assetUseCase: AssetUseCase,
 ) : BaseViewModel() {
 
     val customFlowType = payload.parachainMetadata.customFlow!!
@@ -25,6 +43,7 @@ class CustomContributeViewModel(
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow
 
     val selectedAddressModelFlow = _viewStateFlow
+        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 1 }
         .flatMapLatest { accountUseCase.selectedAccountFlow() }
         .map { addressModelGenerator.createAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name) }
         .share()
@@ -35,6 +54,69 @@ class CustomContributeViewModel(
 
     private val _applyingInProgress = MutableStateFlow(false)
     val applyingInProgress: Flow<Boolean> = _applyingInProgress
+
+    private val parachainMetadata = mapParachainMetadataFromParcel(payload.parachainMetadata)
+
+    private val assetFlow = assetUseCase.currentAssetFlow()
+        .share()
+
+    val assetModelFlow = _viewStateFlow
+        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 3 }
+        .flatMapLatest { assetFlow }
+        .map { mapAssetToAssetModel(it, resourceManager) }
+        .inBackground()
+        .share()
+
+    val unlockHintFlow = _viewStateFlow
+        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 3 }
+        .flatMapLatest { assetFlow }
+        .map {
+            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.type.displayName)
+        }
+        .inBackground()
+        .share()
+
+    private val crowdloanFlow = _viewStateFlow
+        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 3 }
+        .flatMapLatest {
+            contributionInteractor.crowdloanStateFlow(payload.paraId, parachainMetadata)
+                .inBackground()
+        }
+        .share()
+
+    val crowdloanDetailModelFlow = crowdloanFlow.combine(assetFlow) { crowdloan, asset ->
+        val token = asset.token
+
+        val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
+        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
+
+        val timeLeft = when (val state = crowdloan.state) {
+            Crowdloan.State.Finished -> resourceManager.getString(R.string.transaction_status_completed)
+            is Crowdloan.State.Active -> resourceManager.formatDuration(state.remainingTimeInMillis)
+        }
+
+        CrowdloanDetailsModel(
+            leasePeriod = resourceManager.formatDuration(crowdloan.leasePeriodInMillis),
+            leasedUntil = resourceManager.formatDate(crowdloan.leasedUntilInMillis),
+            raised = resourceManager.getString(R.string.crowdloan_raised_amount, raisedDisplay, capDisplay),
+            timeLeft = timeLeft,
+            raisedPercentage = crowdloan.raisedFraction.fractionToPercentage().formatAsPercentage()
+        )
+    }
+        .inBackground()
+        .share()
+
+    val enteredAmountFlow = MutableStateFlow("")
+
+    private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }
+
+    val estimatedRewardFlow = parsedAmountFlow.map { amount ->
+        payload.parachainMetadata.let { metadata ->
+            val estimatedReward = metadata.rewardRate?.let { amount * it }
+
+            estimatedReward?.formatTokenAmount(metadata.token)
+        }
+    }.share()
 
     fun backClicked() {
         if (payload.isMoonbeam) {
