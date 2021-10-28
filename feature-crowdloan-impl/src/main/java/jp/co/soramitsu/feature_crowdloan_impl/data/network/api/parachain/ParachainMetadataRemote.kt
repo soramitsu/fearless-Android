@@ -10,5 +10,17 @@ class ParachainMetadataRemote(
     val token: String,
     val rewardRate: Double?,
     val customFlow: String?,
-    val website: String
+    val website: String,
+    val flow:ParachainMetadataFlowRemote?
+)
+
+data class ParachainMetadataFlowRemote(
+    val name: String,
+    val data:ParachainMetadataFlowDataRemote
+)
+
+data class ParachainMetadataFlowDataRemote(
+    val devApiUrl: String,
+    val devApiKey: String,
+    val termsUrl: String,
 )

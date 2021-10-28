@@ -48,7 +48,7 @@ class AccountFeatureModule {
     fun provideJsonEncoder(
         random: Random,
         jsonMapper: Gson
-    ) = JsonSeedEncoder(jsonMapper, random)
+    ) = JsonSeedEncoder(jsonMapper)
 
     @Provides
     fun provideCryptoChooserMixin(

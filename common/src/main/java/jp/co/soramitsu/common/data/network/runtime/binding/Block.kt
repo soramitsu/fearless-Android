@@ -6,7 +6,7 @@ import java.math.BigInteger
 typealias BlockNumber = BigInteger
 
 fun bindBlockNumber(scale: String, runtime: RuntimeSnapshot): BlockNumber {
-    val type = runtime.typeRegistry["BlockNumber"] ?: incompatible()
+    val type = runtime.typeRegistry["u32"] ?: incompatible()
 
     val dynamicInstance = type.fromHexOrIncompatible(scale, runtime)
 

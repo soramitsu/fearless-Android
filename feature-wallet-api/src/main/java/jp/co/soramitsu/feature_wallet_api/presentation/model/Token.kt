@@ -9,4 +9,5 @@ val Token.Type.icon: Int
         Token.Type.WND -> R.drawable.ic_token_wnd
         Token.Type.DOT -> R.drawable.ic_token_dot
         Token.Type.ROC -> R.drawable.ic_token_dot
+        Token.Type.GLMR -> R.drawable.ic_token_dot
     }

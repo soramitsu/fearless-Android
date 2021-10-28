@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
@@ -35,8 +36,7 @@ fun bindIndividualExposure(dynamicInstance: Any?, runtime: RuntimeSnapshot): Ind
 }
  */
 @UseCaseBinding
-fun bindExposure(scale: String, runtime: RuntimeSnapshot): Exposure {
-    val type = runtime.typeRegistry["Exposure"] ?: incompatible()
+fun bindExposure(scale: String, runtime: RuntimeSnapshot, type: Type<*>): Exposure {
     val decoded = type.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
 
     val total = decoded.get<BigInteger>("total") ?: incompatible()

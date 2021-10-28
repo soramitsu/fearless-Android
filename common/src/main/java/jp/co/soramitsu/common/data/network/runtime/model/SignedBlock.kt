@@ -9,7 +9,7 @@ class SignedBlock(val block: Block, val justification: Any?) {
         class Header(@SerializedName("number") val numberRaw: String, val parentHash: String?) {
             val number: Int
                 get() {
-                    return numberRaw.fromHex().decodeToInt()
+                    return numberRaw.removePrefix("0x").toInt(16)
                 }
         }
     }

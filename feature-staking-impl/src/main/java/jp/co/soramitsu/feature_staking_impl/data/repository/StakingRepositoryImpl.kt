@@ -162,12 +162,13 @@ class StakingRepositoryImpl(
     override suspend fun getElectedValidatorsExposure(eraIndex: EraIndex) = withContext(Dispatchers.Default) {
         val runtime = getRuntime()
 
-        val prefixKey = runtime.metadata.staking().storage("ErasStakers").storageKey(runtime, eraIndex)
+        val storage = runtime.metadata.staking().storage("ErasStakers")
+        val prefixKey = storage.storageKey(runtime, eraIndex)
 
         storageCache.getEntries(prefixKey).associate {
             val accountId = it.storageKey.accountIdFromMapKey()
 
-            accountId to bindExposure(it.content!!, runtime)
+            accountId to bindExposure(it.content!!, runtime, storage.returnType())
         }
     }
 
@@ -181,7 +182,8 @@ class StakingRepositoryImpl(
                 accountIdsHex.associateBy { accountIdHex -> storage.storageKey(runtime, accountIdHex.fromHex()) }
             },
             binding = { scale, runtime ->
-                scale?.let { bindValidatorPrefs(scale, runtime) }
+                val storageType = runtime.metadata.staking().storage("Validators").returnType()
+                scale?.let { bindValidatorPrefs(scale, runtime, storageType) }
             }
         )
     }
@@ -346,7 +348,8 @@ class StakingRepositoryImpl(
             networkType = networkType,
             keyBuilder = { it.metadata.staking().storage("Validators").storageKey(it, stashId) },
             binder = { scale, runtime ->
-                scale?.let { bindValidatorPrefs(it, runtime) }
+                val storageType = runtime.metadata.staking().storage("Validators").returnType()
+                scale?.let { bindValidatorPrefs(it, runtime, storageType) }
             }
         )
     }

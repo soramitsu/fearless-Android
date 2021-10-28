@@ -40,13 +40,12 @@ class AstarContributeView @JvmOverloads constructor(
         super.bind(viewState, scope)
 
         require(viewState is AstarContributeViewState)
-        viewState.privacyAcceptedFlow.value = true //no agreement for astar
+        viewState.privacyAcceptedFlow.value = true // no agreement for astar
 
         viewState.bonusFriendFlow.observe(scope) { bonus ->
             referralFriendBonus.setVisible(bonus != null)
 
             bonus?.let { referralFriendBonus.showValue(bonus) }
         }
-
     }
 }

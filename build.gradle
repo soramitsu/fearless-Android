@@ -43,7 +43,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.88'
+        fearlessLibVersion = '1.0.89'
 
         gifVersion = '1.2.19'
 
@@ -139,7 +139,7 @@ buildscript {
     }
 
     repositories {
-//        mavenLocal()
+        //mavenLocal()
         google()
         jcenter()
         maven { url "https://plugins.gradle.org/m2/" }
@@ -155,7 +155,7 @@ buildscript {
 
 allprojects {
     repositories {
-//        mavenLocal()
+        //mavenLocal()
         google()
         jcenter()
         maven { url "https://jitpack.io" }

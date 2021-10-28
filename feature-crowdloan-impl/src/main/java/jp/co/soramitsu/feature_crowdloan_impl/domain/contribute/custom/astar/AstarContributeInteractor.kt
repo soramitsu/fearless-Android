@@ -10,15 +10,12 @@ class AstarContributeInteractor(
     val fearlessReferralCode: String,
 ) {
 
-    suspend fun isReferralValid(address: String) = true //todo check address is in polkadot
-
+    suspend fun isReferralValid(address: String) = true // todo check address is in polkadot
 
     fun submitOffChain(payload: AstarBonusPayload, amount: BigDecimal): Result<Unit> {
         return Result.success(Unit)
     }
 
     fun submitOnChain(payload: AstarBonusPayload, amount: BigDecimal, extrinsicBuilder: ExtrinsicBuilder) {
-
     }
-
 }

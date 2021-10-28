@@ -19,13 +19,13 @@ interface AcalaApi {
         @Path("referral") referral: String
     ): AcalaReferralCheck
 
-    //submit the user’s referral code and the signature of the terms
+    // submit the user’s referral code and the signature of the terms
     @POST("/contribute")
     suspend fun contribute(
         @Body body: AcalaContributeRequest
     ): AcalaContributeResponse
 
-    //record the emails of people who submit contributions via the Liquid Crowdloan DOT
+    // record the emails of people who submit contributions via the Liquid Crowdloan DOT
     @POST("/transfer")
     suspend fun transfer(
         @Body body: AcalaTransferRequest

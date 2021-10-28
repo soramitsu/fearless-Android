@@ -4,10 +4,17 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.model.NodeLocal
 
 val LATEST_DEFAULT_NODES = listOf(
+
+    NodeLocal(
+        "Polkatrain Parity Node",
+        "wss://wss.polkatrain.moonbeam.network",
+        Node.NetworkType.POLKATRAIN.ordinal,
+        true
+    ),
     // --- kusama ----
     NodeLocal(
         "Kusama OnFinality Node",
-        "wss://kusama.api.onfinality.io/ws?apikey=0b2faaa5-3ef1-48ea-bf75-8f3a0cedb1ef",
+        "wss://kusama.api.onfinality.io/ws?apikey=313214ec-15ef-4834-a896-1cf39911f94b",
         Node.NetworkType.KUSAMA.ordinal,
         true
     ),
@@ -26,7 +33,7 @@ val LATEST_DEFAULT_NODES = listOf(
     // --- polkadot ----
     NodeLocal(
         "Polkadot OnFinality Node",
-        "wss://polkadot.api.onfinality.io/ws?apikey=0b2faaa5-3ef1-48ea-bf75-8f3a0cedb1ef",
+        "wss://polkadot.api.onfinality.io/ws?apikey=313214ec-15ef-4834-a896-1cf39911f94b",
         Node.NetworkType.POLKADOT.ordinal,
         true
     ),

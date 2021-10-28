@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -65,7 +66,7 @@ class ExtrinsicBuilderFactory(
             genesisHash = runtimeConfiguration.genesisHash.fromHex(),
             blockHash = mortality.blockHash.fromHex(),
             era = mortality.era,
-            encryptionType = mapCryptoTypeToEncryption(cryptoType),
+            multiChainEncryption = MultiChainEncryption.Substrate(mapCryptoTypeToEncryption(cryptoType)),
             accountIdentifier = multiAddressFromId(accountAddress.toAccountId())
         )
     }

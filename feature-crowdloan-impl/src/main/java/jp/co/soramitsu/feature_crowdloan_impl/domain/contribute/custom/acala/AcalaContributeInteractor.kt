@@ -22,7 +22,5 @@ class AcalaContributeInteractor(
     }
 
     fun submitOnChain(payload: AcalaBonusPayload, amount: BigDecimal, extrinsicBuilder: ExtrinsicBuilder) {
-
     }
-
 }
