@@ -99,7 +99,7 @@ class RuntimeConstructor(
         val reader = RuntimeMetadataReader.read(metadataRaw)
         val typesNetworkSuffix = "_v${reader.metadataVersion}"
         val defaultTreeRaw = definitionsFetcher.getDefinitionsByNetwork(TYPE_DEFINITIONS_DEFAULT)
-        val networkTreeRaw = definitionsFetcher.getDefinitionsByNetwork("$networkName$typesNetworkSuffix")
+        val networkTreeRaw = definitionsFetcher.getDefinitionsPolka("$networkName$typesNetworkSuffix")
 
         val defaultTree = typesFromJson(defaultTreeRaw)
         val networkTree = typesFromJson(networkTreeRaw)

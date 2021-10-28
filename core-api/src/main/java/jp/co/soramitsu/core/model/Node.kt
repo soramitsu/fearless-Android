@@ -14,6 +14,15 @@ data class Node(
         val readableName: String,
         val runtimeConfiguration: RuntimeConfiguration,
     ) {
+        POLKATRAIN(
+            "Polkatrain",
+            RuntimeConfiguration(
+                addressByte = 0,
+                genesisHash = "92cf9522510aee390f71fc1a635840918cc78e813c4a5ff76d40b478eca94a81",
+                erasPerDay = 4
+            )
+        ),
+
         KUSAMA(
             "Kusama",
             RuntimeConfiguration(

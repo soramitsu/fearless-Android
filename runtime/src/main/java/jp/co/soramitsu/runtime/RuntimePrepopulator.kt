@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 
 private val RUNTIME_CACHE_ENTRIES = listOf(
     predefinedEntry("kusama", 2030),
+    predefinedEntry("polkatrain", 1),
     predefinedEntry("westend", 9000),
     predefinedEntry("polkadot", 30),
     predefinedEntry("rococo", 230)

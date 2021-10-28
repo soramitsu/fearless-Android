@@ -4,6 +4,13 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.model.NodeLocal
 
 val LATEST_DEFAULT_NODES = listOf(
+
+    NodeLocal(
+        "Polkatrain Parity Node",
+        "wss://wss.polkatrain.moonbeam.network",
+        Node.NetworkType.POLKATRAIN.ordinal,
+        true
+    ),
     // --- kusama ----
     NodeLocal(
         "Kusama OnFinality Node",
