@@ -27,6 +27,7 @@ private fun predefinedEntry(networkName: String, runtimeVersion: Int) = RuntimeC
 
 private const val PREPOPULATED_FLAG = "PREPOPULATED_FLAG"
 private const val HOTFIX_23_09_21 = "HOTFIX_23_09_21"
+private const val HOTFIX_28_10_21 = "HOTFIX_28_10_21"
 
 class RuntimePrepopulator(
     private val context: Context,
@@ -36,7 +37,9 @@ class RuntimePrepopulator(
 ) {
 
     suspend fun maybePrepopulateCache(): Unit = withContext(Dispatchers.IO) {
-        if (preferences.contains(PREPOPULATED_FLAG) and preferences.contains(HOTFIX_23_09_21)) {
+        if (preferences.contains(PREPOPULATED_FLAG)
+            and preferences.contains(HOTFIX_23_09_21)
+            and preferences.contains(HOTFIX_28_10_21)) {
             return@withContext
         }
 
@@ -44,6 +47,7 @@ class RuntimePrepopulator(
 
         preferences.putBoolean(PREPOPULATED_FLAG, true)
         preferences.putBoolean(HOTFIX_23_09_21, true)
+        preferences.putBoolean(HOTFIX_28_10_21, true)
     }
 
     suspend fun forcePrepopulateCache() {

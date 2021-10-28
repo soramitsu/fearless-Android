@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 private const val TYPE_DEFINITIONS_DEFAULT = "default"
 
 class ConstructionParams(
-    val metadataRaw: String,
+    val metadataReader: RuntimeMetadataReader,
     val latestMetadataVersion: Int,
     val defaultDefinitions: TypeDefinitionsTree,
     val networkDefinitions: TypeDefinitionsTree
@@ -49,45 +49,26 @@ class RuntimeConstructor(
         newRuntimeVersion: Int,
         networkName: String
     ) = withContext(Dispatchers.IO) {
-//        runtimeDao.updateLatestKnownVersion(networkName, newRuntimeVersion)
-//
-//        val runtimeParams = getRuntimeParams(newRuntimeVersion, networkName)
-//
-//        constructRuntime(runtimeParams)
-        constructFromCache(networkName)
+        runtimeDao.updateLatestKnownVersion(networkName, newRuntimeVersion)
+
+        val runtimeParams = getRuntimeParams(newRuntimeVersion, networkName)
+
+        constructRuntime(runtimeParams)
     }
 
     suspend fun constructFromCache(networkName: String) = withContext(Dispatchers.Default) {
-        val (defaultTree, networkTree) = networkTypesFromCache(networkName)
         val metadata = runtimeCache.getRuntimeMetadata(networkName)!!
+        val reader = RuntimeMetadataReader.read(metadata)
+        val (defaultTree, networkTree) = networkTypesFromCache(networkName)
         val latestMetadataVersion = runtimeDao.getCacheEntry(networkName).latestKnownVersion
 
-        constructRuntime(ConstructionParams(metadata, latestMetadataVersion, defaultTree, networkTree))
+        constructRuntime(ConstructionParams(reader, latestMetadataVersion, defaultTree, networkTree))
     }
 
     private fun constructRuntime(params: ConstructionParams): RuntimeSnapshot {
-        val runtimeMetadataRaw = RuntimeMetadataReader.read(params.metadataRaw)
-        val typeRegistry = if (runtimeMetadataRaw.metadataVersion < 14) {
-            constructTypeRegistry(params)
-        } else {
-            val parseResult = TypesParserV14.parse(
-                runtimeMetadataRaw.metadata[RuntimeMetadataSchemaV14.lookup],
-                v14Preset()
-            )
-            val networkTypePreset = TypeDefinitionParser.parseNetworkVersioning(
-                params.networkDefinitions,
-                parseResult.typePreset,
-                params.latestMetadataVersion
-            ).typePreset
-            TypeRegistry(
-                networkTypePreset,
-                DynamicTypeResolver.defaultCompoundResolver()
-            )
-        }
+        val typeRegistry = constructTypeRegistryVersioned(params, params.metadataReader)
 
-        val runtimeMetadata = VersionedRuntimeBuilder.buildMetadata(runtimeMetadataRaw, typeRegistry)
-        // val runtimeMetadataStruct = RuntimeMetadataSchema.read(params.metadataRaw)
-        // val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
+        val runtimeMetadata = VersionedRuntimeBuilder.buildMetadata(params.metadataReader, typeRegistry)
 
         return RuntimeSnapshot(typeRegistry, runtimeMetadata)
     }
@@ -97,12 +78,12 @@ class RuntimeConstructor(
 
         val metadataRaw = if (latestRuntimeVersion == cacheInfo.latestAppliedVersion) {
             val metadataRaw = runtimeCache.getRuntimeMetadata(networkName)!!
-            // val metadataRaw = socketService.executeAsync(GetMetadataRequestHash(hash)).result as String
 
             if (latestRuntimeVersion <= cacheInfo.typesVersion) {
                 val (default, network) = networkTypesFromCache(networkName)
 
-                return ConstructionParams(metadataRaw, latestRuntimeVersion, default, network)
+                val reader = RuntimeMetadataReader.read(metadataRaw)
+                return ConstructionParams(reader, latestRuntimeVersion, default, network)
             }
 
             metadataRaw
@@ -115,8 +96,10 @@ class RuntimeConstructor(
             metadataRaw
         }
 
+        val reader = RuntimeMetadataReader.read(metadataRaw)
+        val typesNetworkSuffix = "_v${reader.metadataVersion}"
         val defaultTreeRaw = definitionsFetcher.getDefinitionsByNetwork(TYPE_DEFINITIONS_DEFAULT)
-        val networkTreeRaw = definitionsFetcher.getDefinitionsByNetwork(networkName)
+        val networkTreeRaw = definitionsFetcher.getDefinitionsByNetwork("$networkName$typesNetworkSuffix")
 
         val defaultTree = typesFromJson(defaultTreeRaw)
         val networkTree = typesFromJson(networkTreeRaw)
@@ -126,12 +109,12 @@ class RuntimeConstructor(
 
         runtimeDao.updateTypesVersion(networkName, typesVersion)
 
-        // runtimeCache.saveTypeDefinitions(TYPE_DEFINITIONS_DEFAULT, defaultTreeRaw)
+        runtimeCache.saveTypeDefinitions(TYPE_DEFINITIONS_DEFAULT, defaultTreeRaw)
 
-        // runtimeCache.saveTypeDefinitions(networkName, networkTreeRaw)
+        runtimeCache.saveTypeDefinitions(networkName, networkTreeRaw)
 
         return ConstructionParams(
-            metadataRaw,
+            reader,
             latestRuntimeVersion,
             defaultTree,
             networkTree
@@ -149,6 +132,29 @@ class RuntimeConstructor(
     }
 
     private fun typesFromJson(typeDefinitions: String) = gson.fromJson(typeDefinitions, TypeDefinitionsTree::class.java)
+
+    private fun constructTypeRegistryVersioned(
+        constructionParams: ConstructionParams,
+        reader: RuntimeMetadataReader,
+    ): TypeRegistry {
+        return if (reader.metadataVersion < 14) {
+            constructTypeRegistry(constructionParams)
+        } else {
+            val parseResult = TypesParserV14.parse(
+                reader.metadata[RuntimeMetadataSchemaV14.lookup],
+                v14Preset()
+            )
+            val networkTypePreset = TypeDefinitionParser.parseNetworkVersioning(
+                constructionParams.networkDefinitions,
+                parseResult.typePreset,
+                constructionParams.latestMetadataVersion
+            ).typePreset
+            TypeRegistry(
+                networkTypePreset,
+                DynamicTypeResolver.defaultCompoundResolver()
+            )
+        }
+    }
 
     private fun constructTypeRegistry(
         constructionParams: ConstructionParams
