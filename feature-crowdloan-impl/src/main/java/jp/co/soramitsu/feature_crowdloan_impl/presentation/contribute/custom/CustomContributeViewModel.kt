@@ -4,10 +4,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.fractionToPercentage
-import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.*
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
@@ -22,6 +19,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -35,7 +33,9 @@ class CustomContributeViewModel(
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
     assetUseCase: AssetUseCase,
-) : BaseViewModel() {
+    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+) : BaseViewModel(),
+    FeeLoaderMixin by feeLoaderMixin {
 
     val customFlowType = payload.parachainMetadata.customFlow!!
 
@@ -117,6 +117,32 @@ class CustomContributeViewModel(
             estimatedReward?.formatTokenAmount(metadata.token)
         }
     }.share()
+
+    val feeLive = feeLiveData.switchMap { fee ->
+        _viewStateFlow
+            .filter {
+                (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 1
+            }
+            .asLiveData()
+            .map {
+                fee
+            }
+    }
+
+    init {
+        loadFee()
+    }
+
+
+    private fun loadFee() {
+        feeLoaderMixin.loadFee(
+            coroutineScope = viewModelScope,
+            feeConstructor = { asset ->
+                contributionInteractor.estimateFee(payload.paraId, BigDecimal.ZERO, asset.token, null)
+            },
+            onRetryCancelled = ::backClicked
+        )
+    }
 
     fun backClicked() {
         if (payload.isMoonbeam) {

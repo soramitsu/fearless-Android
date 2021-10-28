@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
+import jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
 import kotlinx.android.synthetic.main.fragment_custom_contribute.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
@@ -158,5 +159,8 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
             }
         }
 
+        viewModel.feeLive.observe {
+            view?.findViewById<FeeView>(R.id.moonbeamRegistrationFee)?.setFeeStatus(it)
+        }
     }
 }

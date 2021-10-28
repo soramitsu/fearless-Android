@@ -17,16 +17,7 @@ import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeAmount
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeBonus
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeConfirm
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeContainer
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeCrowloanTitle
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeFee
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeLeasingPeriod
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeOriginAcount
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeReward
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeToolbar
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.*
 import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
@@ -67,7 +58,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
     }
 
     override fun inject() {
-        val payload = argument<ConfirmContributePayload>("KEY_PAYLOAD")
+        val payload = argument<ConfirmContributePayload>(KEY_PAYLOAD)
 
         FeatureUtils.getFeature<CrowdloanFeatureComponent>(
             requireContext(),

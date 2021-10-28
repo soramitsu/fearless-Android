@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class CustomContributeModule {
@@ -33,8 +34,9 @@ class CustomContributeModule {
         interactor: CrowdloanContributeInteractor,
         resourceManager: ResourceManager,
         assetUseCase: AssetUseCase,
+        feeLoaderMixin: FeeLoaderMixin.Presentation,
     ): ViewModel {
-        return CustomContributeViewModel(customContributeManager, payload, router, accountUseCase, addressIconGenerator, interactor, resourceManager, assetUseCase)
+        return CustomContributeViewModel(customContributeManager, payload, router, accountUseCase, addressIconGenerator, interactor, resourceManager, assetUseCase, feeLoaderMixin)
     }
 
     @Provides

@@ -33,5 +33,7 @@ class MoonbeamStep2Registration @JvmOverloads constructor(
         tvMoonbeamRegistrationDesc.text = createSpannable(context.getString(R.string.moonbeam_registration_description)) {
             clickable(context.getString(R.string.moonbeam_registration_description_system_remark)) {}
         }
+
+        moonbeamRegistrationFee
     }
 }
