@@ -4,12 +4,15 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkStoreRequest
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import retrofit2.HttpException
 import java.io.IOException
@@ -23,18 +26,37 @@ class MoonbeamContributeInteractor(
     val fearlessReferralCode: String,
     private val feeEstimator: FeeEstimator,
     private val accountRepository: AccountRepository,
+    private val extrinsicService: ExtrinsicService,
+    private val snapshot: SuspendableProperty<RuntimeSnapshot>
 ) {
     private val digest = MessageDigest.getInstance("SHA-256")
 
-    private var moonbeamApiKey: String? = null
     private var termsHash: String? = null
     private var termsSigned: String? = null
+    private var moonbeamRemark: String? = null
 
     fun nextStep(payload: CustomContributePayload) {
     }
 
-    suspend fun getSystemRemarkFee(): BigInteger {
-        val apiKey = requireNotNull(moonbeamApiKey)
+    suspend fun doSystemRemark(): Boolean {
+        val remark = requireNotNull(moonbeamRemark)
+        val result = extrinsicService.submitAndWatchExtrinsic(
+            accountAddress = accountRepository.getSelectedAccount().address,
+            formExtrinsic = {
+                call(
+                    moduleName = "System",
+                    callName = "remark",
+                    arguments = mapOf(
+                        "remark" to remark.toByteArray()
+                    )
+                )
+            },
+            snapshot = snapshot.get()
+        )
+        return result
+    }
+
+    suspend fun getSystemRemarkFee(apiKey: String): BigInteger {
         val sign = requireNotNull(termsSigned)
         val remarkResponse = moonbeamApi.agreeRemark(
             apiKey,
@@ -44,6 +66,7 @@ class MoonbeamContributeInteractor(
             )
         )
         val remark = remarkResponse.remark
+        moonbeamRemark = remark
         return feeEstimator.estimateFee(
             accountAddress = accountRepository.getSelectedAccount().address,
             formExtrinsic = {
@@ -56,19 +79,6 @@ class MoonbeamContributeInteractor(
                 )
             }
         )
-    }
-
-    suspend fun getHealth(apiKey: String) = try {
-        moonbeamApiKey = apiKey
-        moonbeamApi.getHealth(apiKey)
-        true
-    } catch (e: Throwable) {
-        val errorCode = (e as? HttpException)?.response()?.code()
-        if (errorCode == 403) {
-            false
-        } else {
-            throw transformException(e)
-        }
     }
 
     suspend fun getTerms(): String {

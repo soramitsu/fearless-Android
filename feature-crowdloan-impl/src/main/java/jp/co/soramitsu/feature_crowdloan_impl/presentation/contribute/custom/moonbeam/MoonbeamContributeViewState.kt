@@ -32,7 +32,11 @@ class MoonbeamContributeViewState(
     val privacyAcceptedFlow = MutableStateFlow(customContributePayload.isPrivacyAccepted ?: false)
 
     suspend fun getSystemRemarkFee(): BigInteger {
-        return interactor.getSystemRemarkFee()
+        return interactor.getSystemRemarkFee(customContributePayload.parachainMetadata.flow!!.data.apiKey)
+    }
+
+    suspend fun doSystemRemark(): Boolean {
+        return interactor.doSystemRemark()
     }
 
     suspend fun termsText(): String =

@@ -7,12 +7,15 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam.MoonbeamContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeSubmitter
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 
 @Module
@@ -32,13 +35,17 @@ class MoonbeamContributionModule {
         feeEstimator: FeeEstimator,
         resourceManager: ResourceManager,
         accountRepository: AccountRepository,
+        service: ExtrinsicService,
+        property: SuspendableProperty<RuntimeSnapshot>
     ) = MoonbeamContributeInteractor(
         moonbeamApi,
         httpExceptionHandler,
         resourceManager,
         BuildConfig.MOONBEAM_FEALRESS_REFERRAL,
         feeEstimator,
-        accountRepository
+        accountRepository,
+        service,
+        property
     )
 
     @Provides

@@ -249,16 +249,28 @@ class CustomContributeViewModel(
             nextStep,
             isPrivacyAccepted
         )
-        _viewStateFlow.emit(customContributeManager.createNewState(customFlowType, viewModelScope, nextStepPayload))
+        if (nextStep == 2) {
+            val remark = (_viewStateFlow.value as? MoonbeamContributeViewState)?.doSystemRemark() ?: false
+            if (remark) {
+                showMessage(resourceManager.getString(R.string.common_transaction_submitted))
+                _viewStateFlow.emit(customContributeManager.createNewState(customFlowType, viewModelScope, nextStepPayload))
+            } else {
+                showMessage(resourceManager.getString(R.string.transaction_status_failed))
+            }
+        } else {
+            _viewStateFlow.emit(customContributeManager.createNewState(customFlowType, viewModelScope, nextStepPayload))
+        }
         if (nextStep == 1) {
-            feeLoaderMixin.loadFee(
-                coroutineScope = viewModelScope,
-                feeConstructor = { asset ->
-                    val value = (_viewStateFlow.value as? MoonbeamContributeViewState)?.getSystemRemarkFee()!!
-                    asset.token.amountFromPlanks(value)
-                },
-                onRetryCancelled = ::backClicked
-            )
+            (_viewStateFlow.value as? MoonbeamContributeViewState)?.let { viewState ->
+                feeLoaderMixin.loadFee(
+                    coroutineScope = viewModelScope,
+                    feeConstructor = { asset ->
+                        val value = viewState.getSystemRemarkFee()
+                        asset.token.amountFromPlanks(value)
+                    },
+                    onRetryCancelled = ::backClicked
+                )
+            }
         }
     }
 }
