@@ -50,11 +50,8 @@ class MoonbeamContributeViewState(
 
     val enteredEtheriumArrdessFlow = MutableStateFlow("")
 
-    val isEtheriumArrdessCorrectFlow = enteredEtheriumArrdessFlow.map {
-        isEtheriumCorrect(it)
-    }
-
-    private fun isEtheriumCorrect(address: String): Boolean {
+    fun isEtheriumAddressCorrect(): Boolean {
+        val address = enteredEtheriumArrdessFlow.value
         val pattern = "0x[A-Fa-f0-9]{40}"
         return Pattern.matches(pattern, address)
     }

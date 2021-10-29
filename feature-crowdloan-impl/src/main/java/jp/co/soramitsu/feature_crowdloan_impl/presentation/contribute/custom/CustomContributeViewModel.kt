@@ -39,7 +39,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -252,7 +251,7 @@ class CustomContributeViewModel(
         )
 
         if (nextStep == 4) {
-            val isCorrect = (_viewStateFlow.value as? MoonbeamContributeViewState)?.isEtheriumArrdessCorrectFlow?.singleOrNull()
+            val isCorrect = (_viewStateFlow.value as? MoonbeamContributeViewState)?.isEtheriumAddressCorrect()
 
             if (isCorrect != true) {
                 showError(resourceManager.getString(R.string.moonbeam_ethereum_address_incorrect))
