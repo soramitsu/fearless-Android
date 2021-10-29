@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.util.*
 
 class CustomContributeViewModel(
     private val customContributeManager: CustomContributeManager,
@@ -37,7 +38,8 @@ class CustomContributeViewModel(
 ) : BaseViewModel(),
     FeeLoaderMixin by feeLoaderMixin {
 
-    val customFlowType = payload.parachainMetadata.customFlow!!
+//    val customFlowType = payload.parachainMetadata.customFlow!!
+    val customFlowType = payload.parachainMetadata.flow?.name ?: payload.parachainMetadata.customFlow!!
 
     private val _viewStateFlow = MutableStateFlow(customContributeManager.createNewState(customFlowType, viewModelScope, payload))
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow

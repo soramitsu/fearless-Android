@@ -36,5 +36,17 @@ class ParachainMetadata(
     val rewardRate: BigDecimal?,
     val website: String,
     val customFlow: String?,
-    val token: String
+    val token: String,
+    val flow: ParachainMetadataFlow?,
+)
+
+class ParachainMetadataFlow(
+    val name: String,
+    val data: ParachainMetadataFlowData
+)
+
+class ParachainMetadataFlowData(
+    val devApiUrl: String,
+    val devApiKey: String,
+    val termsUrl: String,
 )

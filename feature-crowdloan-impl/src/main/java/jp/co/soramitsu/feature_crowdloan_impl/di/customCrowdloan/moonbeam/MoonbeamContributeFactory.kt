@@ -15,7 +15,7 @@ class MoonbeamContributeFactory(
     private val resourceManager: ResourceManager,
 ) : CustomContributeFactory {
 
-    override val flowType = "Moonbeam"
+    override val flowType = "moonbeam"
 
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): MoonbeamContributeViewState {
         return MoonbeamContributeViewState(interactor, payload, resourceManager)
