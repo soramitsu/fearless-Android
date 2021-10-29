@@ -6,13 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
+import coil.ImageLoader
+import coil.load
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.AmountView
 import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.common.view.GoNextView
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.common.view.TableCellView
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
@@ -22,7 +26,10 @@ import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContribut
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
 import jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
-import kotlinx.android.synthetic.main.fragment_custom_contribute.*
+import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeApply
+import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeContainer
+import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeToolbar
+import kotlinx.android.synthetic.main.fragment_custom_contribute.customFlowContainer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -30,6 +37,9 @@ import javax.inject.Inject
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
 class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
+
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
 
     @Inject
     protected lateinit var contributionManager: CustomContributeManager
@@ -88,6 +98,8 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
     }
 
     override fun subscribe(viewModel: CustomContributeViewModel) {
+        observeBrowserEvents(viewModel)
+
         lifecycleScope.launchWhenResumed {
             viewModel.applyButtonState.combine(viewModel.applyingInProgress) { state, inProgress ->
                 when {
@@ -161,6 +173,23 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
         viewModel.feeLive.observe {
             view?.findViewById<FeeView>(R.id.moonbeamRegistrationFee)?.setFeeStatus(it)
+        }
+
+        viewModel.healthFlow.observe { isHealth ->
+            if (isHealth.not()) {
+                viewModel.showError(
+                    getString(R.string.moonbeam_ineligible_to_participate)
+                )
+            }
+        }
+
+        viewModel.learnCrowdloanModel.observe { model ->
+            view?.findViewById<GoNextView>(R.id.moonbeamContributeLearnMore)?.let {
+                it.title.text = model.text
+                it.icon.load(model.iconLink, imageLoader)
+
+                it.setOnClickListener { viewModel.learnMoreClicked() }
+            }
         }
     }
 }

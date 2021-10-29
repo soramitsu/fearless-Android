@@ -18,6 +18,8 @@ class MoonbeamContributeViewState(
     resourceManager: ResourceManager
 ) : CustomContributeViewState {
 
+    val apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey!!
+
     val title = customContributePayload.parachainMetadata.run {
         "$name ($token)"
     }
@@ -26,6 +28,9 @@ class MoonbeamContributeViewState(
 
     suspend fun termsText(): String =
         interactor.getTerms()
+
+    suspend fun getHealth() =
+        interactor.getHealth(apiKey)
 
     override val applyActionState = when (customContributePayload.step) {
         0 -> privacyAcceptedFlow.map { privacyAccepted ->

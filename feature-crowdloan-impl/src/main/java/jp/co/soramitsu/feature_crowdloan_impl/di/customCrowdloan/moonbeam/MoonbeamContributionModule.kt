@@ -27,13 +27,15 @@ class MoonbeamContributionModule {
     @Provides
     @FeatureScope
     fun provideMoonbeamInteractor(
-        acalaApi: MoonbeamApi,
+        moonbeamApi: MoonbeamApi,
         httpExceptionHandler: HttpExceptionHandler,
         feeEstimator: FeeEstimator,
+        resourceManager: ResourceManager,
         accountRepository: AccountRepository,
     ) = MoonbeamContributeInteractor(
-        acalaApi,
+        moonbeamApi,
         httpExceptionHandler,
+        resourceManager,
         BuildConfig.MOONBEAM_FEALRESS_REFERRAL,
         feeEstimator,
         accountRepository
@@ -50,11 +52,11 @@ class MoonbeamContributionModule {
     @IntoSet
     fun provideMoonbeamFactory(
         submitter: MoonbeamContributeSubmitter,
-        acalaInteractor: MoonbeamContributeInteractor,
+        moonbeamInteractor: MoonbeamContributeInteractor,
         resourceManager: ResourceManager
     ): CustomContributeFactory = MoonbeamContributeFactory(
         submitter,
-        acalaInteractor,
+        moonbeamInteractor,
         resourceManager
     )
 }

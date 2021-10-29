@@ -473,4 +473,5 @@ to your account to avoid remaining stake.</string>
     <string name="moonbeam_registration_description_system_remark">system.remark</string>
     <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
     <string name="transaction_successful">Transaction Successful!</string>
+    <string name="moonbeam_ineligible_to_participate">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
 </resources>

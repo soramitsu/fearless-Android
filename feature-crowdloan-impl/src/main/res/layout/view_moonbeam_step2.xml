@@ -24,7 +24,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        app:actionIcon="@null"
+        app:enabled="false"
         app:label="@string/common_account"
         app:layout_constraintTop_toBottomOf="@id/tvMoonbeamRegistration" />
 
