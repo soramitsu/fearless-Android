@@ -189,7 +189,6 @@ class CustomContributeViewModel(
         openBrowserEvent.value = Event(parachainLink)
     }
 
-
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
@@ -224,7 +223,7 @@ class CustomContributeViewModel(
                 val nextStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step?.inc() ?: 0
                 handleMoonbeamFlow(nextStep)
             } else {
-                //идём на след стейт
+                // идём на след стейт
                 _viewStateFlow.first().generatePayload()
                     .onSuccess {
                         router.setCustomBonus(it)

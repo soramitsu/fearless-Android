@@ -27,6 +27,5 @@ class MoonbeamStep3Signed @JvmOverloads constructor(
     }
 
     override fun bind(viewState: CustomContributeViewState, scope: LifecycleCoroutineScope) {
-
     }
 }

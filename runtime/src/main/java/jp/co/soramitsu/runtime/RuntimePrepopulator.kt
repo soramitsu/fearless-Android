@@ -40,7 +40,8 @@ class RuntimePrepopulator(
     suspend fun maybePrepopulateCache(): Unit = withContext(Dispatchers.IO) {
         if (preferences.contains(PREPOPULATED_FLAG)
             and preferences.contains(HOTFIX_23_09_21)
-            and preferences.contains(HOTFIX_28_10_21)) {
+            and preferences.contains(HOTFIX_28_10_21)
+        ) {
             return@withContext
         }
 

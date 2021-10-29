@@ -11,12 +11,12 @@ class ParachainMetadataRemote(
     val rewardRate: Double?,
     val customFlow: String?,
     val website: String,
-    val flow:ParachainMetadataFlowRemote?
+    val flow: ParachainMetadataFlowRemote?
 )
 
 data class ParachainMetadataFlowRemote(
     val name: String,
-    val data:ParachainMetadataFlowDataRemote
+    val data: ParachainMetadataFlowDataRemote
 )
 
 data class ParachainMetadataFlowDataRemote(

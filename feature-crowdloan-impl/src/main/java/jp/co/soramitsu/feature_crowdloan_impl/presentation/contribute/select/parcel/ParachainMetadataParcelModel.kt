@@ -81,7 +81,6 @@ fun mapParachainMetadataFromParcel(
     )
 }
 
-
 fun mapParachainMetadataFlowFromParcel(
     flowParcel: ParachainMetadataFlowParcelModel
 ) = with(flowParcel) {

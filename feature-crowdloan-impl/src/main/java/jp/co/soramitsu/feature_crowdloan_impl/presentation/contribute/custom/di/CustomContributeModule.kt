@@ -36,7 +36,17 @@ class CustomContributeModule {
         assetUseCase: AssetUseCase,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
     ): ViewModel {
-        return CustomContributeViewModel(customContributeManager, payload, router, accountUseCase, addressIconGenerator, interactor, resourceManager, assetUseCase, feeLoaderMixin)
+        return CustomContributeViewModel(
+            customContributeManager,
+            payload,
+            router,
+            accountUseCase,
+            addressIconGenerator,
+            interactor,
+            resourceManager,
+            assetUseCase,
+            feeLoaderMixin
+        )
     }
 
     @Provides

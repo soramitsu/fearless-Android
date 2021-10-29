@@ -19,9 +19,8 @@ fun mapParachainMetadataRemoteToParachainMetadata(parachainMetadata: ParachainMe
         )
     }
 
-
 fun mapParachainMetadataFlowRemoteToParachainMetadataFlow(flow: ParachainMetadataFlowRemote) =
-    with (flow) {
+    with(flow) {
         ParachainMetadataFlow(
             name = name,
             data = mapmapParachainMetadataFlowDataRemoteToParachainMetadataFlowData(data)
@@ -29,7 +28,7 @@ fun mapParachainMetadataFlowRemoteToParachainMetadataFlow(flow: ParachainMetadat
     }
 
 fun mapmapParachainMetadataFlowDataRemoteToParachainMetadataFlowData(flowData: ParachainMetadataFlowDataRemote) =
-    with (flowData) {
+    with(flowData) {
         ParachainMetadataFlowData(
             apiUrl = if (BuildConfig.DEBUG) devApiUrl else prodApiUrl,
             apiKey = if (BuildConfig.DEBUG) devApiKey else prodApiKey,

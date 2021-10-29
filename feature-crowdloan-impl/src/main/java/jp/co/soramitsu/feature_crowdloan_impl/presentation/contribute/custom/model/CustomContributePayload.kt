@@ -13,7 +13,7 @@ class CustomContributePayload(
     val parachainMetadata: ParachainMetadataParcelModel,
     val amount: BigDecimal,
     val previousBonusPayload: BonusPayload?,
-    val step: Int = 0,           //used for moonbeam custom flow
+    val step: Int = 0, // used for moonbeam custom flow
     val isPrivacyAccepted: Boolean? = null
 ) : Parcelable {
 

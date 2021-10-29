@@ -137,7 +137,6 @@ class CrowdloanViewModel(
                 parachainMetadata = crowdloan.parachainMetadata?.let(::mapParachainMetadataToParcel)
             )
 
-
             if (paraId == 2002.toBigInteger()) {
 //                //todo check for moonbeam paraId
 //                //todo health

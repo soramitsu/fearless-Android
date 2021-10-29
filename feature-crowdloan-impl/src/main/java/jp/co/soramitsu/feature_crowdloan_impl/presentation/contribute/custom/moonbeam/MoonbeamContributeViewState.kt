@@ -12,7 +12,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
 import java.math.BigInteger
 
 class MoonbeamContributeViewState(

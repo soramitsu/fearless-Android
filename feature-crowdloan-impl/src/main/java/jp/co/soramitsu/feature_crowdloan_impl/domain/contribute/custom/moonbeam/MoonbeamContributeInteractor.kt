@@ -54,7 +54,8 @@ class MoonbeamContributeInteractor(
                         "remark" to remark.toByteArray()
                     )
                 )
-            })
+            }
+        )
     }
 
     suspend fun getHealth(apiKey: String) = try {
@@ -96,5 +97,4 @@ class MoonbeamContributeInteractor(
             else -> BaseException.unexpectedError(exception)
         }
     }
-
 }
