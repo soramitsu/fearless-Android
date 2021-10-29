@@ -62,7 +62,7 @@ class CustomContributeViewModel(
     //    val customFlowType = payload.parachainMetadata.customFlow!!
     val customFlowType = payload.parachainMetadata.flow?.name ?: payload.parachainMetadata.customFlow!!
 
-    val apiKey = payload.parachainMetadata.flow?.data?.apiKey!!
+    val apiKey = payload.parachainMetadata.flow?.data?.apiKey
 
     private val _viewStateFlow = MutableStateFlow(customContributeManager.createNewState(customFlowType, viewModelScope, payload))
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow
@@ -159,7 +159,7 @@ class CustomContributeViewModel(
             (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 0
         }
         .mapLatest {
-            contributionInteractor.getHealth(apiKey)
+            apiKey != null && contributionInteractor.getHealth(apiKey)
         }
         .inBackground()
         .share()
