@@ -1,10 +1,12 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
+import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
@@ -13,13 +15,17 @@ import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.switchMap
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
@@ -34,7 +40,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -52,7 +60,10 @@ class CustomContributeViewModel(
     private val resourceManager: ResourceManager,
     assetUseCase: AssetUseCase,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    private val validationExecutor: ValidationExecutor,
+    private val validationSystem: ContributeValidationSystem,
 ) : BaseViewModel(),
+    Validatable by validationExecutor,
     Browserable,
     FeeLoaderMixin by feeLoaderMixin {
 
@@ -139,6 +150,12 @@ class CustomContributeViewModel(
         }
     }.share()
 
+    val enteredEtheriumAddress = _viewStateFlow
+        .filterIsInstance<MoonbeamContributeViewState>()
+        .flatMapLatest {
+            it.enteredEtheriumAddressFlow
+        }
+
     val feeLive = feeLiveData.switchMap { fee ->
         _viewStateFlow
             .filter {
@@ -222,8 +239,13 @@ class CustomContributeViewModel(
             _applyingInProgress.value = true
 
             if (payload.isMoonbeam) {
-                val nextStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step?.inc() ?: 0
-                handleMoonbeamFlow(nextStep)
+                val customContributePayload = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload!!
+                val nextStep = customContributePayload.step.inc()
+                if (nextStep < 4) {
+                    handleMoonbeamFlow(nextStep)
+                } else {
+                    maybeGoToNext()
+                }
             } else {
                 // идём на след стейт
                 _viewStateFlow.first().generatePayload()
@@ -237,6 +259,57 @@ class CustomContributeViewModel(
             _applyingInProgress.value = false
         }
     }
+
+    private val _showNextProgress = MutableLiveData(false)
+    val showNextProgress: LiveData<Boolean> = _showNextProgress
+
+    private fun maybeGoToNext() = requireFee { fee ->
+        launch {
+            val contributionAmount = parsedAmountFlow.firstOrNull() ?: return@launch
+
+            val validationPayload = ContributeValidationPayload(
+                crowdloan = crowdloanFlow.first(),
+                fee = fee,
+                asset = assetFlow.first(),
+                contributionAmount = contributionAmount
+            )
+
+            //todo possible needed, now - Private crowdloans are not yet supported
+//            validationExecutor.requireValid(
+//                validationSystem = validationSystem,
+//                payload = validationPayload,
+//                validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
+//                progressConsumer = _showNextProgress.progressConsumer()
+//            ) {
+//                _showNextProgress.value = false
+//
+//                openConfirmScreen(it)
+//            }
+
+            openConfirmScreen(validationPayload)
+        }
+    }
+
+    private fun openConfirmScreen(
+        validationPayload: ContributeValidationPayload
+    ) = launch {
+        val confirmContributePayload = ConfirmContributePayload(
+            paraId = payload.paraId,
+            fee = validationPayload.fee,
+            amount = validationPayload.contributionAmount,
+            estimatedRewardDisplay = estimatedRewardFlow.first(),
+            bonusPayload = router.latestCustomBonus,
+            metadata = payload.parachainMetadata,
+            enteredEtheriumAddress = enteredEtheriumAddress.first()
+        )
+
+        router.openMoonbeamConfirmContribute(confirmContributePayload)
+    }
+
+    private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(
+        block,
+        onError = { title, message -> showError(title, message) }
+    )
 
     private suspend fun handleMoonbeamFlow(nextStep: Int = 0) {
         val isPrivacyAccepted = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.isPrivacyAccepted ?: (nextStep > 0)

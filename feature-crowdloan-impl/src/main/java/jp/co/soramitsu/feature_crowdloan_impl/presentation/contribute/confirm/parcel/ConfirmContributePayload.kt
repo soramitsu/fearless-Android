@@ -14,5 +14,6 @@ class ConfirmContributePayload(
     val amount: BigDecimal,
     val bonusPayload: BonusPayload?,
     val metadata: ParachainMetadataParcelModel?,
-    val estimatedRewardDisplay: String?
+    val estimatedRewardDisplay: String?,
+    val enteredEtheriumAddress: String?
 ) : Parcelable

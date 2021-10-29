@@ -287,7 +287,8 @@ class CrowdloanContributeViewModel(
             amount = validationPayload.contributionAmount,
             estimatedRewardDisplay = estimatedRewardFlow.first(),
             bonusPayload = router.latestCustomBonus,
-            metadata = payload.parachainMetadata
+            metadata = payload.parachainMetadata,
+            enteredEtheriumAddress = null
         )
 
         router.openConfirmContribute(confirmContributePayload)

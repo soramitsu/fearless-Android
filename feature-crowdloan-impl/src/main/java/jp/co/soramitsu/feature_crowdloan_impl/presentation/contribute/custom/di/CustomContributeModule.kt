@@ -10,9 +10,11 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
@@ -35,6 +37,8 @@ class CustomContributeModule {
         resourceManager: ResourceManager,
         assetUseCase: AssetUseCase,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
+        validationExecutor: ValidationExecutor,
+        validationSystem: ContributeValidationSystem,
     ): ViewModel {
         return CustomContributeViewModel(
             customContributeManager,
@@ -45,7 +49,9 @@ class CustomContributeModule {
             interactor,
             resourceManager,
             assetUseCase,
-            feeLoaderMixin
+            feeLoaderMixin,
+            validationExecutor,
+            validationSystem
         )
     }
 

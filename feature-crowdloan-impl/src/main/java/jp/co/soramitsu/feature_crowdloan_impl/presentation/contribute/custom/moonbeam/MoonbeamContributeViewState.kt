@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.mod
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.math.BigInteger
@@ -48,10 +49,11 @@ class MoonbeamContributeViewState(
             interactor.getTerms(it)
         }.orEmpty()
 
-    val enteredEtheriumArrdessFlow = MutableStateFlow("")
+    val enteredAmountFlow = MutableStateFlow("")
+    val enteredEtheriumAddressFlow = MutableStateFlow("")
 
     fun isEtheriumAddressCorrect(): Boolean {
-        val address = enteredEtheriumArrdessFlow.value
+        val address = enteredEtheriumAddressFlow.value
         val pattern = "0x[A-Fa-f0-9]{40}"
         return Pattern.matches(pattern, address)
     }
@@ -63,8 +65,9 @@ class MoonbeamContributeViewState(
                 else -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.common_continue))
             }
         }
-        3 -> enteredEtheriumArrdessFlow.map { ethAddress ->
+        3 -> enteredEtheriumAddressFlow.combine(enteredAmountFlow) { ethAddress, amount ->
             when {
+                amount.isEmpty() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.common_continue))
                 ethAddress.isEmpty() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.common_continue))
                 else -> ApplyActionState.Available
             }

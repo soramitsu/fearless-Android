@@ -845,6 +845,15 @@
         android:id="@+id/customContributeFragment"
         android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeFragment"
         android:label="CustomContributeFragment"
-        tools:layout="@layout/fragment_custom_contribute" />
+        tools:layout="@layout/fragment_custom_contribute" >
+
+        <action
+            android:id="@+id/action_customContributeFragment_to_confirmContributeFragment"
+            app:destination="@id/confirmContributeFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+    </fragment>
 
 </navigation>

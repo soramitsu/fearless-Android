@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
+import kotlinx.android.synthetic.main.view_moonbeam_step4.view.moonbeamContributeAmount
 import kotlinx.android.synthetic.main.view_moonbeam_step4.view.moonbeamEtheriumAddressInput
 
 class MoonbeamStep4Contribute @JvmOverloads constructor(
@@ -31,6 +32,7 @@ class MoonbeamStep4Contribute @JvmOverloads constructor(
     override fun bind(viewState: CustomContributeViewState, scope: LifecycleCoroutineScope) {
         require(viewState is MoonbeamContributeViewState)
 
-        moonbeamEtheriumAddressInput.content.bindTo(viewState.enteredEtheriumArrdessFlow, scope)
+        moonbeamEtheriumAddressInput.content.bindTo(viewState.enteredEtheriumAddressFlow, scope)
+        moonbeamContributeAmount.amountInput.bindTo(viewState.enteredAmountFlow, scope)
     }
 }

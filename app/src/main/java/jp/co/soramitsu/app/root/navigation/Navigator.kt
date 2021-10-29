@@ -254,6 +254,10 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_customContributeFragment, CustomContributeFragment.getBundle(payload))
     }
 
+    override fun openMoonbeamConfirmContribute(payload: ConfirmContributePayload) {
+        navController?.navigate(R.id.action_customContributeFragment_to_confirmContributeFragment, ConfirmContributeFragment.getBundle(payload))
+    }
+
     override fun openCustomContribute(payload: CustomContributePayload) {
         navController?.navigate(R.id.action_crowdloanContributeFragment_to_customContributeFragment, CustomContributeFragment.getBundle(payload))
     }

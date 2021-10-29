@@ -12,6 +12,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
+import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.AmountView
@@ -19,6 +20,7 @@ import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.GoNextView
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.common.view.TableCellView
+import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
@@ -32,6 +34,7 @@ import kotlinx.android.synthetic.main.fragment_custom_contribute.customContribut
 import kotlinx.android.synthetic.main.fragment_custom_contribute.customFlowContainer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
@@ -99,6 +102,9 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
     override fun subscribe(viewModel: CustomContributeViewModel) {
         observeBrowserEvents(viewModel)
+        observeValidations(viewModel)
+
+        viewModel.showNextProgress.observe(customContributeApply::setProgress)
 
         lifecycleScope.launchWhenResumed {
             viewModel.applyButtonState.combine(viewModel.applyingInProgress) { state, inProgress ->
@@ -142,6 +148,8 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
             customFlowContainer.addView(newView)
 
             newView.bind(viewState, lifecycleScope)
+
+            (viewState as? MoonbeamContributeViewState)?.enteredEtheriumAddressFlow?.first()
         }
 
         viewModel.assetModelFlow.observe { model ->
