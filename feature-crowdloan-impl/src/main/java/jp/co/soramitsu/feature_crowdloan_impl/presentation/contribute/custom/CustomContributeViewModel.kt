@@ -1,9 +1,12 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
@@ -11,6 +14,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
@@ -19,6 +23,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
@@ -48,9 +53,12 @@ class CustomContributeViewModel(
     assetUseCase: AssetUseCase,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
 ) : BaseViewModel(),
+    Browserable,
     FeeLoaderMixin by feeLoaderMixin {
 
-//    val customFlowType = payload.parachainMetadata.customFlow!!
+    override val openBrowserEvent = MutableLiveData<Event<String>>()
+
+    //    val customFlowType = payload.parachainMetadata.customFlow!!
     val customFlowType = payload.parachainMetadata.flow?.name ?: payload.parachainMetadata.customFlow!!
 
 //    val apiKey = payload.parachainMetadata.flow?.data?.apiKey!!
@@ -155,8 +163,30 @@ class CustomContributeViewModel(
         .inBackground()
         .share()
 
+    val learnCrowdloanModel = _viewStateFlow
+        .filter {
+            (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 3
+        }
+        .mapLatest {
+            payload.parachainMetadata.let {
+                LearnMoreModel(
+                    text = resourceManager.getString(R.string.crowdloan_learn, it.name),
+                    iconLink = it.iconLink
+                )
+            }
+        }
+
     init {
         loadFee()
+    }
+
+    fun learnMoreClicked() {
+        val parachainLink = when (payload.isMoonbeam) {
+            true -> BuildConfig.MOONBEAM_CROWDLOAN_INFO_LINK
+            else -> parachainMetadata.website
+        }
+
+        openBrowserEvent.value = Event(parachainLink)
     }
 
 
