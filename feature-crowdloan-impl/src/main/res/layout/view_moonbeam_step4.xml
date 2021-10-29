@@ -73,15 +73,19 @@
                 android:layout_marginEnd="16dp"
                 app:title="@string/staking_validator_estimated_reward" />
 
-            <jp.co.soramitsu.common.view.LabeledTextView
-                android:id="@+id/tvMoonbeamEtheriumAddress"
+            <jp.co.soramitsu.common.view.InputField
+                android:id="@+id/moonbeamEtheriumAddressInput"
+                style="@style/Widget.Fearless.Input.Primary.External"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:singleLine="false"
-                app:label="@string/moonbeam_ethereum_address" />
+                android:hint="@string/moonbeam_ethereum_address"
+                android:inputType="textMultiLine"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <LinearLayout
                 android:layout_width="match_parent"
