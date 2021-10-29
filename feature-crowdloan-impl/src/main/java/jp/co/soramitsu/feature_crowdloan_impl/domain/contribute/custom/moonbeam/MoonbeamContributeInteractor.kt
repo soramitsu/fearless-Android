@@ -3,16 +3,17 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
-import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
-import java.security.MessageDigest
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import retrofit2.HttpException
 import java.io.IOException
+import java.math.BigInteger
+import java.security.MessageDigest
 
 class MoonbeamContributeInteractor(
     private val moonbeamApi: MoonbeamApi,
@@ -26,6 +27,24 @@ class MoonbeamContributeInteractor(
 
     private var termsHash: String? = null
     private var termsSigned: String? = null
+    private var remark: String? = null
+
+    fun nextStep(payload: CustomContributePayload) {
+    }
+
+    suspend fun getSystemRemarkFee(): BigInteger {
+        return feeEstimator.estimateFee(
+            accountAddress = accountRepository.getSelectedAccount().address,
+            formExtrinsic = {
+                call(
+                    moduleName = "System",
+                    callName = "remark",
+                    arguments = mapOf(
+                        "remark" to remark!!.toByteArray()
+                    )
+                )
+            })
+    }
 
     suspend fun getHealth(apiKey: String) = try {
         moonbeamApi.getHealth(apiKey)
@@ -40,15 +59,15 @@ class MoonbeamContributeInteractor(
     }
 
     suspend fun getTerms(): String {
-        val account = accountRepository.getSelectedAccount()
         return httpExceptionHandler.wrap { moonbeamApi.getTerms() }.also {
-            calcHashes(digest.digest(it.encodeToByteArray()), account)
+            calcHashes(digest.digest(it.encodeToByteArray()))
         }
     }
 
-    private suspend fun calcHashes(termsBytes: ByteArray, ss: Account) {
+    private suspend fun calcHashes(termsBytes: ByteArray) {
+        val account = accountRepository.getSelectedAccount()
         termsHash = termsBytes.toHexString(false)
-        termsSigned = accountRepository.signWithAccount(ss, termsBytes).toHexString(true)
+        termsSigned = accountRepository.signWithAccount(account, termsHash?.encodeToByteArray()!!).toHexString(true)
     }
 
     private fun transformException(exception: Throwable): BaseException {

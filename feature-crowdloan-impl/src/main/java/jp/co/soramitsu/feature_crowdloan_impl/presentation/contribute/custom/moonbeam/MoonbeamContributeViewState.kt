@@ -8,14 +8,18 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.Bon
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class MoonbeamContributeViewState(
     private val interactor: MoonbeamContributeInteractor,
     val customContributePayload: CustomContributePayload,
-    resourceManager: ResourceManager
+    resourceManager: ResourceManager,
+    coroutineScope: CoroutineScope,
 ) : CustomContributeViewState {
 
     val apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey!!
@@ -24,7 +28,15 @@ class MoonbeamContributeViewState(
         "$name ($token)"
     }
 
+    init {
+        interactor.nextStep(customContributePayload)
+    }
+
     val privacyAcceptedFlow = MutableStateFlow(customContributePayload.isPrivacyAccepted ?: false)
+
+    suspend fun getSystemRemarkFee(): BigInteger {
+        return interactor.getSystemRemarkFee()
+    }
 
     suspend fun termsText(): String =
         interactor.getTerms()
