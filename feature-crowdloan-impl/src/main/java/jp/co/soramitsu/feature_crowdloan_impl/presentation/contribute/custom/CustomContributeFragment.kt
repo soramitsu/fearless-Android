@@ -22,7 +22,10 @@ import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContribut
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
 import jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
-import kotlinx.android.synthetic.main.fragment_custom_contribute.*
+import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeApply
+import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeContainer
+import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeToolbar
+import kotlinx.android.synthetic.main.fragment_custom_contribute.customFlowContainer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -161,6 +164,14 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
         viewModel.feeLive.observe {
             view?.findViewById<FeeView>(R.id.moonbeamRegistrationFee)?.setFeeStatus(it)
+        }
+
+        viewModel.healthFlow.observe { isHealth ->
+            if (isHealth.not()) {
+                viewModel.showError(
+                    getString(R.string.moonbeam_ineligible_to_participate)
+                )
+            }
         }
     }
 }

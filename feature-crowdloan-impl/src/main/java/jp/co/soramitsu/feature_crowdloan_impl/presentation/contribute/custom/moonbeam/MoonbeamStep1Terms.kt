@@ -11,7 +11,8 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
-import kotlinx.android.synthetic.main.view_moonbeam_step1.view.*
+import kotlinx.android.synthetic.main.view_moonbeam_step1.view.referralPrivacySwitch
+import kotlinx.android.synthetic.main.view_moonbeam_step1.view.tvMoonbeamTermsDesc
 import kotlinx.coroutines.launch
 
 class MoonbeamStep1Terms @JvmOverloads constructor(
@@ -35,6 +36,8 @@ class MoonbeamStep1Terms @JvmOverloads constructor(
         referralPrivacySwitch.bindTo(viewState.privacyAcceptedFlow, scope)
 
         scope.launch {
+//            viewState.getHealth()
+
             tvMoonbeamTermsDesc.text = viewState.termsText()
         }
     }

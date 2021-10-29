@@ -26,8 +26,9 @@ class MoonbeamContributionModule {
     @FeatureScope
     fun provideMoonbeamInteractor(
         acalaApi: MoonbeamApi,
-        httpExceptionHandler: HttpExceptionHandler
-    ) = MoonbeamContributeInteractor(acalaApi, httpExceptionHandler, BuildConfig.MOONBEAM_FEALRESS_REFERRAL)
+        httpExceptionHandler: HttpExceptionHandler,
+        resourceManager: ResourceManager
+    ) = MoonbeamContributeInteractor(acalaApi, httpExceptionHandler, resourceManager, BuildConfig.MOONBEAM_FEALRESS_REFERRAL)
 
     @Provides
     @FeatureScope
@@ -40,11 +41,11 @@ class MoonbeamContributionModule {
     @IntoSet
     fun provideMoonbeamFactory(
         submitter: MoonbeamContributeSubmitter,
-        acalaInteractor: MoonbeamContributeInteractor,
+        moonbeamInteractor: MoonbeamContributeInteractor,
         resourceManager: ResourceManager
     ): CustomContributeFactory = MoonbeamContributeFactory(
         submitter,
-        acalaInteractor,
+        moonbeamInteractor,
         resourceManager
     )
 }

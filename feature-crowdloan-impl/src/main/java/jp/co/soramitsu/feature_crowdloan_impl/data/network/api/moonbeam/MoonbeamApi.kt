@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam
 
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -16,7 +17,9 @@ interface MoonbeamApi {
     suspend fun getTerms(): String
 
     @GET("/health")
-    suspend fun getHealth(): Any?
+    suspend fun getHealth(
+        @Header("x-api-key") apiKey: String
+    )
 
     @GET("/check-remark/{address}")
     suspend fun getCheckRemark(

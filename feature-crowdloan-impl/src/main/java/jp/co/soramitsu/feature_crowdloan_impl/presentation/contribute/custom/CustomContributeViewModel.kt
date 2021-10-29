@@ -4,7 +4,12 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.*
+import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.fractionToPercentage
+import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.map
+import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
@@ -20,10 +25,17 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
-import java.util.*
 
 class CustomContributeViewModel(
     private val customContributeManager: CustomContributeManager,
@@ -40,6 +52,8 @@ class CustomContributeViewModel(
 
 //    val customFlowType = payload.parachainMetadata.customFlow!!
     val customFlowType = payload.parachainMetadata.flow?.name ?: payload.parachainMetadata.customFlow!!
+
+//    val apiKey = payload.parachainMetadata.flow?.data?.apiKey!!
 
     private val _viewStateFlow = MutableStateFlow(customContributeManager.createNewState(customFlowType, viewModelScope, payload))
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow
@@ -130,6 +144,16 @@ class CustomContributeViewModel(
                 fee
             }
     }
+
+    val healthFlow = _viewStateFlow
+        .filter {
+            (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 0
+        }
+        .mapLatest {
+            (_viewStateFlow.value as? MoonbeamContributeViewState)?.getHealth() ?: false
+        }
+        .inBackground()
+        .share()
 
     init {
         loadFee()
