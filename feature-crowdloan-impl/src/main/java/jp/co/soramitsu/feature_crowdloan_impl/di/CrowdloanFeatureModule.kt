@@ -4,10 +4,12 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositoryImpl
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeModule
@@ -34,11 +36,13 @@ class CrowdloanFeatureModule {
         crowdloanMetadataApi: ParachainMetadataApi,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountRepository: AccountRepository,
+        moonbeamApi: MoonbeamApi
     ): CrowdloanRepository = CrowdloanRepositoryImpl(
         remoteStorageSource,
         accountRepository,
         runtimeProperty,
-        crowdloanMetadataApi
+        crowdloanMetadataApi,
+        moonbeamApi
     )
 
     @Provides
@@ -62,12 +66,16 @@ class CrowdloanFeatureModule {
         feeEstimator: FeeEstimator,
         accountRepository: AccountRepository,
         chainStateRepository: ChainStateRepository,
-        crowdloanRepository: CrowdloanRepository
+        crowdloanRepository: CrowdloanRepository,
+        moonbeamApi: MoonbeamApi,
+        resourceManager: ResourceManager,
     ) = CrowdloanContributeInteractor(
         extrinsicService,
         feeEstimator,
         accountRepository,
         chainStateRepository,
-        crowdloanRepository
+        crowdloanRepository,
+        moonbeamApi,
+        resourceManager
     )
 }

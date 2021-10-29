@@ -29,6 +29,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bind
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bindLeases
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.mapParachainMetadataRemoteToParachainMetadata
 import jp.co.soramitsu.runtime.ext.runtimeCacheName
@@ -36,7 +37,9 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import java.math.BigInteger
+import java.net.HttpURLConnection
 
 private const val CONTRIBUTIONS_CHILD_SUFFIX = "crowdloan"
 
@@ -44,7 +47,8 @@ class CrowdloanRepositoryImpl(
     private val remoteStorage: StorageDataSource,
     private val accountRepository: AccountRepository,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    private val parachainMetadataApi: ParachainMetadataApi
+    private val parachainMetadataApi: ParachainMetadataApi,
+    private val moonbeamApi: MoonbeamApi,
 ) : CrowdloanRepository {
 
     override suspend fun isCrowdloansAvailable(): Boolean {
@@ -116,5 +120,15 @@ class CrowdloanRepositoryImpl(
             },
             binder = { scale, runtime -> scale?.let { bindContribution(it, runtime) } }
         )
+    }
+
+    override suspend fun checkRemark(address: String, apiKey: String) = try {
+        moonbeamApi.getCheckRemark(address, apiKey).verified
+    } catch (e: Exception) {
+        if ((e as? HttpException)?.code() == HttpURLConnection.HTTP_FORBIDDEN) {
+            false
+        } else {
+            throw e
+        }
     }
 }

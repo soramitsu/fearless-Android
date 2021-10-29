@@ -108,4 +108,9 @@ class CrowdloanInteractor(
             emitAll(withBlockUpdates)
         }
     }
+
+    suspend fun checkRemark(apiKey: String): Boolean {
+        val address = accountRepository.getSelectedAccount().address
+        return crowdloanRepository.checkRemark(address, apiKey)
+    }
 }

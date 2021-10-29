@@ -1,5 +1,8 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
+import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.base.BaseException
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -7,6 +10,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.hasWonAuction
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.contribute
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -20,6 +24,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
 import java.math.BigDecimal
 
 typealias AdditionalOnChainSubmission = suspend ExtrinsicBuilder.() -> Unit
@@ -29,7 +35,9 @@ class CrowdloanContributeInteractor(
     private val feeEstimator: FeeEstimator,
     private val accountRepository: AccountRepository,
     private val chainStateRepository: ChainStateRepository,
-    private val crowdloanRepository: CrowdloanRepository
+    private val crowdloanRepository: CrowdloanRepository,
+    private val moonbeamApi: MoonbeamApi,
+    private val resourceManager: ResourceManager,
 ) {
 
     fun crowdloanStateFlow(
@@ -92,5 +100,32 @@ class CrowdloanContributeInteractor(
 
             additional?.invoke(this)
         }.getOrThrow()
+    }
+
+    suspend fun getHealth(apiKey: String) = try {
+        moonbeamApi.getHealth(apiKey)
+        true
+    } catch (e: Throwable) {
+        val errorCode = (e as? HttpException)?.response()?.code()
+        if (errorCode == 403) {
+            false
+        } else {
+            throw transformException(e)
+        }
+    }
+
+    private fun transformException(exception: Throwable): BaseException {
+        return when (exception) {
+            is HttpException -> {
+                val response = exception.response()!!
+
+                val errorCode = response.code()
+                response.errorBody()?.close()
+
+                BaseException.httpError(errorCode, resourceManager.getString(R.string.common_undefined_error_message))
+            }
+            is IOException -> BaseException.networkError(resourceManager.getString(R.string.connection_error_message), exception)
+            else -> BaseException.unexpectedError(exception)
+        }
     }
 }
