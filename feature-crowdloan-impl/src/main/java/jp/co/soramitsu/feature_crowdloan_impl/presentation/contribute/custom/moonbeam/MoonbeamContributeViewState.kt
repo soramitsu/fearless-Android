@@ -12,7 +12,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
 import java.math.BigInteger
 
 class MoonbeamContributeViewState(
@@ -21,8 +20,6 @@ class MoonbeamContributeViewState(
     resourceManager: ResourceManager,
     coroutineScope: CoroutineScope,
 ) : CustomContributeViewState {
-
-    val apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey!!
 
     val title = customContributePayload.parachainMetadata.run {
         "$name ($token)"
@@ -40,9 +37,6 @@ class MoonbeamContributeViewState(
 
     suspend fun termsText(): String =
         interactor.getTerms()
-
-    suspend fun getHealth() =
-        interactor.getHealth(apiKey)
 
     override val applyActionState = when (customContributePayload.step) {
         0 -> privacyAcceptedFlow.map { privacyAccepted ->

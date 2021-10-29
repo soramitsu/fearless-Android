@@ -139,22 +139,18 @@ class CrowdloanViewModel(
 
 
             if (paraId == 2002.toBigInteger()) {
-//                //todo check for moonbeam paraId
-//                //todo health
-//                //todo check terms signed
-//                val moonBeamFlowMetadata = ParachainMetadataParcelModel(
-//                    iconLink = payload.parachainMetadata?.iconLink.orEmpty(),
-//                    name = "Moonbeam",
-//                    description = payload.parachainMetadata?.description.orEmpty(),
-//                    rewardRate = payload.parachainMetadata?.rewardRate,
-//                    website = payload.parachainMetadata?.website.orEmpty(),
-//                    customFlow = "Moonbeam",
-//                    token = payload.parachainMetadata?.token.orEmpty()
-//                )
+                val apiKey = crowdloan.parachainMetadata?.flow?.data?.apiKey!!
+                val isSigned = interactor.checkRemark(apiKey)
+
+                val startStep = when {
+                    isSigned -> 3
+                    else -> 0
+                }
+
                 val customContributePayload = CustomContributePayload(
-//                    paraId = 2002.toBigInteger(),
                     paraId = payload.paraId,
                     parachainMetadata = payload.parachainMetadata!!,
+                    step = startStep,
                     amount = BigDecimal.ZERO,
                     previousBonusPayload = router.latestCustomBonus,
                 )

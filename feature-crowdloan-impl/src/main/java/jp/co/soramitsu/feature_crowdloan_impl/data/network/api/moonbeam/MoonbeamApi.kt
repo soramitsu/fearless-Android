@@ -23,7 +23,8 @@ interface MoonbeamApi {
 
     @GET("/check-remark/{address}")
     suspend fun getCheckRemark(
-        @Path("address") address: String
+        @Path("address") address: String,
+        @Header("x-api-key") apiKey: String
     ): VerifyCheckResponse
 
     // store user agreement

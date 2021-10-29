@@ -27,6 +27,8 @@ interface CrowdloanRepository {
     fun fundInfoFlow(parachainId: ParaId, networkType: Node.NetworkType): Flow<FundInfo>
 
     suspend fun minContribution(): BigInteger
+
+    suspend fun checkRemark(address: String, apiKey: String): Boolean
 }
 
 class ParachainMetadata(

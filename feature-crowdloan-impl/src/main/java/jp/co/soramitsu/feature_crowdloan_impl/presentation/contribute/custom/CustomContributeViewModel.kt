@@ -61,7 +61,7 @@ class CustomContributeViewModel(
     //    val customFlowType = payload.parachainMetadata.customFlow!!
     val customFlowType = payload.parachainMetadata.flow?.name ?: payload.parachainMetadata.customFlow!!
 
-//    val apiKey = payload.parachainMetadata.flow?.data?.apiKey!!
+    val apiKey = payload.parachainMetadata.flow?.data?.apiKey!!
 
     private val _viewStateFlow = MutableStateFlow(customContributeManager.createNewState(customFlowType, viewModelScope, payload))
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow
@@ -158,7 +158,7 @@ class CustomContributeViewModel(
             (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 0
         }
         .mapLatest {
-            (_viewStateFlow.value as? MoonbeamContributeViewState)?.getHealth() ?: false
+            contributionInteractor.getHealth(apiKey)
         }
         .inBackground()
         .share()
@@ -203,7 +203,9 @@ class CustomContributeViewModel(
     fun backClicked() {
         if (payload.isMoonbeam) {
             val currentStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step
-            if (currentStep == 0) {
+            val startStep = payload.step
+            val shouldGoBack = currentStep == 0 || currentStep == startStep
+            if (shouldGoBack) {
                 router.back()
             } else {
                 launch {
