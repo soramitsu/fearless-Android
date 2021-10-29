@@ -29,6 +29,7 @@ interface MoonbeamApi {
     // store user agreement
     @POST("/agree-remark")
     suspend fun agreeRemark(
+        @Header("x-api-key") apiKey: String,
         @Body body: RemarkStoreRequest
     ): RemarkStoreResponse
 

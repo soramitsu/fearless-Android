@@ -8,6 +8,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkStoreRequest
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import retrofit2.HttpException
@@ -25,14 +26,24 @@ class MoonbeamContributeInteractor(
 ) {
     private val digest = MessageDigest.getInstance("SHA-256")
 
+    private var moonbeamApiKey: String? = null
     private var termsHash: String? = null
     private var termsSigned: String? = null
-    private var remark: String? = null
 
     fun nextStep(payload: CustomContributePayload) {
     }
 
     suspend fun getSystemRemarkFee(): BigInteger {
+        val apiKey = requireNotNull(moonbeamApiKey)
+        val sign = requireNotNull(termsSigned)
+        val remarkResponse = moonbeamApi.agreeRemark(
+            apiKey,
+            RemarkStoreRequest(
+                accountRepository.getSelectedAccount().address,
+                sign
+            )
+        )
+        val remark = remarkResponse.remark
         return feeEstimator.estimateFee(
             accountAddress = accountRepository.getSelectedAccount().address,
             formExtrinsic = {
@@ -40,13 +51,14 @@ class MoonbeamContributeInteractor(
                     moduleName = "System",
                     callName = "remark",
                     arguments = mapOf(
-                        "remark" to remark!!.toByteArray()
+                        "remark" to remark.toByteArray()
                     )
                 )
             })
     }
 
     suspend fun getHealth(apiKey: String) = try {
+        moonbeamApiKey = apiKey
         moonbeamApi.getHealth(apiKey)
         true
     } catch (e: Throwable) {
