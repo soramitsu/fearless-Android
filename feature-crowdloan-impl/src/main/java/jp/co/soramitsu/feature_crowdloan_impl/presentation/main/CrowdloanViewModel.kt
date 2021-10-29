@@ -138,8 +138,14 @@ class CrowdloanViewModel(
             )
 
             if (paraId == 2002.toBigInteger()) {
-                val apiKey = crowdloan.parachainMetadata?.flow?.data?.apiKey!!
-                val isSigned = interactor.checkRemark(apiKey)
+                val flowData = crowdloan.parachainMetadata?.flow?.data
+                val isSigned = when (flowData) {
+                    null -> false
+                    else -> interactor.checkRemark(
+                        apiUrl = flowData.baseUrl,
+                        apiKey = flowData.apiKey
+                    )
+                }
 
                 val startStep = when {
                     isSigned -> 3

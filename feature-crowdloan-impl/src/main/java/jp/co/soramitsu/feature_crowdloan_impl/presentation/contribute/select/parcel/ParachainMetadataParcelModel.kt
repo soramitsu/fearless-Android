@@ -30,7 +30,9 @@ class ParachainMetadataFlowDataParcelModel(
     val apiUrl: String,
     val apiKey: String,
     val termsUrl: String,
-) : Parcelable
+) : Parcelable {
+    val baseUrl = apiUrl.replace("https://", "")
+}
 
 fun mapParachainMetadataToParcel(
     parachainMetadata: ParachainMetadata

@@ -122,8 +122,8 @@ class CrowdloanRepositoryImpl(
         )
     }
 
-    override suspend fun checkRemark(address: String, apiKey: String) = try {
-        moonbeamApi.getCheckRemark(address, apiKey).verified
+    override suspend fun checkRemark(apiUrl: String, apiKey: String, address: String) = try {
+        moonbeamApi.getCheckRemark(apiUrl, apiKey, address).verified
     } catch (e: Exception) {
         if ((e as? HttpException)?.code() == HttpURLConnection.HTTP_FORBIDDEN) {
             false

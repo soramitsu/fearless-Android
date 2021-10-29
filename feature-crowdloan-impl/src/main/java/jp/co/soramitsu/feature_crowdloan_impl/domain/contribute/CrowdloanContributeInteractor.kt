@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 import java.math.BigDecimal
+import java.net.HttpURLConnection
 
 typealias AdditionalOnChainSubmission = suspend ExtrinsicBuilder.() -> Unit
 
@@ -102,12 +103,12 @@ class CrowdloanContributeInteractor(
         }.getOrThrow()
     }
 
-    suspend fun getHealth(apiKey: String) = try {
-        moonbeamApi.getHealth(apiKey)
+    suspend fun getHealth(apiUrl: String, apiKey: String) = try {
+        moonbeamApi.getHealth(apiUrl, apiKey)
         true
     } catch (e: Throwable) {
         val errorCode = (e as? HttpException)?.response()?.code()
-        if (errorCode == 403) {
+        if (errorCode == HttpURLConnection.HTTP_FORBIDDEN) {
             false
         } else {
             throw transformException(e)

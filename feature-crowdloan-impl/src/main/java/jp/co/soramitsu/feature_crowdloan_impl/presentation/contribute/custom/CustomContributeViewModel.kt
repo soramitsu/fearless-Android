@@ -59,10 +59,7 @@ class CustomContributeViewModel(
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
-    //    val customFlowType = payload.parachainMetadata.customFlow!!
     val customFlowType = payload.parachainMetadata.flow?.name ?: payload.parachainMetadata.customFlow!!
-
-    val apiKey = payload.parachainMetadata.flow?.data?.apiKey
 
     private val _viewStateFlow = MutableStateFlow(customContributeManager.createNewState(customFlowType, viewModelScope, payload))
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow
@@ -159,7 +156,10 @@ class CustomContributeViewModel(
             (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 0
         }
         .mapLatest {
-            apiKey != null && contributionInteractor.getHealth(apiKey)
+            payload.parachainMetadata.flow?.data != null && contributionInteractor.getHealth(
+                apiUrl = payload.parachainMetadata.flow.data.baseUrl,
+                apiKey = payload.parachainMetadata.flow.data.apiKey
+            )
         }
         .inBackground()
         .share()

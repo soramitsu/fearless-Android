@@ -28,7 +28,7 @@ interface CrowdloanRepository {
 
     suspend fun minContribution(): BigInteger
 
-    suspend fun checkRemark(address: String, apiKey: String): Boolean
+    suspend fun checkRemark(apiUrl: String, apiKey: String, address: String): Boolean
 }
 
 class ParachainMetadata(
@@ -51,4 +51,6 @@ class ParachainMetadataFlowData(
     val apiUrl: String,
     val apiKey: String,
     val termsUrl: String,
-)
+) {
+    val baseUrl = apiUrl.replace("https://", "")
+}

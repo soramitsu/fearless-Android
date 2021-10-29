@@ -17,33 +17,38 @@ interface MoonbeamApi {
     @GET
     suspend fun getTerms(@Url url: String): String
 
-    @GET("/health")
+    @GET("//{apiUrl}/health")
     suspend fun getHealth(
+        @Path("apiUrl") apiUrl: String,
         @Header("x-api-key") apiKey: String
     )
 
-    @GET("/check-remark/{address}")
+    @GET("//{apiUrl}/check-remark/{address}")
     suspend fun getCheckRemark(
-        @Path("address") address: String,
-        @Header("x-api-key") apiKey: String
+        @Path("apiUrl") apiUrl: String,
+        @Header("x-api-key") apiKey: String,
+        @Path("address") address: String
     ): VerifyCheckResponse
 
     // store user agreement
-    @POST("/agree-remark")
+    @POST("//{apiUrl}/agree-remark")
     suspend fun agreeRemark(
+        @Path("apiUrl") apiUrl: String,
         @Header("x-api-key") apiKey: String,
         @Body body: RemarkStoreRequest
     ): RemarkStoreResponse
 
     // store remark transaction confirmation for given address
-    @POST("/verify-remark")
+    @POST("//{apiUrl}/verify-remark")
     suspend fun verifyRemark(
+        @Path("apiUrl") apiUrl: String,
         @Body body: RemarkVerifyRequest
     ): RemarkVerifyResponse
 
     // record the emails of people who submit contributions via the Liquid Crowdloan DOT
-    @POST("/make-signature")
+    @POST("//{apiUrl}/make-signature")
     suspend fun makeSignature(
+        @Path("apiUrl") apiUrl: String,
         @Body body: SignatureRequest
     ): SignatureResponse
 }

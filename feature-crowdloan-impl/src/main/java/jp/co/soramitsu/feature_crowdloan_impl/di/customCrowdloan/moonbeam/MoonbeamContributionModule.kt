@@ -24,7 +24,7 @@ class MoonbeamContributionModule {
     @Provides
     @FeatureScope
     fun provideMoonbeamApi(networkApiCreator: NetworkApiCreator): MoonbeamApi {
-        return networkApiCreator.create(MoonbeamApi::class.java, customBaseUrl = MoonbeamApi.BASE_URL_TEST)
+        return networkApiCreator.create(MoonbeamApi::class.java)
     }
 
     @Provides
