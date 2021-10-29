@@ -41,7 +41,9 @@ class MoonbeamContributeViewState(
     }
 
     suspend fun termsText(): String =
-        interactor.getTerms()
+        customContributePayload.parachainMetadata.flow?.data?.termsUrl?.let {
+            interactor.getTerms(it)
+        }.orEmpty()
 
     val enteredEtheriumArrdessFlow = MutableStateFlow("")
 

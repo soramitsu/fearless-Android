@@ -81,8 +81,8 @@ class MoonbeamContributeInteractor(
         )
     }
 
-    suspend fun getTerms(): String {
-        return httpExceptionHandler.wrap { moonbeamApi.getTerms() }.also {
+    suspend fun getTerms(url: String): String {
+        return httpExceptionHandler.wrap { moonbeamApi.getTerms(url) }.also {
             calcHashes(digest.digest(it.encodeToByteArray()))
         }
     }

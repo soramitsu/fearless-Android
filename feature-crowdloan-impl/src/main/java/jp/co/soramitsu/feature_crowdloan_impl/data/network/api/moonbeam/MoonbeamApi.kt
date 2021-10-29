@@ -5,6 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Url
 
 interface MoonbeamApi {
 
@@ -13,8 +14,8 @@ interface MoonbeamApi {
         const val BASE_URL_TEST = "https://wallet-test.api.purestake.xyz"
     }
 
-    @GET("//raw.githubusercontent.com/moonbeam-foundation/crowdloan-self-attestation/main/moonbeam/README.md")
-    suspend fun getTerms(): String
+    @GET
+    suspend fun getTerms(@Url url: String): String
 
     @GET("/health")
     suspend fun getHealth(
