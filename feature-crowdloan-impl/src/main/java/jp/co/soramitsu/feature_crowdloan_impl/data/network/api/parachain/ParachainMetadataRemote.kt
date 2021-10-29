@@ -22,5 +22,7 @@ data class ParachainMetadataFlowRemote(
 data class ParachainMetadataFlowDataRemote(
     val devApiUrl: String,
     val devApiKey: String,
+    val prodApiUrl: String,
+    val prodApiKey: String,
     val termsUrl: String,
 )

@@ -46,7 +46,7 @@ class ParachainMetadataFlow(
 )
 
 class ParachainMetadataFlowData(
-    val devApiUrl: String,
-    val devApiKey: String,
+    val apiUrl: String,
+    val apiKey: String,
     val termsUrl: String,
 )

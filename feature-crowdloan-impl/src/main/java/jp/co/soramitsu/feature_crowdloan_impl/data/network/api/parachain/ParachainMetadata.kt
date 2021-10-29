@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadataFlow
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadataFlowData
+import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 
 fun mapParachainMetadataRemoteToParachainMetadata(parachainMetadata: ParachainMetadataRemote) =
     with(parachainMetadata) {
@@ -30,8 +31,8 @@ fun mapParachainMetadataFlowRemoteToParachainMetadataFlow(flow: ParachainMetadat
 fun mapmapParachainMetadataFlowDataRemoteToParachainMetadataFlowData(flowData: ParachainMetadataFlowDataRemote) =
     with (flowData) {
         ParachainMetadataFlowData(
-            devApiUrl = devApiUrl,
-            devApiKey = devApiKey,
+            apiUrl = if (BuildConfig.DEBUG) devApiUrl else prodApiUrl,
+            apiKey = if (BuildConfig.DEBUG) devApiKey else prodApiKey,
             termsUrl = termsUrl
         )
     }
