@@ -80,8 +80,8 @@ class RpcCalls(
                             EventRecord(
                                 phaseValue!!,
                                 InnerEventRecord(
-                                    innerEvent!!.moduleIndex,
-                                    innerEvent.eventIndex,
+                                    innerEvent!!.module.index.toInt(),
+                                    innerEvent.event.index.second,
                                     innerEvent.arguments
                                 )
                             )

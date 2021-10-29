@@ -37,7 +37,7 @@ class ExtrinsicService(
         accountAddress: String,
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit,
         snapshot: RuntimeSnapshot
-    ): Boolean {
+    ): Pair<String, String>? {
         val extrinsicBuilder = extrinsicBuilderFactory.create(accountAddress)
         extrinsicBuilder.formExtrinsic()
         val extrinsic = extrinsicBuilder.build()
@@ -60,13 +60,13 @@ class ExtrinsicService(
                         blockResponse.block.extrinsics.indexOfFirst { s -> s.blake2b256String() == txHash }
                             .toLong()
                     val isSuccess = isExtrinsicSuccessful(snapshot, extrinsicId, blockHash, txHash)
-                    isSuccess
-                } ?: false
+                    if (isSuccess) txHash to blockHash else null
+                }
                 emit(finish)
                 val more = value.second.isNullOrEmpty() && value.first.isNotEmpty()
                 more
             }.first {
-                it
+                it != null
             }
         return result
     }
@@ -85,7 +85,7 @@ class ExtrinsicService(
                 (it.phase as? PhaseRecord.ApplyExtrinsic)?.extrinsicId?.toLong()
             )
         }
-        if (blockEvents.isEmpty()) return true
+        if (blockEvents.isEmpty()) return false
         val (moduleIndexSuccess, eventIndexSuccess) = snapshot.metadata.system().event("ExtrinsicSuccess").index
         val (moduleIndexFailed, eventIndexFailed) = snapshot.metadata.system().event("ExtrinsicFailed").index
         val successEvent = blockEvents.find { event ->

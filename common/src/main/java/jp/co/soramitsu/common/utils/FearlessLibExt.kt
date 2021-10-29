@@ -66,7 +66,7 @@ fun String.toHexAccountId(): String = toAccountId().toHexString()
 fun preBinder() = pojo<String>().nonNull()
 
 val GenericEvent.Instance.index
-    get() = moduleIndex to eventIndex
+    get() = event.index
 
 fun Module.constant(name: String) = constantOrNull(name) ?: throw NoSuchElementException()
 

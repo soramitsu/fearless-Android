@@ -49,7 +49,7 @@ class MoonbeamContributeInteractor(
             },
             snapshot = snapshot.get()
         )
-        return result
+        return result != null
     }
 
     suspend fun getSystemRemarkFee(apiUrl: String, apiKey: String): BigInteger {
