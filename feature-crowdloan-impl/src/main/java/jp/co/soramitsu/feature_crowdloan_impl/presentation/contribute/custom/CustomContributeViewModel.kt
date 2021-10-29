@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -249,6 +250,17 @@ class CustomContributeViewModel(
             nextStep,
             isPrivacyAccepted
         )
+
+        if (nextStep == 4) {
+            val isCorrect = (_viewStateFlow.value as? MoonbeamContributeViewState)?.isEtheriumArrdessCorrectFlow?.singleOrNull()
+
+            if (isCorrect != true) {
+                showError(resourceManager.getString(R.string.moonbeam_ethereum_address_incorrect))
+                _applyingInProgress.value = false
+                return
+            }
+        }
+
         if (nextStep == 2) {
             val remark = (_viewStateFlow.value as? MoonbeamContributeViewState)?.doSystemRemark() ?: false
             if (remark) {
@@ -260,6 +272,7 @@ class CustomContributeViewModel(
         } else {
             _viewStateFlow.emit(customContributeManager.createNewState(customFlowType, viewModelScope, nextStepPayload))
         }
+
         if (nextStep == 1) {
             (_viewStateFlow.value as? MoonbeamContributeViewState)?.let { viewState ->
                 feeLoaderMixin.loadFee(
