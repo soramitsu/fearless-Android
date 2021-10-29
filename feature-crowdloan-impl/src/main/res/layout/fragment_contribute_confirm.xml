@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     android:id="@+id/confirmContributeContainer"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:background="@color/black">
@@ -14,63 +14,93 @@
         android:layout_height="wrap_content"
         app:titleText="@string/common_confirm" />
 
-    <TextView
-        android:id="@+id/confirmContributeCrowloanTitle"
-        style="@style/TextAppearance.Soramitsu.Header4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/crowdloan_confirmation_name" />
-
-    <jp.co.soramitsu.common.view.LabeledTextView
-        android:layout_width="match_parent"
-        android:id="@+id/confirmContributeOriginAcount"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        app:label="@string/common_account"
-        app:actionIcon="@drawable/ic_more_vertical"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp" />
-
-    <jp.co.soramitsu.common.view.AmountView
-        android:layout_width="match_parent"
-        android:id="@+id/confirmContributeAmount"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:enabled="false" />
-
-    <jp.co.soramitsu.common.view.TableCellView
-        android:id="@+id/confirmContributeReward"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:title="@string/staking_validator_estimated_reward" />
-
-    <jp.co.soramitsu.common.view.TableCellView
-        android:id="@+id/confirmContributeLeasingPeriod"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:title="@string/crowdloan_leasing_period" />
-
-    <jp.co.soramitsu.common.view.TableCellView
-        android:id="@+id/confirmContributeBonus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:title="@string/common_bonus" />
-
-    <Space
+    <ScrollView
+        android:id="@+id/contributeScrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/confirmContributeCrowloanTitle"
+                style="@style/TextAppearance.Soramitsu.Header4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/crowdloan_confirmation_name" />
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/confirmContributeOriginAcount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:actionIcon="@drawable/ic_more_vertical"
+                app:label="@string/common_account" />
+
+            <jp.co.soramitsu.common.view.AmountView
+                android:id="@+id/confirmContributeAmount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:enabled="false" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/confirmContributeReward"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/staking_validator_estimated_reward" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/confirmContributeLeasingPeriod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/crowdloan_leasing_period" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/confirmContributeBonus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/common_bonus" />
+
+            <TextView
+                android:id="@+id/moonbeamEtheriumAddressTitle"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="18dp"
+                android:text="@string/moonbeam_ethereum_address"
+                android:textColor="@color/black1" />
+
+            <TextView
+                android:id="@+id/moonbeamEtheriumAddressText"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="16dp"
+                android:textColor="@color/black1"
+                tools:text="0x2b742B27db68751EAfE6a87D9CD8A60338B343B2" />
+
+        </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -91,7 +121,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:textSize="18sp"
-            android:text="@string/common_confirm" />
+            android:text="@string/common_confirm"
+            android:textSize="18sp" />
     </LinearLayout>
 </LinearLayout>

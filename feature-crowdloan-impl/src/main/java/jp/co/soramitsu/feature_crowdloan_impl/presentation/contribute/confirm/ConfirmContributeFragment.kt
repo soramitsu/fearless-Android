@@ -17,7 +17,18 @@ import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.*
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeAmount
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeBonus
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeConfirm
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeContainer
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeCrowloanTitle
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeFee
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeLeasingPeriod
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeOriginAcount
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeReward
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeToolbar
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressText
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressTitle
 import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
@@ -111,6 +122,13 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
             confirmContributeBonus.setVisible(it != null)
 
             it?.let(confirmContributeBonus::showValue)
+        }
+
+        viewModel.ethAddress.let {
+            moonbeamEtheriumAddressText.setVisible(it != null)
+            moonbeamEtheriumAddressTitle.setVisible(it != null)
+
+            moonbeamEtheriumAddressText.text = it
         }
 
         confirmContributeCrowloanTitle.text = viewModel.title

@@ -84,7 +84,8 @@ class ConfirmContributeViewModel(
         .share()
 
     val estimatedReward = payload.estimatedRewardDisplay
-    val title = payload.metadata?.name ?: payload.paraId.toString()
+    private val crowdloneName = payload.metadata?.name ?: payload.paraId.toString()
+    val title = resourceManager.getString(R.string.crowdloan_confirmation_name, crowdloneName)
 
     private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(payload.paraId)
         .inBackground()
@@ -110,6 +111,9 @@ class ConfirmContributeViewModel(
     }
         .inBackground()
         .share()
+
+    val ethAddress = payload.enteredEtheriumAddress
+
 
     fun nextClicked() {
         maybeGoToNext()

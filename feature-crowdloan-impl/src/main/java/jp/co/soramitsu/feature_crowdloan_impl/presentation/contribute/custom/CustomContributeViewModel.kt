@@ -241,11 +241,7 @@ class CustomContributeViewModel(
             if (payload.isMoonbeam) {
                 val customContributePayload = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload!!
                 val nextStep = customContributePayload.step.inc()
-                if (nextStep < 4) {
-                    handleMoonbeamFlow(nextStep)
-                } else {
-                    maybeGoToNext()
-                }
+                handleMoonbeamFlow(nextStep)
             } else {
                 // идём на след стейт
                 _viewStateFlow.first().generatePayload()
@@ -329,8 +325,10 @@ class CustomContributeViewModel(
             if (isCorrect != true) {
                 showError(resourceManager.getString(R.string.moonbeam_ethereum_address_incorrect))
                 _applyingInProgress.value = false
-                return
+            } else {
+                maybeGoToNext()
             }
+            return
         }
 
         if (nextStep == 2) {
