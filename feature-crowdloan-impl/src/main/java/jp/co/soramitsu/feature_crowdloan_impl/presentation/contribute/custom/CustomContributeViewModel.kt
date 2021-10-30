@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.isMoonbeam
 import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
@@ -27,6 +28,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.Cont
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
@@ -271,17 +273,16 @@ class CustomContributeViewModel(
                 contributionAmount = contributionAmount
             )
 
-            //todo possible needed, now - Private crowdloans are not yet supported
-//            validationExecutor.requireValid(
-//                validationSystem = validationSystem,
-//                payload = validationPayload,
-//                validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
-//                progressConsumer = _showNextProgress.progressConsumer()
-//            ) {
-//                _showNextProgress.value = false
-//
-//                openConfirmScreen(it)
-//            }
+            validationExecutor.requireValid(
+                validationSystem = validationSystem,
+                payload = validationPayload,
+                validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
+                progressConsumer = _showNextProgress.progressConsumer()
+            ) {
+                _showNextProgress.value = false
+
+                openConfirmScreen(it)
+            }
 
             openConfirmScreen(validationPayload)
         }
