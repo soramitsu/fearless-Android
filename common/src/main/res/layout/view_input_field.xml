@@ -10,7 +10,7 @@
         android:id="@+id/inputField"
         style="@style/Widget.Fearless.Input.Primary.Internal"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
+        android:layout_height="wrap_content"
         android:includeFontPadding="false"
         android:inputType="text" />
 

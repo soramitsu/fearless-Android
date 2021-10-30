@@ -37,7 +37,7 @@ class MoonbeamStep4Contribute @JvmOverloads constructor(
 
         moonbeamEtheriumAddressInput.content.bindTo(viewState.enteredEtheriumAddressFlow, scope)
         moonbeamEtheriumAddressInput.content.filters = arrayOf<InputFilter>(LengthFilter(42))
-        moonbeamEtheriumAddressInput.content.setLines(2)
+
         moonbeamContributeAmount.amountInput.bindTo(viewState.enteredAmountFlow, scope)
     }
 }
