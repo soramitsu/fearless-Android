@@ -21,6 +21,7 @@ android {
         buildConfigField "String", "TERMS_URL", "\"https://fearlesswallet.io/terms\""
         buildConfigField "String", "GITHUB_URL", "\"https://github.com/soramitsu/fearless-Android\""
         buildConfigField "String", "WIKI_URL", "\"https://wiki.fearlesswallet.io\""
+        buildConfigField "String", "WIKI_CROWDLOANS_URL", "\"https://wiki.fearlesswallet.io/crowdloans\""
         buildConfigField "String", "TELEGRAM_URL", "\"https://t.me/fearlesswallet\""
         buildConfigField "String", "ANNOUNCEMENT_URL", "\"https://t.me/fearless_announcements\""
         buildConfigField "String", "SUPPORT_URL", "\"https://t.me/fearlesshappiness\""

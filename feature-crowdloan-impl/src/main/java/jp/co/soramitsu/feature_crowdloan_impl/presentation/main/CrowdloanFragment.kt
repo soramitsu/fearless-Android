@@ -8,13 +8,20 @@ import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
-import kotlinx.android.synthetic.main.fragment_crowdloans.*
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
+import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreText
+import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreWrapper
 import javax.inject.Inject
 
 class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.Handler {
@@ -42,6 +49,8 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
 
         crowdloanList.setHasFixedSize(true)
         crowdloanList.adapter = adapter
+
+        learnMoreWrapper.setOnClickListener { viewModel.learnMoreClicked() }
     }
 
     override fun inject() {
@@ -66,6 +75,12 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
         }
 
         viewModel.mainDescription.observe(crowdloanMainDescription::setText)
+
+        viewModel.learnMoreLiveData.observe {
+            learnMoreText.text = it
+        }
+
+        observeBrowserEvents(viewModel)
     }
 
     override fun crowdloanClicked(paraId: ParaId) {
