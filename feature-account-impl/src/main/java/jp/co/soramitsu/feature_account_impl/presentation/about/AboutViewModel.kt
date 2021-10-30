@@ -28,11 +28,17 @@ class AboutViewModel(
     private val _youtubeLiveData = MutableLiveData<String>()
     val youtubeLiveData: LiveData<String> = _youtubeLiveData
 
+    private val _instagramLiveData = MutableLiveData<String>()
+    val instagramLiveData: LiveData<String> = _instagramLiveData
+
     private val _mediumLiveData = MutableLiveData<String>()
     val mediumLiveData: LiveData<String> = _mediumLiveData
 
     private val _versionLiveData = MutableLiveData<String>()
     val versionLiveData: LiveData<String> = _versionLiveData
+
+    private val _wikiLiveData = MutableLiveData<String>()
+    val wikiLiveData: LiveData<String> = _wikiLiveData
 
     private val _telegramLiveData = MutableLiveData<String>()
     val telegramLiveData: LiveData<String> = _telegramLiveData
@@ -52,18 +58,24 @@ class AboutViewModel(
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     init {
-        _websiteLiveData.value = BuildConfig.WEBSITE_URL
-        _twitterLiveData.value = BuildConfig.TWITTER_URL
-        _youtubeLiveData.value = BuildConfig.YOUTUBE_URL
-        _mediumLiveData.value = BuildConfig.MEDIUM_URL
+        _websiteLiveData.value = removeScheme(BuildConfig.WEBSITE_URL)
+        _twitterLiveData.value = removeScheme(BuildConfig.TWITTER_URL)
+        _youtubeLiveData.value = removeScheme(BuildConfig.YOUTUBE_URL)
+        _instagramLiveData.value = removeScheme(BuildConfig.INSTAGRAM_URL)
+        _mediumLiveData.value = removeScheme(BuildConfig.MEDIUM_URL)
 
         val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
         _versionLiveData.value = "${resourceManager.getString(R.string.about_version)} $versionName"
 
-        _telegramLiveData.value = BuildConfig.TELEGRAM_URL
-        _announcementLiveData.value = BuildConfig.ANNOUNCEMENT_URL
-        _supportLiveData.value = BuildConfig.SUPPORT_URL
+        _wikiLiveData.value = removeScheme(BuildConfig.WIKI_URL)
+        _telegramLiveData.value = removeScheme(BuildConfig.TELEGRAM_URL)
+        _announcementLiveData.value = removeScheme(BuildConfig.ANNOUNCEMENT_URL)
+        _supportLiveData.value = removeScheme(BuildConfig.SUPPORT_URL)
         _emailLiveData.value = BuildConfig.EMAIL
+    }
+
+    private fun removeScheme(url: String): String {
+        return url.removePrefix("https://")
     }
 
     fun backButtonPressed() {
@@ -82,12 +94,20 @@ class AboutViewModel(
         openBrowserEvent.value = Event(BuildConfig.YOUTUBE_URL)
     }
 
+    fun instagramClicked() {
+        openBrowserEvent.value = Event(BuildConfig.INSTAGRAM_URL)
+    }
+
     fun mediumClicked() {
         openBrowserEvent.value = Event(BuildConfig.MEDIUM_URL)
     }
 
     fun githubClicked() {
         openBrowserEvent.value = Event(BuildConfig.GITHUB_URL)
+    }
+
+    fun wikiClicked() {
+        openBrowserEvent.value = Event(BuildConfig.WIKI_URL)
     }
 
     fun telegramClicked() {

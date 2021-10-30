@@ -11,7 +11,31 @@ import jp.co.soramitsu.common.utils.createSendEmailIntent
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_about.*
+import kotlinx.android.synthetic.main.fragment_about.announcementText
+import kotlinx.android.synthetic.main.fragment_about.announcementWrapper
+import kotlinx.android.synthetic.main.fragment_about.backIv
+import kotlinx.android.synthetic.main.fragment_about.emailText
+import kotlinx.android.synthetic.main.fragment_about.emailWrapper
+import kotlinx.android.synthetic.main.fragment_about.githubText
+import kotlinx.android.synthetic.main.fragment_about.githubWrapper
+import kotlinx.android.synthetic.main.fragment_about.instagramText
+import kotlinx.android.synthetic.main.fragment_about.instagramWrapper
+import kotlinx.android.synthetic.main.fragment_about.mediumText
+import kotlinx.android.synthetic.main.fragment_about.mediumWrapper
+import kotlinx.android.synthetic.main.fragment_about.privacyWrapper
+import kotlinx.android.synthetic.main.fragment_about.supportText
+import kotlinx.android.synthetic.main.fragment_about.supportWrapper
+import kotlinx.android.synthetic.main.fragment_about.telegramText
+import kotlinx.android.synthetic.main.fragment_about.telegramWrapper
+import kotlinx.android.synthetic.main.fragment_about.termsWrapper
+import kotlinx.android.synthetic.main.fragment_about.twitterText
+import kotlinx.android.synthetic.main.fragment_about.twitterWrapper
+import kotlinx.android.synthetic.main.fragment_about.websiteText
+import kotlinx.android.synthetic.main.fragment_about.websiteWrapper
+import kotlinx.android.synthetic.main.fragment_about.wikiText
+import kotlinx.android.synthetic.main.fragment_about.wikiWrapper
+import kotlinx.android.synthetic.main.fragment_about.youtubeText
+import kotlinx.android.synthetic.main.fragment_about.youtubeWrapper
 
 class AboutFragment : BaseFragment<AboutViewModel>() {
 
@@ -23,9 +47,11 @@ class AboutFragment : BaseFragment<AboutViewModel>() {
         backIv.setOnClickListener { viewModel.backButtonPressed() }
         websiteWrapper.setOnClickListener { viewModel.websiteClicked() }
         twitterWrapper.setOnClickListener { viewModel.twitterClicked() }
+        instagramWrapper.setOnClickListener { viewModel.instagramClicked() }
         youtubeWrapper.setOnClickListener { viewModel.youtubeClicked() }
         mediumWrapper.setOnClickListener { viewModel.mediumClicked() }
         githubWrapper.setOnClickListener { viewModel.githubClicked() }
+        wikiWrapper.setOnClickListener { viewModel.wikiClicked() }
         telegramWrapper.setOnClickListener { viewModel.telegramClicked() }
         announcementWrapper.setOnClickListener { viewModel.announcementClicked() }
         supportWrapper.setOnClickListener { viewModel.supportClicked() }
@@ -54,12 +80,20 @@ class AboutFragment : BaseFragment<AboutViewModel>() {
             youtubeText.text = it
         }
 
+        viewModel.instagramLiveData.observe {
+            instagramText.text = it
+        }
+
         viewModel.mediumLiveData.observe {
             mediumText.text = it
         }
 
         viewModel.versionLiveData.observe {
             githubText.text = it
+        }
+
+        viewModel.wikiLiveData.observe {
+            wikiText.text = it
         }
 
         viewModel.telegramLiveData.observe {
