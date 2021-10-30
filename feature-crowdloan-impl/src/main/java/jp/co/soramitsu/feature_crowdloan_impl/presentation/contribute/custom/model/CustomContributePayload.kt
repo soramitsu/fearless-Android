@@ -15,8 +15,4 @@ class CustomContributePayload(
     val previousBonusPayload: BonusPayload?,
     val step: Int = 0, // used for moonbeam custom flow
     val isPrivacyAccepted: Boolean? = null
-) : Parcelable {
-
-    val isMoonbeam: Boolean
-        get() = paraId == 2002.toBigInteger()
-}
+) : Parcelable

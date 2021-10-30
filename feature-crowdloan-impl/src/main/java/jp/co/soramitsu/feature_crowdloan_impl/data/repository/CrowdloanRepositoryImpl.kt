@@ -32,6 +32,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.mapParachainMetadataRemoteToParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_impl.storage.CrowdloanStorage
 import jp.co.soramitsu.runtime.ext.runtimeCacheName
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +50,7 @@ class CrowdloanRepositoryImpl(
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val parachainMetadataApi: ParachainMetadataApi,
     private val moonbeamApi: MoonbeamApi,
+    private val crowdloanStorage: CrowdloanStorage,
 ) : CrowdloanRepository {
 
     override suspend fun isCrowdloansAvailable(): Boolean {
@@ -130,5 +132,13 @@ class CrowdloanRepositoryImpl(
         } else {
             throw e
         }
+    }
+
+    override suspend fun saveEthAddress(address: String) {
+        crowdloanStorage.saveEthAddress(address)
+    }
+
+    override fun getEthAddress(): String? {
+        return crowdloanStorage.getEthAddress()
     }
 }
