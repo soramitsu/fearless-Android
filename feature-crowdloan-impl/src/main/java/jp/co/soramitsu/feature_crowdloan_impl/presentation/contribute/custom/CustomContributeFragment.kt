@@ -164,6 +164,11 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
             newView.bind(viewState, lifecycleScope)
 
             (viewState as? MoonbeamContributeViewState)?.enteredEtheriumAddressFlow?.first()
+            view?.findViewById<TextView>(R.id.tvMoonbeamSignedHash)?.let { textView ->
+                textView.setOnClickListener {
+                    viewModel.signedHashClicked(textView.text.toString())
+                }
+            }
         }
 
         viewModel.assetModelFlow.observe { model ->

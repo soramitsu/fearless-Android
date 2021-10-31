@@ -30,5 +30,6 @@ class MoonbeamStep3Signed @JvmOverloads constructor(
     override fun bind(viewState: CustomContributeViewState, scope: LifecycleCoroutineScope) {
         require(viewState is MoonbeamContributeViewState)
         tvMoonbeamSignedHash.text = viewState.getRemarkTxHash()
+        tvMoonbeamSignedHash.setOnClickListener {  }
     }
 }

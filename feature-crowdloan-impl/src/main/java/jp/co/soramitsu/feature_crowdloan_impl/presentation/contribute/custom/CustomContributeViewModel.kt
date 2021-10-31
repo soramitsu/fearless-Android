@@ -210,6 +210,10 @@ class CustomContributeViewModel(
         openBrowserEvent.value = Event(parachainLink)
     }
 
+    fun signedHashClicked(transactionHash: String) {
+        openBrowserEvent.value = Event("https://polkascan.io/polkadot/transaction/$transactionHash")
+    }
+
     fun backClicked() {
         if (payload.paraId.isMoonbeam()) {
             val currentStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step
