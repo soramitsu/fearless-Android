@@ -217,9 +217,11 @@ class CustomContributeViewModel(
     fun backClicked() {
         if (payload.paraId.isMoonbeam()) {
             val currentStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step
-            val startStep = payload.step
-            val shouldGoBack = currentStep == 0 || currentStep == startStep
-            if (shouldGoBack) {
+            //0 - starting screen -> go out
+            //2 - signed remark completed, term signed - no need to move to step 1 -> go out
+            //3 - starting step for user with signed terms - no need to go back -> go out
+            val shouldGoOut = currentStep in listOf(0, 2, 3)
+            if (shouldGoOut) {
                 router.back()
             } else {
                 launch {
