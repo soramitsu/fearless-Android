@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
@@ -61,6 +62,8 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
         return inflater.inflate(R.layout.fragment_custom_contribute, container, false)
     }
 
+    private val b = payload.paraId.isMoonbeam()
+
     override fun initViews() {
         customContributeContainer.applyInsetter {
             type(statusBars = true) {
@@ -104,6 +107,17 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
     override fun subscribe(viewModel: CustomContributeViewModel) {
         observeBrowserEvents(viewModel)
         observeValidations(viewModel)
+
+        if (payload.paraId.isMoonbeam()) {
+            requireActivity().onBackPressedDispatcher.addCallback(
+                viewLifecycleOwner,
+                object : OnBackPressedCallback(true) {
+                    override fun handleOnBackPressed() {
+                        viewModel.backClicked()
+                    }
+                }
+            )
+        }
 
         viewModel.showNextProgress.observe(customContributeApply::setProgress)
 
