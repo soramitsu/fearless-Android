@@ -54,17 +54,19 @@ class MoonbeamContributeInteractor(
         val fundInfo = crowdloanRepository.fundInfoFlow(paraId, networkType).first()
         val prevContribution = crowdloanRepository.getContribution(address.toAccountId(), paraId, fundInfo.trieIndex)
         val randomGuid = ByteArray(10) { (0..20).random().toByte() }.toHexString(false)
-        val response = moonbeamApi.makeSignature(
-            apiUrl,
-            apiKey,
-            SignatureRequest(
-                accountRepository.getSelectedAccount().address,
-                contribution.toString(),
-                prevContribution?.amount?.toString() ?: "0",
-                randomGuid
-            )
-        )
-        return response.signature
+        val response = runCatching {
+            moonbeamApi.makeSignature(
+                apiUrl,
+                apiKey,
+                SignatureRequest(
+                    accountRepository.getSelectedAccount().address,
+                    contribution.toString(),
+                    prevContribution?.amount?.toString() ?: "0",
+                    randomGuid
+                )
+            ).signature
+        }
+        return response.getOrDefault("")
     }
 
     suspend fun submitMemo(

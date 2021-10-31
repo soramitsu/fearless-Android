@@ -324,28 +324,32 @@ class CustomContributeViewModel(
             } else {
                 val amount = parsedAmountFlow.firstOrNull() ?: BigDecimal.ZERO
                 val amountPlanks = assetFlow.first().token.planksFromAmount(amount)
-                val signature = (_viewStateFlow.value as? MoonbeamContributeViewState)?.getContributionSignature(amountPlanks)
-                val payloadMoonbeam = (_viewStateFlow.value as? MoonbeamContributeViewState)?.generatePayload()?.getOrNull()
-                feeLoaderMixin.loadFee(
-                    coroutineScope = viewModelScope,
-                    feeConstructor = { asset ->
-                        val additional = if (isCorrectAndOld.second.not()) payloadMoonbeam?.let {
-                            additionalOnChainSubmission(it, customFlowType, BigDecimal.ZERO, customContributeManager)
-                        } else null
-                        contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additional, signature)
-                    },
-                    onRetryCancelled = ::backClicked,
-                    {
-                        if (it is FeeStatus.Loaded) {
-                            maybeGoToNext(it.feeModel.fee, payloadMoonbeam, signature)
-                        } else {
-                            showError(
-                                resourceManager.getString(R.string.fee_not_yet_loaded_title),
-                                resourceManager.getString(R.string.fee_not_yet_loaded_message)
-                            )
-                        }
+                checkBeforePrivateFlow {
+                    launch {
+                        val signature = (_viewStateFlow.value as? MoonbeamContributeViewState)?.getContributionSignature(amountPlanks)
+                        val payloadMoonbeam = (_viewStateFlow.value as? MoonbeamContributeViewState)?.generatePayload()?.getOrNull()
+                        feeLoaderMixin.loadFee(
+                            coroutineScope = viewModelScope,
+                            feeConstructor = { asset ->
+                                val additional = if (isCorrectAndOld.second.not()) payloadMoonbeam?.let {
+                                    additionalOnChainSubmission(it, customFlowType, BigDecimal.ZERO, customContributeManager)
+                                } else null
+                                contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additional, signature)
+                            },
+                            onRetryCancelled = ::backClicked,
+                            {
+                                if (it is FeeStatus.Loaded) {
+                                    maybeGoToNext(it.feeModel.fee, payloadMoonbeam, signature)
+                                } else {
+                                    showError(
+                                        resourceManager.getString(R.string.fee_not_yet_loaded_title),
+                                        resourceManager.getString(R.string.fee_not_yet_loaded_message)
+                                    )
+                                }
+                            }
+                        )
                     }
-                )
+                }
             }
             return
         }
@@ -373,6 +377,28 @@ class CustomContributeViewModel(
                     onRetryCancelled = ::backClicked
                 )
             }
+        }
+    }
+
+    private suspend fun checkBeforePrivateFlow(block: () -> Unit) {
+        val contributionAmount = parsedAmountFlow.firstOrNull() ?: return
+
+        val validationPayload = ContributeValidationPayload(
+            crowdloan = crowdloanFlow.first(),
+            fee = BigDecimal.ZERO,
+            asset = assetFlow.first(),
+            contributionAmount = contributionAmount
+        )
+
+        validationExecutor.requireValid(
+            validationSystem = validationSystem,
+            payload = validationPayload,
+            validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
+            progressConsumer = _showNextProgress.progressConsumer()
+        ) {
+            _showNextProgress.value = false
+
+            block()
         }
     }
 }
