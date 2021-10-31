@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
+import kotlinx.android.synthetic.main.fragment_crowdloans.blockingProgress
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
@@ -84,6 +85,7 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
     }
 
     override fun crowdloanClicked(paraId: ParaId) {
+        blockingProgress.setVisible(true)
         viewModel.crowdloanClicked(paraId)
     }
 }

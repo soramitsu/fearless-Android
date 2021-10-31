@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.isMoonbeam
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
@@ -151,7 +152,7 @@ class CrowdloanViewModel(
                 parachainMetadata = crowdloan.parachainMetadata?.let(::mapParachainMetadataToParcel)
             )
 
-            if (paraId == 2002.toBigInteger()) {
+            if (paraId.isMoonbeam()) {
                 val flowData = crowdloan.parachainMetadata?.flow?.data
                 val isSigned = when (flowData) {
                     null -> false
