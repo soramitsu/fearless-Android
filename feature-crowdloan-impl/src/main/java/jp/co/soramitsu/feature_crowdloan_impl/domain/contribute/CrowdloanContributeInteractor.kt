@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseException
+import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -79,9 +80,9 @@ class CrowdloanContributeInteractor(
     ) = withContext(Dispatchers.Default) {
         val contributionInPlanks = token.planksFromAmount(contribution)
 
+        val encryption = mapCryptoTypeToEncryption(accountRepository.getSelectedAccount().cryptoType)
         val feeInPlanks = feeEstimator.estimateFee(accountRepository.getSelectedAccount().address) {
-            contribute(parachainId, contributionInPlanks, signature)
-
+            contribute(parachainId, contributionInPlanks, signature, encryption)
             additional?.invoke(this)
         }
 
@@ -98,8 +99,9 @@ class CrowdloanContributeInteractor(
     ) = withContext(Dispatchers.Default) {
         val contributionInPlanks = token.planksFromAmount(contribution)
 
+        val encryption = mapCryptoTypeToEncryption(accountRepository.getSelectedAccount().cryptoType)
         extrinsicService.submitExtrinsic(originAddress) {
-            contribute(parachainId, contributionInPlanks, signature)
+            contribute(parachainId, contributionInPlanks, signature, encryption)
 
             additional?.invoke(this)
         }.getOrThrow()

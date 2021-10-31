@@ -242,7 +242,6 @@ class CrowdloanContributeViewModel(
                 val additionalSubmission = bonusActiveState?.let {
                     additionalOnChainSubmission(it.payload, it.customFlow, amount, customContributeManager)
                 }
-
                 contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additionalSubmission)
             },
             onRetryCancelled = ::backClicked
@@ -288,7 +287,8 @@ class CrowdloanContributeViewModel(
             estimatedRewardDisplay = estimatedRewardFlow.first(),
             bonusPayload = router.latestCustomBonus,
             metadata = payload.parachainMetadata,
-            enteredEtheriumAddress = null
+            enteredEtheriumAddress = null,
+            signature = null
         )
 
         router.openConfirmContribute(confirmContributePayload)

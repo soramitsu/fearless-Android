@@ -16,7 +16,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.Cus
 import kotlinx.android.synthetic.main.view_moonbeam_step4.view.moonbeamContributeAmount
 import kotlinx.android.synthetic.main.view_moonbeam_step4.view.moonbeamEtheriumAddressInput
 
-
 class MoonbeamStep4Contribute @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,

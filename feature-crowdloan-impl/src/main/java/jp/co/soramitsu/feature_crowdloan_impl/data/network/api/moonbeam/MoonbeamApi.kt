@@ -46,10 +46,10 @@ interface MoonbeamApi {
         @Body body: RemarkVerifyRequest
     ): RemarkVerifyResponse
 
-    // record the emails of people who submit contributions via the Liquid Crowdloan DOT
     @POST("//{apiUrl}/make-signature")
     suspend fun makeSignature(
         @Path("apiUrl") apiUrl: String,
+        @Header("x-api-key") apiKey: String,
         @Body body: SignatureRequest
     ): SignatureResponse
 }

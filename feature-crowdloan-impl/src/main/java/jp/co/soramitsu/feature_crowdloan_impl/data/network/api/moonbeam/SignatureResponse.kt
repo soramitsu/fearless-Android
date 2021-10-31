@@ -10,4 +10,5 @@ class SignatureResponse(
     val signature: String,
     @SerializedName("time-stamp") // yyyy-mm-ddThh:mm:ss.ffffff
     val timeStamp: String,
+    val guid: String
 )

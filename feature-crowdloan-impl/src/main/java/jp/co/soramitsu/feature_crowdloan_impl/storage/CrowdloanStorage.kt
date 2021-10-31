@@ -14,5 +14,4 @@ class CrowdloanStorage(
 
     fun getEthAddress() =
         preferences.getString(MOONBEAM_ETHERNET_ADDRESS)
-
 }

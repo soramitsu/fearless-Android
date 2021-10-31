@@ -114,7 +114,7 @@ class ConfirmContributeViewModel(
         .share()
 
     val ethAddress = payload.enteredEtheriumAddress
-
+    val privateCrowdloanSignature = payload.signature
 
     fun nextClicked() {
         maybeGoToNext()
@@ -153,9 +153,8 @@ class ConfirmContributeViewModel(
     private fun sendTransaction() {
         launch {
             val customSubmissionResult = if (payload.bonusPayload != null) {
-                val metadata = payload.metadata!!
-
-                customContributeManager.getSubmitter(metadata.customFlow!!)
+                val flowName = payload.metadata?.flow?.name ?: payload.metadata?.customFlow!!
+                customContributeManager.getSubmitter(flowName)
                     .submitOffChain(payload.bonusPayload, payload.amount)
             } else {
                 Result.success(Unit)
@@ -163,7 +162,12 @@ class ConfirmContributeViewModel(
 
             customSubmissionResult.mapCatching {
                 val additionalSubmission = payload.bonusPayload?.let {
-                    additionalOnChainSubmission(it, payload.metadata!!.customFlow!!, payload.amount, customContributeManager)
+                    val flowName = payload.metadata?.flow?.name ?: payload.metadata?.customFlow!!
+                    if (ethAddress?.second == true) {
+                        additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                    } else {
+                        null
+                    }
                 }
 
                 contributionInteractor.contribute(
@@ -171,7 +175,8 @@ class ConfirmContributeViewModel(
                     parachainId = payload.paraId,
                     contribution = payload.amount,
                     token = assetFlow.first().token,
-                    additionalSubmission
+                    additionalSubmission,
+                    privateCrowdloanSignature
                 )
             }
                 .onFailure(::showError)
@@ -189,7 +194,7 @@ class ConfirmContributeViewModel(
 
     private suspend fun saveMoonbeamEtheriumAddress() {
         if (payload.paraId.isMoonbeam()) {
-            ethAddress?.let { contributionInteractor.saveEthAddress(it) }
+            ethAddress?.let { contributionInteractor.saveEthAddress(it.first) }
         }
     }
 }
