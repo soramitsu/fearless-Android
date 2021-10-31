@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
@@ -61,8 +62,6 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_custom_contribute, container, false)
     }
-
-    private val b = payload.paraId.isMoonbeam()
 
     override fun initViews() {
         customContributeContainer.applyInsetter {
@@ -214,5 +213,20 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                 it.setOnClickListener { viewModel.learnMoreClicked() }
             }
         }
+    }
+
+    override fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
+        val base = super.buildErrorDialog(title, errorMessage)
+        if (errorMessage == getString(R.string.moonbeam_ineligible_to_participate)) {
+            base.setCanceledOnTouchOutside(false)
+            base.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.common_ok)) { _, _ ->
+                viewModel.backClicked()
+            }
+            base.setOnCancelListener {
+                viewModel.backClicked()
+            }
+        }
+
+        return base
     }
 }

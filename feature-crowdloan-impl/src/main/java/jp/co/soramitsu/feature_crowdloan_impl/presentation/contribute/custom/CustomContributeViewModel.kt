@@ -172,7 +172,9 @@ class CustomContributeViewModel(
 
     val healthFlow = _viewStateFlow
         .filter {
-            (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 0
+            val currentStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step
+            val startStep = payload.step
+            currentStep == startStep
         }
         .mapLatest {
             payload.parachainMetadata.flow?.data != null && contributionInteractor.getHealth(
