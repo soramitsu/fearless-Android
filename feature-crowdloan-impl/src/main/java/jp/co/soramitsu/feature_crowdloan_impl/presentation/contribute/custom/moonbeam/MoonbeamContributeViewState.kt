@@ -59,10 +59,19 @@ class MoonbeamContributeViewState(
     private val savedEthAddress: String? = interactor.getEthAddress()
     val enteredEtheriumAddressFlow = MutableStateFlow(savedEthAddress.orEmpty())
 
-    fun isEtheriumAddressCorrect(): Boolean {
+    fun isEtheriumAddressCorrectAndOld(): Pair<Boolean, Boolean> {
         val address = enteredEtheriumAddressFlow.value
         val pattern = "0x[A-Fa-f0-9]{40}"
-        return Pattern.matches(pattern, address)
+        return Pattern.matches(pattern, address) to (address == savedEthAddress)
+    }
+
+    suspend fun getContributionSignature(amount: BigInteger): String {
+        return interactor.getContributionSignature(
+            apiUrl = customContributePayload.parachainMetadata.flow!!.data.baseUrl,
+            apiKey = customContributePayload.parachainMetadata.flow.data.apiKey,
+            contribution = amount,
+            paraId = customContributePayload.paraId,
+        )
     }
 
     override val applyActionState = when (customContributePayload.step) {
@@ -90,6 +99,6 @@ class MoonbeamContributeViewState(
     }
 
     private fun createBonusPayload(): ReferralCodePayload {
-        return MoonbeamBonusPayload("", customContributePayload.parachainMetadata.rewardRate)
+        return MoonbeamBonusPayload(enteredEtheriumAddressFlow.value, customContributePayload.paraId, customContributePayload.parachainMetadata.rewardRate)
     }
 }

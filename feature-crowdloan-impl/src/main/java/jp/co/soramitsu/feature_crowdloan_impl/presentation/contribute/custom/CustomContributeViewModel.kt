@@ -27,6 +27,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.Cont
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additionalOnChainSubmission
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
@@ -37,8 +38,10 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.par
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -198,10 +201,6 @@ class CustomContributeViewModel(
             }
         }
 
-    init {
-        loadFee()
-    }
-
     fun learnMoreClicked() {
         val parachainLink = when (payload.paraId.isMoonbeam()) {
             true -> BuildConfig.MOONBEAM_CROWDLOAN_INFO_LINK
@@ -209,16 +208,6 @@ class CustomContributeViewModel(
         }
 
         openBrowserEvent.value = Event(parachainLink)
-    }
-
-    private fun loadFee() {
-        feeLoaderMixin.loadFee(
-            coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                contributionInteractor.estimateFee(payload.paraId, BigDecimal.ZERO, asset.token, null)
-            },
-            onRetryCancelled = ::backClicked
-        )
     }
 
     fun backClicked() {
@@ -264,7 +253,7 @@ class CustomContributeViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private fun maybeGoToNext() = requireFee { fee ->
+    private fun maybeGoToNext(fee: BigDecimal, bonusPayload: BonusPayload? = null, signature: String? = null) {
         launch {
             val contributionAmount = parsedAmountFlow.firstOrNull() ?: return@launch
 
@@ -283,33 +272,30 @@ class CustomContributeViewModel(
             ) {
                 _showNextProgress.value = false
 
-                openConfirmScreen(it)
+                openConfirmScreen(it, bonusPayload, signature)
             }
-
-            openConfirmScreen(validationPayload)
         }
     }
 
     private fun openConfirmScreen(
-        validationPayload: ContributeValidationPayload
+        validationPayload: ContributeValidationPayload,
+        bonusPayload: BonusPayload?,
+        signature: String?
     ) = launch {
+        val isCorrectAndOld = (_viewStateFlow.value as? MoonbeamContributeViewState)?.isEtheriumAddressCorrectAndOld()
         val confirmContributePayload = ConfirmContributePayload(
             paraId = payload.paraId,
             fee = validationPayload.fee,
             amount = validationPayload.contributionAmount,
-            estimatedRewardDisplay = estimatedRewardFlow.first(),
-            bonusPayload = router.latestCustomBonus,
+            estimatedRewardDisplay = estimatedRewardFlow.firstOrNull(),
+            bonusPayload = bonusPayload,
             metadata = payload.parachainMetadata,
-            enteredEtheriumAddress = enteredEtheriumAddress.first()
+            enteredEtheriumAddress = enteredEtheriumAddress.firstOrNull()?.let { it to (isCorrectAndOld?.second?.not() ?: false) },
+            signature = signature
         )
 
         router.openMoonbeamConfirmContribute(confirmContributePayload)
     }
-
-    private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(
-        block,
-        onError = { title, message -> showError(title, message) }
-    )
 
     private suspend fun handleMoonbeamFlow(nextStep: Int = 0) {
         val isPrivacyAccepted = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.isPrivacyAccepted ?: (nextStep > 0)
@@ -324,13 +310,36 @@ class CustomContributeViewModel(
         )
 
         if (nextStep == 4) {
-            val isCorrect = (_viewStateFlow.value as? MoonbeamContributeViewState)?.isEtheriumAddressCorrect()
+            val isCorrectAndOld = (_viewStateFlow.value as? MoonbeamContributeViewState)?.isEtheriumAddressCorrectAndOld()
 
-            if (isCorrect != true) {
+            if (isCorrectAndOld?.first != true) {
                 showError(resourceManager.getString(R.string.moonbeam_ethereum_address_incorrect))
                 _applyingInProgress.value = false
             } else {
-                maybeGoToNext()
+                val amount = parsedAmountFlow.firstOrNull() ?: BigDecimal.ZERO
+                val amountPlanks = assetFlow.first().token.planksFromAmount(amount)
+                val signature = (_viewStateFlow.value as? MoonbeamContributeViewState)?.getContributionSignature(amountPlanks)
+                val payloadMoonbeam = (_viewStateFlow.value as? MoonbeamContributeViewState)?.generatePayload()?.getOrNull()
+                feeLoaderMixin.loadFee(
+                    coroutineScope = viewModelScope,
+                    feeConstructor = { asset ->
+                        val additional = if (isCorrectAndOld.second.not()) payloadMoonbeam?.let {
+                            additionalOnChainSubmission(it, customFlowType, BigDecimal.ZERO, customContributeManager)
+                        } else null
+                        contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additional, signature)
+                    },
+                    onRetryCancelled = ::backClicked,
+                    {
+                        if (it is FeeStatus.Loaded) {
+                            maybeGoToNext(it.feeModel.fee, payloadMoonbeam, signature)
+                        } else {
+                            showError(
+                                resourceManager.getString(R.string.fee_not_yet_loaded_title),
+                                resourceManager.getString(R.string.fee_not_yet_loaded_message)
+                            )
+                        }
+                    }
+                )
             }
             return
         }

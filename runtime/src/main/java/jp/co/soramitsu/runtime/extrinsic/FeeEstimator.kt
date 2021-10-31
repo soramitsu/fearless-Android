@@ -14,11 +14,8 @@ class FeeEstimator(
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit
     ): BigInteger {
         val extrinsicBuilder = extrinsicBuilderFactory.createWithFakeKeyPair(accountAddress)
-
         extrinsicBuilder.formExtrinsic()
-
         val extrinsic = extrinsicBuilder.build()
-
         return rpcCalls.getExtrinsicFee(extrinsic)
     }
 }

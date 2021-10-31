@@ -6,5 +6,6 @@ class SignatureRequest(
     val address: String,
     val contribution: String,
     @SerializedName("previous-total-contribution")
-    val previousTotalContribution: String
+    val previousTotalContribution: String,
+    val guid: String
 )

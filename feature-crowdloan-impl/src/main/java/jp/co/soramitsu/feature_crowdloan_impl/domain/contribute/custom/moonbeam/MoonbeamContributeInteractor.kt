@@ -5,15 +5,23 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkStoreRequest
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkVerifyRequest
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.SignatureRequest
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.addMemo
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -40,6 +48,35 @@ class MoonbeamContributeInteractor(
 
     fun getRemarkTxHash(): String = remarkTxHash.orEmpty()
 
+    suspend fun getContributionSignature(apiUrl: String, apiKey: String, contribution: BigInteger, paraId: ParaId): String {
+        val address = accountRepository.getSelectedAccount().address
+        val networkType = accountRepository.selectedNetworkTypeFlow().first()
+        val fundInfo = crowdloanRepository.fundInfoFlow(paraId, networkType).first()
+        val prevContribution = crowdloanRepository.getContribution(address.toAccountId(), paraId, fundInfo.trieIndex)
+        val randomGuid = ByteArray(10) { (0..20).random().toByte() }.toHexString(false)
+        val response = moonbeamApi.makeSignature(
+            apiUrl,
+            apiKey,
+            SignatureRequest(
+                accountRepository.getSelectedAccount().address,
+                contribution.toString(),
+                prevContribution?.amount?.toString() ?: "0",
+                randomGuid
+            )
+        )
+        return response.signature
+    }
+
+    suspend fun submitMemo(
+        paraId: ParaId,
+        ethereumAddress: String,
+        extrinsicBuilder: ExtrinsicBuilder
+    ) {
+        withContext(Dispatchers.Default) {
+            extrinsicBuilder.addMemo(paraId, ethereumAddress)
+        }
+    }
+
     suspend fun doSystemRemark(apiUrl: String, apiKey: String): Boolean {
         val remark = requireNotNull(moonbeamRemark)
         val result = extrinsicService.submitAndWatchExtrinsic(
@@ -59,7 +96,8 @@ class MoonbeamContributeInteractor(
             remarkTxHash = result.first
             val verify = runCatching {
                 moonbeamApi.verifyRemark(
-                    apiUrl, apiKey, RemarkVerifyRequest(
+                    apiUrl, apiKey,
+                    RemarkVerifyRequest(
                         accountRepository.getSelectedAccount().address,
                         result.second, result.first
                     )

@@ -128,7 +128,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
             moonbeamEtheriumAddressText.setVisible(it != null)
             moonbeamEtheriumAddressTitle.setVisible(it != null)
 
-            moonbeamEtheriumAddressText.text = it
+            moonbeamEtheriumAddressText.text = it?.first.orEmpty()
         }
 
         confirmContributeCrowloanTitle.text = viewModel.title
