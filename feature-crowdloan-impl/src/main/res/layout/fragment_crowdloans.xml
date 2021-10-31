@@ -30,7 +30,80 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/crowdloanToolbar"
+        tools:textColor="@color/white"
         tools:text="@string/crowdloan_main_description" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/learnMoreWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_primary_list_item"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="16dp"
+        android:paddingStart="@dimen/x2"
+        android:paddingEnd="@dimen/x2"
+        app:layout_constraintTop_toBottomOf="@id/crowdloanMainDescription">
+
+        <ImageView
+            android:id="@+id/learnMoreIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_about_wiki"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/learnMoreTitle"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:text="@string/about_crowdloand"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toTopOf="@id/learnMoreText"
+            app:layout_constraintEnd_toStartOf="@id/learnMoreRightIcon"
+            app:layout_constraintStart_toEndOf="@id/learnMoreIcon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/learnMoreText"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1_5"
+            android:textColor="@color/colorHint"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/learnMoreRightIcon"
+            app:layout_constraintStart_toEndOf="@id/learnMoreIcon"
+            app:layout_constraintTop_toBottomOf="@id/learnMoreTitle"
+            tools:text="wiki.fearlesswallet.io/crowdloans" />
+
+        <ImageView
+            android:id="@+id/learnMoreRightIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="@dimen/x1_5"
+            android:layout_marginBottom="@dimen/x1_5"
+            android:src="@drawable/ic_arrow_top_right_white_16"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/learnMoreTitle"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:id="@+id/dividerLearmMore"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:background="@color/gray3"
+        app:layout_constraintTop_toBottomOf="@+id/learnMoreWrapper" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/crowdloanList"
@@ -43,7 +116,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/crowdloanMainDescription"
+        app:layout_constraintTop_toBottomOf="@id/dividerLearmMore"
         tools:itemCount="10"
         tools:listitem="@layout/item_crowdloan"
         tools:visibility="visible" />
@@ -61,7 +134,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/crowdloanMainDescription" />
+        app:layout_constraintTop_toBottomOf="@id/dividerLearmMore" />
 
     <ProgressBar
         android:id="@+id/crowdloanProgress"
@@ -73,7 +146,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/crowdloanMainDescription" />
+        app:layout_constraintTop_toBottomOf="@id/dividerLearmMore" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

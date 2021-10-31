@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
@@ -35,6 +36,7 @@ class MoonbeamContributionModule {
         feeEstimator: FeeEstimator,
         resourceManager: ResourceManager,
         accountRepository: AccountRepository,
+        crowdloanRepository: CrowdloanRepository,
         service: ExtrinsicService,
         property: SuspendableProperty<RuntimeSnapshot>,
     ) = MoonbeamContributeInteractor(
@@ -44,6 +46,7 @@ class MoonbeamContributionModule {
         BuildConfig.MOONBEAM_FEALRESS_REFERRAL,
         feeEstimator,
         accountRepository,
+        crowdloanRepository,
         service,
         property
     )

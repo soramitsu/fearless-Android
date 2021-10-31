@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.di
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -15,6 +16,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositor
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeModule
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.storage.CrowdloanStorage
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
@@ -31,18 +33,24 @@ class CrowdloanFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideCrowdloanStorage(preferences: Preferences) = CrowdloanStorage(preferences)
+
+    @Provides
+    @FeatureScope
     fun crowdloanRepository(
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         crowdloanMetadataApi: ParachainMetadataApi,
         runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
         accountRepository: AccountRepository,
-        moonbeamApi: MoonbeamApi
+        moonbeamApi: MoonbeamApi,
+        crowdloanStorage: CrowdloanStorage
     ): CrowdloanRepository = CrowdloanRepositoryImpl(
         remoteStorageSource,
         accountRepository,
         runtimeProperty,
         crowdloanMetadataApi,
-        moonbeamApi
+        moonbeamApi,
+        crowdloanStorage
     )
 
     @Provides

@@ -7,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
+import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkStoreRequest
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkVerifyRequest
@@ -23,6 +24,7 @@ class MoonbeamContributeInteractor(
     val fearlessReferralCode: String,
     private val feeEstimator: FeeEstimator,
     private val accountRepository: AccountRepository,
+    private val crowdloanRepository: CrowdloanRepository,
     private val extrinsicService: ExtrinsicService,
     private val snapshot: SuspendableProperty<RuntimeSnapshot>,
 ) {
@@ -108,5 +110,9 @@ class MoonbeamContributeInteractor(
         val account = accountRepository.getSelectedAccount()
         termsHash = termsBytes.toHexString(false)
         termsSigned = accountRepository.signWithAccount(account, termsHash?.encodeToByteArray()!!).toHexString(true)
+    }
+
+    fun getEthAddress(): String? {
+        return crowdloanRepository.getEthAddress()
     }
 }

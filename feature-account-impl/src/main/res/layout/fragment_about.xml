@@ -65,7 +65,7 @@
                 android:id="@+id/websiteIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_about_website"
+                android:src="@drawable/ic_info_primary_24"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -95,7 +95,7 @@
                 app:layout_constraintEnd_toStartOf="@id/websiteRightIcon"
                 app:layout_constraintStart_toEndOf="@id/websiteIcon"
                 app:layout_constraintTop_toBottomOf="@id/websiteTitle"
-                tools:text="www.fearless.com" />
+                tools:text="fearlesswallet.io" />
 
             <ImageView
                 android:id="@+id/websiteRightIcon"
@@ -326,13 +326,84 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
-            android:id="@+id/dividerYoutubeMedium"
+            android:id="@+id/dividerYoutubeInstagram"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginStart="@dimen/x2"
             android:layout_marginEnd="@dimen/x2"
             android:background="@color/gray3"
             app:layout_constraintTop_toBottomOf="@id/youtubeWrapper" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/instagramWrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_primary_list_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="@dimen/x2"
+            android:paddingEnd="@dimen/x2"
+            app:layout_constraintTop_toBottomOf="@id/dividerYoutubeInstagram">
+
+            <ImageView
+                android:id="@+id/instagramIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_about_instagram"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/instagramTitle"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:text="@string/about_instagram"
+                android:textColor="@color/white"
+                app:layout_constraintBottom_toTopOf="@id/instagramText"
+                app:layout_constraintEnd_toStartOf="@id/instagramRightIcon"
+                app:layout_constraintStart_toEndOf="@id/instagramIcon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/instagramText"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:textColor="@color/colorHint"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/instagramRightIcon"
+                app:layout_constraintStart_toEndOf="@id/instagramIcon"
+                app:layout_constraintTop_toBottomOf="@id/instagramTitle"
+                tools:text="instagram.com/fearless_wallet" />
+
+            <ImageView
+                android:id="@+id/instagramRightIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/x1_5"
+                android:layout_marginBottom="@dimen/x1_5"
+                android:src="@drawable/ic_chevron_right_rounded_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/instagramTitle"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/dividerInstagramMedium"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/gray3"
+            app:layout_constraintTop_toBottomOf="@id/instagramWrapper" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/mediumWrapper"
@@ -343,7 +414,7 @@
             android:focusable="true"
             android:paddingStart="@dimen/x2"
             android:paddingEnd="@dimen/x2"
-            app:layout_constraintTop_toBottomOf="@id/dividerYoutubeMedium">
+            app:layout_constraintTop_toBottomOf="@id/dividerInstagramMedium">
 
             <ImageView
                 android:id="@+id/mediumIcon"
@@ -406,7 +477,7 @@
             app:layout_constraintTop_toBottomOf="@id/mediumWrapper" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/telegramWrapper"
+            android:id="@+id/wikiWrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_primary_list_item"
@@ -415,6 +486,77 @@
             android:paddingStart="@dimen/x2"
             android:paddingEnd="@dimen/x2"
             app:layout_constraintTop_toBottomOf="@id/divider1">
+
+            <ImageView
+                android:id="@+id/wikiIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_about_wiki"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/wikiTitle"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:text="@string/about_wiki"
+                android:textColor="@color/white"
+                app:layout_constraintBottom_toTopOf="@id/wikiText"
+                app:layout_constraintEnd_toStartOf="@id/wikiRightIcon"
+                app:layout_constraintStart_toEndOf="@id/wikiIcon"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/wikiText"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/x1_5"
+                android:textColor="@color/colorHint"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/wikiRightIcon"
+                app:layout_constraintStart_toEndOf="@id/wikiIcon"
+                app:layout_constraintTop_toBottomOf="@id/wikiTitle"
+                tools:text="wiki.fearlesswallet.io" />
+
+            <ImageView
+                android:id="@+id/wikiRightIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="@dimen/x1_5"
+                android:layout_marginBottom="@dimen/x1_5"
+                android:src="@drawable/ic_chevron_right_rounded_24"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/wikiTitle"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <View
+            android:id="@+id/dividerWikiTelegram"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="@dimen/x2"
+            android:layout_marginEnd="@dimen/x2"
+            android:background="@color/gray3"
+            app:layout_constraintTop_toBottomOf="@+id/wikiWrapper" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/telegramWrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_primary_list_item"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingStart="@dimen/x2"
+            android:paddingEnd="@dimen/x2"
+            app:layout_constraintTop_toBottomOf="@id/dividerWikiTelegram">
 
             <ImageView
                 android:id="@+id/telegramIcon"

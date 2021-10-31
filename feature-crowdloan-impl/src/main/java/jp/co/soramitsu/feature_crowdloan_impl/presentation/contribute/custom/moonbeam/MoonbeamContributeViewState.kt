@@ -55,7 +55,9 @@ class MoonbeamContributeViewState(
         }.orEmpty()
 
     val enteredAmountFlow = MutableStateFlow("")
-    val enteredEtheriumAddressFlow = MutableStateFlow("")
+
+    private val savedEthAddress: String? = interactor.getEthAddress()
+    val enteredEtheriumAddressFlow = MutableStateFlow(savedEthAddress.orEmpty())
 
     fun isEtheriumAddressCorrect(): Boolean {
         val address = enteredEtheriumAddressFlow.value

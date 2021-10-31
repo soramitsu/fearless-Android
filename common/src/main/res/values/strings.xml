@@ -86,11 +86,14 @@ transfers will appear here</string>
     <string name="about_website">Official Website</string>
     <string name="about_github">Github Source Code</string>
     <string name="about_telegram">Join on Telegram</string>
+    <string name="about_wiki">Learn on Wiki</string>
     <string name="about_twitter">Follow on Twitter</string>
     <string name="about_youtube">Subscribe on YouTube</string>
+    <string name="about_instagram">Like on Instagram</string>
     <string name="about_medium">Read on Medium</string>
     <string name="about_announcement">Receive Announcements</string>
     <string name="about_support">Ask for Support</string>
+    <string name="about_crowdloand">Learn about Crowdloans</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
     <string name="account_info_title">Account</string>

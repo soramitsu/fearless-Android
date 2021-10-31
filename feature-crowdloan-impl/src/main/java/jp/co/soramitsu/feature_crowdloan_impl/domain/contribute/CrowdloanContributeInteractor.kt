@@ -131,4 +131,8 @@ class CrowdloanContributeInteractor(
             else -> BaseException.unexpectedError(exception)
         }
     }
+
+    suspend fun saveEthAddress(address: String) {
+        crowdloanRepository.saveEthAddress(address)
+    }
 }

@@ -1,11 +1,16 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.list.toValueList
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.formatTimeLeft
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toAddress
@@ -39,7 +44,12 @@ class CrowdloanViewModel(
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val router: CrowdloanRouter
-) : BaseViewModel() {
+) : BaseViewModel(), Browserable {
+
+    override val openBrowserEvent = MutableLiveData<Event<String>>()
+
+    private val _learnMoreLiveData = MutableLiveData<String>()
+    val learnMoreLiveData: LiveData<String> = _learnMoreLiveData
 
     private val assetFlow = assetUseCase.currentAssetFlow()
         .share()
@@ -66,6 +76,10 @@ class CrowdloanViewModel(
         .withLoading()
         .inBackground()
         .share()
+
+    init {
+        _learnMoreLiveData.value = BuildConfig.WIKI_CROWDLOANS_URL.removePrefix("https://")
+    }
 
     private fun mapCrowdloanStatusToUi(statusClass: KClass<out Crowdloan.State>, statusCount: Int): CrowdloanStatusModel {
         return when (statusClass) {
@@ -165,5 +179,9 @@ class CrowdloanViewModel(
                 router.openContribute(payload)
             }
         }
+    }
+
+    fun learnMoreClicked() {
+        openBrowserEvent.value = Event(BuildConfig.WIKI_CROWDLOANS_URL)
     }
 }
