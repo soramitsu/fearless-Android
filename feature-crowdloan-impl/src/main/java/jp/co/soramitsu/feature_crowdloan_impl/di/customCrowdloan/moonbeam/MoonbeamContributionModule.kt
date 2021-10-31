@@ -36,7 +36,7 @@ class MoonbeamContributionModule {
         resourceManager: ResourceManager,
         accountRepository: AccountRepository,
         service: ExtrinsicService,
-        property: SuspendableProperty<RuntimeSnapshot>
+        property: SuspendableProperty<RuntimeSnapshot>,
     ) = MoonbeamContributeInteractor(
         moonbeamApi,
         httpExceptionHandler,

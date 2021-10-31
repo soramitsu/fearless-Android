@@ -42,6 +42,7 @@ interface MoonbeamApi {
     @POST("//{apiUrl}/verify-remark")
     suspend fun verifyRemark(
         @Path("apiUrl") apiUrl: String,
+        @Header("x-api-key") apiKey: String,
         @Body body: RemarkVerifyRequest
     ): RemarkVerifyResponse
 

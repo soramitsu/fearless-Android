@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkStoreRequest
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkVerifyRequest
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
@@ -23,18 +24,21 @@ class MoonbeamContributeInteractor(
     private val feeEstimator: FeeEstimator,
     private val accountRepository: AccountRepository,
     private val extrinsicService: ExtrinsicService,
-    private val snapshot: SuspendableProperty<RuntimeSnapshot>
+    private val snapshot: SuspendableProperty<RuntimeSnapshot>,
 ) {
     private val digest = MessageDigest.getInstance("SHA-256")
 
     private var termsHash: String? = null
     private var termsSigned: String? = null
     private var moonbeamRemark: String? = null
+    private var remarkTxHash: String? = null
 
     fun nextStep(payload: CustomContributePayload) {
     }
 
-    suspend fun doSystemRemark(): Boolean {
+    fun getRemarkTxHash(): String = remarkTxHash.orEmpty()
+
+    suspend fun doSystemRemark(apiUrl: String, apiKey: String): Boolean {
         val remark = requireNotNull(moonbeamRemark)
         val result = extrinsicService.submitAndWatchExtrinsic(
             accountAddress = accountRepository.getSelectedAccount().address,
@@ -49,7 +53,23 @@ class MoonbeamContributeInteractor(
             },
             snapshot = snapshot.get()
         )
-        return result != null
+        return if (result != null) {
+            remarkTxHash = result.first
+            val verify = runCatching {
+                moonbeamApi.verifyRemark(
+                    apiUrl, apiKey, RemarkVerifyRequest(
+                        accountRepository.getSelectedAccount().address,
+                        result.second, result.first
+                    )
+                ).verified
+            }
+                .getOrElse {
+                    false
+                }
+            verify
+        } else {
+            false
+        }
     }
 
     suspend fun getSystemRemarkFee(apiUrl: String, apiKey: String): BigInteger {

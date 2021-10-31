@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
+import kotlinx.android.synthetic.main.view_moonbeam_step3.view.tvMoonbeamSignedHash
 
 class MoonbeamStep3Signed @JvmOverloads constructor(
     context: Context,
@@ -27,5 +28,7 @@ class MoonbeamStep3Signed @JvmOverloads constructor(
     }
 
     override fun bind(viewState: CustomContributeViewState, scope: LifecycleCoroutineScope) {
+        require(viewState is MoonbeamContributeViewState)
+        tvMoonbeamSignedHash.text = viewState.getRemarkTxHash()
     }
 }

@@ -41,8 +41,13 @@ class MoonbeamContributeViewState(
     }
 
     suspend fun doSystemRemark(): Boolean {
-        return interactor.doSystemRemark()
+        return interactor.doSystemRemark(
+            apiUrl = customContributePayload.parachainMetadata.flow!!.data.baseUrl,
+            apiKey = customContributePayload.parachainMetadata.flow.data.apiKey
+        )
     }
+
+    fun getRemarkTxHash(): String = interactor.getRemarkTxHash()
 
     suspend fun termsText(): String =
         customContributePayload.parachainMetadata.flow?.data?.termsUrl?.let {

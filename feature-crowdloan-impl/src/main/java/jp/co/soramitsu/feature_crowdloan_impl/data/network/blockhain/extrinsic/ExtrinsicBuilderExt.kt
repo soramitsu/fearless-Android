@@ -4,14 +4,14 @@ import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import java.math.BigInteger
 
-fun ExtrinsicBuilder.contribute(parachainId: ParaId, contribution: BigInteger): ExtrinsicBuilder {
+fun ExtrinsicBuilder.contribute(parachainId: ParaId, contribution: BigInteger, signature: String? = null): ExtrinsicBuilder {
     return call(
         moduleName = "Crowdloan",
         callName = "contribute",
         arguments = mapOf(
             "index" to parachainId,
             "value" to contribution,
-            "signature" to null // do not support private crowdloans yet
+            "signature" to signature?.toByteArray()
         )
     )
 }

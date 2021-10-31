@@ -74,12 +74,13 @@ class CrowdloanContributeInteractor(
         parachainId: ParaId,
         contribution: BigDecimal,
         token: Token,
-        additional: AdditionalOnChainSubmission?
+        additional: AdditionalOnChainSubmission?,
+        signature: String? = null,
     ) = withContext(Dispatchers.Default) {
         val contributionInPlanks = token.planksFromAmount(contribution)
 
         val feeInPlanks = feeEstimator.estimateFee(accountRepository.getSelectedAccount().address) {
-            contribute(parachainId, contributionInPlanks)
+            contribute(parachainId, contributionInPlanks, signature)
 
             additional?.invoke(this)
         }
@@ -92,12 +93,13 @@ class CrowdloanContributeInteractor(
         parachainId: ParaId,
         contribution: BigDecimal,
         token: Token,
-        additional: AdditionalOnChainSubmission?
+        additional: AdditionalOnChainSubmission?,
+        signature: String? = null,
     ) = withContext(Dispatchers.Default) {
         val contributionInPlanks = token.planksFromAmount(contribution)
 
         extrinsicService.submitExtrinsic(originAddress) {
-            contribute(parachainId, contributionInPlanks)
+            contribute(parachainId, contributionInPlanks, signature)
 
             additional?.invoke(this)
         }.getOrThrow()
