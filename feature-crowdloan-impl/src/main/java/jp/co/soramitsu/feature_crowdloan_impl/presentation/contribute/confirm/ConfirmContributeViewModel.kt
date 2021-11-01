@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additional
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.model.LeasePeriodModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
@@ -87,7 +88,10 @@ class ConfirmContributeViewModel(
     private val crowdloneName = payload.metadata?.name ?: payload.paraId.toString()
     val title = resourceManager.getString(R.string.crowdloan_confirmation_name, crowdloneName)
 
-    private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(payload.paraId)
+    private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(
+        parachainId = payload.paraId,
+        parachainMetadata = payload.metadata?.let { mapParachainMetadataFromParcel(it) }
+    )
         .inBackground()
         .share()
 

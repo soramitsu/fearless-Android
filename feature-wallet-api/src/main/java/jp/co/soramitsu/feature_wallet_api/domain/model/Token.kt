@@ -22,8 +22,7 @@ class Token(
         KSM("KSM", Node.NetworkType.KUSAMA),
         DOT("DOT", Node.NetworkType.POLKADOT, 10),
         WND("WND", Node.NetworkType.WESTEND),
-        ROC("ROC", Node.NetworkType.ROCOCO),
-        GLMR("GLMR", Node.NetworkType.POLKATRAIN, 10);
+        ROC("ROC", Node.NetworkType.ROCOCO);
 
         companion object {
             fun fromNetworkType(networkType: Node.NetworkType): Type {
@@ -32,7 +31,7 @@ class Token(
                     Node.NetworkType.POLKADOT -> DOT
                     Node.NetworkType.WESTEND -> WND
                     Node.NetworkType.ROCOCO -> ROC
-                    Node.NetworkType.POLKATRAIN -> GLMR
+                    Node.NetworkType.POLKATRAIN -> DOT
                 }
             }
         }

@@ -161,9 +161,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                 }
             }
 
-            if (step == 3) {
-                viewModel.resetProgress()
-            }
+            viewModel.resetProgress()
         }
 
         viewModel.assetModelFlow.observe { model ->
@@ -171,6 +169,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                 it.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
 
                 it.setAssetBalance(model.assetBalance)
+                payload.parachainMetadata.isMoonbeam
                 it.setAssetName(model.tokenName)
                 it.setAssetImageResource(model.tokenIconRes)
             }
