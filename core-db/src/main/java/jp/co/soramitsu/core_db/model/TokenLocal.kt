@@ -16,6 +16,6 @@ data class TokenLocal(
     }
 
     enum class Type {
-        KSM, DOT, WND, ROC, GLMR
+        KSM, DOT, WND, ROC
     }
 }
