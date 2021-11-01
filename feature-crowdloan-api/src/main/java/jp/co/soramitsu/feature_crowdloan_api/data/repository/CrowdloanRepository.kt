@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Trie
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.*
 
 interface CrowdloanRepository {
 
@@ -44,7 +45,10 @@ class ParachainMetadata(
     val customFlow: String?,
     val token: String,
     val flow: ParachainMetadataFlow?,
-)
+) {
+    val isMoonbeam: Boolean
+        get() = name.toLowerCase(Locale.getDefault()) == "moonbeam"
+}
 
 class ParachainMetadataFlow(
     val name: String,

@@ -23,7 +23,6 @@ import jp.co.soramitsu.common.view.GoNextView
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.common.view.TableCellView
 import jp.co.soramitsu.common.view.setProgress
-import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.isMoonbeam
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
@@ -77,8 +76,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
         customContributeApply.prepareForProgress(viewLifecycleOwner)
         customContributeApply.setOnClickListener { viewModel.applyClicked() }
 
-//        val payload = argument<CustomContributePayload>(KEY_PAYLOAD)
-        if (payload.paraId.isMoonbeam()) {
+        if (payload.parachainMetadata.isMoonbeam) {
             val title = when (payload.step) {
                 0, 2, 3 -> payload.parachainMetadata.run {
                     "$name ($token)"
@@ -92,8 +90,6 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
     }
 
     override fun inject() {
-//        val payload = argument<CustomContributePayload>(KEY_PAYLOAD)
-
         FeatureUtils.getFeature<CrowdloanFeatureComponent>(
             requireContext(),
             CrowdloanFeatureApi::class.java
@@ -107,7 +103,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
         observeBrowserEvents(viewModel)
         observeValidations(viewModel)
 
-        if (payload.paraId.isMoonbeam()) {
+        if (payload.parachainMetadata.isMoonbeam) {
             requireActivity().onBackPressedDispatcher.addCallback(
                 viewLifecycleOwner,
                 object : OnBackPressedCallback(true) {
@@ -130,8 +126,8 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                     }
                     state is ApplyActionState.Available -> {
                         customContributeApply.setState(ButtonState.NORMAL)
-//                        val payload = argument<CustomContributePayload>(KEY_PAYLOAD)
-                        if (payload.paraId.isMoonbeam()) {
+
+                        if (payload.parachainMetadata.isMoonbeam) {
                             when (payload.step) {
                                 0 -> customContributeApply.setText(R.string.common_continue)
                                 1 -> customContributeApply.setText(R.string.common_confirm)

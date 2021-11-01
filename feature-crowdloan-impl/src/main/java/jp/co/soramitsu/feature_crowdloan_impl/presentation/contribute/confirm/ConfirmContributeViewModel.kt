@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
-import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.isMoonbeam
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
@@ -193,7 +192,7 @@ class ConfirmContributeViewModel(
     }
 
     private suspend fun saveMoonbeamEtheriumAddress() {
-        if (payload.paraId.isMoonbeam()) {
+        if (payload.metadata?.isMoonbeam == true) {
             ethAddress?.let { contributionInteractor.saveEthAddress(it.first) }
         }
     }

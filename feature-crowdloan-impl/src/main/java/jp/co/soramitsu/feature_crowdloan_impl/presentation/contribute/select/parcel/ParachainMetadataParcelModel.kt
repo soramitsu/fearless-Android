@@ -6,6 +6,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadataFl
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadataFlowData
 import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
+import java.util.*
 
 @Parcelize
 class ParachainMetadataParcelModel(
@@ -17,7 +18,10 @@ class ParachainMetadataParcelModel(
     val customFlow: String?,
     val token: String,
     val flow: ParachainMetadataFlowParcelModel?
-) : Parcelable
+) : Parcelable {
+    val isMoonbeam: Boolean
+        get() = name.toLowerCase(Locale.getDefault()) == "moonbeam"
+}
 
 @Parcelize
 class ParachainMetadataFlowParcelModel(

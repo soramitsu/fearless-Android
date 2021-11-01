@@ -18,7 +18,6 @@ import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
-import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.isMoonbeam
 import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
@@ -202,7 +201,7 @@ class CustomContributeViewModel(
         }
 
     fun learnMoreClicked() {
-        val parachainLink = when (payload.paraId.isMoonbeam()) {
+        val parachainLink = when (payload.parachainMetadata.isMoonbeam) {
             true -> BuildConfig.MOONBEAM_CROWDLOAN_INFO_LINK
             else -> parachainMetadata.website
         }
@@ -215,7 +214,7 @@ class CustomContributeViewModel(
     }
 
     fun backClicked() {
-        if (payload.paraId.isMoonbeam()) {
+        if (payload.parachainMetadata.isMoonbeam) {
             val currentStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step
             //0 - starting screen -> go out
             //2 - signed remark completed, term signed - no need to move to step 1 -> go out
@@ -238,7 +237,7 @@ class CustomContributeViewModel(
         launch {
             _applyingInProgress.value = true
 
-            if (payload.paraId.isMoonbeam()) {
+            if (payload.parachainMetadata.isMoonbeam) {
                 val customContributePayload = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload!!
                 val nextStep = customContributePayload.step.inc()
                 handleMoonbeamFlow(nextStep)
