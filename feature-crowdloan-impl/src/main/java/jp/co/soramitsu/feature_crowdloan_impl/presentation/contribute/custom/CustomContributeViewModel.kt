@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -85,12 +85,11 @@ class CustomContributeViewModel(
         .map { addressModelGenerator.createAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name) }
         .share()
 
-    val applyButtonState = _viewStateFlow
+    private val _validationProgress = MutableLiveData(false)
+    private val _applyingInProgress = MutableLiveData(false)
+    private val applyButtonStateLD = _viewStateFlow
         .flatMapLatest { it.applyActionState }
-        .share()
-
-    private val _applyingInProgress = MutableStateFlow(false)
-    val applyingInProgress: Flow<Boolean> = _applyingInProgress
+        .asLiveData()
 
     private val parachainMetadata = mapParachainMetadataFromParcel(payload.parachainMetadata)
 
@@ -249,14 +248,41 @@ class CustomContributeViewModel(
                         router.back()
                     }
                     .onFailure(::showError)
+                _applyingInProgress.value = false
             }
-
-            _applyingInProgress.value = false
         }
     }
 
-    private val _showNextProgress = MutableLiveData(false)
-    val showNextProgress: LiveData<Boolean> = _showNextProgress
+    val applyButtonState = MediatorLiveData<Pair<ApplyActionState, Boolean>>().apply {
+        var isValidation = false
+        var isApplying = false
+        var state: ApplyActionState? = null
+
+        fun handleUpdates() {
+            state?.let {
+                value = Pair(it, isValidation || isApplying)
+            }
+        }
+
+        addSource(applyButtonStateLD) {
+            state = it
+            handleUpdates()
+        }
+
+        addSource(_validationProgress) {
+            isValidation = it
+            if (!it) { //called false only in error case -> need to stop applying too
+                isApplying = false
+            }
+            handleUpdates()
+        }
+
+        addSource(_applyingInProgress) {
+            isApplying = it
+            handleUpdates()
+        }
+    }
+
 
     private fun maybeGoToNext(fee: BigDecimal, bonusPayload: BonusPayload? = null, signature: String? = null) {
         launch {
@@ -273,10 +299,8 @@ class CustomContributeViewModel(
                 validationSystem = validationSystem,
                 payload = validationPayload,
                 validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
-                progressConsumer = _showNextProgress.progressConsumer()
+                progressConsumer = _validationProgress.progressConsumer()
             ) {
-                _showNextProgress.value = false
-
                 openConfirmScreen(it, bonusPayload, signature)
             }
         }
@@ -393,11 +417,14 @@ class CustomContributeViewModel(
             validationSystem = validationSystem,
             payload = validationPayload,
             validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
-            progressConsumer = _showNextProgress.progressConsumer()
+            progressConsumer = _validationProgress.progressConsumer()
         ) {
-            _showNextProgress.value = false
-
             block()
         }
+    }
+
+    fun resetProgress() {
+        _validationProgress.postValue(false)
+        _applyingInProgress.postValue(false)
     }
 }
