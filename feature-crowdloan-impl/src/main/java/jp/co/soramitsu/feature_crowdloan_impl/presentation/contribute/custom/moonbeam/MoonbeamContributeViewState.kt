@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam
 
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.asLiveData
+import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam.MoonbeamContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
@@ -21,6 +23,7 @@ class MoonbeamContributeViewState(
     val customContributePayload: CustomContributePayload,
     resourceManager: ResourceManager,
     coroutineScope: CoroutineScope,
+    accountUseCase: SelectedAccountUseCase,
 ) : CustomContributeViewState {
 
     val title = customContributePayload.parachainMetadata.run {
@@ -56,7 +59,16 @@ class MoonbeamContributeViewState(
 
     val enteredAmountFlow = MutableStateFlow("")
 
-    private val savedEthAddress: String? = interactor.getEthAddress()
+    private val selectedAddressModelFlow = accountUseCase.selectedAccountFlow()
+        .asLiveData(coroutineScope)
+
+    private val savedEthAddress: String? = selectedAddressModelFlow.value?.address?.let { address ->
+        interactor.getEthAddress(
+            paraId = customContributePayload.paraId,
+            address = address
+        )
+    }
+
     val enteredEtheriumAddressFlow = MutableStateFlow(savedEthAddress.orEmpty())
 
     fun isEtheriumAddressCorrectAndOld(): Pair<Boolean, Boolean> {

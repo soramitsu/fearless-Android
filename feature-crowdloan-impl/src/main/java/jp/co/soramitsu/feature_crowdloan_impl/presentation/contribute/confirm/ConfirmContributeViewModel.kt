@@ -193,7 +193,13 @@ class ConfirmContributeViewModel(
 
     private suspend fun saveMoonbeamEtheriumAddress() {
         if (payload.metadata?.isMoonbeam == true) {
-            ethAddress?.let { contributionInteractor.saveEthAddress(it.first) }
+            ethAddress?.let {
+                contributionInteractor.saveEthAddress(
+                    paraId = payload.paraId,
+                    address = selectedAddressModelFlow.first().address,
+                    etheriumAddress = it.first
+                )
+            }
         }
     }
 }

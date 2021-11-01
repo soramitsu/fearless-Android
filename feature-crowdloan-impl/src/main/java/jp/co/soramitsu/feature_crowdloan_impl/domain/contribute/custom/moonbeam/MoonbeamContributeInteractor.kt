@@ -152,7 +152,7 @@ class MoonbeamContributeInteractor(
         termsSigned = accountRepository.signWithAccount(account, termsHash?.encodeToByteArray()!!).toHexString(true)
     }
 
-    fun getEthAddress(): String? {
-        return crowdloanRepository.getEthAddress()
+    fun getEthAddress(paraId: ParaId, address: String): String? {
+        return crowdloanRepository.getEthAddress(paraId, address)
     }
 }

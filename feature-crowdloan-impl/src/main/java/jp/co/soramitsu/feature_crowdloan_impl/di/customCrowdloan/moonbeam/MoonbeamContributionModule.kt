@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
@@ -63,10 +64,12 @@ class MoonbeamContributionModule {
     fun provideMoonbeamFactory(
         submitter: MoonbeamContributeSubmitter,
         moonbeamInteractor: MoonbeamContributeInteractor,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        accountUseCase: SelectedAccountUseCase
     ): CustomContributeFactory = MoonbeamContributeFactory(
         submitter,
         moonbeamInteractor,
-        resourceManager
+        resourceManager,
+        accountUseCase
     )
 }

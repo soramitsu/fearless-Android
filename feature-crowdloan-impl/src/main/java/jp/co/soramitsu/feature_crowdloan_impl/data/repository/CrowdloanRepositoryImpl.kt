@@ -134,11 +134,11 @@ class CrowdloanRepositoryImpl(
         }
     }
 
-    override suspend fun saveEthAddress(address: String) {
-        crowdloanStorage.saveEthAddress(address)
+    override suspend fun saveEthAddress(paraId: ParaId, address: String, ethAddress: String) {
+        crowdloanStorage.saveEthAddress(paraId, address, ethAddress)
     }
 
-    override fun getEthAddress(): String? {
-        return crowdloanStorage.getEthAddress()
+    override fun getEthAddress(paraId: ParaId, address: String): String? {
+        return crowdloanStorage.getEthAddress(paraId, address)
     }
 }

@@ -31,9 +31,9 @@ interface CrowdloanRepository {
 
     suspend fun checkRemark(apiUrl: String, apiKey: String, address: String): Boolean
 
-    suspend fun saveEthAddress(address: String)
+    suspend fun saveEthAddress(paraId: ParaId, address: String, ethAddress: String)
 
-    fun getEthAddress(): String?
+    fun getEthAddress(paraId: ParaId, address: String): String?
 }
 
 class ParachainMetadata(

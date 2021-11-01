@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.moonbeam
 
 import android.content.Context
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam.MoonbeamContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
@@ -18,12 +19,13 @@ class MoonbeamContributeFactory(
     override val submitter: MoonbeamContributeSubmitter,
     private val interactor: MoonbeamContributeInteractor,
     private val resourceManager: ResourceManager,
-) : CustomContributeFactory {
+    private val accountUseCase: SelectedAccountUseCase,
+    ) : CustomContributeFactory {
 
     override val flowType = "moonbeam"
 
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): MoonbeamContributeViewState {
-        return MoonbeamContributeViewState(interactor, payload, resourceManager, scope)
+        return MoonbeamContributeViewState(interactor, payload, resourceManager, scope, accountUseCase)
     }
 
     override fun createView(context: Context, step: Int): CustomContributeView {

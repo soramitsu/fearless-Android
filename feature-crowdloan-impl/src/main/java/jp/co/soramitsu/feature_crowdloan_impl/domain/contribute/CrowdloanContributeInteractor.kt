@@ -134,7 +134,7 @@ class CrowdloanContributeInteractor(
         }
     }
 
-    suspend fun saveEthAddress(address: String) {
-        crowdloanRepository.saveEthAddress(address)
+    suspend fun saveEthAddress(paraId: ParaId, address: String, etheriumAddress: String) {
+        crowdloanRepository.saveEthAddress(paraId, address, etheriumAddress)
     }
 }
