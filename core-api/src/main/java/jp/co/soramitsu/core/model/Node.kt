@@ -14,15 +14,6 @@ data class Node(
         val readableName: String,
         val runtimeConfiguration: RuntimeConfiguration,
     ) {
-        POLKATRAIN(
-            "Polkatrain",
-            RuntimeConfiguration(
-                addressByte = 0,
-                genesisHash = "92cf9522510aee390f71fc1a635840918cc78e813c4a5ff76d40b478eca94a81",
-                erasPerDay = 4
-            )
-        ),
-
         KUSAMA(
             "Kusama",
             RuntimeConfiguration(
@@ -53,6 +44,14 @@ data class Node(
             RuntimeConfiguration(
                 addressByte = 43, // TODO wrong address type, actual is 42, but it will conflict with Westend
                 genesisHash = "0x1ab7fbd1d7c3532386268ec23fe4ff69f5bb6b3e3697947df3a2ec2786424de3",
+                erasPerDay = 4
+            )
+        ),
+        POLKATRAIN(
+            "Polkatrain",
+            RuntimeConfiguration(
+                addressByte = 0,
+                genesisHash = "92cf9522510aee390f71fc1a635840918cc78e813c4a5ff76d40b478eca94a81",
                 erasPerDay = 4
             )
         );
