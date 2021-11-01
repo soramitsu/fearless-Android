@@ -119,7 +119,8 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         viewModel.bonusFlow.observe {
-            confirmContributeBonus.setVisible(it != null)
+            val isMoonbeam = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isMoonbeam == true
+            confirmContributeBonus.setVisible(it != null && !isMoonbeam)
 
             it?.let(confirmContributeBonus::showValue)
         }
