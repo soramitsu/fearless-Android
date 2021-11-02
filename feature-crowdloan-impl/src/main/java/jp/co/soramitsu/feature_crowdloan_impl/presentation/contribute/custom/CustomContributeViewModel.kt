@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.switchMap
+import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
@@ -24,6 +25,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContribut
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
+import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.CrowdloanNotEndedValidation
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additionalOnChainSubmission
@@ -38,6 +40,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
@@ -112,12 +115,8 @@ class CustomContributeViewModel(
         .inBackground()
         .share()
 
-    private val crowdloanFlow = _viewStateFlow
-        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 3 }
-        .flatMapLatest {
-            contributionInteractor.crowdloanStateFlow(payload.paraId, parachainMetadata)
-                .inBackground()
-        }
+    private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(payload.paraId, parachainMetadata)
+        .inBackground()
         .share()
 
     val crowdloanDetailModelFlow = crowdloanFlow.combine(assetFlow) { crowdloan, asset ->
@@ -163,7 +162,7 @@ class CustomContributeViewModel(
     val feeLive = feeLiveData.switchMap { fee ->
         _viewStateFlow
             .filter {
-                (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 1
+                (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step in 1..2
             }
             .asLiveData()
             .map {
@@ -378,12 +377,16 @@ class CustomContributeViewModel(
         }
 
         if (nextStep == 2) {
-            val remark = (_viewStateFlow.value as? MoonbeamContributeViewState)?.doSystemRemark() ?: false
-            if (remark) {
-                showMessage(resourceManager.getString(R.string.common_transaction_submitted))
-                _viewStateFlow.emit(customContributeManager.createNewState(customFlowType, viewModelScope, nextStepPayload))
-            } else {
-                showMessage(resourceManager.getString(R.string.transaction_status_failed))
+            checkBeforeRemarkSignFlow {
+                launch {
+                    val remark = (_viewStateFlow.value as? MoonbeamContributeViewState)?.doSystemRemark() ?: false
+                    if (remark) {
+                        showMessage(resourceManager.getString(R.string.common_transaction_submitted))
+                        _viewStateFlow.emit(customContributeManager.createNewState(customFlowType, viewModelScope, nextStepPayload))
+                    } else {
+                        showMessage(resourceManager.getString(R.string.transaction_status_failed))
+                    }
+                }
             }
         } else {
             _viewStateFlow.emit(customContributeManager.createNewState(customFlowType, viewModelScope, nextStepPayload))
@@ -415,6 +418,35 @@ class CustomContributeViewModel(
 
         validationExecutor.requireValid(
             validationSystem = validationSystem,
+            payload = validationPayload,
+            validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
+            progressConsumer = _validationProgress.progressConsumer()
+        ) {
+            block()
+        }
+    }
+
+    private suspend fun checkBeforeRemarkSignFlow(block: () -> Unit) {
+        val fee = (feeLive.value as? FeeStatus.Loaded)?.feeModel?.fee ?: return
+        val validationPayload = ContributeValidationPayload(
+            crowdloan = crowdloanFlow.first(),
+            fee = fee,
+            asset = assetFlow.first(),
+            contributionAmount = BigDecimal.ZERO
+        )
+
+        //todo rework with dagger separate validate systems
+        val contributeValidations = (validationSystem.value as CompositeValidation).validations
+            .filter {
+                it is CrowdloanNotEndedValidation
+                || it is EnoughToPayFeesValidation
+            }
+        val feeRemarkSystem = ContributeValidationSystem(
+            validation = CompositeValidation(contributeValidations)
+        )
+
+        validationExecutor.requireValid(
+            validationSystem = feeRemarkSystem,
             payload = validationPayload,
             validationFailureTransformer = { contributeValidationFailure(it, resourceManager) },
             progressConsumer = _validationProgress.progressConsumer()
