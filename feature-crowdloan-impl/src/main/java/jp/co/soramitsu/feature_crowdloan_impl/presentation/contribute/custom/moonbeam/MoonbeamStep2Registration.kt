@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
-import kotlinx.android.synthetic.main.view_moonbeam_step2.view.*
+import kotlinx.android.synthetic.main.view_moonbeam_step2.view.tvMoonbeamRegistrationDesc
 
 class MoonbeamStep2Registration @JvmOverloads constructor(
     context: Context,
@@ -33,7 +33,5 @@ class MoonbeamStep2Registration @JvmOverloads constructor(
         tvMoonbeamRegistrationDesc.text = createSpannable(context.getString(R.string.moonbeam_registration_description)) {
             clickable(context.getString(R.string.moonbeam_registration_description_system_remark)) {}
         }
-
-        moonbeamRegistrationFee
     }
 }

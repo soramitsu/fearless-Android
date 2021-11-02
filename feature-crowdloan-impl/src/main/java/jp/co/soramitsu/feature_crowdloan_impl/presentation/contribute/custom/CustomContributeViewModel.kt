@@ -256,10 +256,12 @@ class CustomContributeViewModel(
         var isValidation = false
         var isApplying = false
         var state: ApplyActionState? = null
+        var feeStatus: FeeStatus? = null
 
         fun handleUpdates() {
             state?.let {
-                value = Pair(it, isValidation || isApplying)
+                val inProgress = isValidation || isApplying || feeStatus == FeeStatus.Loading
+                value = Pair(it, inProgress)
             }
         }
 
@@ -278,6 +280,11 @@ class CustomContributeViewModel(
 
         addSource(_applyingInProgress) {
             isApplying = it
+            handleUpdates()
+        }
+
+        addSource(feeLive) {
+            feeStatus = it
             handleUpdates()
         }
     }
