@@ -31,11 +31,14 @@ class AstarContributeViewState(
         createBonusPayload(it)
     }
 
-    val bonusFriendFlow = bonusPayloadFlow.map {
+    val bonusFriendFlowNumber = bonusPayloadFlow.map {
         require(it is AstarBonusPayload)
+        it.calculateFriendBonus(customContributePayload.amount)
+    }
 
+    val bonusFriendFlow = bonusFriendFlowNumber.map {
         val tokenName = customContributePayload.parachainMetadata.token
-        it.calculateFriendBonus(customContributePayload.amount)?.formatTokenAmount(tokenName)
+        it?.formatTokenAmount(tokenName)
     }
 
     override fun createBonusPayload(referralCode: String): ReferralCodePayload {

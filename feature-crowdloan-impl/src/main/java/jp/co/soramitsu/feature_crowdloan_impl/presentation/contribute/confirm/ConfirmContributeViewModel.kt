@@ -104,14 +104,14 @@ class ConfirmContributeViewModel(
         .inBackground()
         .share()
 
-    val bonusFlow = flow {
-        val bonusDisplay = payload.bonusPayload?.let {
-            val bonus = it.calculateBonus(payload.amount)
+    val bonusNumberFlow = flow {
+        emit(payload.bonusPayload?.calculateBonus(payload.amount))
+    }
+        .inBackground()
+        .share()
 
-            bonus?.formatTokenAmount(payload.metadata!!.token)
-        }
-
-        emit(bonusDisplay)
+    val bonusFlow = bonusNumberFlow.map { bonus ->
+        bonus?.formatTokenAmount(payload.metadata!!.token)
     }
         .inBackground()
         .share()

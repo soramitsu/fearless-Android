@@ -11,7 +11,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeView
-import kotlinx.android.synthetic.main.astar_referral_flow.view.referralBonus
 import kotlinx.android.synthetic.main.astar_referral_flow.view.referralFriendBonus
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
 
@@ -42,16 +41,10 @@ class AstarContributeView @JvmOverloads constructor(
 
             bonus?.let {
                 referralFriendBonus.showValue(bonus)
-                referralFriendBonus.setValueColorRes(getColor(bonus))
             }
         }
-        viewState.bonusFlow.observe(scope) { bonus ->
-            referralBonus.setValueColorRes(getColor(bonus))
+        viewState.bonusFriendFlowNumber.observe(scope) { bonus ->
+            referralFriendBonus.setValueColorRes(getColor(bonus))
         }
-    }
-
-    private fun getColor(bonus: String?) = when {
-        bonus == null || bonus.startsWith("0") -> R.color.white
-        else -> R.color.colorAccent
     }
 }

@@ -23,6 +23,7 @@ import kotlinx.android.synthetic.main.view_referral_flow.view.referralFearlessBo
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacySwitch
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacyText
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
+import java.math.BigDecimal
 import javax.inject.Inject
 
 open class ReferralContributeView @JvmOverloads constructor(
@@ -74,6 +75,10 @@ open class ReferralContributeView @JvmOverloads constructor(
             bonus?.let { referralBonus.showValue(bonus) }
         }
 
+        viewState.bonusNumberFlow.observe(scope) { bonus ->
+            referralBonus.setValueColorRes(getColor(bonus))
+        }
+
         referralFearlessBonusApply?.setOnClickListener { viewState.applyFearlessCode() }
 
         referralPrivacyText?.text = createSpannable(context.getString(R.string.onboarding_terms_and_conditions_1)) {
@@ -85,5 +90,10 @@ open class ReferralContributeView @JvmOverloads constructor(
         viewState.openBrowserFlow.observe(scope) {
             context.showBrowser(it)
         }
+    }
+
+    protected fun getColor(bonus: BigDecimal?) = when {
+        bonus == null || bonus <= BigDecimal.ZERO -> R.color.white
+        else -> R.color.colorAccent
     }
 }

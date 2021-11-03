@@ -55,20 +55,20 @@
                 android:enabled="false" />
 
             <jp.co.soramitsu.common.view.TableCellView
-                android:id="@+id/confirmContributeReward"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                app:title="@string/staking_validator_estimated_reward" />
-
-            <jp.co.soramitsu.common.view.TableCellView
                 android:id="@+id/confirmContributeLeasingPeriod"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 app:title="@string/crowdloan_leasing_period" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/confirmContributeReward"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/staking_validator_estimated_reward" />
 
             <jp.co.soramitsu.common.view.TableCellView
                 android:id="@+id/confirmContributeBonus"
