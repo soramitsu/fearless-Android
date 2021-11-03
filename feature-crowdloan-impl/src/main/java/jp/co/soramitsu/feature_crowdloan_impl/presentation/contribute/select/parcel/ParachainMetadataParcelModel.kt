@@ -21,6 +21,8 @@ class ParachainMetadataParcelModel(
 ) : Parcelable {
     val isMoonbeam: Boolean
         get() = name.toLowerCase(Locale.getDefault()) == "moonbeam"
+    val isAstar: Boolean
+        get() = name.toLowerCase(Locale.getDefault()) == "astar"
 }
 
 @Parcelize

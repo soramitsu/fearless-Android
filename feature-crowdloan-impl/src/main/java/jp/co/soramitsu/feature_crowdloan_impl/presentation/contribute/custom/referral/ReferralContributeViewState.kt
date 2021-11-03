@@ -14,13 +14,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
 
 abstract class ReferralContributeViewState(
     protected val customContributePayload: CustomContributePayload,
     protected val resourceManager: ResourceManager,
     private val fearlessReferralCode: String,
-    private val bonusPercentage: BigDecimal,
     private val termsUrl: String = customContributePayload.parachainMetadata.website,
     private val learnMoreUrl: String = customContributePayload.parachainMetadata.website,
 ) : CustomContributeViewState {
@@ -31,6 +29,7 @@ abstract class ReferralContributeViewState(
 
     private val _openBrowserFlow = MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 1)
     val openBrowserFlow: Flow<String> = _openBrowserFlow
+    val isAstar = customContributePayload.parachainMetadata.isAstar
 
     val enteredReferralCodeFlow = MutableStateFlow("")
 

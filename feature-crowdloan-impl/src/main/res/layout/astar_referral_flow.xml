@@ -13,30 +13,33 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="2dp"
-        android:hint="@string/crowdloan_referral_code_invalid"
+        android:layout_marginTop="8dp"
+        android:hint="@string/crowdloan_astar_referral_code_hint"
         android:inputType="textMultiLine"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:minHeight="56dp"/>
 
     <TextView
         android:id="@+id/referralFearlessBonusApply"
         style="@style/TextAppearance.Soramitsu.CapsTitle2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="30dp"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/primary_chip_background"
+        android:background="@drawable/secondary_chip_background"
         android:gravity="center"
         android:includeFontPadding="false"
         android:paddingStart="12dp"
         android:paddingTop="6dp"
         android:paddingEnd="12dp"
         android:paddingBottom="6dp"
-        android:text="@string/apply_fearless_wallet_bonus"
+        android:text="@string/apply_fearless_astar_refferal"
         android:textColor="@color/button_text_colors"
-        app:layout_constraintTop_toBottomOf="@+id/referralReferralCodeInput" />
+        android:textSize="10sp"
+        app:layout_constraintTop_toBottomOf="@+id/referralReferralCodeInput"
+        tools:ignore="SmallSp" />
 
     <jp.co.soramitsu.common.view.TableCellView
         android:id="@+id/referralFriendBonus"

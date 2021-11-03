@@ -12,7 +12,6 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
-import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam.MoonbeamContributeInteractor
@@ -44,7 +43,6 @@ class MoonbeamContributionModule {
         moonbeamApi,
         httpExceptionHandler,
         resourceManager,
-        BuildConfig.MOONBEAM_FEALRESS_REFERRAL,
         feeEstimator,
         accountRepository,
         crowdloanRepository,

@@ -15,7 +15,6 @@ class AcalaContributeViewState(
     customContributePayload = customContributePayload,
     resourceManager = resourceManager,
     fearlessReferralCode = interactor.fearlessReferralCode,
-    bonusPercentage = ACALA_BONUS_MULTIPLIER
 ) {
 
     override fun createBonusPayload(referralCode: String): ReferralCodePayload {

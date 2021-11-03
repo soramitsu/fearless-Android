@@ -110,7 +110,7 @@
                     android:textColor="@color/colorAccent"
                     style="@style/TextAppearance.Soramitsu.Body2"
                     android:id="@+id/crowdloanContributeBonusReward"
-                    tools:text="@string/crowdloan_bonus_action" />
+                    tools:text="@string/crowdloan_empty_bonus_title" />
 
                 <ImageView
                     android:layout_width="wrap_content"

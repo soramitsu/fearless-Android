@@ -212,6 +212,15 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                 it.setOnClickListener { viewModel.learnMoreClicked() }
             }
         }
+
+        viewModel.learnCrowdloanBonusModel.observe { model ->
+            view?.findViewById<GoNextView>(R.id.referralLearnMore)?.let {
+                it.title.text = model.text
+                it.icon.load(model.iconLink, imageLoader)
+
+                it.setOnClickListener { viewModel.learnMoreClicked() }
+            }
+        }
     }
 
     override fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {

@@ -15,7 +15,6 @@ class KaruraContributeViewState(
     customContributePayload = customContributePayload,
     resourceManager = resourceManager,
     fearlessReferralCode = interactor.fearlessReferralCode,
-    bonusPercentage = KARURA_BONUS_MULTIPLIER
 ) {
 
     override fun createBonusPayload(referralCode: String): ReferralCodePayload {

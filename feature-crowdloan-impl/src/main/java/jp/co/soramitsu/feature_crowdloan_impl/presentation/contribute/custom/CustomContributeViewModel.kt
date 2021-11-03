@@ -198,6 +198,19 @@ class CustomContributeViewModel(
             }
         }
 
+    val learnCrowdloanBonusModel = _viewStateFlow
+        .filter {
+            _viewStateFlow.value !is MoonbeamContributeViewState
+        }
+        .mapLatest {
+            payload.parachainMetadata.let {
+                LearnMoreModel(
+                    text = resourceManager.getString(R.string.crowdloan_learn_bonuses, it.name),
+                    iconLink = it.iconLink
+                )
+            }
+        }
+
     fun learnMoreClicked() {
         val parachainLink = when (payload.parachainMetadata.isMoonbeam) {
             true -> BuildConfig.MOONBEAM_CROWDLOAN_INFO_LINK

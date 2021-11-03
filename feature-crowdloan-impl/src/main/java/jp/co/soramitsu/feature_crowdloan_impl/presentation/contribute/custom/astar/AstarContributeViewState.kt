@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.as
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.astar.AstarContributeInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeViewState
@@ -17,8 +18,15 @@ class AstarContributeViewState(
     customContributePayload = customContributePayload,
     resourceManager = resourceManager,
     fearlessReferralCode = interactor.fearlessReferralCode,
-    bonusPercentage = ASTAR_BONUS_MULTIPLIER
 ) {
+
+    override val applyActionState = enteredReferralCodeFlow.map { referral ->
+        when {
+            referral.isEmpty() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.crowdloan_enter_referral_address))
+            else -> ApplyActionState.Available
+        }
+    }
+
     private val bonusPayloadFlow = enteredReferralCodeFlow.map {
         createBonusPayload(it)
     }

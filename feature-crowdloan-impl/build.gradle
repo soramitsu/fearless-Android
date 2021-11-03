@@ -16,7 +16,6 @@ android {
         buildConfigField "String", "ASTAR_FEALRESS_REFERRAL", "\"14Q22opa2mR3SsCZkHbDoSkN6iQpJPk6dDYwaQibufh41g3k\""
         buildConfigField "String", "KARURA_FEALRESS_REFERRAL", "\"0x9642d0db9f3b301b44df74b63b0b930011e3f52154c5ca24b4dc67b3c7322f15\""
         buildConfigField "String", "ACALA_FEALRESS_REFERRAL", "\"0x9642d0db9f3b301b44df74b63b0b930011e3f52154c5ca24b4dc67b3c7322f15\""
-        buildConfigField "String", "MOONBEAM_FEALRESS_REFERRAL", "\"STUB-TBD\""
         buildConfigField "String", "BIFROST_FEALRESS_REFERRAL", "\"FRLS69\""
         buildConfigField "String", "MOONBEAM_CROWDLOAN_INFO_LINK", "\"https://moonbeam.foundation/moonbeam-crowdloan/\""
         buildConfigField "String", "BIFROST_TERMS_LINKS", "\"https://docs.google.com/document/d/1PDpgHnIcAmaa7dEFusmLYgjlvAbk2VKtMd755bdEsf4\""

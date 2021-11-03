@@ -29,7 +29,6 @@ class MoonbeamContributeInteractor(
     private val moonbeamApi: MoonbeamApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val resourceManager: ResourceManager,
-    val fearlessReferralCode: String,
     private val feeEstimator: FeeEstimator,
     private val accountRepository: AccountRepository,
     private val crowdloanRepository: CrowdloanRepository,
