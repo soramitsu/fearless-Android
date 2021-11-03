@@ -38,15 +38,15 @@ class MoonbeamContributeViewState(
 
     suspend fun getSystemRemarkFee(): BigInteger {
         return interactor.getSystemRemarkFee(
-            apiUrl = customContributePayload.parachainMetadata.flow!!.data.baseUrl,
-            apiKey = customContributePayload.parachainMetadata.flow.data.apiKey
+            apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl.orEmpty(),
+            apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey.orEmpty()
         )
     }
 
     suspend fun doSystemRemark(): Boolean {
         return interactor.doSystemRemark(
-            apiUrl = customContributePayload.parachainMetadata.flow!!.data.baseUrl,
-            apiKey = customContributePayload.parachainMetadata.flow.data.apiKey
+            apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl.orEmpty(),
+            apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey.orEmpty()
         )
     }
 
@@ -79,8 +79,8 @@ class MoonbeamContributeViewState(
 
     suspend fun getContributionSignature(amount: BigInteger): String {
         return interactor.getContributionSignature(
-            apiUrl = customContributePayload.parachainMetadata.flow!!.data.baseUrl,
-            apiKey = customContributePayload.parachainMetadata.flow.data.apiKey,
+            apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl.orEmpty(),
+            apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey.orEmpty(),
             contribution = amount,
             paraId = customContributePayload.paraId,
         )

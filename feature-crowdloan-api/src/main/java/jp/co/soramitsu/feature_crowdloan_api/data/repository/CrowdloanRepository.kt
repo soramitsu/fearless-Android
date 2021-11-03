@@ -53,14 +53,14 @@ class ParachainMetadata(
 }
 
 class ParachainMetadataFlow(
-    val name: String,
-    val data: ParachainMetadataFlowData
+    val name: String?,
+    val data: ParachainMetadataFlowData?
 )
 
 class ParachainMetadataFlowData(
-    val apiUrl: String,
-    val apiKey: String,
-    val termsUrl: String,
+    val apiUrl: String?,
+    val apiKey: String?,
+    val termsUrl: String?,
 ) {
-    val baseUrl = apiUrl.replace("https://", "")
+    val baseUrl = apiUrl?.replace("https://", "")
 }

@@ -27,17 +27,17 @@ class ParachainMetadataParcelModel(
 
 @Parcelize
 class ParachainMetadataFlowParcelModel(
-    val name: String,
-    val data: ParachainMetadataFlowDataParcelModel
+    val name: String?,
+    val data: ParachainMetadataFlowDataParcelModel?
 ) : Parcelable
 
 @Parcelize
 class ParachainMetadataFlowDataParcelModel(
-    val apiUrl: String,
-    val apiKey: String,
-    val termsUrl: String,
+    val apiUrl: String?,
+    val apiKey: String?,
+    val termsUrl: String?,
 ) : Parcelable {
-    val baseUrl = apiUrl.replace("https://", "")
+    val baseUrl = apiUrl?.replace("https://", "")
 }
 
 fun mapParachainMetadataToParcel(
@@ -60,7 +60,7 @@ fun mapParachainMetadataFlowToParcel(
 ) = with(flow) {
     ParachainMetadataFlowParcelModel(
         name = name,
-        data = mapParachainMetadataFlowDataToParcel(data)
+        data = data?.let { mapParachainMetadataFlowDataToParcel(it) }
     )
 }
 
@@ -94,7 +94,7 @@ fun mapParachainMetadataFlowFromParcel(
 ) = with(flowParcel) {
     ParachainMetadataFlow(
         name = name,
-        data = mapParachainMetadataFlowDataFromParcel(data)
+        data = data?.let { mapParachainMetadataFlowDataFromParcel(it) }
     )
 }
 

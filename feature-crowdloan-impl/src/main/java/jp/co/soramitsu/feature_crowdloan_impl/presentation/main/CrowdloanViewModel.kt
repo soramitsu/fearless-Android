@@ -152,13 +152,12 @@ class CrowdloanViewModel(
             )
 
             if (crowdloan.parachainMetadata?.isMoonbeam == true) {
-                val flowData = crowdloan.parachainMetadata.flow?.data
-                val isSigned = when (flowData) {
-                    null -> false
-                    else -> interactor.checkRemark(
-                        apiUrl = flowData.baseUrl,
-                        apiKey = flowData.apiKey
-                    )
+                val baseUrl = crowdloan.parachainMetadata.flow?.data?.baseUrl
+                val apiKey = crowdloan.parachainMetadata.flow?.data?.apiKey
+                val isSigned = when {
+                    baseUrl == null -> false
+                    apiKey == null -> false
+                    else -> interactor.checkRemark(baseUrl, apiKey)
                 }
 
                 val startStep = when {

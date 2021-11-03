@@ -15,14 +15,14 @@ class ParachainMetadataRemote(
 )
 
 data class ParachainMetadataFlowRemote(
-    val name: String,
-    val data: ParachainMetadataFlowDataRemote
+    val name: String?,
+    val data: ParachainMetadataFlowDataRemote?
 )
 
 data class ParachainMetadataFlowDataRemote(
-    val devApiUrl: String,
-    val devApiKey: String,
-    val prodApiUrl: String,
-    val prodApiKey: String,
-    val termsUrl: String,
+    val devApiUrl: String?,
+    val devApiKey: String?,
+    val prodApiUrl: String?,
+    val prodApiKey: String?,
+    val termsUrl: String?,
 )

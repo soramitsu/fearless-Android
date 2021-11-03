@@ -177,7 +177,9 @@ class CustomContributeViewModel(
             currentStep == startStep
         }
         .mapLatest {
-            payload.parachainMetadata.flow?.data != null && contributionInteractor.getHealth(
+            payload.parachainMetadata.flow?.data?.baseUrl != null
+                && payload.parachainMetadata.flow.data.apiKey != null
+                && contributionInteractor.getHealth(
                 apiUrl = payload.parachainMetadata.flow.data.baseUrl,
                 apiKey = payload.parachainMetadata.flow.data.apiKey
             )

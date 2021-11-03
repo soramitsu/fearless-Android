@@ -9,11 +9,6 @@ import retrofit2.http.Url
 
 interface MoonbeamApi {
 
-    companion object {
-        const val BASE_URL = "https://virtserver.swaggerhub.com/PureStake/Wallets-3.0.0/1.0.0"
-        const val BASE_URL_TEST = "https://wallet-test.api.purestake.xyz"
-    }
-
     @GET
     suspend fun getTerms(@Url url: String): String
 

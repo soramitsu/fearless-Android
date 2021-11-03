@@ -23,7 +23,7 @@ fun mapParachainMetadataFlowRemoteToParachainMetadataFlow(flow: ParachainMetadat
     with(flow) {
         ParachainMetadataFlow(
             name = name,
-            data = mapmapParachainMetadataFlowDataRemoteToParachainMetadataFlowData(data)
+            data = data?.let { mapmapParachainMetadataFlowDataRemoteToParachainMetadataFlowData(it) }
         )
     }
 
