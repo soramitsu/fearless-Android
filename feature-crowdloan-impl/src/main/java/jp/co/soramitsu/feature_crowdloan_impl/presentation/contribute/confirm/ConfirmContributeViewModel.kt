@@ -1,9 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm
 
-import android.text.SpannedString
-import android.text.style.ForegroundColorSpan
-import androidx.core.text.buildSpannedString
-import androidx.core.text.inSpans
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -27,7 +23,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additional
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.model.LeasePeriodModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
@@ -38,7 +33,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class ConfirmContributeViewModel(
     private val router: CrowdloanRouter,
@@ -110,46 +104,17 @@ class ConfirmContributeViewModel(
         .inBackground()
         .share()
 
-    val bonusSpanFlow = flow {
-        val bonus = payload.bonusPayload?.calculateBonus(payload.amount)
-        val bonusFriend = (payload.bonusPayload as? AstarBonusPayload)?.calculateFriendBonus(payload.amount)
-        val bonusText = bonus?.formatTokenAmount(payload.metadata!!.token)
-        val bonusFriendText = bonusFriend?.formatTokenAmount(payload.metadata!!.token)
-
-        val bonusPositive = (bonus != null && bonus > BigDecimal.ZERO)
-        val bonusFriendPositive = (bonusFriend != null && bonusFriend > BigDecimal.ZERO)
-
-        val span = createSpannedText(bonusText, bonusPositive, bonusFriendText, bonusFriendPositive)
-        emit(span)
+    val bonusNumberFlow = flow {
+        emit(payload.bonusPayload?.calculateBonus(payload.amount))
     }
         .inBackground()
         .share()
 
-    private fun createSpannedText(bonusText: String?, bonusPositive: Boolean, bonusFriendText: String?, bonusFriendPositive: Boolean): SpannedString {
-        return buildSpannedString {
-            bonusFriendText?.let {
-                val color = when {
-                    bonusPositive -> R.color.colorAccent
-                    else -> R.color.white
-                }
-                inSpans(ForegroundColorSpan(resourceManager.getColor(color))) {
-                    append(it)
-                }
-            }
-            if (bonusFriendText != null && bonusText != null) {
-                append("  /  ")
-            }
-            bonusText?.let {
-                val color = when {
-                    bonusFriendPositive -> R.color.colorAccent
-                    else -> R.color.white
-                }
-                inSpans(ForegroundColorSpan(resourceManager.getColor(color))) {
-                    append(it)
-                }
-            }
-        }
+    val bonusFlow = bonusNumberFlow.map { bonus ->
+        bonus?.formatTokenAmount(payload.metadata!!.token)
     }
+        .inBackground()
+        .share()
 
     val ethAddress = payload.enteredEtheriumAddress
     val privateCrowdloanSignature = payload.signature

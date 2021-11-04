@@ -131,10 +131,10 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
             crowdloanContributeLearnMore.icon.load(it.iconLink, imageLoader)
         }
 
-        viewModel.bonusSpanFlow.observe { spanString ->
-            crowdloanContributeBonusReward.text = spanString
+        viewModel.bonusDisplayFlow.observe {
+            crowdloanContributeBonus.setVisible(it != null)
 
-            crowdloanContributeBonus.setVisible(!spanString.isNullOrEmpty())
+            crowdloanContributeBonusReward.text = it
         }
     }
 }

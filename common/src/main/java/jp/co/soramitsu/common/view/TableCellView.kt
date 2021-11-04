@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.view
 
 import android.content.Context
-import android.text.SpannedString
 import android.util.AttributeSet
 import android.view.View
 import android.widget.ProgressBar
@@ -89,14 +88,5 @@ open class TableCellView @JvmOverloads constructor(
 
     fun setValueColorRes(@ColorRes colorId: Int) {
         valuePrimary.setTextColorRes(colorId)
-    }
-
-    fun showValue(primary: SpannedString) {
-        contentGroup.makeVisible()
-
-        valuePrimary.text = primary
-        valueSecondary.setVisible(false)
-
-        valueProgress.makeGone()
     }
 }

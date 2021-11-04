@@ -70,13 +70,13 @@ open class ReferralContributeView @JvmOverloads constructor(
         }
 
         viewState.bonusFlow.observe(scope) { bonus ->
-            referralBonus.setVisible(bonus != null)
+            referralBonus?.setVisible(bonus != null)
 
-            bonus?.let { referralBonus.showValue(bonus) }
+            bonus?.let { referralBonus?.showValue(bonus) }
         }
 
         viewState.bonusNumberFlow.observe(scope) { bonus ->
-            referralBonus.setValueColorRes(getColor(bonus))
+            referralBonus?.setValueColorRes(getColor(bonus))
         }
 
         referralFearlessBonusApply?.setOnClickListener { viewState.applyFearlessCode() }

@@ -1,9 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 
-import android.text.SpannedString
-import android.text.style.ForegroundColorSpan
-import androidx.core.text.buildSpannedString
-import androidx.core.text.inSpans
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -42,7 +38,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emitAll
@@ -127,58 +122,28 @@ class CrowdloanContributeViewModel(
     }
         .share()
 
-    val bonusSpanFlow: SharedFlow<SpannedString?> = combine(
+    val bonusDisplayFlow = combine(
         customContributionFlow,
         parsedAmountFlow
     ) { contributionState, amount ->
         when (contributionState) {
             is CustomContributionState.Active -> {
-                val bonus = contributionState.payload.calculateBonus(amount)
-                val bonusFriend = (contributionState.payload as? AstarBonusPayload)?.calculateFriendBonus(amount)
+                if (contributionState.payload is AstarBonusPayload) {
+                    ""
+                } else {
+                    val bonus = contributionState.payload.calculateBonus(amount)
 
-                val bonusText = bonus?.formatTokenAmount(contributionState.tokenName)
-                val bonusFriendText = bonusFriend?.formatTokenAmount(contributionState.tokenName)
-
-                val bonusPositive = (bonus != null && bonus > BigDecimal.ZERO)
-                val bonusFriendPositive = (bonusFriend != null && bonusFriend > BigDecimal.ZERO)
-                createSpannedText(bonusText, bonusPositive, bonusFriendText, bonusFriendPositive)
+                    bonus?.formatTokenAmount(contributionState.tokenName)
+                }
             }
 
-            is CustomContributionState.Inactive -> SpannedString(resourceManager.getString(R.string.crowdloan_empty_bonus_title))
+            is CustomContributionState.Inactive -> resourceManager.getString(R.string.crowdloan_empty_bonus_title)
 
             else -> null
         }
     }
         .inBackground()
         .share()
-
-    private fun createSpannedText(bonusText: String?, bonusPositive: Boolean, bonusFriendText: String?, bonusFriendPositive: Boolean): SpannedString {
-        return buildSpannedString {
-            bonusFriendText?.let {
-                val color = when {
-                    bonusPositive -> R.color.colorAccent
-                    else -> R.color.white
-                }
-                inSpans(ForegroundColorSpan(resourceManager.getColor(color))) {
-                    append(it)
-                }
-            }
-            if (bonusFriendText != null && bonusText != null) {
-                inSpans(ForegroundColorSpan(resourceManager.getColor(R.color.white))) {
-                    append("  /  ")
-                }
-            }
-            bonusText?.let {
-                val color = when {
-                    bonusFriendPositive -> R.color.colorAccent
-                    else -> R.color.white
-                }
-                inSpans(ForegroundColorSpan(resourceManager.getColor(color))) {
-                    append(it)
-                }
-            }
-        }
-    }
 
     val unlockHintFlow = assetFlow.map {
         resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.type.displayName)

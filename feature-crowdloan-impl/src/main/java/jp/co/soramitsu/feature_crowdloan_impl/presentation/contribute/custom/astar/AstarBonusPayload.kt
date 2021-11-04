@@ -18,8 +18,4 @@ class AstarBonusPayload(
     override fun calculateBonus(amount: BigDecimal): BigDecimal? {
         return rewardRate?.let { amount * rewardRate * ASTAR_BONUS_MULTIPLIER }
     }
-
-    fun calculateFriendBonus(amount: BigDecimal): BigDecimal? {
-        return rewardRate?.let { amount * rewardRate * ASTAR_FRIEND_BONUS_MULTIPLIER }
-    }
 }

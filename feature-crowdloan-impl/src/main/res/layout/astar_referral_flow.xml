@@ -41,34 +41,14 @@
         app:layout_constraintTop_toBottomOf="@+id/referralReferralCodeInput"
         tools:ignore="SmallSp" />
 
-    <jp.co.soramitsu.common.view.TableCellView
-        android:id="@+id/referralFriendBonus"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        app:layout_constraintEnd_toEndOf="@+id/referralReferralCodeInput"
-        app:layout_constraintStart_toStartOf="@+id/referralReferralCodeInput"
-        app:layout_constraintTop_toBottomOf="@+id/referralFearlessBonusApply"
-        app:title="@string/astar_friend_bonus" />
-
-    <jp.co.soramitsu.common.view.TableCellView
-        android:id="@+id/referralBonus"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="@+id/referralReferralCodeInput"
-        app:layout_constraintStart_toStartOf="@+id/referralReferralCodeInput"
-        app:layout_constraintTop_toBottomOf="@+id/referralFriendBonus"
-        app:title="@string/astar_bonus" />
-
     <jp.co.soramitsu.common.view.GoNextView
         android:id="@+id/referralLearnMore"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="18dp"
         app:actionIcon="@drawable/ic_arrow_top_right_white_16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/referralBonus" />
+        app:layout_constraintTop_toBottomOf="@+id/referralFearlessBonusApply" />
 </merge>

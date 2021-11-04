@@ -7,7 +7,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.App
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeViewState
-import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.map
 
 class AstarContributeViewState(
@@ -24,20 +23,6 @@ class AstarContributeViewState(
             referral.isEmpty() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.crowdloan_enter_referral_address))
             else -> ApplyActionState.Available
         }
-    }
-
-    private val bonusPayloadFlow = enteredReferralCodeFlow.map {
-        createBonusPayload(it)
-    }
-
-    val bonusFriendFlowNumber = bonusPayloadFlow.map {
-        require(it is AstarBonusPayload)
-        it.calculateFriendBonus(customContributePayload.amount)
-    }
-
-    val bonusFriendFlow = bonusFriendFlowNumber.map {
-        val tokenName = customContributePayload.parachainMetadata.token
-        it?.formatTokenAmount(tokenName)
     }
 
     override fun createBonusPayload(referralCode: String): ReferralCodePayload {
