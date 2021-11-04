@@ -42,7 +42,11 @@ class AstarContributeViewState(
     }
 
     override fun createBonusPayload(referralCode: String): ReferralCodePayload {
-        return AstarBonusPayload(referralCode, customContributePayload.parachainMetadata.rewardRate)
+        return AstarBonusPayload(
+            referralCode,
+            customContributePayload.paraId,
+            customContributePayload.parachainMetadata.rewardRate
+        )
     }
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {

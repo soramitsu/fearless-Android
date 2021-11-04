@@ -13,12 +13,6 @@ class AstarContributeSubmitter(
     override suspend fun submitOnChain(payload: BonusPayload, amount: BigDecimal, extrinsicBuilder: ExtrinsicBuilder) {
         require(payload is AstarBonusPayload)
 
-        interactor.submitOnChain(payload, amount, extrinsicBuilder)
-    }
-
-    override suspend fun submitOffChain(payload: BonusPayload, amount: BigDecimal): Result<Unit> {
-        require(payload is AstarBonusPayload)
-
-        return interactor.submitOffChain(payload, amount)
+        interactor.submitMemo(payload.parachainId, payload.referralCode, extrinsicBuilder)
     }
 }

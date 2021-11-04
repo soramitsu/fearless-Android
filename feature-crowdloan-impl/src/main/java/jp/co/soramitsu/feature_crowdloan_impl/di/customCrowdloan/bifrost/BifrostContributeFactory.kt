@@ -18,7 +18,7 @@ class BifrostContributeFactory(
     private val termsLink: String
 ) : CustomContributeFactory {
 
-    override val flowType = "Bifrost"
+    override val flowType = "bifrost"
 
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): BifrostContributeViewState {
         return BifrostContributeViewState(interactor, payload, resourceManager, termsLink, interactor)

@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.astar
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoSet
-import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -18,9 +17,8 @@ class AstarContributionModule {
     @Provides
     @FeatureScope
     fun provideAstarInteractor(
-        httpExceptionHandler: HttpExceptionHandler,
         accountRepository: AccountRepository,
-    ) = AstarContributeInteractor(httpExceptionHandler, accountRepository, BuildConfig.ASTAR_FEALRESS_REFERRAL)
+    ) = AstarContributeInteractor(accountRepository, BuildConfig.ASTAR_FEALRESS_REFERRAL)
 
     @Provides
     @FeatureScope

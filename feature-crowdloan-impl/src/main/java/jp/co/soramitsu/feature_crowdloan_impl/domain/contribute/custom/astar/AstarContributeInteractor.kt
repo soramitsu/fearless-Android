@@ -1,13 +1,13 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.astar
 
-import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
-import java.math.BigDecimal
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.addMemo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class AstarContributeInteractor(
-    private val httpExceptionHandler: HttpExceptionHandler,
     private val accountRepository: AccountRepository,
     val fearlessReferralCode: String,
 ) {
@@ -15,10 +15,11 @@ class AstarContributeInteractor(
     suspend fun isReferralValid(address: String) =
         accountRepository.isInCurrentNetwork(address)
 
-    fun submitOffChain(payload: AstarBonusPayload, amount: BigDecimal): Result<Unit> {
-        return Result.success(Unit)
-    }
-
-    fun submitOnChain(payload: AstarBonusPayload, amount: BigDecimal, extrinsicBuilder: ExtrinsicBuilder) {
+    suspend fun submitMemo(
+        paraId: ParaId,
+        referralCode: String,
+        extrinsicBuilder: ExtrinsicBuilder
+    ) = withContext(Dispatchers.Default) {
+        extrinsicBuilder.addMemo(paraId, referralCode)
     }
 }

@@ -18,7 +18,7 @@ class KaruraContributeFactory(
     private val resourceManager: ResourceManager
 ) : CustomContributeFactory {
 
-    override val flowType = "Karura"
+    override val flowType = "karura"
 
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): CustomContributeViewState {
         return KaruraContributeViewState(interactor, payload, resourceManager)

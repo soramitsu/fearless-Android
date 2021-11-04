@@ -77,7 +77,7 @@ class CustomContributeViewModel(
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
-    val customFlowType = payload.parachainMetadata.flow?.name ?: payload.parachainMetadata.customFlow!!
+    val customFlowType = payload.parachainMetadata.flow?.name!!
 
     private val _viewStateFlow = MutableStateFlow(customContributeManager.createNewState(customFlowType, viewModelScope, payload))
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow

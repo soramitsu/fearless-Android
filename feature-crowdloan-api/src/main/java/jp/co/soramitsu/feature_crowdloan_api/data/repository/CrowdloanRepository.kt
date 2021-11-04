@@ -42,7 +42,6 @@ class ParachainMetadata(
     val description: String,
     val rewardRate: BigDecimal?,
     val website: String,
-    val customFlow: String?,
     val token: String,
     val flow: ParachainMetadataFlow?,
 ) {

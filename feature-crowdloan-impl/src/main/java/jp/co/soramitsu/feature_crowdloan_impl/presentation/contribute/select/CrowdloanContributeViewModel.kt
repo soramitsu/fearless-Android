@@ -98,7 +98,7 @@ class CrowdloanContributeViewModel(
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 
     private val customContributionFlow = flow {
-        val customFlow = payload.parachainMetadata?.customFlow
+        val customFlow = payload.parachainMetadata?.flow?.name
 
         if (
             customFlow != null &&

@@ -156,7 +156,7 @@ class ConfirmContributeViewModel(
     private fun sendTransaction() {
         launch {
             val customSubmissionResult = if (payload.bonusPayload != null) {
-                val flowName = payload.metadata?.flow?.name ?: payload.metadata?.customFlow!!
+                val flowName = payload.metadata?.flow?.name!!
                 customContributeManager.getSubmitter(flowName)
                     .submitOffChain(payload.bonusPayload, payload.amount)
             } else {
@@ -165,7 +165,7 @@ class ConfirmContributeViewModel(
 
             customSubmissionResult.mapCatching {
                 val additionalSubmission = payload.bonusPayload?.let {
-                    val flowName = payload.metadata?.flow?.name ?: payload.metadata?.customFlow!!
+                    val flowName = payload.metadata?.flow?.name!!
                     if (ethAddress?.second == true) {
                         additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                     } else {
