@@ -18,10 +18,11 @@ import kotlinx.coroutines.flow.map
 abstract class ReferralContributeViewState(
     protected val customContributePayload: CustomContributePayload,
     protected val resourceManager: ResourceManager,
-    private val fearlessReferralCode: String,
-    private val termsUrl: String = customContributePayload.parachainMetadata.website,
     private val learnMoreUrl: String = customContributePayload.parachainMetadata.website,
 ) : CustomContributeViewState {
+
+    private val fearlessReferral = customContributePayload.parachainMetadata.flow?.data?.fearlessReferral
+    private val termsUrl: String = customContributePayload.parachainMetadata.flow?.data?.termsUrl ?: customContributePayload.parachainMetadata.website
 
     abstract fun createBonusPayload(referralCode: String): ReferralCodePayload
 
@@ -36,7 +37,7 @@ abstract class ReferralContributeViewState(
     val privacyAcceptedFlow = MutableStateFlow(false)
 
     val applyFearlessCodeEnabledFlow = enteredReferralCodeFlow.map {
-        it != fearlessReferralCode
+        it != fearlessReferral
     }
 
     val learnBonusesTitle = LearnMoreModel(
@@ -65,7 +66,7 @@ abstract class ReferralContributeViewState(
     }
 
     fun applyFearlessCode() {
-        enteredReferralCodeFlow.value = fearlessReferralCode
+        fearlessReferral?.let { enteredReferralCodeFlow.value = it }
     }
 
     fun termsClicked() {

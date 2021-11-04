@@ -17,7 +17,6 @@ class AstarContributeViewState(
 ) : ReferralContributeViewState(
     customContributePayload = customContributePayload,
     resourceManager = resourceManager,
-    fearlessReferralCode = interactor.fearlessReferralCode,
 ) {
 
     override val applyActionState = enteredReferralCodeFlow.map { referral ->

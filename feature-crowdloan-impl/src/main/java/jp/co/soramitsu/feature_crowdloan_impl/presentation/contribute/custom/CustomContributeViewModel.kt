@@ -19,7 +19,6 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
-import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
@@ -214,10 +213,8 @@ class CustomContributeViewModel(
         }
 
     fun learnMoreClicked() {
-        val parachainLink = when (payload.parachainMetadata.isMoonbeam) {
-            true -> BuildConfig.MOONBEAM_CROWDLOAN_INFO_LINK
-            else -> parachainMetadata.website
-        }
+        val parachainLink = payload.parachainMetadata.flow?.data?.crowdloanInfoUrl ?: parachainMetadata.website
+
 
         openBrowserEvent.value = Event(parachainLink)
     }

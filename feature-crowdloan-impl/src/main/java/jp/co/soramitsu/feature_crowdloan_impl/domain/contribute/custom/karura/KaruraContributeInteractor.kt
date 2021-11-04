@@ -19,7 +19,6 @@ class KaruraContributeInteractor(
     private val karuraApi: KaruraApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val accountRepository: AccountRepository,
-    val fearlessReferralCode: String,
 ) {
 
     suspend fun registerInBonusProgram(referralCode: String, amount: BigDecimal): Result<Unit> = runCatching {

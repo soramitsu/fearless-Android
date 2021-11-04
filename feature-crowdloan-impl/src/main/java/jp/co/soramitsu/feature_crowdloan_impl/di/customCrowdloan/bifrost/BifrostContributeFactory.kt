@@ -15,13 +15,12 @@ class BifrostContributeFactory(
     override val submitter: BifrostContributeSubmitter,
     private val interactor: BifrostContributeInteractor,
     private val resourceManager: ResourceManager,
-    private val termsLink: String
 ) : CustomContributeFactory {
 
     override val flowType = "bifrost"
 
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): BifrostContributeViewState {
-        return BifrostContributeViewState(interactor, payload, resourceManager, termsLink, interactor)
+        return BifrostContributeViewState(interactor, payload, resourceManager)
     }
 
     override fun createView(context: Context, step: Int): CustomContributeView = ReferralContributeView(context)

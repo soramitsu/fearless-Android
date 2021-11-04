@@ -9,7 +9,6 @@ import kotlinx.coroutines.withContext
 
 class AstarContributeInteractor(
     private val accountRepository: AccountRepository,
-    val fearlessReferralCode: String,
 ) {
 
     suspend fun isReferralValid(address: String) =

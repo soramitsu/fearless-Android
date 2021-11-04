@@ -9,7 +9,6 @@ import java.math.BigDecimal
 class AcalaContributeInteractor(
     private val acalaApi: AcalaApi,
     private val httpExceptionHandler: HttpExceptionHandler,
-    val fearlessReferralCode: String,
 ) {
 
     suspend fun isReferralValid(referralCode: String) =
