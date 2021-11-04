@@ -102,13 +102,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
+                    tools:textColor="@color/white"
                     android:text="@string/common_bonus" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorAccent"
-                    style="@style/TextAppearance.Soramitsu.Body2"
+                    style="@style/TextAppearance.Soramitsu.Body1"
                     android:id="@+id/crowdloanContributeBonusReward"
                     tools:text="@string/crowdloan_empty_bonus_title" />
 

@@ -29,7 +29,6 @@ import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContrib
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeToolbar
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressText
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressTitle
-import java.math.BigDecimal
 import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
@@ -119,15 +118,11 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
             confirmContributeOriginAcount.setTextIcon(it.image)
         }
 
-        viewModel.bonusFlow.observe {
+        viewModel.bonusSpanFlow.observe { spanString ->
+            confirmContributeBonus.showValue(spanString)
+
             val isMoonbeam = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isMoonbeam == true
-            confirmContributeBonus.setVisible(it != null && !isMoonbeam)
-
-            it?.let(confirmContributeBonus::showValue)
-        }
-
-        viewModel.bonusNumberFlow.observe {
-            confirmContributeBonus.setValueColorRes(getColor(it))
+            confirmContributeBonus.setVisible(spanString.isNotEmpty() && !isMoonbeam)
         }
 
         viewModel.ethAddress.let {
@@ -138,10 +133,5 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         confirmContributeCrowloanTitle.text = viewModel.title
-    }
-
-    private fun getColor(bonus: BigDecimal?) = when {
-        bonus == null || bonus <= BigDecimal.ZERO -> R.color.white
-        else -> R.color.colorAccent
     }
 }
