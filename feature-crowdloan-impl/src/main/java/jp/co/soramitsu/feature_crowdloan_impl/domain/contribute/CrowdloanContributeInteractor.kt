@@ -81,7 +81,7 @@ class CrowdloanContributeInteractor(
         val contributionInPlanks = token.planksFromAmount(contribution)
 
         val encryption = mapCryptoTypeToEncryption(accountRepository.getSelectedAccount().cryptoType)
-        val feeInPlanks = feeEstimator.estimateFee(accountRepository.getSelectedAccount().address) {
+        val feeInPlanks = feeEstimator.estimateFee(accountRepository.getSelectedAccount().address, true) {
             contribute(parachainId, contributionInPlanks, signature, encryption)
             additional?.invoke(this)
         }
@@ -100,7 +100,7 @@ class CrowdloanContributeInteractor(
         val contributionInPlanks = token.planksFromAmount(contribution)
 
         val encryption = mapCryptoTypeToEncryption(accountRepository.getSelectedAccount().cryptoType)
-        extrinsicService.submitExtrinsic(originAddress) {
+        extrinsicService.submitExtrinsic(originAddress, true) {
             contribute(parachainId, contributionInPlanks, signature, encryption)
 
             additional?.invoke(this)

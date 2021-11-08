@@ -22,13 +22,14 @@ class ExtrinsicService(
 
     suspend fun submitExtrinsic(
         accountAddress: String,
+        batchAll: Boolean = false,
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit
     ): Result<String> = runCatching {
         val extrinsicBuilder = extrinsicBuilderFactory.create(accountAddress)
 
         extrinsicBuilder.formExtrinsic()
 
-        val extrinsic = extrinsicBuilder.build()
+        val extrinsic = extrinsicBuilder.build(batchAll)
 
         rpcCalls.submitExtrinsic(extrinsic)
     }

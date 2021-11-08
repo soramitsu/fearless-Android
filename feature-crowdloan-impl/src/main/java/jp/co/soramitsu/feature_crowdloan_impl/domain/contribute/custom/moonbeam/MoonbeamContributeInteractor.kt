@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -74,7 +75,7 @@ class MoonbeamContributeInteractor(
         extrinsicBuilder: ExtrinsicBuilder
     ) {
         withContext(Dispatchers.Default) {
-            extrinsicBuilder.addMemo(paraId, ethereumAddress)
+            extrinsicBuilder.addMemo(paraId, ethereumAddress.fromHex())
         }
     }
 

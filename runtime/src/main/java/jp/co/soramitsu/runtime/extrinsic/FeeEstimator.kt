@@ -11,11 +11,12 @@ class FeeEstimator(
 
     suspend fun estimateFee(
         accountAddress: String,
+        batchAll: Boolean = false,
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit
     ): BigInteger {
         val extrinsicBuilder = extrinsicBuilderFactory.createWithFakeKeyPair(accountAddress)
         extrinsicBuilder.formExtrinsic()
-        val extrinsic = extrinsicBuilder.build()
+        val extrinsic = extrinsicBuilder.build(batchAll)
         return rpcCalls.getExtrinsicFee(extrinsic)
     }
 }

@@ -25,6 +25,6 @@ class BifrostContributeInteractor(
         referralCode: String,
         extrinsicBuilder: ExtrinsicBuilder
     ) = withContext(Dispatchers.Default) {
-        extrinsicBuilder.addMemo(paraId, referralCode)
+        extrinsicBuilder.addMemo(paraId, referralCode.toByteArray())
     }
 }

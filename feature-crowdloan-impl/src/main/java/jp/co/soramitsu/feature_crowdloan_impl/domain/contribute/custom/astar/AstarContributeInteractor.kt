@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.astar
 
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.addMemo
@@ -19,6 +20,6 @@ class AstarContributeInteractor(
         referralCode: String,
         extrinsicBuilder: ExtrinsicBuilder
     ) = withContext(Dispatchers.Default) {
-        extrinsicBuilder.addMemo(paraId, referralCode)
+        extrinsicBuilder.addMemo(paraId, referralCode.toAccountId())
     }
 }

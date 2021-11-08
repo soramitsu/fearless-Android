@@ -29,13 +29,13 @@ fun ExtrinsicBuilder.contribute(
     )
 }
 
-fun ExtrinsicBuilder.addMemo(parachainId: ParaId, memo: String): ExtrinsicBuilder {
+fun ExtrinsicBuilder.addMemo(parachainId: ParaId, memo: ByteArray): ExtrinsicBuilder {
     return call(
         moduleName = "Crowdloan",
         callName = "add_memo",
         arguments = mapOf(
             "index" to parachainId,
-            "memo" to memo.toByteArray()
+            "memo" to memo
         )
     )
 }
