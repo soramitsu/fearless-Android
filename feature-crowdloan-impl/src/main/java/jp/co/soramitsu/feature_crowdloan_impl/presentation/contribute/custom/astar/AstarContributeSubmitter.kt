@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar
 
-import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.astar.AstarContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
@@ -14,6 +13,6 @@ class AstarContributeSubmitter(
     override suspend fun submitOnChain(payload: BonusPayload, amount: BigDecimal, extrinsicBuilder: ExtrinsicBuilder) {
         require(payload is AstarBonusPayload)
 
-        interactor.submitMemo(payload.parachainId, payload.referralCode.toHexAccountId(), extrinsicBuilder)
+        interactor.submitMemo(payload.parachainId, payload.referralCode, extrinsicBuilder)
     }
 }
