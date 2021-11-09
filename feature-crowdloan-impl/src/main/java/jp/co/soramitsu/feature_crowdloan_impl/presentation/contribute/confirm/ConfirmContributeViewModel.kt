@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additional
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.model.LeasePeriodModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
@@ -166,10 +167,17 @@ class ConfirmContributeViewModel(
             customSubmissionResult.mapCatching {
                 val additionalSubmission = payload.bonusPayload?.let {
                     val flowName = payload.metadata?.flow?.name!!
-                    if (ethAddress?.second == true) {
-                        additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
-                    } else {
-                        null
+
+                    when {
+                        payload.metadata.isAstar && (it as? AstarBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
+                            additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                        }
+                        payload.metadata.isMoonbeam && ethAddress?.second == true -> {
+                            additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                        }
+                        else -> {
+                            null
+                        }
                     }
                 }
 
