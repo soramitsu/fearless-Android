@@ -7,14 +7,14 @@ val LATEST_DEFAULT_NODES = listOf(
 
     // --- kusama ----
     NodeLocal(
-        "Kusama OnFinality Node",
-        "wss://kusama.api.onfinality.io/ws?apikey=313214ec-15ef-4834-a896-1cf39911f94b",
+        "Kusama Parity Node",
+        "wss://kusama-rpc.polkadot.io",
         Node.NetworkType.KUSAMA.ordinal,
         true
     ),
     NodeLocal(
-        "Kusama Parity Node",
-        "wss://kusama-rpc.polkadot.io",
+        "Kusama OnFinality Node",
+        "wss://kusama.api.onfinality.io/ws?apikey=313214ec-15ef-4834-a896-1cf39911f94b",
         Node.NetworkType.KUSAMA.ordinal,
         true
     ),
@@ -26,14 +26,14 @@ val LATEST_DEFAULT_NODES = listOf(
     ),
     // --- polkadot ----
     NodeLocal(
-        "Polkadot OnFinality Node",
-        "wss://polkadot.api.onfinality.io/ws?apikey=313214ec-15ef-4834-a896-1cf39911f94b",
+        "Polkadot Parity Node",
+        "wss://rpc.polkadot.io",
         Node.NetworkType.POLKADOT.ordinal,
         true
     ),
     NodeLocal(
-        "Polkadot Parity Node",
-        "wss://rpc.polkadot.io",
+        "Polkadot OnFinality Node",
+        "wss://polkadot.api.onfinality.io/ws?apikey=313214ec-15ef-4834-a896-1cf39911f94b",
         Node.NetworkType.POLKADOT.ordinal,
         true
     ),
