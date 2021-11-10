@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additionalOnChainSubmission
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
@@ -89,9 +90,25 @@ class CrowdloanContributeViewModel(
     private val parachainMetadata = payload.parachainMetadata?.let(::mapParachainMetadataFromParcel)
 
     private val _showNextProgress = MutableLiveData(false)
-    val showNextProgress: LiveData<Boolean> = _showNextProgress
 
     val privacyAcceptedFlow = MutableStateFlow(false)
+
+    val applyButtonState = MediatorLiveData<Pair<ApplyActionState, Boolean>>().apply {
+        var isPrivacyAccepted = false
+        var isProgress = false
+
+        fun handleUpdates() {
+            val state: ApplyActionState = when {
+                !isPrivacyAccepted -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.crowdloan_agreement_required))
+                else -> ApplyActionState.Available
+            }
+            value = state to isProgress
+        }
+
+        addSource(privacyAcceptedFlow.asLiveData()) { isPrivacyAccepted = it; handleUpdates() }
+        addSource(_showNextProgress) { isProgress = it; handleUpdates() }
+    }
+
 
     private val assetFlow = assetUseCase.currentAssetFlow()
         .share()

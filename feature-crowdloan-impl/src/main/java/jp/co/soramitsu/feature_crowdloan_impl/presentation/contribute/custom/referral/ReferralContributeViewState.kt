@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 abstract class ReferralContributeViewState(
@@ -24,7 +25,7 @@ abstract class ReferralContributeViewState(
     private val fearlessReferral = customContributePayload.parachainMetadata.flow?.data?.fearlessReferral
     private val termsUrl: String = customContributePayload.parachainMetadata.flow?.data?.termsUrl ?: customContributePayload.parachainMetadata.website
 
-    abstract fun createBonusPayload(referralCode: String): ReferralCodePayload
+    abstract fun createBonusPayload(referralCode: String, email: String? = null): ReferralCodePayload
 
     abstract suspend fun validatePayload(payload: ReferralCodePayload)
 
@@ -34,8 +35,10 @@ abstract class ReferralContributeViewState(
     val isAcala = customContributePayload.parachainMetadata.isAcala
 
     val enteredReferralCodeFlow = MutableStateFlow("")
+    val enteredEmailFlow = MutableStateFlow("")
 
     val privacyAcceptedFlow = MutableStateFlow(false)
+    val emailAgreedFlow = MutableStateFlow(false)
 
     val applyFearlessCodeEnabledFlow = enteredReferralCodeFlow.map {
         it != fearlessReferral
@@ -45,19 +48,6 @@ abstract class ReferralContributeViewState(
         iconLink = customContributePayload.parachainMetadata.iconLink,
         text = resourceManager.getString(R.string.crowdloan_learn_bonuses, customContributePayload.parachainMetadata.name)
     )
-
-    private val bonusPayloadFlow = enteredReferralCodeFlow.map {
-        createBonusPayload(it)
-    }
-
-    val bonusNumberFlow = bonusPayloadFlow.map {
-        it.calculateBonus(customContributePayload.amount)
-    }
-
-    val bonusFlow = bonusNumberFlow.map { bonus ->
-        val tokenName = customContributePayload.parachainMetadata.token
-        bonus?.formatTokenAmount(tokenName)
-    }
 
     init {
         previousPayload()?.let {
@@ -76,6 +66,41 @@ abstract class ReferralContributeViewState(
 
     fun learnMoreClicked() {
         _openBrowserFlow.tryEmit(learnMoreUrl)
+    }
+
+    val emailValidationFlow = when {
+        isAcala -> enteredEmailFlow.combine(emailAgreedFlow) { input, agreed ->
+            when {
+                !agreed -> true
+                input.length > 2 && agreed -> true
+                else -> false
+            }
+        }
+        else -> flow {
+            emit(true)
+        }
+    }
+    val emailValidFlow: Flow<String?> = when {
+        isAcala -> enteredEmailFlow.combine(emailAgreedFlow) { input, agreed ->
+            when {
+                agreed && input.length > 2 -> input
+                else -> null
+            }
+        }
+        else -> flow { }
+    }
+
+    private val bonusPayloadFlow = enteredReferralCodeFlow.combine(emailValidFlow) { referral, email ->
+        createBonusPayload(referral, email)
+    }
+
+    val bonusNumberFlow = bonusPayloadFlow.map {
+        it.calculateBonus(customContributePayload.amount)
+    }
+
+    val bonusFlow = bonusNumberFlow.map { bonus ->
+        val tokenName = customContributePayload.parachainMetadata.token
+        bonus?.formatTokenAmount(tokenName)
     }
 
     override val applyActionState = enteredReferralCodeFlow.combine(privacyAcceptedFlow) { referral, privacyAccepted ->

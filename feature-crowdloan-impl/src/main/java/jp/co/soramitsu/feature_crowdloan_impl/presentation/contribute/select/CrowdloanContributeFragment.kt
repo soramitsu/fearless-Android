@@ -20,10 +20,11 @@ import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import kotlinx.android.synthetic.main.fragment_contribute.contributePrivacySwitch
 import kotlinx.android.synthetic.main.fragment_contribute.contributePrivacyText
@@ -112,7 +113,19 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         observeBrowserEvents(viewModel)
         observeValidations(viewModel)
 
-        viewModel.showNextProgress.observe(crowdloanContributeContinue::setProgress)
+        viewModel.applyButtonState.observe { (state, isProgress) ->
+            when {
+                isProgress -> crowdloanContributeContinue.setState(ButtonState.PROGRESS)
+                state is ApplyActionState.Unavailable -> {
+                    crowdloanContributeContinue.setState(ButtonState.DISABLED)
+                    crowdloanContributeContinue.text = state.reason
+                }
+                state is ApplyActionState.Available -> {
+                    crowdloanContributeContinue.setState(ButtonState.NORMAL)
+                    crowdloanContributeContinue.setText(R.string.common_continue)
+                }
+            }
+        }
 
         viewModel.assetModelFlow.observe {
             crowdloanContributeAmount.setAssetBalance(it.assetBalance)

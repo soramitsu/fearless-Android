@@ -9,7 +9,8 @@ val ACALA_BONUS_MULTIPLIER = 0.05.toBigDecimal() // 5%
 @Parcelize
 class AcalaBonusPayload(
     override val referralCode: String,
-    private val rewardRate: BigDecimal?
+    private val rewardRate: BigDecimal?,
+    val email: String?,
 ) : ReferralCodePayload {
 
     override fun calculateBonus(amount: BigDecimal): BigDecimal? {

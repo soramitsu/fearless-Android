@@ -5,7 +5,10 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.google.android.material.switchmaterial.SwitchMaterial
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.Toolbar
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
@@ -45,5 +48,9 @@ class AcalaContributeView @JvmOverloads constructor(
                 this.rootView.findViewById<Toolbar>(R.id.customContributeToolbar)?.setHomeButtonIcon(it)
             }
         }
+
+        findViewById<InputField>(R.id.referralEmailInput)?.content?.bindTo(viewState.enteredEmailFlow, scope)
+        findViewById<SwitchMaterial>(R.id.referralEmailSwitch)?.bindTo(viewState.emailAgreedFlow, scope)
+
     }
 }

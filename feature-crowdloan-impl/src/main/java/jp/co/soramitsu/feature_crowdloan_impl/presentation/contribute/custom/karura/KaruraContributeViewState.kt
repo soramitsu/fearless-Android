@@ -16,7 +16,7 @@ class KaruraContributeViewState(
     resourceManager = resourceManager,
 ) {
 
-    override fun createBonusPayload(referralCode: String): ReferralCodePayload {
+    override fun createBonusPayload(referralCode: String, email: String?): ReferralCodePayload {
         return KaruraBonusPayload(referralCode, customContributePayload.parachainMetadata.rewardRate)
     }
 
