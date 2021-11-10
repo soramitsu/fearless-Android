@@ -59,8 +59,10 @@ open class ReferralContributeView @JvmOverloads constructor(
         viewState.applyFearlessCodeEnabledFlow.observe(scope) { enabled ->
             referralFearlessBonusApply?.isEnabled = enabled
             val isAstar: Boolean = viewState.isAstar
+            val isAcala: Boolean = viewState.isAcala
             val applyBonusButtonText = when {
-                isAstar -> R.string.apply_fearless_astar_refferal
+                isAstar -> R.string.apply_fearless_referal_wallet
+                isAcala -> R.string.apply_fearless_referal_wallet
                 else -> when {
                     enabled -> R.string.apply_fearless_wallet_bonus
                     else -> R.string.applied_fearless_wallet_bonus

@@ -6,9 +6,9 @@ import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContribut
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.acala.AcalaContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributeSubmitter
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeView
 import kotlinx.coroutines.CoroutineScope
 
 class AcalaContributeFactory(
@@ -23,5 +23,5 @@ class AcalaContributeFactory(
         return AcalaContributeViewState(interactor, payload, resourceManager)
     }
 
-    override fun createView(context: Context, step: Int): CustomContributeView = ReferralContributeView(context)
+    override fun createView(context: Context, step: Int): CustomContributeView = AcalaContributeView(context)
 }

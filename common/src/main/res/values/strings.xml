@@ -21,6 +21,9 @@
     <string name="onboarding_restore_account">Import account</string>
     <string name="onboarding_terms_and_conditions_1">I have read and agreed to
 Terms and Conditions and Privacy Policy</string>
+    <string name="contribute_terms">I have read and agreed to Terms and Conditions</string>
+    <string name="referral_email_acala">I agree to receive email from Acala</string>
+    <string name="contribute_terms_clickable">Terms and Conditions</string>
     <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
     <string name="onboarding_privacy_policy">Privacy Policy</string>
     <string name="pincode_enter_pin_code">Enter pin code</string>
@@ -271,7 +274,7 @@ Derivation path: %s</string>
     <string name="wallet_asset_buy_with">Buy with</string>
     <string name="wallet_filters_title">Filters</string>
     <string name="common_apply">Apply</string>
-    <string name="apply_fearless_astar_refferal">Tap to refer fearless wallet for bonus</string>
+    <string name="apply_fearless_referal_wallet">Tap to refer fearless wallet for bonus</string>
     <string name="apply_fearless_wallet_bonus">Tap to apply fearless wallet bonus</string>
     <string name="applied_fearless_wallet_bonus">Fearless wallet bonus applied</string>
     <string name="common_reset">Reset</string>
@@ -378,6 +381,8 @@ Derivation path: %s</string>
     <string name="common_applied">Applied</string>
     <string name="crowdloan_referral_code_invalid">Referral code is invalid. Please, try another one</string>
     <string name="crowdloan_astar_referral_code_hint">Referral address (Polkadot addresses only)</string>
+    <string name="crowdloan_referral_code_hint">Referral code</string>
+    <string name="crowdloan_email_hint">Email address</string>
     <string name="crowdloan_astar_referral_code_invalid">Invalid referral address, only Polkadot addresses accepted, please try again</string>
     <string name="staking_start_change_validators_custom_subtitle">You should trust your nominations to act competently and honest, basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
     <string name="staking_select_recommended">Select recommended</string>

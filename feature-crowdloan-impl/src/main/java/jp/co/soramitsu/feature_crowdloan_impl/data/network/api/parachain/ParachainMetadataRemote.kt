@@ -26,4 +26,5 @@ data class ParachainMetadataFlowDataRemote(
     val termsUrl: String?,
     val crowdloanInfoUrl: String?,
     val fearlessReferral: String?,
+    val totalReward: String?,
 )

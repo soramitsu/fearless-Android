@@ -31,6 +31,7 @@ abstract class ReferralContributeViewState(
     private val _openBrowserFlow = MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 1)
     val openBrowserFlow: Flow<String> = _openBrowserFlow
     val isAstar = customContributePayload.parachainMetadata.isAstar
+    val isAcala = customContributePayload.parachainMetadata.isAcala
 
     val enteredReferralCodeFlow = MutableStateFlow("")
 

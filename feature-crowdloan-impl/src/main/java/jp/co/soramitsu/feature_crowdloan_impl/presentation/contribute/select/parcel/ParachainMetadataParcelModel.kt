@@ -22,6 +22,8 @@ class ParachainMetadataParcelModel(
         get() = name.toLowerCase(Locale.getDefault()) == "moonbeam"
     val isAstar: Boolean
         get() = name.toLowerCase(Locale.getDefault()) == "astar"
+    val isAcala: Boolean
+        get() = name.toLowerCase(Locale.getDefault()) == "acala"
 }
 
 @Parcelize
@@ -37,6 +39,7 @@ class ParachainMetadataFlowDataParcelModel(
     val termsUrl: String?,
     val crowdloanInfoUrl: String?,
     val fearlessReferral: String?,
+    val totalReward: String?,
 ) : Parcelable {
     val baseUrl = apiUrl?.replace("https://", "")
 }
@@ -72,7 +75,8 @@ fun mapParachainMetadataFlowDataToParcel(
         apiKey = apiKey,
         termsUrl = termsUrl,
         crowdloanInfoUrl = crowdloanInfoUrl,
-        fearlessReferral = fearlessReferral
+        fearlessReferral = fearlessReferral,
+        totalReward = totalReward
     )
 }
 
@@ -107,6 +111,7 @@ fun mapParachainMetadataFlowDataFromParcel(
         apiKey = apiKey,
         termsUrl = termsUrl,
         crowdloanInfoUrl = crowdloanInfoUrl,
-        fearlessReferral = fearlessReferral
+        fearlessReferral = fearlessReferral,
+        totalReward = totalReward
     )
 }

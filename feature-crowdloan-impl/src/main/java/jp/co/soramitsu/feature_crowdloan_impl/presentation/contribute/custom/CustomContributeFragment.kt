@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 
+import android.graphics.Paint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -215,6 +216,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
         viewModel.learnCrowdloanBonusModel.observe { model ->
             view?.findViewById<GoNextView>(R.id.referralLearnMore)?.let {
+                it.title.paintFlags = it.title.paintFlags or Paint.UNDERLINE_TEXT_FLAG
                 it.title.text = model.text
                 it.icon.load(model.iconLink, imageLoader)
 

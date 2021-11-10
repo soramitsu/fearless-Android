@@ -11,6 +11,7 @@ interface AcalaApi {
         const val BASE_URL = "https://crowdloan.aca-dev.network"
     }
 
+
     @GET("/statement")
     suspend fun getStatement(): AcalaStatement
 

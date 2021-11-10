@@ -11,6 +11,8 @@
     <string name="onboarding_restore_account">Восстановить</string>
     <string name="onboarding_terms_and_conditions_1">Я подтверждаю, что прочитал и согласен с
 Условиями использования и Политикой конфиденциальности</string>
+    <string name="contribute_terms">Я подтверждаю, что прочитал и согласен с Условиями использования</string>
+    <string name="contribute_terms_clickable">Условиями использования</string>
     <string name="onboarding_terms_and_conditions_2">Условиями использования</string>
     <string name="onboarding_privacy_policy">Политикой конфиденциальности</string>
     <string name="pincode_enter_pin_code">Введите PIN-код</string>

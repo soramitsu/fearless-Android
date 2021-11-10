@@ -1,9 +1,13 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
+import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.text.buildSpannedString
+import androidx.core.text.inSpans
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
@@ -14,12 +18,16 @@ import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import kotlinx.android.synthetic.main.fragment_contribute.contributePrivacySwitch
+import kotlinx.android.synthetic.main.fragment_contribute.contributePrivacyText
+import kotlinx.android.synthetic.main.fragment_contribute.contributeTermsLayout
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeAmount
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonus
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonusReward
@@ -73,6 +81,18 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         crowdloanContributeLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
 
         crowdloanContributeBonus.setOnClickListener { viewModel.bonusClicked() }
+
+        contributePrivacySwitch.bindTo(viewModel.privacyAcceptedFlow, lifecycleScope)
+
+        contributePrivacyText?.movementMethod = LinkMovementMethod.getInstance()
+        contributePrivacyText?.text = context?.let {
+            createSpannable(it.getString(R.string.contribute_terms)) {
+                clickable(it.getString(R.string.contribute_terms_clickable)) {
+                    viewModel.termsClicked()
+                }
+            }
+        }
+
     }
 
     override fun inject() {
@@ -123,11 +143,15 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         }
 
         crowdloanContributeToolbar.setTitle(viewModel.title)
+        val payload = argument<ContributePayload>(KEY_PAYLOAD)
 
         crowdloanContributeLearnMore.setVisible(viewModel.learnCrowdloanModel != null)
 
         viewModel.learnCrowdloanModel?.let {
-            crowdloanContributeLearnMore.title.text = it.text
+            val underlined = buildSpannedString {
+                inSpans(UnderlineSpan()) { append(it.text) }
+            }
+            crowdloanContributeLearnMore.title.text = underlined
             crowdloanContributeLearnMore.icon.load(it.iconLink, imageLoader)
         }
 
@@ -136,5 +160,7 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
 
             crowdloanContributeBonusReward.text = it
         }
+
+        contributeTermsLayout?.setVisible(payload.parachainMetadata?.isAcala == true)
     }
 }
