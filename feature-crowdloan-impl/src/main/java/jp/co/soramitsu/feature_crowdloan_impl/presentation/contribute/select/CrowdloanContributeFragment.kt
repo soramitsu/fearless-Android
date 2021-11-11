@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -29,6 +30,8 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.par
 import kotlinx.android.synthetic.main.fragment_contribute.contributePrivacySwitch
 import kotlinx.android.synthetic.main.fragment_contribute.contributePrivacyText
 import kotlinx.android.synthetic.main.fragment_contribute.contributeTermsLayout
+import kotlinx.android.synthetic.main.fragment_contribute.contributionTypeButton
+import kotlinx.android.synthetic.main.fragment_contribute.contributionTypeLayout
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeAmount
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonus
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonusReward
@@ -41,7 +44,6 @@ import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeRew
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeTimeLeft
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeToolbar
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeUnlockHint
-import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
@@ -92,6 +94,10 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
                     viewModel.termsClicked()
                 }
             }
+        }
+
+        contributionTypeLayout?.setOnClickListener {
+            contributionTypeButton?.toggle()
         }
 
     }
@@ -178,5 +184,6 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         }
 
         contributeTermsLayout?.setVisible(payload.parachainMetadata?.isAcala == true)
+        contributionTypeLayout?.setVisible(payload.parachainMetadata?.isAcala == true)
     }
 }

@@ -375,6 +375,9 @@ Derivation path: %s</string>
     <string name="crowdloan_enter_referral_address">Enter a referral address</string>
     <string name="crowdloan_enter_referral">Enter your referral code</string>
     <string name="staking_add_controller">Add controller account %s to the application to perform this action.</string>
+    <string name="contribution_type">Contribution type</string>
+    <string name="contribution_type_direct_dot">Direct DOT</string>
+    <string name="contribution_type_lcdot">lcDOT</string>
     <string name="crowdloan_empty_bonus_title">Get a special bonus</string>
     <string name="crowdloan_empty_email_title">Enter your email</string>
     <string name="crowdloan_agreement_required">Agreement required</string>
