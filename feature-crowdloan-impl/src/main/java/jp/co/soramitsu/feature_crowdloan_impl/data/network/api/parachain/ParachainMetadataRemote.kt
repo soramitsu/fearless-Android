@@ -23,6 +23,7 @@ data class ParachainMetadataFlowDataRemote(
     val devApiKey: String?,
     val prodApiUrl: String?,
     val prodApiKey: String?,
+    val bonusUrl: String?,
     val termsUrl: String?,
     val crowdloanInfoUrl: String?,
     val fearlessReferral: String?,

@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additional
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.model.LeasePeriodModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
@@ -106,7 +107,9 @@ class ConfirmContributeViewModel(
         .share()
 
     val bonusNumberFlow = flow {
-        emit(payload.bonusPayload?.calculateBonus(payload.amount))
+        if (payload.metadata?.isAcala != true) {
+            emit(payload.bonusPayload?.calculateBonus(payload.amount))
+        }
     }
         .inBackground()
         .share()
@@ -212,6 +215,13 @@ class ConfirmContributeViewModel(
                     etheriumAddress = it.first
                 )
             }
+        }
+    }
+
+    fun bonusClicked() {
+        if (payload.metadata?.isAcala == true) {
+            val bonusUrl = payload.metadata.flow?.data?.bonusUrl ?: payload.metadata.website
+            openBrowserEvent.postValue(Event(bonusUrl))
         }
     }
 }

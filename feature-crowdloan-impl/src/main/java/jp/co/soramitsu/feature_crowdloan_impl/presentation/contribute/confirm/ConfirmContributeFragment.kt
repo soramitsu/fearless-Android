@@ -67,6 +67,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         confirmContributeConfirm.setOnClickListener { viewModel.nextClicked() }
 
         confirmContributeOriginAcount.setWholeClickListener { viewModel.originAccountClicked() }
+        confirmContributeBonus?.setOnClickListener { viewModel.bonusClicked() }
     }
 
     override fun inject() {
@@ -111,7 +112,10 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         viewModel.crowdloanInfoFlow.observe {
-            confirmContributeLeasingPeriod.showValue(it.leasePeriod, it.leasedUntil)
+            confirmContributeLeasingPeriod.showValue(
+                primary = it.leasePeriod,
+                secondary = getString(R.string.till_format, it.leasedUntil)
+            )
         }
 
         viewModel.selectedAddressModelFlow.observe {
@@ -139,6 +143,16 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         confirmContributeCrowloanTitle.text = viewModel.title
+        applyAcalaBonus()
+    }
+
+    private fun applyAcalaBonus() {
+        val isAcala = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isAcala == true
+        if (isAcala) {
+            confirmContributeBonus?.setVisible(true)
+            confirmContributeBonus?.showValue(getString(R.string.label_link))
+            confirmContributeBonus?.setValueColorRes(R.color.colorAccent)
+        }
     }
 
     private fun getColor(bonus: BigDecimal?) = when {

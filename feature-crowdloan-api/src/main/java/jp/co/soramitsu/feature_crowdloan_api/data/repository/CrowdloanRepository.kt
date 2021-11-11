@@ -59,10 +59,11 @@ class ParachainMetadataFlow(
 class ParachainMetadataFlowData(
     val apiUrl: String?,
     val apiKey: String?,
+    val bonusUrl: String?,
     val termsUrl: String?,
     val crowdloanInfoUrl: String?,
     val fearlessReferral: String?,
     val totalReward: String?,
 ) {
-    val baseUrl = apiUrl?.replace("https://", "")
+    val baseUrl = apiUrl?.removePrefix("https://")
 }

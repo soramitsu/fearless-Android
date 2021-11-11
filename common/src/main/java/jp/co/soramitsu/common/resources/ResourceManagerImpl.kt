@@ -42,7 +42,7 @@ class ResourceManagerImpl(
     }
 
     override fun formatDate(timestamp: Long): String {
-        return timestamp.formatDateTime(contextManager.getContext()).toString()
+        return timestamp.formatDateTime()
     }
 
     @OptIn(ExperimentalTime::class)

@@ -31,6 +31,7 @@ fun mapmapParachainMetadataFlowDataRemoteToParachainMetadataFlowData(flowData: P
         ParachainMetadataFlowData(
             apiUrl = if (BuildConfig.DEBUG) devApiUrl else prodApiUrl,
             apiKey = if (BuildConfig.DEBUG) devApiKey else prodApiKey,
+            bonusUrl = bonusUrl,
             termsUrl = termsUrl,
             crowdloanInfoUrl = crowdloanInfoUrl,
             fearlessReferral = fearlessReferral,

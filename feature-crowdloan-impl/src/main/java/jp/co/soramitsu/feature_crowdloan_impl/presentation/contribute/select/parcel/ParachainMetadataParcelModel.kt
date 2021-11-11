@@ -36,12 +36,13 @@ class ParachainMetadataFlowParcelModel(
 class ParachainMetadataFlowDataParcelModel(
     val apiUrl: String?,
     val apiKey: String?,
+    val bonusUrl: String?,
     val termsUrl: String?,
     val crowdloanInfoUrl: String?,
     val fearlessReferral: String?,
     val totalReward: String?,
 ) : Parcelable {
-    val baseUrl = apiUrl?.replace("https://", "")
+    val baseUrl = apiUrl?.removePrefix("https://")
 }
 
 fun mapParachainMetadataToParcel(
@@ -73,6 +74,7 @@ fun mapParachainMetadataFlowDataToParcel(
     ParachainMetadataFlowDataParcelModel(
         apiUrl = apiUrl,
         apiKey = apiKey,
+        bonusUrl = bonusUrl,
         termsUrl = termsUrl,
         crowdloanInfoUrl = crowdloanInfoUrl,
         fearlessReferral = fearlessReferral,
@@ -109,6 +111,7 @@ fun mapParachainMetadataFlowDataFromParcel(
     ParachainMetadataFlowData(
         apiUrl = apiUrl,
         apiKey = apiKey,
+        bonusUrl = bonusUrl,
         termsUrl = termsUrl,
         crowdloanInfoUrl = crowdloanInfoUrl,
         fearlessReferral = fearlessReferral,

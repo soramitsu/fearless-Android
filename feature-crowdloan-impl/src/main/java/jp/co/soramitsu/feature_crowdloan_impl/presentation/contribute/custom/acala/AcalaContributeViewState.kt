@@ -18,6 +18,15 @@ class AcalaContributeViewState(
     resourceManager = resourceManager,
 ) {
 
+    init {
+        (previousPayload() as? AcalaBonusPayload)?.let {
+            it.email?.let { email ->
+                enteredEmailFlow.value = email
+                emailAgreedFlow.value = true
+            }
+        }
+    }
+
     override val applyActionState = enteredReferralCodeFlow.combine(emailValidationFlow) { referral, emailValid ->
         when {
             referral.isEmpty() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.crowdloan_enter_referral))
@@ -33,6 +42,6 @@ class AcalaContributeViewState(
     override suspend fun validatePayload(payload: ReferralCodePayload) {
         val isReferralValid = interactor.isReferralValid(payload.referralCode)
 
-        if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.crowdloan_referral_code_invalid))
+        if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.crowdloan_acala_referral_code_invalid))
     }
 }
