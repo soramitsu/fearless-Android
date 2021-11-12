@@ -24,6 +24,7 @@ class SegmentedButtonView @JvmOverloads constructor(
 
     private var singleLine: Boolean = true
     private var selectedIndex: Int = 0
+    private var selectedIndexListener: ((index: Int) -> Unit)? = null
 
     private fun applyAttributes(attrs: AttributeSet?) {
         attrs?.let {
@@ -57,6 +58,7 @@ class SegmentedButtonView @JvmOverloads constructor(
 
     fun toggle() {
         selectedIndex = (selectedIndex + 1).rem(2)
+        selectedIndexListener?.invoke(selectedIndex)
         putSelectionBackground()
     }
 
@@ -84,7 +86,12 @@ class SegmentedButtonView @JvmOverloads constructor(
         super.onRestoreInstanceState(myState?.superSavedState ?: state)
 
         selectedIndex = myState?.selectedIndex ?: 0
+        selectedIndexListener?.invoke(selectedIndex)
         putSelectionBackground()
+    }
+
+    fun setOnSelectionChangeListener(listener: ((index: Int) -> Unit)?) {
+        selectedIndexListener = listener
     }
 
     @Parcelize

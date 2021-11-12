@@ -95,7 +95,7 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
                 }
             }
         }
-
+        contributionTypeButton?.bindTo(viewModel.contributionTypeFlow, lifecycleScope)
         contributionTypeLayout?.setOnClickListener {
             contributionTypeButton?.toggle()
         }

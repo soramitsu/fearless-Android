@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaApi
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.acala.AcalaContributeInteractor
@@ -18,15 +19,16 @@ class AcalaContributionModule {
     @Provides
     @FeatureScope
     fun provideAcalaApi(networkApiCreator: NetworkApiCreator): AcalaApi {
-        return networkApiCreator.create(AcalaApi::class.java, customBaseUrl = AcalaApi.BASE_URL)
+        return networkApiCreator.create(AcalaApi::class.java)
     }
 
     @Provides
     @FeatureScope
     fun provideAcalaInteractor(
         acalaApi: AcalaApi,
-        httpExceptionHandler: HttpExceptionHandler
-    ) = AcalaContributeInteractor(acalaApi, httpExceptionHandler)
+        httpExceptionHandler: HttpExceptionHandler,
+        accountRepository: AccountRepository,
+    ) = AcalaContributeInteractor(acalaApi, httpExceptionHandler, accountRepository)
 
     @Provides
     @FeatureScope

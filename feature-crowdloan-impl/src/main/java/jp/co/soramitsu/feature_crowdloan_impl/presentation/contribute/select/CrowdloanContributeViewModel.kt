@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_crowdloan_impl.R
@@ -58,6 +57,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
@@ -92,7 +92,8 @@ class CrowdloanContributeViewModel(
 
     private val _showNextProgress = MutableLiveData(false)
 
-    val privacyAcceptedFlow = MutableStateFlow(false)
+    val privacyAcceptedFlow = MutableStateFlow(payload.parachainMetadata?.isAcala != true)
+    val contributionTypeFlow = MutableStateFlow(0)
 
     val applyButtonState = MediatorLiveData<Pair<ApplyActionState, Boolean>>().apply {
         var isPrivacyAccepted = false
@@ -215,10 +216,16 @@ class CrowdloanContributeViewModel(
 
     val estimatedRewardFlow = rewardRateFlow.combine(parsedAmountFlow) { rewardRate, amount ->
         payload.parachainMetadata?.let { metadata ->
-            val estimatedReward = rewardRate?.let { amount * it }
-            estimatedReward?.formatTokenAmount(metadata.token)
+            when {
+                metadata.isAcala -> null
+                else -> {
+                    val estimatedReward = rewardRate?.let { amount * it }
+                    estimatedReward?.formatTokenAmount(metadata.token)
+                }
+            }
         }
     }
+        .onStart { emit(null) }
         .inBackground()
         .share()
 
@@ -327,12 +334,19 @@ class CrowdloanContributeViewModel(
     private fun openConfirmScreen(
         validationPayload: ContributeValidationPayload
     ) = launch {
+        val contributionTypeIdx = contributionTypeFlow.firstOrNull() ?: return@launch
+
+        val bonusPayload = when (val payload = router.latestCustomBonus) {
+            is AcalaBonusPayload -> payload.apply { contributionType = contributionTypeIdx }
+            else -> payload
+        }
+
         val confirmContributePayload = ConfirmContributePayload(
             paraId = payload.paraId,
             fee = validationPayload.fee,
             amount = validationPayload.contributionAmount,
             estimatedRewardDisplay = estimatedRewardFlow.first(),
-            bonusPayload = router.latestCustomBonus,
+            bonusPayload = bonusPayload,
             metadata = payload.parachainMetadata,
             enteredEtheriumAddress = null,
             signature = null

@@ -1,5 +1,8 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
+import java.io.IOException
+import java.math.BigDecimal
+import java.net.HttpURLConnection
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
@@ -11,10 +14,15 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.hasWonAuction
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.contribute
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
@@ -26,9 +34,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import java.io.IOException
-import java.math.BigDecimal
-import java.net.HttpURLConnection
 
 typealias AdditionalOnChainSubmission = suspend ExtrinsicBuilder.() -> Unit
 
@@ -38,7 +43,9 @@ class CrowdloanContributeInteractor(
     private val accountRepository: AccountRepository,
     private val chainStateRepository: ChainStateRepository,
     private val crowdloanRepository: CrowdloanRepository,
+    private val walletRepository: WalletRepository,
     private val moonbeamApi: MoonbeamApi,
+    private val acalaApi: AcalaApi,
     private val resourceManager: ResourceManager,
 ) {
 
@@ -107,6 +114,23 @@ class CrowdloanContributeInteractor(
         }.getOrThrow()
     }
 
+    suspend fun performTransfer(
+        transfer: Transfer,
+        fee: BigDecimal,
+        maxAllowedLevel: TransferValidityLevel,
+    ): Result<Unit> {
+        val accountAddress = accountRepository.getSelectedAccount().address
+        val validityStatus = walletRepository.checkTransferValidity(accountAddress, transfer)
+
+        if (validityStatus.level > maxAllowedLevel) {
+            return Result.failure(NotValidTransferStatus(validityStatus))
+        }
+
+        return runCatching {
+            walletRepository.performTransfer(accountAddress, transfer, fee)
+        }
+    }
+
     suspend fun getHealth(apiUrl: String, apiKey: String) = try {
         moonbeamApi.getHealth(apiUrl, apiKey)
         true
@@ -118,6 +142,8 @@ class CrowdloanContributeInteractor(
             throw transformException(e)
         }
     }
+
+    suspend fun getAcalaStatement(apiUrl: String) = acalaApi.getStatement(apiUrl)
 
     private fun transformException(exception: Throwable): BaseException {
         return when (exception) {

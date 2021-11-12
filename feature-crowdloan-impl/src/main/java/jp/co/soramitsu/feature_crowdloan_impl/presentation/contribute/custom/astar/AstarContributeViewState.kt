@@ -25,7 +25,7 @@ class AstarContributeViewState(
         }
     }
 
-    override fun createBonusPayload(referralCode: String, email: String?): ReferralCodePayload {
+    override fun createBonusPayload(referralCode: String, email: String?, agreeReceiveEmail: Boolean?): ReferralCodePayload {
         return AstarBonusPayload(
             referralCode,
             customContributePayload.paraId,

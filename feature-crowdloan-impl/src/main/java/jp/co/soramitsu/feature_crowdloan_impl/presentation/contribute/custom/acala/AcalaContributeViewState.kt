@@ -22,8 +22,8 @@ class AcalaContributeViewState(
         (previousPayload() as? AcalaBonusPayload)?.let {
             it.email?.let { email ->
                 enteredEmailFlow.value = email
-                emailAgreedFlow.value = true
             }
+            emailAgreedFlow.value = it.agreeReceiveEmail == true
         }
     }
 
@@ -35,12 +35,21 @@ class AcalaContributeViewState(
         }
     }
 
-    override fun createBonusPayload(referralCode: String, email: String?): ReferralCodePayload {
-        return AcalaBonusPayload(referralCode, customContributePayload.parachainMetadata.rewardRate, email)
+    override fun createBonusPayload(referralCode: String, email: String?, agreeReceiveEmail: Boolean?): ReferralCodePayload {
+        return AcalaBonusPayload(
+            referralCode = referralCode,
+            rewardRate = customContributePayload.parachainMetadata.rewardRate,
+            email = email,
+            agreeReceiveEmail = agreeReceiveEmail,
+            contributionType = null,
+            parachainId = customContributePayload.paraId,
+            baseUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl!!
+        )
     }
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {
-        val isReferralValid = interactor.isReferralValid(payload.referralCode)
+        val apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl!!
+        val isReferralValid = interactor.isReferralValid(payload.referralCode, apiUrl)
 
         if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.crowdloan_acala_referral_code_invalid))
     }

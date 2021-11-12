@@ -16,7 +16,7 @@ class BifrostContributeViewState(
     resourceManager = resourceManager,
 ) {
 
-    override fun createBonusPayload(referralCode: String, email: String?): ReferralCodePayload {
+    override fun createBonusPayload(referralCode: String, email: String?, agreeReceiveEmail: Boolean?): ReferralCodePayload {
         return BifrostBonusPayload(
             referralCode,
             customContributePayload.paraId,

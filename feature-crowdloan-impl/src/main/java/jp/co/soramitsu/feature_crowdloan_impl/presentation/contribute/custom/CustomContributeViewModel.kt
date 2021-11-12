@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
@@ -55,7 +56,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class CustomContributeViewModel(
     private val customContributeManager: CustomContributeManager,

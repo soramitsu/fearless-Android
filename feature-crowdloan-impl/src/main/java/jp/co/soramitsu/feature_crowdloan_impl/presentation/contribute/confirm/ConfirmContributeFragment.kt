@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -17,6 +19,7 @@ import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeAmount
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeBonus
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeConfirm
@@ -29,8 +32,6 @@ import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContrib
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeToolbar
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressText
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressTitle
-import java.math.BigDecimal
-import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
@@ -86,6 +87,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         observeBrowserEvents(viewModel)
         observeValidations(viewModel)
         setupExternalActions(viewModel)
+        observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
         viewModel.showNextProgress.observe(confirmContributeConfirm::setProgress)
 

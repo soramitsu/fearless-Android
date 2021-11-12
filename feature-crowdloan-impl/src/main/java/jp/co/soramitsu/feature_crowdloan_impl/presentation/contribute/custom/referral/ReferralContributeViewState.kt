@@ -25,7 +25,10 @@ abstract class ReferralContributeViewState(
     private val fearlessReferral = customContributePayload.parachainMetadata.flow?.data?.fearlessReferral
     private val termsUrl: String = customContributePayload.parachainMetadata.flow?.data?.termsUrl ?: customContributePayload.parachainMetadata.website
 
-    abstract fun createBonusPayload(referralCode: String, email: String? = null): ReferralCodePayload
+    abstract fun createBonusPayload(referralCode: String,
+                                    email: String? = null,
+                                    agreeReceiveEmail: Boolean? = null
+    ): ReferralCodePayload
 
     abstract suspend fun validatePayload(payload: ReferralCodePayload)
 
@@ -80,18 +83,10 @@ abstract class ReferralContributeViewState(
             emit(true)
         }
     }
-    val emailValidFlow: Flow<String?> = when {
-        isAcala -> enteredEmailFlow.combine(emailAgreedFlow) { input, agreed ->
-            when {
-                agreed && input.length > 2 -> input
-                else -> null
-            }
-        }
-        else -> flow { }
-    }
 
-    private val bonusPayloadFlow = enteredReferralCodeFlow.combine(emailValidFlow) { referral, email ->
-        createBonusPayload(referral, email)
+    private val bonusPayloadFlow = enteredReferralCodeFlow.combine(enteredEmailFlow) { referral, email ->
+        val agreeReceiveEmail = emailAgreedFlow.value
+        createBonusPayload(referral, email, agreeReceiveEmail)
     }
 
     val bonusNumberFlow = bonusPayloadFlow.map {

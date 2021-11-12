@@ -29,9 +29,14 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.par
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -47,10 +52,12 @@ class ConfirmContributeViewModel(
     private val payload: ConfirmContributePayload,
     private val validationSystem: ContributeValidationSystem,
     private val customContributeManager: CustomContributeManager,
-    private val externalAccountActions: ExternalAccountActions.Presentation
-) : BaseViewModel(),
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val transferValidityChecks: TransferValidityChecks.Presentation,
+    ) : BaseViewModel(),
     Validatable by validationExecutor,
-    ExternalAccountActions by externalAccountActions {
+    ExternalAccountActions by externalAccountActions,
+    TransferValidityChecks by transferValidityChecks {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -157,12 +164,12 @@ class ConfirmContributeViewModel(
         }
     }
 
-    private fun sendTransaction() {
+    private fun sendTransaction(suppressWarnings: Boolean = false) {
         launch {
             val customSubmissionResult = if (payload.bonusPayload != null) {
                 val flowName = payload.metadata?.flow?.name!!
                 customContributeManager.getSubmitter(flowName)
-                    .submitOffChain(payload.bonusPayload, payload.amount)
+                    .submitOffChain(payload.bonusPayload, payload.amount, payload.metadata)
             } else {
                 Result.success(Unit)
             }
@@ -178,20 +185,39 @@ class ConfirmContributeViewModel(
                         payload.metadata.isMoonbeam && ethAddress?.second == true -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+                        payload.metadata.isAcala -> {
+                            additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                        }
                         else -> {
                             null
                         }
                     }
                 }
 
-                contributionInteractor.contribute(
-                    originAddress = selectedAddressModelFlow.first().address,
-                    parachainId = payload.paraId,
-                    contribution = payload.amount,
-                    token = assetFlow.first().token,
-                    additionalSubmission,
-                    privateCrowdloanSignature
-                )
+                val isLcDotAcala = payload.metadata?.isAcala == true && (payload.bonusPayload as AcalaBonusPayload).contributionType == 1
+                if (isLcDotAcala) {
+                    val recipient = contributionInteractor.getAcalaStatement(payload.metadata?.flow?.data?.baseUrl!!).proxyAddress
+                    val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
+                    val fee = feeFlow.firstOrNull()?.feeModel?.fee ?: return@launch
+                    contributionInteractor.performTransfer(
+                        transfer = Transfer(
+                            recipient = recipient,
+                            amount = payload.amount,
+                            tokenType = Token.Type.DOT
+                        ),
+                        fee = fee,
+                        maxAllowedLevel = maxAllowedStatusLevel
+                    )
+                } else {
+                    contributionInteractor.contribute(
+                        originAddress = selectedAddressModelFlow.first().address,
+                        parachainId = payload.paraId,
+                        contribution = payload.amount,
+                        token = assetFlow.first().token,
+                        additionalSubmission,
+                        privateCrowdloanSignature
+                    )
+                }
             }
                 .onFailure(::showError)
                 .onSuccess {
@@ -204,6 +230,10 @@ class ConfirmContributeViewModel(
 
             _showNextProgress.value = false
         }
+    }
+
+    fun warningConfirmed() {
+        sendTransaction(suppressWarnings = true)
     }
 
     private suspend fun saveMoonbeamEtheriumAddress() {
