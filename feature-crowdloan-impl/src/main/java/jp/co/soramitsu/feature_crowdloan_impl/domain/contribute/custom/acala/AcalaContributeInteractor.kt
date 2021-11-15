@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaContributeRequest
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaTransferRequest
-import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.addMemo
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.addRemarkWithEvent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaBonusPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
@@ -79,9 +79,9 @@ class AcalaContributeInteractor(
     suspend fun submitMemo(payload: AcalaBonusPayload, extrinsicBuilder: ExtrinsicBuilder) {
         withContext(Dispatchers.Default) {
             val statement = acalaApi.getStatement(payload.baseUrl).statement
-            extrinsicBuilder.addMemo(payload.parachainId, statement.toByteArray())
+            extrinsicBuilder.addRemarkWithEvent(statement)
             if (payload.referralCode.isNotEmpty()) {
-                extrinsicBuilder.addMemo(payload.parachainId, "referrer:${payload.referralCode}".toByteArray())
+                extrinsicBuilder.addRemarkWithEvent("referrer:${payload.referralCode}")
             }
         }
     }

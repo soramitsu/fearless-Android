@@ -1,11 +1,11 @@
 package jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic
 
+import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
-import java.math.BigInteger
 
 fun ExtrinsicBuilder.contribute(
     parachainId: ParaId,
@@ -36,6 +36,16 @@ fun ExtrinsicBuilder.addMemo(parachainId: ParaId, memo: ByteArray): ExtrinsicBui
         arguments = mapOf(
             "index" to parachainId,
             "memo" to memo
+        )
+    )
+}
+
+fun ExtrinsicBuilder.addRemarkWithEvent(remark: String): ExtrinsicBuilder {
+    return call(
+        moduleName = "System",
+        callName = "remark_with_event",
+        arguments = mapOf(
+            "remark" to remark.toByteArray()
         )
     )
 }
