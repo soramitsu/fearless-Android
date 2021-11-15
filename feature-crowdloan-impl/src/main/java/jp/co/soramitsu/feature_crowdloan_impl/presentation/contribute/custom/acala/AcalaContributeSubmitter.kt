@@ -14,7 +14,7 @@ class AcalaContributeSubmitter(
     override suspend fun submitOnChain(payload: BonusPayload, amount: BigDecimal, extrinsicBuilder: ExtrinsicBuilder) {
         require(payload is AcalaBonusPayload)
 
-        interactor.submitMemo(payload, extrinsicBuilder)
+        interactor.submitRemark(payload, extrinsicBuilder)
     }
 
     override suspend fun submitOffChain(payload: BonusPayload, amount: BigDecimal, metadata: ParachainMetadataParcelModel?): Result<Unit> {

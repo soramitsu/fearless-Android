@@ -190,7 +190,7 @@ class ConfirmContributeViewModel(
                         payload.metadata.isMoonbeam && ethAddress?.second == true -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
-                        payload.metadata.isAcala -> {
+                        payload.metadata.isAcala && payload.contributionType == 1 -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
                         else -> {
@@ -211,7 +211,8 @@ class ConfirmContributeViewModel(
                             tokenType = Token.Type.DOT
                         ),
                         fee = fee,
-                        maxAllowedLevel = maxAllowedStatusLevel
+                        maxAllowedLevel = maxAllowedStatusLevel,
+                        additional = additionalSubmission
                     )
                 } else {
                     contributionInteractor.contribute(

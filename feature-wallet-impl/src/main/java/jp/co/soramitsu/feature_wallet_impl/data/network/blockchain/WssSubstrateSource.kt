@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.preBinder
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.transfer
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -50,8 +51,12 @@ class WssSubstrateSource(
         return accountInfo ?: AccountInfo.empty()
     }
 
-    override suspend fun getTransferFee(accountAddress: String, transfer: Transfer): FeeResponse {
-        val extrinsic = buildTransferExtrinsic(accountAddress, realKeyPair = false, transfer)
+    override suspend fun getTransferFee(
+        accountAddress: String,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
+    ): FeeResponse {
+        val extrinsic = buildTransferExtrinsic(accountAddress, realKeyPair = false, transfer, additional)
 
         val request = FeeCalculationRequest(extrinsic)
 
@@ -61,8 +66,9 @@ class WssSubstrateSource(
     override suspend fun performTransfer(
         accountAddress: String,
         transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
     ): String {
-        val extrinsic = buildTransferExtrinsic(accountAddress, realKeyPair = true, transfer)
+        val extrinsic = buildTransferExtrinsic(accountAddress, realKeyPair = true, transfer, additional)
 
         return socketService.executeAsync(
             SubmitExtrinsicRequest(extrinsic),
@@ -92,14 +98,17 @@ class WssSubstrateSource(
         originAddress: String,
         realKeyPair: Boolean,
         transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
     ): String = withContext(Dispatchers.Default) {
         val extrinsicBuilder = with(extrinsicBuilderFactory) {
             if (realKeyPair) create(originAddress) else createWithFakeKeyPair(originAddress)
         }
 
-        extrinsicBuilder
-            .transfer(recipientAccountId = transfer.recipient.toAccountId(), amount = transfer.amountInPlanks)
-            .build()
+        extrinsicBuilder.transfer(recipientAccountId = transfer.recipient.toAccountId(), amount = transfer.amountInPlanks)
+        additional?.invoke(extrinsicBuilder)
+
+        val useBatchAll = additional != null
+        extrinsicBuilder.build(useBatchAll)
     }
 
     private suspend fun filterAccountTransactions(

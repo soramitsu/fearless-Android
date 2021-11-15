@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import java.math.BigDecimal
+import java.util.Locale
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
@@ -11,6 +13,7 @@ import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapTokenTypeToTokenTypeLocal
@@ -38,15 +41,13 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.getSubQueryPath
 import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.util.Locale
-import kotlin.time.ExperimentalTime
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -150,22 +151,35 @@ class WalletRepositoryImpl(
         return operationDao.getContacts(query, account.address).toSet()
     }
 
-    override suspend fun getTransferFee(accountAddress: String, transfer: Transfer): Fee {
-        val feeRemote = substrateSource.getTransferFee(accountAddress, transfer)
+    override suspend fun getTransferFee(
+        accountAddress: String,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+    ): Fee {
+        val feeRemote = substrateSource.getTransferFee(accountAddress, transfer, additional)
 
         return mapFeeRemoteToFee(feeRemote, transfer)
     }
 
-    override suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal) {
-        val operationHash = substrateSource.performTransfer(accountAddress, transfer)
+    override suspend fun performTransfer(
+        accountAddress: String,
+        transfer: Transfer,
+        fee: BigDecimal,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+    ) {
+        val operationHash = substrateSource.performTransfer(accountAddress, transfer, additional)
 
         val operation = createOperation(operationHash, transfer, accountAddress, fee, OperationLocal.Source.APP)
 
         operationDao.insert(operation)
     }
 
-    override suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer): TransferValidityStatus {
-        val feeResponse = getTransferFee(accountAddress, transfer)
+    override suspend fun checkTransferValidity(
+        accountAddress: String,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+    ): TransferValidityStatus {
+        val feeResponse = getTransferFee(accountAddress, transfer, additional)
 
         val tokenType = transfer.tokenType
 

@@ -118,16 +118,17 @@ class CrowdloanContributeInteractor(
         transfer: Transfer,
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel,
+        additional: AdditionalOnChainSubmission?,
     ): Result<Unit> {
         val accountAddress = accountRepository.getSelectedAccount().address
-        val validityStatus = walletRepository.checkTransferValidity(accountAddress, transfer)
+        val validityStatus = walletRepository.checkTransferValidity(accountAddress, transfer, additional)
 
         if (validityStatus.level > maxAllowedLevel) {
             return Result.failure(NotValidTransferStatus(validityStatus))
         }
 
         return runCatching {
-            walletRepository.performTransfer(accountAddress, transfer, fee)
+            walletRepository.performTransfer(accountAddress, transfer, fee, additional)
         }
     }
 

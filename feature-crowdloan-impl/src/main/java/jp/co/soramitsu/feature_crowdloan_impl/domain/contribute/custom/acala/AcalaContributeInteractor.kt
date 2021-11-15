@@ -76,7 +76,7 @@ class AcalaContributeInteractor(
         }
     }
 
-    suspend fun submitMemo(payload: AcalaBonusPayload, extrinsicBuilder: ExtrinsicBuilder) {
+    suspend fun submitRemark(payload: AcalaBonusPayload, extrinsicBuilder: ExtrinsicBuilder) {
         withContext(Dispatchers.Default) {
             val statement = acalaApi.getStatement(payload.baseUrl).statement
             extrinsicBuilder.addRemarkWithEvent(statement)

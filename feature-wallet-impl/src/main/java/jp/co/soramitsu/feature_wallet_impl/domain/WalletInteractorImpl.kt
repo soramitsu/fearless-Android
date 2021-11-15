@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
+import java.io.File
+import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
@@ -26,8 +28,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.math.BigDecimal
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,

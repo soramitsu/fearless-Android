@@ -1,6 +1,9 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
@@ -9,8 +12,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
-import java.math.BigInteger
 
 interface WalletRepository {
 
@@ -41,11 +42,11 @@ interface WalletRepository {
 
     suspend fun getContacts(account: WalletAccount, query: String): Set<String>
 
-    suspend fun getTransferFee(accountAddress: String, transfer: Transfer): Fee
+    suspend fun getTransferFee(accountAddress: String, transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): Fee
 
-    suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal)
+    suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null)
 
-    suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer): TransferValidityStatus
+    suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): TransferValidityStatus
 
     suspend fun updatePhishingAddresses()
 
