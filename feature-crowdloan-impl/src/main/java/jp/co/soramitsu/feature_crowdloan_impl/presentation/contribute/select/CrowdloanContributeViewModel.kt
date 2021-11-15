@@ -310,12 +310,19 @@ class CrowdloanContributeViewModel(
     private fun maybeGoToNext() = requireFee { fee ->
         launch {
             val contributionAmount = parsedAmountFlow.firstOrNull() ?: return@launch
+            val customMinContribution = when {
+                parachainMetadata?.isAcala == true && contributionTypeFlow.firstOrNull() == 1 -> {
+                    1.toBigDecimal()
+                }
+                else -> null
+            }
 
             val validationPayload = ContributeValidationPayload(
                 crowdloan = crowdloanFlow.first(),
                 fee = fee,
                 asset = assetFlow.first(),
-                contributionAmount = contributionAmount
+                contributionAmount = contributionAmount,
+                customMinContribution = customMinContribution
             )
 
             validationExecutor.requireValid(
@@ -334,11 +341,10 @@ class CrowdloanContributeViewModel(
     private fun openConfirmScreen(
         validationPayload: ContributeValidationPayload
     ) = launch {
-        val contributionTypeIdx = contributionTypeFlow.firstOrNull() ?: return@launch
-
-        val bonusPayload = when (val payload = router.latestCustomBonus) {
-            is AcalaBonusPayload -> payload.apply { contributionType = contributionTypeIdx }
-            else -> payload
+        val isAcala = payload.parachainMetadata?.isAcala == true
+        val contributionType = when {
+            isAcala -> contributionTypeFlow.firstOrNull() ?: return@launch
+            else -> 0
         }
 
         val confirmContributePayload = ConfirmContributePayload(
@@ -346,10 +352,11 @@ class CrowdloanContributeViewModel(
             fee = validationPayload.fee,
             amount = validationPayload.contributionAmount,
             estimatedRewardDisplay = estimatedRewardFlow.first(),
-            bonusPayload = bonusPayload,
+            bonusPayload = router.latestCustomBonus,
             metadata = payload.parachainMetadata,
             enteredEtheriumAddress = null,
-            signature = null
+            signature = null,
+            contributionType = contributionType
         )
 
         router.openConfirmContribute(confirmContributePayload)

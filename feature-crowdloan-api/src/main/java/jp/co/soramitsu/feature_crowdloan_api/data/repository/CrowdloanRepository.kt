@@ -1,5 +1,8 @@
 package jp.co.soramitsu.feature_crowdloan_api.data.repository
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Locale
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
@@ -7,9 +10,6 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Fund
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.TrieIndex
 import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.*
 
 interface CrowdloanRepository {
 
@@ -49,6 +49,8 @@ class ParachainMetadata(
         get() = name.toLowerCase(Locale.getDefault()) == "moonbeam"
     val isAstar: Boolean
         get() = name.toLowerCase(Locale.getDefault()) == "astar"
+    val isAcala: Boolean
+        get() = name.toLowerCase(Locale.getDefault()) == "acala"
 }
 
 class ParachainMetadataFlow(

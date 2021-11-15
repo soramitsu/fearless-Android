@@ -23,7 +23,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additional
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.model.LeasePeriodModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
@@ -147,11 +146,17 @@ class ConfirmContributeViewModel(
     }
 
     private fun maybeGoToNext() = launch {
+        val isAcalaLcDot = payload.metadata?.isAcala == true && payload.contributionType == 1
+        val customMinAmount = when {
+            isAcalaLcDot -> 1.toBigDecimal()
+            else -> null
+        }
         val validationPayload = ContributeValidationPayload(
             crowdloan = crowdloanFlow.first(),
             fee = payload.fee,
             asset = assetFlow.first(),
-            contributionAmount = payload.amount
+            contributionAmount = payload.amount,
+            customMinContribution = customMinAmount
         )
 
         validationExecutor.requireValid(
@@ -194,7 +199,7 @@ class ConfirmContributeViewModel(
                     }
                 }
 
-                val isLcDotAcala = payload.metadata?.isAcala == true && (payload.bonusPayload as AcalaBonusPayload).contributionType == 1
+                val isLcDotAcala = payload.metadata?.isAcala == true && payload.contributionType == 1
                 if (isLcDotAcala) {
                     val recipient = contributionInteractor.getAcalaStatement(payload.metadata?.flow?.data?.baseUrl!!).proxyAddress
                     val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
