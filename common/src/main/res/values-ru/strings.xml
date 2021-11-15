@@ -325,7 +325,7 @@
     <string name="staking_your_inactive_description">Валидаторы, которые не были избраны в этой эре.</string>
     <string name="crowdloan_crowdloan">Краудлоуны</string>
     <string name="parachain_crowdloans">Краудлоуны парачейнов</string>
-    <string name="crowdloan_main_description">Выберите краудлоун кампанию, в которой хотите участвовать. Вы получите вознаграждение, если компания выиграет парачейн слот на аукционе.</string>
+    <string name="crowdloan_main_description">Выберите краудлоун кампанию, в которой хотите участвовать. Вы получите вознаграждение, если кампания выиграет парачейн слот на аукционе.</string>
     <string name="crownloans_raised_format" formatted="false">Собрано: %s из %s</string>
     <string name="crowdloan_active_section_format">Активные (%s)</string>
     <string name="common_completed_with_count">Завершённые (%s)</string>
