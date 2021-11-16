@@ -346,13 +346,17 @@ class CrowdloanContributeViewModel(
             isAcala -> contributionTypeFlow.firstOrNull() ?: return@launch
             else -> 0
         }
+        val bonusPayload = when {
+            isAcala -> (router.latestCustomBonus as? AcalaBonusPayload)?.apply { this.contributionType = contributionType }
+            else -> router.latestCustomBonus
+        }
 
         val confirmContributePayload = ConfirmContributePayload(
             paraId = payload.paraId,
             fee = validationPayload.fee,
             amount = validationPayload.contributionAmount,
             estimatedRewardDisplay = estimatedRewardFlow.first(),
-            bonusPayload = router.latestCustomBonus,
+            bonusPayload = bonusPayload,
             metadata = payload.parachainMetadata,
             enteredEtheriumAddress = null,
             signature = null,
