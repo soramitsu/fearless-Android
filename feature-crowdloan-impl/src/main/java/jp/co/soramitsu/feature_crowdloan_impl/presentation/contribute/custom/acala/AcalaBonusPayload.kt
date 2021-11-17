@@ -5,8 +5,6 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import kotlinx.android.parcel.Parcelize
 
-val ACALA_BONUS_MULTIPLIER = 0.05.toBigDecimal() // 5%
-
 @Parcelize
 class AcalaBonusPayload(
     override val referralCode: String,
@@ -16,9 +14,11 @@ class AcalaBonusPayload(
     var contributionType: Int?,
     val parachainId: ParaId,
     val baseUrl: String,
+    private val bonusRate: BigDecimal?
 ) : ReferralCodePayload {
 
-    override fun calculateBonus(amount: BigDecimal): BigDecimal? {
-        return rewardRate?.let { amount * rewardRate * ACALA_BONUS_MULTIPLIER }
+    override fun calculateBonus(amount: BigDecimal): BigDecimal? = when {
+        rewardRate == null || bonusRate == null -> null
+        else -> amount * rewardRate * bonusRate
     }
 }

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam
 
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.regex.Pattern
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -8,6 +9,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseC
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_KEY
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_BONUS_RATE
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TERMS_URL
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam.MoonbeamContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
@@ -109,6 +111,11 @@ class MoonbeamContributeViewState(
     }
 
     private fun createBonusPayload(): ReferralCodePayload {
-        return MoonbeamBonusPayload(enteredEtheriumAddressFlow.value, customContributePayload.paraId, customContributePayload.parachainMetadata.rewardRate)
+        return MoonbeamBonusPayload(
+            referralCode = enteredEtheriumAddressFlow.value,
+            parachainId = customContributePayload.paraId,
+            rewardRate = customContributePayload.parachainMetadata.rewardRate,
+            bonusRate = customContributePayload.parachainMetadata.flow?.data?.get(FLOW_BONUS_RATE) as? BigDecimal
+        )
     }
 }

@@ -5,16 +5,16 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import kotlinx.android.parcel.Parcelize
 
-val ASTAR_BONUS_MULTIPLIER = 0.01.toBigDecimal() // 1%
-val ASTAR_FRIEND_BONUS_MULTIPLIER = 0.10.toBigDecimal() // 10%
-
 @Parcelize
 class AstarBonusPayload(
     override val referralCode: String,
     val parachainId: ParaId,
-    private val rewardRate: BigDecimal?
+    private val rewardRate: BigDecimal?,
+    private val bonusRate: BigDecimal?
 ) : ReferralCodePayload {
 
-    override fun calculateBonus(amount: BigDecimal): BigDecimal? =
-        rewardRate?.let { amount * rewardRate * ASTAR_BONUS_MULTIPLIER }
+    override fun calculateBonus(amount: BigDecimal): BigDecimal? = when {
+        rewardRate == null || bonusRate == null -> null
+        else -> amount * rewardRate * bonusRate
+    }
 }

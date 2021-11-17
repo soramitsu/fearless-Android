@@ -1,8 +1,10 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_BONUS_RATE
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.acala.AcalaContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
@@ -45,7 +47,8 @@ class AcalaContributeViewState(
             agreeReceiveEmail = agreeReceiveEmail,
             contributionType = null,
             parachainId = customContributePayload.paraId,
-            baseUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL)!!
+            baseUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL)!!,
+            bonusRate = customContributePayload.parachainMetadata.flow.data.get(FLOW_BONUS_RATE) as? BigDecimal
         )
     }
 

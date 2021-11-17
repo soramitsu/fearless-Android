@@ -1,7 +1,9 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_BONUS_RATE
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.astar.AstarContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
@@ -28,7 +30,8 @@ class AstarContributeViewState(
     override fun createBonusPayload(referralCode: String, email: String?, agreeReceiveEmail: Boolean?): ReferralCodePayload = AstarBonusPayload(
         referralCode,
         customContributePayload.paraId,
-        customContributePayload.parachainMetadata.rewardRate
+        customContributePayload.parachainMetadata.rewardRate,
+        customContributePayload.parachainMetadata.flow?.data?.get(FLOW_BONUS_RATE) as? BigDecimal
     )
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {

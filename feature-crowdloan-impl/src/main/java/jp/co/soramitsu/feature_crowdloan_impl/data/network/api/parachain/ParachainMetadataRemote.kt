@@ -21,6 +21,7 @@ data class ParachainMetadataFlowRemote(
 const val FLOW_API_URL = "apiUrl"
 const val FLOW_API_KEY = "apiKey"
 const val FLOW_BONUS_URL = "bonusUrl"
+const val FLOW_BONUS_RATE = "bonusRate"
 const val FLOW_TOTAL_REWARD = "totalReward"
 const val FLOW_TERMS_URL = "termsUrl"
 const val FLOW_CROWDLOAN_INFO_URL = "crowdloanInfoUrl"
