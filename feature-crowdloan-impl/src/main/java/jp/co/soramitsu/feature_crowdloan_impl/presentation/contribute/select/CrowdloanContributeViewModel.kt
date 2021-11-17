@@ -155,7 +155,7 @@ class CrowdloanContributeViewModel(
         when (contributionState) {
             is CustomContributionState.Active -> {
                 when (contributionState.payload) {
-                    is AstarBonusPayload -> ""
+                    is AstarBonusPayload,
                     is AcalaBonusPayload -> ""
                     else -> {
                         val bonus = contributionState.payload.calculateBonus(amount)

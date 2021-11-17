@@ -25,13 +25,11 @@ class AstarContributeViewState(
         }
     }
 
-    override fun createBonusPayload(referralCode: String, email: String?, agreeReceiveEmail: Boolean?): ReferralCodePayload {
-        return AstarBonusPayload(
-            referralCode,
-            customContributePayload.paraId,
-            customContributePayload.parachainMetadata.rewardRate
-        )
-    }
+    override fun createBonusPayload(referralCode: String, email: String?, agreeReceiveEmail: Boolean?): ReferralCodePayload = AstarBonusPayload(
+        referralCode,
+        customContributePayload.paraId,
+        customContributePayload.parachainMetadata.rewardRate
+    )
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {
         val isReferralValid = interactor.isReferralValid(payload.referralCode)

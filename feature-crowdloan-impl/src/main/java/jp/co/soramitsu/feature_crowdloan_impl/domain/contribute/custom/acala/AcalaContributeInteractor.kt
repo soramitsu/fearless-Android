@@ -28,13 +28,12 @@ class AcalaContributeInteractor(
             BuildConfig.DEBUG || acalaApi.isReferralValid(apiUrl, referralCode).result
         }
 
-    suspend fun submitOffChain(payload: AcalaBonusPayload, amount: BigDecimal, apiUrl: String, apiKey: String): Result<Unit> {
-        return when (payload.contributionType) {
+    suspend fun submitOffChain(payload: AcalaBonusPayload, amount: BigDecimal, apiUrl: String, apiKey: String): Result<Unit> =
+        when (payload.contributionType) {
             0 -> performContribute(payload, amount, apiUrl, apiKey) //Direct DOT
             1 -> performTransfer(payload, amount, apiUrl, apiKey)  //lcDOT
             else -> Result.failure(Exception("Unsupported contribution type: ${payload.contributionType}"))
         }
-    }
 
     private suspend fun performContribute(payload: AcalaBonusPayload, amount: BigDecimal, apiUrl: String, apiKey: String): Result<Unit> = runCatching {
         httpExceptionHandler.wrap {
@@ -84,13 +83,11 @@ class AcalaContributeInteractor(
         }
     }
 
-    suspend fun submitRemark(payload: AcalaBonusPayload, extrinsicBuilder: ExtrinsicBuilder) {
-        withContext(Dispatchers.Default) {
-            val statement = acalaApi.getStatement(payload.baseUrl).statement
-            extrinsicBuilder.addRemarkWithEvent(statement)
-            if (payload.referralCode.isNotEmpty()) {
-                extrinsicBuilder.addRemarkWithEvent("referrer:${payload.referralCode}")
-            }
+    suspend fun submitRemark(payload: AcalaBonusPayload, extrinsicBuilder: ExtrinsicBuilder) = withContext(Dispatchers.Default) {
+        val statement = acalaApi.getStatement(payload.baseUrl).statement
+        extrinsicBuilder.addRemarkWithEvent(statement)
+        if (payload.referralCode.isNotEmpty()) {
+            extrinsicBuilder.addRemarkWithEvent("referrer:${payload.referralCode}")
         }
     }
 }

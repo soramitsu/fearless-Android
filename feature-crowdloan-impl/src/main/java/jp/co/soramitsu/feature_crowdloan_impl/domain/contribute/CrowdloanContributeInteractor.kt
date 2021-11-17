@@ -146,19 +146,17 @@ class CrowdloanContributeInteractor(
 
     suspend fun getAcalaStatement(apiUrl: String) = acalaApi.getStatement(apiUrl)
 
-    private fun transformException(exception: Throwable): BaseException {
-        return when (exception) {
-            is HttpException -> {
-                val response = exception.response()!!
+    private fun transformException(exception: Throwable): BaseException = when (exception) {
+        is HttpException -> {
+            val response = exception.response()!!
 
-                val errorCode = response.code()
-                response.errorBody()?.close()
+            val errorCode = response.code()
+            response.errorBody()?.close()
 
-                BaseException.httpError(errorCode, resourceManager.getString(R.string.common_undefined_error_message))
-            }
-            is IOException -> BaseException.networkError(resourceManager.getString(R.string.connection_error_message), exception)
-            else -> BaseException.unexpectedError(exception)
+            BaseException.httpError(errorCode, resourceManager.getString(R.string.common_undefined_error_message))
         }
+        is IOException -> BaseException.networkError(resourceManager.getString(R.string.connection_error_message), exception)
+        else -> BaseException.unexpectedError(exception)
     }
 
     suspend fun saveEthAddress(paraId: ParaId, address: String, etheriumAddress: String) {

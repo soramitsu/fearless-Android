@@ -7,6 +7,8 @@ import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.LifecycleCoroutineScope
 import coil.ImageLoader
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.createSpannable
@@ -23,8 +25,6 @@ import kotlinx.android.synthetic.main.view_referral_flow.view.referralFearlessBo
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacySwitch
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacyText
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
-import java.math.BigDecimal
-import javax.inject.Inject
 
 open class ReferralContributeView @JvmOverloads constructor(
     context: Context,
@@ -58,11 +58,8 @@ open class ReferralContributeView @JvmOverloads constructor(
 
         viewState.applyFearlessCodeEnabledFlow.observe(scope) { enabled ->
             referralFearlessBonusApply?.isEnabled = enabled
-            val isAstar: Boolean = viewState.isAstar
-            val isAcala: Boolean = viewState.isAcala
             val applyBonusButtonText = when {
-                isAstar -> R.string.apply_fearless_referal_wallet
-                isAcala -> R.string.apply_fearless_referal_wallet
+                viewState.isAstar || viewState.isAcala -> R.string.apply_fearless_referal_wallet
                 else -> when {
                     enabled -> R.string.apply_fearless_wallet_bonus
                     else -> R.string.applied_fearless_wallet_bonus

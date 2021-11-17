@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam
 
+import java.math.BigInteger
+import java.util.regex.Pattern
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
@@ -15,8 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
-import java.util.regex.Pattern
 
 class MoonbeamContributeViewState(
     private val interactor: MoonbeamContributeInteractor,
@@ -28,10 +28,6 @@ class MoonbeamContributeViewState(
 
     val title = customContributePayload.parachainMetadata.run {
         "$name ($token)"
-    }
-
-    init {
-        interactor.nextStep(customContributePayload)
     }
 
     val privacyAcceptedFlow = MutableStateFlow(customContributePayload.isPrivacyAccepted ?: false)
@@ -77,14 +73,12 @@ class MoonbeamContributeViewState(
         return Pattern.matches(pattern, address) to (address == savedEthAddress)
     }
 
-    suspend fun getContributionSignature(amount: BigInteger): String {
-        return interactor.getContributionSignature(
-            apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl.orEmpty(),
-            apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey.orEmpty(),
-            contribution = amount,
-            paraId = customContributePayload.paraId,
-        )
-    }
+    suspend fun getContributionSignature(amount: BigInteger): String = interactor.getContributionSignature(
+        apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl.orEmpty(),
+        apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey.orEmpty(),
+        contribution = amount,
+        paraId = customContributePayload.paraId,
+    )
 
     override val applyActionState = when (customContributePayload.step) {
         0 -> privacyAcceptedFlow.map { privacyAccepted ->

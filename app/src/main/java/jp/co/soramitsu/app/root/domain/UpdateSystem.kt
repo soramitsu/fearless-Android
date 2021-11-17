@@ -34,13 +34,8 @@ class UpdateSystem(
                 val subscriptionBuilder = StorageSubscriptionBuilder.create()
 
                 val updatersFlow = scopeUpdaters
-                    .filter {
-                        val d = it.requiredModules.all(runtimeMetadata::hasModule)
-                        d
-                    }
-                    .map {
-                        it.listenForUpdates(subscriptionBuilder).flowOn(Dispatchers.IO)
-                    }
+                    .filter { it.requiredModules.all(runtimeMetadata::hasModule) }
+                    .map { it.listenForUpdates(subscriptionBuilder).flowOn(Dispatchers.IO) }
 
                 if (updatersFlow.isNotEmpty()) {
                     val cancellable = socketService.subscribeUsing(subscriptionBuilder.proxy.build())

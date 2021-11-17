@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam
 
+import java.math.BigInteger
+import java.security.MessageDigest
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
@@ -17,14 +19,11 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkSt
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkVerifyRequest
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.SignatureRequest
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.addMemo
-import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
 import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
-import java.security.MessageDigest
 
 class MoonbeamContributeInteractor(
     private val moonbeamApi: MoonbeamApi,
@@ -42,9 +41,6 @@ class MoonbeamContributeInteractor(
     private var termsSigned: String? = null
     private var moonbeamRemark: String? = null
     private var remarkTxHash: String? = null
-
-    fun nextStep(payload: CustomContributePayload) {
-    }
 
     fun getRemarkTxHash(): String = remarkTxHash.orEmpty()
 

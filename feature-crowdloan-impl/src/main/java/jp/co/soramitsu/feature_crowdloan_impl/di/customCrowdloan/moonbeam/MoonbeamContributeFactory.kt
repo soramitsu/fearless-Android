@@ -20,22 +20,18 @@ class MoonbeamContributeFactory(
     private val interactor: MoonbeamContributeInteractor,
     private val resourceManager: ResourceManager,
     private val accountUseCase: SelectedAccountUseCase,
-    ) : CustomContributeFactory {
+) : CustomContributeFactory {
 
     override val flowType = "moonbeam"
 
-    override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): MoonbeamContributeViewState {
-        return MoonbeamContributeViewState(interactor, payload, resourceManager, scope, accountUseCase)
-    }
+    override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): MoonbeamContributeViewState =
+        MoonbeamContributeViewState(interactor, payload, resourceManager, scope, accountUseCase)
 
-    override fun createView(context: Context, step: Int): CustomContributeView {
-        val customContributeView = when (step) {
-            0 -> MoonbeamStep1Terms(context)
-            1 -> MoonbeamStep2Registration(context)
-            2 -> MoonbeamStep3Signed(context)
-            3 -> MoonbeamStep4Contribute(context)
-            else -> throw error("Not implemented screen for step $step")
-        }
-        return customContributeView
+    override fun createView(context: Context, step: Int): CustomContributeView = when (step) {
+        0 -> MoonbeamStep1Terms(context)
+        1 -> MoonbeamStep2Registration(context)
+        2 -> MoonbeamStep3Signed(context)
+        3 -> MoonbeamStep4Contribute(context)
+        else -> throw error("Not implemented screen for step $step")
     }
 }

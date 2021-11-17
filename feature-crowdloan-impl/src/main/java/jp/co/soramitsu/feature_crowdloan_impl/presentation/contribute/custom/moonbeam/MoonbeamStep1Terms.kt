@@ -36,8 +36,6 @@ class MoonbeamStep1Terms @JvmOverloads constructor(
         referralPrivacySwitch.bindTo(viewState.privacyAcceptedFlow, scope)
 
         scope.launch {
-//            viewState.getHealth()
-
             tvMoonbeamTermsDesc.text = viewState.termsText()
         }
     }

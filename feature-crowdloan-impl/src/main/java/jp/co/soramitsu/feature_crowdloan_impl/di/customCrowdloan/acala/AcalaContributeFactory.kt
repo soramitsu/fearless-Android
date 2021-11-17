@@ -19,9 +19,8 @@ class AcalaContributeFactory(
 
     override val flowType = "acala"
 
-    override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): AcalaContributeViewState {
-        return AcalaContributeViewState(interactor, payload, resourceManager)
-    }
+    override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): AcalaContributeViewState =
+        AcalaContributeViewState(interactor, payload, resourceManager)
 
     override fun createView(context: Context, step: Int): CustomContributeView = AcalaContributeView(context)
 }

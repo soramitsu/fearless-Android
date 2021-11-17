@@ -19,9 +19,10 @@ class AcalaContributeSubmitter(
 
     override suspend fun submitOffChain(payload: BonusPayload, amount: BigDecimal, metadata: ParachainMetadataParcelModel?): Result<Unit> {
         require(payload is AcalaBonusPayload)
-        require(metadata?.flow?.data?.baseUrl != null)
-        require(metadata?.flow?.data?.apiKey != null)
 
-        return interactor.submitOffChain(payload, amount, metadata?.flow?.data?.baseUrl!!, metadata.flow.data.apiKey!!)
+        return when {
+            metadata?.flow?.data?.baseUrl == null || metadata.flow.data.apiKey == null -> Result.failure(Exception("Empty required parameters"))
+            else -> interactor.submitOffChain(payload, amount, metadata.flow.data.baseUrl, metadata.flow.data.apiKey)
+        }
     }
 }

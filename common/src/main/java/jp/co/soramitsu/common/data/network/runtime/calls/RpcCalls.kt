@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.runtime.calls
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.ExtrinsicStatusResponse
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.data.network.runtime.blake2b256String
@@ -28,7 +29,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionCh
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 
 data class EventRecord(val phase: PhaseRecord, val event: InnerEventRecord)
 
@@ -64,11 +64,10 @@ class RpcCalls(
                 mapper = pojo<String>().nonNull(),
             )
                 .let { storage ->
-                    val eventType =
-                        runtime.metadata.module("System").storage("Events").type.value!!
+                    val eventType = runtime.metadata.module("System").storage("Events").type.value ?: return@let emptyList()
                     val eventsRaw = eventType.fromHex(runtime, storage)
                     if (eventsRaw is List<*>) {
-                        val eventRecordList = eventsRaw.filterIsInstance<Struct.Instance>().map {
+                        val eventRecordList = eventsRaw.filterIsInstance<Struct.Instance>().mapNotNull {
                             val phase = it.get<DictEnum.Entry<*>>("phase")
                             val phaseValue = when (phase?.name) {
                                 "ApplyExtrinsic" -> PhaseRecord.ApplyExtrinsic(phase.value as BigInteger)
@@ -77,14 +76,18 @@ class RpcCalls(
                                 else -> null
                             }
                             val innerEvent = it.get<GenericEvent.Instance>("event")
-                            EventRecord(
-                                phaseValue!!,
-                                InnerEventRecord(
-                                    innerEvent!!.module.index.toInt(),
-                                    innerEvent.event.index.second,
-                                    innerEvent.arguments
+                            if (phaseValue == null || innerEvent == null) {
+                                null
+                            } else {
+                                EventRecord(
+                                    phaseValue,
+                                    InnerEventRecord(
+                                        innerEvent.module.index.toInt(),
+                                        innerEvent.event.index.second,
+                                        innerEvent.arguments
+                                    )
                                 )
-                            )
+                            }
                         }
                         eventRecordList
                     } else emptyList()
@@ -127,20 +130,20 @@ class RpcCalls(
         hash: String,
         response: SubscriptionChange
     ): Pair<String, ExtrinsicStatusResponse> {
-        val s = response.subscriptionId
+        val subscriptionId = response.subscriptionId
         val result = response.params.result
         val statusResponse: ExtrinsicStatusResponse = when {
             (result as? Map<String, *>)?.containsKey(FINALIZED)
                 ?: false -> ExtrinsicStatusResponse.ExtrinsicStatusFinalized(
-                s,
+                subscriptionId,
                 (result as? Map<String, *>)?.getValue(FINALIZED) as String
             )
             (result as? Map<String, *>)?.containsKey(FINALITY_TIMEOUT)
                 ?: false -> ExtrinsicStatusResponse.ExtrinsicStatusFinalized(
-                s,
+                subscriptionId,
                 (result as? Map<String, *>)?.getValue(FINALITY_TIMEOUT) as String
             )
-            else -> ExtrinsicStatusResponse.ExtrinsicStatusPending(s)
+            else -> ExtrinsicStatusResponse.ExtrinsicStatusPending(subscriptionId)
         }
         return hash to statusResponse
     }

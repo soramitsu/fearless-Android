@@ -19,9 +19,8 @@ class AstarContributeFactory(
 
     override val flowType = "astar"
 
-    override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): AstarContributeViewState {
-        return AstarContributeViewState(interactor, payload, resourceManager)
-    }
+    override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): AstarContributeViewState =
+        AstarContributeViewState(interactor, payload, resourceManager)
 
     override fun createView(context: Context, step: Int): CustomContributeView = AstarContributeView(context)
 }

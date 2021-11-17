@@ -242,22 +242,21 @@ class ConfirmContributeViewModel(
         sendTransaction(suppressWarnings = true)
     }
 
-    private suspend fun saveMoonbeamEtheriumAddress() {
-        if (payload.metadata?.isMoonbeam == true) {
-            ethAddress?.let {
-                contributionInteractor.saveEthAddress(
-                    paraId = payload.paraId,
-                    address = selectedAddressModelFlow.first().address,
-                    etheriumAddress = it.first
-                )
-            }
-        }
+    private suspend fun saveMoonbeamEtheriumAddress() = when {
+        payload.metadata?.isMoonbeam != true || ethAddress == null -> Unit
+        else -> contributionInteractor.saveEthAddress(
+            paraId = payload.paraId,
+            address = selectedAddressModelFlow.first().address,
+            etheriumAddress = ethAddress.first
+        )
     }
 
-    fun bonusClicked() {
-        if (payload.metadata?.isAcala == true) {
+
+    fun bonusClicked() = when (payload.metadata?.isAcala) {
+        true -> {
             val bonusUrl = payload.metadata.flow?.data?.bonusUrl ?: payload.metadata.website
             openBrowserEvent.postValue(Event(bonusUrl))
         }
+        else -> Unit
     }
 }
