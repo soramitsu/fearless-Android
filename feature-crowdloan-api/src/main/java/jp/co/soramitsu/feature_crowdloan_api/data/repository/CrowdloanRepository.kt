@@ -55,17 +55,5 @@ class ParachainMetadata(
 
 class ParachainMetadataFlow(
     val name: String?,
-    val data: ParachainMetadataFlowData?
+    val data: Map<String, Any?>?
 )
-
-class ParachainMetadataFlowData(
-    val apiUrl: String?,
-    val apiKey: String?,
-    val bonusUrl: String?,
-    val termsUrl: String?,
-    val crowdloanInfoUrl: String?,
-    val fearlessReferral: String?,
-    val totalReward: String?,
-) {
-    val baseUrl = apiUrl?.removePrefix("https://")
-}

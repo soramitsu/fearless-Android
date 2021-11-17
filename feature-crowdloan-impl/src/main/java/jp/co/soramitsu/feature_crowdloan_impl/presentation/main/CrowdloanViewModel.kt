@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -17,11 +18,14 @@ import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_KEY
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanStatusModel
@@ -29,12 +33,11 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import kotlin.reflect.KClass
 
 private const val ICON_SIZE_DP = 40
 
@@ -152,12 +155,11 @@ class CrowdloanViewModel(
             )
 
             if (crowdloan.parachainMetadata?.isMoonbeam == true) {
-                val baseUrl = crowdloan.parachainMetadata.flow?.data?.baseUrl
-                val apiKey = crowdloan.parachainMetadata.flow?.data?.apiKey
+                val apiUrl = crowdloan.parachainMetadata.flow?.data?.getString(FLOW_API_URL)
+                val apiKey = crowdloan.parachainMetadata.flow?.data?.getString(FLOW_API_KEY)
                 val isSigned = when {
-                    baseUrl == null -> false
-                    apiKey == null -> false
-                    else -> interactor.checkRemark(baseUrl, apiKey)
+                    apiUrl == null || apiKey == null -> false
+                    else -> interactor.checkRemark(apiUrl, apiKey)
                 }
 
                 val startStep = when {

@@ -15,17 +15,13 @@ class ParachainMetadataRemote(
 
 data class ParachainMetadataFlowRemote(
     val name: String?,
-    val data: ParachainMetadataFlowDataRemote?
+    val data: Map<String, Any?>?
 )
 
-data class ParachainMetadataFlowDataRemote(
-    val devApiUrl: String?,
-    val devApiKey: String?,
-    val prodApiUrl: String?,
-    val prodApiKey: String?,
-    val bonusUrl: String?,
-    val termsUrl: String?,
-    val crowdloanInfoUrl: String?,
-    val fearlessReferral: String?,
-    val totalReward: String?,
-)
+const val FLOW_API_URL = "apiUrl"
+const val FLOW_API_KEY = "apiKey"
+const val FLOW_BONUS_URL = "bonusUrl"
+const val FLOW_TOTAL_REWARD = "totalReward"
+const val FLOW_TERMS_URL = "termsUrl"
+const val FLOW_CROWDLOAN_INFO_URL = "crowdloanInfoUrl"
+const val FLOW_FEARLESS_REFERRAL = "fearlessReferral"

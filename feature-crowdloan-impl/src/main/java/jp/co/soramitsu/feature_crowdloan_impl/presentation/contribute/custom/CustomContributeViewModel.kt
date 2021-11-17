@@ -21,6 +21,9 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_KEY
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_CROWDLOAN_INFO_URL
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
@@ -35,6 +38,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.mod
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
@@ -176,12 +180,9 @@ class CustomContributeViewModel(
             currentStep == startStep
         }
         .mapLatest {
-            payload.parachainMetadata.flow?.data?.baseUrl != null
-                && payload.parachainMetadata.flow.data.apiKey != null
-                && contributionInteractor.getHealth(
-                apiUrl = payload.parachainMetadata.flow.data.baseUrl,
-                apiKey = payload.parachainMetadata.flow.data.apiKey
-            )
+            val apiUrl = payload.parachainMetadata.flow?.data?.getString(FLOW_API_URL)
+            val apiKey = payload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY)
+            apiUrl != null && apiKey != null && contributionInteractor.getHealth(apiUrl, apiKey)
         }
         .inBackground()
         .share()
@@ -213,9 +214,7 @@ class CustomContributeViewModel(
         }
 
     fun learnMoreClicked() {
-        val parachainLink = payload.parachainMetadata.flow?.data?.crowdloanInfoUrl ?: parachainMetadata.website
-
-
+        val parachainLink = payload.parachainMetadata.flow?.data?.getString(FLOW_CROWDLOAN_INFO_URL) ?: parachainMetadata.website
         openBrowserEvent.value = Event(parachainLink)
     }
 

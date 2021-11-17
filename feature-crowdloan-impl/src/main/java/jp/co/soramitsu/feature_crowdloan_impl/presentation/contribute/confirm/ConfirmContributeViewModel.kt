@@ -14,6 +14,8 @@ import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_BONUS_URL
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
@@ -24,6 +26,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.mo
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
@@ -201,7 +204,8 @@ class ConfirmContributeViewModel(
 
                 val isLcDotAcala = payload.metadata?.isAcala == true && payload.contributionType == 1
                 if (isLcDotAcala) {
-                    val recipient = contributionInteractor.getAcalaStatement(payload.metadata?.flow?.data?.baseUrl!!).proxyAddress
+                    val apiUrl = payload.metadata?.flow?.data?.getString(FLOW_API_URL)!!
+                    val recipient = contributionInteractor.getAcalaStatement(apiUrl).proxyAddress
                     val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
                     val fee = feeFlow.firstOrNull()?.feeModel?.fee ?: return@launch
                     contributionInteractor.performTransfer(
@@ -254,7 +258,7 @@ class ConfirmContributeViewModel(
 
     fun bonusClicked() = when (payload.metadata?.isAcala) {
         true -> {
-            val bonusUrl = payload.metadata.flow?.data?.bonusUrl ?: payload.metadata.website
+            val bonusUrl = payload.metadata.flow?.data?.getString(FLOW_BONUS_URL) ?: payload.metadata.website
             openBrowserEvent.postValue(Event(bonusUrl))
         }
         else -> Unit

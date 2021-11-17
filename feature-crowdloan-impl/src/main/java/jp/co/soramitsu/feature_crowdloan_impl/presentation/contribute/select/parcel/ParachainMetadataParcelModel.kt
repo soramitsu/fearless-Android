@@ -1,12 +1,12 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel
 
 import android.os.Parcelable
+import java.math.BigDecimal
+import java.util.Locale
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadataFlow
-import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadataFlowData
 import kotlinx.android.parcel.Parcelize
-import java.math.BigDecimal
-import java.util.*
+import kotlinx.android.parcel.RawValue
 
 @Parcelize
 class ParachainMetadataParcelModel(
@@ -29,21 +29,10 @@ class ParachainMetadataParcelModel(
 @Parcelize
 class ParachainMetadataFlowParcelModel(
     val name: String?,
-    val data: ParachainMetadataFlowDataParcelModel?
+    val data: Map<String, @RawValue Any?>?
 ) : Parcelable
 
-@Parcelize
-class ParachainMetadataFlowDataParcelModel(
-    val apiUrl: String?,
-    val apiKey: String?,
-    val bonusUrl: String?,
-    val termsUrl: String?,
-    val crowdloanInfoUrl: String?,
-    val fearlessReferral: String?,
-    val totalReward: String?,
-) : Parcelable {
-    val baseUrl = apiUrl?.removePrefix("https://")
-}
+fun Map<String, Any?>.getString(key: String) = get(key) as? String
 
 fun mapParachainMetadataToParcel(
     parachainMetadata: ParachainMetadata
@@ -64,21 +53,7 @@ fun mapParachainMetadataFlowToParcel(
 ) = with(flow) {
     ParachainMetadataFlowParcelModel(
         name = name,
-        data = data?.let { mapParachainMetadataFlowDataToParcel(it) }
-    )
-}
-
-fun mapParachainMetadataFlowDataToParcel(
-    flow: ParachainMetadataFlowData
-) = with(flow) {
-    ParachainMetadataFlowDataParcelModel(
-        apiUrl = apiUrl,
-        apiKey = apiKey,
-        bonusUrl = bonusUrl,
-        termsUrl = termsUrl,
-        crowdloanInfoUrl = crowdloanInfoUrl,
-        fearlessReferral = fearlessReferral,
-        totalReward = totalReward
+        data = data
     )
 }
 
@@ -101,20 +76,6 @@ fun mapParachainMetadataFlowFromParcel(
 ) = with(flowParcel) {
     ParachainMetadataFlow(
         name = name,
-        data = data?.let { mapParachainMetadataFlowDataFromParcel(it) }
-    )
-}
-
-fun mapParachainMetadataFlowDataFromParcel(
-    flowDataParcel: ParachainMetadataFlowDataParcelModel
-) = with(flowDataParcel) {
-    ParachainMetadataFlowData(
-        apiUrl = apiUrl,
-        apiKey = apiKey,
-        bonusUrl = bonusUrl,
-        termsUrl = termsUrl,
-        crowdloanInfoUrl = crowdloanInfoUrl,
-        fearlessReferral = fearlessReferral,
-        totalReward = totalReward
+        data = data
     )
 }

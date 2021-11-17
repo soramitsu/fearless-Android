@@ -2,11 +2,13 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ac
 
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.acala.AcalaContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import kotlinx.coroutines.flow.combine
 
 class AcalaContributeViewState(
@@ -43,12 +45,12 @@ class AcalaContributeViewState(
             agreeReceiveEmail = agreeReceiveEmail,
             contributionType = null,
             parachainId = customContributePayload.paraId,
-            baseUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl!!
+            baseUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL)!!
         )
     }
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {
-        val apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl!!
+        val apiUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL)!!
         val isReferralValid = interactor.isReferralValid(payload.referralCode, apiUrl)
 
         if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.crowdloan_acala_referral_code_invalid))

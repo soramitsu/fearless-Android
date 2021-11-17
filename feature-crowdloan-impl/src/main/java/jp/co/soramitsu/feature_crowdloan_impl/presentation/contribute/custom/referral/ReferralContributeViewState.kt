@@ -2,11 +2,14 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.re
 
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_FEARLESS_REFERRAL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TERMS_URL
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,8 +25,8 @@ abstract class ReferralContributeViewState(
     private val learnMoreUrl: String = customContributePayload.parachainMetadata.website,
 ) : CustomContributeViewState {
 
-    private val fearlessReferral = customContributePayload.parachainMetadata.flow?.data?.fearlessReferral
-    private val termsUrl: String = customContributePayload.parachainMetadata.flow?.data?.termsUrl ?: customContributePayload.parachainMetadata.website
+    private val fearlessReferral = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_FEARLESS_REFERRAL)
+    private val termsUrl: String = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_TERMS_URL) ?: customContributePayload.parachainMetadata.website
 
     abstract fun createBonusPayload(referralCode: String,
                                     email: String? = null,

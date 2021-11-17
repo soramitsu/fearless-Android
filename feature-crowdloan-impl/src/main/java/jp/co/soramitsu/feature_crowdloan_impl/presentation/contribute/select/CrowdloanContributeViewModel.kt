@@ -18,6 +18,8 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TERMS_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TOTAL_REWARD
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
@@ -35,6 +37,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.mod
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
@@ -204,7 +207,7 @@ class CrowdloanContributeViewModel(
         payload.parachainMetadata?.isAcala == true -> {
             crowdloanFlow.distinctUntilChanged().map { crowdloan ->
                 val totalDotContributed = Token.Type.DOT.amountFromPlanks(crowdloan.fundInfo.raised)
-                val totalReward = payload.parachainMetadata.flow?.data?.totalReward?.toBigDecimalOrNull() ?: 170_000_000.toBigDecimal()
+                val totalReward = payload.parachainMetadata.flow?.data?.getString(FLOW_TOTAL_REWARD)?.toBigDecimalOrNull() ?: 170_000_000.toBigDecimal()
                 totalReward.divide(totalDotContributed, 10, RoundingMode.HALF_UP)
             }
         }
@@ -373,7 +376,7 @@ class CrowdloanContributeViewModel(
     }
 
     fun termsClicked() {
-        val termsLink = parachainMetadata?.flow?.data?.termsUrl ?: return
+        val termsLink = parachainMetadata?.flow?.data?.getString(FLOW_TERMS_URL) ?: return
         openBrowserEvent.value = Event(termsLink)
     }
 }

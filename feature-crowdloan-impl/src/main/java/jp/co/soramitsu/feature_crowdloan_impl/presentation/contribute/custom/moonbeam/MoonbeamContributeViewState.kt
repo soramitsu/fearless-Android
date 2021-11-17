@@ -6,12 +6,16 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_KEY
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TERMS_URL
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam.MoonbeamContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -34,22 +38,22 @@ class MoonbeamContributeViewState(
 
     suspend fun getSystemRemarkFee(): BigInteger {
         return interactor.getSystemRemarkFee(
-            apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl.orEmpty(),
-            apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey.orEmpty()
+            apiUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL).orEmpty(),
+            apiKey = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY).orEmpty()
         )
     }
 
     suspend fun doSystemRemark(): Boolean {
         return interactor.doSystemRemark(
-            apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl.orEmpty(),
-            apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey.orEmpty()
+            apiUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL).orEmpty(),
+            apiKey = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY).orEmpty()
         )
     }
 
     fun getRemarkTxHash(): String = interactor.getRemarkTxHash()
 
     suspend fun termsText(): String =
-        customContributePayload.parachainMetadata.flow?.data?.termsUrl?.let {
+        customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_TERMS_URL)?.let {
             interactor.getTerms(it)
         }.orEmpty()
 
@@ -74,8 +78,8 @@ class MoonbeamContributeViewState(
     }
 
     suspend fun getContributionSignature(amount: BigInteger): String = interactor.getContributionSignature(
-        apiUrl = customContributePayload.parachainMetadata.flow?.data?.baseUrl.orEmpty(),
-        apiKey = customContributePayload.parachainMetadata.flow?.data?.apiKey.orEmpty(),
+        apiUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL).orEmpty(),
+        apiKey = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY).orEmpty(),
         contribution = amount,
         paraId = customContributePayload.paraId,
     )
