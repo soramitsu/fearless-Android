@@ -14,7 +14,6 @@ fun manageStakingActionValidationFailure(
             resourceManager.getString(R.string.common_error_general_title) to
                 resourceManager.getString(R.string.staking_add_controller, reason.controllerAddress)
         }
-
         is ManageStakingValidationFailure.UnbondingRequestLimitReached -> {
             resourceManager.getString(R.string.staking_unbonding_limit_reached_title) to
                 resourceManager.getString(R.string.staking_unbonding_limit_reached_message, reason.limit)

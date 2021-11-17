@@ -233,9 +233,9 @@ class CustomContributeViewModel(
     fun backClicked() {
         if (payload.parachainMetadata.isMoonbeam) {
             val currentStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step
-            //TERMS - starting screen -> go out
-            //TERMS_CONFIRM_SUCCESS - signed remark completed, term signed - no need move back -> go out
-            //CONTRIBUTE - starting step for user with signed terms - no need to go back -> go out
+            // TERMS - starting screen -> go out
+            // TERMS_CONFIRM_SUCCESS - signed remark completed, term signed - no need move back -> go out
+            // CONTRIBUTE - starting step for user with signed terms - no need to go back -> go out
             val shouldGoOut = currentStep in listOf(TERMS, TERMS_CONFIRM_SUCCESS, CONTRIBUTE)
             if (shouldGoOut) {
                 router.back()
@@ -259,7 +259,6 @@ class CustomContributeViewModel(
                 val nextStep = customContributePayload.step.next()
                 handleMoonbeamFlow(nextStep)
             } else {
-                // идём на след стейт
                 _viewStateFlow.first().generatePayload()
                     .onSuccess {
                         router.setCustomBonus(it)
@@ -291,7 +290,7 @@ class CustomContributeViewModel(
 
         addSource(_validationProgress) {
             isValidation = it
-            if (!it) { //called false only in error case -> need to stop applying too
+            if (!it) { // called false only in error case -> need to stop applying too
                 isApplying = false
             }
             handleUpdates()
@@ -307,7 +306,6 @@ class CustomContributeViewModel(
             handleUpdates()
         }
     }
-
 
     private fun maybeGoToNext(fee: BigDecimal, bonusPayload: BonusPayload? = null, signature: String? = null) {
         launch {
@@ -461,11 +459,10 @@ class CustomContributeViewModel(
             contributionAmount = BigDecimal.ZERO
         )
 
-        //todo rework with dagger separate validate systems
+        // todo rework with dagger separate validate systems
         val contributeValidations = (validationSystem.value as CompositeValidation).validations
             .filter {
-                it is CrowdloanNotEndedValidation
-                || it is EnoughToPayFeesValidation
+                it is CrowdloanNotEndedValidation || it is EnoughToPayFeesValidation
             }
         val feeRemarkSystem = ContributeValidationSystem(
             validation = CompositeValidation(contributeValidations)

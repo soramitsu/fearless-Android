@@ -118,7 +118,6 @@ class CrowdloanContributeViewModel(
         addSource(_showNextProgress) { isProgress = it; handleUpdates() }
     }
 
-
     private val assetFlow = assetUseCase.currentAssetFlow()
         .share()
 

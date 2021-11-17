@@ -37,4 +37,3 @@ fun mapmapParachainMetadataFlowDataRemoteToParachainMetadataFlowData(flowData: M
     }.toMap()
 
 private fun Any?.withoutPrefix(): Any? = (this as? String)?.removePrefix("https://")
-

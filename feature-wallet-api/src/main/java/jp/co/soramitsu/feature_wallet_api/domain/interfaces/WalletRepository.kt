@@ -46,7 +46,11 @@ interface WalletRepository {
 
     suspend fun performTransfer(accountAddress: String, transfer: Transfer, fee: BigDecimal, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null)
 
-    suspend fun checkTransferValidity(accountAddress: String, transfer: Transfer, additional: (suspend ExtrinsicBuilder.() -> Unit)? = null): TransferValidityStatus
+    suspend fun checkTransferValidity(
+        accountAddress: String,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
+    ): TransferValidityStatus
 
     suspend fun updatePhishingAddresses()
 

@@ -46,7 +46,7 @@ class AcalaContributeInteractor(
             val selectedAccount = accountRepository.getSelectedAccount()
             val statementSignature = accountRepository.signWithAccount(selectedAccount, statement.toByteArray())
 
-            val useEmail = when  {
+            val useEmail = when {
                 payload.email.isNullOrEmpty() -> null
                 else -> payload.email
             }
@@ -61,14 +61,13 @@ class AcalaContributeInteractor(
                     receiveEmail = payload.agreeReceiveEmail
                 )
             )
-
         }
     }
 
     private suspend fun performTransfer(payload: AcalaBonusPayload, amount: BigDecimal, apiUrl: String, apiKey: String): Result<Unit> = runCatching {
         httpExceptionHandler.wrap {
             val address = accountRepository.getSelectedAccount().address
-            val useEmail = when  {
+            val useEmail = when {
                 payload.email.isNullOrEmpty() -> null
                 else -> payload.email
             }

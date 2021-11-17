@@ -57,7 +57,7 @@ class ConfirmContributeViewModel(
     private val customContributeManager: CustomContributeManager,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    ) : BaseViewModel(),
+) : BaseViewModel(),
     Validatable by validationExecutor,
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
@@ -255,7 +255,6 @@ class ConfirmContributeViewModel(
             etheriumAddress = ethAddress.first
         )
     }
-
 
     fun bonusClicked() = when (payload.metadata?.isAcala) {
         true -> {

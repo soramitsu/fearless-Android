@@ -99,7 +99,6 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         contributionTypeLayout?.setOnClickListener {
             contributionTypeButton?.toggle()
         }
-
     }
 
     override fun inject() {

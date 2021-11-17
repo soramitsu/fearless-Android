@@ -77,7 +77,7 @@ class SegmentedButtonView @JvmOverloads constructor(
     }
 
     override fun onSaveInstanceState(): Parcelable {
-        val superState =  super.onSaveInstanceState()
+        val superState = super.onSaveInstanceState()
         return ExtendedState(superState, selectedIndex)
     }
 

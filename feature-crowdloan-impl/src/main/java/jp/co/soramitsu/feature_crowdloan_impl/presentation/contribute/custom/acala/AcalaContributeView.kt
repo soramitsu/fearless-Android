@@ -51,6 +51,5 @@ class AcalaContributeView @JvmOverloads constructor(
 
         findViewById<InputField>(R.id.referralEmailInput)?.content?.bindTo(viewState.enteredEmailFlow, scope)
         findViewById<SwitchMaterial>(R.id.referralEmailSwitch)?.bindTo(viewState.emailAgreedFlow, scope)
-
     }
 }

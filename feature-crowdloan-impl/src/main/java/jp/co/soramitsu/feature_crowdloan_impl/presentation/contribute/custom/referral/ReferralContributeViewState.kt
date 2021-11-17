@@ -26,11 +26,13 @@ abstract class ReferralContributeViewState(
 ) : CustomContributeViewState {
 
     private val fearlessReferral = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_FEARLESS_REFERRAL)
-    private val termsUrl: String = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_TERMS_URL) ?: customContributePayload.parachainMetadata.website
+    private val termsUrl: String =
+        customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_TERMS_URL) ?: customContributePayload.parachainMetadata.website
 
-    abstract fun createBonusPayload(referralCode: String,
-                                    email: String? = null,
-                                    agreeReceiveEmail: Boolean? = null
+    abstract fun createBonusPayload(
+        referralCode: String,
+        email: String? = null,
+        agreeReceiveEmail: Boolean? = null
     ): ReferralCodePayload
 
     abstract suspend fun validatePayload(payload: ReferralCodePayload)
