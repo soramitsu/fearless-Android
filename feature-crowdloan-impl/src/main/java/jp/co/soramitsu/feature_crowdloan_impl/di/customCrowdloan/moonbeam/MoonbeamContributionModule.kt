@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.moonbeam
 
+import com.google.gson.FieldNamingPolicy
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoSet
@@ -24,9 +25,10 @@ class MoonbeamContributionModule {
 
     @Provides
     @FeatureScope
-    fun provideMoonbeamApi(networkApiCreator: NetworkApiCreator): MoonbeamApi {
-        return networkApiCreator.create(MoonbeamApi::class.java)
-    }
+    fun provideMoonbeamApi(networkApiCreator: NetworkApiCreator): MoonbeamApi = networkApiCreator.create(
+        service = MoonbeamApi::class.java,
+        customFieldNamingPolicy = FieldNamingPolicy.LOWER_CASE_WITH_DASHES
+    )
 
     @Provides
     @FeatureScope
