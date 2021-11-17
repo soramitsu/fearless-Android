@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.Cus
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.karura.KaruraContributeSubmitter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.karura.KaruraContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeView
 import kotlinx.coroutines.CoroutineScope
 
@@ -24,5 +25,5 @@ class KaruraContributeFactory(
         return KaruraContributeViewState(interactor, payload, resourceManager)
     }
 
-    override fun createView(context: Context, step: Int): CustomContributeView = ReferralContributeView(context)
+    override fun createView(context: Context, step: MoonbeamCrowdloanStep?): CustomContributeView = ReferralContributeView(context)
 }

@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ast
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep
 import kotlinx.coroutines.CoroutineScope
 
 class AstarContributeFactory(
@@ -22,5 +23,5 @@ class AstarContributeFactory(
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): AstarContributeViewState =
         AstarContributeViewState(interactor, payload, resourceManager)
 
-    override fun createView(context: Context, step: Int): CustomContributeView = AstarContributeView(context)
+    override fun createView(context: Context, step: MoonbeamCrowdloanStep?): CustomContributeView = AstarContributeView(context)
 }

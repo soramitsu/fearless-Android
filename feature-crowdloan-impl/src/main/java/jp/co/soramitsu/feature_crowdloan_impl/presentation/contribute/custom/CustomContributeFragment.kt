@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -29,13 +30,16 @@ import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.CONTRIBUTE
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM_SUCCESS
 import jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
 import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeApply
 import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeContainer
 import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeToolbar
 import kotlinx.android.synthetic.main.fragment_custom_contribute.customFlowContainer
 import kotlinx.coroutines.flow.first
-import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
@@ -76,10 +80,10 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
         if (payload.parachainMetadata.isMoonbeam) {
             val title = when (payload.step) {
-                0, 2, 3 -> payload.parachainMetadata.run {
+                TERMS, TERMS_CONFIRM_SUCCESS, CONTRIBUTE -> payload.parachainMetadata.run {
                     "$name ($token)"
                 }
-                1 -> getString(R.string.common_confirm)
+                TERMS_CONFIRM -> getString(R.string.common_confirm)
                 else -> getString(R.string.common_bonus)
             }
 
@@ -125,10 +129,11 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
                         if (payload.parachainMetadata.isMoonbeam) {
                             when (payload.step) {
-                                0 -> customContributeApply.setText(R.string.common_continue)
-                                1 -> customContributeApply.setText(R.string.common_confirm)
-                                2 -> customContributeApply.setText(R.string.common_continue)
-                                3 -> customContributeApply.setText(R.string.common_continue)
+                                TERMS -> customContributeApply.setText(R.string.common_continue)
+                                TERMS_CONFIRM -> customContributeApply.setText(R.string.common_confirm)
+                                TERMS_CONFIRM_SUCCESS -> customContributeApply.setText(R.string.common_continue)
+                                CONTRIBUTE -> customContributeApply.setText(R.string.common_continue)
+                                else -> customContributeApply.setText(R.string.common_apply)
                             }
                         } else {
                             customContributeApply.setText(R.string.common_apply)
@@ -148,7 +153,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
         viewModel.viewStateFlow.observe { viewState ->
             customFlowContainer.removeAllViews()
 
-            val step = (viewState as? MoonbeamContributeViewState)?.customContributePayload?.step ?: 0
+            val step = (viewState as? MoonbeamContributeViewState)?.customContributePayload?.step ?: TERMS
             val newView = contributionManager.createView(viewModel.customFlowType, requireContext(), step)
 
             customFlowContainer.addView(newView)

@@ -36,6 +36,12 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.pa
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.CONTRIBUTE
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.CONTRIBUTE_CONFIRM
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM_SUCCESS
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
@@ -86,7 +92,7 @@ class CustomContributeViewModel(
     val viewStateFlow: Flow<CustomContributeViewState> = _viewStateFlow
 
     val selectedAddressModelFlow = _viewStateFlow
-        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 1 }
+        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == TERMS_CONFIRM }
         .flatMapLatest { accountUseCase.selectedAccountFlow() }
         .map { addressModelGenerator.createAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name) }
         .share()
@@ -103,14 +109,14 @@ class CustomContributeViewModel(
         .share()
 
     val assetModelFlow = _viewStateFlow
-        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 3 }
+        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == CONTRIBUTE }
         .flatMapLatest { assetFlow }
         .map { mapAssetToAssetModel(it, resourceManager) }
         .inBackground()
         .share()
 
     val unlockHintFlow = _viewStateFlow
-        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 3 }
+        .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == CONTRIBUTE }
         .flatMapLatest { assetFlow }
         .map {
             resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.type.displayName)
@@ -165,7 +171,9 @@ class CustomContributeViewModel(
     val feeLive = feeLiveData.switchMap { fee ->
         _viewStateFlow
             .filter {
-                (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step in 1..2
+                (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step in listOf(
+                    TERMS_CONFIRM, TERMS_CONFIRM_SUCCESS
+                )
             }
             .asLiveData()
             .map {
@@ -189,7 +197,7 @@ class CustomContributeViewModel(
 
     val learnCrowdloanModel = _viewStateFlow
         .filter {
-            (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == 3
+            (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == CONTRIBUTE
         }
         .mapLatest {
             payload.parachainMetadata.let {
@@ -225,15 +233,15 @@ class CustomContributeViewModel(
     fun backClicked() {
         if (payload.parachainMetadata.isMoonbeam) {
             val currentStep = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step
-            //0 - starting screen -> go out
-            //2 - signed remark completed, term signed - no need to move to step 1 -> go out
-            //3 - starting step for user with signed terms - no need to go back -> go out
-            val shouldGoOut = currentStep in listOf(0, 2, 3)
+            //TERMS - starting screen -> go out
+            //TERMS_CONFIRM_SUCCESS - signed remark completed, term signed - no need move back -> go out
+            //CONTRIBUTE - starting step for user with signed terms - no need to go back -> go out
+            val shouldGoOut = currentStep in listOf(TERMS, TERMS_CONFIRM_SUCCESS, CONTRIBUTE)
             if (shouldGoOut) {
                 router.back()
             } else {
                 launch {
-                    val nextStep = currentStep?.dec() ?: 0
+                    val nextStep = currentStep?.previous() ?: TERMS
                     handleMoonbeamFlow(nextStep)
                 }
             }
@@ -248,7 +256,7 @@ class CustomContributeViewModel(
 
             if (payload.parachainMetadata.isMoonbeam) {
                 val customContributePayload = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload!!
-                val nextStep = customContributePayload.step.inc()
+                val nextStep = customContributePayload.step.next()
                 handleMoonbeamFlow(nextStep)
             } else {
                 // идём на след стейт
@@ -343,8 +351,8 @@ class CustomContributeViewModel(
         router.openMoonbeamConfirmContribute(confirmContributePayload)
     }
 
-    private suspend fun handleMoonbeamFlow(nextStep: Int = 0) {
-        val isPrivacyAccepted = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.isPrivacyAccepted ?: (nextStep > 0)
+    private suspend fun handleMoonbeamFlow(nextStep: MoonbeamCrowdloanStep = TERMS) {
+        val isPrivacyAccepted = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.isPrivacyAccepted ?: (nextStep.step > 0)
 
         val nextStepPayload = CustomContributePayload(
             payload.paraId,
@@ -355,7 +363,7 @@ class CustomContributeViewModel(
             isPrivacyAccepted
         )
 
-        if (nextStep == 4) {
+        if (nextStep == CONTRIBUTE_CONFIRM) {
             val isCorrectAndOld = (_viewStateFlow.value as? MoonbeamContributeViewState)?.isEtheriumAddressCorrectAndOld()
 
             if (isCorrectAndOld?.first != true) {
@@ -394,7 +402,7 @@ class CustomContributeViewModel(
             return
         }
 
-        if (nextStep == 2) {
+        if (nextStep == TERMS_CONFIRM_SUCCESS) {
             checkBeforeRemarkSignFlow {
                 launch {
                     val remark = (_viewStateFlow.value as? MoonbeamContributeViewState)?.doSystemRemark() ?: false
@@ -410,7 +418,7 @@ class CustomContributeViewModel(
             _viewStateFlow.emit(customContributeManager.createNewState(customFlowType, viewModelScope, nextStepPayload))
         }
 
-        if (nextStep == 1) {
+        if (nextStep == TERMS_CONFIRM) {
             (_viewStateFlow.value as? MoonbeamContributeViewState)?.let { viewState ->
                 feeLoaderMixin.loadFee(
                     coroutineScope = viewModelScope,

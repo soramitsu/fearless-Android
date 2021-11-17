@@ -9,6 +9,11 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.Cus
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeSubmitter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.CONTRIBUTE
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM_SUCCESS
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamStep1Terms
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamStep2Registration
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamStep3Signed
@@ -27,11 +32,11 @@ class MoonbeamContributeFactory(
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): MoonbeamContributeViewState =
         MoonbeamContributeViewState(interactor, payload, resourceManager, scope, accountUseCase)
 
-    override fun createView(context: Context, step: Int): CustomContributeView = when (step) {
-        0 -> MoonbeamStep1Terms(context)
-        1 -> MoonbeamStep2Registration(context)
-        2 -> MoonbeamStep3Signed(context)
-        3 -> MoonbeamStep4Contribute(context)
-        else -> throw error("Not implemented screen for step $step")
+    override fun createView(context: Context, step: MoonbeamCrowdloanStep?): CustomContributeView = when (step) {
+        TERMS -> MoonbeamStep1Terms(context)
+        TERMS_CONFIRM -> MoonbeamStep2Registration(context)
+        TERMS_CONFIRM_SUCCESS -> MoonbeamStep3Signed(context)
+        CONTRIBUTE -> MoonbeamStep4Contribute(context)
+        else -> throw error("Not implemented screen for step ${step?.name}")
     }
 }

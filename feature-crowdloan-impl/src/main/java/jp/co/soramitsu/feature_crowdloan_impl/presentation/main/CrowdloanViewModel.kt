@@ -24,6 +24,8 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.CONTRIBUTE
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
@@ -163,8 +165,8 @@ class CrowdloanViewModel(
                 }
 
                 val startStep = when {
-                    isSigned -> 3
-                    else -> 0
+                    isSigned -> CONTRIBUTE
+                    else -> TERMS
                 }
 
                 val customContributePayload = CustomContributePayload(

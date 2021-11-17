@@ -16,6 +16,8 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.App
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.CONTRIBUTE
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +25,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+
+enum class MoonbeamCrowdloanStep(val step: Int) {
+    TERMS(0),
+    TERMS_CONFIRM(1),
+    TERMS_CONFIRM_SUCCESS(2),
+    CONTRIBUTE(3),
+    CONTRIBUTE_CONFIRM(4);
+
+    fun next() = run {
+        values().find { it.step == this.step + 1 }
+    } ?: TERMS
+
+    fun previous() = run {
+        values().find { it.step == this.step - 1 }
+    } ?: TERMS
+}
 
 class MoonbeamContributeViewState(
     private val interactor: MoonbeamContributeInteractor,
@@ -87,13 +105,13 @@ class MoonbeamContributeViewState(
     )
 
     override val applyActionState = when (customContributePayload.step) {
-        0 -> privacyAcceptedFlow.map { privacyAccepted ->
+        TERMS -> privacyAcceptedFlow.map { privacyAccepted ->
             when {
                 privacyAccepted -> ApplyActionState.Available
                 else -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.common_continue))
             }
         }
-        3 -> enteredEtheriumAddressFlow.combine(enteredAmountFlow) { ethAddress, amount ->
+        CONTRIBUTE -> enteredEtheriumAddressFlow.combine(enteredAmountFlow) { ethAddress, amount ->
             when {
                 amount.isEmpty() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.common_continue))
                 ethAddress.isEmpty() -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.common_continue))

@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.aca
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep
 import kotlinx.coroutines.CoroutineScope
 
 class AcalaContributeFactory(
@@ -22,5 +23,5 @@ class AcalaContributeFactory(
     override fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): AcalaContributeViewState =
         AcalaContributeViewState(interactor, payload, resourceManager)
 
-    override fun createView(context: Context, step: Int): CustomContributeView = AcalaContributeView(context)
+    override fun createView(context: Context, step: MoonbeamCrowdloanStep?): CustomContributeView = AcalaContributeView(context)
 }
