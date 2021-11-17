@@ -78,11 +78,11 @@ class SegmentedButtonView @JvmOverloads constructor(
 
     override fun onSaveInstanceState(): Parcelable {
         val superState =  super.onSaveInstanceState()
-        return MyState(superState, selectedIndex)
+        return ExtendedState(superState, selectedIndex)
     }
 
     override fun onRestoreInstanceState(state: Parcelable?) {
-        val myState = state as? MyState
+        val myState = state as? ExtendedState
         super.onRestoreInstanceState(myState?.superSavedState ?: state)
 
         selectedIndex = myState?.selectedIndex ?: 0
@@ -95,5 +95,5 @@ class SegmentedButtonView @JvmOverloads constructor(
     }
 
     @Parcelize
-    class MyState(val superSavedState: Parcelable?, val selectedIndex: Int) : View.BaseSavedState(superSavedState), Parcelable
+    private class ExtendedState(val superSavedState: Parcelable?, val selectedIndex: Int) : View.BaseSavedState(superSavedState), Parcelable
 }
