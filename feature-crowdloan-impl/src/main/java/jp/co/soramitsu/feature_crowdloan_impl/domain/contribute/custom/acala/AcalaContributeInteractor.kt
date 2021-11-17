@@ -12,6 +12,8 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaContri
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaTransferRequest
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.addRemarkWithEvent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.DirectDOT
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
@@ -30,9 +32,9 @@ class AcalaContributeInteractor(
 
     suspend fun submitOffChain(payload: AcalaBonusPayload, amount: BigDecimal, apiUrl: String, apiKey: String): Result<Unit> =
         when (payload.contributionType) {
-            0 -> performContribute(payload, amount, apiUrl, apiKey) //Direct DOT
-            1 -> performTransfer(payload, amount, apiUrl, apiKey)  //lcDOT
-            else -> Result.failure(Exception("Unsupported contribution type: ${payload.contributionType}"))
+            DirectDOT -> performContribute(payload, amount, apiUrl, apiKey)
+            LcDOT -> performTransfer(payload, amount, apiUrl, apiKey)
+            else -> Result.failure(Exception("Unsupported contribution type: ${payload.contributionType?.name}"))
         }
 
     private suspend fun performContribute(payload: AcalaBonusPayload, amount: BigDecimal, apiUrl: String, apiKey: String): Result<Unit> = runCatching {

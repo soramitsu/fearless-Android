@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_crowdloan_impl.R
@@ -32,6 +33,9 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contribute
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.DirectDOT
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
@@ -96,7 +100,7 @@ class CrowdloanContributeViewModel(
     private val _showNextProgress = MutableLiveData(false)
 
     val privacyAcceptedFlow = MutableStateFlow(payload.parachainMetadata?.isAcala != true)
-    val contributionTypeFlow = MutableStateFlow(0)
+    val contributionTypeFlow = MutableStateFlow(DirectDOT.ordinal)
 
     val applyButtonState = MediatorLiveData<Pair<ApplyActionState, Boolean>>().apply {
         var isPrivacyAccepted = false
@@ -314,7 +318,7 @@ class CrowdloanContributeViewModel(
         launch {
             val contributionAmount = parsedAmountFlow.firstOrNull() ?: return@launch
             val customMinContribution = when {
-                parachainMetadata?.isAcala == true && contributionTypeFlow.firstOrNull() == 1 -> {
+                parachainMetadata?.isAcala == true && contributionTypeFlow.firstOrNull() == LcDOT.ordinal -> {
                     1.toBigDecimal()
                 }
                 else -> null
@@ -346,8 +350,8 @@ class CrowdloanContributeViewModel(
     ) = launch {
         val isAcala = payload.parachainMetadata?.isAcala == true
         val contributionType = when {
-            isAcala -> contributionTypeFlow.firstOrNull() ?: return@launch
-            else -> 0
+            isAcala -> contributionTypeFlow.map { index -> AcalaContributionType.values().find { it.ordinal == index } }.firstOrNull() ?: return@launch
+            else -> DirectDOT
         }
         val bonusPayload = when {
             isAcala -> (router.latestCustomBonus as? AcalaBonusPayload)?.apply { this.contributionType = contributionType }

@@ -4,6 +4,8 @@ import android.os.Parcelable
 import java.math.BigDecimal
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.DirectDOT
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ParachainMetadataParcelModel
 import kotlinx.android.parcel.Parcelize
 
@@ -17,5 +19,5 @@ class ConfirmContributePayload(
     val estimatedRewardDisplay: String?,
     val enteredEtheriumAddress: Pair<String, Boolean>?,
     val signature: String?,
-    var contributionType: Int = 0,
+    var contributionType: AcalaContributionType = DirectDOT,
 ) : Parcelable

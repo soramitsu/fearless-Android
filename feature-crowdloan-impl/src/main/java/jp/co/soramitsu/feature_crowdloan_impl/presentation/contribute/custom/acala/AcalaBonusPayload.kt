@@ -5,13 +5,17 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import kotlinx.android.parcel.Parcelize
 
+enum class AcalaContributionType {
+    DirectDOT, LcDOT
+}
+
 @Parcelize
 class AcalaBonusPayload(
     override val referralCode: String,
     private val rewardRate: BigDecimal?,
     val email: String?,
     val agreeReceiveEmail: Boolean?,
-    var contributionType: Int?,
+    var contributionType: AcalaContributionType?,
     val parachainId: ParaId,
     val baseUrl: String,
     private val bonusRate: BigDecimal?

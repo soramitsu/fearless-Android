@@ -25,6 +25,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additional
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.model.LeasePeriodModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
@@ -149,7 +150,7 @@ class ConfirmContributeViewModel(
     }
 
     private fun maybeGoToNext() = launch {
-        val isAcalaLcDot = payload.metadata?.isAcala == true && payload.contributionType == 1
+        val isAcalaLcDot = payload.metadata?.isAcala == true && payload.contributionType == LcDOT
         val customMinAmount = when {
             isAcalaLcDot -> 1.toBigDecimal()
             else -> null
@@ -193,7 +194,7 @@ class ConfirmContributeViewModel(
                         payload.metadata.isMoonbeam && ethAddress?.second == true -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
-                        payload.metadata.isAcala && payload.contributionType == 1 -> {
+                        payload.metadata.isAcala && payload.contributionType == LcDOT -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
                         else -> {
@@ -202,7 +203,7 @@ class ConfirmContributeViewModel(
                     }
                 }
 
-                val isLcDotAcala = payload.metadata?.isAcala == true && payload.contributionType == 1
+                val isLcDotAcala = payload.metadata?.isAcala == true && payload.contributionType == LcDOT
                 if (isLcDotAcala) {
                     val apiUrl = payload.metadata?.flow?.data?.getString(FLOW_API_URL)!!
                     val recipient = contributionInteractor.getAcalaStatement(apiUrl).proxyAddress
