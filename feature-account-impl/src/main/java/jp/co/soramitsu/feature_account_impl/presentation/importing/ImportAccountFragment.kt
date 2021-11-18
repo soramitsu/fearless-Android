@@ -9,42 +9,20 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RequestCode
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.*
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.ImportSourceView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.JsonImportView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.MnemonicImportView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.SeedImportView
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.NetworkChooserBottomSheetDialog
-import kotlinx.android.synthetic.main.fragment_import_account.advancedBlockView
-import kotlinx.android.synthetic.main.fragment_import_account.nextBtn
-import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeContainer
-import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
-import kotlinx.android.synthetic.main.fragment_import_account.toolbar
+import kotlinx.android.synthetic.main.fragment_import_account.*
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
-
-    companion object {
-        private const val KEY_FORCED_NETWORK_TYPE = "network_type"
-
-        fun getBundle(networkType: Node.NetworkType?): Bundle {
-
-            return Bundle().apply {
-                putSerializable(KEY_FORCED_NETWORK_TYPE, networkType)
-            }
-        }
-    }
 
     private var sourceViews: List<View>? = null
 
@@ -71,14 +49,12 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun inject() {
-        val forcedNetworkType = argument<Node.NetworkType?>(KEY_FORCED_NETWORK_TYPE)
-
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .importAccountComponentFactory()
-            .create(this, forcedNetworkType)
+            .create(this)
             .inject(this)
     }
 
@@ -116,14 +92,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         viewModel.selectedEncryptionTypeLiveData.observe {
             advancedBlockView.setEncryption(it.name)
-        }
-
-        viewModel.networkChooserEvent.observeEvent {
-            NetworkChooserBottomSheetDialog(
-                requireActivity(),
-                it,
-                viewModel.selectedNetworkLiveData::setValue
-            ).show()
         }
 
         viewModel.nextButtonState.observe(nextBtn::setState)

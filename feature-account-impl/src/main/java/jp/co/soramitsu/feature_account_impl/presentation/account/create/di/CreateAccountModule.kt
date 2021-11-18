@@ -8,30 +8,21 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountViewModel
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.NetworkChooser
 
 @Module(includes = [ViewModelModule::class])
 class CreateAccountModule {
-
-    @Provides
-    fun provideNetworkChooserMixin(interactor: AccountInteractor, networkType: Node.NetworkType?): NetworkChooserMixin {
-        return NetworkChooser(interactor, networkType)
-    }
 
     @Provides
     @IntoMap
     @ViewModelKey(CreateAccountViewModel::class)
     fun provideViewModel(
         interactor: AccountInteractor,
-        router: AccountRouter,
-        networkChooserMixin: NetworkChooserMixin
+        router: AccountRouter
     ): ViewModel {
-        return CreateAccountViewModel(interactor, router, networkChooserMixin)
+        return CreateAccountViewModel(interactor, router)
     }
 
     @Provides

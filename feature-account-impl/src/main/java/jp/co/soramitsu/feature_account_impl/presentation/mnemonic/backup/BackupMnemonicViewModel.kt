@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
@@ -20,7 +19,6 @@ class BackupMnemonicViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val accountName: String,
-    private val selectedNetworkType: Node.NetworkType,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
@@ -52,7 +50,6 @@ class BackupMnemonicViewModel(
             CreateExtras(
                 accountName,
                 cryptoTypeModel.cryptoType,
-                selectedNetworkType,
                 derivationPath
             )
         )

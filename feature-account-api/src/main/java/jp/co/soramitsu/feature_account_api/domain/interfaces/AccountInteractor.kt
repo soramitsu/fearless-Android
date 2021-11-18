@@ -1,10 +1,6 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
-import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Network
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.model.*
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
@@ -23,30 +19,26 @@ interface AccountInteractor {
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String,
-        networkType: Node.NetworkType
+        derivationPath: String
     ): Result<Unit>
 
     suspend fun importFromMnemonic(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     ): Result<Unit>
 
     suspend fun importFromSeed(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     ): Result<Unit>
 
     suspend fun importFromJson(
         json: String,
         password: String,
-        networkType: Node.NetworkType,
         name: String
     ): Result<Unit>
 

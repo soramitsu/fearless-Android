@@ -6,14 +6,12 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 
 class WelcomeViewModel(
     shouldShowBack: Boolean,
     private val router: OnboardingRouter,
-    private val appLinksProvider: AppLinksProvider,
-    private val selectedNetworkType: Node.NetworkType?
+    private val appLinksProvider: AppLinksProvider
 ) : BaseViewModel(), Browserable {
 
     val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(shouldShowBack)
@@ -21,11 +19,11 @@ class WelcomeViewModel(
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     fun createAccountClicked() {
-        router.openCreateAccount(selectedNetworkType)
+        router.openCreateAccount()
     }
 
     fun importAccountClicked() {
-        router.openImportAccountScreen(selectedNetworkType)
+        router.openImportAccountScreen()
     }
 
     fun termsClicked() {

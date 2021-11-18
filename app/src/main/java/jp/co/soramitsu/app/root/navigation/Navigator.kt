@@ -10,9 +10,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.utils.postToUiThread
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListFragment
@@ -21,7 +19,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
-import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
@@ -111,8 +108,8 @@ class Navigator :
         navController?.navigate(R.id.action_splash_to_pin, bundle)
     }
 
-    override fun openCreateAccount(selectedNetworkType: Node.NetworkType?) {
-        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment, CreateAccountFragment.getBundle(selectedNetworkType))
+    override fun openCreateAccount() {
+        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
     }
 
     override fun backToWelcomeScreen() {
@@ -160,12 +157,12 @@ class Navigator :
         navController?.navigate(R.id.action_profileFragment_to_aboutFragment)
     }
 
-    override fun openImportAccountScreen(selectedNetworkType: Node.NetworkType?) {
-        navController?.navigate(R.id.importAction, ImportAccountFragment.getBundle(selectedNetworkType))
+    override fun openImportAccountScreen() {
+        navController?.navigate(R.id.importAction)
     }
 
-    override fun openMnemonicScreen(accountName: String, selectedNetworkType: Node.NetworkType) {
-        val bundle = BackupMnemonicFragment.getBundle(accountName, selectedNetworkType)
+    override fun openMnemonicScreen(accountName: String) {
+        val bundle = BackupMnemonicFragment.getBundle(accountName)
         navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
     }
 
@@ -452,10 +449,6 @@ class Navigator :
 
     override fun openAddNode() {
         navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment)
-    }
-
-    override fun createAccountForNetworkType(networkType: Node.NetworkType) {
-        navController?.navigate(R.id.action_nodes_to_onboarding, WelcomeFragment.getBundleWithNetworkType(true, networkType))
     }
 
     override fun openExportMnemonic(accountAddress: String): DelayedNavigation {

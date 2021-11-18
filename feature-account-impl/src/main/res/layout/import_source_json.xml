@@ -18,37 +18,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:message="@string/recover_json_hint" />
 
-    <TextView
-        android:id="@+id/importJsonNoNetworkInfo"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:drawableStart="@drawable/ic_alert_triangle_yellow_24"
-        android:drawablePadding="8dp"
-        android:gravity="center_vertical"
-        android:includeFontPadding="false"
-        android:text="@string/account_import_json_no_network"
-        android:textColor="@color/gray1"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/importJsonContent"
-        tools:visibility="visible" />
-
-    <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/importJsonNetworkInput"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/x2"
-        app:actionIcon="@drawable/ic_pin_white_24"
-        app:label="@string/common_choose_network"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/importJsonNoNetworkInfo"
-        tools:message="Kusama"
-        tools:textIcon="@drawable/ic_ksm_24" />
-
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/importJsonUsernameInput"
         style="@style/Widget.Fearless.Input.Primary.External"
@@ -58,7 +27,7 @@
         android:hint="@string/username_setup_choose_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/importJsonNetworkInput" />
+        app:layout_constraintTop_toBottomOf="@id/importJsonContent" />
 
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/importJsonPasswordInput"

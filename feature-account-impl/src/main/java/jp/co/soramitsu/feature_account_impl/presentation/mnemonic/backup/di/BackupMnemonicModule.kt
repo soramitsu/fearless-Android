@@ -8,7 +8,6 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
@@ -24,14 +23,12 @@ class BackupMnemonicModule {
         interactor: AccountInteractor,
         router: AccountRouter,
         accountName: String,
-        networkType: Node.NetworkType,
         cryptoTypeChooserMixin: CryptoTypeChooserMixin
     ): ViewModel {
         return BackupMnemonicViewModel(
             interactor,
             router,
             accountName,
-            networkType,
             cryptoTypeChooserMixin
         )
     }

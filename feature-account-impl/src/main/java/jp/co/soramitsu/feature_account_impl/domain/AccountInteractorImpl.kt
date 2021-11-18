@@ -1,10 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
-import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Network
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.model.*
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
@@ -42,16 +38,14 @@ class AccountInteractorImpl(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String,
-        networkType: Node.NetworkType
+        derivationPath: String
     ): Result<Unit> {
         return runCatching {
             accountRepository.createAccount(
                 accountName,
                 mnemonic,
                 encryptionType,
-                derivationPath,
-                networkType
+                derivationPath
             )
         }
     }
@@ -60,16 +54,14 @@ class AccountInteractorImpl(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromMnemonic(
                 keyString,
                 username,
                 derivationPath,
-                selectedEncryptionType,
-                networkType
+                selectedEncryptionType
             )
         }
     }
@@ -78,16 +70,14 @@ class AccountInteractorImpl(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromSeed(
                 keyString,
                 username,
                 derivationPath,
-                selectedEncryptionType,
-                networkType
+                selectedEncryptionType
             )
         }
     }
@@ -95,11 +85,10 @@ class AccountInteractorImpl(
     override suspend fun importFromJson(
         json: String,
         password: String,
-        networkType: Node.NetworkType,
         name: String
     ): Result<Unit> {
         return runCatching {
-            accountRepository.importFromJson(json, password, networkType, name)
+            accountRepository.importFromJson(json, password, name)
         }
     }
 

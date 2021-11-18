@@ -4,19 +4,8 @@ import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
 import jp.co.soramitsu.common.resources.LanguagesHolder
-import jp.co.soramitsu.common.utils.deriveSeed32
-import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.common.utils.networkType
-import jp.co.soramitsu.common.utils.nullIfEmpty
-import jp.co.soramitsu.common.utils.toAddress
-import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.JsonFormer
-import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Network
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SecuritySource
-import jp.co.soramitsu.core.model.WithJson
-import jp.co.soramitsu.core.model.chainId
+import jp.co.soramitsu.common.utils.*
+import jp.co.soramitsu.core.model.*
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
@@ -27,28 +16,18 @@ import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_api.domain.model.AuthType
-import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
-import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.feature_account_api.domain.model.*
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
 
@@ -176,15 +155,13 @@ class AccountRepositoryImpl(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String,
-        networkType: Node.NetworkType,
+        derivationPath: String
     ) {
         val account = saveFromMnemonic(
             accountName,
             mnemonic,
             derivationPath,
             encryptionType,
-            networkType,
             isImport = false
         )
 
@@ -224,14 +201,12 @@ class AccountRepositoryImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType,
     ) {
         val account = saveFromMnemonic(
             username,
             keyString,
             derivationPath,
             selectedEncryptionType,
-            networkType,
             isImport = true
         )
 
@@ -243,7 +218,6 @@ class AccountRepositoryImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType,
     ) {
         return withContext(Dispatchers.Default) {
             val seedBytes = Hex.decode(seed.removePrefix("0x"))
@@ -259,6 +233,7 @@ class AccountRepositoryImpl(
                 decodedDerivationPath?.junctions.orEmpty()
             )
 
+            val networkType = Node.NetworkType.KUSAMA//todo hardcoded network type
             val address = keys.publicKey.toAddress(networkType)
 
             val securitySource = SecuritySource.Specified.Seed(seedBytes, keys, derivationPath)
@@ -278,7 +253,6 @@ class AccountRepositoryImpl(
     override suspend fun importFromJson(
         json: String,
         password: String,
-        networkType: Node.NetworkType,
         name: String,
     ) {
         return withContext(Dispatchers.Default) {
@@ -291,6 +265,7 @@ class AccountRepositoryImpl(
 
                 val securitySource = SecuritySource.Specified.Json(seed, keypair)
 
+                val networkType = Node.NetworkType.KUSAMA//todo hardcoded network type
                 val actualAddress = keypair.publicKey.toAddress(networkType)
 
                 val accountLocal = insertAccount(actualAddress, name, publicKeyEncoded, cryptoType, networkType)
@@ -345,10 +320,9 @@ class AccountRepositoryImpl(
             val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
 
             with(importAccountMeta) {
-                val networkType = constructNetworkType(networkTypeIdentifier)
                 val cryptoType = mapEncryptionToCryptoType(encryptionType)
 
-                ImportJsonData(name, networkType, cryptoType)
+                ImportJsonData(name, cryptoType)
             }
         }
     }
@@ -442,7 +416,6 @@ class AccountRepositoryImpl(
         mnemonicWords: String,
         derivationPath: String,
         cryptoType: CryptoType,
-        networkType: Node.NetworkType,
         isImport: Boolean,
     ): Account {
         return withContext(Dispatchers.Default) {
@@ -459,6 +432,7 @@ class AccountRepositoryImpl(
                 decodedDerivationPath?.junctions.orEmpty()
             )
 
+            val networkType = Node.NetworkType.KUSAMA//todo hardcoded network type
             val address = keys.publicKey.toAddress(networkType)
 
             val securitySource: SecuritySource.Specified = if (isImport) {
@@ -473,14 +447,6 @@ class AccountRepositoryImpl(
             accountDataSource.saveSecuritySource(address, securitySource)
 
             mapAccountLocalToAccount(accountLocal)
-        }
-    }
-
-    private fun constructNetworkType(identifier: NetworkTypeIdentifier): Node.NetworkType? {
-        return when (identifier) {
-            is NetworkTypeIdentifier.Genesis -> Node.NetworkType.findByGenesis(identifier.genesis)
-            is NetworkTypeIdentifier.AddressByte -> Node.NetworkType.findByAddressByte(identifier.addressByte)
-            is NetworkTypeIdentifier.Undefined -> null
         }
     }
 
