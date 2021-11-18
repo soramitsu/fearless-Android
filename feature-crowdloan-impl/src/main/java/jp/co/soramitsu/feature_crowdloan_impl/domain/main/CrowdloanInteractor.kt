@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -11,13 +13,11 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
-import java.math.BigInteger
-import kotlin.reflect.KClass
 
 class Crowdloan(
     val parachainMetadata: ParachainMetadata?,
@@ -109,8 +109,8 @@ class CrowdloanInteractor(
         }
     }
 
-    suspend fun checkRemark(apiUrl: String, apiKey: String): Boolean {
+    suspend fun checkRemark(apiUrl: String, apiKey: String): Result<Boolean> = runCatching {
         val address = accountRepository.getSelectedAccount().address
-        return crowdloanRepository.checkRemark(apiUrl, apiKey, address)
+        crowdloanRepository.checkRemark(apiUrl, apiKey, address)
     }
 }

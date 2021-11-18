@@ -36,6 +36,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlin.reflect.KClass
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -55,6 +56,7 @@ class CrowdloanViewModel(
 
     private val _learnMoreLiveData = MutableLiveData<String>()
     val learnMoreLiveData: LiveData<String> = _learnMoreLiveData
+    val blockingProgress = MutableStateFlow(false)
 
     private val assetFlow = assetUseCase.currentAssetFlow()
         .share()
@@ -150,7 +152,7 @@ class CrowdloanViewModel(
     fun crowdloanClicked(paraId: ParaId) {
         launch {
             val crowdloan = crowdloansFlow.first().firstOrNull { it.parachainId == paraId } ?: return@launch
-
+            blockingProgress.value = true
             val payload = ContributePayload(
                 paraId = crowdloan.parachainId,
                 parachainMetadata = crowdloan.parachainMetadata?.let(::mapParachainMetadataToParcel)
@@ -159,11 +161,18 @@ class CrowdloanViewModel(
             if (crowdloan.parachainMetadata?.isMoonbeam == true) {
                 val apiUrl = crowdloan.parachainMetadata.flow?.data?.getString(FLOW_API_URL)
                 val apiKey = crowdloan.parachainMetadata.flow?.data?.getString(FLOW_API_KEY)
-                val isSigned = when {
-                    apiUrl == null || apiKey == null -> false
+                val signedResult = when {
+                    apiUrl == null || apiKey == null -> Result.success(false)
                     else -> interactor.checkRemark(apiUrl, apiKey)
                 }
 
+                if (signedResult.isFailure) {
+                    showError(signedResult.exceptionOrNull()?.message.orEmpty())
+                    blockingProgress.value = false
+                    return@launch
+                }
+
+                val isSigned = signedResult.getOrDefault(false)
                 val startStep = when {
                     isSigned -> CONTRIBUTE
                     else -> TERMS
@@ -181,6 +190,7 @@ class CrowdloanViewModel(
             } else {
                 router.openContribute(payload)
             }
+            blockingProgress.value = false
         }
     }
 

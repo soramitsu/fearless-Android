@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -23,7 +24,6 @@ import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
 import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreText
 import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreWrapper
-import javax.inject.Inject
 
 class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.Handler {
 
@@ -82,10 +82,13 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
         }
 
         observeBrowserEvents(viewModel)
+
+        viewModel.blockingProgress.observe {
+            blockingProgress.setVisible(it)
+        }
     }
 
     override fun crowdloanClicked(paraId: ParaId) {
-        blockingProgress.setVisible(true)
         viewModel.crowdloanClicked(paraId)
     }
 }
