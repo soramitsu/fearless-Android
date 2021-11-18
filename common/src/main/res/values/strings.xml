@@ -347,8 +347,8 @@ Derivation path: %s</string>
     <string name="common_completed_with_count">Completed (%s)</string>
     <string name="crowdloan_empty_message">Information about crowdloans\n will appear here</string>
     <string name="common_left">%s left</string>
-    <string name="common_existential_warning_message">Operation will remove account from blockstore since it will make total balance lower than minimal balance.</string>
-    <string name="common_existential_warning_title">Operation will remove account</string>
+    <string name="common_existential_warning_message">This transaction will result in the account going below the Existential Deposit, which will cause it to be reaped (the account will be wiped from the blockchain\'s state to conserve space). If you choose to continue you will lose any funds that are below the existential deposit amount set by the network. For detailed information please refer to the official network documentation (e.g., the Polkadot Wiki). Fearless Wallet is a fully non-custodial application and has no control or knowledge of any of your actions on the network itself. ONLY CONTINUE IF YOU FULLY AGREE TO AND UNDERSTAND THE IMPLICATIONS.</string>
+    <string name="common_existential_warning_title">WARNING!!!</string>
     <string name="crowdloan_ended_message">Cannot contribute to selected crowdloan since it is already ended.</string>
     <string name="crowdloan_ended_title">Crowdloan is ended</string>
     <string name="crowdloan_cap_reached_amount_message">Cannot contribute chosen amount since resulting raised amount will exceed crowdloan cap. Maximum allowed contribution is %s.</string>
