@@ -12,6 +12,7 @@ import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
+import jp.co.soramitsu.fearless_utils.extensions.requirePrefix
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -39,7 +40,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.getSubQueryPath
 import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
@@ -61,6 +61,7 @@ class WalletRepositoryImpl(
     private val cursorStorage: TransferCursorStorage,
     private val coingeckoApi: CoingeckoApi
 ) : WalletRepository {
+    val cachedSubqueryHistoryUrls = mutableMapOf<String, String?>()
 
     override fun assetsFlow(accountAddress: String): Flow<List<Asset>> {
         return assetCache.observeAssets(accountAddress)
@@ -122,8 +123,7 @@ class WalletRepositoryImpl(
         currentAccount: WalletAccount,
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
-            val path = currentAccount.address.networkType().getSubQueryPath()
-
+            val path = getSubqueryUrl(currentAccount.address.networkType())
             val response = walletOperationsApi.getOperationsHistory(
                 path,
                 SubqueryHistoryRequest(
@@ -145,6 +145,18 @@ class WalletRepositoryImpl(
 
             CursorPage(pageInfo.endCursor, operations)
         }
+    }
+
+    private suspend fun getSubqueryUrl(networkType: Node.NetworkType): String {
+        if (!cachedSubqueryHistoryUrls.containsKey(networkType.readableName)) {
+            val chains = walletOperationsApi.getChains()
+            cachedSubqueryHistoryUrls.clear()
+            cachedSubqueryHistoryUrls += chains.mapNotNull { chain ->
+                chain.name?.let { it to chain.externalApi?.get("history")?.url?.requirePrefix("https://") }
+            }.toMap()
+        }
+        return cachedSubqueryHistoryUrls[networkType.readableName]
+            ?: throw Exception("${networkType.readableName} is not supported for fetching pending rewards via Subquery")
     }
 
     override suspend fun getContacts(account: WalletAccount, query: String): Set<String> {
