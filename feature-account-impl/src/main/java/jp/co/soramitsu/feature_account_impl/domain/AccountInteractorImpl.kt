@@ -152,16 +152,6 @@ class AccountInteractorImpl(
         accountRepository.updateAccountsOrdering(ordering)
     }
 
-    // TODO refactor - now logic relies on the implementation of AccountRepository
-    //  (that after selecting account its info will be updated)
-    private suspend fun maybeUpdateSelectedAccount(newAccount: Account) {
-        val account = accountRepository.getSelectedAccount()
-
-        if (account.address == newAccount.address) {
-            accountRepository.selectAccount(newAccount)
-        }
-    }
-
     override fun nodesFlow(): Flow<List<Node>> {
         return accountRepository.nodesFlow()
     }
@@ -236,10 +226,11 @@ class AccountInteractorImpl(
     }
 
     override suspend fun selectNodeAndAccount(nodeId: Int, accountAddress: String) {
-        val account = accountRepository.getAccount(accountAddress)
-        val node = accountRepository.getNode(nodeId)
-
-        accountRepository.selectAccount(account, newNode = node)
+        //todo do we still need this logic?
+//        val account = accountRepository.getAccount(accountAddress)
+//        val node = accountRepository.getNode(nodeId)
+//
+//        accountRepository.selectAccount(account, newNode = node)
     }
 
     override suspend fun selectNode(nodeId: Int) {

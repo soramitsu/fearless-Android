@@ -21,7 +21,7 @@ interface AccountRepository {
 
     suspend fun getDefaultNode(networkType: Node.NetworkType): Node
 
-    suspend fun selectAccount(account: Account, newNode: Node? = null)
+    suspend fun selectAccount(metaAccountId: Long, newNode: Node? = null)
 
     fun selectedAccountFlow(): Flow<Account>
 

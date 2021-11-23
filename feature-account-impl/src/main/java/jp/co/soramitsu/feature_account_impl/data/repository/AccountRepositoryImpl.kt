@@ -3,20 +3,27 @@ package jp.co.soramitsu.feature_account_impl.data.repository
 import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.*
 import jp.co.soramitsu.core.model.*
 import jp.co.soramitsu.core_db.dao.AccountDao
+import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
+import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
+import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -29,11 +36,12 @@ import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDa
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
-import org.bouncycastle.util.encoders.Hex
 
 class AccountRepositoryImpl(
     private val accountDataSource: AccountDataSource,
     private val accountDao: AccountDao,
+    private val metaAccountDao: MetaAccountDao,
+    private val storeV2: SecretStoreV2,
     private val nodeDao: NodeDao,
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
@@ -75,24 +83,24 @@ class AccountRepositoryImpl(
         return mapNodeLocalToNode(nodeDao.getDefaultNodeFor(networkType.ordinal))
     }
 
-    override suspend fun selectAccount(account: Account, newNode: Node?) {
-        accountDataSource.saveSelectedAccount(account)
+    override suspend fun selectAccount(metaAccountId: Long, newNode: Node?) {
+        metaAccountDao.selectMetaAccount(metaAccountId)
 
-        when {
-            newNode != null -> {
-                require(account.network.type == newNode.networkType) {
-                    "Account network type is not the same as chosen node type"
-                }
-
-                selectNode(newNode)
-            }
-
-            account.network.type != accountDataSource.getSelectedNode()?.networkType -> {
-                val defaultNode = getDefaultNode(account.address.networkType())
-
-                selectNode(defaultNode)
-            }
-        }
+//        when {
+//            newNode != null -> {
+//                require(account.network.type == newNode.networkType) {
+//                    "Account network type is not the same as chosen node type"
+//                }
+//
+//                selectNode(newNode)
+//            }
+//
+//            account.network.type != accountDataSource.getSelectedNode()?.networkType -> {
+//                val defaultNode = getDefaultNode(account.address.networkType())
+//
+//                selectNode(defaultNode)
+//            }
+//        }
     }
 
     // TODO remove
@@ -157,7 +165,7 @@ class AccountRepositoryImpl(
         encryptionType: CryptoType,
         derivationPath: String
     ) {
-        val account = saveFromMnemonic(
+        val metaAccountId = saveFromMnemonic(
             accountName,
             mnemonic,
             derivationPath,
@@ -165,7 +173,7 @@ class AccountRepositoryImpl(
             isImport = false
         )
 
-        selectAccount(account)
+        selectAccount(metaAccountId)
     }
 
     override suspend fun deleteAccount(metaId: Long) {
@@ -202,7 +210,7 @@ class AccountRepositoryImpl(
         derivationPath: String,
         selectedEncryptionType: CryptoType,
     ) {
-        val account = saveFromMnemonic(
+        val metaAccountId = saveFromMnemonic(
             username,
             keyString,
             derivationPath,
@@ -210,7 +218,7 @@ class AccountRepositoryImpl(
             isImport = true
         )
 
-        selectAccount(account)
+        selectAccount(metaAccountId)
     }
 
     override suspend fun importFromSeed(
@@ -220,33 +228,34 @@ class AccountRepositoryImpl(
         selectedEncryptionType: CryptoType,
     ) {
         return withContext(Dispatchers.Default) {
-            val seedBytes = Hex.decode(seed.removePrefix("0x"))
-
-            val derivationPathOrNull = derivationPath.nullIfEmpty()
-            val decodedDerivationPath = derivationPathOrNull?.let {
-                SubstrateJunctionDecoder.decode(it)
-            }
-
-            val keys = SubstrateKeypairFactory.generate(
-                mapCryptoTypeToEncryption(selectedEncryptionType),
-                seedBytes,
-                decodedDerivationPath?.junctions.orEmpty()
-            )
-
-            val networkType = Node.NetworkType.KUSAMA//todo hardcoded network type
-            val address = keys.publicKey.toAddress(networkType)
-
-            val securitySource = SecuritySource.Specified.Seed(seedBytes, keys, derivationPath)
-
-            val publicKeyEncoded = Hex.toHexString(keys.publicKey)
-
-            val accountLocal = insertAccount(address, username, publicKeyEncoded, selectedEncryptionType, networkType)
-
-            accountDataSource.saveSecuritySource(address, securitySource)
-
-            val account = mapAccountLocalToAccount(accountLocal)
-
-            selectAccount(account)
+            //todo change to meta-account
+//            val seedBytes = Hex.decode(seed.removePrefix("0x"))
+//
+//            val derivationPathOrNull = derivationPath.nullIfEmpty()
+//            val decodedDerivationPath = derivationPathOrNull?.let {
+//                SubstrateJunctionDecoder.decode(it)
+//            }
+//
+//            val keys = SubstrateKeypairFactory.generate(
+//                mapCryptoTypeToEncryption(selectedEncryptionType),
+//                seedBytes,
+//                decodedDerivationPath?.junctions.orEmpty()
+//            )
+//
+//            val networkType = Node.NetworkType.KUSAMA//todo hardcoded network type
+//            val address = keys.publicKey.toAddress(networkType)
+//
+//            val securitySource = SecuritySource.Specified.Seed(seedBytes, keys, derivationPath)
+//
+//            val publicKeyEncoded = Hex.toHexString(keys.publicKey)
+//
+//            val accountLocal = insertAccount(address, username, publicKeyEncoded, selectedEncryptionType, networkType)
+//
+//            accountDataSource.saveSecuritySource(address, securitySource)
+//
+//            val account = mapAccountLocalToAccount(accountLocal)
+//
+//            selectAccount(account)
         }
     }
 
@@ -256,26 +265,27 @@ class AccountRepositoryImpl(
         name: String,
     ) {
         return withContext(Dispatchers.Default) {
-            val importData = jsonSeedDecoder.decode(json, password)
-
-            val newAccount = with(importData) {
-                val publicKeyEncoded = Hex.toHexString(keypair.publicKey)
-
-                val cryptoType = mapEncryptionToCryptoType(encryptionType)
-
-                val securitySource = SecuritySource.Specified.Json(seed, keypair)
-
-                val networkType = Node.NetworkType.KUSAMA//todo hardcoded network type
-                val actualAddress = keypair.publicKey.toAddress(networkType)
-
-                val accountLocal = insertAccount(actualAddress, name, publicKeyEncoded, cryptoType, networkType)
-
-                accountDataSource.saveSecuritySource(actualAddress, securitySource)
-
-                mapAccountLocalToAccount(accountLocal)
-            }
-
-            selectAccount(newAccount)
+            //todo change to meta-account
+//            val importData = jsonSeedDecoder.decode(json, password)
+//
+//            val newAccount = with(importData) {
+//                val publicKeyEncoded = Hex.toHexString(keypair.publicKey)
+//
+//                val cryptoType = mapEncryptionToCryptoType(encryptionType)
+//
+//                val securitySource = SecuritySource.Specified.Json(seed, keypair)
+//
+//                val networkType = Node.NetworkType.KUSAMA//todo hardcoded network type
+//                val actualAddress = keypair.publicKey.toAddress(networkType)
+//
+//                val accountLocal = insertAccount(actualAddress, name, publicKeyEncoded, cryptoType, networkType)
+//
+//                accountDataSource.saveSecuritySource(actualAddress, securitySource)
+//
+//                mapAccountLocalToAccount(accountLocal)
+//            }
+//
+//            selectAccount(newAccount)
         }
     }
 
@@ -416,8 +426,8 @@ class AccountRepositoryImpl(
         mnemonicWords: String,
         derivationPath: String,
         cryptoType: CryptoType,
-        isImport: Boolean,
-    ): Account {
+        isImport: Boolean,//todo do we still need this argument?
+    ): Long {
         return withContext(Dispatchers.Default) {
             val derivationPathOrNull = derivationPath.nullIfEmpty()
             val decodedDerivationPath = derivationPathOrNull?.let {
@@ -432,21 +442,40 @@ class AccountRepositoryImpl(
                 decodedDerivationPath?.junctions.orEmpty()
             )
 
-            val networkType = Node.NetworkType.KUSAMA//todo hardcoded network type
-            val address = keys.publicKey.toAddress(networkType)
+            val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
-            val securitySource: SecuritySource.Specified = if (isImport) {
-                SecuritySource.Specified.Mnemonic(derivationResult.seed, keys, derivationResult.mnemonic.words, derivationPathOrNull)
-            } else {
-                SecuritySource.Specified.Create(derivationResult.seed, keys, derivationResult.mnemonic.words, derivationPathOrNull)
-            }
+            val seed = derivationResult.seed
 
-            val publicKeyEncoded = Hex.toHexString(keys.publicKey)
+            val ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+            val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
+            val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
+            val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
+            val position = metaAccountDao.getNextPosition()
 
-            val accountLocal = insertAccount(address, accountName, publicKeyEncoded, cryptoType, networkType)
-            accountDataSource.saveSecuritySource(address, securitySource)
+            val secretsV2 = MetaAccountSecrets(
+                substrateKeyPair = keys,
+                entropy = mnemonic.entropy,
+                seed = seed,
+                substrateDerivationPath = derivationPath,
+                ethereumKeypair = ethereumKeypair,
+                ethereumDerivationPath = ethereumDerivationPath
+            )
 
-            mapAccountLocalToAccount(accountLocal)
+            val metaAccount = MetaAccountLocal(
+                substratePublicKey = keys.publicKey,
+                substrateAccountId = keys.publicKey.substrateAccountId(),
+                substrateCryptoType = cryptoType,
+                ethereumPublicKey = ethereumKeypair.publicKey,
+                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                name = accountName,
+                isSelected = true,
+                position = position
+            )
+
+            val metaAccountId = insertAccount(metaAccount)
+            storeV2.putMetaAccountSecrets(metaAccountId, secretsV2)
+
+            metaAccountId
         }
     }
 
@@ -465,44 +494,10 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapAccountToAccountLocal(account: Account): AccountLocal {
-        val nameLocal = account.name ?: ""
-
-        return with(account) {
-            AccountLocal(
-                address = address,
-                username = nameLocal,
-                cryptoType = cryptoType.ordinal,
-                networkType = network.type,
-                publicKey = accountIdHex,
-                position = position
-            )
-        }
-    }
-
     private suspend fun insertAccount(
-        address: String,
-        accountName: String,
-        publicKeyEncoded: String,
-        cryptoType: CryptoType,
-        networkType: Node.NetworkType,
+        metaAccount: MetaAccountLocal
     ) = try {
-        val cryptoTypeLocal = cryptoType.ordinal
-
-        val positionInGroup = accountDao.getNextPosition()
-
-        val account = AccountLocal(
-            address = address,
-            username = accountName,
-            publicKey = publicKeyEncoded,
-            cryptoType = cryptoTypeLocal,
-            networkType = networkType,
-            position = positionInGroup
-        )
-
-        accountDao.insert(account)
-
-        account
+        metaAccountDao.insertMetaAccount(metaAccount)
     } catch (e: SQLiteConstraintException) {
         throw AccountAlreadyExistsException()
     }

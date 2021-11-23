@@ -7,11 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
-import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
-import jp.co.soramitsu.common.utils.deriveSeed32
-import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
-import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.common.utils.*
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.WithDerivationPath
 import jp.co.soramitsu.core.model.WithMnemonic

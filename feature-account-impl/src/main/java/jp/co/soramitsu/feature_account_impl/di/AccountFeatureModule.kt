@@ -40,7 +40,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.Crypt
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
-import java.util.Random
+import java.util.*
 
 @Module
 class AccountFeatureModule {
@@ -81,6 +81,8 @@ class AccountFeatureModule {
     fun provideAccountRepository(
         accountDataSource: AccountDataSource,
         accountDao: AccountDao,
+        metaAccountDao: MetaAccountDao,
+        storeV2: SecretStoreV2,
         nodeDao: NodeDao,
         jsonSeedDecoder: JsonSeedDecoder,
         jsonSeedEncoder: JsonSeedEncoder,
@@ -90,6 +92,8 @@ class AccountFeatureModule {
         return AccountRepositoryImpl(
             accountDataSource,
             accountDao,
+            metaAccountDao,
+            storeV2,
             nodeDao,
             jsonSeedDecoder,
             jsonSeedEncoder,
