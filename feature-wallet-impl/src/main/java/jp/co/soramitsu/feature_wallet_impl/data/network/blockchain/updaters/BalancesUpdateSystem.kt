@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
@@ -30,13 +31,16 @@ class BalancesUpdateSystem(
                 val socket = chainRegistry.getSocket(chain.id)
 
                 val subscriptionBuilder = StorageSubscriptionBuilder.create(socket)
+                try {
+                    val updaterFlow = updater.listenForUpdates(subscriptionBuilder)
+                        .flowOn(Dispatchers.Default)
 
-                val updaterFlow = updater.listenForUpdates(subscriptionBuilder)
-                    .flowOn(Dispatchers.Default)
+                    val cancellable = socket.subscribeUsing(subscriptionBuilder.build())
 
-                val cancellable = socket.subscribeUsing(subscriptionBuilder.build())
-
-                updaterFlow.onCompletion { cancellable.cancel() }
+                    updaterFlow.onCompletion { cancellable.cancel() }
+                } catch(e: Exception){
+                    flowOf()
+                }
             }.merge()
 
             mergedFlow

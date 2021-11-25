@@ -34,6 +34,7 @@ class RootViewModel(
 
     private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
         // pass
+        hashCode()
     }
 
     private fun updatePhishingAddresses() {
