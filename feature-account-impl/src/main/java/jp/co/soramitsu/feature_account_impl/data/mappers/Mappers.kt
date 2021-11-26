@@ -147,7 +147,7 @@ fun mapMetaAccountLocalToMetaAccount(
         }
     )
 
-    return with(joinedMetaAccountInfo.metaAccount) {
+    val metaAccount = with(joinedMetaAccountInfo.metaAccount) {
         MetaAccount(
             id = id,
             chainAccounts = chainAccounts,
@@ -160,6 +160,7 @@ fun mapMetaAccountLocalToMetaAccount(
             name = name
         )
     }
+    return metaAccount
 }
 
 fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account? {

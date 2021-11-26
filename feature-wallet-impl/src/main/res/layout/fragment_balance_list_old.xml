@@ -19,9 +19,10 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
+            android:text="@string/wallet_assets_total_title"
+            android:textColor="@color/colorAccent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Account name" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/balanceListTotalAmount"
@@ -41,19 +42,11 @@
             android:id="@+id/balanceListAvatar"
             android:layout_width="@dimen/avatar_size"
             android:layout_height="@dimen/avatar_size"
+            android:layout_marginTop="28dp"
             android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_wallet_avatar"
-            app:layout_constraintBottom_toBottomOf="@id/balanceListTotalAmount"
+            android:src="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/balanceListTotalTitle" />
-
-        <jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.AssetManageView
-            android:id="@+id/manageAssets"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="4dp"
-            app:layout_constraintTop_toBottomOf="@id/balanceListTotalAmount" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/balanceListAssets"
@@ -66,7 +59,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/manageAssets"
+            app:layout_constraintTop_toBottomOf="@+id/balanceListTotalAmount"
             tools:itemCount="2"
             tools:listitem="@layout/item_asset" />
 

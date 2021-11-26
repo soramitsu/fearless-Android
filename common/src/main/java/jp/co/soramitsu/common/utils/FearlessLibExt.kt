@@ -14,10 +14,10 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericEvent
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module.Module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module.StorageEntry
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module.Module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module.StorageEntry
 import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
@@ -82,7 +82,7 @@ fun String.toHexAccountId(): String = toAccountId().toHexString()
 fun preBinder() = pojo<String>().nonNull()
 
 val GenericEvent.Instance.index
-    get() = module.index to event.index
+    get() = event.index
 
 fun Module.constant(name: String) = constantOrNull(name) ?: throw NoSuchElementException()
 

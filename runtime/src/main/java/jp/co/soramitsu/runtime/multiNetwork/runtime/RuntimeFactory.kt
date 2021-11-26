@@ -11,9 +11,15 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.DynamicTypeRes
 import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.extentsions.GenericsExtension
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypePreset
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
-import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.substratePreParsePreset
-import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
-import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataSchema
+import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.v14Preset
+import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataReader
+import jp.co.soramitsu.fearless_utils.runtime.metadata.builder.VersionedRuntimeBuilder
+import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.MapTypeV14
+import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.PalletMetadataV14
+import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.RuntimeMetadataSchemaV14
+import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.StorageEntryMetadataV14
+import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.StorageMetadataV14
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -96,7 +102,7 @@ class RuntimeFactory(
     private suspend fun constructOwnTypes(
         chainId: String,
         runtimeVersion: Int,
-        baseTypes: TypePreset = substratePreParsePreset(),
+        baseTypes: TypePreset = v14Preset(),
     ): Pair<TypePreset, String> {
         val ownTypesRaw = runCatching { runtimeFilesCache.getChainTypes(chainId) }
             .getOrElse { throw ChainInfoNotInCacheException }
@@ -114,7 +120,7 @@ class RuntimeFactory(
         val baseTypesRaw = runCatching { runtimeFilesCache.getBaseTypes() }
             .getOrElse { throw BaseTypesNotInCacheException }
 
-        val typePreset = parseBaseDefinitions(fromJson(baseTypesRaw), substratePreParsePreset()).typePreset
+        val typePreset = parseBaseDefinitions(fromJson(baseTypesRaw), v14Preset()).typePreset
 
         return typePreset to baseTypesRaw.md5()
     }

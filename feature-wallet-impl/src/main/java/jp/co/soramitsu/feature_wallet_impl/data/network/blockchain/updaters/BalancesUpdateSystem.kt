@@ -23,7 +23,9 @@ class BalancesUpdateSystem(
 ) : UpdateSystem {
 
     override fun start(): Flow<Updater.SideEffect> {
+//        println("!!! start balances update")
         return accountUpdateScope.invalidationFlow().flatMapLatest {
+//            println("!!! meta acc = ${it.id}, chain size = ${it.chainAccounts.size}")
             val chains = chainRegistry.currentChains.first()
 
             val mergedFlow = chains.map { chain ->

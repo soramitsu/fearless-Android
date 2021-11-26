@@ -40,7 +40,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.Crypt
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
-import java.util.*
 
 @Module
 class AccountFeatureModule {
@@ -66,9 +65,8 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideJsonEncoder(
-        random: Random,
         jsonMapper: Gson,
-    ) = JsonSeedEncoder(jsonMapper, random)
+    ) = JsonSeedEncoder(jsonMapper)
 
     @Provides
     fun provideCryptoChooserMixin(

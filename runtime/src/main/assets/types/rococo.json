@@ -1,6 +1,6 @@
 {
-    "runtime_id": 9001,
-    "types": {
+  "runtime_id": 9002,
+  "types": {
     "Address": "MultiAddress",
     "LookupSource": "MultiAddress",
     "AccountInfo": "AccountInfoWithTripleRefCount",

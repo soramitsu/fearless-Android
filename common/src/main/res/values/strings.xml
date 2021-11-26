@@ -462,4 +462,5 @@ to your account to avoid remaining stake.</string>
     <string name="wallet_extrinsic_details_title">Extrinsic details</string>
     <string name="transaction_details_extrinsic_fee">Fee</string>
     <string name="wallet_transfer_details_title">Transfer details</string>
+    <string name="wallet_manage_assets">Manage assets</string>
 </resources>

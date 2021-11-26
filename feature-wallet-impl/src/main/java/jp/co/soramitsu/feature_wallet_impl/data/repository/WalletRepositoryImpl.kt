@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
@@ -47,7 +48,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,

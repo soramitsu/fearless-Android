@@ -10,7 +10,7 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.runtime.metadata.StorageEntry
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module.StorageEntry
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
@@ -224,8 +224,8 @@ class PayoutRepository(
                 val exposureKey = exposureKeyMapping[validatorAddress]!![era]!!
                 val prefsKey = prefsKeyMapping[validatorAddress]!![era]!!
 
-                val exposure = allResults[exposureKey]?.let { bindExposure(it, runtime) }
-                val prefs = allResults[prefsKey]?.let { bindValidatorPrefs(it, runtime) }
+                val exposure = allResults[exposureKey]?.let { bindExposure(it, runtime, exposureClippedStorage.returnType()) }
+                val prefs = allResults[prefsKey]?.let { bindValidatorPrefs(it, runtime, validatorPrefsStorage.returnType()) }
 
                 if (exposure != null && prefs != null) {
                     ValidatorHistoricalStats.ValidatorEraStats(prefs, exposure)

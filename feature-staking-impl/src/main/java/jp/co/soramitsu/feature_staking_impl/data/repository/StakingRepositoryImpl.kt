@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.Modules
@@ -65,7 +66,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
 
 class StakingRepositoryImpl(
     private val accountStakingDao: AccountStakingDao,
@@ -164,7 +164,10 @@ class StakingRepositoryImpl(
         chainId = chainId,
         prefixKeyBuilder = { it.metadata.staking().storage("ErasStakers").storageKey(it, eraIndex) },
         keyExtractor = { it.accountIdFromMapKey() },
-        binding = { scale, runtime, _ -> bindExposure(scale!!, runtime) }
+        binding = { scale, runtime, _ ->
+            val storageType = runtime.metadata.staking().storage("ErasStakers").returnType()
+            bindExposure(scale!!, runtime, storageType)
+        }
     )
 
     override suspend fun getValidatorPrefs(
@@ -178,7 +181,8 @@ class StakingRepositoryImpl(
                 accountIdsHex.associateBy { accountIdHex -> storage.storageKey(runtime, accountIdHex.fromHex()) }
             },
             binding = { scale, runtime ->
-                scale?.let { bindValidatorPrefs(scale, runtime) }
+                val storageType = runtime.metadata.staking().storage("Validators").returnType()
+                scale?.let { bindValidatorPrefs(scale, runtime, storageType) }
             },
             chainId = chainId
         )
@@ -334,7 +338,8 @@ class StakingRepositoryImpl(
             chainId = chainId,
             keyBuilder = { it.metadata.staking().storage("Validators").storageKey(it, stashId) },
             binder = { scale, runtime ->
-                scale?.let { bindValidatorPrefs(it, runtime) }
+                val storageType = runtime.metadata.staking().storage("Validators").returnType()
+                scale?.let { bindValidatorPrefs(it, runtime, storageType) }
             }
         )
     }

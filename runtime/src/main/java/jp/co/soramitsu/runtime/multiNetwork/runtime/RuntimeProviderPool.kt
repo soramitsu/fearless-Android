@@ -1,9 +1,9 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
+import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
-import java.util.concurrent.ConcurrentHashMap
 
 class RuntimeProviderPool(
     private val runtimeFactory: RuntimeFactory,
@@ -13,7 +13,9 @@ class RuntimeProviderPool(
 
     private val pool = ConcurrentHashMap<String, RuntimeProvider>()
 
-    fun getRuntimeProvider(chainId: String) = pool.getValue(chainId)
+    fun getRuntimeProvider(chainId: String): RuntimeProvider {
+        return pool.getValue(chainId)
+    }
 
     fun setupRuntimeProvider(chain: Chain): RuntimeProvider {
         val provider = pool.getOrPut(chain.id) {

@@ -1,6 +1,11 @@
 package jp.co.soramitsu.core_db.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountPositionUpdate
@@ -71,6 +76,6 @@ interface MetaAccountDao {
     @Query("DELETE FROM meta_accounts WHERE id = :metaId")
     suspend fun delete(metaId: Long)
 
-    @Query("SELECT COALESCE(MAX(position), 0)  + 1 from meta_accounts")
+    @Query("SELECT COALESCE(MAX(position), 0) + 1 from meta_accounts")
     suspend fun getNextPosition(): Int
 }

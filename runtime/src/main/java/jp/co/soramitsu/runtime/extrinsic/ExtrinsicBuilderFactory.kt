@@ -3,6 +3,7 @@ package jp.co.soramitsu.runtime.extrinsic
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
 import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -55,7 +56,7 @@ class ExtrinsicBuilderFactory(
             genesisHash = chain.genesisHash.fromHex(),
             blockHash = mortality.blockHash.fromHex(),
             era = mortality.era,
-            encryptionType = mapCryptoTypeToEncryption(cryptoType),
+            multiChainEncryption = MultiChainEncryption.Substrate(mapCryptoTypeToEncryption(cryptoType)),
             accountIdentifier = bindMultiAddress(chain.multiAddressOf(accountAddress))
         )
     }

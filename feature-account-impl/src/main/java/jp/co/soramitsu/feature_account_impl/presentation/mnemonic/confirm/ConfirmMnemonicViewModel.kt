@@ -107,6 +107,7 @@ class ConfirmMnemonicViewModel(
         viewModelScope.launch {
             val mnemonicString = originMnemonic.joinToString(" ")
 
+
             with(extras) {
                 val result = interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath)
 

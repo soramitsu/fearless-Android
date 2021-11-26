@@ -19,7 +19,7 @@ fun bindExtrinsicStatus(
 ): ExtrinsicStatusEvent {
     val systemModule = runtime.metadata.system()
 
-    return when (dynamicInstance.index.second) {
+    return when (dynamicInstance.index) {
         systemModule.event("ExtrinsicFailed").index -> ExtrinsicStatusEvent.FAILURE
         systemModule.event("ExtrinsicSuccess").index -> ExtrinsicStatusEvent.SUCCESS
         else -> incompatible()

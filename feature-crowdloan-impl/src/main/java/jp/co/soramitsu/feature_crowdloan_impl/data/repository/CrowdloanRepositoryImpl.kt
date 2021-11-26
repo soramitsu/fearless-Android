@@ -109,7 +109,7 @@ class CrowdloanRepositoryImpl(
         trieIndex: BigInteger
     ): Contribution? {
         return remoteStorage.queryChildState(
-            storageKeyBuilder = { it.typeRegistry["AccountId"]!!.bytes(it, accountId).toHexString(withPrefix = true) },
+            storageKeyBuilder = { it.typeRegistry["0"]!!.bytes(it, accountId).toHexString(withPrefix = true) },
             childKeyBuilder = {
                 val suffix = (CONTRIBUTIONS_CHILD_SUFFIX.encodeToByteArray() + u32.toByteArray(it, trieIndex))
                     .blake2b256()

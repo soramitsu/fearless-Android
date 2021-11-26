@@ -26,6 +26,7 @@ import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
+import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
@@ -39,6 +40,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -150,7 +152,7 @@ class AccountRepositoryImpl(
     }
 
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> {
-        return accountDataSource.selectedMetaAccountFlow()
+        return accountDataSource.selectedMetaAccountFlow() //!!!
     }
 
     override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
@@ -309,7 +311,7 @@ class AccountRepositoryImpl(
             val metaAccount = MetaAccountLocal(
                 substratePublicKey = keys.publicKey,
                 substrateAccountId = keys.publicKey.substrateAccountId(),
-                substrateCryptoType = mapEncryptionToCryptoType(importData.encryptionType),
+                substrateCryptoType = mapEncryptionToCryptoType(importData.multiChainEncryption.encryptionType),
                 name = name,
                 isSelected = true,
                 position = position,
@@ -365,7 +367,7 @@ class AccountRepositoryImpl(
             val importAccountMeta = jsonSeedDecoder.extractImportMetaData(json)
 
             with(importAccountMeta) {
-                val cryptoType = mapEncryptionToCryptoType(encryptionType)
+                val cryptoType = mapEncryptionToCryptoType(encryption.encryptionType)
 
                 ImportJsonData(name, cryptoType)
             }
@@ -391,9 +393,9 @@ class AccountRepositoryImpl(
                 seed = seed,
                 password = password,
                 name = account.name.orEmpty(),
-                encryptionType = cryptoType,
+                multiChainEncryption = MultiChainEncryption.Substrate(cryptoType),
                 genesisHash = runtimeConfiguration.genesisHash,
-                addressByte = runtimeConfiguration.addressByte
+                address = securitySource.keypair.publicKey.toAddress(runtimeConfiguration.addressByte)
             )
         }
     }

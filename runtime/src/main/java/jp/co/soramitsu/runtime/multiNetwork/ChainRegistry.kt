@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -80,7 +81,9 @@ class ChainRegistry(
 
     fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
 
-    fun getRuntimeProvider(chainId: String) = runtimeProviderPool.getRuntimeProvider(chainId)
+    fun getRuntimeProvider(chainId: String): RuntimeProvider {
+        return runtimeProviderPool.getRuntimeProvider(chainId)
+    }
 
     suspend fun getChain(chainId: String) = chainsById.first().getValue(chainId)
 }
@@ -91,7 +94,9 @@ suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: Int): Pair<Ch
     return chain to chain.assetsById.getValue(assetId)
 }
 
-suspend fun ChainRegistry.getRuntime(chainId: String) = getRuntimeProvider(chainId).get()
+suspend fun ChainRegistry.getRuntime(chainId: String): RuntimeSnapshot {
+    return getRuntimeProvider(chainId).get()
+}
 
 suspend fun ChainRegistry.getSocket(chainId: String) = getConnection(chainId).socketService
 
