@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import jp.co.soramitsu.common.utils.md5
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser.parseBaseDefinitions
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser.parseNetworkVersioning
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
@@ -11,9 +12,12 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.DynamicTypeRes
 import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.extentsions.GenericsExtension
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypePreset
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
+import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.v13Preset
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.v14Preset
+import jp.co.soramitsu.fearless_utils.runtime.definitions.v14.TypesParserV14
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataReader
 import jp.co.soramitsu.fearless_utils.runtime.metadata.builder.VersionedRuntimeBuilder
+import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.RuntimeMetadataSchemaV14
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -50,7 +54,6 @@ class RuntimeFactory(
         typesUsage: TypesUsage,
     ): ConstructedRuntime? = withContext(dispatcher) {
         val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@withContext null
-
         val (types, baseHash, ownHash) = when (typesUsage) {
             TypesUsage.BASE -> {
                 val (types, baseHash) = constructBaseTypes()
@@ -65,16 +68,41 @@ class RuntimeFactory(
             }
         }
 
-        val typeRegistry = TypeRegistry(types, DynamicTypeResolver(DynamicTypeResolver.DEFAULT_COMPOUND_EXTENSIONS + GenericsExtension))
-
-        val runtimeMetadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
+//        val typeRegistry = TypeRegistry(types, DynamicTypeResolver(DynamicTypeResolver.DEFAULT_COMPOUND_EXTENSIONS + GenericsExtension))
+//
+        val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
             .getOrElse { throw ChainInfoNotInCacheException }
+//
+//        val runtimeMetadata = VersionedRuntimeBuilder.buildMetadata(RuntimeMetadataReader.read(runtimeMetadataRaw), typeRegistry)
 
-        val runtimeMetadata = VersionedRuntimeBuilder.buildMetadata(RuntimeMetadataReader.read(runtimeMetadataRaw), typeRegistry)
+        val runtimeMetadataRaw = RuntimeMetadataReader.read(metadataRaw)
+        val typeRegistry = if (runtimeMetadataRaw.metadataVersion < 14) {
+            TypeRegistry(types, DynamicTypeResolver(DynamicTypeResolver.DEFAULT_COMPOUND_EXTENSIONS + GenericsExtension))
+        } else {
+            val parseResult = TypesParserV14.parse(//own
+                runtimeMetadataRaw.metadata[RuntimeMetadataSchemaV14.lookup],
+                v14Preset()
+            )
+            val ownTypesRaw = runCatching { runtimeFilesCache.getChainTypes(chainId) }
+                .getOrElse { throw ChainInfoNotInCacheException }
+
+            val ownTypesTree = fromJson(ownTypesRaw)
+            val networkTypePreset = parseNetworkVersioning(
+                ownTypesTree,
+                types,
+                runtimeVersion
+            ).typePreset
+            TypeRegistry(
+                networkTypePreset,
+                DynamicTypeResolver.defaultCompoundResolver()
+            )
+        }
+
+        val runtimeMetadata = VersionedRuntimeBuilder.buildMetadata(runtimeMetadataRaw, typeRegistry)
 
         ConstructedRuntime(
             runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata),
-            metadataHash = runtimeMetadataRaw.md5(),
+            metadataHash = metadataRaw.md5(),
             baseTypesHash = baseHash,
             ownTypesHash = ownHash,
             runtimeVersion = runtimeVersion,
@@ -113,7 +141,7 @@ class RuntimeFactory(
         val baseTypesRaw = runCatching { runtimeFilesCache.getBaseTypes() }
             .getOrElse { throw BaseTypesNotInCacheException }
 
-        val typePreset = parseBaseDefinitions(fromJson(baseTypesRaw), v14Preset()).typePreset
+        val typePreset = parseBaseDefinitions(fromJson(baseTypesRaw), v13Preset()).typePreset
 
         return typePreset to baseTypesRaw.md5()
     }
