@@ -6,7 +6,6 @@ import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser.parseBaseDefinitions
-import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser.parseNetworkVersioning
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
 import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.DynamicTypeResolver
 import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.extentsions.GenericsExtension
@@ -79,21 +78,8 @@ class RuntimeFactory(
         val typeRegistry = if (runtimeMetadataRaw.metadataVersion < 14) {
             TypeRegistry(types, DynamicTypeResolver(DynamicTypeResolver.DEFAULT_COMPOUND_EXTENSIONS + GenericsExtension))
         } else {
-            val parseResult = TypesParserV14.parse(//own
-                runtimeMetadataRaw.metadata[RuntimeMetadataSchemaV14.lookup],
-                v14Preset()
-            )
-            val ownTypesRaw = runCatching { runtimeFilesCache.getChainTypes(chainId) }
-                .getOrElse { throw ChainInfoNotInCacheException }
-
-            val ownTypesTree = fromJson(ownTypesRaw)
-            val networkTypePreset = parseNetworkVersioning(
-                ownTypesTree,
-                types,
-                runtimeVersion
-            ).typePreset
             TypeRegistry(
-                networkTypePreset,
+                types,
                 DynamicTypeResolver.defaultCompoundResolver()
             )
         }
@@ -128,13 +114,22 @@ class RuntimeFactory(
         val ownTypesRaw = runCatching { runtimeFilesCache.getChainTypes(chainId) }
             .getOrElse { throw ChainInfoNotInCacheException }
 
-        val ownTypesTree = fromJson(ownTypesRaw)
+        val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
+            .getOrElse { throw ChainInfoNotInCacheException }
+        val reader = RuntimeMetadataReader.read(metadataRaw)
 
-        val withoutVersioning = parseBaseDefinitions(ownTypesTree, baseTypes).typePreset
+        val parseResult = TypesParserV14.parse(
+            reader.metadata[RuntimeMetadataSchemaV14.lookup],
+            v14Preset()
+        )
 
-        val typePreset = parseNetworkVersioning(ownTypesTree, withoutVersioning, runtimeVersion).typePreset
+        val networkTypePreset = TypeDefinitionParser.parseNetworkVersioning(
+            fromJson(ownTypesRaw),
+            parseResult.typePreset,
+            runtimeVersion
+        ).typePreset
 
-        return typePreset to ownTypesRaw.md5()
+        return networkTypePreset to ownTypesRaw.md5()
     }
 
     private suspend fun constructBaseTypes(): Pair<TypePreset, String> {
