@@ -14,12 +14,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.v14Preset
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataReader
 import jp.co.soramitsu.fearless_utils.runtime.metadata.builder.VersionedRuntimeBuilder
-import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.MapTypeV14
-import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.PalletMetadataV14
-import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.RuntimeMetadataSchemaV14
-import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.StorageEntryMetadataV14
-import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.StorageMetadataV14
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -76,8 +70,7 @@ class RuntimeFactory(
         val runtimeMetadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
             .getOrElse { throw ChainInfoNotInCacheException }
 
-        val runtimeMetadataStruct = RuntimeMetadataSchema.read(runtimeMetadataRaw)
-        val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
+        val runtimeMetadata = VersionedRuntimeBuilder.buildMetadata(RuntimeMetadataReader.read(runtimeMetadataRaw), typeRegistry)
 
         ConstructedRuntime(
             runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata),
