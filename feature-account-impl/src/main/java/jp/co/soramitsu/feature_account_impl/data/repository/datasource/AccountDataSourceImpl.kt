@@ -152,7 +152,7 @@ class AccountDataSourceImpl(
 
     override suspend fun getPreferredCryptoType(): CryptoType {
         return if (anyAccountSelected()) {
-            getSelectedAccount().cryptoType
+            getSelectedMetaAccount().substrateCryptoType//todo add etherium support
         } else {
             DEFAULT_CRYPTO_TYPE
         }
