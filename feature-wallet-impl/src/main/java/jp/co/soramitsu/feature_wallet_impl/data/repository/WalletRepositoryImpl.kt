@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
@@ -48,6 +47,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -94,13 +94,14 @@ class WalletRepositoryImpl(
 
     override suspend fun syncAssetsRates() {
         // TODO FLW-1147 - coingecko integration
-        val firstChain = chainRegistry.currentChains.first().first()
-        val asset = firstChain.utilityAsset
+        val chains = chainRegistry.currentChains.first()
+        chains.forEach { chain ->
+            val asset = chain.utilityAsset
+            asset.priceId?.let {
+                val priceStats = getAssetPriceCoingecko(it)
 
-        asset.priceId?.let {
-            val priceStats = getAssetPriceCoingecko(it)
-
-            updateAssetRates(asset.symbol, priceStats)
+                updateAssetRates(asset.symbol, priceStats)
+            }
         }
     }
 
