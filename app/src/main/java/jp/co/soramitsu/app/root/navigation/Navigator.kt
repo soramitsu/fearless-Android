@@ -66,6 +66,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelize
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRecipientFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment
@@ -340,8 +341,10 @@ class Navigator :
         navController?.navigate(R.id.open_validator_details, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
-    override fun openChooseRecipient() {
-        navController?.navigate(R.id.action_open_send)
+    override fun openChooseRecipient(assetPayload: AssetPayload) {
+        val bundle = ChooseRecipientFragment.getBundle(assetPayload)
+
+        navController?.navigate(R.id.action_open_send, bundle)
     }
 
     override fun openFilter() {

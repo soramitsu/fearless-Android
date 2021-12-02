@@ -36,6 +36,7 @@ class ChooseRecipientModule {
         resourceManager: ResourceManager,
         addressIconGenerator: AddressIconGenerator,
         qrBitmapDecoder: QrBitmapDecoder,
+        assetPayload: AssetPayload,
         phishingWarning: PhishingWarningMixin
     ): ViewModel {
         return ChooseRecipientViewModel(
@@ -44,7 +45,7 @@ class ChooseRecipientModule {
             resourceManager,
             addressIconGenerator,
             qrBitmapDecoder,
-            AssetPayload.stub(), // TODO pass payload from previous screen
+            assetPayload,
             phishingWarning
         )
     }

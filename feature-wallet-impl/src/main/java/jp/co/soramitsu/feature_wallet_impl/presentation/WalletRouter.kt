@@ -8,7 +8,7 @@ interface WalletRouter {
 
     fun back()
 
-    fun openChooseRecipient()
+    fun openChooseRecipient(assetPayload: AssetPayload)
 
     fun openFilter()
 

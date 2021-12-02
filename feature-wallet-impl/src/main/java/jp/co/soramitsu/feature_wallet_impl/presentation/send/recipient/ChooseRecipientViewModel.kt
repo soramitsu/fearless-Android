@@ -148,7 +148,7 @@ class ChooseRecipientViewModel(
     }
 
     private suspend fun formSearchResults(address: String): List<Any> = withContext(Dispatchers.Default) {
-        val isValidAddress = interactor.validateSendAddress(address, payload.chainId)
+        val isValidAddress = interactor.validateSendAddress(payload.chainId, address)
         val searchResult = interactor.getRecipients(address, payload.chainId)
 
         val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)

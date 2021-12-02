@@ -75,7 +75,7 @@ class BalanceDetailViewModel(
     }
 
     fun sendClicked() {
-        router.openChooseRecipient()
+        router.openChooseRecipient(assetPayload)
     }
 
     fun receiveClicked() {
