@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -68,12 +69,8 @@ class BalanceListViewModel(
         return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
     }
 
-    private fun balanceFlow(): Flow<BalanceModel> {
-        return interactor.assetsFlow()
-            .map {
-                val assetModels = it.map(::mapAssetToAssetModel)
-
-                BalanceModel(assetModels)
-            }
-    }
+    private fun balanceFlow(): Flow<BalanceModel> =
+        interactor.assetsFlow()
+            .mapList(::mapAssetToAssetModel)
+            .map(::BalanceModel)
 }

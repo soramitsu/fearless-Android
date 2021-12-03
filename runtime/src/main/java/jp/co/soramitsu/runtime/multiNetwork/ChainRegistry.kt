@@ -59,7 +59,6 @@ class ChainRegistry(
                 runtimeProviderPool.setupRuntimeProvider(chain)
                 runtimeSyncService.registerChain(chain, connection)
                 runtimeSubscriptionPool.setupRuntimeSubscription(chain, connection)
-                runtimeProviderPool.setupRuntimeProvider(chain)
             }
 
             all
