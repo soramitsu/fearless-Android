@@ -23,9 +23,7 @@ class BalancesUpdateSystem(
 ) : UpdateSystem {
 
     override fun start(): Flow<Updater.SideEffect> {
-//        println("!!! start balances update")
         return accountUpdateScope.invalidationFlow().flatMapLatest {
-//            println("!!! meta acc = ${it.id}, chain size = ${it.chainAccounts.size}")
             val chains = chainRegistry.currentChains.first()
 
             val mergedFlow = chains.map { chain ->
@@ -40,8 +38,8 @@ class BalancesUpdateSystem(
                     val cancellable = socket.subscribeUsing(subscriptionBuilder.build())
 
                     updaterFlow.onCompletion { cancellable.cancel() }
-                } catch(e: Exception){
-                    flowOf()
+                } catch (e: Exception) {
+                    flowOf()//todo think about it
                 }
             }.merge()
 
