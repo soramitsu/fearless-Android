@@ -39,6 +39,8 @@ data class Chain(
         enum class StakingType {
             UNSUPPORTED, RELAYCHAIN
         }
+
+        val chainToSymbol = chainId to symbol
     }
 
     data class Node(

@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset.Companion.createEmpty
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -44,6 +45,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
@@ -68,9 +70,18 @@ class WalletRepositoryImpl(
             chainRegistry.chainsById,
             assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
-            assetsLocal.map { asset ->
+            val updatedAssets = assetsLocal.map { asset ->
                 mapAssetToLocalAsset(chainsById, asset)
             }
+
+            val assetsByChain: List<Asset> = chainRegistry.currentChains.firstOrNull().orEmpty()
+                .flatMap { it.assets.map(::createEmpty) }
+
+            val notUpdatedAssets = assetsByChain.filter {
+                it.token.configuration.chainToSymbol !in updatedAssets.map { it.token.configuration.chainToSymbol }
+            }
+
+            (updatedAssets + notUpdatedAssets).sortedWith(compareBy ({ it.token.configuration.symbol }, {it.token.configuration.chainId}))
         }
     }
 

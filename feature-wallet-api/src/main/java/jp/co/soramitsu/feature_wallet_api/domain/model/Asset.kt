@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigInteger
 
 class Asset(
@@ -12,6 +13,19 @@ class Asset(
     val redeemableInPlanks: BigInteger,
     val unbondingInPlanks: BigInteger
 ) {
+    companion object {
+        fun createEmpty(chainAsset: Chain.Asset) = Asset(
+            Token(configuration = chainAsset, dollarRate = null, recentRateChange = null),
+            freeInPlanks = BigInteger.ZERO,
+            reservedInPlanks = BigInteger.ZERO,
+            miscFrozenInPlanks = BigInteger.ZERO,
+            feeFrozenInPlanks = BigInteger.ZERO,
+            bondedInPlanks = BigInteger.ZERO,
+            redeemableInPlanks = BigInteger.ZERO,
+            unbondingInPlanks = BigInteger.ZERO
+        )
+    }
+
     val free = token.amountFromPlanks(freeInPlanks)
     val reserved = token.amountFromPlanks(reservedInPlanks)
     val miscFrozen = token.amountFromPlanks(miscFrozenInPlanks)
