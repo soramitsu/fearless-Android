@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral
 
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.EmailValidator
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_FEARLESS_REFERRAL
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TERMS_URL
@@ -80,7 +81,7 @@ abstract class ReferralContributeViewState(
         isAcala -> enteredEmailFlow.combine(emailAgreedFlow) { input, agreed ->
             when {
                 !agreed -> true
-                input.length > 2 && agreed -> true
+                EmailValidator.isValid(input) && agreed -> true
                 else -> false
             }
         }
