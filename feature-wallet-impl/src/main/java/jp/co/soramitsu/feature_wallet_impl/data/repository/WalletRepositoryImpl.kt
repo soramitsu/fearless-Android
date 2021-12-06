@@ -81,7 +81,7 @@ class WalletRepositoryImpl(
                 it.token.configuration.chainToSymbol !in updatedAssets.map { it.token.configuration.chainToSymbol }
             }
 
-            (updatedAssets + notUpdatedAssets).sortedWith(compareBy ({ it.token.configuration.symbol }, {it.token.configuration.chainId}))
+            (updatedAssets + notUpdatedAssets).sortedWith(compareBy({ it.token.configuration.symbol }, { it.token.configuration.chainId }))
         }
     }
 

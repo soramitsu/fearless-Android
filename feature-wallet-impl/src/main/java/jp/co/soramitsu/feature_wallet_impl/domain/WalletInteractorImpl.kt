@@ -203,11 +203,21 @@ class WalletInteractorImpl(
         }
     }
 
-    // TODO wallet receive
-    override suspend fun getQrCodeSharingString(): String {
-        val account = accountRepository.getSelectedAccount()
+    override suspend fun getQrCodeSharingString(chainId: ChainId): String {
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainRegistry.getChain(chainId)
 
-        return accountRepository.createQrAccountContent(account)
+        val address = metaAccount.addressIn(chain)
+        val pubKey = metaAccount.accountIdIn(chain)
+        val name = metaAccount.name
+
+        val payload = if (address != null && pubKey != null) {
+            QrSharing.Payload(address, pubKey, name)
+        } else {
+            throw IllegalArgumentException("There is no address for Etherium")
+        }
+
+        return accountRepository.createQrAccountContent(payload)
     }
 
     // TODO just create file, screens can retrieve asset with getCurrentAsset()

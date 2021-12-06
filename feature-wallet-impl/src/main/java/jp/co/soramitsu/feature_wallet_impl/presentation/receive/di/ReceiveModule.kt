@@ -29,6 +29,7 @@ class ReceiveModule {
         addressIconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
         externalAccountActions: ExternalAccountActions.Presentation,
+        assetPayload: AssetPayload,
         router: WalletRouter,
 
     ): ViewModel {
@@ -38,7 +39,7 @@ class ReceiveModule {
             addressIconGenerator,
             resourceManager,
             externalAccountActions,
-            AssetPayload.stub(), // TODO pass payload from previous screen
+            assetPayload,
             router
         )
     }

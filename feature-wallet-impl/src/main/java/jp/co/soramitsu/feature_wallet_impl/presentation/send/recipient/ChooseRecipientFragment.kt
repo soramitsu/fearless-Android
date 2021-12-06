@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
 import com.google.zxing.integration.android.IntentIntegrator
 import jp.co.soramitsu.common.base.BaseFragment
@@ -27,7 +28,7 @@ import kotlinx.coroutines.launch
 private const val INDEX_WELCOME = 0
 private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
-private const val KEY_PAYLOAD = "KEY_PAYLOAD"
+private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.RecipientItemHandler {
 
@@ -35,11 +36,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
         private const val PICK_IMAGE_REQUEST = 101
         private const val QR_CODE_IMAGE_TYPE = "image/*"
 
-        fun getBundle(assetPayload: AssetPayload): Bundle {
-            return Bundle().apply {
-                putParcelable(KEY_PAYLOAD, assetPayload)
-            }
-        }
+        fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     private lateinit var adapter: ChooseRecipientAdapter
@@ -70,7 +67,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
     }
 
     override fun inject() {
-        val payload = arguments!![KEY_PAYLOAD] as AssetPayload
+        val payload = arguments!![KEY_ASSET_PAYLOAD] as AssetPayload
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),

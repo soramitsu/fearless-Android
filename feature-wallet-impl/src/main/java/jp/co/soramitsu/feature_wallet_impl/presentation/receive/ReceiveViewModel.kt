@@ -40,7 +40,7 @@ class ReceiveViewModel(
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     val qrBitmapLiveData = liveData {
-        val qrString = interactor.getQrCodeSharingString()
+        val qrString = interactor.getQrCodeSharingString(assetPayload.chainId)
 
         emit(qrCodeGenerator.generateQrBitmap(qrString))
     }

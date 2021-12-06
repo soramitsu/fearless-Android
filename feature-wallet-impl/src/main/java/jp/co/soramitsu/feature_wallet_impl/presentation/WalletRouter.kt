@@ -30,5 +30,5 @@ interface WalletRouter {
 
     fun openChangeAccountFromWallet()
 
-    fun openReceive()
+    fun openReceive(assetPayload: AssetPayload)
 }
