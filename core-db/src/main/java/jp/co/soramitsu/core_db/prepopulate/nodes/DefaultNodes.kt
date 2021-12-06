@@ -57,13 +57,6 @@ val LATEST_DEFAULT_NODES = listOf(
         "wss://rococo-community-rpc.laminar.codes/ws",
         Node.NetworkType.ROCOCO.ordinal,
         true
-    ),
-
-    NodeLocal(
-        "Polkatrain Parity Node",
-        "wss://wss.polkatrain.moonbeam.network",
-        Node.NetworkType.POLKATRAIN.ordinal,
-        true
     )
 )
 

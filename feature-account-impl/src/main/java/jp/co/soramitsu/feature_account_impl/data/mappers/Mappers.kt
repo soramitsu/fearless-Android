@@ -19,7 +19,6 @@ fun mapNetworkTypeToNetworkModel(networkType: NetworkType): NetworkModel {
         NetworkType.POLKADOT -> NetworkModel.NetworkTypeUI.Polkadot
         NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
         NetworkType.ROCOCO -> NetworkModel.NetworkTypeUI.Rococo
-        NetworkType.POLKATRAIN -> NetworkModel.NetworkTypeUI.Polkatrain
     }
 
     return NetworkModel(networkType.readableName, type)

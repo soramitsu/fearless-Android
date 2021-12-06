@@ -31,7 +31,6 @@ class Token(
                     Node.NetworkType.POLKADOT -> DOT
                     Node.NetworkType.WESTEND -> WND
                     Node.NetworkType.ROCOCO -> ROC
-                    Node.NetworkType.POLKATRAIN -> DOT
                 }
             }
         }
