@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
@@ -73,7 +73,7 @@ class CrowdloanInteractor(
 
             val metaAccount = accountRepository.getSelectedMetaAccount()
 
-            val accountId = metaAccount.accountIdIn(chain)!! // TODO ethereum
+            val accountId = metaAccount.accountId(chain)!! // TODO ethereum
 
             val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis(chainId)
             val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod(chainId)

@@ -38,7 +38,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -452,9 +451,7 @@ class AccountRepositoryImpl(
         return nodeDao.deleteNode(nodeId)
     }
 
-    override fun createQrAccountContent(account: Account): String {
-        val payload = QrSharing.Payload(account.address, account.accountIdHex.fromHex(), account.name)
-
+    override fun createQrAccountContent(payload: QrSharing.Payload): String {
         return QrSharing.encode(payload)
     }
 

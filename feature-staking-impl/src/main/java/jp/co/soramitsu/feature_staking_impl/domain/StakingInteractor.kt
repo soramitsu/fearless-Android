@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculator
 import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculatorFactory
@@ -218,7 +218,7 @@ class StakingInteractor(
         assetWithChain: SingleAssetSharedState.AssetWithChain
     ) = flow {
         val (chain, chainAsset) = assetWithChain
-        val accountId = metaAccount.accountIdIn(chain)!! // TODO may be null for ethereum chains
+        val accountId = metaAccount.accountId(chain)!! // TODO may be null for ethereum chains
 
         emitAll(stakingRepository.stakingStateFlow(chain, chainAsset, accountId))
     }

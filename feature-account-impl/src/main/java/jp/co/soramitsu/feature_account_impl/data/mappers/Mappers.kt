@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_account_api.data.mappers.stubNetwork
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.addressIn
+import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
@@ -164,7 +164,7 @@ fun mapMetaAccountLocalToMetaAccount(
 }
 
 fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account? {
-    return metaAccount.addressIn(chain)?.let { address ->
+    return metaAccount.address(chain)?.let { address ->
 
         val accountId = chain.hexAccountIdOf(address)
 

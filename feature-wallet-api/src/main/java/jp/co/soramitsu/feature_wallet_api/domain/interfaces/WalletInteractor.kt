@@ -62,7 +62,7 @@ interface WalletInteractor {
 
     suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
 
-    suspend fun getQrCodeSharingString(): String
+    suspend fun getQrCodeSharingString(chainId: ChainId): String
 
     suspend fun createFileInTempStorageAndRetrieveAsset(
         chainId: ChainId,

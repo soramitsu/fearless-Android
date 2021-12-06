@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import jp.co.soramitsu.core.model.*
+import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.*
 import kotlinx.coroutines.flow.Flow
@@ -125,7 +126,7 @@ interface AccountRepository {
 
     suspend fun deleteNode(nodeId: Int)
 
-    fun createQrAccountContent(account: Account): String
+    fun createQrAccountContent(payload: QrSharing.Payload): String
 
     suspend fun generateRestoreJson(account: Account, password: String): String
 

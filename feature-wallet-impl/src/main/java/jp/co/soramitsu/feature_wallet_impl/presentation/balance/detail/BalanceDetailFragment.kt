@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -37,16 +38,12 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailToken
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTotal
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
 
-private const val KEY_TOKEN = "KEY_TOKEN"
+private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
     companion object {
-        fun getBundle(assetPayload: AssetPayload): Bundle {
-            return Bundle().apply {
-                putParcelable(KEY_TOKEN, assetPayload)
-            }
-        }
+        fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     override fun onCreateView(
@@ -94,7 +91,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = arguments!![KEY_TOKEN] as AssetPayload
+        val token = arguments!![KEY_ASSET_PAYLOAD] as AssetPayload
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),

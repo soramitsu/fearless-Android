@@ -12,7 +12,7 @@ import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
@@ -67,7 +67,7 @@ class PaymentUpdater(
 
         val metaAccount = scope.getAccount()
 
-        val accountId = scope.getAccount().accountIdIn(chain) ?: return emptyFlow()
+        val accountId = scope.getAccount().accountId(chain) ?: return emptyFlow()
         val runtime = chainRegistry.getRuntime(chainId)
 
         val key = runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
