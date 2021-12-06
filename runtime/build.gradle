@@ -11,7 +11,7 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/master/chains/chains_dev.json\""
+        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/1.9.x/chains/chains_dev.json\""
     }
 
     buildTypes {
@@ -23,7 +23,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
-            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/master/chains/chains.json\""
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/1.9.x/chains/chains.json\""
         }
     }
 
