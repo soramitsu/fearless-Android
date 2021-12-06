@@ -6,8 +6,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.data.mappers.stubNetwork
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
-import jp.co.soramitsu.feature_account_api.domain.model.addressIn
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
+import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
@@ -58,7 +58,7 @@ class WalletInteractorImpl(
     override fun assetFlow(chainId: ChainId, chainAssetId: Int): Flow<Asset> {
         return accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
-            val accountId = metaAccount.accountIdIn(chain)!!
+            val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.assetFlow(accountId, chainAsset)
         }
@@ -68,14 +68,14 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(metaAccount.accountIdIn(chain)!!, chainAsset)!!
+        return walletRepository.getAsset(metaAccount.accountId(chain)!!, chainAsset)!!
     }
 
     override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: Int): Flow<OperationsPageChange> {
         return accountRepository.selectedMetaAccountFlow()
             .flatMapLatest { metaAccount ->
                 val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
-                val accountId = metaAccount.accountIdIn(chain)!!
+                val accountId = metaAccount.accountId(chain)!!
 
                 walletRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex().map { (index, cursorPage) ->
                     OperationsPageChange(cursorPage, accountChanged = index == 0)
@@ -92,7 +92,7 @@ class WalletInteractorImpl(
         runCatching {
             val metaAccount = accountRepository.getSelectedMetaAccount()
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
-            val accountId = metaAccount.accountIdIn(chain)!!
+            val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.syncOperationsFirstPage(pageSize, filters, accountId, chain, chainAsset)
         }
@@ -108,7 +108,7 @@ class WalletInteractorImpl(
         return runCatching {
             val metaAccount = accountRepository.getSelectedMetaAccount()
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
-            val accountId = metaAccount.accountIdIn(chain)!!
+            val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.getOperations(
                 pageSize,
@@ -180,7 +180,7 @@ class WalletInteractorImpl(
     ): Result<Unit> {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
-        val accountId = metaAccount.accountIdIn(chain)!!
+        val accountId = metaAccount.accountId(chain)!!
 
         val validityStatus = walletRepository.checkTransferValidity(accountId, chain, transfer)
 
@@ -197,7 +197,7 @@ class WalletInteractorImpl(
         return runCatching {
             val metaAccount = accountRepository.getSelectedMetaAccount()
             val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
-            val accountId = metaAccount.accountIdIn(chain)!!
+            val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.checkTransferValidity(accountId, chain, transfer)
         }
@@ -207,8 +207,8 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
 
-        val address = metaAccount.addressIn(chain)
-        val pubKey = metaAccount.accountIdIn(chain)
+        val address = metaAccount.address(chain)
+        val pubKey = metaAccount.accountId(chain)
         val name = metaAccount.name
 
         val payload = if (address != null && pubKey != null) {
@@ -242,6 +242,6 @@ class WalletInteractorImpl(
     }
 
     private fun mapAccountToWalletAccount(chain: Chain, account: MetaAccount) = with(account) {
-        WalletAccount(account.addressIn(chain)!!, name, stubNetwork(chain.id))
+        WalletAccount(account.address(chain)!!, name, stubNetwork(chain.id))
     }
 }

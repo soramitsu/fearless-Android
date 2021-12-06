@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
@@ -36,7 +36,7 @@ class CrowdloanContributeInteractor(
         parachainMetadata: ParachainMetadata? = null
     ): Flow<Crowdloan> = crowdloanSharedState.assetWithChain.flatMapLatest { (chain, _) ->
         val selectedMetaAccount = accountRepository.getSelectedMetaAccount()
-        val accountId = selectedMetaAccount.accountIdIn(chain)!! // TODO optional for ethereum chains
+        val accountId = selectedMetaAccount.accountId(chain)!! // TODO optional for ethereum chains
 
         val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis(chain.id)
         val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod(chain.id)
@@ -85,7 +85,7 @@ class CrowdloanContributeInteractor(
         val (chain, chainAsset) = crowdloanSharedState.chainAndAsset()
         val selectedMetaAccount = accountRepository.getSelectedMetaAccount()
 
-        val accountId = selectedMetaAccount.accountIdIn(chain)!!
+        val accountId = selectedMetaAccount.accountId(chain)!!
         val contributionInPlanks = chainAsset.planksFromAmount(contribution)
 
         extrinsicService.submitExtrinsic(chain, accountId) {

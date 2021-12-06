@@ -5,7 +5,7 @@ import jp.co.soramitsu.core.updater.UpdateScope
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.accountIdIn
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.runtime.state.chainAndAsset
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +24,7 @@ class AccountStakingScope(
         ).flatMapLatest { (chainWithAsset, account) ->
             val (chain, chainAsset) = chainWithAsset
 
-            accountStakingDao.observeDistinct(chain.id, chainAsset.id, account.accountIdIn(chain)!!)
+            accountStakingDao.observeDistinct(chain.id, chainAsset.id, account.accountId(chain)!!)
         }
     }
 
@@ -32,6 +32,6 @@ class AccountStakingScope(
         val (chain, chainAsset) = sharedStakingState.chainAndAsset()
         val account = accountRepository.getSelectedMetaAccount()
 
-        return accountStakingDao.get(chain.id, chainAsset.id, account.accountIdIn(chain)!!)
+        return accountStakingDao.get(chain.id, chainAsset.id, account.accountId(chain)!!)
     }
 }

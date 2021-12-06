@@ -8,7 +8,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.cryptoTypeIn
+import jp.co.soramitsu.feature_account_api.domain.model.cryptoType
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
@@ -29,7 +29,7 @@ class ExtrinsicService(
         val metaAccount = accountRepository.findMetaAccount(accountId) ?: error("No meta account found accessing ${accountId.toHexString()}")
         val keypair = secretStoreV2.getKeypairFor(metaAccount, chain, accountId)
 
-        val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, metaAccount.cryptoTypeIn(chain))
+        val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, metaAccount.cryptoType(chain))
 
         extrinsicBuilder.formExtrinsic()
 

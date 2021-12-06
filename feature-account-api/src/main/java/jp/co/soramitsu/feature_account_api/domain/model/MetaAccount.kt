@@ -64,27 +64,27 @@ class MetaAccount(
     )
 }
 
-fun MetaAccount.hasChainAccountIn(chainId: ChainId) = chainId in chainAccounts
+fun MetaAccount.hasChainAccount(chainId: ChainId) = chainId in chainAccounts
 
-fun MetaAccount.cryptoTypeIn(chain: Chain): CryptoType {
+fun MetaAccount.cryptoType(chain: Chain): CryptoType {
     return when {
-        hasChainAccountIn(chain.id) -> chainAccounts.getValue(chain.id).cryptoType
+        hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).cryptoType
         chain.isEthereumBased -> CryptoType.ECDSA
         else -> substrateCryptoType
     }
 }
 
-fun MetaAccount.addressIn(chain: Chain): String? {
+fun MetaAccount.address(chain: Chain): String? {
     return when {
-        hasChainAccountIn(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
+        hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
         chain.isEthereumBased -> ethereumAddress?.ethereumAddressToHex()
         else -> substrateAccountId.toAddress(chain.addressPrefix.toByte())
     }
 }
 
-fun MetaAccount.accountIdIn(chain: Chain): ByteArray? {
+fun MetaAccount.accountId(chain: Chain): ByteArray? {
     return when {
-        hasChainAccountIn(chain.id) -> chainAccounts.getValue(chain.id).accountId
+        hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).accountId
         chain.isEthereumBased -> ethereumAddress
         else -> substrateAccountId
     }
