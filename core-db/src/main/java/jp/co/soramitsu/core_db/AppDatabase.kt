@@ -49,7 +49,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 26,
+    version = 27,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -103,6 +103,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddOperationsTablesToDb_23_24)
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 24))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 25))
+                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 26))
                     .build()
             }
             return instance!!
