@@ -27,7 +27,7 @@ buildscript {
         javaxInjectVersion = '1'
 
         architectureComponentVersion = '2.2.0'
-        roomVersion = '2.3.0'
+        roomVersion = '2.4.0-beta02'
 
         retrofitVersion = '2.9.0'
         okhttpVersion = '3.8.0'
