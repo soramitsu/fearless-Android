@@ -12,15 +12,15 @@ interface WalletRouter {
 
     fun openFilter()
 
-    fun openChooseAmount(recipientAddress: String)
+    fun openChooseAmount(recipientAddress: String, assetPayload: AssetPayload)
 
     fun openConfirmTransfer(transferDraft: TransferDraft)
 
     fun finishSendFlow()
 
-    fun openRepeatTransaction(recipientAddress: String)
+    fun openRepeatTransaction(recipientAddress: String, assetPayload: AssetPayload)
 
-    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer)
+    fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload)
 
     fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.Extrinsic)
 

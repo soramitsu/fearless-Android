@@ -27,8 +27,10 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBotto
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val ICON_IN_DP = 24
 
@@ -104,8 +106,9 @@ class ConfirmTransferViewModel(
         _transferSubmittingLiveData.value = true
 
         viewModelScope.launch {
-            val result = interactor.performTransfer(createTransfer(chainAsset), transferDraft.fee, maxAllowedStatusLevel)
-
+            val result = withContext(Dispatchers.Default) {
+                interactor.performTransfer(createTransfer(chainAsset), transferDraft.fee, maxAllowedStatusLevel)
+            }
             if (result.isSuccess) {
                 router.finishSendFlow()
             } else {

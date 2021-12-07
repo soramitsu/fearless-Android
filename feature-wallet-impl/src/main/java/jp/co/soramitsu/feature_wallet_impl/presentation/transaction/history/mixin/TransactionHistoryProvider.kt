@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToParcel
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
@@ -88,7 +89,7 @@ class TransactionHistoryProvider(
             withContext(Dispatchers.Main) {
                 when (val payload = mapOperationToParcel(clickedOperation, resourceManager)) {
                     is OperationParcelizeModel.Transfer -> {
-                        router.openTransferDetail(payload)
+                        router.openTransferDetail(payload, AssetPayload(chainId, assetId))
                     }
 
                     is OperationParcelizeModel.Extrinsic -> {
