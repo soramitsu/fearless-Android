@@ -19,9 +19,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.networkType
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -36,8 +35,11 @@ class ReceiveViewModel(
     private val resourceManager: ResourceManager,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val assetPayload: AssetPayload,
-    private val router: WalletRouter
+    private val router: WalletRouter,
+    private val chainRegistry: ChainRegistry
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+
+    val assetSymbol = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbol
 
     val qrBitmapLiveData = liveData {
         val qrString = interactor.getQrCodeSharingString(assetPayload.chainId)
@@ -71,14 +73,14 @@ class ReceiveViewModel(
         val address = accountIconLiveData.value?.address ?: return
 
         viewModelScope.launch {
-            val result = interactor.createFileInTempStorageAndRetrieveAsset(assetPayload.chainId, assetPayload.chainAssetId, QR_TEMP_IMAGE_NAME)
+            val result = interactor.createFileInTempStorageAndRetrieveAsset(QR_TEMP_IMAGE_NAME)
 
             if (result.isSuccess) {
-                val (file, asset) = result.requireValue()
+                val file = result.requireValue()
 
                 file.write(qrBitmap)
 
-                val message = generateMessage(asset.token.configuration, address)
+                val message = generateMessage(address)
 
                 _shareEvent.value = Event(QrSharingPayload(file, message))
             } else {
@@ -92,11 +94,12 @@ class ReceiveViewModel(
             .map { addressIconGenerator.createAddressModel(it.address, AVATAR_SIZE_DP) }
     }
 
-    // TODO pass chain to screen
-    private fun generateMessage(tokenType: Chain.Asset, address: String): String {
+    private suspend fun generateMessage(address: String): String {
+        val chain = chainRegistry.getChain(assetPayload.chainId)
+        val asset = chain.assetsById[assetPayload.chainAssetId]
         return resourceManager.getString(R.string.wallet_receive_share_message).format(
-            tokenType.networkType?.readableName,
-            tokenType.symbol
+            chain.name,
+            asset?.symbol
         ) + " " + address
     }
 }

@@ -64,11 +64,7 @@ interface WalletInteractor {
 
     suspend fun getQrCodeSharingString(chainId: ChainId): String
 
-    suspend fun createFileInTempStorageAndRetrieveAsset(
-        chainId: ChainId,
-        chainAssetId: Int,
-        fileName: String
-    ): Result<Pair<File, Asset>>
+    suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 
     suspend fun getRecipientFromQrCodeContent(content: String): Result<String>
 }

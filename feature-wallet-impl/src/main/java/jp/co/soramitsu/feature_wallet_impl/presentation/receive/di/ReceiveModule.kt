@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ReceiveModule {
@@ -31,7 +32,7 @@ class ReceiveModule {
         externalAccountActions: ExternalAccountActions.Presentation,
         assetPayload: AssetPayload,
         router: WalletRouter,
-
+        chainRegistry: ChainRegistry
     ): ViewModel {
         return ReceiveViewModel(
             interactor,
@@ -40,7 +41,8 @@ class ReceiveModule {
             resourceManager,
             externalAccountActions,
             assetPayload,
-            router
+            router,
+            chainRegistry
         )
     }
 
