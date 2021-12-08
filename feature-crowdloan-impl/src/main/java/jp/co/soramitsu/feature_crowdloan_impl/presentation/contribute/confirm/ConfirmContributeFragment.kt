@@ -6,8 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -32,6 +30,8 @@ import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContrib
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeToolbar
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressText
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressTitle
+import java.math.BigDecimal
+import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
@@ -128,7 +128,8 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         viewModel.bonusFlow.observe {
             val isMoonbeam = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isMoonbeam == true
             val isAstar = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isAstar == true
-            confirmContributeBonus?.setVisible(it != null && !isMoonbeam && !isAstar)
+            val isInterlay = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isInterlay == true
+            confirmContributeBonus?.setVisible(it != null && !isMoonbeam && !isAstar && !isInterlay)
 
             it?.let { confirmContributeBonus?.showValue(it) }
         }
@@ -145,12 +146,12 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         confirmContributeCrowloanTitle.text = viewModel.title
-        applyAcalaBonus()
+        applyCustomBonus()
     }
 
-    private fun applyAcalaBonus() {
-        val isAcala = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isAcala == true
-        if (isAcala) {
+    private fun applyCustomBonus() {
+        val isApply = (argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata)?.run { isAcala || isInterlay } ?: false
+        if (isApply) {
             confirmContributeBonus?.setVisible(true)
             confirmContributeBonus?.showValue(getString(R.string.label_link))
             confirmContributeBonus?.setValueColorRes(R.color.colorAccent)

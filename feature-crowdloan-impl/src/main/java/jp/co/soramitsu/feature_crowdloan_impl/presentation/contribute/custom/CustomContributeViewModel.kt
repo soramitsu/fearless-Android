@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
@@ -23,6 +22,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseC
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_KEY
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_BONUS_URL
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_CROWDLOAN_INFO_URL
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
@@ -66,6 +66,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class CustomContributeViewModel(
     private val customContributeManager: CustomContributeManager,
@@ -222,7 +223,9 @@ class CustomContributeViewModel(
         }
 
     fun learnMoreClicked() {
-        val parachainLink = payload.parachainMetadata.flow?.data?.getString(FLOW_CROWDLOAN_INFO_URL) ?: parachainMetadata.website
+        val parachainLink = (payload.parachainMetadata.flow?.data)?.run {
+            getString(FLOW_BONUS_URL) ?: getString(FLOW_CROWDLOAN_INFO_URL)
+        } ?: parachainMetadata.website
         openBrowserEvent.value = Event(parachainLink)
     }
 

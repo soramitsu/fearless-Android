@@ -354,8 +354,8 @@
     <string name="crodloan_private_crowdloan_title">Приватный краудлоун</string>
     <string name="crodloan_private_crowdloan_message">Приватные краудлоуны пока не поддерживаются</string>
     <string name="common_bonus">Бонус</string>
-    <string name="astar_bonus">Бонус для тебя</string>
-    <string name="astar_friend_bonus">Бонус для твоего друга</string>
+    <string name="your_bonus">Бонус для тебя</string>
+    <string name="friend_bonus">Бонус для твоего друга</string>
     <string name="crowdloan_enter_referral">Введите реферальный код</string>
     <string name="staking_add_controller">Чтобы выполнить это действие, добавьте контроллер аккаунт %s в приложение</string>
     <string name="crowdloan_empty_bonus_title">Получите специальный бонус</string>

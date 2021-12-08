@@ -1,12 +1,12 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel
 
 import android.os.Parcelable
-import java.math.BigDecimal
-import java.util.Locale
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadataFlow
 import kotlinx.android.parcel.Parcelize
 import kotlinx.android.parcel.RawValue
+import java.math.BigDecimal
+import java.util.Locale
 
 @Parcelize
 class ParachainMetadataParcelModel(
@@ -24,6 +24,8 @@ class ParachainMetadataParcelModel(
         get() = name.toLowerCase(Locale.getDefault()) == "astar"
     val isAcala: Boolean
         get() = name.toLowerCase(Locale.getDefault()) == "acala"
+    val isInterlay: Boolean
+        get() = flow?.name?.toLowerCase(Locale.getDefault()) == "interlay"
 }
 
 @Parcelize

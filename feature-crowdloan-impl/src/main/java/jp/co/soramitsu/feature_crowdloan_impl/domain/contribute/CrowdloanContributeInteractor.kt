@@ -1,8 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute
 
-import java.io.IOException
-import java.math.BigDecimal
-import java.net.HttpURLConnection
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
@@ -34,6 +31,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import java.io.IOException
+import java.math.BigDecimal
+import java.net.HttpURLConnection
 
 typealias AdditionalOnChainSubmission = suspend ExtrinsicBuilder.() -> Unit
 
@@ -102,12 +102,13 @@ class CrowdloanContributeInteractor(
         contribution: BigDecimal,
         token: Token,
         additional: AdditionalOnChainSubmission?,
+        batchAll: Boolean = true,
         signature: String? = null,
     ) = withContext(Dispatchers.Default) {
         val contributionInPlanks = token.planksFromAmount(contribution)
 
         val encryption = mapCryptoTypeToEncryption(accountRepository.getSelectedAccount().cryptoType)
-        extrinsicService.submitExtrinsic(originAddress, true) {
+        extrinsicService.submitExtrinsic(originAddress, batchAll) {
             contribute(parachainId, contributionInPlanks, signature, encryption)
 
             additional?.invoke(this)
