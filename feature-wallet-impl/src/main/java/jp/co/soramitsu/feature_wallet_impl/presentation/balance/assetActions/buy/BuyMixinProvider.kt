@@ -19,7 +19,7 @@ class BuyMixinProvider(
 
     override val integrateWithBuyProviderEvent = MutableLiveData<Event<IntegrationPayload>>()
 
-    override fun isBuyEnabled(chainId: ChainId, chainAssetId: Int): Boolean =
+    override fun isBuyEnabled(chainId: ChainId, chainAssetId: Int) =
         when (val asset = chainRegistry.getAsset(chainId, chainAssetId)) {
             null -> false
             else -> buyTokenRegistry.availableProviders(asset).isNotEmpty()
