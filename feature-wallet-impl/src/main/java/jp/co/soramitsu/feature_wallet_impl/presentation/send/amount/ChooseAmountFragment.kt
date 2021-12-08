@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
@@ -15,6 +16,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
@@ -29,13 +31,13 @@ import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToken
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToolbar
 
 private const val KEY_ADDRESS = "KEY_ADDRESS"
+private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
     companion object {
-        fun getBundle(recipientAddress: String) = Bundle().apply {
-            putString(KEY_ADDRESS, recipientAddress)
-        }
+        fun getBundle(recipientAddress: String, assetPayload: AssetPayload) =
+            bundleOf(KEY_ADDRESS to recipientAddress, KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     override fun onCreateView(
@@ -58,13 +60,14 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
     override fun inject() {
         val address = argument<String>(KEY_ADDRESS)
+        val assetPayload = argument<AssetPayload>(KEY_ASSET_PAYLOAD)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .chooseAmountComponentFactory()
-            .create(this, address)
+            .create(this, address, assetPayload)
             .inject(this)
     }
 

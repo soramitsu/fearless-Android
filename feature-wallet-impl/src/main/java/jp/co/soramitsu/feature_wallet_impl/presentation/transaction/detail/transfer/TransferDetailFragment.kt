@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.StringRes
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
@@ -19,6 +20,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCal
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailAmount
@@ -38,13 +40,13 @@ import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetai
 import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailTotalLabel
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
+private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.Transfer) = Bundle().apply {
-            putParcelable(KEY_TRANSACTION, operation)
-        }
+        fun getBundle(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) =
+            bundleOf(KEY_TRANSACTION to operation, KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     override fun onCreateView(
@@ -75,13 +77,14 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
 
     override fun inject() {
         val operation = argument<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)
+        val assetPayload = argument<AssetPayload>(KEY_ASSET_PAYLOAD)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .transactionDetailComponentFactory()
-            .create(this, operation)
+            .create(this, operation, assetPayload)
             .inject(this)
     }
 

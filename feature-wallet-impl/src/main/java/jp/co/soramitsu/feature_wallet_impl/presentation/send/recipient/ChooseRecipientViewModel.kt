@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.ap
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.ExperimentalTime
 
 private const val ICON_SIZE_IN_DP = 24
 
@@ -83,7 +83,7 @@ class ChooseRecipientViewModel(
     }
 
     override fun proceedAddress(address: String) {
-        router.openChooseAmount(address)
+        router.openChooseAmount(address, payload)
     }
 
     override fun declinePhishingAddress() {

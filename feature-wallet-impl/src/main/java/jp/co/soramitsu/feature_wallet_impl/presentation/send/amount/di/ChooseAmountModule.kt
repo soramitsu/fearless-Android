@@ -38,6 +38,7 @@ class ChooseAmountModule {
         transferValidityChecks: TransferValidityChecks.Presentation,
         recipientAddress: String,
         walletConstants: WalletConstants,
+        assetPayload: AssetPayload,
         phishingWarning: PhishingWarningMixin
     ): ViewModel {
         return ChooseAmountViewModel(
@@ -48,7 +49,7 @@ class ChooseAmountModule {
             transferValidityChecks,
             walletConstants,
             recipientAddress,
-            AssetPayload.stub(), // TODO pass payload from previous screen
+            assetPayload,
             phishingWarning
         )
     }

@@ -16,6 +16,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 
@@ -33,7 +34,8 @@ class TransactionDetailViewModel(
     private val clipboardManager: ClipboardManager,
     private val appLinksProvider: AppLinksProvider,
     private val addressDisplayUseCase: AddressDisplayUseCase,
-    val operation: OperationParcelizeModel.Transfer
+    val operation: OperationParcelizeModel.Transfer,
+    private val assetPayload: AssetPayload
 ) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
@@ -64,7 +66,7 @@ class TransactionDetailViewModel(
     fun repeatTransaction() {
         val retryAddress = retryAddressModelLiveData.value?.address ?: return
 
-        router.openRepeatTransaction(retryAddress)
+        router.openRepeatTransaction(retryAddress, assetPayload)
     }
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))

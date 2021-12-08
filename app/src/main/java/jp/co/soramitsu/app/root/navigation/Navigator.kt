@@ -352,8 +352,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openChooseAmount(recipientAddress: String) {
-        val bundle = ChooseAmountFragment.getBundle(recipientAddress)
+    override fun openChooseAmount(recipientAddress: String, assetPayload: AssetPayload) {
+        val bundle = ChooseAmountFragment.getBundle(recipientAddress, assetPayload)
 
         navController?.navigate(R.id.action_chooseRecipientFragment_to_chooseAmountFragment, bundle)
     }
@@ -368,14 +368,14 @@ class Navigator :
         navController?.navigate(R.id.finish_send_flow)
     }
 
-    override fun openRepeatTransaction(recipientAddress: String) {
-        val bundle = ChooseAmountFragment.getBundle(recipientAddress)
+    override fun openRepeatTransaction(recipientAddress: String, assetPayload: AssetPayload) {
+        val bundle = ChooseAmountFragment.getBundle(recipientAddress, assetPayload)
 
         navController?.navigate(R.id.openSelectAmount, bundle)
     }
 
-    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer) {
-        val bundle = TransferDetailFragment.getBundle(transaction)
+    override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) {
+        val bundle = TransferDetailFragment.getBundle(transaction, assetPayload)
 
         navController?.navigate(R.id.open_transfer_detail, bundle)
     }
