@@ -272,7 +272,7 @@ Derivation path: %s</string>
     <string name="staking_slash">Slash</string>
     <string name="common_call">Call</string>
     <string name="common_module">Module</string>
-    <string name="wallet_asset_buy_with">Buy with</string>
+    <string name="wallet_asset_buy_with">Buy %s with</string>
     <string name="wallet_filters_title">Filters</string>
     <string name="common_apply">Apply</string>
     <string name="common_reset">Reset</string>

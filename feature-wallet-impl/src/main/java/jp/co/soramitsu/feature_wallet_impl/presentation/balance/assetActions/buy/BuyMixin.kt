@@ -20,6 +20,7 @@ interface BuyMixin {
     class ProviderChooserPayload(
         val providers: List<BuyTokenRegistry.Provider<*>>,
         val chainAsset: Chain.Asset,
+        val accountAddress: String
     )
 
     val showProviderChooserEvent: LiveData<Event<ProviderChooserPayload>>
@@ -28,7 +29,8 @@ interface BuyMixin {
 
     fun providerChosen(
         provider: BuyTokenRegistry.Provider<*>,
-        chainAsset: Chain.Asset
+        chainAsset: Chain.Asset,
+        accountAddress: String
     )
 
     interface Presentation : BuyMixin {
@@ -37,7 +39,7 @@ interface BuyMixin {
 
         override val integrateWithBuyProviderEvent: MutableLiveData<Event<IntegrationPayload>>
 
-        fun buyClicked(chainId: ChainId, chainAssetId: Int)
+        fun buyClicked(chainId: ChainId, chainAssetId: Int, accountAddress: String)
 
         fun isBuyEnabled(chainId: ChainId, chainAssetId: Int): Boolean
     }
@@ -45,18 +47,14 @@ interface BuyMixin {
 
 fun <V> BaseFragment<V>.setupBuyIntegration(viewModel: V) where V : BaseViewModel, V : BuyMixin {
     viewModel.integrateWithBuyProviderEvent.observeEvent {
-        with(it) {
-            when (provider) {
-                is ExternalProvider -> provider.createIntegrator(it.chainAsset, address).integrate(requireContext())
-            }
-        }
+        (it.provider as? ExternalProvider)?.createIntegrator(it.chainAsset, it.address)?.integrate(requireContext())
     }
 
     viewModel.showProviderChooserEvent.observeEvent { payload ->
         BuyProviderChooserBottomSheet(
-            requireContext(), payload.providers,
+            requireContext(), payload.providers, payload.chainAsset,
             onClick = {
-                viewModel.providerChosen(it, payload.chainAsset)
+                viewModel.providerChosen(it, payload.chainAsset, payload.accountAddress)
             }
         ).show()
     }

@@ -253,7 +253,7 @@
     <string name="staking_slash">Слэш</string>
     <string name="common_call">Вызов</string>
     <string name="common_module">Модуль</string>
-    <string name="wallet_asset_buy_with">Купить с</string>
+    <string name="wallet_asset_buy_with">Купить %s с</string>
     <string name="wallet_filters_title">Фильтры</string>
     <string name="common_apply">Применять</string>
     <string name="common_reset">Сброс</string>

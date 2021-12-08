@@ -17,6 +17,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -84,7 +85,9 @@ class BalanceDetailViewModel(
 
     fun buyClicked() {
         viewModelScope.launch {
-            buyMixin.buyClicked(assetPayload.chainId, assetPayload.chainAssetId)
+            interactor.selectedAccountFlow(assetPayload.chainId).firstOrNull()?.let { wallet ->
+                buyMixin.buyClicked(assetPayload.chainId, assetPayload.chainAssetId, wallet.address)
+            }
         }
     }
 
