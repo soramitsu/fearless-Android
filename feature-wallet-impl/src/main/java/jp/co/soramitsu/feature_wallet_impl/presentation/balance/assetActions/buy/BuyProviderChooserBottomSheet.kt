@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ReferentialEqualityDiffCallBack
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.android.synthetic.main.item_sheet_buy_provider.view.itemSheetBuyProviderImage
 import kotlinx.android.synthetic.main.item_sheet_buy_provider.view.itemSheetBuyProviderText
 
@@ -19,6 +20,7 @@ typealias BuyProvider = BuyTokenRegistry.Provider<*>
 class BuyProviderChooserBottomSheet(
     context: Context,
     providers: List<BuyProvider>,
+    private val asset: Chain.Asset,
     onClick: ClickHandler<BuyProvider>,
 ) : DynamicListBottomSheet<BuyProvider>(
     context,
@@ -30,7 +32,7 @@ class BuyProviderChooserBottomSheet(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.wallet_asset_buy_with)
+        setTitle(context.getString(R.string.wallet_asset_buy_with, asset.symbol))
     }
 
     override fun holderCreator(): HolderCreator<BuyProvider> = {

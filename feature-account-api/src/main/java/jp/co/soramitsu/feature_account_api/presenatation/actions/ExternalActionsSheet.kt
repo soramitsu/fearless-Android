@@ -28,6 +28,7 @@ open class ExternalActionsSheet(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
         setTitle(payload.content.value)
 
         val value = payload.content.value

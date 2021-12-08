@@ -163,7 +163,8 @@ class WalletFeatureModule {
     @Provides
     fun provideBuyMixin(
         buyTokenRegistry: BuyTokenRegistry,
-    ): BuyMixin.Presentation = BuyMixinProvider(buyTokenRegistry)
+        chainRegistry: ChainRegistry
+    ): BuyMixin.Presentation = BuyMixinProvider(buyTokenRegistry, chainRegistry)
 
     @Provides
     @FeatureScope
