@@ -59,9 +59,9 @@ val LATEST_DEFAULT_NODES = listOf(
         Node.NetworkType.ROCOCO.ordinal,
         true
     )
-).apply {
+).toMutableList().apply {
     if (BuildConfig.DEBUG) {
-        toMutableList().add(
+        add(
             NodeLocal(
                 "Polkatrain Parity Node",
                 "wss://wss.polkatrain.moonbeam.network",
