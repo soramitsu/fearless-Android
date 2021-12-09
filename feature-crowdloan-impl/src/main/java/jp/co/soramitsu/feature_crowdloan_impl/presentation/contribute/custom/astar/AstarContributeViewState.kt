@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_BONUS_RATE
@@ -9,6 +8,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.App
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getAsBigDecimal
 import kotlinx.coroutines.flow.map
 
 class AstarContributeViewState(
@@ -31,7 +31,7 @@ class AstarContributeViewState(
         referralCode,
         customContributePayload.paraId,
         customContributePayload.parachainMetadata.rewardRate,
-        customContributePayload.parachainMetadata.flow?.data?.get(FLOW_BONUS_RATE) as? BigDecimal
+        customContributePayload.parachainMetadata.flow?.data?.getAsBigDecimal(FLOW_BONUS_RATE)
     )
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {

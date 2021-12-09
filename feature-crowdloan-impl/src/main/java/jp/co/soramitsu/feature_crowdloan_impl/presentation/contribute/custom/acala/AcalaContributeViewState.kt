@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
@@ -10,6 +9,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.App
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getAsBigDecimal
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import kotlinx.coroutines.flow.combine
 
@@ -48,7 +48,7 @@ class AcalaContributeViewState(
             contributionType = null,
             parachainId = customContributePayload.paraId,
             baseUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL)!!,
-            bonusRate = customContributePayload.parachainMetadata.flow.data.get(FLOW_BONUS_RATE) as? BigDecimal
+            bonusRate = customContributePayload.parachainMetadata.flow.data.getAsBigDecimal(FLOW_BONUS_RATE)
         )
     }
 

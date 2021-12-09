@@ -1,8 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.regex.Pattern
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
@@ -19,12 +16,15 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.mod
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.CONTRIBUTE
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getAsBigDecimal
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.math.BigInteger
+import java.util.regex.Pattern
 
 enum class MoonbeamCrowdloanStep(val step: Int) {
     TERMS(0),
@@ -133,7 +133,7 @@ class MoonbeamContributeViewState(
             referralCode = enteredEtheriumAddressFlow.value,
             parachainId = customContributePayload.paraId,
             rewardRate = customContributePayload.parachainMetadata.rewardRate,
-            bonusRate = customContributePayload.parachainMetadata.flow?.data?.get(FLOW_BONUS_RATE) as? BigDecimal
+            bonusRate = customContributePayload.parachainMetadata.flow?.data?.getAsBigDecimal(FLOW_BONUS_RATE)
         )
     }
 }

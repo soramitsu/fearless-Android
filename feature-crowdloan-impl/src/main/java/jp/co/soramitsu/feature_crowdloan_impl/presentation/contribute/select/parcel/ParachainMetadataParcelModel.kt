@@ -33,6 +33,7 @@ class ParachainMetadataFlowParcelModel(
 ) : Parcelable
 
 fun Map<String, Any?>.getString(key: String) = get(key) as? String
+fun Map<String, Any?>.getAsBigDecimal(key: String) = (get(key) as? Double)?.toBigDecimal()
 
 fun mapParachainMetadataToParcel(
     parachainMetadata: ParachainMetadata
