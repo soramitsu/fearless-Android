@@ -91,6 +91,7 @@
     <string name="account_needed_message">У вас нет учетной записи в этой сети, вы можете создать или импортировать учетную запись.</string>
     <string name="common_proceed">Продолжить</string>
     <string name="wallet_asset_receive">Получить</string>
+    <string name="wallet_asset_receive_template">Получить %s</string>
     <string name="wallet_assets_total_title">Стоимость активов</string>
     <string name="network_info_title">Информация ноды</string>
     <string name="network_info_address">Адрес ноды</string>
@@ -147,7 +148,7 @@
     <string name="connection_delete_confirm">Удалить</string>
     <string name="network_status_connecting">Подключение…</string>
     <string name="wallet_balance_frozen_template">Заморожено %s</string>
-    <string name="wallet_receive_description">Поделитесь этим QR-кодом с отправителем</string>
+    <string name="wallet_receive_description">Покажите этот QR-код отправителю</string>
     <string name="wallet_send_existential_warning_title">Перевод удалит аккаунт</string>
     <string name="search_header_my_accounts">мои аккаунты</string>
     <string name="wallet_receive_share_message" formatted="false">Мой %s адрес для получения %s:</string>

@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.math.BigDecimal
 
 class WalletInteractorImpl(
@@ -220,17 +219,8 @@ class WalletInteractorImpl(
         return accountRepository.createQrAccountContent(payload)
     }
 
-    // TODO just create file, screens can retrieve asset with getCurrentAsset()
-    override suspend fun createFileInTempStorageAndRetrieveAsset(
-        chainId: ChainId,
-        chainAssetId: Int,
-        fileName: String
-    ): Result<Pair<File, Asset>> {
-        return runCatching {
-            val file = fileProvider.getFileInExternalCacheStorage(fileName)
-
-            file to getCurrentAsset(chainId, chainAssetId)
-        }
+    override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String) = runCatching {
+        fileProvider.getFileInExternalCacheStorage(fileName)
     }
 
     override suspend fun getRecipientFromQrCodeContent(content: String): Result<String> {

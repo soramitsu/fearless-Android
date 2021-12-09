@@ -8,6 +8,7 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
@@ -82,6 +83,10 @@ class ChainRegistry(
 
     fun getRuntimeProvider(chainId: String): RuntimeProvider {
         return runtimeProviderPool.getRuntimeProvider(chainId)
+    }
+
+    fun getAsset(chainId: ChainId, chainAssetId: Int) = chainsById.replayCache.lastOrNull()?.get(chainId)?.assets?.firstOrNull {
+        it.id == chainAssetId
     }
 
     suspend fun getChain(chainId: String) = chainsById.first().getValue(chainId)

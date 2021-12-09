@@ -112,6 +112,7 @@ transfers will appear here</string>
     <string name="account_needed_message">You don’t have account for this network, you can create or import account.</string>
     <string name="common_proceed">Proceed</string>
     <string name="wallet_asset_receive">Receive</string>
+    <string name="wallet_asset_receive_template">Receive %s</string>
     <string name="wallet_assets_total_title">Assets value</string>
     <string name="network_info_title">Node Info</string>
     <string name="network_info_address">Node address</string>
@@ -168,7 +169,7 @@ from the right network</string>
     <string name="connection_delete_confirm">Delete</string>
     <string name="network_status_connecting">Connecting…</string>
     <string name="wallet_balance_frozen_template">Frozen %s</string>
-    <string name="wallet_receive_description">Share this QR to sender</string>
+    <string name="wallet_receive_description">Show this QR to sender</string>
     <string name="wallet_send_existential_warning_title">Transfer will remove account</string>
     <string name="search_header_my_accounts">my accounts</string>
     <string name="wallet_receive_share_message" formatted="false">My %s address to receive %s:</string>
