@@ -27,100 +27,83 @@
                 app:titleText="@string/wallet_asset_send" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
-                android:id="@+id/chooseAmountToken"
-                style="@style/TextAppearance.Soramitsu.Body1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                app:enabled="false"
-                app:label="@string/choose_amount_asset"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountToolbar"
-                tools:message="Kusama"
-                tools:textIcon="@drawable/ic_ksm_24" />
-
-            <TextView
-                android:id="@+id/chooseAmountBalanceLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="17dp"
-                android:drawableStart="@drawable/ic_info_16"
-                android:drawablePadding="4dp"
-                android:fontFamily="@font/soramitsu_bold"
-                android:gravity="center_vertical"
-                android:text="@string/choose_amount_available_balance"
-                android:textAllCaps="true"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_b3"
-                app:layout_constraintStart_toStartOf="@+id/chooseAmountToken"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountToken" />
-
-            <TextView
-                android:id="@+id/chooseAmountBalance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:fontFamily="@font/soramitsu_bold"
-                android:gravity="center_vertical"
-                android:textAllCaps="true"
-                android:textColor="@color/green"
-                android:textSize="@dimen/text_size_b3"
-                app:layout_constraintBottom_toBottomOf="@+id/chooseAmountBalanceLabel"
-                app:layout_constraintStart_toEndOf="@+id/chooseAmountBalanceLabel"
-                app:layout_constraintTop_toTopOf="@+id/chooseAmountBalanceLabel"
-                tools:text="200.643 KSM" />
-
-            <View
-                android:id="@+id/chooseAmountDivider1"
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_marginTop="18dp"
-                android:background="@color/gray3"
-                app:layout_constraintEnd_toEndOf="@+id/chooseAmountToken"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="@+id/chooseAmountBalanceLabel"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountBalanceLabel" />
-
-            <jp.co.soramitsu.common.view.LabeledTextView
                 android:id="@+id/chooseAmountRecipientView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
                 app:actionIcon="@drawable/ic_more_vertical"
-                app:enabled="false"
+                app:enabled="true"
                 app:label="@string/choose_amount_to"
-                app:layout_constraintEnd_toEndOf="@+id/chooseAmountDivider1"
-                app:layout_constraintStart_toStartOf="@+id/chooseAmountDivider1"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/chooseAmountToolbar"
                 tools:textIcon="@color/colorAccent" />
 
-            <View
-                android:id="@+id/chooseAmountDivider2"
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:background="@color/gray3"
-                app:layout_constraintEnd_toEndOf="@+id/chooseAmountRecipientView"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="@+id/chooseAmountRecipientView"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountRecipientView" />
-
-            <jp.co.soramitsu.common.view.InputField
+            <jp.co.soramitsu.common.view.AmountView
                 android:id="@+id/chooseAmountField"
-                style="@style/Widget.Fearless.Input.Primary.External"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
-                android:hint="@string/common_amount"
-                android:text="@string/choose_amount_initial"
-                android:inputType="numberDecimal"
-                app:layout_constraintEnd_toEndOf="@+id/chooseAmountRecipientView"
-                app:layout_constraintStart_toStartOf="@+id/chooseAmountRecipientView"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountDivider2" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/chooseAmountRecipientView" />
+
+            <LinearLayout
+                android:id="@+id/chooseAmountQuickInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/chooseAmountField">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chooseAmountMax"
+                    style="@style/ChipQuickInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:text="@string/wallet_send_quick_input_max"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chooseAmount75"
+                    style="@style/ChipQuickInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/wallet_send_quick_input_75" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chooseAmount50"
+                    style="@style/ChipQuickInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/wallet_send_quick_input_50" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chooseAmount25"
+                    style="@style/ChipQuickInput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/wallet_send_quick_input_25" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/chooseAmountFeeLabel"
@@ -130,7 +113,7 @@
                 android:layout_marginTop="32dp"
                 android:text="@string/choose_amount_fee"
                 app:layout_constraintStart_toStartOf="@+id/chooseAmountField"
-                app:layout_constraintTop_toBottomOf="@+id/chooseAmountField" />
+                app:layout_constraintTop_toBottomOf="@+id/chooseAmountQuickInput" />
 
             <TextView
                 android:id="@+id/chooseAmountFee"
@@ -138,20 +121,33 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="12dp"
-                app:layout_constraintBottom_toBottomOf="@+id/chooseAmountFeeLabel"
+                android:textColor="@color/gray2"
+                app:layout_constraintBottom_toTopOf="@+id/chooseAmountFeeFiat"
                 app:layout_constraintEnd_toStartOf="@+id/chooseAmountFeeProgress"
                 app:layout_constraintTop_toTopOf="@+id/chooseAmountFeeLabel"
                 tools:text="0.001 KSM" />
+
+            <TextView
+                android:id="@+id/chooseAmountFeeFiat"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/gray2"
+                app:layout_constraintBottom_toBottomOf="@+id/chooseAmountFeeLabel"
+                app:layout_constraintEnd_toEndOf="@+id/chooseAmountFee"
+                app:layout_constraintTop_toBottomOf="@+id/chooseAmountFee"
+                tools:text="$0.2" />
 
             <ProgressBar
                 android:id="@+id/chooseAmountFeeProgress"
                 android:layout_width="12dp"
                 android:layout_height="12dp"
+                android:layout_marginEnd="16dp"
                 android:indeterminate="true"
                 android:indeterminateTint="@color/white"
                 android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="@+id/chooseAmountFee"
-                app:layout_constraintEnd_toEndOf="@+id/chooseAmountField"
+                app:layout_constraintBottom_toBottomOf="@+id/chooseAmountFeeFiat"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/chooseAmountFee"
                 tools:visibility="visible" />
 
@@ -159,11 +155,12 @@
                 android:id="@+id/chooseAmountDivider3"
                 android:layout_width="0dp"
                 android:layout_height="1dp"
+                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="15dp"
                 android:background="@color/gray3"
-                app:layout_constraintEnd_toEndOf="@+id/chooseAmountToken"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="@+id/chooseAmountBalanceLabel"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/chooseAmountFeeLabel" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

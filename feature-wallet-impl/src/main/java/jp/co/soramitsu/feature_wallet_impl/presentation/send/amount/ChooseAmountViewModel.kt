@@ -10,12 +10,15 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Error
@@ -34,6 +37,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChe
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -46,8 +51,6 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 private const val AVATAR_SIZE_DP = 24
 
@@ -79,12 +82,23 @@ class ChooseAmountViewModel(
     }
 
     private val amountEvents = MutableStateFlow("0")
-    private val amountRawLiveData = amountEvents.asLiveData()
+    val amountRawLiveData = amountEvents.asLiveData()
 
     private val _feeLoadingLiveData = MutableLiveData<Boolean>(true)
     val feeLoadingLiveData = _feeLoadingLiveData
 
+    private val assetLiveData = liveData {
+        val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
+
+        emit(asset)
+    }
+
     val feeLiveData = feeFlow().asLiveData()
+    val feeFiatLiveData = combine(assetLiveData, feeFlow().asLiveData()) { (asset: Asset, fee: Fee?) ->
+        fee?.feeAmount?.let {
+            asset.token.fiatAmount(it)?.formatAsCurrency()
+        }
+    }
 
     private val _feeErrorLiveData = MutableLiveData<Event<RetryReason>>()
     val feeErrorLiveData = _feeErrorLiveData
@@ -94,14 +108,16 @@ class ChooseAmountViewModel(
     private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
     val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
 
-    val assetLiveData = liveData {
-        val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
-
-        emit(mapAssetToAssetModel(asset))
-    }
+    val assetModelLiveData = assetLiveData.map { mapAssetToAssetModel(it) }
 
     private val minimumPossibleAmountLiveData = assetLiveData.map {
         it.token.configuration.amountFromPlanks(BigInteger.ONE)
+    }
+
+    val enteredFiatAmountLiveData = combine(assetLiveData, amountRawLiveData) { (asset: Asset, amount: String) ->
+        amount.toBigDecimalOrNull()?.let {
+            asset.token.fiatAmount(it)?.formatAsCurrency()
+        }
     }
 
     val continueButtonStateLiveData = combine(
@@ -149,7 +165,7 @@ class ChooseAmountViewModel(
 
     fun availableBalanceClicked() {
         val transferDraft = buildTransferDraft() ?: return
-        val assetModel = assetLiveData.value ?: return
+        val assetModel = assetModelLiveData.value ?: return
 
         launch {
             val amountInPlanks = walletConstants.existentialDeposit(assetModel.token.configuration.chainId)
@@ -241,5 +257,13 @@ class ChooseAmountViewModel(
 
     private fun retryLoadFee() {
         amountChanged(amountEvents.value)
+    }
+
+    fun quickInputSelected(value: Double) {
+        val amount = assetModelLiveData.value?.available
+        val newAmount = amount?.let {
+            it * value.toBigDecimal()
+        }?.format() ?: ""
+        amountChanged(newAmount)
     }
 }

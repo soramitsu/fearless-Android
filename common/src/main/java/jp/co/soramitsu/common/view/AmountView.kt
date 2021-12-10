@@ -7,6 +7,8 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.EditText
 import androidx.constraintlayout.widget.ConstraintLayout
+import coil.ImageLoader
+import coil.load
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -88,6 +90,10 @@ class AmountView @JvmOverloads constructor(
 
     fun setAssetImageResource(imageRes: Int) {
         stakingAssetImage.setImageResource(imageRes)
+    }
+
+    fun setAssetImageUrl(imageUrl: String, imageLoader: ImageLoader) {
+        stakingAssetImage.load(imageUrl, imageLoader)
     }
 
     fun setAssetName(name: String) {

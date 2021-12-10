@@ -464,4 +464,11 @@ to your account to avoid remaining stake.</string>
     <string name="transaction_details_extrinsic_fee">Fee</string>
     <string name="wallet_transfer_details_title">Transfer details</string>
     <string name="wallet_manage_assets">Manage assets</string>
+    <string name="wallet_send_transferable_amount_caption">Transferable: %s</string>
+    <string name="wallet_send_asset">Send %s</string>
+    <string name="wallet_send_quick_input_max">MAX</string>
+    <string name="wallet_send_quick_input_75">75%</string>
+    <string name="wallet_send_quick_input_50">50%</string>
+    <string name="wallet_send_quick_input_25">25%</string>
+
 </resources>
