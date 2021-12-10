@@ -27,6 +27,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.pa
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.interlay.InterlayBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
@@ -191,6 +192,9 @@ class ConfirmContributeViewModel(
                         payload.metadata.isAstar && (it as? AstarBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
+                        payload.metadata.isInterlay && (it as? InterlayBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
+                            additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                        }
                         payload.metadata.isMoonbeam && ethAddress?.second == true -> {
                             additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
                         }
@@ -220,13 +224,15 @@ class ConfirmContributeViewModel(
                         additional = additionalSubmission
                     )
                 } else {
+                    val useBatchAll = payload.metadata?.isInterlay != true
                     contributionInteractor.contribute(
                         originAddress = selectedAddressModelFlow.first().address,
                         parachainId = payload.paraId,
                         contribution = payload.amount,
                         token = assetFlow.first().token,
-                        additionalSubmission,
-                        privateCrowdloanSignature
+                        additional = additionalSubmission,
+                        batchAll = useBatchAll,
+                        signature = privateCrowdloanSignature
                     )
                 }
             }

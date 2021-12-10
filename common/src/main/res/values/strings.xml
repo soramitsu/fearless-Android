@@ -370,8 +370,8 @@ Derivation path: %s</string>
     <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
     <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
     <string name="common_bonus">Bonus</string>
-    <string name="astar_bonus">Bonus for you</string>
-    <string name="astar_friend_bonus">Bonus for your friend</string>
+    <string name="your_bonus">Bonus for you</string>
+    <string name="friend_bonus">Bonus for your friend</string>
     <string name="crowdloan_enter_referral_address">Enter a referral address</string>
     <string name="crowdloan_enter_referral">Enter your referral code</string>
     <string name="staking_add_controller">Add controller account %s to the application to perform this action.</string>

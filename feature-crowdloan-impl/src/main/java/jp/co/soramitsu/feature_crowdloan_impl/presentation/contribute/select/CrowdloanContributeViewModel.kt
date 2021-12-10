@@ -3,8 +3,6 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
-import java.math.RoundingMode
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -15,10 +13,10 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_CROWDLOAN_INFO_URL
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TERMS_URL
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TOTAL_REWARD
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
@@ -37,6 +35,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.aca
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.DirectDOT
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.interlay.InterlayBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
@@ -49,8 +48,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -66,6 +63,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
@@ -161,6 +162,7 @@ class CrowdloanContributeViewModel(
         when (contributionState) {
             is CustomContributionState.Active -> {
                 when (contributionState.payload) {
+                    is InterlayBonusPayload,
                     is AstarBonusPayload,
                     is AcalaBonusPayload -> ""
                     else -> {
@@ -373,8 +375,7 @@ class CrowdloanContributeViewModel(
     }
 
     fun learnMoreClicked() {
-        val parachainLink = parachainMetadata?.website ?: return
-
+        val parachainLink = payload.parachainMetadata?.flow?.data?.getString(FLOW_CROWDLOAN_INFO_URL) ?: parachainMetadata?.website ?: return
         openBrowserEvent.value = Event(parachainLink)
     }
 
