@@ -18,6 +18,8 @@ class TokenModel(
 
         return if (recentRateChange.isNonNegative) R.color.green else R.color.red
     }
+
+    fun fiatAmount(tokenAmount: BigDecimal): BigDecimal? = dollarRate?.multiply(tokenAmount)
 }
 
 // TODO - wallet compatibility

@@ -60,6 +60,8 @@ interface WalletInteractor {
         maxAllowedLevel: TransferValidityLevel = TransferValidityLevel.Ok
     ): Result<Unit>
 
+    suspend fun getSenderAddress(chainId: ChainId): String?
+
     suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
 
     suspend fun getQrCodeSharingString(chainId: ChainId): String

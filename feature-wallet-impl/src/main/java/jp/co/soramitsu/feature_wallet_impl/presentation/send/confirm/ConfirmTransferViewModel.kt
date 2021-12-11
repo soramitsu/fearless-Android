@@ -20,7 +20,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
@@ -49,7 +48,12 @@ class ConfirmTransferViewModel(
     private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
     val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
 
-    val recipientModel = liveData { emit(getAddressIcon()) }
+    val recipientModel = liveData { emit(getAddressIcon(transferDraft.recipientAddress)) }
+
+    val senderModel = liveData {
+        val address = interactor.getSenderAddress(transferDraft.assetPayload.chainId) ?: return@liveData
+        emit(getAddressIcon(address))
+    }
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
 
@@ -74,17 +78,6 @@ class ConfirmTransferViewModel(
         val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, networkType)
 
         externalAccountActions.showExternalActions(payload)
-    }
-
-    fun availableBalanceClicked() {
-        val assetModel = assetLiveData.value ?: return
-
-        launch {
-            val amountInPlanks = walletConstants.existentialDeposit(assetModel.token.configuration.chainId)
-            val existentialDeposit = assetModel.token.configuration.amountFromPlanks(amountInPlanks)
-
-            _showBalanceDetailsEvent.value = Event(BalanceDetailsBottomSheet.Payload(assetModel, transferDraft, existentialDeposit))
-        }
     }
 
     fun submitClicked() {
@@ -132,8 +125,8 @@ class ConfirmTransferViewModel(
         }
     }
 
-    private suspend fun getAddressIcon(): AddressModel {
-        return addressIconGenerator.createAddressModel(transferDraft.recipientAddress, ICON_IN_DP)
+    private suspend fun getAddressIcon(address: String): AddressModel {
+        return addressIconGenerator.createAddressModel(address, ICON_IN_DP)
     }
 
     private fun createTransfer(token: Chain.Asset): Transfer {

@@ -17,130 +17,39 @@
         app:titleText="@string/wallet_send_confirm_transfer" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/confirmTransferToken"
-        style="@style/TextAppearance.Soramitsu.Body1"
+        android:id="@+id/confirmTransferSenderView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        app:enabled="false"
-        app:label="@string/choose_amount_asset"
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:label="@string/transaction_details_from"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/confirmTransferToolbar"
-        app:message="Kusama"
-        app:textIcon="@drawable/ic_token_ksm" />
-
-    <TextView
-        android:id="@+id/confirmTransferBalanceLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="17dp"
-        android:drawableStart="@drawable/ic_info_16"
-        android:drawablePadding="4dp"
-        android:fontFamily="@font/soramitsu_bold"
-        android:gravity="center_vertical"
-        android:text="@string/choose_amount_available_balance"
-        android:textAllCaps="true"
-        android:textColor="@color/white"
-        android:textSize="@dimen/text_size_b3"
-        app:layout_constraintStart_toStartOf="@+id/confirmTransferToken"
-        app:layout_constraintTop_toBottomOf="@+id/confirmTransferToken" />
-
-    <TextView
-        android:id="@+id/confirmTransferBalance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:fontFamily="@font/soramitsu_bold"
-        android:gravity="center_vertical"
-        android:textAllCaps="true"
-        android:textColor="@color/green"
-        android:textSize="@dimen/text_size_b3"
-        app:layout_constraintBottom_toBottomOf="@+id/confirmTransferBalanceLabel"
-        app:layout_constraintStart_toEndOf="@+id/confirmTransferBalanceLabel"
-        app:layout_constraintTop_toTopOf="@+id/confirmTransferBalanceLabel"
-        tools:text="200.643 KSM" />
-
-    <View
-        android:id="@+id/confirmTransferDivider1"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginTop="18dp"
-        android:background="@color/dividerGray"
-        app:layout_constraintEnd_toEndOf="@+id/confirmTransferToken"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/confirmTransferBalanceLabel"
-        app:layout_constraintTop_toBottomOf="@+id/confirmTransferBalanceLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/confirmTransferToolbar" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
         android:id="@+id/confirmTransferRecipientView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:enabled="false"
         app:label="@string/choose_amount_to"
-        app:layout_constraintEnd_toEndOf="@id/confirmTransferDivider1"
-        app:layout_constraintStart_toStartOf="@+id/confirmTransferDivider1"
-        app:layout_constraintTop_toBottomOf="@+id/confirmTransferDivider1" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/confirmTransferSenderView" />
 
-    <View
-        android:id="@+id/confirmTransferDivider2"
+    <jp.co.soramitsu.common.view.AmountView
+        android:id="@+id/confirmAmountField"
         android:layout_width="0dp"
-        android:layout_height="1dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
-        android:background="@color/dividerGray"
-        app:layout_constraintEnd_toEndOf="@+id/confirmTransferRecipientView"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/confirmTransferRecipientView"
+        android:enabled="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/confirmTransferRecipientView" />
-
-    <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/confirmTransferAmount"
-        style="@style/Widget.Fearless.Input.Primary.External"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:enabled="false"
-        app:label="@string/common_amount"
-        app:layout_constraintEnd_toEndOf="@+id/confirmTransferRecipientView"
-        app:layout_constraintStart_toStartOf="@+id/confirmTransferRecipientView"
-        app:layout_constraintTop_toBottomOf="@+id/confirmTransferDivider2"
-        tools:message="0" />
-
-    <TextView
-        android:id="@+id/confirmTransferFeeLabel"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/choose_amount_fee"
-        app:layout_constraintStart_toStartOf="@+id/confirmTransferAmount"
-        app:layout_constraintTop_toBottomOf="@+id/confirmTransferAmount" />
-
-    <TextView
-        android:id="@+id/confirmTransferFee"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/confirmTransferFeeLabel"
-        app:layout_constraintEnd_toEndOf="@+id/confirmTransferAmount"
-        app:layout_constraintTop_toTopOf="@+id/confirmTransferFeeLabel"
-        tools:text="0.001 KSM" />
-
-    <View
-        android:id="@+id/confirmTransferDivider3"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginTop="15dp"
-        android:background="@color/gray3"
-        app:layout_constraintEnd_toEndOf="@+id/confirmTransferToken"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/confirmTransferBalanceLabel"
-        app:layout_constraintTop_toBottomOf="@+id/confirmTransferFeeLabel" />
 
     <View
         android:layout_width="0dp"
@@ -149,8 +58,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/confirmTransferTotalLabel" />
-
+        app:layout_constraintTop_toTopOf="@+id/confirmFeeLabel" />
 
     <View
         android:id="@+id/confirmTransferDivider4"
@@ -159,29 +67,42 @@
         android:layout_marginBottom="22dp"
         android:background="@color/gray3"
         app:layout_constraintBottom_toTopOf="@+id/confirmTransferSubmit"
-        app:layout_constraintEnd_toEndOf="@+id/confirmTransferToken"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/confirmTransferBalanceLabel" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/confirmTransferTotalLabel"
+        android:id="@+id/confirmFeeLabel"
         style="@style/TextAppearance.Soramitsu.Header5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginBottom="15dp"
         android:paddingTop="15dp"
-        android:text="@string/wallet_send_total_title"
+        android:text="@string/choose_amount_fee"
         app:layout_constraintBottom_toTopOf="@+id/confirmTransferDivider4"
         app:layout_constraintStart_toStartOf="@+id/confirmTransferDivider4" />
 
     <TextView
-        android:id="@+id/confirmTransferTotal"
+        android:id="@+id/confirmFee"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/confirmTransferTotalLabel"
-        app:layout_constraintEnd_toEndOf="@+id/confirmTransferAmount"
-        tools:text="1.001 KSM" />
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/confirmFeeLabel"
+        tools:text="0.001 KSM" />
+
+    <TextView
+        android:id="@+id/confirmFeeFiat"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/gray2"
+        app:layout_constraintEnd_toEndOf="@+id/confirmFee"
+        app:layout_constraintTop_toBottomOf="@+id/confirmFee"
+        tools:text="$0.2" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/confirmTransferSubmit"
