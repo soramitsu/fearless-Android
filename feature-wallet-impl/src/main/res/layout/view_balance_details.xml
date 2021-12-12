@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@color/blurColor">
+
+    <TextView
+        android:id="@+id/balanceDetailsTitle"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:text="@string/wallet_asset_your_balance"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/balanceDetailsTotalCaption"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:text="@string/wallet_send_total_title"
+        android:textColor="@color/white_64"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/balanceDetailsTitle" />
+
+    <TextView
+        android:id="@+id/balanceDetailsTotal"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/balanceDetailsTotalFiat"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/balanceDetailsTotalCaption"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="44.08503 KSM" />
+
+    <TextView
+        android:id="@+id/balanceDetailsTotalFiat"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white_50"
+        app:layout_constraintBottom_toBottomOf="@+id/balanceDetailsTotalCaption"
+        app:layout_constraintEnd_toEndOf="@+id/balanceDetailsTotal"
+        app:layout_constraintTop_toBottomOf="@+id/balanceDetailsTotal"
+        tools:text="$21,000.43" />
+
+    <View
+        android:id="@+id/balanceDetailsTotalDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/white_24"
+        app:layout_constraintTop_toBottomOf="@+id/balanceDetailsTotalCaption" />
+
+    <TextView
+        android:id="@+id/balanceDetailsTransferableCaption"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:text="@string/wallet_asset_transferable_caption"
+        android:textColor="@color/white_64"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/balanceDetailsTotalDivider" />
+
+    <TextView
+        android:id="@+id/balanceDetailsTransferable"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/balanceDetailsTransferableFiat"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/balanceDetailsTransferableCaption"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="44.08503 KSM" />
+
+    <TextView
+        android:id="@+id/balanceDetailsTransferableFiat"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white_50"
+        app:layout_constraintBottom_toBottomOf="@+id/balanceDetailsTransferableCaption"
+        app:layout_constraintEnd_toEndOf="@+id/balanceDetailsTransferable"
+        app:layout_constraintTop_toBottomOf="@+id/balanceDetailsTransferable"
+        tools:text="$21,000.43" />
+
+    <View
+        android:id="@+id/balanceDetailsTransferableDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/white_24"
+        app:layout_constraintTop_toBottomOf="@+id/balanceDetailsTransferableCaption" />
+
+    <TextView
+        android:id="@+id/balanceDetailsLockedCaption"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginBottom="8dp"
+        android:drawableEnd="@drawable/ic_info_16"
+        android:drawablePadding="4dp"
+        android:gravity="center_vertical"
+        android:text="@string/wallet_balance_locked"
+        android:textColor="@color/white_64"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/balanceDetailsTransferableDivider" />
+
+    <TextView
+        android:id="@+id/balanceDetailsLocked"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/balanceDetailsLockedFiat"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/balanceDetailsLockedCaption"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="44.08503 KSM" />
+
+    <TextView
+        android:id="@+id/balanceDetailsLockedFiat"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white_50"
+        app:layout_constraintBottom_toBottomOf="@+id/balanceDetailsLockedCaption"
+        app:layout_constraintEnd_toEndOf="@+id/balanceDetailsLocked"
+        app:layout_constraintTop_toBottomOf="@+id/balanceDetailsLocked"
+        tools:text="$21,000.43" />
+
+</merge>

@@ -49,14 +49,15 @@
                 <ImageView
                     android:id="@+id/balanceDetailTokenIcon"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
                     android:src="@drawable/ic_token_ksm"
-                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailBack"
+                    app:layout_constrainedHeight="true"
+                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailTokenName"
                     app:layout_constraintEnd_toStartOf="@+id/balanceDetailTokenName"
                     app:layout_constraintHorizontal_chainStyle="packed"
-                    app:layout_constraintStart_toStartOf="@+id/balanceDetailRate"
-                    app:layout_constraintTop_toTopOf="@+id/balanceDetailBack" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenName" />
 
                 <TextView
                     android:id="@+id/balanceDetailTokenName"
@@ -64,23 +65,41 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:includeFontPadding="false"
-                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailTokenIcon"
-                    app:layout_constraintEnd_toEndOf="@+id/balanceDetailDollarAmount"
+                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailBack"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/balanceDetailTokenIcon"
-                    app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenIcon"
-                    tools:text="Kusama" />
+                    app:layout_constraintTop_toTopOf="@+id/balanceDetailBack"
+                    tools:text="KSM" />
 
-                <TextView
-                    android:id="@+id/balanceDetailTotal"
-                    style="@style/TextAppearance.Soramitsu.Header3"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:includeFontPadding="false"
-                    app:layout_constraintEnd_toEndOf="@+id/balanceDetailDollarAmount"
-                    app:layout_constraintStart_toStartOf="@+id/balanceDetailRate"
-                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailTokenIcon"
-                    tools:text="0 KSM" />
+                    android:layout_marginEnd="16dp"
+                    android:background="@drawable/bg_asset_badge"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailTokenName"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenName">
+
+                    <ImageView
+                        android:id="@+id/assetBadgeIcon"
+                        android:layout_width="14dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginVertical="3dp"
+                        android:layout_marginEnd="4dp"
+                        tools:src="@drawable/ic_token_ksm" />
+
+                    <TextView
+                        android:id="@+id/balanceAssetName"
+                        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
+                        android:textColor="@color/white_64"
+                        tools:text="KUSAMA" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/balanceDetailRate"
@@ -92,7 +111,7 @@
                     app:layout_constraintEnd_toStartOf="@+id/balanceDetailRateChange"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailTotal"
+                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailTokenName"
                     tools:text="$10.25"
                     tools:textColor="@color/white" />
 
@@ -103,7 +122,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     app:layout_constraintBottom_toBottomOf="@+id/balanceDetailRate"
-                    app:layout_constraintEnd_toStartOf="@+id/view"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toEndOf="@+id/balanceDetailRate"
                     app:layout_constraintTop_toTopOf="@+id/balanceDetailRate"
@@ -111,116 +130,27 @@
                     tools:text="+25%"
                     tools:textColor="@color/green" />
 
-                <View
-                    android:id="@+id/view"
-                    android:layout_width="1dp"
-                    android:layout_height="0dp"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="2dp"
-                    android:background="@color/dividerGray"
-                    app:layout_constraintBottom_toBottomOf="@id/balanceDetailRateChange"
-                    app:layout_constraintEnd_toStartOf="@+id/balanceDetailDollarAmount"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintStart_toEndOf="@+id/balanceDetailRateChange"
-                    app:layout_constraintTop_toTopOf="@+id/balanceDetailRateChange"
-                    app:layout_constraintVertical_bias="1.0" />
-
-                <TextView
-                    android:id="@+id/balanceDetailDollarAmount"
-                    style="@style/TextAppearance.Soramitsu.Body1"
-                    android:layout_width="wrap_content"
+                <jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailsView
+                    android:id="@+id/balanceDetailsInfo"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailRateChange"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/view"
-                    app:layout_constraintTop_toTopOf="@+id/balanceDetailRateChange"
-                    tools:text="$10.05" />
-
-                <TextView
-                    android:id="@+id/balanceDetailFrozenAmount"
-                    style="@style/TextAppearance.Soramitsu.Header3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:includeFontPadding="false"
-                    app:layout_constraintEnd_toEndOf="@+id/balanceDetailFrozenTitle"
-                    app:layout_constraintStart_toStartOf="@+id/balanceDetailFrozenTitle"
-                    app:layout_constraintTop_toBottomOf="@+id/blur"
-                    tools:text="2.0" />
-
-                <TextView
-                    android:id="@+id/balanceDetailFrozenTitle"
-                    style="@style/TextAppearance.Soramitsu.Body0"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:drawableEnd="@drawable/ic_info_16"
-                    android:drawablePadding="4dp"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:text="@string/wallet_balance_frozen"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintHorizontal_chainStyle="packed"
-                    app:layout_constraintStart_toEndOf="@+id/balanceDetailAvailableTitle"
-                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailFrozenAmount" />
-
-                <TextView
-                    android:id="@+id/balanceDetailAvailableAmount"
-                    style="@style/TextAppearance.Soramitsu.Header3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:includeFontPadding="false"
-                    app:layout_constraintEnd_toEndOf="@+id/balanceDetailAvailableTitle"
-                    app:layout_constraintStart_toStartOf="@+id/balanceDetailAvailableTitle"
-                    app:layout_constraintTop_toBottomOf="@+id/blur"
-                    tools:text="42.0849" />
-
-                <TextView
-                    android:id="@+id/balanceDetailAvailableTitle"
-                    style="@style/TextAppearance.Soramitsu.Body0"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="51dp"
-                    android:includeFontPadding="false"
-                    android:text="@string/wallet_balance_available"
-                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailFrozenTitle"
-                    app:layout_constraintEnd_toStartOf="@+id/balanceDetailFrozenTitle"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/balanceDetailFrozenTitle" />
+                    app:layout_constraintTop_toBottomOf="@+id/blur" />
 
                 <jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.AssetActionsView
                     android:id="@+id/balanceDetaiActions"
                     android:layout_width="0dp"
                     android:layout_height="@dimen/asset_height"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="16dp"
-                    android:layout_marginEnd="16dp"
                     android:layout_marginBottom="8dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailAvailableTitle" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/guideline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:layout_constraintGuide_percent="0.5" />
-
-                <androidx.constraintlayout.widget.Group
-                    android:id="@+id/balanceDetailDollarGroup"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="invisible"
-                    app:constraint_referenced_ids="balanceDetailRate,view,balanceDetailDollarAmount,balanceDetailRateChange"
-                    tools:visibility="visible" />
+                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailsInfo" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
