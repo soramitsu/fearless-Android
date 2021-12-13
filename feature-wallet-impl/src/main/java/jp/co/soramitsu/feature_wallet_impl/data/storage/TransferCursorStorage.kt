@@ -19,7 +19,7 @@ class TransferCursorStorage(
 
     fun saveCursor(
         chainId: ChainId,
-        chainAssetId: Int,
+        chainAssetId: String,
         accountId: AccountId,
         cursor: String?,
     ) {
@@ -30,7 +30,7 @@ class TransferCursorStorage(
 
     suspend fun awaitCursor(
         chainId: ChainId,
-        chainAssetId: Int,
+        chainAssetId: String,
         accountId: AccountId,
     ) = preferences.stringFlow(cursorKey(chainId, chainAssetId, accountId))
         .filterNotNull() // suspends until cursor is inserted
@@ -42,5 +42,5 @@ class TransferCursorStorage(
             }
         }.first()
 
-    private fun cursorKey(chainId: String, chainAssetId: Int, accountId: AccountId) = "$TRANSACTIONS_CURSOR_KEY:$accountId:$chainId:$chainAssetId"
+    private fun cursorKey(chainId: String, chainAssetId: String, accountId: AccountId) = "$TRANSACTIONS_CURSOR_KEY:$accountId:$chainId:$chainAssetId"
 }

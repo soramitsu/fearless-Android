@@ -26,14 +26,15 @@ data class Chain(
     )
 
     data class Asset(
+        val id: String,
         val iconUrl: String,
-        val id: Int,
         val priceId: String?,
         val chainId: ChainId,
         val symbol: String,
         val precision: Int,
         val staking: StakingType,
         val name: String,
+        val priceProviders: List<String>?
     ) {
 
         enum class StakingType {

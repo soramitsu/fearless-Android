@@ -3,6 +3,7 @@ package jp.co.soramitsu.core_db.model.chain
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import java.util.Locale
 
 @Entity(
     tableName = "chain_assets",
@@ -20,11 +21,15 @@ import androidx.room.Index
     ]
 )
 class ChainAssetLocal(
-    val id: Int,
+    val id: String,
     val chainId: String,
     val name: String,
-    val symbol: String,
+    val icon: String,
     val priceId: String?,
     val staking: String,
-    val precision: Int
-)
+    val precision: Int,
+    val priceProviders: String?
+) {
+    val symbol: String
+        get() = id.toUpperCase(Locale.ROOT)
+}

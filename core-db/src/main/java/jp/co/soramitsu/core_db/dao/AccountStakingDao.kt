@@ -18,12 +18,12 @@ private const val SELECT_QUERY = """
 abstract class AccountStakingDao {
 
     @Query(SELECT_QUERY)
-    abstract suspend fun get(chainId: String, chainAssetId: Int, accountId: ByteArray): AccountStakingLocal
+    abstract suspend fun get(chainId: String, chainAssetId: String, accountId: ByteArray): AccountStakingLocal
 
     @Query(SELECT_QUERY)
-    protected abstract fun observeInternal(chainId: String, chainAssetId: Int, accountId: ByteArray): Flow<AccountStakingLocal>
+    protected abstract fun observeInternal(chainId: String, chainAssetId: String, accountId: ByteArray): Flow<AccountStakingLocal>
 
-    fun observeDistinct(chainId: String, chainAssetId: Int, accountId: ByteArray): Flow<AccountStakingLocal> {
+    fun observeDistinct(chainId: String, chainAssetId: String, accountId: ByteArray): Flow<AccountStakingLocal> {
         return observeInternal(chainId, chainAssetId, accountId)
             .filterNotNull()
             .distinctUntilChanged()

@@ -39,9 +39,9 @@ interface BuyMixin {
 
         override val integrateWithBuyProviderEvent: MutableLiveData<Event<IntegrationPayload>>
 
-        fun buyClicked(chainId: ChainId, chainAssetId: Int, accountAddress: String)
+        fun buyClicked(chainId: ChainId, chainAssetId: String, accountAddress: String)
 
-        fun isBuyEnabled(chainId: ChainId, chainAssetId: Int): Boolean
+        fun isBuyEnabled(chainId: ChainId, chainAssetId: String): Boolean
     }
 }
 

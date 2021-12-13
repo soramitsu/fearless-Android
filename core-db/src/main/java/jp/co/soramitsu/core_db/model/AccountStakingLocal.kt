@@ -10,7 +10,7 @@ import androidx.room.Entity
 )
 class AccountStakingLocal(
     val chainId: String,
-    val chainAssetId: Int,
+    val chainAssetId: String,
     val accountId: ByteArray,
     @Embedded
     val stakingAccessInfo: AccessInfo?

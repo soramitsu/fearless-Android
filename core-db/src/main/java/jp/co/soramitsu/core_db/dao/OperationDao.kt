@@ -27,7 +27,7 @@ abstract class OperationDao {
     abstract fun observe(
         address: String,
         chainId: String,
-        chainAssetId: Int,
+        chainAssetId: String,
         statusUp: OperationLocal.Status = OperationLocal.Status.PENDING
     ): Flow<List<OperationLocal>>
 
@@ -53,7 +53,7 @@ abstract class OperationDao {
     open suspend fun insertFromSubquery(
         accountAddress: String,
         chainId: String,
-        chainAssetId: Int,
+        chainAssetId: String,
         operations: List<OperationLocal>
     ) {
         clearBySource(accountAddress, chainId, chainAssetId, OperationLocal.Source.SUBQUERY)
@@ -76,7 +76,7 @@ abstract class OperationDao {
     protected abstract suspend fun clearBySource(
         address: String,
         chainId: String,
-        chainAssetId: Int,
+        chainAssetId: String,
         source: OperationLocal.Source
     ): Int
 
@@ -84,7 +84,7 @@ abstract class OperationDao {
     protected abstract suspend fun clearOld(
         address: String,
         chainId: String,
-        chainAssetId: Int,
+        chainAssetId: String,
         minTime: Long
     ): Int
 
@@ -92,7 +92,7 @@ abstract class OperationDao {
     protected abstract suspend fun clearByHashes(
         address: String,
         chainId: String,
-        chainAssetId: Int,
+        chainAssetId: String,
         hashes: Set<String>
     ): Int
 }

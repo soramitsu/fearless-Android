@@ -42,7 +42,7 @@ class BalanceListModule {
             resourceManager,
             addressDisplayUseCase,
             chainId = Node.NetworkType.POLKADOT.chainId, // TODO remove transfer history provider from main screen
-            assetId = 0
+            assetId = "0"
         )
     }
 

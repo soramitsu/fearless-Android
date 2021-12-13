@@ -23,22 +23,22 @@ interface WalletInteractor {
 
     suspend fun syncAssetsRates(): Result<Unit>
 
-    fun assetFlow(chainId: ChainId, chainAssetId: Int): Flow<Asset>
+    fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset>
 
-    suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: Int): Asset
+    suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: String): Asset
 
-    fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: Int): Flow<OperationsPageChange>
+    fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange>
 
     suspend fun syncOperationsFirstPage(
         chainId: ChainId,
-        chainAssetId: Int,
+        chainAssetId: String,
         pageSize: Int,
         filters: Set<TransactionFilter>,
     ): Result<*>
 
     suspend fun getOperations(
         chainId: ChainId,
-        chainAssetId: Int,
+        chainAssetId: String,
         pageSize: Int,
         cursor: String?,
         filters: Set<TransactionFilter>

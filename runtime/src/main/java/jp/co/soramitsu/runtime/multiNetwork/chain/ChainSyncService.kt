@@ -15,7 +15,11 @@ class ChainSyncService(
     suspend fun syncUp() = withContext(Dispatchers.Default) {
         val localChainsJoinedInfo = dao.getJoinChainInfo()
 
-        val remoteChains = chainFetcher.getChains().map(::mapChainRemoteToChain)
+        val chains = chainFetcher.getChains()
+        val assets = chainFetcher.getAssets()
+
+        val remoteChains = mapChainRemoteToChain(chains, assets)
+
         val localChains = localChainsJoinedInfo.map(::mapChainLocalToChain)
 
         val remoteMapping = remoteChains.associateBy(Chain::id)
