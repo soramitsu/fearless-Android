@@ -12,7 +12,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeView
 import kotlinx.android.synthetic.main.interlay_referral_flow.view.referralFriendBonus
-import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
 
 class InterlayContributeView @JvmOverloads constructor(
     context: Context,
@@ -35,7 +34,6 @@ class InterlayContributeView @JvmOverloads constructor(
 
         require(viewState is InterlayContributeViewState)
         viewState.privacyAcceptedFlow.value = true // no agreement for interlay
-        referralReferralCodeInput.hint = context.getString(R.string.crowdloan_astar_referral_code_hint)
         viewState.bonusFlow.observe(scope) { bonus ->
             referralFriendBonus.setVisible(bonus != null)
 

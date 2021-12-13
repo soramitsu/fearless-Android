@@ -16,7 +16,8 @@ data class CrowdloanModel(
     val icon: Icon,
     val raised: String,
     val state: State,
-    val myContribution: String?
+    val myContribution: String?,
+    val referral: String?
 ) {
 
     sealed class State {

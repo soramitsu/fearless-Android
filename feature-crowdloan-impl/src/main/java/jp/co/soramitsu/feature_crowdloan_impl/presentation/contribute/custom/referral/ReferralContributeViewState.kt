@@ -8,6 +8,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TE
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.interlay.InterlayBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
@@ -96,12 +97,21 @@ abstract class ReferralContributeViewState(
     }
 
     val bonusNumberFlow = bonusPayloadFlow.map {
-        it.calculateBonus(customContributePayload.amount)
+        when {
+            it is InterlayBonusPayload -> customContributePayload.amount
+            else -> it.calculateBonus(customContributePayload.amount)
+        }
     }
 
-    val bonusFlow = bonusNumberFlow.map { bonus ->
-        val tokenName = customContributePayload.parachainMetadata.token
-        bonus?.formatTokenAmount(tokenName)
+    val bonusFlow = bonusPayloadFlow.map {
+        when {
+            it is InterlayBonusPayload -> "5%"
+            else -> {
+                val bonus = it.calculateBonus(customContributePayload.amount)
+                val tokenName = customContributePayload.parachainMetadata.token
+                bonus?.formatTokenAmount(tokenName)
+            }
+        }
     }
 
     override val applyActionState = enteredReferralCodeFlow.combine(privacyAcceptedFlow) { referral, privacyAccepted ->

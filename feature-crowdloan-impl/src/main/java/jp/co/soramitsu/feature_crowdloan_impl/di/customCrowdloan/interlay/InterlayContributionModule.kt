@@ -5,7 +5,6 @@ import dagger.Provides
 import dagger.multibindings.IntoSet
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.interlay.InterlayContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.interlay.InterlayContributeSubmitter
@@ -15,9 +14,7 @@ class InterlayContributionModule {
 
     @Provides
     @FeatureScope
-    fun provideInterlayInteractor(
-        accountRepository: AccountRepository,
-    ) = InterlayContributeInteractor(accountRepository)
+    fun provideInterlayInteractor() = InterlayContributeInteractor()
 
     @Provides
     @FeatureScope

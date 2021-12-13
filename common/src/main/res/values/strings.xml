@@ -388,6 +388,8 @@ Derivation path: %s</string>
     <string name="crowdloan_acala_referral_code_invalid">Invalid referral code, please make sure you entered it correctly and try again</string>
     <string name="crowdloan_astar_referral_code_hint">Referral address (Polkadot addresses only)</string>
     <string name="crowdloan_referral_code_hint">Referral code</string>
+    <string name="copy_referral_code">Copy referral code</string>
+    <string name="share_referral_code">Share referral code</string>
     <string name="crowdloan_email_hint">Email address</string>
     <string name="label_link">Link</string>
     <string name="till_format">till %s</string>

@@ -9,12 +9,7 @@ import java.math.BigDecimal
 class InterlayBonusPayload(
     override val referralCode: String,
     val parachainId: ParaId,
-    private val rewardRate: BigDecimal?,
-    private val bonusRate: BigDecimal?
 ) : ReferralCodePayload {
 
-    override fun calculateBonus(amount: BigDecimal): BigDecimal? = when {
-        rewardRate == null || bonusRate == null -> null
-        else -> amount * rewardRate * bonusRate
-    }
+    override fun calculateBonus(amount: BigDecimal): BigDecimal? = null
 }

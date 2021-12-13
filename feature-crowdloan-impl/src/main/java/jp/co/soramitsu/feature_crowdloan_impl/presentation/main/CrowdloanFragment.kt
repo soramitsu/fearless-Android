@@ -1,12 +1,12 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -24,6 +24,7 @@ import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
 import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreText
 import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreWrapper
+import javax.inject.Inject
 
 class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.Handler {
 
@@ -91,4 +92,24 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
     override fun crowdloanClicked(paraId: ParaId) {
         viewModel.crowdloanClicked(paraId)
     }
+
+    override fun copyReferralClicked(code: String) {
+        CrowdloanReferralActionsSheet(
+            context = requireContext(),
+            code = code,
+            onCopy = viewModel::copyStringClicked,
+            onShare = ::startSharingIntent
+        )
+            .show()
+    }
+
+    private fun startSharingIntent(code: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, code)
+        }
+
+        startActivity(Intent.createChooser(intent, getString(R.string.share_referral_code)))
+    }
+
 }

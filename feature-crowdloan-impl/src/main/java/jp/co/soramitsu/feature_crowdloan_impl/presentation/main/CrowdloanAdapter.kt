@@ -26,6 +26,7 @@ import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaDescr
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaName
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaRaised
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanTimeRemaining
+import kotlinx.android.synthetic.main.item_crowdloan.view.itemReferralCode
 import kotlinx.android.synthetic.main.item_crowdloan_group.view.itemCrowdloanGroupStatus
 
 class CrowdloanAdapter(
@@ -36,6 +37,7 @@ class CrowdloanAdapter(
     interface Handler {
 
         fun crowdloanClicked(paraId: ParaId)
+        fun copyReferralClicked(code: String)
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
@@ -145,6 +147,8 @@ private class CrowdloanChildHolder(
             itemCrowdloanArrow.makeVisible()
 
             setOnClickListener { handler.crowdloanClicked(item.parachainId) }
+
+            itemReferralCode.setOnClickListener { item.referral?.let(handler::copyReferralClicked) }
         } else {
             itemCrowdloanTimeRemaining.makeGone()
             itemCrowdloanArrow.makeGone()
@@ -171,5 +175,7 @@ private class CrowdloanChildHolder(
         containerView.itemCrowdloanMyContribution.setVisible(item.myContribution != null)
         containerView.itemCrowdloanMyContribution.setTextColorRes(R.color.colorAccent)
         containerView.itemCrowdloanMyContribution.text = item.myContribution
+
+        containerView.itemReferralCode.setVisible(item.myContribution != null && item.referral != null)
     }
 }

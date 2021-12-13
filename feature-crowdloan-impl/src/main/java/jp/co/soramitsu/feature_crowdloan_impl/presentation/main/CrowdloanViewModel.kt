@@ -2,13 +2,13 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.math.BigDecimal
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.list.toValueList
 import jp.co.soramitsu.common.mixin.api.Browserable
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.formatTimeLeft
 import jp.co.soramitsu.common.utils.Event
@@ -16,6 +16,9 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_KEY
@@ -35,12 +38,14 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import kotlin.reflect.KClass
 
 private const val ICON_SIZE_DP = 40
 
@@ -49,7 +54,9 @@ class CrowdloanViewModel(
     private val assetUseCase: AssetUseCase,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    private val router: CrowdloanRouter
+    private val router: CrowdloanRouter,
+    private val accountUseCase: SelectedAccountUseCase,
+    private val clipboardManager: ClipboardManager,
 ) : BaseViewModel(), Browserable {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
@@ -140,6 +147,10 @@ class CrowdloanViewModel(
             raised = resourceManager.getString(R.string.crownloans_raised_format, raisedDisplay, capDisplay),
             myContribution = myContributionDisplay,
             state = stateFormatted,
+            referral = when (crowdloan.parachainMetadata?.isInterlay) {
+                true -> accountUseCase.selectedAccountFlow().firstOrNull()?.address?.toByteArray()?.blake2b256()?.toHexString(true)
+                else -> null
+            }
         )
     }
 
@@ -196,5 +207,11 @@ class CrowdloanViewModel(
 
     fun learnMoreClicked() {
         openBrowserEvent.value = Event(BuildConfig.WIKI_CROWDLOANS_URL)
+    }
+
+    fun copyStringClicked(address: String) {
+        clipboardManager.addToClipboard(address)
+
+        showMessage(resourceManager.getString(R.string.common_copied))
     }
 }

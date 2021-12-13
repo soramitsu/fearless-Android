@@ -459,4 +459,6 @@
     <string name="common_event">Событие</string>
     <string name="common_copy_id">Копировать идентификатор</string>
     <string name="transfer_title">Перевод</string>
+    <string name="copy_referral_code">Копировать реферальный код</string>
+    <string name="share_referral_code">Поделиться реферальным кодом</string>
 </resources>

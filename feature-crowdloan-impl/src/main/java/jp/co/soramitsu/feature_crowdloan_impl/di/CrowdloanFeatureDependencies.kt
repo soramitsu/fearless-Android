@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.validation.ValidationExecutor
@@ -56,6 +57,8 @@ interface CrowdloanFeatureDependencies {
     fun tokenRepository(): TokenRepository
 
     fun resourceManager(): ResourceManager
+
+    fun clipboardManager(): ClipboardManager
 
     fun externalAccountActions(): ExternalAccountActions.Presentation
 
