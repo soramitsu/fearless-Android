@@ -1,10 +1,13 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 
@@ -53,57 +56,64 @@ private fun mapSectionToSectionLocal(sectionLocal: Chain.ExternalApi.Section?) =
     )
 }
 
+private const val DEFAULT_PRECISION = 10
+
 fun mapChainRemoteToChain(
-    chainRemote: ChainRemote,
-): Chain {
-    val nodes = chainRemote.nodes.map {
-        Chain.Node(
-            url = it.url,
-            name = it.name
-        )
-    }
+    chainsRemote: List<ChainRemote>, assetsRemote: List<AssetRemote>
+): List<Chain> {
+    val assetsById = assetsRemote.filter { it.id != null }.associateBy { it.id }
+    return chainsRemote.map { chainRemote ->
+        val nodes = chainRemote.nodes?.map {
+            Chain.Node(
+                url = it.url,
+                name = it.name
+            )
+        }
 
-    val assets = chainRemote.assets.map {
-        Chain.Asset(
-            iconUrl = chainRemote.icon,
-            chainId = chainRemote.chainId,
-            id = it.assetId,
-            symbol = it.symbol,
-            precision = it.precision,
-            name = it.name ?: chainRemote.name,
-            priceId = it.priceId,
-            staking = mapStakingStringToStakingType(it.staking)
-        )
-    }
+        val assets = chainRemote.assets?.mapNotNull { chainAsset ->
+            chainAsset.assetId?.let {
+                val assetRemote = assetsById[chainAsset.assetId]
+                Chain.Asset(
+                    id = chainAsset.assetId,
+                    chainId = assetRemote?.chainId.orEmpty(),
+                    iconUrl = assetRemote?.icon.orEmpty(),
+                    symbol = assetRemote?.symbol.orEmpty(),
+                    precision = assetRemote?.precision ?: DEFAULT_PRECISION,
+                    name = chainRemote.name,
+                    priceId = assetRemote?.priceId,
+                    staking = mapStakingStringToStakingType(chainAsset.staking),
+                    priceProviders = chainAsset.purchaseProviders
+                )
+            }
+        }
 
-    val types = chainRemote.types?.let {
-        Chain.Types(
-            url = it.url,
-            overridesCommon = it.overridesCommon
-        )
-    }
+        val types = chainRemote.types?.let {
+            Chain.Types(
+                url = it.url,
+                overridesCommon = it.overridesCommon
+            )
+        }
 
-    val externalApi = chainRemote.externalApi?.let { externalApi ->
-        Chain.ExternalApi(
-            history = mapSectionRemoteToSection(externalApi.history),
-            staking = mapSectionRemoteToSection(externalApi.staking),
-            crowdloans = mapSectionRemoteToSection(externalApi.crowdloans),
-        )
-    }
+        val externalApi = chainRemote.externalApi?.let { externalApi ->
+            Chain.ExternalApi(
+                history = mapSectionRemoteToSection(externalApi.history),
+                staking = mapSectionRemoteToSection(externalApi.staking),
+                crowdloans = mapSectionRemoteToSection(externalApi.crowdloans),
+            )
+        }
 
-    return with(chainRemote) {
-        val optionsOrEmpty = options.orEmpty()
+        val optionsOrEmpty = chainRemote.options.orEmpty()
 
         Chain(
-            id = chainId,
-            parentId = parentId,
-            name = name,
-            assets = assets,
+            id = chainRemote.chainId,
+            parentId = chainRemote.parentId,
+            name = chainRemote.name,
+            assets = assets.orEmpty(),
             types = types,
-            nodes = nodes,
-            icon = icon,
+            nodes = nodes.orEmpty(),
+            icon = chainRemote.icon.orEmpty(),
             externalApi = externalApi,
-            addressPrefix = addressPrefix,
+            addressPrefix = chainRemote.addressPrefix,
             isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
             isTestNet = TESTNET_OPTION in optionsOrEmpty,
             hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty
@@ -128,7 +138,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             name = it.name,
             chainId = it.chainId,
             priceId = it.priceId,
-            staking = mapStakingTypeFromLocal(it.staking)
+            staking = mapStakingTypeFromLocal(it.staking),
+            priceProviders = it.priceProviders?.let { Gson().fromJson(it, object : TypeToken<List<String>>() {}.type) }
         )
     }
 
@@ -177,12 +188,13 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     val assets = chain.assets.map {
         ChainAssetLocal(
             id = it.id,
-            symbol = it.symbol,
+            icon = it.iconUrl,
             precision = it.precision,
             chainId = chain.id,
             name = it.name,
             priceId = it.priceId,
-            staking = mapStakingTypeToLocal(it.staking)
+            staking = mapStakingTypeToLocal(it.staking),
+            priceProviders = it.priceProviders?.let { Gson().toJson(it) }
         )
     }
 

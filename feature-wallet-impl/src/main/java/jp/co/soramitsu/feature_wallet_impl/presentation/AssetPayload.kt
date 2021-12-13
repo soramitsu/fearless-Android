@@ -7,13 +7,13 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class AssetPayload(val chainId: ChainId, val chainAssetId: Int) : Parcelable {
+class AssetPayload(val chainId: ChainId, val chainAssetId: String) : Parcelable {
 
     companion object {
 
         fun stub() = AssetPayload(
             chainId = Node.NetworkType.POLKADOT.chainId,
-            chainAssetId = 0
+            chainAssetId = "0"
         )
     }
 }

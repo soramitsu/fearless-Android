@@ -55,7 +55,7 @@ class WalletInteractorImpl(
         }
     }
 
-    override fun assetFlow(chainId: ChainId, chainAssetId: Int): Flow<Asset> {
+    override fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset> {
         return accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
@@ -64,14 +64,14 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: Int): Asset {
+    override suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: String): Asset {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
         return walletRepository.getAsset(metaAccount.accountId(chain)!!, chainAsset)!!
     }
 
-    override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: Int): Flow<OperationsPageChange> {
+    override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {
         return accountRepository.selectedMetaAccountFlow()
             .flatMapLatest { metaAccount ->
                 val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
@@ -85,7 +85,7 @@ class WalletInteractorImpl(
 
     override suspend fun syncOperationsFirstPage(
         chainId: ChainId,
-        chainAssetId: Int,
+        chainAssetId: String,
         pageSize: Int,
         filters: Set<TransactionFilter>,
     ) = withContext(Dispatchers.Default) {
@@ -100,7 +100,7 @@ class WalletInteractorImpl(
 
     override suspend fun getOperations(
         chainId: ChainId,
-        chainAssetId: Int,
+        chainAssetId: String,
         pageSize: Int,
         cursor: String?,
         filters: Set<TransactionFilter>,
@@ -223,7 +223,7 @@ class WalletInteractorImpl(
     // TODO just create file, screens can retrieve asset with getCurrentAsset()
     override suspend fun createFileInTempStorageAndRetrieveAsset(
         chainId: ChainId,
-        chainAssetId: Int,
+        chainAssetId: String,
         fileName: String
     ): Result<Pair<File, Asset>> {
         return runCatching {

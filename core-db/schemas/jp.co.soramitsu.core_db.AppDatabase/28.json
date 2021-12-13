@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 28,
-    "identityHash": "4ab65574bbf24a1e50561c7c454040f3",
+    "identityHash": "81f357274210d8e088724085fa54005f",
     "entities": [
       {
         "tableName": "users",
@@ -190,6 +190,7 @@
             "columnNames": [
               "metaId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `${TABLE_NAME}` (`metaId`)"
           }
         ],
@@ -282,7 +283,7 @@
       },
       {
         "tableName": "account_staking_accesses",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chainId` TEXT NOT NULL, `chainAssetId` INTEGER NOT NULL, `accountId` BLOB NOT NULL, `stashId` BLOB, `controllerId` BLOB, PRIMARY KEY(`chainId`, `chainAssetId`, `accountId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chainId` TEXT NOT NULL, `chainAssetId` TEXT NOT NULL, `accountId` BLOB NOT NULL, `stashId` BLOB, `controllerId` BLOB, PRIMARY KEY(`chainId`, `chainAssetId`, `accountId`))",
         "fields": [
           {
             "fieldPath": "chainId",
@@ -293,7 +294,7 @@
           {
             "fieldPath": "chainAssetId",
             "columnName": "chainAssetId",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -354,7 +355,7 @@
       },
       {
         "tableName": "operations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `address` TEXT NOT NULL, `chainId` TEXT NOT NULL, `chainAssetId` INTEGER NOT NULL, `time` INTEGER NOT NULL, `status` INTEGER NOT NULL, `source` INTEGER NOT NULL, `operationType` INTEGER NOT NULL, `module` TEXT, `call` TEXT, `amount` TEXT, `sender` TEXT, `receiver` TEXT, `hash` TEXT, `fee` TEXT, `isReward` INTEGER, `era` INTEGER, `validator` TEXT, PRIMARY KEY(`id`, `address`, `chainId`, `chainAssetId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `address` TEXT NOT NULL, `chainId` TEXT NOT NULL, `chainAssetId` TEXT NOT NULL, `time` INTEGER NOT NULL, `status` INTEGER NOT NULL, `source` INTEGER NOT NULL, `operationType` INTEGER NOT NULL, `module` TEXT, `call` TEXT, `amount` TEXT, `sender` TEXT, `receiver` TEXT, `hash` TEXT, `fee` TEXT, `isReward` INTEGER, `era` INTEGER, `validator` TEXT, PRIMARY KEY(`id`, `address`, `chainId`, `chainAssetId`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -377,7 +378,7 @@
           {
             "fieldPath": "chainAssetId",
             "columnName": "chainAssetId",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -624,6 +625,7 @@
             "columnNames": [
               "chainId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `${TABLE_NAME}` (`chainId`)"
           }
         ],
@@ -643,12 +645,12 @@
       },
       {
         "tableName": "chain_assets",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `chainId` TEXT NOT NULL, `name` TEXT NOT NULL, `symbol` TEXT NOT NULL, `priceId` TEXT, `staking` TEXT NOT NULL, `precision` INTEGER NOT NULL, PRIMARY KEY(`chainId`, `id`), FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `chainId` TEXT NOT NULL, `name` TEXT NOT NULL, `icon` TEXT NOT NULL, `priceId` TEXT, `staking` TEXT NOT NULL, `precision` INTEGER NOT NULL, `priceProviders` TEXT, PRIMARY KEY(`chainId`, `id`), FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -664,8 +666,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "symbol",
-            "columnName": "symbol",
+            "fieldPath": "icon",
+            "columnName": "icon",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -686,6 +688,12 @@
             "columnName": "precision",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "priceProviders",
+            "columnName": "priceProviders",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -702,6 +710,7 @@
             "columnNames": [
               "chainId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `${TABLE_NAME}` (`chainId`)"
           }
         ],
@@ -755,6 +764,7 @@
             "columnNames": [
               "chainId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_chain_runtimes_chainId` ON `${TABLE_NAME}` (`chainId`)"
           }
         ],
@@ -832,6 +842,7 @@
             "columnNames": [
               "substrateAccountId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_meta_accounts_substrateAccountId` ON `${TABLE_NAME}` (`substrateAccountId`)"
           },
           {
@@ -840,6 +851,7 @@
             "columnNames": [
               "ethereumAddress"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_meta_accounts_ethereumAddress` ON `${TABLE_NAME}` (`ethereumAddress`)"
           }
         ],
@@ -894,6 +906,7 @@
             "columnNames": [
               "chainId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `${TABLE_NAME}` (`chainId`)"
           },
           {
@@ -902,6 +915,7 @@
             "columnNames": [
               "metaId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `${TABLE_NAME}` (`metaId`)"
           },
           {
@@ -910,6 +924,7 @@
             "columnNames": [
               "accountId"
             ],
+            "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `${TABLE_NAME}` (`accountId`)"
           }
         ],
@@ -942,7 +957,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4ab65574bbf24a1e50561c7c454040f3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '81f357274210d8e088724085fa54005f')"
     ]
   }
 }

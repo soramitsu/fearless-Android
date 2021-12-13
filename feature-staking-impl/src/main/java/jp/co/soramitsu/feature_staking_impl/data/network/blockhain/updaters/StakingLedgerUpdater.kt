@@ -92,7 +92,7 @@ class StakingLedgerUpdater(
 
     private suspend fun updateAccountStaking(
         chainId: String,
-        chainAssetId: Int,
+        chainAssetId: String,
         accountId: AccountId,
         ledgerWithController: LedgerWithController?,
     ) {

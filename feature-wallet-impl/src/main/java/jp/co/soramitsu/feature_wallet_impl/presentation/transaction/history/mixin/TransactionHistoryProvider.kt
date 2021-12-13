@@ -41,7 +41,7 @@ class TransactionHistoryProvider(
     private val resourceManager: ResourceManager,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val chainId: ChainId,
-    private val assetId: Int
+    private val assetId: String
 ) : TransactionHistoryMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val domainState = MutableStateFlow<State>(

@@ -4,6 +4,7 @@ import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
@@ -26,11 +27,9 @@ class ChainSyncServiceTest {
         name = "Test",
         assets = listOf(
             ChainAssetRemote(
-                assetId = 0,
-                symbol = "TEST",
-                precision = 10,
-                name = "Test",
-                priceId = "test"
+                assetId = "test",
+                staking = null,
+                purchaseProviders = null
             )
         ),
         nodes = listOf(
@@ -47,7 +46,15 @@ class ChainSyncServiceTest {
         externalApi = null
     )
 
-    private val LOCAL_CHAIN = mapChainToChainLocal(mapChainRemoteToChain(REMOTE_CHAIN))
+    private val REMOTE_ASSET = AssetRemote(
+        id = "test",
+        chainId = "0x00",
+        precision = 10,
+        priceId = "test",
+        icon = "test"
+    )
+
+    private val LOCAL_CHAIN = mapChainToChainLocal(mapChainRemoteToChain(listOf(REMOTE_CHAIN), listOf(REMOTE_ASSET))[0])
 
     @Mock
     lateinit var dao: ChainDao

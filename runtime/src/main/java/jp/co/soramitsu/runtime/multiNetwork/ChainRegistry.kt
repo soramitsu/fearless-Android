@@ -85,14 +85,14 @@ class ChainRegistry(
         return runtimeProviderPool.getRuntimeProvider(chainId)
     }
 
-    fun getAsset(chainId: ChainId, chainAssetId: Int) = chainsById.replayCache.lastOrNull()?.get(chainId)?.assets?.firstOrNull {
+    fun getAsset(chainId: ChainId, chainAssetId: String) = chainsById.replayCache.lastOrNull()?.get(chainId)?.assets?.firstOrNull {
         it.id == chainAssetId
     }
 
     suspend fun getChain(chainId: String) = chainsById.first().getValue(chainId)
 }
 
-suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: Int): Pair<Chain, Chain.Asset> {
+suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: String): Pair<Chain, Chain.Asset> {
     val chain = chainsById.first().getValue(chainId)
 
     return chain to chain.assetsById.getValue(assetId)

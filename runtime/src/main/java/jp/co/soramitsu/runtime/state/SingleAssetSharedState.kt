@@ -59,7 +59,7 @@ abstract class SingleAssetSharedState(
         }.flatten()
     }
 
-    fun update(chainId: ChainId, chainAssetId: Int) {
+    fun update(chainId: ChainId, chainAssetId: String) {
         preferences.putString(preferencesKey, encode(chainId, chainAssetId))
     }
 
@@ -67,14 +67,14 @@ abstract class SingleAssetSharedState(
         return assetWithChain.first().chain.id
     }
 
-    private fun encode(chainId: ChainId, chainAssetId: Int): String {
+    private fun encode(chainId: ChainId, chainAssetId: String): String {
         return "$chainId$DELIMITER$chainAssetId"
     }
 
-    private fun decode(value: String): Pair<ChainId, Int> {
+    private fun decode(value: String): Pair<ChainId, String> {
         val (chainId, chainAssetRaw) = value.split(DELIMITER)
 
-        return chainId to chainAssetRaw.toInt()
+        return chainId to chainAssetRaw
     }
 }
 
