@@ -218,7 +218,7 @@ class CrowdloanContributeViewModel(
         }
 
         else -> flow {
-            payload.parachainMetadata?.rewardRate
+            emit(payload.parachainMetadata?.rewardRate)
         }
     }
 
