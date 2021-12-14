@@ -70,7 +70,7 @@ class WalletRepositoryImpl(
             chainRegistry.chainsById,
             assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
-            val updatedAssets = assetsLocal.map { asset ->
+            val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetToLocalAsset(chainsById, asset)
             }
 
@@ -89,7 +89,7 @@ class WalletRepositoryImpl(
         val chainsById = chainRegistry.chainsById.first()
         val assetsLocal = assetCache.getAssets(metaId)
 
-        assetsLocal.map {
+        assetsLocal.mapNotNull {
             mapAssetToLocalAsset(chainsById, it)
         }
     }
@@ -97,8 +97,12 @@ class WalletRepositoryImpl(
     private fun mapAssetToLocalAsset(
         chainsById: Map<ChainId, Chain>,
         assetLocal: AssetWithToken
-    ): Asset {
-        val chainAsset = chainsById.getValue(assetLocal.asset.chainId).assetsBySymbol.getValue(assetLocal.token.symbol)
+    ): Asset? {
+        val chainAsset = try {
+            chainsById.getValue(assetLocal.asset.chainId).assetsBySymbol.getValue(assetLocal.token.symbol)
+        } catch (e: Exception) {
+            return null
+        }
 
         return mapAssetLocalToAsset(assetLocal, chainAsset = chainAsset)
     }
