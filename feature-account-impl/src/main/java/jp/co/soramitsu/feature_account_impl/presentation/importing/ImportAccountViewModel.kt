@@ -7,7 +7,11 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.*
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.map
+import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.core.model.CryptoType
@@ -16,7 +20,12 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.*
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
+import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
 import kotlinx.coroutines.launch
 
 class ImportAccountViewModel(

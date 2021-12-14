@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import coil.ImageLoader
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -24,6 +23,7 @@ import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferR
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferSenderView
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferSubmit
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferToolbar
+import javax.inject.Inject
 
 private const val KEY_DRAFT = "KEY_DRAFT"
 
@@ -83,7 +83,8 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
         viewModel.assetLiveData.observe {
             val chainAsset = it.token.configuration
 
-            val transferableAmount = resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.formatTokenAmount(it.token.configuration))
+            val transferableAmount =
+                resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.formatTokenAmount(it.token.configuration))
             confirmAmountField.setAssetBalance(transferableAmount)
             confirmAmountField.setAssetName(it.token.configuration.symbol)
             confirmAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)

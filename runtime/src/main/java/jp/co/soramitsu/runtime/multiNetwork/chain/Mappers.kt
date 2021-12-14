@@ -59,7 +59,8 @@ private fun mapSectionToSectionLocal(sectionLocal: Chain.ExternalApi.Section?) =
 private const val DEFAULT_PRECISION = 10
 
 fun mapChainRemoteToChain(
-    chainsRemote: List<ChainRemote>, assetsRemote: List<AssetRemote>
+    chainsRemote: List<ChainRemote>,
+    assetsRemote: List<AssetRemote>
 ): List<Chain> {
     val assetsById = assetsRemote.filter { it.id != null }.associateBy { it.id }
     return chainsRemote.map { chainRemote ->

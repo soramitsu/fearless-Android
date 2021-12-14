@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import coil.ImageLoader
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
@@ -32,6 +31,7 @@ import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountMax
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountNext
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountRecipientView
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToolbar
+import javax.inject.Inject
 
 private const val KEY_ADDRESS = "KEY_ADDRESS"
 private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
@@ -110,7 +110,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             chooseAmountRecipientView.setTextIcon(it.image)
         }
         viewModel.assetModelLiveData.observe {
-            val transferableAmount = resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.formatTokenAmount(it.token.configuration))
+            val transferableAmount =
+                resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.formatTokenAmount(it.token.configuration))
             chooseAmountField.setAssetBalance(transferableAmount)
             chooseAmountField.setAssetName(it.token.configuration.symbol)
             chooseAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)

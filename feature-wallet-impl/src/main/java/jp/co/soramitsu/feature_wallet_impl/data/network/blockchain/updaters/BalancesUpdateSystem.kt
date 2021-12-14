@@ -39,7 +39,7 @@ class BalancesUpdateSystem(
 
                     updaterFlow.onCompletion { cancellable.cancel() }
                 } catch (e: Exception) {
-                    flowOf()//todo think about it
+                    flowOf() // todo think about it
                 }
             }.merge()
 

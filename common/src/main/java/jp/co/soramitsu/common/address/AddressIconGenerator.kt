@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.address
 
 import android.graphics.drawable.PictureDrawable
-import android.util.Log
 import androidx.annotation.ColorRes
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.resources.ResourceManager

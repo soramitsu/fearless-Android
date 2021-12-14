@@ -101,7 +101,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
             .show()
     }
 
-    //todo (Denis Lyazgin 18.11.2021) I don't think we still need this dialog
+    // todo (Denis Lyazgin 18.11.2021) I don't think we still need this dialog
     private fun showNoAccountsDialog(networkType: Node.NetworkType) {
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
             .setTitle(R.string.account_needed_title)

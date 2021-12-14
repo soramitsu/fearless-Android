@@ -151,7 +151,7 @@ class AccountRepositoryImpl(
     }
 
     override fun selectedMetaAccountFlow(): Flow<MetaAccount> {
-        return accountDataSource.selectedMetaAccountFlow() //!!!
+        return accountDataSource.selectedMetaAccountFlow()
     }
 
     override suspend fun findMetaAccount(accountId: ByteArray): MetaAccount? {
@@ -242,7 +242,7 @@ class AccountRepositoryImpl(
         selectAccount(metaAccountId)
     }
 
-    //todo add etherium support
+    // todo add etherium support
     override suspend fun importFromSeed(
         seed: String,
         username: String,
@@ -288,7 +288,7 @@ class AccountRepositoryImpl(
         }
     }
 
-    //todo add etherium support
+    // todo add etherium support
     override suspend fun importFromJson(
         json: String,
         password: String,
