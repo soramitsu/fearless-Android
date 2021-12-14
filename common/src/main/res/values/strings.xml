@@ -471,4 +471,7 @@ to your account to avoid remaining stake.</string>
     <string name="wallet_send_quick_input_50">50%</string>
     <string name="wallet_send_quick_input_25">25%</string>
 
+    <string name="wallet_asset_your_balance">Your balance</string>
+    <string name="wallet_asset_transferable_caption">Transferable</string>
+
 </resources>
