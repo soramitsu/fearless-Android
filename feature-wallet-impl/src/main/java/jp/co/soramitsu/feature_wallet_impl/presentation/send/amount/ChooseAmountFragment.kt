@@ -26,7 +26,6 @@ import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount50
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount75
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFee
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeFiat
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeLabel
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeProgress
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountField
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountMax
@@ -66,8 +65,6 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
 
         chooseAmountNext.setOnClickListener { viewModel.nextClicked() }
-
-        chooseAmountFeeLabel.setOnClickListener { viewModel.availableBalanceClicked() }
 
         chooseAmountMax.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_MAX) }
         chooseAmount75.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_75) }
