@@ -4,17 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/itemAssetContainer"
     android:layout_width="match_parent"
-    tools:background="@color/blurColor"
     android:layout_height="@dimen/asset_height"
     android:layout_marginTop="8dp"
-    android:layout_weight="1">
+    android:layout_weight="1"
+    tools:background="@color/blurColor">
 
     <ImageView
         android:id="@+id/itemAssetImage"
         android:layout_width="@dimen/asset_image_width"
         android:layout_height="0dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="17dp"
+        android:paddingHorizontal="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -33,18 +32,86 @@
 
     <TextView
         android:id="@+id/itemAssetNetwork"
-        style="@style/TextAppearance.Soramitsu.Body1"
+        style="@style/TextAppearance.Soramitsu.Body3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="6dp"
+        android:fontFamily="@font/soramitsu_bold"
         android:includeFontPadding="false"
-        android:textColor="@color/white"
+        android:textAllCaps="true"
+        android:textColor="@color/white_64"
         app:layout_constraintBottom_toTopOf="@+id/itemAssetToken"
         app:layout_constraintStart_toEndOf="@id/itemAssetDivider"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
-        tools:text="Kusama" />
+        tools:text="KUSAMA" />
+
+    <LinearLayout
+        android:id="@+id/networkBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_asset_badge"
+        android:orientation="horizontal"
+        android:paddingVertical="2dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="6dp"
+        app:layout_constraintBottom_toBottomOf="@+id/itemAssetNetwork"
+        app:layout_constraintStart_toEndOf="@id/itemAssetNetwork"
+        app:layout_constraintTop_toTopOf="@+id/itemAssetNetwork">
+
+        <ImageView
+            android:id="@+id/networkBadgeIcon"
+            android:layout_width="16dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
+            tools:src="@drawable/ic_token_ksm" />
+
+        <TextView
+            android:id="@+id/networkBadgeName"
+            style="@style/TextAppearance.Soramitsu.Body3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/soramitsu_bold"
+            android:includeFontPadding="false"
+            android:textAllCaps="true"
+            android:textColor="@color/white_64"
+            tools:text="KUSAMA" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/testnetBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_asset_badge"
+        android:orientation="horizontal"
+        android:paddingVertical="2dp"
+        android:paddingStart="3dp"
+        android:paddingEnd="6dp"
+        app:layout_constraintBottom_toBottomOf="@+id/itemAssetNetwork"
+        app:layout_constraintStart_toEndOf="@id/networkBadge"
+        app:layout_constraintTop_toTopOf="@+id/itemAssetNetwork">
+
+        <ImageView
+            android:id="@+id/testnetBadgeIcon"
+            android:layout_width="16dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_token_testnet" />
+
+        <TextView
+            android:id="@+id/testnetBadgeName"
+            style="@style/TextAppearance.Soramitsu.Body3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/soramitsu_bold"
+            android:includeFontPadding="false"
+            android:textAllCaps="true"
+            android:textColor="@color/white_64"
+            android:text="@string/label_testnet" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/itemAssetToken"
@@ -52,9 +119,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="3dp"
-        android:fontFamily="@font/soramitsu_bold"
         android:includeFontPadding="false"
-        android:textColor="@color/white_50"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/itemAssetRate"
         app:layout_constraintStart_toStartOf="@+id/itemAssetNetwork"
         app:layout_constraintTop_toBottomOf="@+id/itemAssetNetwork"
@@ -68,7 +134,7 @@
         android:layout_marginTop="4dp"
         android:layout_marginBottom="8dp"
         android:includeFontPadding="false"
-        android:textColor="@color/white"
+        android:textColor="@color/white_64"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/itemAssetToken"
         app:layout_constraintTop_toBottomOf="@+id/itemAssetToken"
@@ -93,8 +159,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="12dp"
-        android:textColor="@color/white_50"
-        app:layout_constraintBottom_toBottomOf="@+id/itemAssetRateChange"
+        android:textColor="@color/white_64"
+        app:layout_constraintBaseline_toBaselineOf="@+id/itemAssetRate"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="$1,000.05" />
 
@@ -104,7 +170,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="4dp"
-        app:layout_constraintBottom_toTopOf="@+id/itemAssetDollarAmount"
+        app:layout_constraintBaseline_toBaselineOf="@+id/itemAssetToken"
         app:layout_constraintEnd_toEndOf="@+id/itemAssetDollarAmount"
         tools:text="120.0849" />
 

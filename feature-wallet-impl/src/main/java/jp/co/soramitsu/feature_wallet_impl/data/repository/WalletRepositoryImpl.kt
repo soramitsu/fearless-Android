@@ -104,7 +104,7 @@ class WalletRepositoryImpl(
             return null
         }
 
-        return mapAssetLocalToAsset(assetLocal, chainAsset = chainAsset)
+        return mapAssetLocalToAsset(assetLocal, chainAsset)
     }
 
     override suspend fun syncAssetsRates() {

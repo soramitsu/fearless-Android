@@ -303,6 +303,7 @@ Derivation path: %s</string>
     <string name="staking_rebond_all">Rebond all</string>
     <string name="staking_rebond_last">Rebond last</string>
     <string name="common_change">Change</string>
+    <string name="label_testnet" translatable="false">Testnet</string>
     <string name="staking_your_nominated_format">Nominated: %s</string>
     <string name="staking_your_validators_changing_title">Your validators will change in the next era.</string>
     <string name="staking_max_format" formatted="false">%s (max %s)</string>

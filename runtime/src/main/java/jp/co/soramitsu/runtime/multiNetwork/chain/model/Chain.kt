@@ -1,5 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
+import java.util.Locale
+
 typealias ChainId = String
 
 data class Chain(
@@ -27,19 +29,28 @@ data class Chain(
 
     data class Asset(
         val id: String,
+        val name: String,
         val iconUrl: String,
-        val priceId: String?,
         val chainId: ChainId,
-        val symbol: String,
+        val nativeChainId: ChainId?,
+        val chainName: String?,
+        val chainIcon: String?,
+        val isTestNet: Boolean?,
+        val priceId: String?,
         val precision: Int,
         val staking: StakingType,
-        val name: String,
         val priceProviders: List<String>?
     ) {
 
         enum class StakingType {
             UNSUPPORTED, RELAYCHAIN
         }
+
+        val symbol: String
+            get() = id.toUpperCase(Locale.ROOT)
+
+        val isNative: Boolean
+            get() = nativeChainId == null || nativeChainId == chainId
 
         val chainToSymbol = chainId to symbol
     }

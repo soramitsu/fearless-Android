@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 28,
-    "identityHash": "81f357274210d8e088724085fa54005f",
+    "identityHash": "11b78abe23c541401fca8e23fc427a86",
     "entities": [
       {
         "tableName": "users",
@@ -645,7 +645,7 @@
       },
       {
         "tableName": "chain_assets",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `chainId` TEXT NOT NULL, `name` TEXT NOT NULL, `icon` TEXT NOT NULL, `priceId` TEXT, `staking` TEXT NOT NULL, `precision` INTEGER NOT NULL, `priceProviders` TEXT, PRIMARY KEY(`chainId`, `id`), FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `chainId` TEXT NOT NULL, `name` TEXT NOT NULL, `icon` TEXT NOT NULL, `priceId` TEXT, `staking` TEXT NOT NULL, `precision` INTEGER NOT NULL, `priceProviders` TEXT, `nativeChainId` TEXT, PRIMARY KEY(`chainId`, `id`), FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -692,6 +692,12 @@
           {
             "fieldPath": "priceProviders",
             "columnName": "priceProviders",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "nativeChainId",
+            "columnName": "nativeChainId",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -957,7 +963,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '81f357274210d8e088724085fa54005f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '11b78abe23c541401fca8e23fc427a86')"
     ]
   }
 }
