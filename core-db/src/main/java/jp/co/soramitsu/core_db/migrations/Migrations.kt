@@ -164,6 +164,7 @@ val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
             `priceId` TEXT,
             `staking` TEXT NOT NULL,
             `priceProviders` TEXT,
+            `nativeChainId` TEXT,
             PRIMARY KEY(`chainId`, `id`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()
