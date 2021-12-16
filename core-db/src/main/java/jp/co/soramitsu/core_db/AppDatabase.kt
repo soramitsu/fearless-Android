@@ -12,7 +12,6 @@ import jp.co.soramitsu.core_db.converters.CryptoTypeConverters
 import jp.co.soramitsu.core_db.converters.LongMathConverters
 import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
 import jp.co.soramitsu.core_db.converters.OperationConverters
-import jp.co.soramitsu.core_db.converters.TokenConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
@@ -84,7 +83,6 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 @TypeConverters(
     LongMathConverters::class,
     NetworkTypeConverters::class,
-    TokenConverters::class,
     OperationConverters::class,
     CryptoTypeConverters::class
 )

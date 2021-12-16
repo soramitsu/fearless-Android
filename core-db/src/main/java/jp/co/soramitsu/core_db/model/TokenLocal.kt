@@ -14,8 +14,4 @@ data class TokenLocal(
     companion object {
         fun createEmpty(symbol: String): TokenLocal = TokenLocal(symbol, null, null)
     }
-
-    enum class Type {
-        KSM, DOT, WND, ROC
-    }
 }

@@ -28,7 +28,8 @@ class ChainAssetLocal(
     val priceId: String?,
     val staking: String,
     val precision: Int,
-    val priceProviders: String?
+    val priceProviders: String?,
+    val nativeChainId: String?
 ) {
     val symbol: String
         get() = id.toUpperCase(Locale.ROOT)

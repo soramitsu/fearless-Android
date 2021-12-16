@@ -74,14 +74,18 @@ fun mapChainRemoteToChain(
         val assets = chainRemote.assets?.mapNotNull { chainAsset ->
             chainAsset.assetId?.let {
                 val assetRemote = assetsById[chainAsset.assetId]
+                val assetNativeChain = chainsRemote.firstOrNull { it.chainId == assetRemote?.chainId }
                 Chain.Asset(
                     id = chainAsset.assetId,
-                    chainId = assetRemote?.chainId.orEmpty(),
-                    iconUrl = assetRemote?.icon.orEmpty(),
-                    symbol = assetRemote?.symbol.orEmpty(),
-                    precision = assetRemote?.precision ?: DEFAULT_PRECISION,
-                    name = chainRemote.name,
+                    name = assetNativeChain?.name.orEmpty(),
+                    iconUrl = assetRemote?.icon ?: assetNativeChain?.icon.orEmpty(),
+                    chainId = chainRemote.chainId,
+                    chainName = chainRemote.name,
+                    chainIcon = chainRemote.icon,
+                    nativeChainId = assetNativeChain?.chainId,
+                    isTestNet = TESTNET_OPTION in chainRemote.options.orEmpty(),
                     priceId = assetRemote?.priceId,
+                    precision = assetRemote?.precision ?: DEFAULT_PRECISION,
                     staking = mapStakingStringToStakingType(chainAsset.staking),
                     priceProviders = chainAsset.purchaseProviders
                 )
@@ -132,15 +136,18 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
 
     val assets = chainLocal.assets.map {
         Chain.Asset(
-            iconUrl = chainLocal.chain.icon,
             id = it.id,
-            symbol = it.symbol,
-            precision = it.precision,
             name = it.name,
+            iconUrl = it.icon,
             chainId = it.chainId,
+            nativeChainId = it.nativeChainId,
             priceId = it.priceId,
+            precision = it.precision,
             staking = mapStakingTypeFromLocal(it.staking),
-            priceProviders = it.priceProviders?.let { Gson().fromJson(it, object : TypeToken<List<String>>() {}.type) }
+            priceProviders = mapToList(it.priceProviders),
+            chainName = chainLocal.chain.name,
+            chainIcon = chainLocal.chain.icon,
+            isTestNet = chainLocal.chain.isTestNet
         )
     }
 
@@ -195,7 +202,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             name = it.name,
             priceId = it.priceId,
             staking = mapStakingTypeToLocal(it.staking),
-            priceProviders = it.priceProviders?.let { Gson().toJson(it) }
+            priceProviders = it.priceProviders?.let { Gson().toJson(it) },
+            nativeChainId = it.nativeChainId
         )
     }
 
@@ -235,3 +243,5 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
         assets = assets
     )
 }
+
+private fun mapToList(json: String?) = json?.let { Gson().fromJson<List<String>>(it, object : TypeToken<List<String>>() {}.type) }

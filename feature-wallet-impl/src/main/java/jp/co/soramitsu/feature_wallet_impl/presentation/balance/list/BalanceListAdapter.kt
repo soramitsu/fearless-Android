@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -27,6 +28,10 @@ import kotlinx.android.synthetic.main.item_asset.view.itemAssetNetwork
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRate
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRateChange
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetToken
+import kotlinx.android.synthetic.main.item_asset.view.networkBadge
+import kotlinx.android.synthetic.main.item_asset.view.networkBadgeIcon
+import kotlinx.android.synthetic.main.item_asset.view.networkBadgeName
+import kotlinx.android.synthetic.main.item_asset.view.testnetBadge
 import java.math.BigDecimal
 
 val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRate }
@@ -91,6 +96,12 @@ class AssetViewHolder(
         bindTotal(asset)
 
         itemAssetToken.text = asset.token.configuration.symbol
+
+        networkBadge.setVisible(!asset.token.configuration.isNative)
+        networkBadgeName.text = asset.token.configuration.chainName
+        networkBadgeIcon.load(asset.token.configuration.chainIcon, imageLoader)
+
+        testnetBadge.setVisible(asset.token.configuration.isTestNet == true)
 
         setOnClickListener { itemHandler.assetClicked(asset) }
     }
