@@ -115,7 +115,7 @@ val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
             """
                 CREATE TABLE IF NOT EXISTS `account_staking_accesses` (
                 `chainId` TEXT NOT NULL,
-                `chainAssetId` INTEGER NOT NULL,
+                `chainAssetId` TEXT NOT NULL,
                 `accountId` BLOB NOT NULL,
                 `stashId` BLOB,
                 `controllerId` BLOB,
@@ -131,7 +131,7 @@ val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
             CREATE TABLE IF NOT EXISTS `operations` (`id` TEXT NOT NULL,
             `address` TEXT NOT NULL,
             `chainId` TEXT NOT NULL,
-            `chainAssetId` INTEGER NOT NULL,
+            `chainAssetId` TEXT NOT NULL,
             `time` INTEGER NOT NULL,
             `status` INTEGER NOT NULL,
             `source` INTEGER NOT NULL,
@@ -150,6 +150,25 @@ val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
             )
             """.trimIndent()
         )
+
+        database.execSQL("DROP TABLE IF EXISTS chain_assets")
+
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_assets` (
+            `id` TEXT NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `name` TEXT NOT NULL,
+            `icon` TEXT NOT NULL,
+            `precision` INTEGER NOT NULL,
+            `priceId` TEXT,
+            `staking` TEXT NOT NULL,
+            `priceProviders` TEXT,
+            PRIMARY KEY(`chainId`, `id`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_assets_chainId` ON `chain_assets` (`chainId`)")
     }
 }
 
