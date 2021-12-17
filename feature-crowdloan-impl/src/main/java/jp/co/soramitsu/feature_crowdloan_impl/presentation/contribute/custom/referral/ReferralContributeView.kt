@@ -4,11 +4,10 @@ import android.content.Context
 import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.view.View
+import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.LifecycleCoroutineScope
 import coil.ImageLoader
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.createSpannable
@@ -25,6 +24,8 @@ import kotlinx.android.synthetic.main.view_referral_flow.view.referralFearlessBo
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacySwitch
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacyText
 import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
+import java.math.BigDecimal
+import javax.inject.Inject
 
 open class ReferralContributeView @JvmOverloads constructor(
     context: Context,
@@ -44,7 +45,7 @@ open class ReferralContributeView @JvmOverloads constructor(
             CrowdloanFeatureApi::class.java
         ).inject(this)
 
-        referralPrivacyText?.movementMethod = LinkMovementMethod.getInstance()
+        findViewById<TextView>(R.id.referralPrivacyText)?.movementMethod = LinkMovementMethod.getInstance()
     }
 
     override fun bind(
