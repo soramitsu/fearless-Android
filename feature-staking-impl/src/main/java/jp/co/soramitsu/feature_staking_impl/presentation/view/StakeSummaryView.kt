@@ -41,7 +41,6 @@ class StakeSummaryView @JvmOverloads constructor(
         }
     }
 
-    @ExperimentalTime
     fun setElectionStatus(status: Status) {
         with(stakeSummaryStatus) {
             setCompoundDrawableTint(status.tintRes)

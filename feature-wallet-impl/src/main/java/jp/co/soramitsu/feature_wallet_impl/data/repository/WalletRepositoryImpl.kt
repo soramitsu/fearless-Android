@@ -1,7 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
-import java.math.BigDecimal
-import java.util.Locale
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
@@ -41,13 +39,14 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHi
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.util.Locale
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -100,7 +99,6 @@ class WalletRepositoryImpl(
             }
     }
 
-    @ExperimentalTime
     override suspend fun syncOperationsFirstPage(
         pageSize: Int,
         filters: Set<TransactionFilter>,
@@ -115,7 +113,6 @@ class WalletRepositoryImpl(
         cursorStorage.saveCursor(account.address, page.nextCursor)
     }
 
-    @ExperimentalTime
     override suspend fun getOperations(
         pageSize: Int,
         cursor: String?,
