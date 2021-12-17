@@ -24,7 +24,7 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
-import jp.co.soramitsu.core_db.migrations.AddChainRegistryTables_25_26
+import jp.co.soramitsu.core_db.migrations.AddChainRegistryTables_27_28
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_23_24
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
@@ -34,7 +34,7 @@ import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
-import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_27_28
+import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_29_30
 import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
@@ -60,7 +60,7 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 28,
+    version = 30,
     entities = [
         AccountLocal::class,
         NodeLocal::class,
@@ -121,7 +121,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
                     .addMigrations(AddOperationsTablesToDb_23_24)
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 24))
-                    .addMigrations(AddChainRegistryTables_25_26, V2Migration(storeV1, storeV2), MigrateTablesToV2_27_28)
+                    .addMigrations(AddChainRegistryTables_27_28, V2Migration(storeV1, storeV2), MigrateTablesToV2_29_30)
                     .build()
             }
             return instance!!
