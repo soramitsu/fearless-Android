@@ -34,7 +34,6 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
 import javax.inject.Inject
-import kotlin.time.ExperimentalTime
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -74,7 +73,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             .inject(this)
     }
 
-    @ExperimentalTime
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
         setupAssetSelector(stakingAssetSelector, viewModel, imageLoader)
@@ -199,7 +197,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
-    @ExperimentalTime
     private fun <S> StakeSummaryView.bindStakeSummary(
         stakingViewState: StakeViewState<S>,
         mapStatus: (StakeSummaryModel<S>) -> StakeSummaryView.Status
@@ -246,6 +243,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                         setTotalRewardsFiat(summary.totalRewardsFiat)
                     }
                 }
+                is LoadingState.Loading -> {}
             }
         }
     }

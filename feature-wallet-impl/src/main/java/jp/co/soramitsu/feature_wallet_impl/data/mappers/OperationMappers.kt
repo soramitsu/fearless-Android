@@ -16,8 +16,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelize
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigInteger
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
@@ -140,7 +140,6 @@ fun mapOperationLocalToOperation(
     }
 }
 
-@OptIn(ExperimentalTime::class)
 fun mapNodeToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
     tokenType: Chain.Asset,
@@ -185,7 +184,7 @@ fun mapNodeToOperation(
         id = node.id,
         address = node.address,
         type = type,
-        time = node.timestamp.toLong().seconds.toLongMilliseconds(),
+        time = node.timestamp.toLong().toDuration(DurationUnit.SECONDS).inWholeMilliseconds,
         chainAsset = tokenType,
     )
 }

@@ -9,7 +9,7 @@ buildscript {
         minSdkVersion = 24
         targetSdkVersion = 31
 
-        kotlinVersion = '1.4.31'
+        kotlinVersion = '1.6.10'
 
         ktlintPinterestVersion = '0.40.0'
 
@@ -150,7 +150,7 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.3'
+        classpath 'com.android.tools.build:gradle:7.0.4'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath 'com.google.gms:google-services:4.3.3'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
