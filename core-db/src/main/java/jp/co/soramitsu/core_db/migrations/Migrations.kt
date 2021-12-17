@@ -58,7 +58,7 @@ class UpdateDefaultNodesList(
     }
 }
 
-val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
+val MigrateTablesToV2_29_30 = object : Migration(29, 30) {
     override fun migrate(database: SupportSQLiteDatabase) {
 
         // assets
@@ -173,8 +173,9 @@ val MigrateTablesToV2_27_28 = object : Migration(27, 28) {
     }
 }
 
-val AddChainRegistryTables_25_26 = object : Migration(25, 26) {
+val AddChainRegistryTables_27_28 = object : Migration(27, 28) {
     override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS chains")
         database.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `chains` (

@@ -33,7 +33,7 @@ internal class MigratingAccount(
 class V2Migration(
     private val storeV1: SecretStoreV1,
     private val storeV2: SecretStoreV2
-) : Migration(26, 27) {
+) : Migration(28, 29) {
 
     private val cryptoTypeConverters = CryptoTypeConverters()
 
