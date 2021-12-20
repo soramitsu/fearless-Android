@@ -33,6 +33,7 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemo
 import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -40,6 +41,7 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -156,8 +158,12 @@ class WalletRepositoryImpl(
         chainAsset: Chain.Asset,
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
+            val url = chain.externalApi?.history?.url ?: throw HistoryNotSupportedException("${chain.name} is not supported for fetching pending rewards")
+            if (chain.externalApi?.history?.type != Type.SUBQUERY) {
+                throw HistoryNotSupportedException("${chain.name} is not supported for fetching pending rewards by via Subquery")
+            }
             val response = walletOperationsApi.getOperationsHistory(
-                url = chain.externalApi!!.history!!.url, // TODO external api is optional
+                url = url,
                 SubqueryHistoryRequest(
                     accountAddress = chain.addressOf(accountId),
                     pageSize,

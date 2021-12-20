@@ -8,7 +8,6 @@ import androidx.core.os.bundleOf
 import coil.ImageLoader
 import coil.load
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsChange
@@ -36,6 +35,7 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailToken
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailsInfo
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
+import javax.inject.Inject
 
 private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
