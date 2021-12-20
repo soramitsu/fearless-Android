@@ -23,7 +23,7 @@ fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish:
 
     val newTimer = object : CountDownTimer(millis - deltaTime, 1000) {
         override fun onTick(millisUntilFinished: Long) {
-            val days = millisUntilFinished.toDuration(DurationUnit.DAYS).toInt(DurationUnit.DAYS)
+            val days = millisUntilFinished.toDuration(DurationUnit.MILLISECONDS).toInt(DurationUnit.DAYS)
 
             this@startTimer.text = if (days > 0)
                 resources.getQuantityString(R.plurals.staking_payouts_days_left, days, days)
