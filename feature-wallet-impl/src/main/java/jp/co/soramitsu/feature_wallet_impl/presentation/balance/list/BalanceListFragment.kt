@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -21,6 +20,7 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalTitle
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
+import javax.inject.Inject
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
 
@@ -77,7 +77,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         }
 
         viewModel.currentAddressModelLiveData.observe {
-            balanceListAvatar.setImageDrawable(it.image)
             balanceListTotalTitle.text = it.nameOrAddress
         }
 

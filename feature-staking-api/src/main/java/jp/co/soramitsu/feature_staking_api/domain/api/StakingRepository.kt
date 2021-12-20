@@ -15,9 +15,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.math.BigInteger
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
-import kotlin.time.days
+import kotlin.time.toDuration
 
 interface StakingRepository {
 
@@ -85,12 +85,11 @@ suspend fun StakingRepository.historicalEras(chainId: ChainId): List<BigInteger>
     val currentEra = getCurrentEraIndex(chainId).toInt()
     val historyDepth = getHistoryDepth(chainId).toInt()
 
-    val historicalRange = (currentEra - historyDepth) until activeEra
+    val historicalRange = max((currentEra - historyDepth),0) until activeEra
 
     return historicalRange.map(Int::toBigInteger)
 }
 
-@OptIn(ExperimentalTime::class)
 suspend fun StakingRepository.erasPerDay(chainId: ChainId): Int {
     val blockCreationTime = blockCreationTime(chainId)
     val sessionPerEra = eraLength(chainId)
@@ -98,7 +97,7 @@ suspend fun StakingRepository.erasPerDay(chainId: ChainId): Int {
 
     val eraDuration = (blockCreationTime * sessionPerEra * blocksPerSession).toDouble()
 
-    val dayDuration = 1.days.toDouble(DurationUnit.MILLISECONDS)
+    val dayDuration = 1.toDuration(DurationUnit.DAYS).toDouble(DurationUnit.MILLISECONDS)
 
     return floor(dayDuration / eraDuration).toInt()
 }
