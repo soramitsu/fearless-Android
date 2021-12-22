@@ -7,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Era
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.ext.addressFromPublicKey
 import jp.co.soramitsu.runtime.ext.genesisHash
@@ -46,18 +47,31 @@ class ExtrinsicBuilderFactory(
 
         val nonce = rpcCalls.getNonce(chain.id, accountAddress)
         val runtimeVersion = rpcCalls.getRuntimeVersion(chain.id)
-        val mortality = mortalityConstructor.constructMortality(chain.id)
+
+        //todo (Denis Lyazgin 22.12.2021) try to figure out why we can't get Babe.ExpectedBlockTime from some chains
+        //todo and what aftermath this fix may cause
+        val mortality = try {
+            mortalityConstructor.constructMortality(chain.id)
+        } catch (e: Exception) {
+            null
+        }
+
+        val runtime = chainRegistry.getRuntime(chain.id)
+        val genesisHash = chain.genesisHash.fromHex()
+        val blockHash = mortality?.blockHash?.fromHex()
+        val multiChainEncryption = MultiChainEncryption.Substrate(mapCryptoTypeToEncryption(cryptoType))
+        val accountIdentifier = bindMultiAddress(chain.multiAddressOf(accountAddress))
 
         return ExtrinsicBuilder(
-            runtime = chainRegistry.getRuntime(chain.id),
+            runtime = runtime,
             keypair = keypair,
             nonce = nonce,
             runtimeVersion = runtimeVersion,
-            genesisHash = chain.genesisHash.fromHex(),
-            blockHash = mortality.blockHash.fromHex(),
-            era = mortality.era,
-            multiChainEncryption = MultiChainEncryption.Substrate(mapCryptoTypeToEncryption(cryptoType)),
-            accountIdentifier = bindMultiAddress(chain.multiAddressOf(accountAddress))
+            genesisHash = genesisHash,
+            blockHash = blockHash ?: genesisHash,
+            era = mortality?.era ?: Era.Immortal,
+            multiChainEncryption = multiChainEncryption,
+            accountIdentifier = accountIdentifier
         )
     }
 
