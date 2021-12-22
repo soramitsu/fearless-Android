@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -70,6 +72,18 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         chooseAmount75.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_75) }
         chooseAmount50.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_50) }
         chooseAmount25.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_25) }
+
+        chooseAmountField.amountInput.apply {
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) = Unit
+
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) = Unit
+
+                override fun afterTextChanged(p0: Editable?) {
+                    setSelection(text.length)
+                }
+            })
+        }
     }
 
     override fun inject() {
