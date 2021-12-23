@@ -158,12 +158,12 @@ class WalletRepositoryImpl(
         chainAsset: Chain.Asset,
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
-            val url = chain.externalApi?.history?.url ?: throw HistoryNotSupportedException("${chain.name} is not supported for fetching pending rewards")
-            if (chain.externalApi?.history?.type != Type.SUBQUERY) {
-                throw HistoryNotSupportedException("${chain.name} is not supported for fetching pending rewards by via Subquery")
+            val historyUrl = chain.externalApi?.history?.url
+            if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY) {
+                throw HistoryNotSupportedException("${chain.name} accounts don't temporary support fetching transaction history")
             }
             val response = walletOperationsApi.getOperationsHistory(
-                url = url,
+                url = historyUrl,
                 SubqueryHistoryRequest(
                     accountAddress = chain.addressOf(accountId),
                     pageSize,
