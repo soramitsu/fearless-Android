@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,8 +42,13 @@ abstract class SingleAssetSharedState(
         .map { encoded ->
             val (chainId, chainAssetId) = decode(encoded)
 
-            val chain = chainRegistry.getChain(chainId)
-            val chainAsset = chain.assetsById.getValue(chainAssetId)
+            val (chain, chainAsset) = try {
+                chainRegistry.chainWithAsset(chainId, chainAssetId)
+            } catch (e: NoSuchElementException) {
+                val defaultAsset = availableToSelect().first()
+                preferences.putString(preferencesKey, encode(defaultAsset.chainId, defaultAsset.id))
+                chainRegistry.chainWithAsset(defaultAsset.chainId, defaultAsset.id)
+            }
 
             AssetWithChain(chain, chainAsset)
         }
