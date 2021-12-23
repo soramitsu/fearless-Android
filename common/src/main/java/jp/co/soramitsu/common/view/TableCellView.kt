@@ -12,12 +12,6 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.utils.setVisible
-import kotlinx.android.synthetic.main.view_table_cell.view.tableCellContent
-import kotlinx.android.synthetic.main.view_table_cell.view.tableCellTitle
-import kotlinx.android.synthetic.main.view_table_cell.view.tableCellValueDivider
-import kotlinx.android.synthetic.main.view_table_cell.view.tableCellValuePrimary
-import kotlinx.android.synthetic.main.view_table_cell.view.tableCellValueProgress
-import kotlinx.android.synthetic.main.view_table_cell.view.tableCellValueSecondary
 
 open class TableCellView @JvmOverloads constructor(
     context: Context,
@@ -26,19 +20,25 @@ open class TableCellView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyle) {
 
     val title: TextView
-        get() = tableCellTitle
+        get() = findViewById(R.id.tableCellTitle)
 
     private val valuePrimary: TextView
-        get() = tableCellValuePrimary
+        get() = findViewById(R.id.tableCellValuePrimary)
 
     private val valueSecondary: TextView
-        get() = tableCellValueSecondary
+        get() = findViewById(R.id.tableCellValueSecondary)
 
     private val valueProgress: ProgressBar
-        get() = tableCellValueProgress
+        get() = findViewById(R.id.tableCellValueProgress)
 
     private val contentGroup: Group
-        get() = tableCellContent
+        get() = findViewById(R.id.tableCellContent)
+
+    private val tableCellTitle: TextView
+        get() = findViewById(R.id.tableCellTitle)
+
+    private val tableCellValueDivider: View
+        get() = findViewById(R.id.tableCellValueDivider)
 
     init {
         View.inflate(context, R.layout.view_table_cell, this)
