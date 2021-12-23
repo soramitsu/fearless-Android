@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.send
+package jp.co.soramitsu.feature_wallet_api.presentation.mixin
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.dialog.DialogClickHandler
 import jp.co.soramitsu.common.view.dialog.errorDialog
 import jp.co.soramitsu.common.view.dialog.warningDialog
+import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
-import jp.co.soramitsu.feature_wallet_impl.R
 
 interface TransferValidityChecks {
     val showTransferWarning: LiveData<Event<TransferValidityLevel.Warning.Status>>

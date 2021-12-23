@@ -11,6 +11,7 @@ import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
@@ -206,8 +207,12 @@ class WalletRepositoryImpl(
         return operationDao.getContacts(query, chain.addressOf(accountId), chain.id).toSet()
     }
 
-    override suspend fun getTransferFee(chain: Chain, transfer: Transfer): Fee {
-        val fee = substrateSource.getTransferFee(chain, transfer)
+    override suspend fun getTransferFee(
+        chain: Chain,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+    ): Fee {
+        val fee = substrateSource.getTransferFee(chain, transfer, additional)
 
         return mapFeeRemoteToFee(fee, transfer)
     }
@@ -216,9 +221,10 @@ class WalletRepositoryImpl(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
-        fee: BigDecimal
+        fee: BigDecimal,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
     ) {
-        val operationHash = substrateSource.performTransfer(accountId, chain, transfer)
+        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, additional)
         val accountAddress = chain.addressOf(accountId)
 
         val operation = createOperation(
@@ -235,9 +241,10 @@ class WalletRepositoryImpl(
     override suspend fun checkTransferValidity(
         accountId: AccountId,
         chain: Chain,
-        transfer: Transfer
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
     ): TransferValidityStatus {
-        val feeResponse = getTransferFee(chain, transfer)
+        val feeResponse = getTransferFee(chain, transfer, additional)
 
         val chainAsset = transfer.chainAsset
 

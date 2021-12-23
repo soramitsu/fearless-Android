@@ -24,10 +24,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:includeFontPadding="false"
-        android:textColor="@color/white"
-        android:singleLine="true"
         android:ellipsize="end"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toStartOf="@+id/itemCrowdloanTimeRemaining"
         app:layout_constraintStart_toEndOf="@+id/itemCrowdloanIcon"
         app:layout_constraintTop_toTopOf="@+id/itemCrowdloanIcon"
@@ -83,15 +83,40 @@
     <TextView
         android:id="@+id/itemCrowdloanMyContribution"
         style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textColor="@color/white"
-        app:layout_constraintEnd_toEndOf="@+id/itemCrowdloanParaDescription"
         app:layout_constraintStart_toStartOf="@+id/itemCrowdloanParaName"
         app:layout_constraintTop_toBottomOf="@+id/itemCrowdloanParaRaised"
         tools:text="Contributed: 2,638 KSM" />
 
+    <LinearLayout
+        android:id="@+id/itemReferralCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@id/itemCrowdloanMyContribution"
+        app:layout_constraintEnd_toEndOf="@id/itemCrowdloanParaDescription"
+        app:layout_constraintTop_toTopOf="@id/itemCrowdloanMyContribution">
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:drawablePadding="4dp"
+            android:text="@string/crowdloan_referral_code_hint"
+            android:textColor="@color/colorAccent" />
+
+        <ImageView
+            android:id="@+id/itemReferralIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_copy_24"
+            app:tint="@color/colorAccent" />
+    </LinearLayout>
 
     <View
         android:layout_width="0dp"

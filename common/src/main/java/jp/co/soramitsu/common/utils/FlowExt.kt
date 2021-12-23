@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.view.SegmentedButtonView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
@@ -137,6 +138,22 @@ fun CompoundButton.bindTo(flow: MutableStateFlow<Boolean>, scope: CoroutineScope
     setOnCheckedChangeListener { _, newValue ->
         if (flow.value != newValue) {
             flow.value = newValue
+        }
+    }
+}
+
+fun SegmentedButtonView.bindTo(flow: MutableStateFlow<Int>, scope: CoroutineScope) {
+    scope.launch {
+        flow.collect { newValue ->
+            if (getSelectedIndex() != newValue) {
+                toggle()
+            }
+        }
+    }
+
+    setOnSelectionChangeListener {
+        if (flow.value != getSelectedIndex()) {
+            flow.value = getSelectedIndex()
         }
     }
 }

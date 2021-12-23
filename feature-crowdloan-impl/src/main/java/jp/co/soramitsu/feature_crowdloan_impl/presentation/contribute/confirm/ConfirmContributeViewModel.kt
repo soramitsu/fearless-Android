@@ -15,6 +15,8 @@ import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_BONUS_URL
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
@@ -24,12 +26,22 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additional
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.model.LeasePeriodModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.interlay.InterlayBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
+import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -45,10 +57,12 @@ class ConfirmContributeViewModel(
     private val payload: ConfirmContributePayload,
     private val validationSystem: ContributeValidationSystem,
     private val customContributeManager: CustomContributeManager,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val transferValidityChecks: TransferValidityChecks.Presentation,
 ) : BaseViewModel(),
     Validatable by validationExecutor,
-    ExternalAccountActions by externalAccountActions {
+    ExternalAccountActions by externalAccountActions,
+    TransferValidityChecks by transferValidityChecks {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -85,8 +99,13 @@ class ConfirmContributeViewModel(
         .share()
 
     val estimatedReward = payload.estimatedRewardDisplay
+    private val crowdloneName = payload.metadata?.name ?: payload.paraId.toString()
+    val title = resourceManager.getString(R.string.crowdloan_confirmation_name, crowdloneName)
 
-    private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(payload.paraId)
+    private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(
+        parachainId = payload.paraId,
+        parachainMetadata = payload.metadata?.let { mapParachainMetadataFromParcel(it) }
+    )
         .inBackground()
         .share()
 
@@ -99,17 +118,22 @@ class ConfirmContributeViewModel(
         .inBackground()
         .share()
 
-    val bonusFlow = flow {
-        val bonusDisplay = payload.bonusPayload?.let {
-            val bonus = it.calculateBonus(payload.amount)
-
-            bonus?.formatTokenAmount(payload.metadata!!.token)
+    val bonusNumberFlow = flow {
+        if (payload.metadata?.isAcala != true) {
+            emit(payload.bonusPayload?.calculateBonus(payload.amount))
         }
-
-        emit(bonusDisplay)
     }
         .inBackground()
         .share()
+
+    val bonusFlow = bonusNumberFlow.map { bonus ->
+        bonus?.formatTokenAmount(payload.metadata!!.token)
+    }
+        .inBackground()
+        .share()
+
+    val ethAddress = payload.enteredEtheriumAddress
+    val privateCrowdloanSignature = payload.signature
 
     fun nextClicked() {
         maybeGoToNext()
@@ -128,11 +152,17 @@ class ConfirmContributeViewModel(
     }
 
     private fun maybeGoToNext() = launch {
+        val isAcalaLcDot = payload.metadata?.isAcala == true && payload.contributionType == LcDOT
+        val customMinAmount = when {
+            isAcalaLcDot -> 1.toBigDecimal()
+            else -> null
+        }
         val validationPayload = ContributeValidationPayload(
             crowdloan = crowdloanFlow.first(),
             fee = payload.fee,
             asset = assetFlow.first(),
-            contributionAmount = payload.amount
+            contributionAmount = payload.amount,
+            customMinContribution = customMinAmount
         )
 
         validationExecutor.requireValid(
@@ -145,36 +175,97 @@ class ConfirmContributeViewModel(
         }
     }
 
-    private fun sendTransaction() {
+    private fun sendTransaction(suppressWarnings: Boolean = false) {
         launch {
             val customSubmissionResult = if (payload.bonusPayload != null) {
-                val metadata = payload.metadata!!
-
-                customContributeManager.getSubmitter(metadata.customFlow!!)
-                    .submitOffChain(payload.bonusPayload, payload.amount)
+                val flowName = payload.metadata?.flow?.name!!
+                customContributeManager.getSubmitter(flowName)
+                    .submitOffChain(payload.bonusPayload, payload.amount, payload.metadata)
             } else {
                 Result.success(Unit)
             }
 
             customSubmissionResult.mapCatching {
                 val additionalSubmission = payload.bonusPayload?.let {
-                    additionalOnChainSubmission(it, payload.metadata!!.customFlow!!, payload.amount, customContributeManager)
+                    val flowName = payload.metadata?.flow?.name!!
+
+                    when {
+                        payload.metadata.isAstar && (it as? AstarBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
+                            additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                        }
+                        payload.metadata.isInterlay && (it as? InterlayBonusPayload)?.referralCode.isNullOrEmpty().not() -> {
+                            additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                        }
+                        payload.metadata.isMoonbeam && ethAddress?.second == true -> {
+                            additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                        }
+                        payload.metadata.isAcala && payload.contributionType == LcDOT -> {
+                            additionalOnChainSubmission(it, flowName, payload.amount, customContributeManager)
+                        }
+                        else -> {
+                            null
+                        }
+                    }
                 }
 
-                contributionInteractor.contribute(
-                    parachainId = payload.paraId,
-                    contribution = payload.amount,
-                    additional = additionalSubmission
-                )
+                val isLcDotAcala = payload.metadata?.isAcala == true && payload.contributionType == LcDOT
+                if (isLcDotAcala) {
+                    val apiUrl = payload.metadata?.flow?.data?.getString(FLOW_API_URL)!!
+                    val recipient = contributionInteractor.getAcalaStatement(apiUrl).proxyAddress
+                    val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
+                    val fee = feeFlow.firstOrNull()?.feeModel?.fee ?: return@launch
+                    contributionInteractor.performTransfer(
+                        transfer = Transfer(
+                            recipient = recipient,
+                            amount = payload.amount,
+                            chainAsset = assetFlow.first().token.configuration
+                        ),
+                        fee = fee,
+                        maxAllowedLevel = maxAllowedStatusLevel,
+                        additional = additionalSubmission
+                    )
+                } else {
+                    val useBatchAll = payload.metadata?.isInterlay != true
+                    contributionInteractor.contribute(
+                        parachainId = payload.paraId,
+                        contribution = payload.amount,
+                        additional = additionalSubmission,
+                        batchAll = useBatchAll,
+                        signature = privateCrowdloanSignature
+                    )
+                }
             }
                 .onFailure(::showError)
                 .onSuccess {
                     showMessage(resourceManager.getString(R.string.common_transaction_submitted))
+
+                    saveMoonbeamEtheriumAddress()
 
                     router.returnToMain()
                 }
 
             _showNextProgress.value = false
         }
+    }
+
+    fun warningConfirmed() {
+        sendTransaction(suppressWarnings = true)
+    }
+
+    private suspend fun saveMoonbeamEtheriumAddress() = when {
+        payload.metadata?.isMoonbeam != true || ethAddress == null -> Unit
+        else -> contributionInteractor.saveEthAddress(
+            paraId = payload.paraId,
+            address = selectedAddressModelFlow.first().address,
+            etheriumAddress = ethAddress.first
+        )
+    }
+
+    fun bonusClicked() = when (payload.metadata?.isAcala) {
+        true -> {
+            val bonusUrl = payload.metadata.flow?.data?.getString(FLOW_BONUS_URL) ?: payload.metadata.website
+            openBrowserEvent.postValue(Event(bonusUrl))
+        }
+        else -> Unit
     }
 }

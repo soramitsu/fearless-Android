@@ -5,11 +5,13 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Group
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.utils.setVisible
 
@@ -82,5 +84,9 @@ open class TableCellView @JvmOverloads constructor(
         valueSecondary.setTextOrHide(secondary)
 
         valueProgress.makeGone()
+    }
+
+    fun setValueColorRes(@ColorRes colorId: Int) {
+        valuePrimary.setTextColorRes(colorId)
     }
 }

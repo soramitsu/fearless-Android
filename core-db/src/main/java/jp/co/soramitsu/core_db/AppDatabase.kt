@@ -121,6 +121,8 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
                     .addMigrations(AddOperationsTablesToDb_23_24)
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 24))
+                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 25))
+                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 26))
                     .addMigrations(AddChainRegistryTables_27_28, V2Migration(storeV1, storeV2), MigrateTablesToV2_29_30)
                     .build()
             }

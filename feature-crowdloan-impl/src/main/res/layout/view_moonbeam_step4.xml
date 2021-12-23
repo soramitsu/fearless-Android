@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/TextAppearance.Soramitsu.Header4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:text="@string/crowdloan_contribute_title" />
+
+            <jp.co.soramitsu.common.view.AmountView
+                android:id="@+id/moonbeamContributeAmount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_info_16"
+                    app:tint="@color/black2" />
+
+                <TextView
+                    android:id="@+id/moonbeamContributeUnlockHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:includeFontPadding="false"
+                    tools:text="Your KSM tokens will be returned after the leasing period." />
+            </LinearLayout>
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/moonbeamContributeLeasingPeriod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/crowdloan_leasing_period" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/moonbeamContributeReward"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/staking_validator_estimated_reward" />
+
+            <jp.co.soramitsu.common.view.InputField
+                android:id="@+id/moonbeamEtheriumAddressInput"
+                style="@style/Widget.Fearless.Input.Primary.External"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:hint="@string/moonbeam_ethereum_address"
+                android:inputType="textMultiLine"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_info_16"
+                    app:tint="@color/black2" />
+
+                <TextView
+                    android:id="@+id/moonbeamEtheriumAddressHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:includeFontPadding="false"
+                    android:text="@string/moonbeam_ethereum_reward"/>
+            </LinearLayout>
+
+            <TextView
+                style="@style/TextAppearance.Soramitsu.Header4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:text="@string/crowdloan_info" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/moonbeamContributeRaised"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/crowdloan_raised" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/moonbeamContributeTimeLeft"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/common_time_left" />
+
+            <jp.co.soramitsu.common.view.GoNextView
+                android:layout_width="match_parent"
+                app:actionIcon="@drawable/ic_arrow_top_right_white_16"
+                android:id="@+id/moonbeamContributeLearnMore"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </ScrollView>
+
+</merge>

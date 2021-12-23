@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -23,13 +24,15 @@ interface SubstrateRemoteSource {
 
     suspend fun getTransferFee(
         chain: Chain,
-        transfer: Transfer
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
     ): BigInteger
 
     suspend fun performTransfer(
         accountId: ByteArray,
         chain: Chain,
         transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
     ): String
 
     suspend fun fetchAccountTransfersInBlock(

@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -27,7 +28,8 @@ class FeeLoaderProvider(
     override fun loadFee(
         coroutineScope: CoroutineScope,
         feeConstructor: suspend (Token) -> BigInteger,
-        onRetryCancelled: () -> Unit
+        onRetryCancelled: () -> Unit,
+        onComplete: ((FeeStatus) -> Unit)?
     ) {
         feeLiveData.value = FeeStatus.Loading
 
@@ -50,7 +52,7 @@ class FeeLoaderProvider(
                         RetryPayload(
                             title = resourceManager.getString(R.string.choose_amount_network_error),
                             message = resourceManager.getString(R.string.choose_amount_error_fee),
-                            onRetry = { loadFee(coroutineScope, feeConstructor, onRetryCancelled) },
+                            onRetry = { loadFee(coroutineScope, feeConstructor, onRetryCancelled, onComplete) },
                             onCancel = onRetryCancelled
                         )
                     )
@@ -60,8 +62,10 @@ class FeeLoaderProvider(
 
                 FeeStatus.Error
             }
-
             feeLiveData.postValue(value)
+            withContext(Dispatchers.Main) {
+                onComplete?.invoke(value)
+            }
         }
     }
 

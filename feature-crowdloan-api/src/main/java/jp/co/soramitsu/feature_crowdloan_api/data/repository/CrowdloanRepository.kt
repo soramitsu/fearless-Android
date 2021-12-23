@@ -10,6 +10,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.Locale
 
 interface CrowdloanRepository {
 
@@ -28,6 +29,12 @@ interface CrowdloanRepository {
     fun fundInfoFlow(chainId: ChainId, parachainId: ParaId): Flow<FundInfo>
 
     suspend fun minContribution(chainId: ChainId): BigInteger
+
+    suspend fun checkRemark(apiUrl: String, apiKey: String, address: String): Boolean
+
+    suspend fun saveEthAddress(paraId: ParaId, address: String, ethAddress: String)
+
+    fun getEthAddress(paraId: ParaId, address: String): String?
 }
 
 class ParachainMetadata(
@@ -36,6 +43,20 @@ class ParachainMetadata(
     val description: String,
     val rewardRate: BigDecimal?,
     val website: String,
-    val customFlow: String?,
-    val token: String
+    val token: String,
+    val flow: ParachainMetadataFlow?,
+) {
+    val isMoonbeam: Boolean
+        get() = name.toLowerCase(Locale.getDefault()) == "moonbeam"
+    val isAstar: Boolean
+        get() = name.toLowerCase(Locale.getDefault()) == "astar"
+    val isAcala: Boolean
+        get() = name.toLowerCase(Locale.getDefault()) == "acala"
+    val isInterlay: Boolean
+        get() = flow?.name?.toLowerCase(Locale.getDefault()) == "interlay"
+}
+
+class ParachainMetadataFlow(
+    val name: String?,
+    val data: Map<String, Any?>?
 )

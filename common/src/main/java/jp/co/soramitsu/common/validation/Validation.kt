@@ -63,6 +63,9 @@ class ValidationSystem<T, S>(
     private val validation: Validation<T, S>
 ) {
 
+    val value
+        get() = validation
+
     suspend fun validate(
         value: T,
         ignoreUntil: ValidationStatus.NotValid.Level? = null

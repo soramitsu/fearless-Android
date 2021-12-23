@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
@@ -62,20 +63,23 @@ interface WalletRepository {
 
     suspend fun getTransferFee(
         chain: Chain,
-        transfer: Transfer
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
     ): Fee
 
     suspend fun performTransfer(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
-        fee: BigDecimal
+        fee: BigDecimal,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
     )
 
     suspend fun checkTransferValidity(
         accountId: AccountId,
         chain: Chain,
-        transfer: Transfer
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
     ): TransferValidityStatus
 
     suspend fun updatePhishingAddresses()

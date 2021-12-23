@@ -2,15 +2,17 @@ package jp.co.soramitsu.common.utils
 
 import android.content.Context
 import android.text.format.DateUtils
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.concurrent.TimeUnit
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.formatting.CompoundNumberFormatter
 import jp.co.soramitsu.common.utils.formatting.DynamicPrecisionFormatter
 import jp.co.soramitsu.common.utils.formatting.FixedPrecisionFormatter
 import jp.co.soramitsu.common.utils.formatting.NumberAbbreviation
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.text.DecimalFormat
-import java.util.concurrent.TimeUnit
 
 private const val DECIMAL_PATTERN_BASE = "###,###."
 
@@ -95,6 +97,8 @@ fun Long.formatDaysSinceEpoch(context: Context): String? {
 fun Long.formatDateFromMillis(context: Context) = DateUtils.formatDateTime(context, this, 0)
 
 fun Long.formatDateTime(context: Context) = DateUtils.getRelativeDateTimeString(context, this, DateUtils.SECOND_IN_MILLIS, 0, 0)
+
+fun Long.formatDateTime() = SimpleDateFormat.getDateInstance().format(Date(this))
 
 fun decimalFormatterFor(pattern: String): DecimalFormat {
     return DecimalFormat(pattern).apply {

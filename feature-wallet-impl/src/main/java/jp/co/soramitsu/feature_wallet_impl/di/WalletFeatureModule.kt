@@ -22,6 +22,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecksProvider
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
@@ -39,8 +41,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixinProvider
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecksProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry

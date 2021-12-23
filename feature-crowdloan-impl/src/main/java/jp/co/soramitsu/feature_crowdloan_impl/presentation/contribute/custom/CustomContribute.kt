@@ -5,9 +5,10 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.LifecycleCoroutineScope
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ParachainMetadataParcelModel
+import kotlinx.coroutines.flow.Flow
 
 sealed class ApplyActionState {
     object Available : ApplyActionState()
@@ -43,7 +44,8 @@ interface CustomContributeSubmitter {
 
     suspend fun submitOffChain(
         payload: BonusPayload,
-        amount: BigDecimal
+        amount: BigDecimal,
+        metadata: ParachainMetadataParcelModel?
     ): Result<Unit> {
         // do nothing by default
 

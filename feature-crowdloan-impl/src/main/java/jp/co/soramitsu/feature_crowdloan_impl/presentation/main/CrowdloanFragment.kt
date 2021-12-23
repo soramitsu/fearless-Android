@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,7 @@ import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
@@ -16,11 +18,14 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanAssetSelector
+import kotlinx.android.synthetic.main.fragment_crowdloans.blockingProgress
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
+import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreText
+import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreWrapper
 import javax.inject.Inject
 
 class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.Handler {
@@ -48,6 +53,8 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
 
         crowdloanList.setHasFixedSize(true)
         crowdloanList.adapter = adapter
+
+        learnMoreWrapper.setOnClickListener { viewModel.learnMoreClicked() }
     }
 
     override fun inject() {
@@ -74,9 +81,39 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
         }
 
         viewModel.mainDescription.observe(crowdloanMainDescription::setText)
+
+        viewModel.learnMoreLiveData.observe {
+            learnMoreText.text = it
+        }
+
+        observeBrowserEvents(viewModel)
+
+        viewModel.blockingProgress.observe {
+            blockingProgress.setVisible(it)
+        }
     }
 
     override fun crowdloanClicked(paraId: ParaId) {
         viewModel.crowdloanClicked(paraId)
     }
+
+    override fun copyReferralClicked(code: String) {
+        CrowdloanReferralActionsSheet(
+            context = requireContext(),
+            code = code,
+            onCopy = viewModel::copyStringClicked,
+            onShare = ::startSharingIntent
+        )
+            .show()
+    }
+
+    private fun startSharingIntent(code: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, code)
+        }
+
+        startActivity(Intent.createChooser(intent, getString(R.string.share_referral_code)))
+    }
+
 }

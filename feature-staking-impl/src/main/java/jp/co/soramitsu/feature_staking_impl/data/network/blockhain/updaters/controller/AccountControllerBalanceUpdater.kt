@@ -56,7 +56,6 @@ class AccountControllerBalanceUpdater(
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
                 val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
-
                 assetCache.updateAsset(companionAccountId, chainAsset, newAccountInfo)
             }
             .flowOn(Dispatchers.IO)
