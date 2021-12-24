@@ -4,6 +4,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -52,8 +53,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -120,7 +121,7 @@ class CustomContributeViewModel(
         .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == CONTRIBUTE }
         .flatMapLatest { assetFlow }
         .map {
-            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.type.displayName)
+            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol)
         }
         .inBackground()
         .share()
@@ -133,7 +134,7 @@ class CustomContributeViewModel(
         val token = asset.token
 
         val raisedDisplay = token.amountFromPlanks(crowdloan.fundInfo.raised).format()
-        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.type)
+        val capDisplay = token.amountFromPlanks(crowdloan.fundInfo.cap).formatTokenAmount(token.configuration)
 
         val timeLeft = when (val state = crowdloan.state) {
             Crowdloan.State.Finished -> resourceManager.getString(R.string.transaction_status_completed)
@@ -383,7 +384,8 @@ class CustomContributeViewModel(
                                 val additional = if (isCorrectAndOld.second.not()) payloadMoonbeam?.let {
                                     additionalOnChainSubmission(it, customFlowType, BigDecimal.ZERO, customContributeManager)
                                 } else null
-                                contributionInteractor.estimateFee(payload.paraId, amount, asset.token, additional, signature)
+                                val useBatchAll = additional != null
+                                contributionInteractor.estimateFee(payload.paraId, amount, additional, useBatchAll, signature)
                             },
                             onRetryCancelled = ::backClicked,
                             {
@@ -423,10 +425,7 @@ class CustomContributeViewModel(
             (_viewStateFlow.value as? MoonbeamContributeViewState)?.let { viewState ->
                 feeLoaderMixin.loadFee(
                     coroutineScope = viewModelScope,
-                    feeConstructor = { asset ->
-                        val value = viewState.getSystemRemarkFee()
-                        asset.token.amountFromPlanks(value)
-                    },
+                    feeConstructor = { viewState.getSystemRemarkFee() },
                     onRetryCancelled = ::backClicked
                 )
             }

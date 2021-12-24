@@ -25,14 +25,16 @@ interface SubstrateRemoteSource {
     suspend fun getTransferFee(
         chain: Chain,
         transfer: Transfer,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
+        batchAll: Boolean
     ): BigInteger
 
     suspend fun performTransfer(
         accountId: ByteArray,
         chain: Chain,
         transfer: Transfer,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
+        batchAll: Boolean
     ): String
 
     suspend fun fetchAccountTransfersInBlock(

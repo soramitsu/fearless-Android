@@ -34,12 +34,11 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.par
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -225,7 +224,7 @@ class ConfirmContributeViewModel(
                         additional = additionalSubmission
                     )
                 } else {
-                    val useBatchAll = payload.metadata?.isInterlay != true
+                    val useBatchAll = additionalSubmission != null && payload.metadata?.isInterlay != true
                     contributionInteractor.contribute(
                         parachainId = payload.paraId,
                         contribution = payload.amount,

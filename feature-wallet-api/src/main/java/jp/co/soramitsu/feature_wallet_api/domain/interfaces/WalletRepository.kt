@@ -64,7 +64,8 @@ interface WalletRepository {
     suspend fun getTransferFee(
         chain: Chain,
         transfer: Transfer,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+        batchAll: Boolean = false
     ): Fee
 
     suspend fun performTransfer(
@@ -72,14 +73,16 @@ interface WalletRepository {
         chain: Chain,
         transfer: Transfer,
         fee: BigDecimal,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+        batchAll: Boolean = false
     )
 
     suspend fun checkTransferValidity(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+        batchAll: Boolean = false
     ): TransferValidityStatus
 
     suspend fun updatePhishingAddresses()

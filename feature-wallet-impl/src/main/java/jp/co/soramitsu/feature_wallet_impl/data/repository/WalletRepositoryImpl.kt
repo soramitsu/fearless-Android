@@ -210,9 +210,10 @@ class WalletRepositoryImpl(
     override suspend fun getTransferFee(
         chain: Chain,
         transfer: Transfer,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
+        batchAll: Boolean
     ): Fee {
-        val fee = substrateSource.getTransferFee(chain, transfer, additional)
+        val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll)
 
         return mapFeeRemoteToFee(fee, transfer)
     }
@@ -222,9 +223,10 @@ class WalletRepositoryImpl(
         chain: Chain,
         transfer: Transfer,
         fee: BigDecimal,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
+        batchAll: Boolean
     ) {
-        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, additional)
+        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, additional, batchAll)
         val accountAddress = chain.addressOf(accountId)
 
         val operation = createOperation(
@@ -242,9 +244,10 @@ class WalletRepositoryImpl(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
-        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
+        batchAll: Boolean
     ): TransferValidityStatus {
-        val feeResponse = getTransferFee(chain, transfer, additional)
+        val feeResponse = getTransferFee(chain, transfer, additional, batchAll)
 
         val chainAsset = transfer.chainAsset
 

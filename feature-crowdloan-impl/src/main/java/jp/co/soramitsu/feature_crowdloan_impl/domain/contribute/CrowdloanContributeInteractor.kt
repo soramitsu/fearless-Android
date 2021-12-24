@@ -12,9 +12,9 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.hasWonAuction
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
-import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.contribute
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.Crowdloan
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
@@ -22,6 +22,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.state.chainAndAsset
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ typealias AdditionalOnChainSubmission = suspend ExtrinsicBuilder.() -> Unit
 class CrowdloanContributeInteractor(
     private val extrinsicService: ExtrinsicService,
     private val accountRepository: AccountRepository,
+    private val chainRegistry: ChainRegistry,
     private val chainStateRepository: ChainStateRepository,
     private val crowdloanSharedState: CrowdloanSharedState,
     private val crowdloanRepository: CrowdloanRepository,
@@ -82,13 +84,14 @@ class CrowdloanContributeInteractor(
         parachainId: ParaId,
         contribution: BigDecimal,
         additional: AdditionalOnChainSubmission?,
+        batchAll: Boolean = true,
         signature: String? = null,
     ) = withContext(Dispatchers.Default) {
         val (chain, chainAsset) = crowdloanSharedState.chainAndAsset()
 
         val encryption = mapCryptoTypeToEncryption(accountRepository.getSelectedAccount().cryptoType)
         val contributionInPlanks = chainAsset.planksFromAmount(contribution)
-        extrinsicService.estimateFee(chain, true) {
+        extrinsicService.estimateFee(chain, batchAll) {
             contribute(parachainId, contributionInPlanks, signature, encryption)
             additional?.invoke(this)
         }
@@ -119,16 +122,20 @@ class CrowdloanContributeInteractor(
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel,
         additional: AdditionalOnChainSubmission?,
+        batchAll: Boolean = true,
     ): Result<Unit> {
-        val accountAddress = accountRepository.getSelectedAccount().address
-        val validityStatus = walletRepository.checkTransferValidity(accountAddress, transfer, additional)
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
+        val accountId = metaAccount.accountId(chain)!!
+
+        val validityStatus = walletRepository.checkTransferValidity(accountId, chain, transfer, additional, batchAll)
 
         if (validityStatus.level > maxAllowedLevel) {
             return Result.failure(NotValidTransferStatus(validityStatus))
         }
 
         return runCatching {
-            walletRepository.performTransfer(accountAddress, transfer, fee, additional)
+            walletRepository.performTransfer(accountId, chain, transfer, fee, additional, batchAll)
         }
     }
 

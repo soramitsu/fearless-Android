@@ -1,24 +1,30 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.subquery
 
 import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse.EraValidatorInfo.Nodes.Node
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingEraValidatorInfosRequest
-import jp.co.soramitsu.feature_staking_impl.data.repository.subqueryFearlessApiPath
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 class SubQueryValidatorSetFetcher(
     private val stakingApi: StakingApi,
     private val stakingRepository: StakingRepository,
+    private val chainRegistry: ChainRegistry
 ) {
 
     suspend fun fetchAllValidators(chainId: ChainId, stashAccountAddress: String): List<String> {
         val historicalRange = stakingRepository.historicalEras(chainId)
-        val subqueryPath = stashAccountAddress.networkType().subqueryFearlessApiPath()
+
+        val chain = chainRegistry.getChain(chainId)
+        val stakingUrl = chain.externalApi?.staking?.url
+        if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
+            throw Exception("${chain.name} accounts don't temporary support fetching pending rewards")
+        }
 
         val validatorsInfos = stakingApi.getValidatorsInfo(
-            subqueryPath,
+            stakingUrl,
             StakingEraValidatorInfosRequest(
                 eraFrom = historicalRange.first(),
                 eraTo = historicalRange.last(),

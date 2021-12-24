@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
@@ -17,8 +18,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.Moonbeam
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam.MoonbeamContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeSubmitter
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
-import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module
 class MoonbeamContributionModule {
@@ -35,21 +35,21 @@ class MoonbeamContributionModule {
     fun provideMoonbeamInteractor(
         moonbeamApi: MoonbeamApi,
         httpExceptionHandler: HttpExceptionHandler,
-        feeEstimator: FeeEstimator,
         resourceManager: ResourceManager,
         accountRepository: AccountRepository,
         crowdloanRepository: CrowdloanRepository,
         service: ExtrinsicService,
         property: SuspendableProperty<RuntimeSnapshot>,
+        chainRegistry: ChainRegistry
     ) = MoonbeamContributeInteractor(
         moonbeamApi,
         httpExceptionHandler,
         resourceManager,
-        feeEstimator,
         accountRepository,
         crowdloanRepository,
         service,
-        property
+        property,
+        chainRegistry
     )
 
     @Provides

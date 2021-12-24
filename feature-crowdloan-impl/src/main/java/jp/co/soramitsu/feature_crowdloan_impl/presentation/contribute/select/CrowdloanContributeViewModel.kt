@@ -44,7 +44,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.par
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
@@ -304,7 +303,8 @@ class CrowdloanContributeViewModel(
                 val additionalSubmission = bonusActiveState?.let {
                     additionalOnChainSubmission(it.payload, it.customFlow, amount, customContributeManager)
                 }
-                contributionInteractor.estimateFee(payload.paraId, amount, additionalSubmission)
+                val useBatchAll = additionalSubmission != null && payload.parachainMetadata?.isInterlay != true
+                contributionInteractor.estimateFee(payload.paraId, amount, additionalSubmission, useBatchAll)
             },
             onRetryCancelled = ::backClicked
         )
