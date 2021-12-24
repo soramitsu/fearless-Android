@@ -1,9 +1,11 @@
 package jp.co.soramitsu.core_db.prepopulate.nodes
 
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core_db.BuildConfig
 import jp.co.soramitsu.core_db.model.NodeLocal
 
 val LATEST_DEFAULT_NODES = listOf(
+
     // --- kusama ----
     NodeLocal(
         "Kusama Parity Node",
@@ -57,7 +59,19 @@ val LATEST_DEFAULT_NODES = listOf(
         Node.NetworkType.ROCOCO.ordinal,
         true
     )
-)
+).toMutableList().apply {
+    if (BuildConfig.DEBUG) {
+        add(
+            NodeLocal(
+                "Polkatrain Parity Node",
+                "wss://wss.polkatrain.moonbeam.network",
+                Node.NetworkType.POLKATRAIN.ordinal,
+                true
+            )
+        )
+    }
+}
+
 
 fun defaultNodesInsertQuery(nodesList: List<NodeLocal>): String {
     return "insert into nodes (name, link, networkType, isDefault, isActive) values " +

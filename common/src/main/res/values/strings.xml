@@ -519,4 +519,15 @@ to your account to avoid remaining stake.</string>
     <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
     <string name="transaction_successful">Transaction Successful!</string>
     <string name="moonbeam_ineligible_to_participate">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
+    <string name="moonbeam_ethereum_address">Moonbeam Ethereum address</string>
+    <string name="moonbeam_ethereum_address_incorrect">Moonbeam Ethereum address format is incorrect, please try again</string>
+    <string name="moonbeam_ethereum_reward">Rewards will be paid out to this address. You can use an existing Ethereum address. PLEASE ENSURE YOU HAVE THE PRIVATE KEYS FOR THIS ADDRESS.</string>
+    <string name="moonbeam_crowdloan_terms">Moonbeam Crowdloan Terms and Conditions</string>
+    <string name="moonbeam_registration">Moonbeam Crowdloan Registration</string>
+    <string name="moonbeam_signed_successful">You have successfully signed the terms and conditions for the Moonbeam Crowdloan and a transaction has been sent.\n\nThis is the hash of your transaction:</string>
+    <string name="moonbeam_registration_description">This transaction confirms that you agree to the Moonbeam Crowdloan Terms and Conditions.\n\nA signed system.remark extrinsic transaction will be sent as proof of your agreement.\n\nThis information will be processed and stored on the Polkadot Relay Chain.\n\nPlease note that this signing transaction will be subject to transaction fees on the Polkadot network.</string>
+    <string name="moonbeam_registration_description_system_remark">system.remark</string>
+    <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
+    <string name="transaction_successful">Transaction Successful!</string>
+    <string name="moonbeam_ineligible_to_participate">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
 </resources>

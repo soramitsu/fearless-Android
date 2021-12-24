@@ -48,7 +48,11 @@ class WssSubstrateSource(
         )
     }
 
-    override suspend fun getTransferFee(chain: Chain, transfer: Transfer): BigInteger {
+    override suspend fun getTransferFee(
+        chain: Chain,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?
+    ): BigInteger {
         return extrinsicService.estimateFee(chain) {
             transfer(chain, transfer)
         }
@@ -58,6 +62,7 @@ class WssSubstrateSource(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
     ): String {
         return extrinsicService.submitExtrinsic(chain, accountId) {
             transfer(chain, transfer)
@@ -84,6 +89,12 @@ class WssSubstrateSource(
             at = blockHash
         )
 
+        extrinsics.filter { transferWithStatus ->
+            val extrinsic = transferWithStatus.extrinsic
+
+            extrinsic.senderId.contentEquals(accountId) || extrinsic.recipientId.contentEquals(accountId)
+        }
+    }
         extrinsics.filter { transferWithStatus ->
             val extrinsic = transferWithStatus.extrinsic
 
