@@ -17,8 +17,9 @@ import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanAssetSelector
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.synthetic.main.fragment_crowdloans.blockingProgress
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanAssetSelector
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
@@ -93,8 +94,8 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
         }
     }
 
-    override fun crowdloanClicked(paraId: ParaId) {
-        viewModel.crowdloanClicked(paraId)
+    override fun crowdloanClicked(chainId: ChainId, paraId: ParaId) {
+        viewModel.crowdloanClicked(chainId, paraId)
     }
 
     override fun copyReferralClicked(code: String) {

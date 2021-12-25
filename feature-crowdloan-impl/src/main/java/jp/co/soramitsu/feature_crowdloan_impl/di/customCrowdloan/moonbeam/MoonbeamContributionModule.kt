@@ -8,8 +8,6 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.SuspendableProperty
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
@@ -39,7 +37,6 @@ class MoonbeamContributionModule {
         accountRepository: AccountRepository,
         crowdloanRepository: CrowdloanRepository,
         service: ExtrinsicService,
-        property: SuspendableProperty<RuntimeSnapshot>,
         chainRegistry: ChainRegistry
     ) = MoonbeamContributeInteractor(
         moonbeamApi,
@@ -48,7 +45,6 @@ class MoonbeamContributionModule {
         accountRepository,
         crowdloanRepository,
         service,
-        property,
         chainRegistry
     )
 

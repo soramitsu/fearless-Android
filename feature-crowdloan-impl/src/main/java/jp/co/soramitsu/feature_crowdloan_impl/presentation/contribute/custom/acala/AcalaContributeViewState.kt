@@ -46,6 +46,7 @@ class AcalaContributeViewState(
             email = email,
             agreeReceiveEmail = agreeReceiveEmail,
             contributionType = null,
+            chainId = customContributePayload.chainId,
             parachainId = customContributePayload.paraId,
             baseUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL)!!,
             bonusRate = customContributePayload.parachainMetadata.flow.data.getAsBigDecimal(FLOW_BONUS_RATE)

@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanStatusModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanArrow
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanIcon
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanMyContribution
@@ -36,7 +37,7 @@ class CrowdloanAdapter(
 
     interface Handler {
 
-        fun crowdloanClicked(paraId: ParaId)
+        fun crowdloanClicked(chainId: ChainId, paraId: ParaId)
         fun copyReferralClicked(code: String)
     }
 
@@ -146,7 +147,7 @@ private class CrowdloanChildHolder(
 
             itemCrowdloanArrow.makeVisible()
 
-            setOnClickListener { handler.crowdloanClicked(item.parachainId) }
+            setOnClickListener { handler.crowdloanClicked(item.relaychainId, item.parachainId) }
 
             itemReferralCode.setOnClickListener { item.referral?.let(handler::copyReferralClicked) }
         } else {

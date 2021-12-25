@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaApi
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.acala.AcalaContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributeSubmitter
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module
 class AcalaContributionModule {
@@ -28,7 +29,8 @@ class AcalaContributionModule {
         acalaApi: AcalaApi,
         httpExceptionHandler: HttpExceptionHandler,
         accountRepository: AccountRepository,
-    ) = AcalaContributeInteractor(acalaApi, httpExceptionHandler, accountRepository)
+        chainRegistry: ChainRegistry
+    ) = AcalaContributeInteractor(acalaApi, httpExceptionHandler, accountRepository, chainRegistry)
 
     @Provides
     @FeatureScope

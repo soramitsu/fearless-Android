@@ -29,13 +29,16 @@ class AstarContributeViewState(
 
     override fun createBonusPayload(referralCode: String, email: String?, agreeReceiveEmail: Boolean?): ReferralCodePayload = AstarBonusPayload(
         referralCode,
+        customContributePayload.chainId,
         customContributePayload.paraId,
         customContributePayload.parachainMetadata.rewardRate,
         customContributePayload.parachainMetadata.flow?.data?.getAsBigDecimal(FLOW_BONUS_RATE)
     )
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {
-        val isReferralValid = interactor.isReferralValid(payload.referralCode)
+        require(payload is AstarBonusPayload)
+
+        val isReferralValid = interactor.isReferralValid(payload.referralCode, payload.chainId)
 
         if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.crowdloan_astar_referral_code_invalid))
     }

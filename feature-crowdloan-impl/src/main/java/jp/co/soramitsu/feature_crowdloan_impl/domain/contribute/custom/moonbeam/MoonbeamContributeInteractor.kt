@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam
 
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithAccount
@@ -19,6 +16,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.RemarkVe
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.SignatureRequest
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.addMemo
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -32,7 +30,6 @@ class MoonbeamContributeInteractor(
     private val accountRepository: AccountRepository,
     private val crowdloanRepository: CrowdloanRepository,
     private val extrinsicService: ExtrinsicService,
-    private val snapshot: SuspendableProperty<RuntimeSnapshot>,
     private val chainRegistry: ChainRegistry,
 ) {
     private val digest = MessageDigest.getInstance("SHA-256")
@@ -44,18 +41,17 @@ class MoonbeamContributeInteractor(
 
     fun getRemarkTxHash(): String = remarkTxHash.orEmpty()
 
-    suspend fun getContributionSignature(apiUrl: String, apiKey: String, contribution: BigInteger, paraId: ParaId): String {
-        val chainId = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"
-        val address = accountRepository.getSelectedAccount().address
+    suspend fun getContributionSignature(apiUrl: String, apiKey: String, contribution: BigInteger, paraId: ParaId, chainId: ChainId): String {
+        val accountId = accountRepository.getSelectedAccount(chainId).accountId
         val fundInfo = crowdloanRepository.fundInfoFlow(chainId, paraId).first()
-        val prevContribution = crowdloanRepository.getContribution(chainId, address.toAccountId(), paraId, fundInfo.trieIndex)
+        val prevContribution = crowdloanRepository.getContribution(chainId, accountId, paraId, fundInfo.trieIndex)
         val randomGuid = ByteArray(10) { (0..20).random().toByte() }.toHexString(false)
         val response = runCatching {
             moonbeamApi.makeSignature(
                 apiUrl,
                 apiKey,
                 SignatureRequest(
-                    accountRepository.getSelectedAccount().address,
+                    accountRepository.getSelectedAccount(chainId).address,
                     contribution.toString(),
                     prevContribution?.amount?.toString() ?: "0",
                     randomGuid
@@ -75,11 +71,10 @@ class MoonbeamContributeInteractor(
         }
     }
 
-    suspend fun doSystemRemark(apiUrl: String, apiKey: String): Boolean {
+    suspend fun doSystemRemark(apiUrl: String, apiKey: String, chainId: ChainId): Boolean {
         val remark = requireNotNull(moonbeamRemark)
         val result = extrinsicService.submitAndWatchExtrinsic(
-            chain = chainRegistry.getChain("91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"),
-            accountAddress = accountRepository.getSelectedAccount().address,
+            chain = chainRegistry.getChain(chainId),
             formExtrinsic = {
                 call(
                     moduleName = "System",
@@ -89,7 +84,6 @@ class MoonbeamContributeInteractor(
                     )
                 )
             },
-            snapshot = snapshot.get()
         )
         return if (result != null) {
             remarkTxHash = result.first
@@ -111,7 +105,7 @@ class MoonbeamContributeInteractor(
         }
     }
 
-    suspend fun getSystemRemarkFee(apiUrl: String, apiKey: String): BigInteger {
+    suspend fun getSystemRemarkFee(apiUrl: String, apiKey: String, chainId: ChainId): BigInteger {
         val sign = requireNotNull(termsSigned)
         val remarkResponse = moonbeamApi.agreeRemark(
             apiUrl,
@@ -123,9 +117,9 @@ class MoonbeamContributeInteractor(
         )
         val remark = remarkResponse.remark
         moonbeamRemark = remark
-        val polkadot = chainRegistry.getChain("91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3")
+        val chain = chainRegistry.getChain(chainId)
         return extrinsicService.estimateFee(
-            polkadot,
+            chain,
             formExtrinsic = {
                 call(
                     moduleName = "System",
@@ -138,14 +132,14 @@ class MoonbeamContributeInteractor(
         )
     }
 
-    suspend fun getTerms(url: String): String {
+    suspend fun getTerms(url: String, chainId: ChainId): String {
         return httpExceptionHandler.wrap { moonbeamApi.getTerms(url) }.also {
-            calcHashes(digest.digest(it.encodeToByteArray()))
+            calcHashes(digest.digest(it.encodeToByteArray()), chainId)
         }
     }
 
-    private suspend fun calcHashes(termsBytes: ByteArray) {
-        val account = accountRepository.getSelectedAccount()
+    private suspend fun calcHashes(termsBytes: ByteArray, chainId: ChainId) {
+        val account = accountRepository.getSelectedAccount(chainId)
         termsHash = termsBytes.toHexString(false)
         termsSigned = accountRepository.signWithAccount(account, termsHash?.encodeToByteArray()!!).toHexString(true)
     }

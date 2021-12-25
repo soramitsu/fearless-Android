@@ -273,6 +273,7 @@ class CrowdloanContributeViewModel(
     fun bonusClicked() {
         launch {
             val customContributePayload = CustomContributePayload(
+                chainId = payload.chainId,
                 paraId = payload.paraId,
                 parachainMetadata = payload.parachainMetadata!!,
                 amount = parsedAmountFlow.first(),

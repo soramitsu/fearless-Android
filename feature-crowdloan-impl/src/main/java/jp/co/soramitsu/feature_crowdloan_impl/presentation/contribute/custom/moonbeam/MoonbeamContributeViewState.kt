@@ -59,14 +59,16 @@ class MoonbeamContributeViewState(
     suspend fun getSystemRemarkFee(): BigInteger {
         return interactor.getSystemRemarkFee(
             apiUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL).orEmpty(),
-            apiKey = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY).orEmpty()
+            apiKey = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY).orEmpty(),
+            chainId = customContributePayload.chainId
         )
     }
 
     suspend fun doSystemRemark(): Boolean {
         return interactor.doSystemRemark(
             apiUrl = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_URL).orEmpty(),
-            apiKey = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY).orEmpty()
+            apiKey = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY).orEmpty(),
+            chainId = customContributePayload.chainId
         )
     }
 
@@ -74,7 +76,7 @@ class MoonbeamContributeViewState(
 
     suspend fun termsText(): String =
         customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_TERMS_URL)?.let {
-            interactor.getTerms(it)
+            interactor.getTerms(url = it, chainId = customContributePayload.chainId)
         }.orEmpty()
 
     val enteredAmountFlow = MutableStateFlow("")
@@ -102,6 +104,7 @@ class MoonbeamContributeViewState(
         apiKey = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_API_KEY).orEmpty(),
         contribution = amount,
         paraId = customContributePayload.paraId,
+        chainId = customContributePayload.chainId
     )
 
     override val applyActionState = when (customContributePayload.step) {

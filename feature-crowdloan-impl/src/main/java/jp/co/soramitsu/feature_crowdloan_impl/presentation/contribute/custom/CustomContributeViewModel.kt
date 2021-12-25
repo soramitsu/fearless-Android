@@ -357,6 +357,7 @@ class CustomContributeViewModel(
         val isPrivacyAccepted = (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.isPrivacyAccepted ?: (nextStep.step > 0)
 
         val nextStepPayload = CustomContributePayload(
+            payload.chainId,
             payload.paraId,
             payload.parachainMetadata,
             payload.amount,

@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_crowdloan_impl.di
 
 import dagger.Module
 import dagger.Provides
-import javax.inject.Named
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
@@ -10,31 +9,32 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
+import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
-import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositoryImpl
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeModule
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.storage.CrowdloanStorage
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecksProvider
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorFactory
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderProvider
-import jp.co.soramitsu.feature_crowdloan_impl.storage.CrowdloanStorage
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecksProvider
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
 
 @Module(
     includes = [
@@ -140,6 +140,7 @@ class CrowdloanFeatureModule {
     fun provideCrowdloanContributeInteractor(
         extrinsicService: ExtrinsicService,
         accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry,
         chainStateRepository: ChainStateRepository,
         sharedState: CrowdloanSharedState,
         crowdloanRepository: CrowdloanRepository,
@@ -150,6 +151,7 @@ class CrowdloanFeatureModule {
     ) = CrowdloanContributeInteractor(
         extrinsicService,
         accountRepository,
+        chainRegistry,
         chainStateRepository,
         sharedState,
         crowdloanRepository,

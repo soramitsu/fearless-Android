@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.data.network.runtime.calls.NextAccountIndexRequest
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock.Block.Header
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
@@ -33,6 +32,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionCh
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigInteger
@@ -61,10 +61,10 @@ class RpcCalls(
     }
 
     suspend fun getEventsInBlock(
-        runtime: RuntimeSnapshot,
-        blockHash: String,
         chainId: ChainId,
+        blockHash: String,
     ): List<EventRecord> {
+        val runtime = chainRegistry.getRuntime(chainId)
         val storageKey = runtime.metadata.module("System").storage("Events").storageKey()
         return runCatching {
             socketFor(chainId).executeAsync(

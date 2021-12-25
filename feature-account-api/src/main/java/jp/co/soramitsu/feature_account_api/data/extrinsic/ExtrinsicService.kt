@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.data.secrets.v2.getMetaAccountKeypair
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.runtime.metadata.event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -79,9 +78,7 @@ class ExtrinsicService(
 
     suspend fun submitAndWatchExtrinsic(
         chain: Chain,
-        accountAddress: String,
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit,
-        snapshot: RuntimeSnapshot
     ): Pair<String, String>? {
         val extrinsicBuilder = extrinsicBuilderFactory.create(chain)
         extrinsicBuilder.formExtrinsic()
@@ -104,7 +101,7 @@ class ExtrinsicService(
                     val extrinsicId =
                         blockResponse.block.extrinsics.indexOfFirst { s -> s.blake2b256String() == txHash }
                             .toLong()
-                    val isSuccess = isExtrinsicSuccessful(chain, snapshot, extrinsicId, blockHash, txHash)
+                    val isSuccess = isExtrinsicSuccessful(chain, extrinsicId, blockHash, txHash)
                     if (isSuccess) txHash to blockHash else null
                 }
                 emit(finish)
@@ -118,12 +115,11 @@ class ExtrinsicService(
 
     private suspend fun isExtrinsicSuccessful(
         chain: Chain,
-        snapshot: RuntimeSnapshot,
         extrinsicId: Long,
         blockHash: String,
         txHash: String
     ): Boolean {
-        val events = rpcCalls.getEventsInBlock(snapshot, blockHash, chain.id)
+        val events = rpcCalls.getEventsInBlock(chain.id, blockHash)
         val blockEvents = events.map {
             BlockEvent(
                 it.event.moduleIndex,
@@ -132,8 +128,10 @@ class ExtrinsicService(
             )
         }
         if (blockEvents.isEmpty()) return false
-        val (moduleIndexSuccess, eventIndexSuccess) = snapshot.metadata.system().event("ExtrinsicSuccess").index
-        val (moduleIndexFailed, eventIndexFailed) = snapshot.metadata.system().event("ExtrinsicFailed").index
+        val extrinsicBuilder = extrinsicBuilderFactory.create(chain)
+        val runtime = extrinsicBuilder.runtime
+        val (moduleIndexSuccess, eventIndexSuccess) = runtime.metadata.system().event("ExtrinsicSuccess").index
+        val (moduleIndexFailed, eventIndexFailed) = runtime.metadata.system().event("ExtrinsicFailed").index
         val successEvent = blockEvents.find { event ->
             event.module == moduleIndexSuccess && event.event == eventIndexSuccess && event.number == extrinsicId
         }

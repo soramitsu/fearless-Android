@@ -8,9 +8,9 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.list.toValueList
+import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.mapLoading
-import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.resources.formatTimeLeft
@@ -46,12 +46,13 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.selectedChainFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -190,12 +191,13 @@ class CrowdloanViewModel(
         return CrowdloanModel.Icon.FromDrawable(icon)
     }
 
-    fun crowdloanClicked(paraId: ParaId) {
+    fun crowdloanClicked(chainId: ChainId, paraId: ParaId) {
         launch {
             val crowdloans = crowdloansFlow.first() as? LoadingState.Loaded ?: return@launch
             val crowdloan = crowdloans.data.firstOrNull { it.parachainId == paraId } ?: return@launch
             blockingProgress.value = true
             val payload = ContributePayload(
+                chainId = chainId,
                 paraId = crowdloan.parachainId,
                 parachainMetadata = crowdloan.parachainMetadata?.let(::mapParachainMetadataToParcel)
             )
@@ -221,6 +223,7 @@ class CrowdloanViewModel(
                 }
 
                 val customContributePayload = CustomContributePayload(
+                    chainId = chainId,
                     paraId = payload.paraId,
                     parachainMetadata = payload.parachainMetadata!!,
                     step = startStep,

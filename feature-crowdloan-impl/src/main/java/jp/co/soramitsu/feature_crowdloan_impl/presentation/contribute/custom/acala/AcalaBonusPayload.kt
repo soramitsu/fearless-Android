@@ -1,9 +1,10 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala
 
-import java.math.BigDecimal
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.parcel.Parcelize
+import java.math.BigDecimal
 
 enum class AcalaContributionType {
     DirectDOT, LcDOT
@@ -16,6 +17,7 @@ class AcalaBonusPayload(
     val email: String?,
     val agreeReceiveEmail: Boolean?,
     var contributionType: AcalaContributionType?,
+    val chainId: ChainId,
     val parachainId: ParaId,
     val baseUrl: String,
     private val bonusRate: BigDecimal?

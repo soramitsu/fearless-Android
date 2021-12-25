@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.acala
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -14,15 +13,17 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.network.blockhain.extrinsic.a
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.DirectDOT
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 class AcalaContributeInteractor(
     private val acalaApi: AcalaApi,
     private val httpExceptionHandler: HttpExceptionHandler,
     private val accountRepository: AccountRepository,
+    private val chainRegistry: ChainRegistry,
 ) {
 
     suspend fun isReferralValid(referralCode: String, apiUrl: String) =
@@ -38,12 +39,12 @@ class AcalaContributeInteractor(
         }
 
     private suspend fun performContribute(payload: AcalaBonusPayload, amount: BigDecimal, apiUrl: String, apiKey: String): Result<Unit> = runCatching {
-        httpExceptionHandler.wrap {
+        val asset = chainRegistry.getAsset(payload.chainId, "dot") ?: throw Exception("Asset not specified")
 
+        httpExceptionHandler.wrap {
             val statementResult = acalaApi.getStatement(apiUrl)
             val statement = statementResult.statement
-
-            val selectedAccount = accountRepository.getSelectedAccount()
+            val selectedAccount = accountRepository.getSelectedAccount(payload.chainId)
             val statementSignature = accountRepository.signWithAccount(selectedAccount, statement.toByteArray())
 
             val useEmail = when {
@@ -54,7 +55,7 @@ class AcalaContributeInteractor(
                 apiUrl, "Bearer $apiKey",
                 AcalaContributeRequest(
                     address = selectedAccount.address,
-                    amount = Token.Type.DOT.planksFromAmount(amount),
+                    amount = asset.planksFromAmount(amount),
                     signature = statementSignature.toHexString(true),
                     referral = payload.referralCode,
                     email = useEmail,
@@ -65,8 +66,10 @@ class AcalaContributeInteractor(
     }
 
     private suspend fun performTransfer(payload: AcalaBonusPayload, amount: BigDecimal, apiUrl: String, apiKey: String): Result<Unit> = runCatching {
+        val asset = chainRegistry.getAsset(payload.chainId, "dot") ?: throw Exception("Asset not specified")
+
         httpExceptionHandler.wrap {
-            val address = accountRepository.getSelectedAccount().address
+            val address = accountRepository.getSelectedAccount(payload.chainId).address
             val useEmail = when {
                 payload.email.isNullOrEmpty() -> null
                 else -> payload.email
@@ -75,7 +78,7 @@ class AcalaContributeInteractor(
                 apiUrl, "Bearer $apiKey",
                 AcalaTransferRequest(
                     address = address,
-                    amount = Token.Type.DOT.planksFromAmount(amount),
+                    amount = asset.planksFromAmount(amount),
                     referral = payload.referralCode,
                     email = useEmail,
                     receiveEmail = payload.agreeReceiveEmail
