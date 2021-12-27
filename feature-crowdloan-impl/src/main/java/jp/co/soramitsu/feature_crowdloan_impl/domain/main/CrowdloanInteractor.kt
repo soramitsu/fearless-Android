@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
@@ -11,13 +13,11 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
-import java.math.BigInteger
-import kotlin.reflect.KClass
 
 class Crowdloan(
     val parachainMetadata: ParachainMetadata?,
@@ -86,7 +86,7 @@ class CrowdloanInteractor(
                 val contributions = crowdloanRepository.getContributions(chainId, accountId, contributionKeys)
                 val winnerInfo = crowdloanRepository.getWinnerInfo(chainId, fundInfos)
 
-                fundInfos.values
+                val aa = fundInfos.values
                     .map { fundInfo ->
                         val paraId = fundInfo.paraId
 
@@ -107,9 +107,15 @@ class CrowdloanInteractor(
                     )
                     .groupBy { it.state::class }
                     .toSortedMap(Crowdloan.State.STATE_CLASS_COMPARATOR)
+                aa
             }
 
             emitAll(withBlockUpdates)
         }
+    }
+
+    suspend fun checkRemark(apiUrl: String, apiKey: String): Result<Boolean> = runCatching {
+        val address = accountRepository.getSelectedAccount().address
+        crowdloanRepository.checkRemark(apiUrl, apiKey, address)
     }
 }

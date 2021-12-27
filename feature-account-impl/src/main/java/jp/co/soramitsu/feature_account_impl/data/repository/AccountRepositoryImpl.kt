@@ -39,6 +39,8 @@ import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -51,6 +53,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -401,6 +404,21 @@ class AccountRepositoryImpl(
 
     override suspend fun isAccountExists(accountId: AccountId): Boolean {
         return accountDataSource.accountExists(accountId)
+    }
+
+    override suspend fun isInCurrentNetwork(address: String, chainId: ChainId): Boolean {
+        val currentAccount = getSelectedAccount(chainId)
+
+        return try {
+            val otherAddressByte = address.addressByte()
+            val currentAddressByte = currentAccount.address.addressByte()
+
+            address.toAccountId() // decoded without exception
+
+            otherAddressByte == currentAddressByte
+        } catch (_: Exception) {
+            false
+        }
     }
 
     override fun nodesFlow(): Flow<List<Node>> {

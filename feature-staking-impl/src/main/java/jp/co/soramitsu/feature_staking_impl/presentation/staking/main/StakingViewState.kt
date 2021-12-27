@@ -131,7 +131,7 @@ sealed class StakeViewState<S>(
 
     private fun syncStakingRewards() {
         scope.launch {
-            val syncResult = stakingInteractor.syncStakingRewards(stakeState.stashAddress)
+            val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.stashAddress)
 
             syncResult.exceptionOrNull()?.let { errorDisplayer(it) }
         }

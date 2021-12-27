@@ -1,6 +1,8 @@
 package jp.co.soramitsu.runtime.network.rpc
 
+import jp.co.soramitsu.common.data.network.runtime.ExtrinsicStatusResponse
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
+import jp.co.soramitsu.common.data.network.runtime.blake2b256String
 import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetBlockHashRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetBlockRequest
@@ -10,21 +12,98 @@ import jp.co.soramitsu.common.data.network.runtime.calls.NextAccountIndexRequest
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock.Block.Header
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericEvent
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitAndWatchExtrinsicRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitExtrinsicRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersionRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.GetStorageRequest
+import jp.co.soramitsu.fearless_utils.wsrpc.subscription.response.SubscriptionChange
+import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.math.BigInteger
+
+data class EventRecord(val phase: PhaseRecord, val event: InnerEventRecord)
+
+data class InnerEventRecord(val moduleIndex: Int, val eventIndex: Int, var list: List<Any?>? = null)
+
+sealed class PhaseRecord {
+
+    class ApplyExtrinsic(val extrinsicId: BigInteger) : PhaseRecord()
+
+    object Finalization : PhaseRecord()
+
+    object Initialization : PhaseRecord()
+}
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class RpcCalls(
     private val chainRegistry: ChainRegistry
 ) {
+
+    companion object {
+        private const val FINALIZED = "finalized"
+        private const val FINALITY_TIMEOUT = "finalityTimeout"
+    }
+
+    suspend fun getEventsInBlock(
+        chainId: ChainId,
+        blockHash: String,
+    ): List<EventRecord> {
+        val runtime = chainRegistry.getRuntime(chainId)
+        val storageKey = runtime.metadata.module("System").storage("Events").storageKey()
+        return runCatching {
+            socketFor(chainId).executeAsync(
+                request = GetStorageRequest(listOf(storageKey, blockHash)),
+                mapper = pojo<String>().nonNull(),
+            )
+                .let { storage ->
+                    val eventType = runtime.metadata.module("System").storage("Events").type.value ?: return@let emptyList()
+                    val eventsRaw = eventType.fromHex(runtime, storage)
+                    if (eventsRaw is List<*>) {
+                        val eventRecordList = eventsRaw.filterIsInstance<Struct.Instance>().mapNotNull {
+                            val phase = it.get<DictEnum.Entry<*>>("phase")
+                            val phaseValue = when (phase?.name) {
+                                "ApplyExtrinsic" -> PhaseRecord.ApplyExtrinsic(phase.value as BigInteger)
+                                "Finalization" -> PhaseRecord.Finalization
+                                "Initialization" -> PhaseRecord.Initialization
+                                else -> null
+                            }
+                            val innerEvent = it.get<GenericEvent.Instance>("event")
+                            if (phaseValue == null || innerEvent == null) {
+                                null
+                            } else {
+                                EventRecord(
+                                    phaseValue,
+                                    InnerEventRecord(
+                                        innerEvent.module.index.toInt(),
+                                        innerEvent.event.index.second,
+                                        innerEvent.arguments
+                                    )
+                                )
+                            }
+                        }
+                        eventRecordList
+                    } else emptyList()
+                }
+        }.getOrElse {
+            emptyList()
+        }
+    }
 
     suspend fun getExtrinsicFee(chainId: ChainId, extrinsic: String): BigInteger {
         val request = FeeCalculationRequest(extrinsic)
@@ -83,6 +162,39 @@ class RpcCalls(
      */
     suspend fun getBlockHeader(chainId: ChainId, hash: String? = null): Header {
         return socketFor(chainId).executeAsync(GetHeaderRequest(hash), mapper = pojo<Header>().nonNull())
+    }
+
+    fun submitAndWatchExtrinsic(chainId: ChainId, extrinsic: String): Flow<Pair<String, ExtrinsicStatusResponse>> {
+        val request = SubmitAndWatchExtrinsicRequest(extrinsic)
+        val extHash = extrinsic.blake2b256String()
+        return socketFor(chainId).subscriptionFlow(
+            request,
+            "author_unwatchExtrinsic"
+        ).map {
+            mapSubscription(extHash, it)
+        }
+    }
+
+    private fun mapSubscription(
+        hash: String,
+        response: SubscriptionChange
+    ): Pair<String, ExtrinsicStatusResponse> {
+        val subscriptionId = response.subscriptionId
+        val result = response.params.result
+        val statusResponse: ExtrinsicStatusResponse = when {
+            (result as? Map<String, *>)?.containsKey(FINALIZED)
+                ?: false -> ExtrinsicStatusResponse.ExtrinsicStatusFinalized(
+                subscriptionId,
+                (result as? Map<String, *>)?.getValue(FINALIZED) as String
+            )
+            (result as? Map<String, *>)?.containsKey(FINALITY_TIMEOUT)
+                ?: false -> ExtrinsicStatusResponse.ExtrinsicStatusFinalized(
+                subscriptionId,
+                (result as? Map<String, *>)?.getValue(FINALITY_TIMEOUT) as String
+            )
+            else -> ExtrinsicStatusResponse.ExtrinsicStatusPending(subscriptionId)
+        }
+        return hash to statusResponse
     }
 
     /**

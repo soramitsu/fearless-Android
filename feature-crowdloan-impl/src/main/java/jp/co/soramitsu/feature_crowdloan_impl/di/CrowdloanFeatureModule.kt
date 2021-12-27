@@ -10,17 +10,22 @@ import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaApi
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.repository.CrowdloanRepositoryImpl
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeModule
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
+import jp.co.soramitsu.feature_crowdloan_impl.storage.CrowdloanStorage
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecksProvider
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorFactory
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
@@ -37,6 +42,10 @@ import javax.inject.Named
     ]
 )
 class CrowdloanFeatureModule {
+
+    @Provides
+    @FeatureScope
+    fun provideCrowdloanStorage(preferences: Preferences) = CrowdloanStorage(preferences)
 
     @Provides
     @FeatureScope
@@ -94,10 +103,14 @@ class CrowdloanFeatureModule {
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         crowdloanMetadataApi: ParachainMetadataApi,
         chainRegistry: ChainRegistry,
+        moonbeamApi: MoonbeamApi,
+        crowdloanStorage: CrowdloanStorage
     ): CrowdloanRepository = CrowdloanRepositoryImpl(
         remoteStorageSource,
         chainRegistry,
-        crowdloanMetadataApi
+        crowdloanMetadataApi,
+        moonbeamApi,
+        crowdloanStorage
     )
 
     @Provides
@@ -120,17 +133,31 @@ class CrowdloanFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideTransferChecks(): TransferValidityChecks.Presentation = TransferValidityChecksProvider()
+
+    @Provides
+    @FeatureScope
     fun provideCrowdloanContributeInteractor(
         extrinsicService: ExtrinsicService,
         accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry,
         chainStateRepository: ChainStateRepository,
         sharedState: CrowdloanSharedState,
-        crowdloanRepository: CrowdloanRepository
+        crowdloanRepository: CrowdloanRepository,
+        walletRepository: WalletRepository,
+        moonbeamApi: MoonbeamApi,
+        acalaApi: AcalaApi,
+        resourceManager: ResourceManager,
     ) = CrowdloanContributeInteractor(
         extrinsicService,
         accountRepository,
+        chainRegistry,
         chainStateRepository,
         sharedState,
-        crowdloanRepository
+        crowdloanRepository,
+        walletRepository,
+        moonbeamApi,
+        acalaApi,
+        resourceManager
     )
 }

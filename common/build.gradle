@@ -13,10 +13,18 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
+        buildConfigField "String", "TWITTER_URL", "\"https://twitter.com/fearlesswallet\""
+        buildConfigField "String", "YOUTUBE_URL", "\"https://youtube.com/fearlesswallet\""
+        buildConfigField "String", "INSTAGRAM_URL", "\"https://instagram.com/fearless_wallet\""
+        buildConfigField "String", "MEDIUM_URL", "\"https://medium.com/fearlesswallet\""
         buildConfigField "String", "PRIVACY_URL", "\"https://fearlesswallet.io/privacy\""
         buildConfigField "String", "TERMS_URL", "\"https://fearlesswallet.io/terms\""
         buildConfigField "String", "GITHUB_URL", "\"https://github.com/soramitsu/fearless-Android\""
+        buildConfigField "String", "WIKI_URL", "\"https://wiki.fearlesswallet.io\""
+        buildConfigField "String", "WIKI_CROWDLOANS_URL", "\"https://wiki.fearlesswallet.io/crowdloans\""
         buildConfigField "String", "TELEGRAM_URL", "\"https://t.me/fearlesswallet\""
+        buildConfigField "String", "ANNOUNCEMENT_URL", "\"https://t.me/fearless_announcements\""
+        buildConfigField "String", "SUPPORT_URL", "\"https://t.me/fearlesshappiness\""
         buildConfigField "String", "EMAIL", "\"fearless@soramitsu.co.jp\""
 
         buildConfigField "String", "TWITTER_ACCOUNT_TEMPLATE", "\"https://twitter.com/%s\""

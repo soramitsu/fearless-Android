@@ -71,7 +71,7 @@ class AccountFeatureModule {
     @Provides
     fun provideCryptoChooserMixin(
         interactor: AccountInteractor,
-        resourceManager: ResourceManager,
+        resourceManager: ResourceManager
     ): CryptoTypeChooserMixin = CryptoTypeChooser(interactor, resourceManager)
 
     @Provides
@@ -85,7 +85,7 @@ class AccountFeatureModule {
         jsonSeedDecoder: JsonSeedDecoder,
         jsonSeedEncoder: JsonSeedEncoder,
         accountSubstrateSource: AccountSubstrateSource,
-        languagesHolder: LanguagesHolder,
+        languagesHolder: LanguagesHolder
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -103,7 +103,7 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountInteractor(
-        accountRepository: AccountRepository,
+        accountRepository: AccountRepository
     ): AccountInteractor {
         return AccountInteractorImpl(accountRepository)
     }
@@ -148,7 +148,7 @@ class AccountFeatureModule {
     fun provideAccountDataMigration(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
-        accountDao: AccountDao,
+        accountDao: AccountDao
     ): AccountDataMigration {
         return AccountDataMigration(preferences, encryptedPreferences, accountDao)
     }
@@ -158,7 +158,7 @@ class AccountFeatureModule {
     fun provideExternalAccountActions(
         clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
-        resourceManager: ResourceManager,
+        resourceManager: ResourceManager
     ): ExternalAccountActions.Presentation {
         return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
     }
@@ -166,19 +166,19 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountUpdateScope(
-        accountRepository: AccountRepository,
+        accountRepository: AccountRepository
     ) = AccountUpdateScope(accountRepository)
 
     @Provides
     @FeatureScope
     fun provideAddressDisplayUseCase(
-        accountRepository: AccountRepository,
+        accountRepository: AccountRepository
     ) = AddressDisplayUseCase(accountRepository)
 
     @Provides
     @FeatureScope
     fun provideAccountUseCase(
-        accountRepository: AccountRepository,
+        accountRepository: AccountRepository
     ) = SelectedAccountUseCase(accountRepository)
 
     @Provides

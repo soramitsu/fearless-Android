@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Para
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanStatusModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanArrow
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanIcon
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanMyContribution
@@ -26,6 +27,7 @@ import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaDescr
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaName
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaRaised
 import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanTimeRemaining
+import kotlinx.android.synthetic.main.item_crowdloan.view.itemReferralCode
 import kotlinx.android.synthetic.main.item_crowdloan_group.view.itemCrowdloanGroupStatus
 
 class CrowdloanAdapter(
@@ -35,7 +37,8 @@ class CrowdloanAdapter(
 
     interface Handler {
 
-        fun crowdloanClicked(paraId: ParaId)
+        fun crowdloanClicked(chainId: ChainId, paraId: ParaId)
+        fun copyReferralClicked(code: String)
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
@@ -144,7 +147,9 @@ private class CrowdloanChildHolder(
 
             itemCrowdloanArrow.makeVisible()
 
-            setOnClickListener { handler.crowdloanClicked(item.parachainId) }
+            setOnClickListener { handler.crowdloanClicked(item.relaychainId, item.parachainId) }
+
+            itemReferralCode.setOnClickListener { item.referral?.let(handler::copyReferralClicked) }
         } else {
             itemCrowdloanTimeRemaining.makeGone()
             itemCrowdloanArrow.makeGone()
@@ -169,6 +174,9 @@ private class CrowdloanChildHolder(
 
     fun bindMyContribution(item: CrowdloanModel) {
         containerView.itemCrowdloanMyContribution.setVisible(item.myContribution != null)
+        containerView.itemCrowdloanMyContribution.setTextColorRes(R.color.colorAccent)
         containerView.itemCrowdloanMyContribution.text = item.myContribution
+
+        containerView.itemReferralCode.setVisible(item.myContribution != null && item.referral != null)
     }
 }

@@ -1,11 +1,11 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import java.math.BigInteger
 
 class AccountData(
     val free: BigInteger,

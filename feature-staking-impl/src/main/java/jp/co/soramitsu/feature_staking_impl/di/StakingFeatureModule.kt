@@ -129,9 +129,11 @@ class StakingFeatureModule {
     fun provideStakingRewardsSubqueryDataSource(
         stakingApi: StakingApi,
         stakingTotalRewardDao: StakingTotalRewardDao,
+        chainRegistry: ChainRegistry
     ): StakingRewardsDataSource = SubqueryStakingRewardsDataSource(
         stakingApi = stakingApi,
-        stakingTotalRewardDao = stakingTotalRewardDao
+        stakingTotalRewardDao = stakingTotalRewardDao,
+        chainRegistry = chainRegistry
     )
 
     @Provides
@@ -297,10 +299,12 @@ class StakingFeatureModule {
     fun provideValidatorSetFetcher(
         stakingApi: StakingApi,
         stakingRepository: StakingRepository,
+        chainRegistry: ChainRegistry
     ): SubQueryValidatorSetFetcher {
         return SubQueryValidatorSetFetcher(
             stakingApi,
-            stakingRepository
+            stakingRepository,
+            chainRegistry
         )
     }
 

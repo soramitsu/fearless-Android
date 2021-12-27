@@ -9,8 +9,10 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.feature_crowdloan_impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
@@ -33,7 +35,9 @@ class CrowdloanModule {
         router: CrowdloanRouter,
         crowdloanUpdateSystem: UpdateSystem,
         sharedState: CrowdloanSharedState,
-        assetSelectorFactory: AssetSelectorMixin.Presentation.Factory
+        assetSelectorFactory: AssetSelectorMixin.Presentation.Factory,
+        accountUseCase: SelectedAccountUseCase,
+        clipboardManager: ClipboardManager
     ): ViewModel {
         return CrowdloanViewModel(
             interactor,
@@ -44,7 +48,9 @@ class CrowdloanModule {
             router,
             sharedState,
             crowdloanUpdateSystem,
-            assetSelectorFactory
+            assetSelectorFactory,
+            accountUseCase,
+            clipboardManager
         )
     }
 

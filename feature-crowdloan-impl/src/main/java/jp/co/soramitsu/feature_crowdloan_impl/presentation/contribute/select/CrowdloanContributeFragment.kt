@@ -1,31 +1,42 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
+import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.text.buildSpannedString
+import androidx.core.text.inSpans
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import kotlinx.android.synthetic.main.fragment_contribute.contributePrivacySwitch
+import kotlinx.android.synthetic.main.fragment_contribute.contributePrivacyText
+import kotlinx.android.synthetic.main.fragment_contribute.contributeTermsLayout
+import kotlinx.android.synthetic.main.fragment_contribute.contributionTypeButton
+import kotlinx.android.synthetic.main.fragment_contribute.contributionTypeLayout
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeAmount
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonus
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeBonusReward
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeContainer
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeContinue
-import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeFee
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeLearnMore
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeLeasingPeriod
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeRaised
@@ -33,7 +44,6 @@ import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeRew
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeTimeLeft
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeToolbar
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeUnlockHint
-import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
@@ -74,6 +84,21 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         crowdloanContributeLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
 
         crowdloanContributeBonus.setOnClickListener { viewModel.bonusClicked() }
+
+        contributePrivacySwitch.bindTo(viewModel.privacyAcceptedFlow, lifecycleScope)
+
+        contributePrivacyText?.movementMethod = LinkMovementMethod.getInstance()
+        contributePrivacyText?.text = context?.let {
+            createSpannable(it.getString(R.string.contribute_terms)) {
+                clickable(it.getString(R.string.contribute_terms_clickable)) {
+                    viewModel.termsClicked()
+                }
+            }
+        }
+        contributionTypeButton?.bindTo(viewModel.contributionTypeFlow, lifecycleScope)
+        contributionTypeLayout?.setOnClickListener {
+            contributionTypeButton?.toggle()
+        }
     }
 
     override fun inject() {
@@ -93,7 +118,19 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         observeBrowserEvents(viewModel)
         observeValidations(viewModel)
 
-        viewModel.showNextProgress.observe(crowdloanContributeContinue::setProgress)
+        viewModel.applyButtonState.observe { (state, isProgress) ->
+            when {
+                isProgress -> crowdloanContributeContinue.setState(ButtonState.PROGRESS)
+                state is ApplyActionState.Unavailable -> {
+                    crowdloanContributeContinue.setState(ButtonState.DISABLED)
+                    crowdloanContributeContinue.text = state.reason
+                }
+                state is ApplyActionState.Available -> {
+                    crowdloanContributeContinue.setState(ButtonState.NORMAL)
+                    crowdloanContributeContinue.setText(R.string.common_continue)
+                }
+            }
+        }
 
         viewModel.assetModelFlow.observe {
             crowdloanContributeAmount.setAssetBalance(it.assetBalance)
@@ -107,8 +144,6 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
             it?.let(crowdloanContributeAmount::setAssetBalanceDollarAmount)
         }
 
-        viewModel.feeLiveData.observe(crowdloanContributeFee::setFeeStatus)
-
         viewModel.estimatedRewardFlow.observe { reward ->
             crowdloanContributeReward.setVisible(reward != null)
 
@@ -120,17 +155,24 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         viewModel.unlockHintFlow.observe(crowdloanContributeUnlockHint::setText)
 
         viewModel.crowdloanDetailModelFlow.observe {
-            crowdloanContributeLeasingPeriod.showValue(it.leasePeriod, it.leasedUntil)
+            crowdloanContributeLeasingPeriod.showValue(
+                primary = it.leasePeriod,
+                secondary = getString(R.string.till_format, it.leasedUntil)
+            )
             crowdloanContributeTimeLeft.showValue(it.timeLeft)
             crowdloanContributeRaised.showValue(it.raised, it.raisedPercentage)
         }
 
         crowdloanContributeToolbar.setTitle(viewModel.title)
+        val payload = argument<ContributePayload>(KEY_PAYLOAD)
 
         crowdloanContributeLearnMore.setVisible(viewModel.learnCrowdloanModel != null)
 
         viewModel.learnCrowdloanModel?.let {
-            crowdloanContributeLearnMore.title.text = it.text
+            val underlined = buildSpannedString {
+                inSpans(UnderlineSpan()) { append(it.text) }
+            }
+            crowdloanContributeLearnMore.title.text = underlined
             crowdloanContributeLearnMore.icon.load(it.iconLink, imageLoader)
         }
 
@@ -139,5 +181,8 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
 
             crowdloanContributeBonusReward.text = it
         }
+
+        contributeTermsLayout?.setVisible(payload.parachainMetadata?.isAcala == true)
+        contributionTypeLayout?.setVisible(payload.parachainMetadata?.isAcala == true)
     }
 }

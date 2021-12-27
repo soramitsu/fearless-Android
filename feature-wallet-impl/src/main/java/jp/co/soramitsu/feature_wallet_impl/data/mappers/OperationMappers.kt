@@ -301,7 +301,7 @@ suspend fun mapOperationToOperationModel(
 
 fun mapOperationToParcel(
     operation: Operation,
-    resourceManager: ResourceManager,
+    resourceManager: ResourceManager
 ): OperationParcelizeModel {
     with(operation) {
         return when (val operationType = operation.type) {

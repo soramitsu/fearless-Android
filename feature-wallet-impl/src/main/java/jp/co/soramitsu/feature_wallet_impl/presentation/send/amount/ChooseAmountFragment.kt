@@ -16,11 +16,11 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount25
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount50

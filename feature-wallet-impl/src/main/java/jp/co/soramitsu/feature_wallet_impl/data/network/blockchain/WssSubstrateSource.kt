@@ -48,20 +48,38 @@ class WssSubstrateSource(
         )
     }
 
-    override suspend fun getTransferFee(chain: Chain, transfer: Transfer): BigInteger {
-        return extrinsicService.estimateFee(chain) {
-            transfer(chain, transfer)
-        }
+    override suspend fun getTransferFee(
+        chain: Chain,
+        transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
+        batchAll: Boolean
+    ): BigInteger {
+        return extrinsicService.estimateFee(
+            chain = chain,
+            useBatchAll = batchAll,
+            formExtrinsic = {
+                transfer(chain, transfer)
+                additional?.invoke(this)
+            }
+        )
     }
 
     override suspend fun performTransfer(
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)?,
+        batchAll: Boolean
     ): String {
-        return extrinsicService.submitExtrinsic(chain, accountId) {
-            transfer(chain, transfer)
-        }.getOrThrow()
+        return extrinsicService.submitExtrinsic(
+            chain = chain,
+            accountId = accountId,
+            useBatchAll = batchAll,
+            formExtrinsic = {
+                transfer(chain, transfer)
+                additional?.invoke(this)
+            },
+        ).getOrThrow()
     }
 
     override suspend fun fetchAccountTransfersInBlock(

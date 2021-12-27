@@ -11,11 +11,11 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmAmountField
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmFee
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmFeeFiat

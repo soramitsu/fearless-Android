@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 class AccountAlreadyExistsException : Exception()
@@ -139,4 +140,6 @@ interface AccountRepository {
     suspend fun generateRestoreJson(account: Account, password: String): String
 
     suspend fun isAccountExists(accountId: AccountId): Boolean
+
+    suspend fun isInCurrentNetwork(address: String, chainId: ChainId): Boolean
 }

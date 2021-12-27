@@ -33,7 +33,7 @@ typealias SaveSourceCallback = suspend (String, SecuritySource) -> Unit
 class AccountDataMigration(
     private val preferences: Preferences,
     private val encryptedPreferences: EncryptedPreferences,
-    private val accountsDao: AccountDao,
+    private val accountsDao: AccountDao
 ) {
 
     suspend fun migrationNeeded(): Boolean = withContext(Dispatchers.Default) {
@@ -78,7 +78,6 @@ class AccountDataMigration(
 
         val securitySource = if (entropy != null) {
             val mnemonic = MnemonicCreator.fromEntropy(entropy)
-
             SecuritySource.Specified.Mnemonic(seed, keypair, mnemonic.words, derivationPath)
         } else {
             if (seed != null) {

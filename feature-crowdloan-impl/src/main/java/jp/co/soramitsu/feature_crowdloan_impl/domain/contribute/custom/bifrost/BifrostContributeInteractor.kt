@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class BifrostContributeInteractor(
-    val fearlessReferralCode: String,
     private val bifrostApi: BifrostApi,
     private val httpExceptionHandler: HttpExceptionHandler
 ) {
@@ -26,6 +25,6 @@ class BifrostContributeInteractor(
         referralCode: String,
         extrinsicBuilder: ExtrinsicBuilder
     ) = withContext(Dispatchers.Default) {
-        extrinsicBuilder.addMemo(paraId, referralCode)
+        extrinsicBuilder.addMemo(paraId, referralCode.toByteArray())
     }
 }

@@ -41,6 +41,34 @@
                 android:layout_marginEnd="16dp" />
 
             <LinearLayout
+                android:id="@+id/contributionTypeLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/contributionTypeHint"
+                    style="@style/TextAppearance.Soramitsu.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:includeFontPadding="false"
+                    android:text="@string/contribution_type"
+                    tools:textColor="@color/white" />
+
+                <jp.co.soramitsu.common.view.SegmentedButtonView
+                    android:id="@+id/contributionTypeButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    app:labelOne="@string/contribution_type_direct_dot"
+                    app:labelTwo="@string/contribution_type_lcdot" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -63,14 +91,14 @@
                     tools:text="Your KSM tokens will be returned after the leasing period." />
             </LinearLayout>
 
-            <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
-                android:id="@+id/crowdloanContributeFee"
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/crowdloanContributeLeasingPeriod"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
-                app:title="@string/network_fee" />
+                app:title="@string/crowdloan_leasing_period" />
 
             <jp.co.soramitsu.common.view.TableCellView
                 android:id="@+id/crowdloanContributeReward"
@@ -79,14 +107,6 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
                 app:title="@string/staking_validator_estimated_reward" />
-
-            <jp.co.soramitsu.common.view.TableCellView
-                android:id="@+id/crowdloanContributeLeasingPeriod"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                app:title="@string/crowdloan_leasing_period" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -102,23 +122,24 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_basic_circle_star_24" />
+                    android:src="@drawable/ic_bonus_star_24" />
 
                 <TextView
                     style="@style/TextAppearance.Soramitsu.Body1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="13dp"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
+                    tools:textColor="@color/white"
                     android:text="@string/common_bonus" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorAccent"
-                    style="@style/TextAppearance.Soramitsu.Body2"
+                    style="@style/TextAppearance.Soramitsu.Body1"
                     android:id="@+id/crowdloanContributeBonusReward"
-                    tools:text="@string/crowdloan_bonus_action" />
+                    tools:text="@string/crowdloan_empty_bonus_title" />
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -162,6 +183,32 @@
                 app:actionIcon="@drawable/ic_arrow_top_right_white_16"
                 android:id="@+id/crowdloanContributeLearnMore"
                 android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:id="@+id/contributeTermsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/contributePrivacySwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    app:layout_constraintStart_toStartOf="@+id/referralBonus"
+                    app:layout_constraintTop_toBottomOf="@+id/referralBonus" />
+
+                <TextView
+                    android:id="@+id/contributePrivacyText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="16dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/contribute_terms"
+                    tools:textColor="@color/white" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
@@ -174,5 +221,6 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="@string/common_continue" />
+        android:text="@string/common_continue"
+        android:textSize="18sp" />
 </LinearLayout>

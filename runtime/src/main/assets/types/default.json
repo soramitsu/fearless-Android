@@ -110,8 +110,8 @@
     "PriorLock": {
       "type": "struct",
       "type_mapping": [
-        ["blockNumber", "BlockNumber"],
-        ["balance", "Balance"]
+         ["blockNumber", "BlockNumber"],
+         ["balance", "Balance"]
       ]
     },
     "ReferendumInfoFinished": {
@@ -185,8 +185,8 @@
     "VotingDirectVote": {
       "type": "struct",
       "type_mapping": [
-        ["referendumIndex", "ReferendumIndex"],
-        ["accountVote", "AccountVote"]
+         ["referendumIndex", "ReferendumIndex"],
+         ["accountVote", "AccountVote"]
       ]
     },
     "VotingDirect": {
@@ -580,16 +580,16 @@
     "FullIdentification": {
       "type": "struct",
       "type_mapping": [
-        ["total", "Compact<Balance>"],
-        ["own", "Compact<Balance>"],
-        ["others", "Vec<IndividualExposure>"]
+         ["total", "Compact<Balance>"],
+         ["own", "Compact<Balance>"],
+         ["others", "Vec<IndividualExposure>"]
       ]
     },
     "IdentificationTuple": {
       "type": "struct",
       "type_mapping": [
-        ["validatorId", "ValidatorId"],
-        ["exposure", "FullIdentification"]
+         ["validatorId", "ValidatorId"],
+         ["exposure", "FullIdentification"]
       ]
     },
     "SetId": "u64",
@@ -627,8 +627,8 @@
     "NextAuthority": {
       "type": "struct",
       "type_mapping": [
-        ["AuthorityId", "AuthorityId"],
-        ["weight", "AuthorityWeight"]
+         ["AuthorityId", "AuthorityId"],
+         ["weight", "AuthorityWeight"]
       ]
     },
     "BeefyCommitment": {
@@ -667,9 +667,9 @@
     "BeefyNextAuthoritySet": {
       "type": "struct",
       "type_mapping": [
-        ["id", "ValidatorSetId"],
-        ["len", "u32"],
-        ["root", "MerkleRoot"]
+         ["id", "ValidatorSetId"],
+         ["len", "u32"],
+         ["root", "MerkleRoot"]
       ]
     },
     "MerkleRoot": "Hash",
@@ -804,8 +804,8 @@
     "IdentityInfoAdditional": {
       "type": "struct",
       "type_mapping": [
-        ["field", "Data"],
-        ["value", "Data"]
+         ["field", "Data"],
+         ["value", "Data"]
       ]
     },
     "IdentityInfo": {
@@ -1384,8 +1384,8 @@
     "RegistrationJudgement": {
       "type": "struct",
       "type_mapping": [
-        ["registrarIndex", "RegistrarIndex"],
-        ["judgement", "Judgement"]
+         ["registrarIndex", "RegistrarIndex"],
+         ["judgement", "Judgement"]
       ]
     },
     "Registration": {
@@ -2366,8 +2366,8 @@
     "UnappliedSlashOther": {
       "type": "struct",
       "type_mapping": [
-        ["account", "AccountId"],
-        ["amount", "Balance"]
+         ["account", "AccountId"],
+         ["amount", "Balance"]
       ]
     },
     "UnappliedSlash<AccountId, BalanceOf>": {
@@ -2401,62 +2401,62 @@
     "SessionKeys3": {
       "type": "struct",
       "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"]
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"]
       ]
     },
     "SessionKeys4": {
       "type": "struct",
       "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"],
-        ["authority_discovery", "AccountId"]
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"],
+         ["authority_discovery", "AccountId"]
       ]
     },
     "SessionKeys5": {
       "type": "struct",
       "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"],
-        ["authority_discovery", "AccountId"],
-        ["parachains", "AccountId"]
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"],
+         ["authority_discovery", "AccountId"],
+         ["parachains", "AccountId"]
       ]
     },
     "SessionKeys6B": {
       "type": "struct",
       "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"],
-        ["authority_discovery", "AccountId"],
-        ["parachains", "AccountId"],
-        ["beefy", "Beefy"]
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"],
+         ["authority_discovery", "AccountId"],
+         ["parachains", "AccountId"],
+         ["beefy", "Beefy"]
       ]
     },
     "SessionKeys6": {
       "type": "struct",
       "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"],
-        ["para_validator", "AccountId"],
-        ["para_assignment", "AccountId"],
-        ["authority_discovery", "AccountId"]
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"],
+         ["para_validator", "AccountId"],
+         ["para_assignment", "AccountId"],
+         ["authority_discovery", "AccountId"]
       ]
     },
     "SessionKeys7B": {
       "type": "struct",
       "type_mapping": [
-        ["grandpa", "AccountId"],
-        ["babe", "AccountId"],
-        ["im_online", "AccountId"],
-        ["para_validator", "AccountId"],
-        ["para_assignment", "AccountId"],
-        ["authority_discovery", "AccountId"],
-        ["beefy", "Beefy"]
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"],
+         ["para_validator", "AccountId"],
+         ["para_assignment", "AccountId"],
+         ["authority_discovery", "AccountId"],
+         ["beefy", "Beefy"]
       ]
     },
     "Keys": "SessionKeysSubstrate",
@@ -3192,17 +3192,17 @@
     "OffchainAccuracyCompact": "Compact<OffchainAccuracy>",
     "CompactScoreCompact": {
       "type": "struct",
-      "type_mapping": [
-        ["validatorIndex", "ValidatorIndexCompact"],
-        ["offchainAccuracy", "OffchainAccuracyCompact"]
-      ]
+        "type_mapping": [
+          ["validatorIndex", "ValidatorIndexCompact"],
+          ["offchainAccuracy", "OffchainAccuracyCompact"]
+        ]
     },
     "CompactScore": {
       "type": "struct",
-      "type_mapping": [
-        ["validatorIndex", "ValidatorIndex"],
-        ["offchainAccuracy", "OffchainAccuracy"]
-      ]
+        "type_mapping": [
+          ["validatorIndex", "ValidatorIndex"],
+          ["offchainAccuracy", "OffchainAccuracy"]
+        ]
     },
     "CompactAssignmentsFrom258": {
       "type": "struct",
@@ -3445,11 +3445,11 @@
     },
     "DeferredOffenceOf": {
       "type": "struct",
-      "type_mapping": [
-        ["offences", "Vec<OffenceDetails>"],
-        ["perc", "Vec<Perbill>"],
-        ["session", "SessionIndex"]
-      ]
+        "type_mapping": [
+          ["offences", "Vec<OffenceDetails>"],
+          ["perc", "Vec<Perbill>"],
+          ["session", "SessionIndex"]
+        ]
     },
     "Statement": {
       "type": "enum",
@@ -4981,7 +4981,7 @@
           "maxMessageSize",
           "Compact<u32>"
         ],
-        [
+         [
           "maxCapacity",
           "Compact<u32>"
         ]
@@ -5301,7 +5301,7 @@
           "debt",
           "u64"
         ],
-        [
+         [
           "haltOnError",
           "bool"
         ],
@@ -6011,11 +6011,11 @@
           "haltOnError",
           "bool"
         ],
-        [
+         [
           "orders",
           "Vec<XcmOrderV1>"
         ],
-        [
+         [
           "instructions",
           "Vec<XcmV1>"
         ]
@@ -6454,7 +6454,7 @@
         ],
         [
           "ClaimAsset",
-          "InstructionV2::ClaimAsset"
+           "InstructionV2::ClaimAsset"
         ],
         [
           "Trap",

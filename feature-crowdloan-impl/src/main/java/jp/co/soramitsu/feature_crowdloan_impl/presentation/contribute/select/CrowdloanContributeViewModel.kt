@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -16,6 +16,9 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_CROWDLOAN_INFO_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TERMS_URL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TOTAL_REWARD
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationPayload
@@ -25,20 +28,30 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.additionalOnChainSubmission
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.contributeValidationFailure
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.DirectDOT
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributionType.LcDOT
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.astar.AstarBonusPayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.interlay.InterlayBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.CrowdloanDetailsModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -47,8 +60,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
@@ -83,7 +98,25 @@ class CrowdloanContributeViewModel(
     private val parachainMetadata = payload.parachainMetadata?.let(::mapParachainMetadataFromParcel)
 
     private val _showNextProgress = MutableLiveData(false)
-    val showNextProgress: LiveData<Boolean> = _showNextProgress
+
+    val privacyAcceptedFlow = MutableStateFlow(payload.parachainMetadata?.isAcala != true)
+    val contributionTypeFlow = MutableStateFlow(DirectDOT.ordinal)
+
+    val applyButtonState = MediatorLiveData<Pair<ApplyActionState, Boolean>>().apply {
+        var isPrivacyAccepted = false
+        var isProgress = false
+
+        fun handleUpdates() {
+            val state: ApplyActionState = when {
+                !isPrivacyAccepted -> ApplyActionState.Unavailable(reason = resourceManager.getString(R.string.crowdloan_agreement_required))
+                else -> ApplyActionState.Available
+            }
+            value = state to isProgress
+        }
+
+        addSource(privacyAcceptedFlow.asLiveData()) { isPrivacyAccepted = it; handleUpdates() }
+        addSource(_showNextProgress) { isProgress = it; handleUpdates() }
+    }
 
     private val assetFlow = assetUseCase.currentAssetFlow()
         .share()
@@ -98,7 +131,7 @@ class CrowdloanContributeViewModel(
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 
     private val customContributionFlow = flow {
-        val customFlow = payload.parachainMetadata?.customFlow
+        val customFlow = payload.parachainMetadata?.flow?.name
 
         if (
             customFlow != null &&
@@ -127,9 +160,16 @@ class CrowdloanContributeViewModel(
     ) { contributionState, amount ->
         when (contributionState) {
             is CustomContributionState.Active -> {
-                val bonus = contributionState.payload.calculateBonus(amount)
+                when (contributionState.payload) {
+                    is InterlayBonusPayload,
+                    is AstarBonusPayload,
+                    is AcalaBonusPayload -> ""
+                    else -> {
+                        val bonus = contributionState.payload.calculateBonus(amount)
 
-                bonus?.formatTokenAmount(contributionState.tokenName)
+                        bonus?.formatTokenAmount(contributionState.tokenName)
+                    }
+                }
             }
 
             is CustomContributionState.Inactive -> resourceManager.getString(R.string.crowdloan_empty_bonus_title)
@@ -163,15 +203,36 @@ class CrowdloanContributeViewModel(
         )
     }
 
-    val estimatedRewardFlow = parsedAmountFlow.map { amount ->
-        payload.parachainMetadata?.let { metadata ->
-            val estimatedReward = metadata.rewardRate?.let { amount * it }
-
-            estimatedReward?.formatTokenAmount(metadata.token)
-        }
-    }.share()
-
     private val crowdloanFlow = contributionInteractor.crowdloanStateFlow(payload.paraId, parachainMetadata)
+        .inBackground()
+        .share()
+
+    private val rewardRateFlow: Flow<BigDecimal?> = when {
+        payload.parachainMetadata?.isAcala == true -> {
+            crowdloanFlow.distinctUntilChanged().map { crowdloan ->
+                val totalDotContributed = assetFlow.firstOrNull()?.token?.amountFromPlanks(crowdloan.fundInfo.raised)
+                val totalReward = payload.parachainMetadata.flow?.data?.getString(FLOW_TOTAL_REWARD)?.toBigDecimalOrNull() ?: 170_000_000.toBigDecimal()
+                totalReward.divide(totalDotContributed, 10, RoundingMode.HALF_UP)
+            }
+        }
+
+        else -> flow {
+            emit(payload.parachainMetadata?.rewardRate)
+        }
+    }
+
+    val estimatedRewardFlow = rewardRateFlow.combine(parsedAmountFlow) { rewardRate, amount ->
+        payload.parachainMetadata?.let { metadata ->
+            when {
+                metadata.isAcala -> null
+                else -> {
+                    val estimatedReward = rewardRate?.let { amount * it }
+                    estimatedReward?.formatTokenAmount(metadata.token)
+                }
+            }
+        }
+    }
+        .onStart { emit(null) }
         .inBackground()
         .share()
 
@@ -212,6 +273,7 @@ class CrowdloanContributeViewModel(
     fun bonusClicked() {
         launch {
             val customContributePayload = CustomContributePayload(
+                chainId = payload.chainId,
                 paraId = payload.paraId,
                 parachainMetadata = payload.parachainMetadata!!,
                 amount = parsedAmountFlow.first(),
@@ -242,8 +304,8 @@ class CrowdloanContributeViewModel(
                 val additionalSubmission = bonusActiveState?.let {
                     additionalOnChainSubmission(it.payload, it.customFlow, amount, customContributeManager)
                 }
-
-                contributionInteractor.estimateFee(payload.paraId, amount, additionalSubmission)
+                val useBatchAll = additionalSubmission != null && payload.parachainMetadata?.isInterlay != true
+                contributionInteractor.estimateFee(payload.paraId, amount, additionalSubmission, useBatchAll)
             },
             onRetryCancelled = ::backClicked
         )
@@ -257,12 +319,19 @@ class CrowdloanContributeViewModel(
     private fun maybeGoToNext() = requireFee { fee ->
         launch {
             val contributionAmount = parsedAmountFlow.firstOrNull() ?: return@launch
+            val customMinContribution = when {
+                parachainMetadata?.isAcala == true && contributionTypeFlow.firstOrNull() == LcDOT.ordinal -> {
+                    1.toBigDecimal()
+                }
+                else -> null
+            }
 
             val validationPayload = ContributeValidationPayload(
                 crowdloan = crowdloanFlow.first(),
                 fee = fee,
                 asset = assetFlow.first(),
-                contributionAmount = contributionAmount
+                contributionAmount = contributionAmount,
+                customMinContribution = customMinContribution
             )
 
             validationExecutor.requireValid(
@@ -281,21 +350,38 @@ class CrowdloanContributeViewModel(
     private fun openConfirmScreen(
         validationPayload: ContributeValidationPayload
     ) = launch {
+        val isAcala = payload.parachainMetadata?.isAcala == true
+        val contributionType = when {
+            isAcala -> contributionTypeFlow.map { index -> AcalaContributionType.values().find { it.ordinal == index } }.firstOrNull() ?: return@launch
+            else -> DirectDOT
+        }
+        val bonusPayload = when {
+            isAcala -> (router.latestCustomBonus as? AcalaBonusPayload)?.apply { this.contributionType = contributionType }
+            else -> router.latestCustomBonus
+        }
+
         val confirmContributePayload = ConfirmContributePayload(
             paraId = payload.paraId,
             fee = validationPayload.fee,
             amount = validationPayload.contributionAmount,
             estimatedRewardDisplay = estimatedRewardFlow.first(),
-            bonusPayload = router.latestCustomBonus,
-            metadata = payload.parachainMetadata
+            bonusPayload = bonusPayload,
+            metadata = payload.parachainMetadata,
+            enteredEtheriumAddress = null,
+            signature = null,
+            contributionType = contributionType
         )
 
         router.openConfirmContribute(confirmContributePayload)
     }
 
     fun learnMoreClicked() {
-        val parachainLink = parachainMetadata?.website ?: return
-
+        val parachainLink = payload.parachainMetadata?.flow?.data?.getString(FLOW_CROWDLOAN_INFO_URL) ?: parachainMetadata?.website ?: return
         openBrowserEvent.value = Event(parachainLink)
+    }
+
+    fun termsClicked() {
+        val termsLink = parachainMetadata?.flow?.data?.getString(FLOW_TERMS_URL) ?: return
+        openBrowserEvent.value = Event(termsLink)
     }
 }

@@ -32,6 +32,9 @@
     <string name="onboarding_restore_account">Import account</string>
     <string name="onboarding_terms_and_conditions_1">I have read and agreed to
 Terms and Conditions and Privacy Policy</string>
+    <string name="contribute_terms">I have read and agreed to Terms and Conditions</string>
+    <string name="referral_email_acala">I agree to receive email from Acala</string>
+    <string name="contribute_terms_clickable">Terms and Conditions</string>
     <string name="onboarding_terms_and_conditions_2">Terms and Conditions</string>
     <string name="onboarding_privacy_policy">Privacy Policy</string>
     <string name="pincode_enter_pin_code">Enter pin code</string>
@@ -44,7 +47,7 @@ transfers will appear here</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
     <string name="about_version">App version</string>
-    <string name="about_contact_us">Contact Us</string>
+    <string name="about_contact_us">Contact Email</string>
     <string name="about_title">About</string>
     <string name="about_privacy">Privacy policy</string>
     <string name="about_terms">Terms and conditions</string>
@@ -96,7 +99,15 @@ transfers will appear here</string>
     <string name="account_add_already_exists_message">Account already exists. Please, try another one.</string>
     <string name="about_website">Official Website</string>
     <string name="about_github">Github Source Code</string>
-    <string name="about_telegram">Join Telegram Group</string>
+    <string name="about_telegram">Join on Telegram</string>
+    <string name="about_wiki">Learn on Wiki</string>
+    <string name="about_twitter">Follow on Twitter</string>
+    <string name="about_youtube">Subscribe on YouTube</string>
+    <string name="about_instagram">Like on Instagram</string>
+    <string name="about_medium">Read on Medium</string>
+    <string name="about_announcement">Receive Announcements</string>
+    <string name="about_support">Ask for Support</string>
+    <string name="about_crowdloand">Learn about Crowdloans</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
     <string name="account_info_title">Account</string>
@@ -275,6 +286,9 @@ Derivation path: %s</string>
     <string name="wallet_asset_buy_with">Buy %s with</string>
     <string name="wallet_filters_title">Filters</string>
     <string name="common_apply">Apply</string>
+    <string name="apply_fearless_referal_wallet">Tap to refer fearless wallet for bonus</string>
+    <string name="apply_fearless_wallet_bonus">Tap to apply fearless wallet bonus</string>
+    <string name="applied_fearless_wallet_bonus">Fearless wallet bonus applied</string>
     <string name="common_reset">Reset</string>
     <string name="wallet_filters_transfers">Transfers</string>
     <string name="wallet_filters_rewards_and_slashes">Rewards and Slashes</string>
@@ -339,14 +353,15 @@ Derivation path: %s</string>
     <string name="staking_your_not_allocated_description">Others, who are active without your stake allocation.</string>
     <string name="staking_your_inactive_description">Validators who were not elected in this era.</string>
     <string name="crowdloan_crowdloan">Crowdloans</string>
-    <string name="crowdloan_main_description">Select parachains to contribute your %s. You will receive rewards if the parachain acquires a slot by the end of the auction.</string>
+    <string name="parachain_crowdloans">Parachain Crowdloans</string>
+    <string name="crowdloan_main_description">Select a Crowdloan Campaign that you wish to contribute to. You will receive rewards if the campaign wins a parachain slot at the auction.</string>
     <string name="crownloans_raised_format" formatted="false">Raised: %s of %s</string>
     <string name="crowdloan_active_section_format">Active (%s)</string>
     <string name="common_completed_with_count">Completed (%s)</string>
     <string name="crowdloan_empty_message">Information about crowdloans\n will appear here</string>
     <string name="common_left">%s left</string>
-    <string name="common_existential_warning_message">Operation will remove account from blockstore since it will make total balance lower than minimal balance.</string>
-    <string name="common_existential_warning_title">Operation will remove account</string>
+    <string name="common_existential_warning_message">This transaction will result in the account going below the Existential Deposit, which will cause it to be reaped (the account will be wiped from the blockchain\'s state to conserve space). If you choose to continue you will lose any funds that are below the existential deposit amount set by the network. For detailed information please refer to the official network documentation (e.g., the Polkadot Wiki). Fearless Wallet is a fully non-custodial application and has no control or knowledge of any of your actions on the network itself. ONLY CONTINUE IF YOU FULLY AGREE TO AND UNDERSTAND THE IMPLICATIONS.</string>
+    <string name="common_existential_warning_title">WARNING!!!</string>
     <string name="crowdloan_ended_message">Cannot contribute to selected crowdloan since it is already ended.</string>
     <string name="crowdloan_ended_title">Crowdloan is ended</string>
     <string name="crowdloan_cap_reached_amount_message">Cannot contribute chosen amount since resulting raised amount will exceed crowdloan cap. Maximum allowed contribution is %s.</string>
@@ -354,9 +369,11 @@ Derivation path: %s</string>
     <string name="crowdloan_cap_reached_title">Crowdloan cap exceeded</string>
     <string name="crowdloan_too_small_contribution_message">The minimum allowed amount to contribute is %s.</string>
     <string name="crowdloan_too_small_contribution_title">Contribution amount is too small</string>
-    <string name="crowdloan_learn">Learn %s\'s crowdloan</string>
+    <string name="crowdloan_learn">Learn about %s\'s crowdloan</string>
+    <string name="crowdloan_learn_bonuses">Learn about %s\'s bonuses</string>
     <string name="common_time_left">Time left</string>
-    <string name="crowdloan_contribute_title">Contribute to crowdloan</string>
+    <string name="crowdloan_contribute_title">Contribute to Crowdloan</string>
+    <string name="crowdloan_confirmation_name">%s Crowdloan</string>
     <string name="crowdloan_unlock_hint">Your %s tokens will be returned after the leasing period.</string>
     <string name="crowdloan_info">Crowdloan info</string>
     <string name="crowdloan_raised_amount" formatted="false">%s of %s</string>
@@ -366,14 +383,30 @@ Derivation path: %s</string>
     <string name="crodloan_private_crowdloan_title">Private crowdloan</string>
     <string name="crodloan_private_crowdloan_message">Private crowdloans are not yet supported.</string>
     <string name="common_bonus">Bonus</string>
-    <string name="crowdloan_app_bonus_format">Fearless Wallet bonus (%s)</string>
+    <string name="your_bonus">Bonus for you</string>
+    <string name="friend_bonus">Bonus for your friend</string>
+    <string name="crowdloan_enter_referral_address">Enter a referral address</string>
     <string name="crowdloan_enter_referral">Enter your referral code</string>
     <string name="staking_add_controller">Add controller account %s to the application to perform this action.</string>
+    <string name="contribution_type">Contribution type</string>
+    <string name="contribution_type_direct_dot">Direct DOT</string>
+    <string name="contribution_type_lcdot">lcDOT</string>
     <string name="crowdloan_empty_bonus_title">Get a special bonus</string>
+    <string name="crowdloan_empty_email_title">Enter your email</string>
+    <string name="crowdloan_agreement_required">Agreement required</string>
     <string name="staking_start_change_validators_recommended_title">Stake with recommended validators</string>
     <string name="staking_start_change_validators_custom_title">Stake with your validators</string>
     <string name="common_applied">Applied</string>
     <string name="crowdloan_referral_code_invalid">Referral code is invalid. Please, try another one</string>
+    <string name="crowdloan_acala_referral_code_invalid">Invalid referral code, please make sure you entered it correctly and try again</string>
+    <string name="crowdloan_astar_referral_code_hint">Referral address (Polkadot addresses only)</string>
+    <string name="crowdloan_referral_code_hint">Referral code</string>
+    <string name="copy_referral_code">Copy referral code</string>
+    <string name="share_referral_code">Share referral code</string>
+    <string name="crowdloan_email_hint">Email address</string>
+    <string name="label_link">Link</string>
+    <string name="till_format">till %s</string>
+    <string name="crowdloan_astar_referral_code_invalid">Invalid referral address, only Polkadot addresses accepted, please try again</string>
     <string name="staking_start_change_validators_custom_subtitle">You should trust your nominations to act competently and honest, basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
     <string name="staking_select_recommended">Select recommended</string>
     <string name="staking_select_custom">Select by yourself</string>
@@ -475,4 +508,15 @@ to your account to avoid remaining stake.</string>
     <string name="wallet_asset_your_balance">Your balance</string>
     <string name="wallet_asset_transferable_caption">Transferable</string>
 
+    <string name="moonbeam_ethereum_address">Moonbeam Ethereum address</string>
+    <string name="moonbeam_ethereum_address_incorrect">Moonbeam Ethereum address format is incorrect, please try again</string>
+    <string name="moonbeam_ethereum_reward">Rewards will be paid out to this address. You can use an existing Ethereum address. PLEASE ENSURE YOU HAVE THE PRIVATE KEYS FOR THIS ADDRESS.</string>
+    <string name="moonbeam_crowdloan_terms">Moonbeam Crowdloan Terms and Conditions</string>
+    <string name="moonbeam_registration">Moonbeam Crowdloan Registration</string>
+    <string name="moonbeam_signed_successful">You have successfully signed the terms and conditions for the Moonbeam Crowdloan and a transaction has been sent.\n\nThis is the hash of your transaction:</string>
+    <string name="moonbeam_registration_description">This transaction confirms that you agree to the Moonbeam Crowdloan Terms and Conditions.\n\nA signed system.remark extrinsic transaction will be sent as proof of your agreement.\n\nThis information will be processed and stored on the Polkadot Relay Chain.\n\nPlease note that this signing transaction will be subject to transaction fees on the Polkadot network.</string>
+    <string name="moonbeam_registration_description_system_remark">system.remark</string>
+    <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
+    <string name="transaction_successful">Transaction Successful!</string>
+    <string name="moonbeam_ineligible_to_participate">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
 </resources>

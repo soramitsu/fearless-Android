@@ -24,8 +24,10 @@ import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bind
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.bindLeases
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.ParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.mapParachainMetadataRemoteToParachainMetadata
+import jp.co.soramitsu.feature_crowdloan_impl.storage.CrowdloanStorage
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -34,14 +36,18 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import java.math.BigInteger
+import java.net.HttpURLConnection
 
 private const val CONTRIBUTIONS_CHILD_SUFFIX = "crowdloan"
 
 class CrowdloanRepositoryImpl(
     private val remoteStorage: StorageDataSource,
     private val chainRegistry: ChainRegistry,
-    private val parachainMetadataApi: ParachainMetadataApi
+    private val parachainMetadataApi: ParachainMetadataApi,
+    private val moonbeamApi: MoonbeamApi,
+    private val crowdloanStorage: CrowdloanStorage,
 ) : CrowdloanRepository {
 
     override suspend fun isCrowdloansAvailable(chainId: ChainId): Boolean {
@@ -119,6 +125,24 @@ class CrowdloanRepositoryImpl(
             binder = { scale, runtime -> scale?.let { bindContribution(it, runtime) } },
             chainId = chainId
         )
+    }
+
+    override suspend fun checkRemark(apiUrl: String, apiKey: String, address: String) = try {
+        moonbeamApi.getCheckRemark(apiUrl, apiKey, address).verified
+    } catch (e: Exception) {
+        if ((e as? HttpException)?.code() == HttpURLConnection.HTTP_FORBIDDEN) {
+            false
+        } else {
+            throw e
+        }
+    }
+
+    override suspend fun saveEthAddress(paraId: ParaId, address: String, ethAddress: String) {
+        crowdloanStorage.saveEthAddress(paraId, address, ethAddress)
+    }
+
+    override fun getEthAddress(paraId: ParaId, address: String): String? {
+        return crowdloanStorage.getEthAddress(paraId, address)
     }
 
     private suspend fun runtimeFor(chainId: String) = chainRegistry.getRuntime(chainId)
