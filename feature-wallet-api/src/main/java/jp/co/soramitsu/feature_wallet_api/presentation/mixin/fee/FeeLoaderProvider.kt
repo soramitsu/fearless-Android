@@ -30,7 +30,7 @@ class FeeLoaderProvider(
         coroutineScope: CoroutineScope,
         feeConstructor: suspend (Token) -> BigInteger,
         onRetryCancelled: () -> Unit,
-        onComplete: ((FeeStatus) -> Unit)?
+        onComplete: ((FeeStatus?) -> Unit)?
     ) {
         feeLiveData.value = FeeStatus.Loading
 

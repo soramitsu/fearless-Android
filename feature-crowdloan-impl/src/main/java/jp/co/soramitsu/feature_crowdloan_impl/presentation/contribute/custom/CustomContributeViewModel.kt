@@ -389,7 +389,7 @@ class CustomContributeViewModel(
                                 contributionInteractor.estimateFee(payload.paraId, amount, additional, useBatchAll, signature)
                             },
                             onRetryCancelled = ::backClicked,
-                            {
+                            onComplete = {
                                 if (it is FeeStatus.Loaded) {
                                     maybeGoToNext(it.feeModel.fee, payloadMoonbeam, signature)
                                 } else {

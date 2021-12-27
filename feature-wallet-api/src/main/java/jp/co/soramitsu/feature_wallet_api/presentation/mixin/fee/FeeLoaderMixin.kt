@@ -27,7 +27,7 @@ interface FeeLoaderMixin : Retriable {
             coroutineScope: CoroutineScope,
             feeConstructor: suspend (Token) -> BigInteger,
             onRetryCancelled: () -> Unit,
-            onComplete: ((FeeStatus) -> Unit)? = null
+            onComplete: ((FeeStatus?) -> Unit)? = null
         )
 
         fun requireFee(
