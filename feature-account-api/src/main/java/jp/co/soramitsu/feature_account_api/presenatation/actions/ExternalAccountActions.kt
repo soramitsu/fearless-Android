@@ -11,7 +11,7 @@ interface ExternalAccountActions : Browserable {
 
     class Payload(
         val value: String,
-        val networkType: Node.NetworkType
+        val networkType: Node.NetworkType?
     ) {
         companion object {
 

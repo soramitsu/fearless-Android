@@ -59,7 +59,7 @@ enum class ExternalAnalyzer(val supportedNetworks: List<Node.NetworkType>) {
         supportedNetworks = listOf(Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT)
     );
 
-    fun isNetworkSupported(networkType: Node.NetworkType) = networkType in supportedNetworks
+    fun isNetworkSupported(networkType: Node.NetworkType?) = networkType in supportedNetworks
 }
 
 private fun networkPathSegment(networkType: Node.NetworkType) = networkType.readableName.toLowerCase()

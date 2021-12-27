@@ -120,7 +120,7 @@ inline fun <K, T> StorageEntry.storageKeys(
     )
 }
 
-fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())!!
+fun String.networkType() = Node.NetworkType.findByAddressByte(addressByte())
 
 fun RuntimeMetadata.hasModule(name: String) = moduleOrNull(name) != null
 

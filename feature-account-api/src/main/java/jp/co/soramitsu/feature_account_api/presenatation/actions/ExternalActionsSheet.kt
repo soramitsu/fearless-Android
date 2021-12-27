@@ -31,11 +31,12 @@ open class ExternalActionsSheet(
         setTitle(payload.content.value)
 
         val value = payload.content.value
-        val networkType = payload.content.networkType
 
         item(R.drawable.ic_copy_24, payload.copyLabel) {
             onCopy(value)
         }
+
+        val networkType: Node.NetworkType = payload.content.networkType ?: return
 
         if (ExternalAnalyzer.POLKASCAN.isSupported(payload)) {
             item(R.drawable.ic_globe_24, R.string.transaction_details_view_polkascan) {

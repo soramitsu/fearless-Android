@@ -11,12 +11,12 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.requireException
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.progressConsumer
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -79,11 +79,11 @@ class ConfirmPayoutViewModel(
     val rewardDestinationModel = stakingStateFlow.map { stakingState ->
         require(stakingState is StakingState.Stash)
 
-        val networkType = stakingState.accountAddress.networkType()
+        val addressByte = stakingState.accountAddress.addressByte()
 
         val destinationAddress = when (val rewardDestination = interactor.getRewardDestination(stakingState)) {
             RewardDestination.Restake -> stakingState.accountAddress
-            is RewardDestination.Payout -> rewardDestination.targetAccountId.toAddress(networkType)
+            is RewardDestination.Payout -> rewardDestination.targetAccountId.toAddress(addressByte)
         }
 
         val destinationAddressDisplay = addressDisplayUseCase(destinationAddress)
