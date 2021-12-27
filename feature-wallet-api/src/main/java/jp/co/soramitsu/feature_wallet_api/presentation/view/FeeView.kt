@@ -18,7 +18,7 @@ class FeeView @JvmOverloads constructor(
         setFeeStatus(FeeStatus.Loading)
     }
 
-    fun setFeeStatus(feeStatus: FeeStatus) {
+    fun setFeeStatus(feeStatus: FeeStatus?) {
         when (feeStatus) {
             is FeeStatus.Loading -> {
                 showProgress()
@@ -32,6 +32,7 @@ class FeeView @JvmOverloads constructor(
                     secondary = feeStatus.feeModel.displayFiat
                 )
             }
+            else -> {}
         }
     }
 }

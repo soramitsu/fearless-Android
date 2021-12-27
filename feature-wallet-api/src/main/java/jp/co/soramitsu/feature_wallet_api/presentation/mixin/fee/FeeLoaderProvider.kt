@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,6 +45,8 @@ class FeeLoaderProvider(
                 val feeModel = mapFeeToFeeModel(fee, token)
 
                 FeeStatus.Loaded(feeModel)
+            } else if (feeResult.exceptionOrNull() is CancellationException) {
+                null
             } else {
                 retryEvent.postValue(
                     Event(
