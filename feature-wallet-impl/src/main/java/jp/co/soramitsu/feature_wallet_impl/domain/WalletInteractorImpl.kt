@@ -34,6 +34,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.util.Calendar
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -41,6 +44,8 @@ class WalletInteractorImpl(
     private val chainRegistry: ChainRegistry,
     private val fileProvider: FileProvider,
 ) : WalletInteractor {
+    private var lastRatesSyncMillis = 0L
+    private val minRatesRefreshDuration = 30.toDuration(DurationUnit.SECONDS)
 
     override fun assetsFlow(): Flow<List<Asset>> {
         return accountRepository.selectedMetaAccountFlow()
@@ -50,7 +55,13 @@ class WalletInteractorImpl(
 
     override suspend fun syncAssetsRates(): Result<Unit> {
         return runCatching {
-            walletRepository.syncAssetsRates()
+            val notSoFast = Calendar.getInstance().timeInMillis - lastRatesSyncMillis < minRatesRefreshDuration.toInt(DurationUnit.MILLISECONDS)
+            if (notSoFast) {
+                return Result.success(Unit)
+            } else {
+                walletRepository.syncAssetsRates()
+                lastRatesSyncMillis = Calendar.getInstance().timeInMillis
+            }
         }
     }
 
