@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -71,6 +72,8 @@ class WalletInteractorImpl(
             val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.assetFlow(accountId, chainAsset)
+        }.onStart {
+            chainRegistry.getAsset(chainId, chainAssetId)?.let { emit(Asset.createEmpty(it)) }
         }
     }
 

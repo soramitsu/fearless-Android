@@ -51,13 +51,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_token_ksm"
                     app:layout_constrainedHeight="true"
                     app:layout_constraintBottom_toBottomOf="@+id/balanceDetailTokenName"
                     app:layout_constraintEnd_toStartOf="@+id/balanceDetailTokenName"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenName" />
+                    app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenName"
+                    tools:src="@drawable/ic_token_ksm" />
 
                 <TextView
                     android:id="@+id/balanceDetailTokenName"

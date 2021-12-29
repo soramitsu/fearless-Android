@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
@@ -125,6 +126,7 @@ class WalletRepositoryImpl(
 
     override fun assetFlow(accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset> {
         return assetCache.observeAsset(accountId, chainAsset.chainId, chainAsset.symbol)
+            .mapNotNull { it }
             .map { mapAssetLocalToAsset(it, chainAsset) }
     }
 
