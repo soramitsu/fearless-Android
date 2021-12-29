@@ -32,6 +32,7 @@ fun mapNetworkTypeToNetworkModel(networkType: NetworkType): NetworkModel {
         NetworkType.WESTEND -> NetworkModel.NetworkTypeUI.Westend
         NetworkType.ROCOCO -> NetworkModel.NetworkTypeUI.Rococo
         NetworkType.POLKATRAIN -> NetworkModel.NetworkTypeUI.Polkatrain
+        else -> NetworkModel.NetworkTypeUI.Polkadot
     }
 
     return NetworkModel(networkType.readableName, type)
