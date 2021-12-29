@@ -5,7 +5,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 fun stubNetwork(chainId: ChainId): Network {
-    val networkType = Node.NetworkType.findByGenesis(chainId) ?: Node.NetworkType.POLKADOT
+    val networkType = Node.NetworkType.findByGenesis(chainId) ?: Node.NetworkType.UNDEFINED
 
     return Network(networkType)
 }
