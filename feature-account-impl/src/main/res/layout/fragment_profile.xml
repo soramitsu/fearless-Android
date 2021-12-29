@@ -65,6 +65,7 @@
         android:background="@drawable/bg_primary_list_item"
         android:clickable="true"
         android:focusable="true"
+        android:visibility="gone"
         android:orientation="horizontal"
         android:paddingStart="@dimen/x2"
         android:paddingTop="@dimen/x1_5"
