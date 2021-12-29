@@ -55,12 +55,12 @@ class WalletInteractorImpl(
 
     override suspend fun syncAssetsRates(): Result<Unit> {
         return runCatching {
-            val notSoFast = Calendar.getInstance().timeInMillis - lastRatesSyncMillis < minRatesRefreshDuration.toInt(DurationUnit.MILLISECONDS)
-            if (notSoFast) {
-                return Result.success(Unit)
-            } else {
+            val shouldRefreshRates = Calendar.getInstance().timeInMillis - lastRatesSyncMillis > minRatesRefreshDuration.toInt(DurationUnit.MILLISECONDS)
+            if (shouldRefreshRates) {
                 walletRepository.syncAssetsRates()
                 lastRatesSyncMillis = Calendar.getInstance().timeInMillis
+            } else {
+                return Result.success(Unit)
             }
         }
     }
