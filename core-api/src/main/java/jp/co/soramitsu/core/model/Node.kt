@@ -74,7 +74,7 @@ data class Node(
         MOONRIVER(
             "Moonriver",
             RuntimeConfiguration(
-                addressByte = 1285.toByte(),
+                addressByte = 1285.toShort(),
                 genesisHash = "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
             )
         ),
@@ -116,7 +116,7 @@ data class Node(
         QUARTZ(
             "Quartz",
             RuntimeConfiguration(
-                addressByte = 255.toByte(),
+                addressByte = 255.toShort(),
                 genesisHash = "cd4d732201ebe5d6b014edda071c4203e16867305332301dc8d092044b28e554",
             )
         ),
@@ -133,7 +133,7 @@ data class Node(
                 return values().find { extractor(it) == value }
             }
 
-            fun findByAddressByte(addressByte: Byte) = find(addressByte) { it.runtimeConfiguration.addressByte }
+            fun findByAddressByte(addressByte: Short) = find(addressByte) { it.runtimeConfiguration.addressByte }
 
             fun findByGenesis(genesis: String) = find(genesis.removePrefix("0x")) { it.runtimeConfiguration.genesisHash }
         }

@@ -78,7 +78,7 @@ fun MetaAccount.address(chain: Chain): String? {
     return when {
         hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
         chain.isEthereumBased -> ethereumAddress?.ethereumAddressToHex()
-        else -> substrateAccountId.toAddress(chain.addressPrefix.toByte())
+        else -> substrateAccountId.toAddress(chain.addressPrefix.toShort())
     }
 }
 

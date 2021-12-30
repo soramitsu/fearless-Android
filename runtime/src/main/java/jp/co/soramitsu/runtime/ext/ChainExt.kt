@@ -28,7 +28,7 @@ fun Chain.addressOf(accountId: ByteArray): String {
     return if (isEthereumBased) {
         accountId.ethereumAddressToHex()
     } else {
-        accountId.toAddress(addressPrefix.toByte())
+        accountId.toAddress(addressPrefix.toShort())
     }
 }
 
@@ -56,7 +56,7 @@ fun Chain.addressFromPublicKey(publicKey: ByteArray): String {
     return if (isEthereumBased) {
         publicKey.ethereumAddressFromPublicKey().ethereumAddressToHex()
     } else {
-        publicKey.toAddress(addressPrefix.toByte())
+        publicKey.toAddress(addressPrefix.toShort())
     }
 }
 
@@ -65,7 +65,7 @@ fun Chain.isValidAddress(address: String): Boolean {
         if (isEthereumBased) {
             address.fromHex().size == 20
         } else {
-            address.addressByte() == addressPrefix.toByte()
+            address.addressByte() == addressPrefix.toShort()
         }
     }.getOrDefault(false)
 }
