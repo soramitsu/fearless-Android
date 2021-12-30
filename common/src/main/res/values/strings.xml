@@ -89,6 +89,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="pincode_fingerprint_error">You are not authorized. Try another finger.</string>
     <string name="pincode_fingerprint_switch_dialog_title">Use biometric to authorize</string>
     <string name="profile_accounts_title">Accounts</string>
+    <string name="profile_wallets_title">Wallets</string>
     <string name="profile_network_title">Networks</string>
     <string name="profile_pincode_change_title">Change pin code</string>
     <string name="pincode_biometry_dialog_title">Biometry</string>

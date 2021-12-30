@@ -41,8 +41,8 @@ class ProfileViewModel(
         router.openAboutScreen()
     }
 
-    fun accountsClicked() {
-        router.openAccounts(AccountChosenNavDirection.MAIN)
+    fun walletsClicked() {
+        router.openWallets(AccountChosenNavDirection.MAIN)
     }
 
     fun networksClicked() {

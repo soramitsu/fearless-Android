@@ -67,6 +67,7 @@
     <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
     <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
     <string name="profile_accounts_title">Аккаунты</string>
+    <string name="profile_wallets_title">Кошельки</string>
     <string name="profile_network_title">Сеть</string>
     <string name="profile_pincode_change_title">Изменить PIN-код</string>
     <string name="pincode_biometry_dialog_title">Биометрия</string>

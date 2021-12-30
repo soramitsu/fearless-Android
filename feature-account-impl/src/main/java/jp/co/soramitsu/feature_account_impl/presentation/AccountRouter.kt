@@ -29,7 +29,7 @@ interface AccountRouter : SecureRouter {
 
     fun back()
 
-    fun openAccounts(accountChosenNavDirection: AccountChosenNavDirection)
+    fun openWallets(accountChosenNavDirection: AccountChosenNavDirection)
 
     fun openNodes()
 

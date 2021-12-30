@@ -17,7 +17,7 @@ import kotlinx.android.synthetic.main.fragment_profile.accountView
 import kotlinx.android.synthetic.main.fragment_profile.changePinCodeTv
 import kotlinx.android.synthetic.main.fragment_profile.languageWrapper
 import kotlinx.android.synthetic.main.fragment_profile.networkWrapper
-import kotlinx.android.synthetic.main.fragment_profile.profileAccounts
+import kotlinx.android.synthetic.main.fragment_profile.profileWallets
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
 import kotlinx.android.synthetic.main.fragment_profile.selectedNetworkTv
 
@@ -36,7 +36,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
         aboutTv.setOnClickListener { viewModel.aboutClicked() }
 
-        profileAccounts.setOnClickListener { viewModel.accountsClicked() }
+        profileWallets.setOnClickListener { viewModel.walletsClicked() }
         networkWrapper.setOnClickListener { viewModel.networksClicked() }
         languageWrapper.setOnClickListener { viewModel.languagesClicked() }
         changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
@@ -80,7 +80,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             payload,
             viewModel::copyAddressClicked,
             viewModel::viewExternalClicked,
-            viewModel::accountsClicked
+            viewModel::walletsClicked
         ).show()
     }
 }

@@ -400,7 +400,7 @@ class Navigator :
         navController?.navigate(R.id.open_extrinsic_detail, bundle)
     }
 
-    override fun openAccounts(accountChosenNavDirection: AccountChosenNavDirection) {
+    override fun openWallets(accountChosenNavDirection: AccountChosenNavDirection) {
         navController?.navigate(R.id.action_open_accounts, AccountListFragment.getBundle(accountChosenNavDirection))
     }
 
@@ -417,11 +417,11 @@ class Navigator :
     }
 
     override fun openChangeAccountFromWallet() {
-        openAccounts(AccountChosenNavDirection.BACK)
+        openWallets(AccountChosenNavDirection.BACK)
     }
 
     override fun openChangeAccountFromStaking() {
-        openAccounts(AccountChosenNavDirection.BACK)
+        openWallets(AccountChosenNavDirection.BACK)
     }
 
     override fun openReceive(assetPayload: AssetPayload) {

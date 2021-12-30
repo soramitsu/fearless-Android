@@ -38,8 +38,8 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_primary_list_item"
         android:clickable="true"
-        android:id="@+id/profileAccounts"
-        android:drawableStart="@drawable/ic_settings_accounts"
+        android:id="@+id/profileWallets"
+        android:drawableStart="@drawable/ic_settings_wallets"
         android:drawableEnd="@drawable/ic_arrow_right_24"
         android:drawablePadding="@dimen/x1_5"
         android:focusable="true"
@@ -48,7 +48,7 @@
         android:paddingTop="@dimen/x1_5"
         android:paddingEnd="@dimen/x2"
         android:paddingBottom="@dimen/x1_5"
-        android:text="@string/profile_accounts_title"
+        android:text="@string/profile_wallets_title"
         android:textColor="@color/white" />
 
     <View
