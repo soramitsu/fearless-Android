@@ -12,9 +12,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -176,10 +176,10 @@ fun RadioGroup.bindTo(flow: MutableStateFlow<Int>, scope: LifecycleCoroutineScop
 
 inline fun <T> Flow<T>.observe(
     scope: LifecycleCoroutineScope,
-    crossinline collector: suspend (T) -> Unit,
+    noinline collector: suspend (T) -> Unit,
 ) {
     scope.launchWhenResumed {
-        collect(collector)
+        collect(FlowCollector(collector))
     }
 }
 
