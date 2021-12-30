@@ -42,8 +42,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="pincode_title_create">Set your pin code</string>
     <string name="tabbar_wallet_title">Wallet</string>
     <string name="tabbar_staking_title">Staking</string>
-    <string name="transfers_empty">Incoming and outgoing
-transfers will appear here</string>
+    <string name="transfers_empty">Transaction history will appear here</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
     <string name="about_version">App version</string>

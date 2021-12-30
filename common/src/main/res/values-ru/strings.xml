@@ -20,8 +20,7 @@
     <string name="pincode_title_create">Установите свой PIN-код</string>
     <string name="tabbar_wallet_title">Кошелёк</string>
     <string name="tabbar_staking_title">Стейкинг</string>
-    <string name="transfers_empty">Входящие и исходящие
-транзакции будут отображаться здесь</string>
+    <string name="transfers_empty">Здесь будет история транзакций</string>
     <string name="profile_settings_title">Настройки</string>
     <string name="profile_language_title">Язык</string>
     <string name="about_version">Версия</string>

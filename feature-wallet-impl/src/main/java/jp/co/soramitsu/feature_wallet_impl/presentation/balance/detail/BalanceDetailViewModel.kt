@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
@@ -63,7 +64,7 @@ class BalanceDetailViewModel(
             val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
 
             val firstError = results.mapNotNull { it.exceptionOrNull() }
-                .firstOrNull()
+                .firstOrNull { it !is HistoryNotSupportedException }
 
             firstError?.let(::showError)
 

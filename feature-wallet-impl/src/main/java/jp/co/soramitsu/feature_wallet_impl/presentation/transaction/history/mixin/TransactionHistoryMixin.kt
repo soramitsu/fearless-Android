@@ -8,7 +8,7 @@ interface TransactionHistoryUi {
 
     sealed class State {
 
-        object Empty : State()
+        class Empty(val message: String? = null) : State()
 
         object EmptyProgress : State()
 

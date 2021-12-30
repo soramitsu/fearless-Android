@@ -16,7 +16,7 @@ object TransactionStateMachine {
             val data: List<Operation>
         }
 
-        class Empty(filters: Set<TransactionFilter>) : State(filters)
+        class Empty(filters: Set<TransactionFilter>, val message: String? = null) : State(filters)
 
         class EmptyProgress(filters: Set<TransactionFilter>) : State(filters)
 

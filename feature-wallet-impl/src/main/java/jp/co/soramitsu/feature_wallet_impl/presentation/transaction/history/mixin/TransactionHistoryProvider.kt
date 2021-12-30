@@ -80,7 +80,7 @@ class TransactionHistoryProvider(
             filters = historyFiltersProvider.allFilters
         ).onFailure { throwable ->
             if (throwable is HistoryNotSupportedException) {
-                domainState.emit(State.Empty(domainState.value.filters))
+                domainState.emit(State.Empty(domainState.value.filters, throwable.message))
             }
         }
     }
@@ -144,7 +144,7 @@ class TransactionHistoryProvider(
 
     private suspend fun mapOperationHistoryStateToUi(state: State): TransactionHistoryUi.State {
         return when (state) {
-            is State.Empty -> TransactionHistoryUi.State.Empty
+            is State.Empty -> TransactionHistoryUi.State.Empty(state.message)
             is State.EmptyProgress -> TransactionHistoryUi.State.EmptyProgress
             is State.Data -> TransactionHistoryUi.State.Data(transformData(state.data))
             is State.FullData -> TransactionHistoryUi.State.Data(transformData(state.data))

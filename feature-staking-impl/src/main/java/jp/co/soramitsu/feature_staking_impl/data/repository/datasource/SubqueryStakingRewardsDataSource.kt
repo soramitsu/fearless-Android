@@ -30,7 +30,7 @@ class SubqueryStakingRewardsDataSource(
         val chain = chainRegistry.getChain(chainId)
         val stakingUrl = chain.externalApi?.staking?.url
         if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
-            throw Exception("${chain.name} accounts don't temporary support fetching pending rewards")
+            throw Exception("Pending rewards for this network is not supported yet")
         }
 
         val totalReward = mapSubqueryHistoryToTotalReward(
