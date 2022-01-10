@@ -33,6 +33,7 @@ data class Chain(
         val iconUrl: String,
         val chainId: ChainId,
         val nativeChainId: ChainId?,
+        val chainParentId: ChainId?,
         val chainName: String?,
         val chainIcon: String?,
         val isTestNet: Boolean?,
@@ -51,6 +52,9 @@ data class Chain(
 
         val isNative: Boolean
             get() = nativeChainId == null || nativeChainId == chainId
+
+        val isRelayChain: Boolean
+            get() = chainParentId == null
 
         val chainToSymbol = chainId to symbol
     }
