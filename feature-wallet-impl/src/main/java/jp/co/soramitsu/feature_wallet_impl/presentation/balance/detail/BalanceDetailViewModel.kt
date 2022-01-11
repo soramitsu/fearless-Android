@@ -6,8 +6,9 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.HistoryNotSupportedException
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
@@ -17,13 +18,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class BalanceDetailViewModel(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
-    private val type: Token.Type,
+    private val assetPayload: AssetPayload,
     private val buyMixin: BuyMixin.Presentation,
     private val transactionHistoryMixin: TransactionHistoryMixin,
 ) : BaseViewModel(),
@@ -38,7 +40,7 @@ class BalanceDetailViewModel(
 
     val assetLiveData = currentAssetFlow().asLiveData()
 
-    val buyEnabled = buyMixin.isBuyEnabled(type)
+    val buyEnabled = buyMixin.isBuyEnabled(assetPayload.chainId, assetPayload.chainAssetId)
 
     override fun onCleared() {
         super.onCleared()
@@ -56,13 +58,13 @@ class BalanceDetailViewModel(
 
     fun sync() {
         viewModelScope.launch {
-            val deferredAssetSync = async { interactor.syncAssetRates(type) }
+            val deferredAssetSync = async { interactor.syncAssetsRates() }
             val deferredTransactionsSync = async { transactionHistoryMixin.syncFirstOperationsPage() }
 
             val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
 
             val firstError = results.mapNotNull { it.exceptionOrNull() }
-                .firstOrNull()
+                .firstOrNull { it !is HistoryNotSupportedException }
 
             firstError?.let(::showError)
 
@@ -75,18 +77,18 @@ class BalanceDetailViewModel(
     }
 
     fun sendClicked() {
-        router.openChooseRecipient()
+        router.openChooseRecipient(assetPayload)
     }
 
     fun receiveClicked() {
-        router.openReceive()
+        router.openReceive(assetPayload)
     }
 
     fun buyClicked() {
         viewModelScope.launch {
-            val currentAccount = interactor.getSelectedAccount()
-
-            buyMixin.buyClicked(type, currentAccount.address)
+            interactor.selectedAccountFlow(assetPayload.chainId).firstOrNull()?.let { wallet ->
+                buyMixin.buyClicked(assetPayload.chainId, assetPayload.chainAssetId, wallet.address)
+            }
         }
     }
 
@@ -97,7 +99,7 @@ class BalanceDetailViewModel(
     }
 
     private fun currentAssetFlow(): Flow<AssetModel> {
-        return interactor.assetFlow(type)
+        return interactor.assetFlow(assetPayload.chainId, assetPayload.chainAssetId)
             .map { mapAssetToAssetModel(it) }
     }
 }

@@ -4,7 +4,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixi
 
 fun TransferHistorySheet.showState(state: State) {
     when (state) {
-        is State.Empty -> showPlaceholder()
+        is State.Empty -> showPlaceholder(state.message)
         is State.EmptyProgress -> showProgress()
         is State.Data -> showTransactions(state.items)
     }

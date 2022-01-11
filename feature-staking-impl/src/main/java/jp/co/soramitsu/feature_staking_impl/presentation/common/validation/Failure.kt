@@ -19,7 +19,7 @@ fun stakingValidationFailure(
             }
 
             is SetupStakingValidationFailure.TooSmallAmount -> {
-                val formattedThreshold = reason.threshold.formatTokenAmount(payload.tokenType)
+                val formattedThreshold = reason.threshold.formatTokenAmount(payload.asset.token.configuration)
 
                 getString(R.string.common_amount_low) to getString(R.string.staking_setup_amount_too_low, formattedThreshold)
             }

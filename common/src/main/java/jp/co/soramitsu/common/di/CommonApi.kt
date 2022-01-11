@@ -10,11 +10,12 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.data.network.rpc.ConnectionManager
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
-import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.di.modules.Caching
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -24,11 +25,8 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
-import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import java.util.Random
@@ -51,12 +49,6 @@ interface CommonApi {
 
     fun provideEncryptedPreferences(): EncryptedPreferences
 
-    fun provideBip39(): Bip39
-
-    fun provideKeypairFactory(): KeypairFactory
-
-    fun provideJunctionDecoder(): JunctionDecoder
-
     fun provideIconGenerator(): IconGenerator
 
     fun provideClipboardManager(): ClipboardManager
@@ -73,13 +65,14 @@ interface CommonApi {
 
     fun provideJsonMapper(): Gson
 
-    fun socketService(): SocketService
-
-    fun connectionManager(): ConnectionManager
+    fun socketServiceCreator(): SocketService
 
     fun provideSocketSingleRequestExecutor(): SocketSingleRequestExecutor
 
     fun addressIconGenerator(): AddressIconGenerator
+
+    @Caching
+    fun cachingAddressIconGenerator(): AddressIconGenerator
 
     fun networkStateMixin(): NetworkStateMixin
 
@@ -93,9 +86,11 @@ interface CommonApi {
 
     fun httpExceptionHandler(): HttpExceptionHandler
 
-    fun provideSubstrateCalls(): RpcCalls
-
     fun defaultPagedKeysRetriever(): BulkRetriever
 
     fun validationExecutor(): ValidationExecutor
+
+    fun secretStoreV1(): SecretStoreV1
+
+    fun secretStoreV2(): SecretStoreV2
 }

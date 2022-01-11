@@ -40,12 +40,21 @@
 
         </FrameLayout>
 
+        <jp.co.soramitsu.feature_wallet_api.presentation.view.AssetSelectorView
+            android:layout_width="match_parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:id="@+id/stakingAssetSelector"
+            android:layout_marginEnd="16dp"
+            app:backgroundStyle="blurred"
+            android:layout_height="wrap_content" />
+
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.NetworkInfoView
             android:id="@+id/stakingNetworkInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             app:expanded="true" />
 

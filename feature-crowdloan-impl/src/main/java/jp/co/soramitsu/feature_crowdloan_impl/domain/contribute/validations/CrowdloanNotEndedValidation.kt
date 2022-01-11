@@ -12,8 +12,10 @@ class CrowdloanNotEndedValidation(
 ) : ContributeValidation {
 
     override suspend fun validate(value: ContributeValidationPayload): ValidationStatus<ContributeValidationFailure> {
-        val currentBlock = chainStateRepository.currentBlock()
-        val blocksPerLease = crowdloanRepository.blocksPerLeasePeriod()
+        val chainId = value.asset.token.configuration.chainId
+        val currentBlock = chainStateRepository.currentBlock(chainId)
+
+        val blocksPerLease = crowdloanRepository.blocksPerLeasePeriod(chainId)
 
         val currentLeaseIndex = leaseIndexFromBlock(currentBlock, blocksPerLease)
 

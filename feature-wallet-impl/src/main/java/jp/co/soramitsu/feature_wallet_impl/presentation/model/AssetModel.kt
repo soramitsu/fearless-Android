@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.model
 
+import jp.co.soramitsu.common.utils.applyDollarRate
 import java.math.BigDecimal
 
 data class AssetModel(
@@ -13,4 +14,8 @@ data class AssetModel(
     val redeemable: BigDecimal,
     val unbonding: BigDecimal,
     val available: BigDecimal
-)
+) {
+    val totalFiat = total.applyDollarRate(token.dollarRate)
+    val availableFiat = available.applyDollarRate(token.dollarRate)
+    val frozenFiat = frozen.applyDollarRate(token.dollarRate)
+}

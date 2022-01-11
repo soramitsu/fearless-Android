@@ -6,15 +6,19 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Error
@@ -22,15 +26,20 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Ok
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Warning
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.networkType
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -43,12 +52,12 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 private const val AVATAR_SIZE_DP = 24
 
 private const val RETRY_TIMES = 3L
+
+private const val QUICK_VALUE_MAX = 1.0
 
 enum class RetryReason(val reasonRes: Int) {
     CHECK_ENOUGH_FUNDS(R.string.choose_amount_error_balance),
@@ -63,6 +72,7 @@ class ChooseAmountViewModel(
     private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val walletConstants: WalletConstants,
     private val recipientAddress: String,
+    private val assetPayload: AssetPayload,
     private val phishingAddress: PhishingWarningMixin
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
@@ -75,12 +85,24 @@ class ChooseAmountViewModel(
     }
 
     private val amountEvents = MutableStateFlow("0")
-    private val amountRawLiveData = amountEvents.asLiveData()
+    val amountRawLiveData = amountEvents.asLiveData()
 
     private val _feeLoadingLiveData = MutableLiveData<Boolean>(true)
     val feeLoadingLiveData = _feeLoadingLiveData
 
+    private val assetLiveData = liveData {
+        val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
+
+        emit(asset)
+        updateExistentialDeposit(asset.token.configuration)
+    }
+
     val feeLiveData = feeFlow().asLiveData()
+    val feeFiatLiveData = combine(assetLiveData, feeLiveData) { (asset: Asset, fee: Fee?) ->
+        fee?.feeAmount?.let {
+            asset.token.fiatAmount(it)?.formatAsCurrency()
+        }
+    }
 
     private val _feeErrorLiveData = MutableLiveData<Event<RetryReason>>()
     val feeErrorLiveData = _feeErrorLiveData
@@ -90,14 +112,18 @@ class ChooseAmountViewModel(
     private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
     val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
 
-    val assetLiveData = liveData {
-        val asset = interactor.getCurrentAsset()
-
-        emit(mapAssetToAssetModel(asset))
-    }
+    val assetModelLiveData = assetLiveData.map { mapAssetToAssetModel(it) }
 
     private val minimumPossibleAmountLiveData = assetLiveData.map {
-        it.token.type.amountFromPlanks(BigInteger.ONE)
+        it.token.configuration.amountFromPlanks(BigInteger.ONE)
+    }
+
+    private var existentialDeposit: BigDecimal? = null
+
+    val enteredFiatAmountLiveData = combine(assetLiveData, amountRawLiveData) { (asset: Asset, amount: String) ->
+        amount.toBigDecimalOrNull()?.let {
+            asset.token.fiatAmount(it)?.formatAsCurrency()
+        }
     }
 
     val continueButtonStateLiveData = combine(
@@ -113,6 +139,11 @@ class ChooseAmountViewModel(
                 && amountRaw.isNotEmpty() -> ButtonState.NORMAL
             else -> ButtonState.DISABLED
         }
+    }
+
+    private suspend fun updateExistentialDeposit(tokenConfiguration: Chain.Asset) {
+        val amountInPlanks = walletConstants.existentialDeposit(tokenConfiguration.chainId)
+        existentialDeposit = tokenConfiguration.amountFromPlanks(amountInPlanks)
     }
 
     fun nextClicked() {
@@ -138,20 +169,9 @@ class ChooseAmountViewModel(
 
     fun recipientAddressClicked() {
         val recipientAddress = recipientModelLiveData.value?.address ?: return
-        val networkType = assetLiveData.value?.token?.type?.networkType ?: return
+        val networkType = assetLiveData.value?.token?.configuration?.networkType ?: return
 
         externalAccountActions.showExternalActions(ExternalAccountActions.Payload(recipientAddress, networkType))
-    }
-
-    fun availableBalanceClicked() {
-        val transferDraft = buildTransferDraft() ?: return
-        val assetModel = assetLiveData.value ?: return
-
-        launch {
-            val existentialDeposit = assetModel.token.type.amountFromPlanks(walletConstants.existentialDeposit())
-
-            _showBalanceDetailsEvent.value = Event(BalanceDetailsBottomSheet.Payload(assetModel, transferDraft, existentialDeposit))
-        }
     }
 
     fun warningConfirmed() {
@@ -175,8 +195,8 @@ class ChooseAmountViewModel(
         .distinctUntilChanged()
         .onEach { _feeLoadingLiveData.postValue(true) }
         .mapLatest<BigDecimal, Fee?> { amount ->
-            val asset = interactor.getCurrentAsset()
-            val transfer = Transfer(recipientAddress, amount, asset.token.type)
+            val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
+            val transfer = Transfer(recipientAddress, amount, asset.token.configuration)
 
             interactor.getTransferFee(transfer)
         }
@@ -199,8 +219,8 @@ class ChooseAmountViewModel(
         checkingEnoughFundsLiveData.value = true
 
         viewModelScope.launch {
-            val asset = interactor.getCurrentAsset()
-            val transfer = Transfer(recipientAddress, fee.transferAmount, asset.token.type)
+            val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
+            val transfer = Transfer(recipientAddress, fee.transferAmount, asset.token.configuration)
 
             val result = interactor.checkTransferValidityStatus(transfer)
 
@@ -230,12 +250,29 @@ class ChooseAmountViewModel(
 
     private fun buildTransferDraft(): TransferDraft? {
         val fee = feeLiveData.value ?: return null
-        val asset = assetLiveData.value ?: return null
 
-        return TransferDraft(fee.transferAmount, fee.feeAmount, asset.token.type, recipientAddress)
+        return TransferDraft(fee.transferAmount, fee.feeAmount, assetPayload, recipientAddress)
     }
 
     private fun retryLoadFee() {
         amountChanged(amountEvents.value)
+    }
+
+    fun quickInputSelected(value: Double) {
+        val amount = assetModelLiveData.value?.available
+
+        val newAmount = if (value == QUICK_VALUE_MAX) {
+            val fee = feeLiveData.value?.feeAmount ?: return
+
+            amount?.let {
+                it - fee - (existentialDeposit ?: return)
+            }
+        } else {
+            amount?.let {
+                it * value.toBigDecimal()
+            }
+        }?.format() ?: return
+
+        amountChanged(newAmount)
     }
 }

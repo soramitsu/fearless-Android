@@ -5,6 +5,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.Cus
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep
 import kotlinx.coroutines.CoroutineScope
 
 interface CustomContributeFactory {
@@ -13,7 +14,7 @@ interface CustomContributeFactory {
 
     fun createViewState(scope: CoroutineScope, payload: CustomContributePayload): CustomContributeViewState
 
-    fun createView(context: Context): CustomContributeView
+    fun createView(context: Context, step: MoonbeamCrowdloanStep? = null): CustomContributeView
 
     val submitter: CustomContributeSubmitter
 }

@@ -38,28 +38,12 @@
         android:layout_marginEnd="16dp"
         android:includeFontPadding="false"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toTopOf="@+id/accountAddress"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/accountInfo"
         app:layout_constraintStart_toEndOf="@+id/accountIcon"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="Account Name" />
-
-    <TextView
-        android:id="@+id/accountAddress"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="48dp"
-        android:ellipsize="middle"
-        android:includeFontPadding="false"
-        android:singleLine="true"
-        android:textColor="@color/colorHint"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/accountTitle"
-        app:layout_constraintStart_toStartOf="@+id/accountTitle"
-        app:layout_constraintTop_toBottomOf="@+id/accountTitle"
-        tools:text="GybH55zsi5nAGybH55zsi5nAGybH55zsi5nAGybH55zsi5nA" />
 
     <ImageView
         android:background="@drawable/bg_primary_list_item"

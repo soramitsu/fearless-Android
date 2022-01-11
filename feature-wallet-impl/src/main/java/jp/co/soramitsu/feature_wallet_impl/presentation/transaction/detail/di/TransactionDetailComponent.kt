@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -22,7 +23,8 @@ interface TransactionDetailComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance operation: OperationParcelizeModel.Transfer
+            @BindsInstance operation: OperationParcelizeModel.Transfer,
+            @BindsInstance assetPayload: AssetPayload
         ): TransactionDetailComponent
     }
 

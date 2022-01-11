@@ -11,6 +11,6 @@ fun mapFeeToFeeModel(
     token: Token
 ) = FeeModel(
     fee = fee,
-    displayToken = fee.formatTokenAmount(token.type),
+    displayToken = fee.formatTokenAmount(token.configuration),
     displayFiat = token.fiatAmount(fee)?.formatAsCurrency()
 )

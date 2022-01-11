@@ -14,7 +14,6 @@ import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDesc
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionRight
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleLeft
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleRight
-import kotlin.time.ExperimentalTime
 
 class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(UnbondingModelDiffCallback()) {
 
@@ -24,7 +23,6 @@ class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(Unbondin
         return UnbondingsHolder(view)
     }
 
-    @ExperimentalTime
     override fun onBindViewHolder(holder: UnbondingsHolder, position: Int) {
         val item = getItem(position)
 
@@ -34,7 +32,6 @@ class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(Unbondin
 
 class UnbondingsHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
-    @ExperimentalTime
     fun bind(unbonding: UnbondingModel) = with(containerView) {
         with(unbonding) {
             itemListElementDescriptionLeft.startTimer(timeLeft, calculatedAt)

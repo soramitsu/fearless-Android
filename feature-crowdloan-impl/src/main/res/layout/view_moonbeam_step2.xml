@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <TextView
+        android:id="@+id/tvMoonbeamRegistration"
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/moonbeam_registration" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/tvMoonbeamRegistrationAccount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        app:enabled="false"
+        app:label="@string/common_account"
+        app:layout_constraintTop_toBottomOf="@id/tvMoonbeamRegistration" />
+
+    <ImageView
+        android:id="@+id/ivMoonbeamRegistration"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="16dp"
+        android:src="@drawable/ic_info_16"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvMoonbeamRegistrationAccount"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/tvMoonbeamRegistrationDesc"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="16dp"
+        android:includeFontPadding="false"
+        android:text="@string/moonbeam_registration_description"
+        android:textColor="@color/button_text_colors"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ivMoonbeamRegistration"
+        app:layout_constraintTop_toBottomOf="@id/tvMoonbeamRegistrationAccount" />
+
+    <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+        android:id="@+id/moonbeamRegistrationFee"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:background="@color/black4"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</merge>

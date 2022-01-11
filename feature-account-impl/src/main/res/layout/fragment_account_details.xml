@@ -9,11 +9,12 @@
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/fearlessToolbar"
+        android:id="@+id/accountDetailsToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:dividerVisible="false"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/account_info_title" />
+        app:titleText="@string/account_info_title_2_0" />
 
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/accountDetailsNameField"
@@ -25,55 +26,12 @@
         android:layout_marginEnd="16dp"
         android:hint="@string/username_setup_choose_title" />
 
-    <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/accountDetailsAddressView"
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:id="@+id/accountDetailsChainAccounts"
+        android:layout_height="match_parent"
+        app:layoutManager="jp.co.soramitsu.common.view.recyclerview.LinearLayoutManagerFixed"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        app:actionIcon="@drawable/ic_more_vertical"
-        app:enabled="false"
-        app:label="@string/common_address" />
-
-    <TextView
-        android:id="@+id/accountDetailsNode"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/bg_button_primary_disabled"
-        android:drawablePadding="8dp"
-        android:gravity="center_vertical"
-        android:includeFontPadding="false"
-        android:padding="16dp"
-        tools:drawableStart="@drawable/ic_ksm_24"
-        tools:text="Kusama" />
-
-    <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/accountDetailsEncryptionType"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        app:enabled="false"
-        app:label="@string/common_crypto_type"
-        app:message="@string/sr25519_selection_title" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
-    <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/accountDetailsExport"
-        style="@style/Widget.Fearless.Button.Primary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="@string/account_export" />
+        tools:listitem="@layout/item_chain_acount" />
 
 </LinearLayout>

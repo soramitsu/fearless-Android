@@ -5,8 +5,14 @@ import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 class AccountAlreadyExistsException : Exception()
@@ -25,11 +31,25 @@ interface AccountRepository {
 
     suspend fun getDefaultNode(networkType: Node.NetworkType): Node
 
-    suspend fun selectAccount(account: Account, newNode: Node? = null)
+    suspend fun selectAccount(metaAccountId: Long, newNode: Node? = null)
 
     fun selectedAccountFlow(): Flow<Account>
 
     suspend fun getSelectedAccount(): Account
+
+    suspend fun getSelectedAccount(chainId: String): Account
+    suspend fun getSelectedMetaAccount(): MetaAccount
+    suspend fun getMetaAccount(metaId: Long): MetaAccount
+    fun selectedMetaAccountFlow(): Flow<MetaAccount>
+
+    suspend fun findMetaAccount(accountId: ByteArray): MetaAccount?
+
+    suspend fun allMetaAccounts(): List<MetaAccount>
+
+    fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
+    suspend fun selectMetaAccount(metaId: Long)
+
+    suspend fun updateMetaAccountName(metaId: Long, newName: String)
 
     suspend fun getPreferredCryptoType(): CryptoType
 
@@ -39,11 +59,10 @@ interface AccountRepository {
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String,
-        networkType: Node.NetworkType
+        derivationPath: String
     )
 
-    fun accountsFlow(): Flow<List<Account>>
+    suspend fun deleteAccount(metaId: Long)
 
     suspend fun getAccounts(): List<Account>
 
@@ -51,28 +70,25 @@ interface AccountRepository {
 
     suspend fun getAccountOrNull(address: String): Account?
 
-    suspend fun getMyAccounts(query: String, networkType: Node.NetworkType): Set<Account>
+    suspend fun getMyAccounts(query: String, chainId: String): Set<Account>
 
     suspend fun importFromMnemonic(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     )
 
     suspend fun importFromSeed(
         seed: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     )
 
     suspend fun importFromJson(
         json: String,
         password: String,
-        networkType: Node.NetworkType,
         name: String
     )
 
@@ -84,25 +100,15 @@ interface AccountRepository {
 
     suspend fun generateMnemonic(): List<String>
 
-    suspend fun isInCurrentNetwork(address: String): Boolean
-
     suspend fun isBiometricEnabled(): Boolean
 
     suspend fun setBiometricOn()
 
     suspend fun setBiometricOff()
 
-    suspend fun updateAccount(newAccount: Account)
-
     fun nodesFlow(): Flow<List<Node>>
 
-    fun selectedNodeFlow(): Flow<Node>
-
-    fun selectedNetworkTypeFlow(): Flow<Node.NetworkType>
-
-    suspend fun updateAccounts(accounts: List<Account>)
-
-    suspend fun deleteAccount(address: String)
+    suspend fun updateAccountsOrdering(accountOrdering: List<MetaAccountOrdering>)
 
     suspend fun processAccountJson(json: String): ImportJsonData
 
@@ -111,8 +117,6 @@ interface AccountRepository {
     suspend fun selectedLanguage(): Language
 
     suspend fun changeLanguage(language: Language)
-
-    suspend fun getCurrentSecuritySource(): SecuritySource
 
     suspend fun getSecuritySource(accountAddress: String): SecuritySource
 
@@ -131,9 +135,11 @@ interface AccountRepository {
 
     suspend fun deleteNode(nodeId: Int)
 
-    fun createQrAccountContent(account: Account): String
+    fun createQrAccountContent(payload: QrSharing.Payload): String
 
     suspend fun generateRestoreJson(account: Account, password: String): String
 
-    suspend fun isAccountExists(accountAddress: String): Boolean
+    suspend fun isAccountExists(accountId: AccountId): Boolean
+
+    suspend fun isInCurrentNetwork(address: String, chainId: ChainId): Boolean
 }

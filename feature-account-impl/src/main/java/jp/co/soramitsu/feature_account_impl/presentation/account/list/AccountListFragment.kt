@@ -8,7 +8,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
 import kotlinx.android.synthetic.main.fragment_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_accounts.addAccount
 import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
@@ -61,16 +61,14 @@ class AccountListFragment : BaseFragment<AccountListViewModel>(), AccountsAdapte
     }
 
     override fun subscribe(viewModel: AccountListViewModel) {
-        viewModel.accountListingLiveData.observe { adapter.submitList(it.groupedAccounts) }
-
-        viewModel.selectedAccountLiveData.observe(adapter::updateSelectedAccount)
+        viewModel.accountsFlow.observe { adapter.submitList(it) }
     }
 
-    override fun infoClicked(accountModel: AccountModel) {
+    override fun infoClicked(accountModel: LightMetaAccountUi) {
         viewModel.infoClicked(accountModel)
     }
 
-    override fun checkClicked(accountModel: AccountModel) {
+    override fun checkClicked(accountModel: LightMetaAccountUi) {
         viewModel.selectAccountClicked(accountModel)
     }
 }

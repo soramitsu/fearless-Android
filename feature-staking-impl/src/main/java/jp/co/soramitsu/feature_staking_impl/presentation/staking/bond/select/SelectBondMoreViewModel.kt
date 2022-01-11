@@ -19,9 +19,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.bondMoreValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -102,12 +101,10 @@ class SelectBondMoreViewModel(
     private fun loadFee(amount: BigDecimal) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                val amountInPlanks = asset.token.planksFromAmount(amount)
+            feeConstructor = { token ->
+                val amountInPlanks = token.planksFromAmount(amount)
 
-                val feeInPlanks = bondMoreInteractor.estimateFee(stashAddress(), amountInPlanks)
-
-                asset.token.amountFromPlanks(feeInPlanks)
+                bondMoreInteractor.estimateFee(amountInPlanks)
             },
             onRetryCancelled = ::backClicked
         )
@@ -124,7 +121,7 @@ class SelectBondMoreViewModel(
                 stashAddress = stashAddress(),
                 fee = fee,
                 amount = parsedAmountFlow.first(),
-                tokenType = assetFlow.first().token.type
+                chainAsset = assetFlow.first().token.configuration
             )
 
             validationExecutor.requireValid(

@@ -2,7 +2,7 @@ package jp.co.soramitsu.common.data.network.runtime.binding
 
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromByteArrayOrNull
-import jp.co.soramitsu.fearless_utils.runtime.metadata.Constant
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module.Constant
 import java.math.BigInteger
 
 @HelperBinding

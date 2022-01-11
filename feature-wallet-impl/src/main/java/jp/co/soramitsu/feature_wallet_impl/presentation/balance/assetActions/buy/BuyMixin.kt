@@ -6,19 +6,32 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.ExternalProvider
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 interface BuyMixin {
-    class IntegrationPayload(val provider: BuyTokenRegistry.Provider<*>, val token: Token.Type, val address: String)
+    class IntegrationPayload(
+        val provider: BuyTokenRegistry.Provider<*>,
+        val chainAsset: Chain.Asset,
+        val address: String,
+    )
 
-    class ProviderChooserPayload(val providers: List<BuyTokenRegistry.Provider<*>>, val token: Token.Type, val address: String)
+    class ProviderChooserPayload(
+        val providers: List<BuyTokenRegistry.Provider<*>>,
+        val chainAsset: Chain.Asset,
+        val accountAddress: String
+    )
 
     val showProviderChooserEvent: LiveData<Event<ProviderChooserPayload>>
 
     val integrateWithBuyProviderEvent: LiveData<Event<IntegrationPayload>>
 
-    fun providerChosen(provider: BuyTokenRegistry.Provider<*>, token: Token.Type, accountAddress: String)
+    fun providerChosen(
+        provider: BuyTokenRegistry.Provider<*>,
+        chainAsset: Chain.Asset,
+        accountAddress: String
+    )
 
     interface Presentation : BuyMixin {
 
@@ -26,26 +39,22 @@ interface BuyMixin {
 
         override val integrateWithBuyProviderEvent: MutableLiveData<Event<IntegrationPayload>>
 
-        fun buyClicked(token: Token.Type, accountAddress: String)
+        fun buyClicked(chainId: ChainId, chainAssetId: String, accountAddress: String)
 
-        fun isBuyEnabled(token: Token.Type): Boolean
+        fun isBuyEnabled(chainId: ChainId, chainAssetId: String): Boolean
     }
 }
 
 fun <V> BaseFragment<V>.setupBuyIntegration(viewModel: V) where V : BaseViewModel, V : BuyMixin {
     viewModel.integrateWithBuyProviderEvent.observeEvent {
-        with(it) {
-            when (provider) {
-                is ExternalProvider -> provider.createIntegrator(token, address).integrate(requireContext())
-            }
-        }
+        (it.provider as? ExternalProvider)?.createIntegrator(it.chainAsset, it.address)?.integrate(requireContext())
     }
 
     viewModel.showProviderChooserEvent.observeEvent { payload ->
         BuyProviderChooserBottomSheet(
-            requireContext(), payload.providers,
+            requireContext(), payload.providers, payload.chainAsset,
             onClick = {
-                viewModel.providerChosen(it, payload.token, payload.address)
+                viewModel.providerChosen(it, payload.chainAsset, payload.accountAddress)
             }
         ).show()
     }

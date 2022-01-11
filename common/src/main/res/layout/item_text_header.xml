@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/TextAppearance.Soramitsu.CapsTitle2"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="16dp"
+    android:paddingTop="9dp"
+    android:paddingBottom="10dp"
+    android:id="@+id/textHeader"
+    android:textColor="@color/black1"
+    tools:background="@color/black"
+    tools:text="@tools:sample/lorem[2]">
+
+</TextView>

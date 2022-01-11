@@ -7,5 +7,6 @@ class SelectedAccountUseCase(
     private val accountRepository: AccountRepository
 ) {
 
+    // TODO use meta account
     fun selectedAccountFlow(): Flow<Account> = accountRepository.selectedAccountFlow()
 }

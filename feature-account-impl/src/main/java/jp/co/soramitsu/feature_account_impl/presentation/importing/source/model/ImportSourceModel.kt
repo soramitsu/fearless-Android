@@ -17,11 +17,9 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapCryptoTypeToCryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.AccountSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.FileReader
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.encoders.DecoderException
@@ -54,7 +52,6 @@ sealed class ImportSource(@StringRes nameRes: Int) : AccountSource(nameRes) {
 private const val PICK_FILE_RESULT_CODE = 101
 
 class JsonImportSource(
-    private val networkLiveData: MutableLiveData<NetworkModel>,
     private val nameLiveData: MutableLiveData<String>,
     private val cryptoTypeLiveData: MutableLiveData<CryptoTypeModel>,
     private val interactor: AccountInteractor,
@@ -69,11 +66,6 @@ class JsonImportSource(
 
     private val _showJsonInputOptionsEvent = MutableLiveData<Event<Unit>>()
     val showJsonInputOptionsEvent: LiveData<Event<Unit>> = _showJsonInputOptionsEvent
-
-    private val _enableNetworkInputLiveData = MutableLiveData<Boolean>(false)
-    val enableNetworkInputLiveData = _enableNetworkInputLiveData
-
-    val showNetworkWarningLiveData = enableNetworkInputLiveData
 
     override val chooseJsonFileEvent = MutableLiveData<Event<RequestCode>>()
 
@@ -134,13 +126,6 @@ class JsonImportSource(
     }
 
     private fun handleParsedImportData(importJsonData: ImportJsonData) {
-        _enableNetworkInputLiveData.value = importJsonData.networkType == null
-
-        importJsonData.networkType?.let {
-            val networkModel = mapNetworkTypeToNetworkModel(it)
-            networkLiveData.value = networkModel
-        }
-
         val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, importJsonData.encryptionType)
         cryptoTypeLiveData.value = cryptoModel
 

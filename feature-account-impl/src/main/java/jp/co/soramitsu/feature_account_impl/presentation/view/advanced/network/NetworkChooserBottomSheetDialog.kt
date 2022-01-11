@@ -13,9 +13,9 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdap
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.network.model.NetworkModel
-import kotlinx.android.synthetic.main.item_network.view.networkTv
-import kotlinx.android.synthetic.main.item_network.view.rightIcon
+import kotlinx.android.synthetic.main.item_network.view.*
 
+@Deprecated("Don't need this dialog since we have a multi-assets feature")
 class NetworkChooserBottomSheetDialog(
     context: Context,
     payload: Payload<NetworkModel>,

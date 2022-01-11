@@ -7,18 +7,21 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
 import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
+
     override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
         return accountRepository.getSecuritySource(accountAddress)
     }
@@ -39,16 +42,14 @@ class AccountInteractorImpl(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String,
-        networkType: Node.NetworkType
+        derivationPath: String
     ): Result<Unit> {
         return runCatching {
             accountRepository.createAccount(
                 accountName,
                 mnemonic,
                 encryptionType,
-                derivationPath,
-                networkType
+                derivationPath
             )
         }
     }
@@ -57,16 +58,14 @@ class AccountInteractorImpl(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromMnemonic(
                 keyString,
                 username,
                 derivationPath,
-                selectedEncryptionType,
-                networkType
+                selectedEncryptionType
             )
         }
     }
@@ -75,16 +74,14 @@ class AccountInteractorImpl(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromSeed(
                 keyString,
                 username,
                 derivationPath,
-                selectedEncryptionType,
-                networkType
+                selectedEncryptionType
             )
         }
     }
@@ -92,11 +89,10 @@ class AccountInteractorImpl(
     override suspend fun importFromJson(
         json: String,
         password: String,
-        networkType: Node.NetworkType,
         name: String
     ): Result<Unit> {
         return runCatching {
-            accountRepository.importFromJson(json, password, networkType, name)
+            accountRepository.importFromJson(json, password, name)
         }
     }
 
@@ -132,61 +128,32 @@ class AccountInteractorImpl(
 
     override fun selectedAccountFlow() = accountRepository.selectedAccountFlow()
 
-    override suspend fun getSelectedAccount() = accountRepository.getSelectedAccount()
+    override suspend fun selectedNetworkType(): Node.NetworkType {
+        return accountRepository.currentNetworkType()
+    }
 
     override suspend fun getNetworks(): List<Network> {
         return accountRepository.getNetworks()
     }
 
-    override suspend fun getSelectedNode() = accountRepository.getSelectedNodeOrDefault()
-
-    override fun groupedAccountsFlow(): Flow<List<Any>> {
-        return accountRepository.accountsFlow()
-            .map(::mergeAccountsWithNetworks)
+    override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
+        return accountRepository.lightMetaAccountsFlow()
     }
 
-    override suspend fun selectAccount(address: String) {
-        val account = accountRepository.getAccount(address)
-
-        accountRepository.selectAccount(account)
+    override suspend fun selectMetaAccount(metaId: Long) {
+        accountRepository.selectMetaAccount(metaId)
     }
 
-    override suspend fun updateAccountName(account: Account, newName: String) {
-        val newAccount = account.copy(name = newName)
-
-        accountRepository.updateAccount(newAccount)
-
-        maybeUpdateSelectedAccount(newAccount)
+    override suspend fun deleteAccount(metaId: Long) = withContext(Dispatchers.Default) {
+        accountRepository.deleteAccount(metaId)
     }
 
-    override suspend fun deleteAccount(address: String) {
-        return accountRepository.deleteAccount(address)
-    }
-
-    override suspend fun updateAccountPositionsInNetwork(newOrdering: List<Account>) {
-        val updatedAccounts = withContext(Dispatchers.Default) {
-            newOrdering.mapIndexed { index, account -> account.copy(position = index) }
+    override suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>) = with(Dispatchers.Default) {
+        val ordering = idsInNewOrder.mapIndexed { index, id ->
+            MetaAccountOrdering(id, index)
         }
 
-        accountRepository.updateAccounts(updatedAccounts)
-    }
-
-    // TODO refactor - now logic relies on the implementation of AccountRepository
-    //  (that after selecting account its info will be updated)
-    private suspend fun maybeUpdateSelectedAccount(newAccount: Account) {
-        val account = accountRepository.getSelectedAccount()
-
-        if (account.address == newAccount.address) {
-            accountRepository.selectAccount(newAccount)
-        }
-    }
-
-    private suspend fun mergeAccountsWithNetworks(accounts: List<Account>): List<Any> {
-        return withContext(Dispatchers.Default) {
-            accounts.groupBy { it.network.type }
-                .map { (network, accounts) -> listOf(network, *accounts.toTypedArray()) }
-                .flatten()
-        }
+        accountRepository.updateAccountsOrdering(ordering)
     }
 
     override fun nodesFlow(): Flow<List<Node>> {
@@ -263,10 +230,11 @@ class AccountInteractorImpl(
     }
 
     override suspend fun selectNodeAndAccount(nodeId: Int, accountAddress: String) {
-        val account = accountRepository.getAccount(accountAddress)
-        val node = accountRepository.getNode(nodeId)
-
-        accountRepository.selectAccount(account, newNode = node)
+        // todo do we still need this logic?
+//        val account = accountRepository.getAccount(accountAddress)
+//        val node = accountRepository.getNode(nodeId)
+//
+//        accountRepository.selectAccount(account, newNode = node)
     }
 
     override suspend fun selectNode(nodeId: Int) {

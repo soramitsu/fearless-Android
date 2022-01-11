@@ -18,11 +18,11 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.rewardDestination.Cha
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.RewardDestinationParcelModel
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
@@ -94,9 +94,7 @@ class SelectRewardDestinationViewModel(
     private fun loadFee(rewardDestination: RewardDestination, stashState: StakingState.Stash) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                changeRewardDestinationInteractor.estimateFee(stashState, rewardDestination, asset.token)
-            },
+            feeConstructor = { changeRewardDestinationInteractor.estimateFee(stashState, rewardDestination) },
             onRetryCancelled = ::backClicked
         )
     }

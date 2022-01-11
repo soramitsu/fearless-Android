@@ -14,7 +14,6 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
-import jp.co.soramitsu.common.view.dialog.retryDialog
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
@@ -96,16 +95,6 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
             this,
             EventObserver {
                 showToast(it)
-            }
-        )
-
-        viewModel.runtimeUpdateFailedLiveData.observe(
-            this,
-            EventObserver { onRetry ->
-                retryDialog(this, { viewModel.retryConfirmed(onRetry) }) {
-                    setTitle(R.string.runtime_update_failure_title)
-                    setMessage(R.string.runtime_update_failure_description)
-                }
             }
         )
     }

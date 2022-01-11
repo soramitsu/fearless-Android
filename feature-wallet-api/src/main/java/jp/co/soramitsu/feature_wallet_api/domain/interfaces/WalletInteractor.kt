@@ -6,17 +6,16 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.OperationsPageChange
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.math.BigDecimal
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
-class PhishingAddress : Exception()
 
 interface WalletInteractor {
 
@@ -24,32 +23,32 @@ interface WalletInteractor {
 
     suspend fun syncAssetsRates(): Result<Unit>
 
-    suspend fun syncAssetRates(type: Token.Type): Result<Unit>
+    fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset>
 
-    fun assetFlow(type: Token.Type): Flow<Asset>
+    suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: String): Asset
 
-    suspend fun getCurrentAsset(): Asset
-
-    fun currentAssetFlow(): Flow<Asset>
-
-    fun operationsFirstPageFlow(): Flow<OperationsPageChange>
+    fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange>
 
     suspend fun syncOperationsFirstPage(
+        chainId: ChainId,
+        chainAssetId: String,
         pageSize: Int,
         filters: Set<TransactionFilter>,
     ): Result<*>
 
     suspend fun getOperations(
+        chainId: ChainId,
+        chainAssetId: String,
         pageSize: Int,
         cursor: String?,
         filters: Set<TransactionFilter>
     ): Result<CursorPage<Operation>>
 
-    fun selectedAccountFlow(): Flow<WalletAccount>
+    fun selectedAccountFlow(chainId: ChainId): Flow<WalletAccount>
 
-    suspend fun getRecipients(query: String): RecipientSearchResult
+    suspend fun getRecipients(query: String, chainId: ChainId): RecipientSearchResult
 
-    suspend fun validateSendAddress(address: String): Boolean
+    suspend fun validateSendAddress(chainId: ChainId, address: String): Boolean
 
     suspend fun isAddressFromPhishingList(address: String): Boolean
 
@@ -61,17 +60,13 @@ interface WalletInteractor {
         maxAllowedLevel: TransferValidityLevel = TransferValidityLevel.Ok
     ): Result<Unit>
 
+    suspend fun getSenderAddress(chainId: ChainId): String?
+
     suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
 
-    suspend fun getAccountsInCurrentNetwork(): List<WalletAccount>
+    suspend fun getQrCodeSharingString(chainId: ChainId): String
 
-    suspend fun selectAccount(address: String)
-
-    suspend fun getQrCodeSharingString(): String
-
-    suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<Pair<File, Asset>>
+    suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 
     suspend fun getRecipientFromQrCodeContent(content: String): Result<String>
-
-    suspend fun getSelectedAccount(): WalletAccount
 }

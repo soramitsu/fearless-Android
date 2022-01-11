@@ -3,7 +3,8 @@ package jp.co.soramitsu.common.data.network.runtime.binding
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import java.math.BigInteger
 
-sealed class MultiAddress(val enumIndex: Int) {
+sealed class MultiAddress {
+
     companion object {
         const val TYPE_ID = "Id"
         const val TYPE_INDEX = "Index"
@@ -12,11 +13,26 @@ sealed class MultiAddress(val enumIndex: Int) {
         const val TYPE_ADDRESS20 = "Address20"
     }
 
-    class Id(val value: ByteArray) : MultiAddress(0)
-    class Index(val value: BigInteger) : MultiAddress(1)
-    class Raw(val value: ByteArray) : MultiAddress(2)
-    class Address32(val value: ByteArray) : MultiAddress(3)
-    class Address20(val value: ByteArray) : MultiAddress(4)
+    class Id(val value: ByteArray) : MultiAddress()
+
+    class Index(val value: BigInteger) : MultiAddress()
+
+    class Raw(val value: ByteArray) : MultiAddress()
+
+    class Address32(val value: ByteArray) : MultiAddress() {
+        init {
+            require(value.size == 32) {
+                "Address32 should be 32 bytes long"
+            }
+        }
+    }
+    class Address20(val value: ByteArray) : MultiAddress() {
+        init {
+            require(value.size == 20) {
+                "Address20 should be 20 bytes long"
+            }
+        }
+    }
 }
 
 fun bindMultiAddress(multiAddress: MultiAddress): DictEnum.Entry<*> {

@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.ImageLoader
+import coil.load
 import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.format
@@ -12,11 +14,11 @@ import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetBalance
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetContainer
@@ -26,13 +28,18 @@ import kotlinx.android.synthetic.main.item_asset.view.itemAssetNetwork
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRate
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRateChange
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetToken
+import kotlinx.android.synthetic.main.item_asset.view.networkBadge
+import kotlinx.android.synthetic.main.item_asset.view.networkBadgeIcon
+import kotlinx.android.synthetic.main.item_asset.view.networkBadgeName
+import kotlinx.android.synthetic.main.item_asset.view.testnetBadge
 import java.math.BigDecimal
 
 val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRate }
 val recentChangeExtractor = { assetModel: AssetModel -> assetModel.token.recentRateChange }
 
 class BalanceListAdapter(
-    private val itemHandler: ItemAssetHandler
+    private val imageLoader: ImageLoader,
+    private val itemHandler: ItemAssetHandler,
 ) : ListAdapter<AssetModel, AssetViewHolder>(AssetDiffCallback) {
 
     interface ItemAssetHandler {
@@ -42,7 +49,7 @@ class BalanceListAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssetViewHolder {
         val view = parent.inflateChild(R.layout.item_asset)
 
-        return AssetViewHolder(view)
+        return AssetViewHolder(view, imageLoader)
     }
 
     override fun onBindViewHolder(holder: AssetViewHolder, position: Int) {
@@ -64,7 +71,10 @@ class BalanceListAdapter(
     }
 }
 
-class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+class AssetViewHolder(
+    override val containerView: View,
+    private val imageLoader: ImageLoader,
+) : RecyclerView.ViewHolder(containerView), LayoutContainer {
     init {
         with(containerView) {
             val background = with(context) {
@@ -76,8 +86,8 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
     }
 
     fun bind(asset: AssetModel, itemHandler: BalanceListAdapter.ItemAssetHandler) = with(containerView) {
-        itemAssetImage.setImageResource(asset.token.type.icon)
-        itemAssetNetwork.text = asset.token.type.networkType.readableName
+        itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
+        itemAssetNetwork.text = asset.token.configuration.name
 
         bindDollarInfo(asset)
 
@@ -85,7 +95,13 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
 
         bindTotal(asset)
 
-        itemAssetToken.text = asset.token.type.displayName
+        itemAssetToken.text = asset.token.configuration.symbol
+
+        networkBadge.setVisible(!asset.token.configuration.isNative)
+        networkBadgeName.text = asset.token.configuration.chainName
+        networkBadgeIcon.load(asset.token.configuration.chainIcon, imageLoader)
+
+        testnetBadge.setVisible(asset.token.configuration.isTestNet == true)
 
         setOnClickListener { itemHandler.assetClicked(asset) }
     }
@@ -97,26 +113,24 @@ class AssetViewHolder(override val containerView: View) : RecyclerView.ViewHolde
     }
 
     fun bindRecentChange(asset: AssetModel) = with(containerView) {
-        asset.token.recentRateChange?.let {
-            itemAssetRateChange.setTextColorRes(asset.token.rateChangeColorRes!!)
-            itemAssetRateChange.text = it.formatAsChange()
-        }
+        itemAssetRateChange.setTextColorRes(asset.token.rateChangeColorRes)
+        itemAssetRateChange.text = asset.token.recentRateChange?.formatAsChange()
     }
 
     fun bindDollarInfo(asset: AssetModel) = with(containerView) {
-        asset.token.dollarRate?.let { itemAssetRate.text = it.formatAsCurrency() }
+        itemAssetRate.text = asset.token.dollarRate?.formatAsCurrency()
         bindDollarAmount(asset.dollarAmount)
     }
 
     private fun bindDollarAmount(dollarAmount: BigDecimal?) {
-        dollarAmount?.let { containerView.itemAssetDollarAmount.text = it.formatAsCurrency() }
+        containerView.itemAssetDollarAmount.text = dollarAmount?.formatAsCurrency()
     }
 }
 
 private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
 
     override fun areItemsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
-        return oldItem.token.type == newItem.token.type
+        return oldItem.token.configuration.chainToSymbol == newItem.token.configuration.chainToSymbol
     }
 
     override fun areContentsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {

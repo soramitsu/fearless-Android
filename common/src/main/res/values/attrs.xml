@@ -41,6 +41,12 @@
         <attr name="android:singleLine" />
     </declare-styleable>
 
+    <declare-styleable name="SegmentedButtonView">
+        <attr name="labelOne" format="string" />
+        <attr name="labelTwo" format="string" />
+        <attr name="android:singleLine" />
+    </declare-styleable>
+
     <declare-styleable name="AccountInfoView">
         <attr name="accountActionIcon" format="reference|color" />
         <attr name="textVisible" format="boolean" />

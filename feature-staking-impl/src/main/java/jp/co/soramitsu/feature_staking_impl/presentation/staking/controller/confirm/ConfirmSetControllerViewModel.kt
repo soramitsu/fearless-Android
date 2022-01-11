@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.con
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -15,9 +16,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.Controller
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
-import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set.bondSetControllerValidationFailure
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -104,7 +105,7 @@ class ConfirmSetControllerViewModel(
         .createAddressModel(
             address,
             AddressIconGenerator.SIZE_SMALL,
-            interactor.getAccount(address).name
+            interactor.getProjectedAccount(address).name
         )
 
     fun back() {

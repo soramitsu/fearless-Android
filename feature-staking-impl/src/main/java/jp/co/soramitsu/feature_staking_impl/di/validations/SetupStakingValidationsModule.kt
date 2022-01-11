@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
@@ -22,6 +23,7 @@ class SetupStakingValidationsModule {
     @Provides
     @FeatureScope
     fun provideSetupStakingFeeValidation(
+        stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository,
     ): SetupStakingFeeValidation {
         return EnoughToPayFeesValidation(
@@ -29,7 +31,8 @@ class SetupStakingValidationsModule {
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
                 walletRepository,
                 originAddressExtractor = { it.controllerAddress },
-                tokenTypeExtractor = { it.tokenType }
+                chainAssetExtractor = { it.asset.token.configuration },
+                stakingSharedState = stakingSharedState
             ),
             errorProducer = { SetupStakingValidationFailure.CannotPayFee },
             extraAmountExtractor = { it.bondAmount ?: BigDecimal.ZERO }
@@ -45,11 +48,13 @@ class SetupStakingValidationsModule {
     @Provides
     @FeatureScope
     fun provideMaxNominatorsReachedValidation(
+        stakingSharedState: StakingSharedState,
         stakingRepository: StakingRepository
     ) = SetupStakingMaximumNominatorsValidation(
         stakingRepository = stakingRepository,
         errorProducer = { SetupStakingValidationFailure.MaxNominatorsReached },
-        isAlreadyNominating = SetupStakingPayload::isAlreadyNominating
+        isAlreadyNominating = SetupStakingPayload::isAlreadyNominating,
+        sharedState = stakingSharedState
     )
 
     @Provides

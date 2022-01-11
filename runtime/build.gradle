@@ -9,8 +9,10 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
+        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.x/chains/chains_dev.json\""
+        buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.x/chains/assets.json\""
     }
 
     buildTypes {
@@ -21,6 +23,8 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.x/chains/chains.json\""
         }
     }
 
@@ -37,7 +41,6 @@ dependencies {
 
     implementation project(":common")
     implementation project(":core-db")
-    implementation project(":feature-account-api")
 
     implementation project(":core-api")
 
@@ -54,4 +57,8 @@ dependencies {
     kapt daggerKapt
 
     testImplementation project(':test-shared')
+
+    androidTestImplementation androidTestRunnerDep
+    androidTestImplementation androidTestRulesDep
+    androidTestImplementation androidJunitDep
 }

@@ -18,7 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemVal
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemViewModel
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class RedeemModule {

@@ -10,9 +10,14 @@ import coil.decode.SvgDecoder
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.CachingAddressIconGenerator
+import jp.co.soramitsu.common.address.StatelessAddressIconGenerator
 import jp.co.soramitsu.common.data.FileProviderImpl
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
@@ -28,16 +33,17 @@ import jp.co.soramitsu.common.resources.ResourceManagerImpl
 import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
-import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
-import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import java.security.SecureRandom
 import java.util.Random
+import javax.inject.Qualifier
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class Caching
 
 @Module
 class CommonModule {
@@ -89,24 +95,6 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
-    fun provideBip39(): Bip39 {
-        return Bip39()
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideKeypairFactory(): KeypairFactory {
-        return KeypairFactory()
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideJunctionDecoder(): JunctionDecoder {
-        return JunctionDecoder()
-    }
-
-    @Provides
-    @ApplicationScope
     fun provideSigner(): Signer {
         return Signer
     }
@@ -141,7 +129,13 @@ class CommonModule {
     fun provideAddressModelCreator(
         resourceManager: ResourceManager,
         iconGenerator: IconGenerator
-    ): AddressIconGenerator = AddressIconGenerator(iconGenerator, resourceManager)
+    ): AddressIconGenerator = StatelessAddressIconGenerator(iconGenerator, resourceManager)
+
+    @Provides
+    @Caching
+    fun provideCachingAddressModelCreator(
+        delegate: AddressIconGenerator
+    ): AddressIconGenerator = CachingAddressIconGenerator(delegate)
 
     @Provides
     @ApplicationScope
@@ -169,10 +163,8 @@ class CommonModule {
 
     @Provides
     @ApplicationScope
-    fun provideDefaultPagedKeysRetriever(
-        socketService: SocketService
-    ): BulkRetriever {
-        return BulkRetriever(socketService)
+    fun provideDefaultPagedKeysRetriever(): BulkRetriever {
+        return BulkRetriever()
     }
 
     @Provides
@@ -182,4 +174,16 @@ class CommonModule {
     ): ValidationExecutor {
         return ValidationExecutor(resourceManager)
     }
+
+    @Provides
+    @ApplicationScope
+    fun provideSecretStoreV1(
+        encryptedPreferences: EncryptedPreferences
+    ): SecretStoreV1 = SecretStoreV1Impl(encryptedPreferences)
+
+    @Provides
+    @ApplicationScope
+    fun provideSecretStoreV2(
+        encryptedPreferences: EncryptedPreferences
+    ) = SecretStoreV2(encryptedPreferences)
 }

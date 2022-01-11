@@ -38,6 +38,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', "*.aar"])
     implementation project(':core-db')
     implementation project(':common')
+    implementation project(':runtime')
     implementation project(':feature-account-api')
 
     implementation kotlinDep
@@ -60,6 +61,7 @@ dependencies {
     implementation coroutinesAndroidDep
     implementation viewModelKtxDep
     implementation liveDataKtxDep
+    implementation lifeCycleKtxDep
 
     implementation daggerDep
     kapt daggerKapt

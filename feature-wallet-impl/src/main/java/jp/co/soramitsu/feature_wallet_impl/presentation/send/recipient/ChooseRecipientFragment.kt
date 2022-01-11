@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
 import com.google.zxing.integration.android.IntentIntegrator
 import jp.co.soramitsu.common.base.BaseFragment
@@ -15,6 +16,7 @@ import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.askPermissionsSafely
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
 import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientField
@@ -26,12 +28,15 @@ import kotlinx.coroutines.launch
 private const val INDEX_WELCOME = 0
 private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
+private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.RecipientItemHandler {
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 101
         private const val QR_CODE_IMAGE_TYPE = "image/*"
+
+        fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     private lateinit var adapter: ChooseRecipientAdapter
@@ -62,12 +67,14 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
     }
 
     override fun inject() {
+        val payload = arguments!![KEY_ASSET_PAYLOAD] as AssetPayload
+
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .chooseRecipientComponentFactory()
-            .create(this)
+            .create(this, payload)
             .inject(this)
     }
 

@@ -5,13 +5,13 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import retrofit2.http.Body
 import retrofit2.http.POST
-import retrofit2.http.Path
+import retrofit2.http.Url
 
 interface SubQueryOperationsApi {
 
-    @POST("//api.subquery.network/sq/ef1rspb/{path}")
+    @POST
     suspend fun getOperationsHistory(
-        @Path("path") path: String,
+        @Url url: String,
         @Body body: SubqueryHistoryRequest
     ): SubQueryResponse<SubqueryHistoryElementResponse>
 }

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigInteger
 
 data class Operation(
@@ -7,7 +8,7 @@ data class Operation(
     val address: String,
     val type: Type,
     val time: Long,
-    val tokenType: Token.Type,
+    val chainAsset: Chain.Asset,
 ) {
 
     sealed class Type {

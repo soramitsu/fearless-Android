@@ -21,10 +21,9 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.rebondValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.requireFee
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.requireFee
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -105,12 +104,10 @@ class CustomRebondViewModel(
     private fun loadFee(amount: BigDecimal) {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                val amountInPlanks = asset.token.planksFromAmount(amount)
+            feeConstructor = { token ->
+                val amountInPlanks = token.planksFromAmount(amount)
 
-                val feeInPlanks = rebondInteractor.estimateFee(controllerAddress(), amountInPlanks)
-
-                asset.token.amountFromPlanks(feeInPlanks)
+                rebondInteractor.estimateFee(amountInPlanks)
             },
             onRetryCancelled = ::backClicked
         )
@@ -141,6 +138,4 @@ class CustomRebondViewModel(
 
         router.openConfirmRebond(confirmPayload)
     }
-
-    private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
 }

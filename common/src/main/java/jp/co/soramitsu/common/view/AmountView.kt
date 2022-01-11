@@ -7,9 +7,12 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.EditText
 import androidx.constraintlayout.widget.ConstraintLayout
+import coil.ImageLoader
+import coil.load
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
@@ -89,6 +92,10 @@ class AmountView @JvmOverloads constructor(
         stakingAssetImage.setImageResource(imageRes)
     }
 
+    fun setAssetImageUrl(imageUrl: String, imageLoader: ImageLoader) {
+        stakingAssetImage.load(imageUrl, imageLoader)
+    }
+
     fun setAssetName(name: String) {
         stakingAssetToken.text = name
     }
@@ -97,8 +104,8 @@ class AmountView @JvmOverloads constructor(
         stakingAssetBalance.text = balance
     }
 
-    fun setAssetBalanceDollarAmount(dollarAmount: String) {
-        stakingAssetDollarAmount.text = dollarAmount
+    fun setAssetBalanceDollarAmount(dollarAmount: String?) {
+        stakingAssetDollarAmount.setTextOrHide(dollarAmount)
     }
 
     fun hideAssetDollarAmount() {

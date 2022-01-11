@@ -41,7 +41,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -132,7 +131,7 @@ sealed class StakeViewState<S>(
 
     private fun syncStakingRewards() {
         scope.launch {
-            val syncResult = stakingInteractor.syncStakingRewards(stakeState.stashAddress)
+            val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.stashAddress)
 
             syncResult.exceptionOrNull()?.let { errorDisplayer(it) }
         }
@@ -145,7 +144,7 @@ sealed class StakeViewState<S>(
             currentAssetFlow
         ) { summary, asset ->
             val token = asset.token
-            val tokenType = token.type
+            val tokenType = token.configuration
 
             StakeSummaryModel(
                 status = summary.status,
@@ -278,7 +277,6 @@ class WelcomeViewState(
     val assetLiveData = currentAssetFlow.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData(scope)
 
     val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency() }
-        .filterNotNull()
         .asLiveData(scope)
 
     private val rewardCalculator = scope.async { rewardCalculatorFactory.create() }

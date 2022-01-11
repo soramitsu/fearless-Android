@@ -1,19 +1,21 @@
 package jp.co.soramitsu.core_db.prepopulate.nodes
 
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.core_db.BuildConfig
 import jp.co.soramitsu.core_db.model.NodeLocal
 
 val LATEST_DEFAULT_NODES = listOf(
+
     // --- kusama ----
     NodeLocal(
-        "Kusama OnFinality Node",
-        "wss://kusama.api.onfinality.io/ws?apikey=0b2faaa5-3ef1-48ea-bf75-8f3a0cedb1ef",
+        "Kusama Parity Node",
+        "wss://kusama-rpc.polkadot.io",
         Node.NetworkType.KUSAMA.ordinal,
         true
     ),
     NodeLocal(
-        "Kusama Parity Node",
-        "wss://kusama-rpc.polkadot.io",
+        "Kusama OnFinality Node",
+        "wss://kusama.api.onfinality.io/ws?apikey=313214ec-15ef-4834-a896-1cf39911f94b",
         Node.NetworkType.KUSAMA.ordinal,
         true
     ),
@@ -25,14 +27,14 @@ val LATEST_DEFAULT_NODES = listOf(
     ),
     // --- polkadot ----
     NodeLocal(
-        "Polkadot OnFinality Node",
-        "wss://polkadot.api.onfinality.io/ws?apikey=0b2faaa5-3ef1-48ea-bf75-8f3a0cedb1ef",
+        "Polkadot Parity Node",
+        "wss://rpc.polkadot.io",
         Node.NetworkType.POLKADOT.ordinal,
         true
     ),
     NodeLocal(
-        "Polkadot Parity Node",
-        "wss://rpc.polkadot.io",
+        "Polkadot OnFinality Node",
+        "wss://polkadot.api.onfinality.io/ws?apikey=313214ec-15ef-4834-a896-1cf39911f94b",
         Node.NetworkType.POLKADOT.ordinal,
         true
     ),
@@ -57,7 +59,18 @@ val LATEST_DEFAULT_NODES = listOf(
         Node.NetworkType.ROCOCO.ordinal,
         true
     )
-)
+).toMutableList().apply {
+    if (BuildConfig.DEBUG) {
+        add(
+            NodeLocal(
+                "Polkatrain Parity Node",
+                "wss://wss.polkatrain.moonbeam.network",
+                Node.NetworkType.POLKATRAIN.ordinal,
+                true
+            )
+        )
+    }
+}
 
 fun defaultNodesInsertQuery(nodesList: List<NodeLocal>): String {
     return "insert into nodes (name, link, networkType, isDefault, isActive) values " +

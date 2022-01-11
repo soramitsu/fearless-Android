@@ -15,13 +15,11 @@ import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
-import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.NetworkChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
@@ -35,12 +33,10 @@ class ImportAccountViewModel(
     private val router: AccountRouter,
     private val resourceManager: ResourceManager,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
-    private val networkChooserMixin: NetworkChooserMixin,
     private val clipboardManager: ClipboardManager,
     private val fileReader: FileReader
 ) : BaseViewModel(),
-    CryptoTypeChooserMixin by cryptoTypeChooserMixin,
-    NetworkChooserMixin by networkChooserMixin {
+    CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
     val nameLiveData = MutableLiveData<String>()
 
@@ -71,14 +67,6 @@ class ImportAccountViewModel(
         }
     }
 
-    val networkChooserEnabledLiveData = _selectedSourceTypeLiveData.switchMap {
-        if (it is JsonImportSource) {
-            it.enableNetworkInputLiveData
-        } else {
-            MutableLiveData(true)
-        }
-    }
-
     val advancedBlockExceptNetworkEnabled = _selectedSourceTypeLiveData.map { it !is JsonImportSource }
 
     init {
@@ -104,13 +92,12 @@ class ImportAccountViewModel(
 
         val sourceType = selectedSourceTypeLiveData.value!!
 
-        val networkType = selectedNetworkLiveData.value!!.networkTypeUI.networkType
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
         val derivationPath = derivationPathLiveData.value.orEmpty()
         val name = nameLiveData.value!!
 
         viewModelScope.launch {
-            val result = import(sourceType, name, derivationPath, cryptoType, networkType)
+            val result = import(sourceType, name, derivationPath, cryptoType)
 
             if (result.isSuccess) {
                 continueBasedOnCodeStatus()
@@ -165,7 +152,6 @@ class ImportAccountViewModel(
         return listOf(
             MnemonicImportSource(),
             JsonImportSource(
-                networkChooserMixin.selectedNetworkLiveData,
                 nameLiveData,
                 cryptoTypeChooserMixin.selectedEncryptionTypeLiveData,
                 interactor,
@@ -182,28 +168,24 @@ class ImportAccountViewModel(
         sourceType: ImportSource,
         name: String,
         derivationPath: String,
-        cryptoType: CryptoType,
-        networkType: Node.NetworkType
+        cryptoType: CryptoType
     ): Result<Unit> {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(
                 sourceType.mnemonicContentLiveData.value!!,
                 name,
                 derivationPath,
-                cryptoType,
-                networkType
+                cryptoType
             )
             is RawSeedImportSource -> interactor.importFromSeed(
                 sourceType.rawSeedLiveData.value!!,
                 name,
                 derivationPath,
-                cryptoType,
-                networkType
+                cryptoType
             )
             is JsonImportSource -> interactor.importFromJson(
                 sourceType.jsonContentLiveData.value!!,
                 sourceType.passwordLiveData.value!!,
-                networkType,
                 name
             )
         }

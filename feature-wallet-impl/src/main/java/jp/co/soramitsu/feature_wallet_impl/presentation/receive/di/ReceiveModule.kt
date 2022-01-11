@@ -13,8 +13,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ReceiveModule {
@@ -28,7 +30,9 @@ class ReceiveModule {
         addressIconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
         externalAccountActions: ExternalAccountActions.Presentation,
-        router: WalletRouter
+        assetPayload: AssetPayload,
+        router: WalletRouter,
+        chainRegistry: ChainRegistry
     ): ViewModel {
         return ReceiveViewModel(
             interactor,
@@ -36,7 +40,9 @@ class ReceiveModule {
             addressIconGenerator,
             resourceManager,
             externalAccountActions,
-            router
+            assetPayload,
+            router,
+            chainRegistry
         )
     }
 

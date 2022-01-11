@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.domain.validators.current
 
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.list.emptyGroupedList
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
@@ -32,12 +31,13 @@ class CurrentValidatorsInteractor(
             return flowOf(emptyGroupedList())
         }
 
-        val networkType = nominatorState.accountAddress.networkType()
+        val chainId = nominatorState.chain.id
 
-        return stakingRepository.observeActiveEraIndex(networkType).map { activeEra ->
+        return stakingRepository.observeActiveEraIndex(chainId).map { activeEra ->
             val stashId = nominatorState.stashId
 
-            val exposures = stakingRepository.getActiveElectedValidatorsExposures()
+            val exposures = stakingRepository.getActiveElectedValidatorsExposures(chainId)
+
             val activeNominations = exposures.mapValues { (_, exposure) ->
                 exposure.others.firstOrNull { it.who.contentEquals(stashId) }
             }
@@ -46,10 +46,11 @@ class CurrentValidatorsInteractor(
 
             val isWaitingForNextEra = nominatorState.nominations.isWaiting(activeEra)
 
-            val maxRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator()
+            val maxRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
 
             val groupedByStatusClass = validatorProvider.getValidators(
-                ValidatorSource.Custom(nominatedValidatorIds.toList()),
+                chain = nominatorState.chain,
+                source = ValidatorSource.Custom(nominatedValidatorIds.toList()),
                 cachedExposures = exposures
             )
                 .map { validator ->
@@ -81,7 +82,7 @@ class CurrentValidatorsInteractor(
             val electedGroup = Status.Group.Active(totalElectiveCount)
 
             val waitingForNextEraGroup = Status.Group.WaitingForNextEra(
-                maxValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator(),
+                maxValidatorsPerNominator = stakingConstantsRepository.maxValidatorsPerNominator(chainId),
                 numberOfValidators = groupedByStatusClass.groupSize(Status.WaitingForNextEra::class)
             )
 

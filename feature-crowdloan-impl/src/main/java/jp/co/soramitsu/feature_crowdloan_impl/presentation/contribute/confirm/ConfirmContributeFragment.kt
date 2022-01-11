@@ -17,15 +17,20 @@ import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeAmount
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeBonus
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeConfirm
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeContainer
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeCrowloanTitle
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeFee
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeLeasingPeriod
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeOriginAcount
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeReward
 import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeToolbar
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressText
+import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressTitle
+import java.math.BigDecimal
 import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
@@ -63,10 +68,11 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         confirmContributeConfirm.setOnClickListener { viewModel.nextClicked() }
 
         confirmContributeOriginAcount.setWholeClickListener { viewModel.originAccountClicked() }
+        confirmContributeBonus?.setOnClickListener { viewModel.bonusClicked() }
     }
 
     override fun inject() {
-        val payload = argument<ConfirmContributePayload>("KEY_PAYLOAD")
+        val payload = argument<ConfirmContributePayload>(KEY_PAYLOAD)
 
         FeatureUtils.getFeature<CrowdloanFeatureComponent>(
             requireContext(),
@@ -81,6 +87,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         observeBrowserEvents(viewModel)
         observeValidations(viewModel)
         setupExternalActions(viewModel)
+        observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
         viewModel.showNextProgress.observe(confirmContributeConfirm::setProgress)
 
@@ -107,7 +114,10 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         viewModel.crowdloanInfoFlow.observe {
-            confirmContributeLeasingPeriod.showValue(it.leasePeriod, it.leasedUntil)
+            confirmContributeLeasingPeriod.showValue(
+                primary = it.leasePeriod,
+                secondary = getString(R.string.till_format, it.leasedUntil)
+            )
         }
 
         viewModel.selectedAddressModelFlow.observe {
@@ -116,9 +126,40 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         viewModel.bonusFlow.observe {
-            confirmContributeBonus.setVisible(it != null)
+            val isMoonbeam = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isMoonbeam == true
+            val isAstar = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isAstar == true
+            val isInterlay = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isInterlay == true
+            confirmContributeBonus?.setVisible(it != null && !isMoonbeam && !isAstar && !isInterlay)
 
-            it?.let(confirmContributeBonus::showValue)
+            it?.let { confirmContributeBonus?.showValue(it) }
         }
+
+        viewModel.bonusNumberFlow.observe {
+            confirmContributeBonus?.setValueColorRes(getColor(it))
+        }
+
+        viewModel.ethAddress.let {
+            moonbeamEtheriumAddressText.setVisible(it != null)
+            moonbeamEtheriumAddressTitle.setVisible(it != null)
+
+            moonbeamEtheriumAddressText.text = it?.first.orEmpty()
+        }
+
+        confirmContributeCrowloanTitle.text = viewModel.title
+        applyCustomBonus()
+    }
+
+    private fun applyCustomBonus() {
+        val isApply = (argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata)?.run { isAcala || isInterlay } ?: false
+        if (isApply) {
+            confirmContributeBonus?.setVisible(true)
+            confirmContributeBonus?.showValue(getString(R.string.label_link))
+            confirmContributeBonus?.setValueColorRes(R.color.colorAccent)
+        }
+    }
+
+    private fun getColor(bonus: BigDecimal?) = when {
+        bonus == null || bonus <= BigDecimal.ZERO -> R.color.white
+        else -> R.color.colorAccent
     }
 }

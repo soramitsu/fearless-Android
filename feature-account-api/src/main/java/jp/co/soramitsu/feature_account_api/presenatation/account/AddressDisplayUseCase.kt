@@ -4,6 +4,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+// TODO adopt for meta account logic
 class AddressDisplayUseCase(
     private val accountRepository: AccountRepository
 ) {

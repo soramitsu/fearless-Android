@@ -2,19 +2,17 @@ package jp.co.soramitsu.feature_staking_impl.domain.staking.unbond
 
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.chill
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.unbond
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicService
-import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
 class UnbondInteractor(
-    private val feeEstimator: FeeEstimator,
     private val extrinsicService: ExtrinsicService,
     private val stakingRepository: StakingRepository
 ) {
@@ -25,7 +23,7 @@ class UnbondInteractor(
         amount: BigInteger
     ): BigInteger {
         return withContext(Dispatchers.IO) {
-            feeEstimator.estimateFee(stashState.controllerAddress) {
+            extrinsicService.estimateFee(stashState.chain) {
                 constructUnbondExtrinsic(stashState, currentBondedBalance, amount)
             }
         }
@@ -37,7 +35,7 @@ class UnbondInteractor(
         amount: BigInteger
     ): Result<String> {
         return withContext(Dispatchers.IO) {
-            extrinsicService.submitExtrinsic(stashState.controllerAddress) {
+            extrinsicService.submitExtrinsic(stashState.chain, stashState.controllerId) {
                 constructUnbondExtrinsic(stashState, currentBondedBalance, amount)
             }
         }
@@ -53,7 +51,7 @@ class UnbondInteractor(
             // if account is nominating
             stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
-            currentBondedBalance - unbondAmount < stakingRepository.minimumNominatorBond()
+            currentBondedBalance - unbondAmount < stakingRepository.minimumNominatorBond(stashState.chain.id)
         ) {
             chill()
         }
