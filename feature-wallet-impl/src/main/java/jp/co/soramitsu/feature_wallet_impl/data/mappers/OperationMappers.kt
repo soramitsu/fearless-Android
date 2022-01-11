@@ -17,8 +17,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import java.math.BigInteger
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
@@ -64,7 +64,6 @@ private fun Operation.rewardOrNull() = type as? Operation.Type.Reward
 private fun Operation.transferOrNull() = type as? Operation.Type.Transfer
 private fun Operation.extrinsicOrNull() = type as? Operation.Type.Extrinsic
 
-@ExperimentalTime
 fun mapOperationToOperationLocalDb(operation: Operation, source: OperationLocal.Source): OperationLocal {
     val typeLocal = when (operation.type) {
         is Operation.Type.Transfer -> OperationLocal.Type.TRANSFER
@@ -134,7 +133,6 @@ fun mapOperationLocalToOperation(operationLocal: OperationLocal): Operation {
     }
 }
 
-@ExperimentalTime
 fun mapNodeToOperation(
     node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
     tokenType: Token.Type,
@@ -179,7 +177,7 @@ fun mapNodeToOperation(
         id = node.id,
         address = node.address,
         type = type,
-        time = node.timestamp.toLong().seconds.toLongMilliseconds(),
+        time = node.timestamp.toLong().toDuration(DurationUnit.SECONDS).inWholeMilliseconds,
         tokenType = tokenType,
     )
 }

@@ -53,7 +53,7 @@ data class Node(
                 return values().find { extractor(it) == value }
             }
 
-            fun findByAddressByte(addressByte: Byte) = find(addressByte) { it.runtimeConfiguration.addressByte }
+            fun findByAddressByte(addressByte: Short) = find(addressByte) { it.runtimeConfiguration.addressByte }
 
             fun findByGenesis(genesis: String) = find(genesis.removePrefix("0x")) { it.runtimeConfiguration.genesisHash }
         }

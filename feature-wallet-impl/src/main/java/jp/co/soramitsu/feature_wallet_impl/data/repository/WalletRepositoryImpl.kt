@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Locale
-import kotlin.time.ExperimentalTime
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -98,7 +97,6 @@ class WalletRepositoryImpl(
             }
     }
 
-    @ExperimentalTime
     override suspend fun syncOperationsFirstPage(
         pageSize: Int,
         filters: Set<TransactionFilter>,
@@ -113,7 +111,6 @@ class WalletRepositoryImpl(
         cursorStorage.saveCursor(account.address, page.nextCursor)
     }
 
-    @ExperimentalTime
     override suspend fun getOperations(
         pageSize: Int,
         cursor: String?,

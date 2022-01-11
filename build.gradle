@@ -5,12 +5,11 @@ buildscript {
         versionCode = 25
 
         // SDK and tools
-        compileSdkVersion = 30
+        compileSdkVersion = 31
         minSdkVersion = 24
-        targetSdkVersion = 30
-        buildToolsVersion = '30.0.2'
+        targetSdkVersion = 31
 
-        kotlinVersion = '1.4.31'
+        kotlinVersion = '1.6.10'
 
         ktlintPinterestVersion = '0.40.0'
 
@@ -18,7 +17,7 @@ buildscript {
         cardViewVersion = '1.0.0'
         constraintVersion = '1.1.3'
 
-        coroutinesVersion = '1.4.2'
+        coroutinesVersion = '1.6.0'
 
         biometricVersion = '1.0.1'
 
@@ -28,6 +27,7 @@ buildscript {
         javaxInjectVersion = '1'
 
         architectureComponentVersion = '2.2.0'
+        roomVersion = '2.4.0'
 
         retrofitVersion = '2.9.0'
         okhttpVersion = '3.8.0'
@@ -38,12 +38,12 @@ buildscript {
         navControllerVersion = '2.3.1'
 
         junitVersion = '4.12'
-        mockitoVersion = '2.23.0'
+        mockitoVersion = '4.2.0'
         robolectricVersion = '4.1'
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.77'
+        fearlessLibVersion = '1.0.96'
 
         gifVersion = '1.2.19'
 
@@ -52,7 +52,7 @@ buildscript {
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
-        firebaseAppDistrVersion = '2.0.1'
+        firebaseAppDistrVersion = '2.1.1'
         playPublisherVersion = '2.5.0'
 
         wsVersion = "2.10"
@@ -100,9 +100,9 @@ buildscript {
 
         permissionsDep = "com.github.florent37:runtime-permission-kotlin:$permissionsVersion"
 
-        roomDep = "androidx.room:room-runtime:$architectureComponentVersion"
-        roomKtxDep = "androidx.room:room-ktx:$architectureComponentVersion"
-        roomKapt = "androidx.room:room-compiler:$architectureComponentVersion"
+        roomDep = "androidx.room:room-runtime:$roomVersion"
+        roomKtxDep = "androidx.room:room-ktx:$roomVersion"
+        roomKapt = "androidx.room:room-compiler:$roomVersion"
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
@@ -136,6 +136,12 @@ buildscript {
         archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
 
         progressButtonDep = "com.github.razir.progressbutton:progressbutton:$progressButtonsVersion"
+
+        androidTestRunnerDep = 'androidx.test:runner:1.4.0'
+        androidTestRulesDep = 'androidx.test:rules:1.4.0'
+        androidJunitDep = 'androidx.test.ext:junit:1.1.3'
+
+        roomTestsDep = "androidx.room:room-testing:$architectureComponentVersion"
     }
 
     repositories {
@@ -144,9 +150,9 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.0'
+        classpath 'com.android.tools.build:gradle:7.0.4'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath 'com.google.gms:google-services:4.3.3'
+        classpath 'com.google.gms:google-services:4.3.10'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
     }
@@ -159,7 +165,6 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "https://nexus.iroha.tech/repository/maven-soramitsu/" }
         mavenCentral()
-        mavenLocal()
     }
 }
 

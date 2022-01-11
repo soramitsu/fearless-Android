@@ -3,13 +3,13 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource.migratio
 import android.annotation.SuppressLint
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.core.model.SigningData
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core.model.SigningData
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
-import jp.co.soramitsu.core.model.SecuritySource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
@@ -33,7 +33,6 @@ typealias SaveSourceCallback = suspend (String, SecuritySource) -> Unit
 class AccountDataMigration(
     private val preferences: Preferences,
     private val encryptedPreferences: EncryptedPreferences,
-    private val bip39: Bip39,
     private val accountsDao: AccountDao
 ) {
 
@@ -78,8 +77,8 @@ class AccountDataMigration(
         val entropy = entropyValue?.let { Hex.decode(it) }
 
         val securitySource = if (entropy != null) {
-            val mnemonic = bip39.generateMnemonic(entropy)
-            SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic, derivationPath)
+            val mnemonic = MnemonicCreator.fromEntropy(entropy)
+            SecuritySource.Specified.Mnemonic(seed, signingData, mnemonic.words, derivationPath)
         } else {
             if (seed != null) {
                 SecuritySource.Specified.Seed(seed, signingData, derivationPath)

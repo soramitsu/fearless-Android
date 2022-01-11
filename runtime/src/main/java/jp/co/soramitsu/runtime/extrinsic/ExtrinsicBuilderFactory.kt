@@ -6,8 +6,9 @@ import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
-import jp.co.soramitsu.fearless_utils.encrypt.model.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.multiAddressFromId
@@ -22,7 +23,6 @@ private val FAKE_CRYPTO_TYPE = CryptoType.SR25519
 class ExtrinsicBuilderFactory(
     private val accountRepository: AccountRepository,
     private val rpcCalls: RpcCalls,
-    private val keypairFactory: KeypairFactory,
     private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
     private val mortalityConstructor: MortalityConstructor,
 ) {
@@ -57,6 +57,7 @@ class ExtrinsicBuilderFactory(
         val nonce = rpcCalls.getNonce(accountAddress)
         val runtimeVersion = rpcCalls.getRuntimeVersion()
         val mortality = mortalityConstructor.constructMortality()
+        val multiChainEncryption = MultiChainEncryption.Substrate(mapCryptoTypeToEncryption(cryptoType))
 
         val runtimeConfiguration = accountAddress.networkType().runtimeConfiguration
 
@@ -68,7 +69,7 @@ class ExtrinsicBuilderFactory(
             genesisHash = runtimeConfiguration.genesisHash.fromHex(),
             blockHash = mortality.blockHash.fromHex(),
             era = mortality.era,
-            encryptionType = mapCryptoTypeToEncryption(cryptoType),
+            multiChainEncryption = multiChainEncryption,
             accountIdentifier = multiAddressFromId(accountAddress.toAccountId())
         )
     }
@@ -77,6 +78,6 @@ class ExtrinsicBuilderFactory(
         val cryptoType = mapCryptoTypeToEncryption(FAKE_CRYPTO_TYPE)
         val emptySeed = ByteArray(32) { 1 }
 
-        keypairFactory.generate(cryptoType, emptySeed, "")
+        SubstrateKeypairFactory.generate(cryptoType, emptySeed, junctions = emptyList())
     }
 }

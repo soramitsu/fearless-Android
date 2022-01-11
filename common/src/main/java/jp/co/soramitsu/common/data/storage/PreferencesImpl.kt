@@ -71,7 +71,7 @@ class PreferencesImpl(
 
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == field) {
-                offer(getString(field))
+                trySend(getString(field))
             }
         }
 

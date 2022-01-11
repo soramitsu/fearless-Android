@@ -13,8 +13,12 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.startTimer
 import jp.co.soramitsu.common.view.stopTimer
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_stake_summary.view.*
-import kotlin.time.ExperimentalTime
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeMoreActions
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatus
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatusHelper
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalRewardsView
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalStakedView
+import kotlinx.android.synthetic.main.view_stake_summary.view.statusTapZone
 
 class StakeSummaryView @JvmOverloads constructor(
     context: Context,
@@ -41,7 +45,6 @@ class StakeSummaryView @JvmOverloads constructor(
         }
     }
 
-    @ExperimentalTime
     fun setElectionStatus(status: Status) {
         with(stakeSummaryStatus) {
             setCompoundDrawableTint(status.tintRes)

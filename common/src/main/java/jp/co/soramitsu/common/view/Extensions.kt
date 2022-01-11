@@ -7,12 +7,11 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.bindTo
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private val TIMER_TAG = R.string.common_time_left
 
-@ExperimentalTime
 fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish: ((view: TextView) -> Unit)? = null) {
     val deltaTime = if (timeLeftTimestamp != null) System.currentTimeMillis() - timeLeftTimestamp else 0L
 
@@ -24,7 +23,7 @@ fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish:
 
     val newTimer = object : CountDownTimer(millis - deltaTime, 1000) {
         override fun onTick(millisUntilFinished: Long) {
-            val days = millisUntilFinished.milliseconds.inDays.toInt()
+            val days = millisUntilFinished.toDuration(DurationUnit.MILLISECONDS).toDouble(DurationUnit.DAYS).toInt()
 
             this@startTimer.text = if (days > 0)
                 resources.getQuantityString(R.plurals.staking_payouts_days_left, days, days)

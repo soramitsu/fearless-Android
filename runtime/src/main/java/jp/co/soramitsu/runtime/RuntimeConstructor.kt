@@ -8,7 +8,7 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionsTree
 import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.DynamicTypeResolver
 import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.extentsions.GenericsExtension
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
-import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.substratePreParsePreset
+import jp.co.soramitsu.fearless_utils.runtime.metadata.ExtrinsicMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataSchema
@@ -16,6 +16,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 private const val TYPE_DEFINITIONS_DEFAULT = "default"
 
@@ -65,7 +66,8 @@ class RuntimeConstructor(
         val typeRegistry = constructTypeRegistry(params)
 
         val runtimeMetadataStruct = RuntimeMetadataSchema.read(params.metadataRaw)
-        val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
+        val runtimeMetadata = RuntimeMetadata(BigInteger.ZERO, mutableMapOf(), ExtrinsicMetadata(BigInteger.ZERO, emptyList()))
+//        val runtimeMetadata = RuntimeMetadata(typeRegistry, runtimeMetadataStruct)
 
         return RuntimeSnapshot(typeRegistry, runtimeMetadata)
     }
@@ -132,7 +134,7 @@ class RuntimeConstructor(
     ): TypeRegistry {
         val defaultTypePreset = TypeDefinitionParser.parseBaseDefinitions(
             constructionParams.defaultDefinitions,
-            substratePreParsePreset()
+            mutableMapOf()
         ).typePreset
 
         val networkTypePreset = TypeDefinitionParser.parseNetworkVersioning(
