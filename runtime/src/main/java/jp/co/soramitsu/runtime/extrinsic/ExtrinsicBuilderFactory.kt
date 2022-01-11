@@ -48,8 +48,8 @@ class ExtrinsicBuilderFactory(
         val nonce = rpcCalls.getNonce(chain.id, accountAddress)
         val runtimeVersion = rpcCalls.getRuntimeVersion(chain.id)
 
-        //todo (Denis Lyazgin 22.12.2021) try to figure out why we can't get Babe.ExpectedBlockTime from some chains
-        //todo and what aftermath this fix may cause
+        // todo (Denis Lyazgin 22.12.2021) try to figure out why we can't get Babe.ExpectedBlockTime from some chains
+        // todo and what aftermath this fix may cause
         val mortality = try {
             mortalityConstructor.constructMortality(chain.id)
         } catch (e: Exception) {

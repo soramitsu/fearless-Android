@@ -19,7 +19,7 @@ class FrozenTokensBottomSheet(
         setTitle(title)
 
         currencyItem(R.string.wallet_balance_locked, payload.locked)
-        //todo uncomment when bonded data receiving will be completed in this module
+        // todo uncomment when bonded data receiving will be completed in this module
 //        currencyItem(R.string.wallet_balance_bonded, payload.bonded)
         currencyItem(R.string.wallet_balance_reserved, payload.reserved)
 //        currencyItem(R.string.wallet_balance_redeemable, payload.redeemable)

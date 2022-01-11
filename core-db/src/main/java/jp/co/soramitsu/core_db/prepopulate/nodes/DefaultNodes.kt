@@ -72,7 +72,6 @@ val LATEST_DEFAULT_NODES = listOf(
     }
 }
 
-
 fun defaultNodesInsertQuery(nodesList: List<NodeLocal>): String {
     return "insert into nodes (name, link, networkType, isDefault, isActive) values " +
         nodesList.joinToString {

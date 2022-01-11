@@ -116,5 +116,4 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
 
         startActivity(Intent.createChooser(intent, getString(R.string.share_referral_code)))
     }
-
 }

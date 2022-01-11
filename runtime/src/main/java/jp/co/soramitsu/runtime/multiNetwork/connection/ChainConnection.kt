@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import java.util.Queue
 import java.util.LinkedList
+import java.util.Queue
 
-private const val NODE_SWITCHING_FREQUENCY = 5 //switch node every n attempt
+private const val NODE_SWITCHING_FREQUENCY = 5 // switch node every n attempt
 
 class ChainConnection(
     val socketService: SocketService,

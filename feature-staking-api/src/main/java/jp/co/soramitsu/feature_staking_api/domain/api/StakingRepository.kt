@@ -85,7 +85,7 @@ suspend fun StakingRepository.historicalEras(chainId: ChainId): List<BigInteger>
     val currentEra = getCurrentEraIndex(chainId).toInt()
     val historyDepth = getHistoryDepth(chainId).toInt()
 
-    val historicalRange = max((currentEra - historyDepth),0) until activeEra
+    val historicalRange = max((currentEra - historyDepth), 0) until activeEra
 
     return historicalRange.map(Int::toBigInteger)
 }
