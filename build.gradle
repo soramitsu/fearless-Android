@@ -5,9 +5,9 @@ buildscript {
         versionCode = 25
 
         // SDK and tools
-        compileSdkVersion = 31
+        compileSdkVersion = 29
         minSdkVersion = 24
-        targetSdkVersion = 31
+        targetSdkVersion = 29
 
         kotlinVersion = '1.4.31'
 
@@ -37,7 +37,7 @@ buildscript {
         navControllerVersion = '2.3.1'
 
         junitVersion = '4.12'
-        mockitoVersion = '4.2.0'
+        mockitoVersion = '2.23.0'
         robolectricVersion = '4.1'
 
         bouncyCastleVersion = '1.60'
