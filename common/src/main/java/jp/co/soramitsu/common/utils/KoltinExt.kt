@@ -17,14 +17,18 @@ val BigDecimal.isNonNegative: Boolean
 
 fun Long.daysFromMillis() = TimeUnit.MILLISECONDS.toDays(this)
 
-inline fun <T> List<T>.sumByBigInteger(extractor: (T) -> BigInteger) = fold(BigInteger.ZERO) { acc, element ->
+inline fun <T> List<T>.sumByBigInteger(extractor: (T) -> BigInteger): BigInteger = fold(BigInteger.ZERO) { acc, element ->
     acc + extractor(element)
 }
 
 suspend operator fun <T> Deferred<T>.invoke() = await()
 
-inline fun <T> List<T>.sumByBigDecimal(extractor: (T) -> BigDecimal) = fold(BigDecimal.ZERO) { acc, element ->
+inline fun <T> List<T>.sumByBigDecimal(extractor: (T) -> BigDecimal): BigDecimal = fold(BigDecimal.ZERO) { acc, element ->
     acc + extractor(element)
+}
+
+inline fun <reified T> Any?.castOrNull(): T? {
+    return this as? T
 }
 
 fun <K, V> Map<K, V>.reversed() = HashMap<V, K>().also { newMap ->
@@ -77,3 +81,5 @@ inline fun <T> CoroutineScope.lazyAsync(crossinline producer: suspend () -> T) =
 inline fun <T> Iterable<T>.filterToSet(predicate: (T) -> Boolean): Set<T> = filterTo(mutableSetOf(), predicate)
 
 fun String.nullIfEmpty(): String? = if (isEmpty()) null else this
+
+fun BigDecimal.applyDollarRate(rate: BigDecimal?): BigDecimal? = rate?.let { this.multiply(rate) }

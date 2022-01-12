@@ -1,10 +1,14 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
+import coil.ImageLoader
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
@@ -12,30 +16,41 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.icon
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalance
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountBalanceLabel
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount25
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount50
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount75
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFee
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeFiat
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeProgress
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountField
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountMax
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountNext
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountRecipientView
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToken
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToolbar
+import javax.inject.Inject
 
 private const val KEY_ADDRESS = "KEY_ADDRESS"
+private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+
+private const val QUICK_VALUE_MAX = 1.0
+private const val QUICK_VALUE_75 = 0.75
+private const val QUICK_VALUE_50 = 0.5
+private const val QUICK_VALUE_25 = 0.25
 
 class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
+    @Inject
+    lateinit var imageLoader: ImageLoader
+
     companion object {
-        fun getBundle(recipientAddress: String) = Bundle().apply {
-            putString(KEY_ADDRESS, recipientAddress)
-        }
+        fun getBundle(recipientAddress: String, assetPayload: AssetPayload) =
+            bundleOf(KEY_ADDRESS to recipientAddress, KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     override fun onCreateView(
@@ -53,18 +68,34 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
         chooseAmountNext.setOnClickListener { viewModel.nextClicked() }
 
-        chooseAmountBalanceLabel.setOnClickListener { viewModel.availableBalanceClicked() }
+        chooseAmountMax.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_MAX) }
+        chooseAmount75.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_75) }
+        chooseAmount50.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_50) }
+        chooseAmount25.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_25) }
+
+        chooseAmountField.amountInput.apply {
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) = Unit
+
+                override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) = Unit
+
+                override fun afterTextChanged(p0: Editable?) {
+                    setSelection(text.length)
+                }
+            })
+        }
     }
 
     override fun inject() {
         val address = argument<String>(KEY_ADDRESS)
+        val assetPayload = argument<AssetPayload>(KEY_ASSET_PAYLOAD)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .chooseAmountComponentFactory()
-            .create(this, address)
+            .create(this, address, assetPayload)
             .inject(this)
     }
 
@@ -75,6 +106,9 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
         viewModel.feeLiveData.observe {
             chooseAmountFee.text = it?.feeAmount?.formatTokenAmount(it.type) ?: getString(R.string.common_error_general_title)
+        }
+        viewModel.feeFiatLiveData.observe {
+            chooseAmountFeeFiat.text = it ?: ""
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->
@@ -89,12 +123,22 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
             chooseAmountRecipientView.setTextIcon(it.image)
         }
+        viewModel.assetModelLiveData.observe {
+            val transferableAmount =
+                resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.formatTokenAmount(it.token.configuration))
+            chooseAmountField.setAssetBalance(transferableAmount)
+            chooseAmountField.setAssetName(it.token.configuration.symbol)
+            chooseAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
+            val toolbarTitle = resources.getString(R.string.wallet_send_asset, it.token.configuration.symbol)
+            chooseAmountToolbar.setTitle(toolbarTitle)
+        }
 
-        viewModel.assetLiveData.observe {
-            chooseAmountBalance.text = it.available.formatTokenAmount(it.token.type)
+        viewModel.enteredFiatAmountLiveData.observe {
+            it?.let(chooseAmountField::setAssetBalanceDollarAmount)
+        }
 
-            chooseAmountToken.setTextIcon(it.token.type.icon)
-            chooseAmountToken.setMessage(it.token.type.displayName)
+        viewModel.amountRawLiveData.observe {
+            chooseAmountField.amountInput.setText(it)
         }
 
         viewModel.feeErrorLiveData.observeEvent {
@@ -109,7 +153,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
         observePhishingCheck(viewModel)
 
-        chooseAmountField.content.onTextChanged(viewModel::amountChanged)
+        chooseAmountField.amountInput.onTextChanged(viewModel::amountChanged)
     }
 
     private fun showRetry(reason: RetryReason) {

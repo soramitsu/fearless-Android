@@ -7,15 +7,11 @@ import java.math.BigDecimal
 @Entity(tableName = "tokens")
 data class TokenLocal(
     @PrimaryKey
-    val type: Type,
+    val symbol: String,
     val dollarRate: BigDecimal?,
-    val recentRateChange: BigDecimal?
+    val recentRateChange: BigDecimal?,
 ) {
     companion object {
-        fun createEmpty(type: Type): TokenLocal = TokenLocal(type, null, null)
-    }
-
-    enum class Type {
-        KSM, DOT, WND, ROC
+        fun createEmpty(symbol: String): TokenLocal = TokenLocal(symbol, null, null)
     }
 }

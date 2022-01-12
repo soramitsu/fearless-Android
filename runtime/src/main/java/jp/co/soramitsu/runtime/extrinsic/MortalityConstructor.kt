@@ -1,7 +1,8 @@
 package jp.co.soramitsu.runtime.extrinsic
 
-import jp.co.soramitsu.common.data.network.runtime.calls.RpcCalls
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Era
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import java.lang.Integer.min
 
@@ -17,21 +18,21 @@ class MortalityConstructor(
     private val chainStateRepository: ChainStateRepository,
 ) {
 
-    suspend fun constructMortality(): Mortality {
-        val finalizedHash = rpcCalls.getFinalizedHead()
+    suspend fun constructMortality(chainId: ChainId): Mortality {
+        val finalizedHash = rpcCalls.getFinalizedHead(chainId)
 
-        val bestHeader = rpcCalls.getBlockHeader()
-        val finalizedHeader = rpcCalls.getBlockHeader(finalizedHash)
+        val bestHeader = rpcCalls.getBlockHeader(chainId)
+        val finalizedHeader = rpcCalls.getBlockHeader(chainId, finalizedHash)
 
-        val currentHeader = bestHeader.parentHash?.let { rpcCalls.getBlockHeader(it) } ?: bestHeader
+        val currentHeader = bestHeader.parentHash?.let { rpcCalls.getBlockHeader(chainId, it) } ?: bestHeader
 
         val currentNumber = currentHeader.number
         val finalizedNumber = finalizedHeader.number
 
         val startBlockNumber = if (currentNumber - finalizedNumber > MAX_FINALITY_LAG) currentNumber else finalizedNumber
 
-        val blockHashCount = chainStateRepository.blockHashCount()?.toInt()
-        val blockTime = chainStateRepository.expectedBlockTimeInMillis().toInt() // TODO Babe.ExpectedBlockTime may be null for some chains
+        val blockHashCount = chainStateRepository.blockHashCount(chainId)?.toInt()
+        val blockTime = chainStateRepository.expectedBlockTimeInMillis(chainId).toInt() // TODO Babe.ExpectedBlockTime may be null for some chains
 
         val mortalPeriod = MORTAL_PERIOD / blockTime + MAX_FINALITY_LAG
 
@@ -40,7 +41,7 @@ class MortalityConstructor(
         val era = Era.getEraFromBlockPeriod(startBlockNumber, unmappedPeriod)
         val eraBlockNumber = ((startBlockNumber - era.phase) / era.period) * era.period + era.phase
 
-        val eraBlockHash = rpcCalls.getBlockHash(eraBlockNumber.toBigInteger())
+        val eraBlockHash = rpcCalls.getBlockHash(chainId, eraBlockNumber.toBigInteger())
 
         return Mortality(era, eraBlockHash)
     }

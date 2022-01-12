@@ -6,38 +6,57 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.AssetWithToken
-import jp.co.soramitsu.core_db.model.TokenLocal
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
-private const val RETRIEVE_ASSET_SQL = """
-           select * from assets as a inner join tokens as t where a.token = t.type
-            and a.accountAddress = :accountAddress and a.token = :type
+private const val RETRIEVE_ASSET_SQL_META_ID = """
+           select * from assets as a inner join tokens as t ON a.tokenSymbol = t.symbol WHERE
+            a.metaId = :metaId and a.chainId = :chainId AND a.tokenSymbol = :symbol
+"""
+
+private const val RETRIEVE_ASSET_SQL_ACCOUNT_ID = """
+           select * from assets as a inner join tokens as t ON a.tokenSymbol = t.symbol WHERE 
+            a.accountId = :accountId and a.chainId = :chainId AND a.tokenSymbol = :symbol
+"""
+
+private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
+       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId ORDER BY a.tokenSymbol, a.chainId
 """
 
 interface AssetReadOnlyCache {
-    fun observeAssets(accountAddress: String): Flow<List<AssetWithToken>>
 
-    fun observeAsset(accountAddress: String, type: TokenLocal.Type): Flow<AssetWithToken>
+    fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
+    suspend fun getAssets(metaId: Long): List<AssetWithToken>
 
-    suspend fun getAsset(accountAddress: String, type: TokenLocal.Type): AssetWithToken?
+    fun observeAsset(metaId: Long, chainId: String, symbol: String): Flow<AssetWithToken>
+
+    fun observeAsset(accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken>
+
+    suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken?
+
+    suspend fun getAsset(metaId: Long, chainId: String, symbol: String): AssetWithToken?
 }
 
 @Dao
 abstract class AssetDao : AssetReadOnlyCache {
 
-    @Query(
-        """
-        select * from assets as a inner join tokens as t where a.token = t.type
-        and a.accountAddress = :accountAddress
-    """
-    )
-    abstract override fun observeAssets(accountAddress: String): Flow<List<AssetWithToken>>
+    @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
+    abstract override fun observeAssets(metaId: Long): Flow<List<AssetWithToken>>
 
-    @Query(RETRIEVE_ASSET_SQL)
-    abstract override fun observeAsset(accountAddress: String, type: TokenLocal.Type): Flow<AssetWithToken>
+    @Query(RETRIEVE_ACCOUNT_ASSETS_QUERY)
+    abstract override suspend fun getAssets(metaId: Long): List<AssetWithToken>
 
-    @Query(RETRIEVE_ASSET_SQL)
-    abstract override suspend fun getAsset(accountAddress: String, type: TokenLocal.Type): AssetWithToken?
+    @Query(RETRIEVE_ASSET_SQL_META_ID)
+    abstract override fun observeAsset(metaId: Long, chainId: String, symbol: String): Flow<AssetWithToken>
+
+    @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
+    abstract override fun observeAsset(accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken>
+
+    @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
+    abstract override suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken?
+
+    @Query(RETRIEVE_ASSET_SQL_META_ID)
+    abstract override suspend fun getAsset(metaId: Long, chainId: String, symbol: String): AssetWithToken?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)

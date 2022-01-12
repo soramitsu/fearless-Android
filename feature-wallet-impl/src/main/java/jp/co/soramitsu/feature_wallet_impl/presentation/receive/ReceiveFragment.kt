@@ -5,18 +5,25 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.FileProvider
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.presenatation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
 import kotlinx.android.synthetic.main.fragment_receive.accountView
 import kotlinx.android.synthetic.main.fragment_receive.fearlessToolbar
 import kotlinx.android.synthetic.main.fragment_receive.qrImg
 
+private const val KEY_ASSET_PAYLOAD = "assetPayload"
+
 class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
+    companion object {
+        fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,12 +44,14 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
     }
 
     override fun inject() {
+        val assetPayload = arguments!![KEY_ASSET_PAYLOAD] as AssetPayload
+
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .receiveComponentFactory()
-            .create(this)
+            .create(this, assetPayload)
             .inject(this)
     }
 
@@ -63,6 +72,8 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
         }
 
         viewModel.shareEvent.observeEvent(::startQrSharingIntent)
+
+        fearlessToolbar.setTitle(getString(R.string.wallet_asset_receive_template, viewModel.assetSymbol))
     }
 
     private fun startQrSharingIntent(qrSharingPayload: QrSharingPayload) {

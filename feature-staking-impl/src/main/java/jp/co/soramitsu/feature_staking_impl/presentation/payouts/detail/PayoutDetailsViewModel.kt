@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail
 
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -50,7 +51,7 @@ class PayoutDetailsViewModel(
     }
 
     private suspend fun mapPayoutParcelableToPayoutDetailsModel(asset: Asset): PayoutDetailsModel {
-        val tokenType = asset.token.type
+        val tokenType = asset.token.configuration
         val rewardAmount = asset.token.amountFromPlanks(payout.amountInPlanks)
 
         val addressModel = with(payout.validatorInfo) {

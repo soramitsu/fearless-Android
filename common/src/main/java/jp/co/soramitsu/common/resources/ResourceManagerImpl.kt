@@ -8,8 +8,8 @@ import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.getDrawableCompat
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @ApplicationScope
 class ResourceManagerImpl(
@@ -42,17 +42,16 @@ class ResourceManagerImpl(
     }
 
     override fun formatDate(timestamp: Long): String {
-        return timestamp.formatDateTime(contextManager.getContext()).toString()
+        return timestamp.formatDateTime()
     }
 
-    @OptIn(ExperimentalTime::class)
     override fun formatDuration(elapsedTime: Long): String {
         val inDays = elapsedTime.daysFromMillis().toInt()
 
         return when {
             inDays > 0 -> getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
             else -> {
-                val inSeconds = elapsedTime.milliseconds.inSeconds.toLong()
+                val inSeconds = elapsedTime.toDuration(DurationUnit.MILLISECONDS).toLong(DurationUnit.SECONDS)
 
                 DateUtils.formatElapsedTime(inSeconds)
             }

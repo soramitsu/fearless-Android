@@ -7,6 +7,7 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
+import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import kotlinx.coroutines.flow.Flow
 
 interface AccountInteractor {
@@ -22,30 +23,26 @@ interface AccountInteractor {
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String,
-        networkType: Node.NetworkType
+        derivationPath: String
     ): Result<Unit>
 
     suspend fun importFromMnemonic(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     ): Result<Unit>
 
     suspend fun importFromSeed(
         keyString: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType,
-        networkType: Node.NetworkType
+        selectedEncryptionType: CryptoType
     ): Result<Unit>
 
     suspend fun importFromJson(
         json: String,
         password: String,
-        networkType: Node.NetworkType,
         name: String
     ): Result<Unit>
 
@@ -65,21 +62,17 @@ interface AccountInteractor {
 
     fun selectedAccountFlow(): Flow<Account>
 
-    suspend fun getSelectedAccount(): Account
+    suspend fun selectedNetworkType(): Node.NetworkType
 
     suspend fun getNetworks(): List<Network>
 
-    suspend fun getSelectedNode(): Node
+    fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
 
-    fun groupedAccountsFlow(): Flow<List<Any>>
+    suspend fun selectMetaAccount(metaId: Long)
 
-    suspend fun selectAccount(address: String)
+    suspend fun deleteAccount(metaId: Long)
 
-    suspend fun updateAccountName(account: Account, newName: String)
-
-    suspend fun deleteAccount(address: String)
-
-    suspend fun updateAccountPositionsInNetwork(newOrdering: List<Account>)
+    suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>)
 
     fun nodesFlow(): Flow<List<Node>>
 

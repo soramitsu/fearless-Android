@@ -1,63 +1,63 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral
 
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.fractionToPercentage
+import jp.co.soramitsu.common.utils.EmailValidator
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_FEARLESS_REFERRAL
+import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_TERMS_URL
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.BonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.interlay.InterlayBonusPayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.model.LearnMoreModel
+import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
 
 abstract class ReferralContributeViewState(
     protected val customContributePayload: CustomContributePayload,
     protected val resourceManager: ResourceManager,
-    private val fearlessReferralCode: String,
-    private val bonusPercentage: BigDecimal,
-    private val termsUrl: String = customContributePayload.parachainMetadata.website,
     private val learnMoreUrl: String = customContributePayload.parachainMetadata.website,
 ) : CustomContributeViewState {
 
-    abstract fun createBonusPayload(referralCode: String): ReferralCodePayload
+    private val fearlessReferral = customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_FEARLESS_REFERRAL)
+    private val termsUrl: String =
+        customContributePayload.parachainMetadata.flow?.data?.getString(FLOW_TERMS_URL) ?: customContributePayload.parachainMetadata.website
+
+    abstract fun createBonusPayload(
+        referralCode: String,
+        email: String? = null,
+        agreeReceiveEmail: Boolean? = null
+    ): ReferralCodePayload
 
     abstract suspend fun validatePayload(payload: ReferralCodePayload)
 
     private val _openBrowserFlow = MutableSharedFlow<String>(replay = 0, extraBufferCapacity = 1)
     val openBrowserFlow: Flow<String> = _openBrowserFlow
+    val isAstar = customContributePayload.parachainMetadata.isAstar
+    val isAcala = customContributePayload.parachainMetadata.isAcala
 
     val enteredReferralCodeFlow = MutableStateFlow("")
+    val enteredEmailFlow = MutableStateFlow("")
 
     val privacyAcceptedFlow = MutableStateFlow(false)
-
-    val applyFearlessTitle = createFearlessBonusTitle()
+    val emailAgreedFlow = MutableStateFlow(false)
 
     val applyFearlessCodeEnabledFlow = enteredReferralCodeFlow.map {
-        it != fearlessReferralCode
+        it != fearlessReferral
     }
 
     val learnBonusesTitle = LearnMoreModel(
         iconLink = customContributePayload.parachainMetadata.iconLink,
-        text = resourceManager.getString(R.string.crowdloan_learn, customContributePayload.parachainMetadata.name)
+        text = resourceManager.getString(R.string.crowdloan_learn_bonuses, customContributePayload.parachainMetadata.name)
     )
-
-    private val bonusPayloadFlow = enteredReferralCodeFlow.map {
-        createBonusPayload(it)
-    }
-
-    val bonusFlow = bonusPayloadFlow.map {
-        val tokenName = customContributePayload.parachainMetadata.token
-
-        it.calculateBonus(customContributePayload.amount)?.formatTokenAmount(tokenName)
-    }
 
     init {
         previousPayload()?.let {
@@ -67,7 +67,7 @@ abstract class ReferralContributeViewState(
     }
 
     fun applyFearlessCode() {
-        enteredReferralCodeFlow.value = fearlessReferralCode
+        fearlessReferral?.let { enteredReferralCodeFlow.value = it }
     }
 
     fun termsClicked() {
@@ -76,6 +76,42 @@ abstract class ReferralContributeViewState(
 
     fun learnMoreClicked() {
         _openBrowserFlow.tryEmit(learnMoreUrl)
+    }
+
+    val emailValidationFlow = when {
+        isAcala -> enteredEmailFlow.combine(emailAgreedFlow) { input, agreed ->
+            when {
+                !agreed -> true
+                EmailValidator.isValid(input) && agreed -> true
+                else -> false
+            }
+        }
+        else -> flow {
+            emit(true)
+        }
+    }
+
+    private val bonusPayloadFlow = enteredReferralCodeFlow.combine(enteredEmailFlow) { referral, email ->
+        val agreeReceiveEmail = emailAgreedFlow.value
+        createBonusPayload(referral, email, agreeReceiveEmail)
+    }
+
+    val bonusNumberFlow = bonusPayloadFlow.map {
+        when {
+            it is InterlayBonusPayload -> customContributePayload.amount
+            else -> it.calculateBonus(customContributePayload.amount)
+        }
+    }
+
+    val bonusFlow = bonusPayloadFlow.map {
+        when {
+            it is InterlayBonusPayload -> "5%"
+            else -> {
+                val bonus = it.calculateBonus(customContributePayload.amount)
+                val tokenName = customContributePayload.parachainMetadata.token
+                bonus?.formatTokenAmount(tokenName)
+            }
+        }
     }
 
     override val applyActionState = enteredReferralCodeFlow.combine(privacyAcceptedFlow) { referral, privacyAccepted ->
@@ -92,12 +128,6 @@ abstract class ReferralContributeViewState(
         validatePayload(payload)
 
         payload
-    }
-
-    private fun createFearlessBonusTitle(): String {
-        val percentage = bonusPercentage.fractionToPercentage().formatAsPercentage()
-
-        return resourceManager.getString(R.string.crowdloan_app_bonus_format, percentage)
     }
 
     protected fun previousPayload() = customContributePayload.previousBonusPayload as? ReferralCodePayload

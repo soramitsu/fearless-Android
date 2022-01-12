@@ -4,7 +4,6 @@ import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 
 @Subcomponent(
@@ -19,8 +18,7 @@ interface ImportAccountComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance fragment: Fragment,
-            @BindsInstance forcedNetworkType: Node.NetworkType?
+            @BindsInstance fragment: Fragment
         ): ImportAccountComponent
     }
 

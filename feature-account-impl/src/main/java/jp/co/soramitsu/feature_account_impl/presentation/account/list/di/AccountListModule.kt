@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
@@ -25,9 +24,8 @@ class AccountListModule {
     @ScreenScope
     fun provideAccountListingMixin(
         interactor: AccountInteractor,
-        resourceManager: ResourceManager,
         addressIconGenerator: AddressIconGenerator
-    ): AccountListingMixin = AccountListingProvider(interactor, resourceManager, addressIconGenerator)
+    ): AccountListingMixin = AccountListingProvider(interactor, addressIconGenerator)
 
     @Provides
     @IntoMap

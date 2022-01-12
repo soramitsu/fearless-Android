@@ -6,12 +6,14 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 
 class CrossExistentialValidation(
-    val walletConstants: WalletConstants,
+    private val walletConstants: WalletConstants,
 ) : UnbondValidation {
 
     override suspend fun validate(value: UnbondValidationPayload): ValidationStatus<UnbondValidationFailure> {
-        val existentialDepositInPlanks = walletConstants.existentialDeposit()
-        val existentialDeposit = value.tokenType.amountFromPlanks(existentialDepositInPlanks)
+        val tokenConfiguration = value.asset.token.configuration
+
+        val existentialDepositInPlanks = walletConstants.existentialDeposit(tokenConfiguration.chainId)
+        val existentialDeposit = tokenConfiguration.amountFromPlanks(existentialDepositInPlanks)
 
         val bonded = value.asset.bonded
         val resultGreaterThanExistential = bonded - value.amount >= existentialDeposit

@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.domain.model.TotalReward
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 class StakingRewardsRepository(
@@ -12,7 +13,7 @@ class StakingRewardsRepository(
         return stakingRewardsDataSource.totalRewardsFlow(accountAddress)
     }
 
-    suspend fun sync(accountAddress: String) {
-        stakingRewardsDataSource.sync(accountAddress)
+    suspend fun sync(chainId: ChainId, accountAddress: String) {
+        stakingRewardsDataSource.sync(chainId, accountAddress)
     }
 }

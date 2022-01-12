@@ -22,6 +22,7 @@
     <color name="blurColorLight">#66000000</color>
 
     <color name="white_10">#1AFFFFFF</color>
+    <color name="white_16">#29FFFFFF</color>
     <color name="white_20">#33FFFFFF</color>
     <color name="white_30">#4DFFFFFF</color>
     <color name="white_24">#3DFFFFFF</color>
@@ -33,6 +34,9 @@
     <color name="black2">@color/gray2</color>
     <color name="black3">@color/gray3</color>
     <color name="black4">@color/gray4</color>
+
+    <color name="account_icon_light">#eeeeee</color>
+    <color name="account_icon_dark">@color/black</color>
 
     <color name="error_red">#FF3B30</color>
 </resources>

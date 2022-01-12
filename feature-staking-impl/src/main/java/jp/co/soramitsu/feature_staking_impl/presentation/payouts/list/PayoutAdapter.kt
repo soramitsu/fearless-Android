@@ -15,7 +15,6 @@ import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDesc
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionRight
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleLeft
 import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleRight
-import kotlin.time.ExperimentalTime
 
 class PayoutAdapter(
     private val itemHandler: ItemHandler,
@@ -31,7 +30,6 @@ class PayoutAdapter(
         return PayoutViewHolder(view)
     }
 
-    @ExperimentalTime
     override fun onBindViewHolder(holder: PayoutViewHolder, position: Int) {
         val item = getItem(position)
 
@@ -41,7 +39,6 @@ class PayoutAdapter(
 
 class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
 
-    @ExperimentalTime
     fun bind(payout: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
         with(payout) {
             itemListElementDescriptionLeft.startTimer(timeLeft, createdAt) {

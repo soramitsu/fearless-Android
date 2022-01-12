@@ -19,7 +19,7 @@ interface AccountDetailsComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance accountAddress: String
+            @BindsInstance metaId: Long
         ): AccountDetailsComponent
     }
 

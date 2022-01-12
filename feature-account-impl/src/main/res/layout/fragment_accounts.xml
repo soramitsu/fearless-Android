@@ -22,7 +22,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:textRight="@string/common_edit"
-            app:titleText="@string/profile_accounts_title" />
+            app:titleText="@string/profile_accounts_title_2_0" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/accountsList"
@@ -46,6 +46,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
-        android:text="@string/accounts_add_account" />
+        android:text="@string/wallets_add" />
 
 </FrameLayout>

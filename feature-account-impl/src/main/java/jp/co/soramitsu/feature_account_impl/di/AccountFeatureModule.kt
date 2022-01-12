@@ -5,6 +5,8 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
+import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
+import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
@@ -12,12 +14,11 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
+import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.dao.NodeDao
-import jp.co.soramitsu.fearless_utils.bip39.Bip39
-import jp.co.soramitsu.fearless_utils.encrypt.KeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
-import jp.co.soramitsu.fearless_utils.junction.JunctionDecoder
+import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
@@ -33,38 +34,39 @@ import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDa
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
+import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
-import java.util.Random
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 
 @Module
 class AccountFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideBip39() = Bip39()
+    fun provideExtrinsicService(
+        accountRepository: AccountRepository,
+        secretStoreV2: SecretStoreV2,
+        rpcCalls: RpcCalls,
+        extrinsicBuilderFactory: ExtrinsicBuilderFactory,
+    ): ExtrinsicService = ExtrinsicService(
+        rpcCalls,
+        accountRepository,
+        secretStoreV2,
+        extrinsicBuilderFactory
+    )
 
     @Provides
     @FeatureScope
-    fun provideJunctionDecoder() = JunctionDecoder()
-
-    @Provides
-    @FeatureScope
-    fun provideKeyFactory() = KeypairFactory()
-
-    @Provides
-    @FeatureScope
-    fun provideJsonDecoder(
-        keypairFactory: KeypairFactory,
-        jsonMapper: Gson
-    ) = JsonSeedDecoder(jsonMapper, keypairFactory)
+    fun provideJsonDecoder(jsonMapper: Gson) = JsonSeedDecoder(jsonMapper)
 
     @Provides
     @FeatureScope
     fun provideJsonEncoder(
-        random: Random,
-        jsonMapper: Gson
-    ) = JsonSeedEncoder(jsonMapper, random)
+        jsonMapper: Gson,
+    ) = JsonSeedEncoder(jsonMapper)
 
     @Provides
     fun provideCryptoChooserMixin(
@@ -75,11 +77,10 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountRepository(
-        bip39: Bip39,
-        junctionDecoder: JunctionDecoder,
-        keypairFactory: KeypairFactory,
         accountDataSource: AccountDataSource,
         accountDao: AccountDao,
+        metaAccountDao: MetaAccountDao,
+        storeV2: SecretStoreV2,
         nodeDao: NodeDao,
         jsonSeedDecoder: JsonSeedDecoder,
         jsonSeedEncoder: JsonSeedEncoder,
@@ -89,10 +90,9 @@ class AccountFeatureModule {
         return AccountRepositoryImpl(
             accountDataSource,
             accountDao,
+            metaAccountDao,
+            storeV2,
             nodeDao,
-            bip39,
-            junctionDecoder,
-            keypairFactory,
             jsonSeedDecoder,
             jsonSeedEncoder,
             languagesHolder,
@@ -115,9 +115,23 @@ class AccountFeatureModule {
         encryptedPreferences: EncryptedPreferences,
         jsonMapper: Gson,
         nodeDao: NodeDao,
-        accountDataMigration: AccountDataMigration
+        secretStoreV1: SecretStoreV1,
+        accountDataMigration: AccountDataMigration,
+        metaAccountDao: MetaAccountDao,
+        chainRegistry: ChainRegistry,
+        secretStoreV2: SecretStoreV2,
     ): AccountDataSource {
-        return AccountDataSourceImpl(preferences, encryptedPreferences, nodeDao, jsonMapper, accountDataMigration)
+        return AccountDataSourceImpl(
+            preferences,
+            encryptedPreferences,
+            nodeDao,
+            jsonMapper,
+            metaAccountDao,
+            chainRegistry,
+            secretStoreV2,
+            secretStoreV1,
+            accountDataMigration
+        )
     }
 
     @Provides
@@ -134,10 +148,9 @@ class AccountFeatureModule {
     fun provideAccountDataMigration(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
-        bip39: Bip39,
         accountDao: AccountDao
     ): AccountDataMigration {
-        return AccountDataMigration(preferences, encryptedPreferences, bip39, accountDao)
+        return AccountDataMigration(preferences, encryptedPreferences, accountDao)
     }
 
     @Provides
@@ -167,4 +180,14 @@ class AccountFeatureModule {
     fun provideAccountUseCase(
         accountRepository: AccountRepository
     ) = SelectedAccountUseCase(accountRepository)
+
+    @Provides
+    @FeatureScope
+    fun provideAccountDetailsInteractor(
+        accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry,
+    ) = AccountDetailsInteractor(
+        accountRepository,
+        chainRegistry
+    )
 }

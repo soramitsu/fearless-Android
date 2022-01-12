@@ -7,5 +7,5 @@ interface AssetUseCase {
 
     fun currentAssetFlow(): Flow<Asset>
 
-    fun assetFlow(accountAddress: String): Flow<Asset>
+    suspend fun availableAssetsToSelect(): List<Asset>
 }

@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.view.TableCellView
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 
 class FeeView @JvmOverloads constructor(
     context: Context,
@@ -18,7 +18,7 @@ class FeeView @JvmOverloads constructor(
         setFeeStatus(FeeStatus.Loading)
     }
 
-    fun setFeeStatus(feeStatus: FeeStatus) {
+    fun setFeeStatus(feeStatus: FeeStatus?) {
         when (feeStatus) {
             is FeeStatus.Loading -> {
                 showProgress()
@@ -32,6 +32,7 @@ class FeeView @JvmOverloads constructor(
                     secondary = feeStatus.feeModel.displayFiat
                 )
             }
+            else -> {}
         }
     }
 }

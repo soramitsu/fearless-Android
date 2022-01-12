@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_crowdloan_impl.BuildConfig
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.bifrost.BifrostApi
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeFactory
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.bifrost.BifrostContributeInteractor
@@ -27,7 +26,7 @@ class BifrostContributionModule {
     fun provideBifrostInteractor(
         bifrostApi: BifrostApi,
         httpExceptionHandler: HttpExceptionHandler
-    ) = BifrostContributeInteractor(BuildConfig.BIFROST_FEALRESS_REFERRAL, bifrostApi, httpExceptionHandler)
+    ) = BifrostContributeInteractor(bifrostApi, httpExceptionHandler)
 
     @Provides
     @FeatureScope
@@ -45,7 +44,6 @@ class BifrostContributionModule {
     ): CustomContributeFactory = BifrostContributeFactory(
         submitter,
         karuraInteractor,
-        resourceManager,
-        BuildConfig.BIFROST_TERMS_LINKS
+        resourceManager
     )
 }

@@ -71,6 +71,7 @@ class PinCodeViewModel(
             is ScreenState.Creating -> tempCodeEntered(pin)
             is ScreenState.Confirmation -> matchPinCodeWithCodeToConfirm(pin, (currentState as ScreenState.Confirmation).codeToConfirm)
             is ScreenState.Checking -> checkPinCode(pin)
+            null -> Unit
         }
     }
 
@@ -119,6 +120,7 @@ class PinCodeViewModel(
             is ScreenState.Creating -> authCancel()
             is ScreenState.Confirmation -> backToCreateFromConfirmation()
             is ScreenState.Checking -> authCancel()
+            null -> Unit
         }
     }
 
@@ -171,6 +173,7 @@ class PinCodeViewModel(
                         router.back()
                         showMessage(resourceManager.getString(R.string.pincode_changed_message))
                     }
+                    else -> {}
                 }
             }
         }

@@ -1,12 +1,12 @@
 package jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.bindString
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
-import java.math.BigInteger
 
 class Contribution(
     val amount: BigInteger,
@@ -14,7 +14,7 @@ class Contribution(
 )
 
 fun bindContribution(scale: String, runtime: RuntimeSnapshot): Contribution {
-    val type = runtime.typeRegistry["(BalanceOf, Vec<u8>)"] ?: incompatible()
+    val type = runtime.typeRegistry["(Balance, Vec<u8>)"] ?: incompatible()
 
     val dynamicInstance = type.fromHex(runtime, scale).cast<List<*>>()
 

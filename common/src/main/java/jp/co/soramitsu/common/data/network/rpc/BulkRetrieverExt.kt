@@ -1,7 +1,9 @@
 package jp.co.soramitsu.common.data.network.rpc
 
-suspend fun BulkRetriever.retrieveAllValues(keyPrefix: String): Map<String, String?> {
-    val allKeys = retrieveAllKeys(keyPrefix)
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 
-    return queryKeys(allKeys)
+suspend fun BulkRetriever.retrieveAllValues(socketService: SocketService, keyPrefix: String): Map<String, String?> {
+    val allKeys = retrieveAllKeys(socketService, keyPrefix)
+
+    return queryKeys(socketService, allKeys)
 }

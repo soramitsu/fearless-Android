@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -30,12 +31,14 @@ class SearchCustomValidatorsModule {
         setupStakingSharedState: SetupStakingSharedState,
         searchCustomValidatorsInteractor: SearchCustomValidatorsInteractor,
         validatorRecommendatorFactory: ValidatorRecommendatorFactory,
-        tokenUseCase: TokenUseCase
+        tokenUseCase: TokenUseCase,
+        stakingInteractor: StakingInteractor,
     ): ViewModel {
         return SearchCustomValidatorsViewModel(
             router,
             addressIconGenerator,
             searchCustomValidatorsInteractor,
+            stakingInteractor,
             resourceManager,
             setupStakingSharedState,
             validatorRecommendatorFactory,

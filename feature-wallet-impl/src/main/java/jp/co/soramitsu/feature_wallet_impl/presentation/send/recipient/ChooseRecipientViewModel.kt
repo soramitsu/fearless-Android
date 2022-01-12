@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -16,11 +17,13 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +31,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.ExperimentalTime
 
 private const val ICON_SIZE_IN_DP = 24
 
@@ -45,7 +47,8 @@ class ChooseRecipientViewModel(
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val qrBitmapDecoder: QrBitmapDecoder,
-    private val phishingWarning: PhishingWarningMixin
+    private val payload: AssetPayload,
+    private val phishingWarning: PhishingWarningMixin,
 ) : BaseViewModel(),
     PhishingWarningMixin by phishingWarning,
     PhishingWarningPresentation {
@@ -80,7 +83,7 @@ class ChooseRecipientViewModel(
     }
 
     override fun proceedAddress(address: String) {
-        router.openChooseAmount(address)
+        router.openChooseAmount(address, payload)
     }
 
     override fun declinePhishingAddress() {
@@ -100,12 +103,12 @@ class ChooseRecipientViewModel(
     }
 
     fun enterClicked() {
-        val amount = searchEvents.value
+        val input = searchEvents.value
 
         viewModelScope.launch {
-            val valid = interactor.validateSendAddress(amount)
+            val valid = interactor.validateSendAddress(payload.chainId, input)
 
-            if (valid) recipientSelected(amount)
+            if (valid) recipientSelected(input)
         }
     }
 
@@ -145,8 +148,8 @@ class ChooseRecipientViewModel(
     }
 
     private suspend fun formSearchResults(address: String): List<Any> = withContext(Dispatchers.Default) {
-        val isValidAddress = interactor.validateSendAddress(address)
-        val searchResult = interactor.getRecipients(address)
+        val isValidAddress = interactor.validateSendAddress(payload.chainId, address)
+        val searchResult = interactor.getRecipients(address, payload.chainId)
 
         val resultWithHeader = maybeAppendResultHeader(isValidAddress, address)
         val myAccountsWithHeader = generateAccountModelsWithHeader(R.string.search_header_my_accounts, searchResult.myAccounts)

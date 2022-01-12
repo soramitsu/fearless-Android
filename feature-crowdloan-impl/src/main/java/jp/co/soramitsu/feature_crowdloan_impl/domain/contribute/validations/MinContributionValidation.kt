@@ -10,12 +10,12 @@ class MinContributionValidation(
 ) : ContributeValidation {
 
     override suspend fun validate(value: ContributeValidationPayload): ValidationStatus<ContributeValidationFailure> {
-        val token = value.asset.token
+        val chainAsset = value.asset.token.configuration
 
-        val minContribution = token.amountFromPlanks(crowdloanRepository.minContribution())
+        val minContribution = value.customMinContribution ?: chainAsset.amountFromPlanks(crowdloanRepository.minContribution(chainAsset.chainId))
 
         return validOrError(value.contributionAmount >= minContribution) {
-            ContributeValidationFailure.LessThanMinContribution(minContribution, token)
+            ContributeValidationFailure.LessThanMinContribution(minContribution, chainAsset)
         }
     }
 }

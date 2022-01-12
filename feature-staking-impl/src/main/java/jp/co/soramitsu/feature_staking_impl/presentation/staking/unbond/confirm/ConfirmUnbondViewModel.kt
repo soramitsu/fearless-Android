@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -25,7 +26,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeStatus
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -81,7 +82,7 @@ class ConfirmUnbondViewModel(
 
     val originAddressModelLiveData = accountStakingFlow.map {
         val address = it.controllerAddress
-        val account = interactor.getAccount(address)
+        val account = interactor.getProjectedAccount(address)
 
         val addressModel = iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
 
@@ -114,7 +115,6 @@ class ConfirmUnbondViewModel(
             stash = accountStakingFlow.first(),
             fee = payload.fee,
             amount = payload.amount,
-            tokenType = asset.token.type
         )
 
         validationExecutor.requireValid(
@@ -129,7 +129,7 @@ class ConfirmUnbondViewModel(
     }
 
     private fun sendTransaction(validPayload: UnbondValidationPayload) = launch {
-        val amountInPlanks = validPayload.tokenType.planksFromAmount(payload.amount)
+        val amountInPlanks = validPayload.asset.token.configuration.planksFromAmount(payload.amount)
 
         val result = unbondInteractor.unbond(validPayload.stash, validPayload.asset.bondedInPlanks, amountInPlanks)
 

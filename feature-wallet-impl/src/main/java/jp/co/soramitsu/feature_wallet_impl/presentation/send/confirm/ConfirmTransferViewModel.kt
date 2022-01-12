@@ -6,11 +6,13 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -18,14 +20,16 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
-import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferValidityChecks
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val ICON_IN_DP = 24
 
@@ -44,7 +48,12 @@ class ConfirmTransferViewModel(
     private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
     val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
 
-    val recipientModel = liveData { emit(getAddressIcon()) }
+    val recipientModel = liveData { emit(getAddressIcon(transferDraft.recipientAddress)) }
+
+    val senderModel = liveData {
+        val address = interactor.getSenderAddress(transferDraft.assetPayload.chainId) ?: return@liveData
+        emit(getAddressIcon(address))
+    }
 
     private val _transferSubmittingLiveData = MutableLiveData(false)
 
@@ -56,7 +65,7 @@ class ConfirmTransferViewModel(
         }
     }
 
-    val assetLiveData = interactor.assetFlow(transferDraft.type)
+    val assetLiveData = interactor.assetFlow(transferDraft.assetPayload.chainId, transferDraft.assetPayload.chainAssetId)
         .map(::mapAssetToAssetModel)
         .asLiveData()
 
@@ -65,19 +74,10 @@ class ConfirmTransferViewModel(
     }
 
     fun copyRecipientAddressClicked() {
-        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, transferDraft.type.networkType)
+        val networkType = Node.NetworkType.findByGenesis(transferDraft.assetPayload.chainId)!! // TODO stub
+        val payload = ExternalAccountActions.Payload(transferDraft.recipientAddress, networkType)
 
         externalAccountActions.showExternalActions(payload)
-    }
-
-    fun availableBalanceClicked() {
-        val assetModel = assetLiveData.value ?: return
-
-        launch {
-            val existentialDeposit = assetModel.token.type.amountFromPlanks(walletConstants.existentialDeposit())
-
-            _showBalanceDetailsEvent.value = Event(BalanceDetailsBottomSheet.Payload(assetModel, transferDraft, existentialDeposit))
-        }
     }
 
     fun submitClicked() {
@@ -93,13 +93,15 @@ class ConfirmTransferViewModel(
     }
 
     private fun performTransfer(suppressWarnings: Boolean) {
+        val chainAsset = assetLiveData.value?.token?.configuration ?: return
         val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
 
         _transferSubmittingLiveData.value = true
 
         viewModelScope.launch {
-            val result = interactor.performTransfer(createTransfer(), transferDraft.fee, maxAllowedStatusLevel)
-
+            val result = withContext(Dispatchers.Default) {
+                interactor.performTransfer(createTransfer(chainAsset), transferDraft.fee, maxAllowedStatusLevel)
+            }
             if (result.isSuccess) {
                 router.finishSendFlow()
             } else {
@@ -123,16 +125,16 @@ class ConfirmTransferViewModel(
         }
     }
 
-    private suspend fun getAddressIcon(): AddressModel {
-        return addressIconGenerator.createAddressModel(transferDraft.recipientAddress, ICON_IN_DP)
+    private suspend fun getAddressIcon(address: String): AddressModel {
+        return addressIconGenerator.createAddressModel(address, ICON_IN_DP)
     }
 
-    private fun createTransfer(): Transfer {
+    private fun createTransfer(token: Chain.Asset): Transfer {
         return with(transferDraft) {
             Transfer(
                 recipient = recipientAddress,
                 amount = amount,
-                tokenType = type
+                chainAsset = token
             )
         }
     }

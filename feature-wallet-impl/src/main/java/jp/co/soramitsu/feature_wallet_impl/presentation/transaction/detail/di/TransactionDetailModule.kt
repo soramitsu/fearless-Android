@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransactionDetailViewModel
@@ -32,7 +33,8 @@ class TransactionDetailModule {
         clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
         addressDisplayUseCase: AddressDisplayUseCase,
-        operation: OperationParcelizeModel.Transfer
+        operation: OperationParcelizeModel.Transfer,
+        assetPayload: AssetPayload
     ): ViewModel {
         return TransactionDetailViewModel(
             interactor,
@@ -42,7 +44,8 @@ class TransactionDetailModule {
             clipboardManager,
             appLinksProvider,
             addressDisplayUseCase,
-            operation
+            operation,
+            assetPayload
         )
     }
 

@@ -6,24 +6,17 @@ import androidx.lifecycle.LifecycleOwner
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
-import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicContent
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicContentContainer
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicNetworkInput
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicUsernameInput
+import kotlinx.android.synthetic.main.import_source_mnemonic.view.*
 
 class MnemonicImportView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_mnemonic, context, attrs, defStyleAttr) {
-
-    override val networkInputView: LabeledTextView
-        get() = importMnemonicNetworkInput
 
     override val nameInputView: InputField
         get() = importMnemonicUsernameInput

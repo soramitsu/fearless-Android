@@ -1,46 +1,22 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
-import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigDecimal
 import java.math.BigInteger
-
-private const val DEFAULT_MANTISSA = 12
 
 class Token(
     val dollarRate: BigDecimal?,
     val recentRateChange: BigDecimal?,
-    val type: Type
+    val configuration: Chain.Asset
 ) {
 
     fun fiatAmount(tokenAmount: BigDecimal): BigDecimal? = dollarRate?.multiply(tokenAmount)
-
-    enum class Type(
-        val displayName: String,
-        val networkType: Node.NetworkType,
-        val mantissa: Int = DEFAULT_MANTISSA
-    ) {
-        KSM("KSM", Node.NetworkType.KUSAMA),
-        DOT("DOT", Node.NetworkType.POLKADOT, 10),
-        WND("WND", Node.NetworkType.WESTEND),
-        ROC("ROC", Node.NetworkType.ROCOCO);
-
-        companion object {
-            fun fromNetworkType(networkType: Node.NetworkType): Type {
-                return when (networkType) {
-                    Node.NetworkType.KUSAMA -> KSM
-                    Node.NetworkType.POLKADOT -> DOT
-                    Node.NetworkType.WESTEND -> WND
-                    Node.NetworkType.ROCOCO -> ROC
-                }
-            }
-        }
-    }
 }
 
-fun Token.amountFromPlanks(amountInPlanks: BigInteger) = type.amountFromPlanks(amountInPlanks)
+fun Token.amountFromPlanks(amountInPlanks: BigInteger) = configuration.amountFromPlanks(amountInPlanks)
 
-fun Token.planksFromAmount(amount: BigDecimal): BigInteger = type.planksFromAmount(amount)
+fun Token.planksFromAmount(amount: BigDecimal): BigInteger = configuration.planksFromAmount(amount)
 
-fun Token.Type.amountFromPlanks(amountInPlanks: BigInteger) = amountInPlanks.toBigDecimal(scale = mantissa)
+fun Chain.Asset.amountFromPlanks(amountInPlanks: BigInteger) = amountInPlanks.toBigDecimal(scale = precision)
 
-fun Token.Type.planksFromAmount(amount: BigDecimal): BigInteger = amount.scaleByPowerOfTen(mantissa).toBigInteger()
+fun Chain.Asset.planksFromAmount(amount: BigDecimal): BigInteger = amount.scaleByPowerOfTen(precision).toBigInteger()

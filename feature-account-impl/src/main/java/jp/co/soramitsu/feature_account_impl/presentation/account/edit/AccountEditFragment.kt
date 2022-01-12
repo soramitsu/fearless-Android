@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.AccountModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
 import kotlinx.android.synthetic.main.fragment_accounts.addAccount
 import kotlinx.android.synthetic.main.fragment_edit_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_edit_accounts.fearlessToolbar
@@ -56,27 +56,27 @@ class AccountEditFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsA
     }
 
     override fun subscribe(viewModel: EditAccountsViewModel) {
-        viewModel.accountListingLiveData.observe(adapter::submitListing)
+        viewModel.accountListingLiveData.observe(adapter::submitList)
 
         viewModel.deleteConfirmationLiveData.observeEvent(::showDeleteConfirmation)
 
         viewModel.unsyncedSwapLiveData.observe { payload ->
-            payload?.let { adapter.unsyncedSwap(payload) }
+            adapter.submitList(payload.newState)
         }
     }
 
-    private fun showDeleteConfirmation(account: AccountModel) {
+    private fun showDeleteConfirmation(metaId: Long) {
         AlertDialog.Builder(requireActivity())
             .setTitle(R.string.account_delete_confirmation_title)
             .setMessage(R.string.account_delete_confirmation_description)
             .setPositiveButton(R.string.account_delete_confirm) { _, _ ->
-                viewModel.deleteConfirmed(account)
+                viewModel.deleteConfirmed(metaId)
             }
             .setNegativeButton(R.string.common_cancel, null)
             .show()
     }
 
-    override fun deleteClicked(accountModel: AccountModel) {
+    override fun deleteClicked(accountModel: LightMetaAccountUi) {
         viewModel.deleteClicked(accountModel)
     }
 

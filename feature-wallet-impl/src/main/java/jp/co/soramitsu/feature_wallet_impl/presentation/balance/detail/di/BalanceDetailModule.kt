@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailViewModel
@@ -32,9 +32,19 @@ class BalanceDetailModule {
         walletRouter: WalletRouter,
         historyFiltersProvider: HistoryFiltersProvider,
         resourceManager: ResourceManager,
+        assetPayload: AssetPayload,
         addressDisplayUseCase: AddressDisplayUseCase,
     ): TransactionHistoryMixin {
-        return TransactionHistoryProvider(walletInteractor, addressIconGenerator, walletRouter, historyFiltersProvider, resourceManager, addressDisplayUseCase)
+        return TransactionHistoryProvider(
+            walletInteractor,
+            addressIconGenerator,
+            walletRouter,
+            historyFiltersProvider,
+            resourceManager,
+            addressDisplayUseCase,
+            assetPayload.chainId,
+            assetPayload.chainAssetId
+        )
     }
 
     @Provides
@@ -45,9 +55,9 @@ class BalanceDetailModule {
         router: WalletRouter,
         transactionHistoryMixin: TransactionHistoryMixin,
         buyMixin: BuyMixin.Presentation,
-        type: Token.Type,
+        assetPayload: AssetPayload
     ): ViewModel {
-        return BalanceDetailViewModel(interactor, router, type, buyMixin, transactionHistoryMixin)
+        return BalanceDetailViewModel(interactor, router, assetPayload, buyMixin, transactionHistoryMixin)
     }
 
     @Provides

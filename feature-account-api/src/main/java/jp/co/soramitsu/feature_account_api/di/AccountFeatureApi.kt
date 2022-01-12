@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_api.di
 
+import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
@@ -17,4 +18,6 @@ interface AccountFeatureApi {
     fun addressDisplayUseCase(): AddressDisplayUseCase
 
     fun accountUseCase(): SelectedAccountUseCase
+
+    fun extrinsicService(): ExtrinsicService
 }

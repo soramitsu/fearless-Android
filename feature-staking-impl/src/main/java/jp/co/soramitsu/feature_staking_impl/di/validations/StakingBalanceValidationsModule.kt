@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
@@ -25,22 +26,26 @@ class StakingBalanceValidationsModule {
     @Named(BALANCE_REQUIRED_CONTROLLER)
     @Provides
     fun provideControllerValidation(
+        stakingSharedState: StakingSharedState,
         accountRepository: AccountRepository
     ) = BalanceAccountRequiredValidation(
         accountRepository,
         accountAddressExtractor = { it.stashState.controllerAddress },
-        errorProducer = ManageStakingValidationFailure::ControllerRequired
+        errorProducer = ManageStakingValidationFailure::ControllerRequired,
+        sharedState = stakingSharedState
     )
 
     @FeatureScope
     @Named(BALANCE_REQUIRED_STASH)
     @Provides
     fun provideStashValidation(
+        stakingSharedState: StakingSharedState,
         accountRepository: AccountRepository
     ) = BalanceAccountRequiredValidation(
         accountRepository,
         accountAddressExtractor = { it.stashState.stashAddress },
-        errorProducer = ManageStakingValidationFailure::StashRequired
+        errorProducer = ManageStakingValidationFailure::StashRequired,
+        sharedState = stakingSharedState
     )
 
     @FeatureScope

@@ -14,6 +14,10 @@ interface CrowdloanRouter {
 
     val latestCustomBonus: BonusPayload?
 
+    fun openMoonbeamContribute(payload: CustomContributePayload)
+
+    fun openMoonbeamConfirmContribute(payload: ConfirmContributePayload)
+
     fun openCustomContribute(payload: CustomContributePayload)
 
     fun setCustomBonus(payload: BonusPayload)

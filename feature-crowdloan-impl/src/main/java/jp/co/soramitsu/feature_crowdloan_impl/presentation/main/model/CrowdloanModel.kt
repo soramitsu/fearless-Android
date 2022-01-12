@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model
 import android.graphics.drawable.Drawable
 import androidx.annotation.ColorRes
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 data class CrowdloanStatusModel(
     val text: String,
@@ -10,13 +11,15 @@ data class CrowdloanStatusModel(
 )
 
 data class CrowdloanModel(
+    val relaychainId: ChainId,
     val parachainId: ParaId,
     val title: String,
     val description: String,
     val icon: Icon,
     val raised: String,
     val state: State,
-    val myContribution: String?
+    val myContribution: String?,
+    val referral: String?
 ) {
 
     sealed class State {

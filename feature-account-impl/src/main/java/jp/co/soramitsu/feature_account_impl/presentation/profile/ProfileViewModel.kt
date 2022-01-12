@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -40,8 +41,8 @@ class ProfileViewModel(
         router.openAboutScreen()
     }
 
-    fun accountsClicked() {
-        router.openAccounts(AccountChosenNavDirection.MAIN)
+    fun walletsClicked() {
+        router.openWallets(AccountChosenNavDirection.MAIN)
     }
 
     fun networksClicked() {

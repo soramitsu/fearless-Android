@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -69,7 +70,9 @@ class ReviewCustomValidatorsViewModel(
         currentTokenFlow
     ) { validators, token ->
         validators.map { validator ->
-            mapValidatorToValidatorModel(validator, addressIconGenerator, token)
+            val chain = interactor.getSelectedChain()
+
+            mapValidatorToValidatorModel(chain, validator, addressIconGenerator, token)
         }
     }
         .inBackground()

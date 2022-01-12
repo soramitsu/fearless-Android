@@ -4,6 +4,5 @@ package jp.co.soramitsu.core.model
 
 class RuntimeConfiguration(
     val genesisHash: String,
-    val erasPerDay: Int,
-    val addressByte: Byte,
+    val addressByte: Short,
 )

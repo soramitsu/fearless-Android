@@ -7,13 +7,15 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.view.SegmentedButtonView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -36,6 +38,8 @@ fun <T> Flow<T>.withLoading(): Flow<LoadingState<T>> {
     return map<T, LoadingState<T>> { LoadingState.Loaded(it) }
         .onStart { emit(LoadingState.Loading()) }
 }
+
+fun <T1, T2> combineToPair(flow1: Flow<T1>, flow2: Flow<T2>): Flow<Pair<T1, T2>> = combine(flow1, flow2, ::Pair)
 
 /**
  * Modifies flow so that it firstly emits [LoadingState.Loading] state for each element from upstream.
@@ -77,6 +81,31 @@ fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {
     return liveData
 }
 
+data class ListDiff<T>(
+    val removed: List<T>,
+    val addedOrModified: List<T>,
+    val all: List<T>
+)
+
+fun <T> Flow<List<T>>.diffed(): Flow<ListDiff<T>> {
+    return zipWithPrevious().map { (previous, new) ->
+        val addedOrModified = new - previous.orEmpty()
+        val removed = previous.orEmpty() - new
+
+        ListDiff(removed = removed, addedOrModified = addedOrModified, all = new)
+    }
+}
+
+fun <T> Flow<T>.zipWithPrevious(): Flow<Pair<T?, T>> = flow {
+    var current: T? = null
+
+    collect {
+        emit(current to it)
+
+        current = it
+    }
+}
+
 fun <T> singleReplaySharedFlow() = MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
 fun <T> Flow<T>.inBackground() = flowOn(Dispatchers.Default)
@@ -113,6 +142,22 @@ fun CompoundButton.bindTo(flow: MutableStateFlow<Boolean>, scope: CoroutineScope
     }
 }
 
+fun SegmentedButtonView.bindTo(flow: MutableStateFlow<Int>, scope: CoroutineScope) {
+    scope.launch {
+        flow.collect { newValue ->
+            if (getSelectedIndex() != newValue) {
+                toggle()
+            }
+        }
+    }
+
+    setOnSelectionChangeListener {
+        if (flow.value != getSelectedIndex()) {
+            flow.value = getSelectedIndex()
+        }
+    }
+}
+
 fun RadioGroup.bindTo(flow: MutableStateFlow<Int>, scope: LifecycleCoroutineScope) {
     setOnCheckedChangeListener { _, checkedId ->
         if (flow.value != checkedId) {
@@ -131,10 +176,10 @@ fun RadioGroup.bindTo(flow: MutableStateFlow<Int>, scope: LifecycleCoroutineScop
 
 inline fun <T> Flow<T>.observe(
     scope: LifecycleCoroutineScope,
-    crossinline collector: suspend (T) -> Unit
+    noinline collector: suspend (T) -> Unit,
 ) {
     scope.launchWhenResumed {
-        collect(collector)
+        collect(FlowCollector(collector))
     }
 }
 

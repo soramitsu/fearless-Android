@@ -52,14 +52,29 @@ class ExternalAnalyzerLinks(val transaction: String, val account: String, val ev
 
 enum class ExternalAnalyzer(val supportedNetworks: List<Node.NetworkType>) {
     SUBSCAN(
-        supportedNetworks = listOf(Node.NetworkType.KUSAMA, Node.NetworkType.WESTEND, Node.NetworkType.POLKADOT, Node.NetworkType.ROCOCO)
+        supportedNetworks = listOf(
+            Node.NetworkType.KUSAMA,
+            Node.NetworkType.WESTEND,
+            Node.NetworkType.POLKADOT,
+            Node.NetworkType.ROCOCO,
+            Node.NetworkType.SPIRITNET,
+            Node.NetworkType.STATEMINE,
+            Node.NetworkType.ACALA,
+            Node.NetworkType.KARURA,
+            Node.NetworkType.SHIDEN,
+            Node.NetworkType.BIFROST,
+            Node.NetworkType.KHALA,
+            Node.NetworkType.QUARTZ,
+            Node.NetworkType.MOONRIVER,
+            Node.NetworkType.CALAMARI,
+        )
     ),
 
     POLKASCAN(
         supportedNetworks = listOf(Node.NetworkType.KUSAMA, Node.NetworkType.POLKADOT)
     );
 
-    fun isNetworkSupported(networkType: Node.NetworkType) = networkType in supportedNetworks
+    fun isNetworkSupported(networkType: Node.NetworkType?) = networkType in supportedNetworks
 }
 
 private fun networkPathSegment(networkType: Node.NetworkType) = networkType.readableName.toLowerCase()

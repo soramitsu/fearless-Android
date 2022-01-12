@@ -4,18 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.requireException
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.progressConsumer
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -27,11 +28,11 @@ import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.requireFee
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.requireFee
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -67,7 +68,7 @@ class ConfirmPayoutViewModel(
     val totalRewardDisplay = assetFlow.map {
         val token = it.token
         val totalReward = token.amountFromPlanks(payload.totalRewardInPlanks)
-        val inToken = totalReward.formatTokenAmount(token.type)
+        val inToken = totalReward.formatTokenAmount(token.configuration)
         val inFiat = token.fiatAmount(totalReward)?.formatAsCurrency()
 
         inToken to inFiat
@@ -78,11 +79,11 @@ class ConfirmPayoutViewModel(
     val rewardDestinationModel = stakingStateFlow.map { stakingState ->
         require(stakingState is StakingState.Stash)
 
-        val networkType = stakingState.accountAddress.networkType()
+        val addressByte = stakingState.accountAddress.addressByte()
 
         val destinationAddress = when (val rewardDestination = interactor.getRewardDestination(stakingState)) {
             RewardDestination.Restake -> stakingState.accountAddress
-            is RewardDestination.Payout -> rewardDestination.targetAccountId.toAddress(networkType)
+            is RewardDestination.Payout -> rewardDestination.targetAccountId.toAddress(addressByte)
         }
 
         val destinationAddressDisplay = addressDisplayUseCase(destinationAddress)
@@ -123,7 +124,7 @@ class ConfirmPayoutViewModel(
 
     private fun sendTransactionIfValid() = feeLoaderMixin.requireFee(this) { fee ->
         launch {
-            val tokenType = assetFlow.first().token.type
+            val tokenType = assetFlow.first().token.configuration
             val accountAddress = stakingStateFlow.first().accountAddress
             val amount = tokenType.amountFromPlanks(payload.totalRewardInPlanks)
 
@@ -159,12 +160,10 @@ class ConfirmPayoutViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             viewModelScope,
-            feeConstructor = { asset ->
+            feeConstructor = {
                 val address = stakingStateFlow.first().accountAddress
 
-                val feeInPlanks = payoutInteractor.estimatePayoutFee(address, payouts)
-
-                asset.token.amountFromPlanks(feeInPlanks)
+                payoutInteractor.estimatePayoutFee(address, payouts)
             },
             onRetryCancelled = ::backClicked
         )

@@ -1,15 +1,17 @@
 package jp.co.soramitsu.feature_staking_impl.domain.validators.current.search
 
 import android.annotation.SuppressLint
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
+import jp.co.soramitsu.runtime.ext.isValidAddress
+import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class SearchCustomValidatorsInteractor(
     private val validatorProvider: ValidatorProvider,
-    private val accountRepository: AccountRepository
+    private val sharedState: StakingSharedState
 ) {
 
     @SuppressLint("DefaultLocale")
@@ -26,8 +28,10 @@ class SearchCustomValidatorsInteractor(
             return@withContext searchInLocal
         }
 
-        if (accountRepository.isInCurrentNetwork(query)) {
-            val validator = validatorProvider.getValidatorWithoutElectedInfo(query)
+        val chain = sharedState.chain()
+
+        if (chain.isValidAddress(query)) {
+            val validator = validatorProvider.getValidatorWithoutElectedInfo(chain.id, query)
 
             if (validator.prefs != null) {
                 listOf(validator)

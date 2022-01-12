@@ -53,7 +53,7 @@ class EstimateEarningView @JvmOverloads constructor(
         estimateEarningAmount.setAssetBalance(balance)
     }
 
-    fun setAssetBalanceDollarAmount(dollarAmount: String) {
+    fun setAssetBalanceDollarAmount(dollarAmount: String?) {
         estimateEarningAmount.setAssetBalanceDollarAmount(dollarAmount)
     }
 

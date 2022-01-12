@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -23,10 +24,9 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.rebondValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.requireFee
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.requireFee
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -76,7 +76,7 @@ class ConfirmRebondViewModel(
 
     val originAddressModelLiveData = accountStakingFlow.map {
         val address = it.controllerAddress
-        val account = interactor.getAccount(address)
+        val account = interactor.getProjectedAccount(address)
 
         val addressModel = iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
 
@@ -108,12 +108,10 @@ class ConfirmRebondViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                val amountInPlanks = asset.token.planksFromAmount(payload.amount)
+            feeConstructor = { token ->
+                val amountInPlanks = token.planksFromAmount(payload.amount)
 
-                val feeInPlanks = rebondInteractor.estimateFee(controllerAddress(), amountInPlanks)
-
-                asset.token.amountFromPlanks(feeInPlanks)
+                rebondInteractor.estimateFee(amountInPlanks)
             },
             onRetryCancelled = ::backClicked
         )
@@ -151,6 +149,4 @@ class ConfirmRebondViewModel(
 
         _showNextProgress.value = false
     }
-
-    private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
 }

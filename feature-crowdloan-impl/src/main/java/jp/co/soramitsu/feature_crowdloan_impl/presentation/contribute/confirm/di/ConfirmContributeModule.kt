@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.CrowdloanRouter
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.ConfirmContributeViewModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmContributeModule {
@@ -38,7 +39,8 @@ class ConfirmContributeModule {
         addressIconGenerator: AddressIconGenerator,
         validationSystem: ContributeValidationSystem,
         externalAccountActions: ExternalAccountActions.Presentation,
-        customContributeManager: CustomContributeManager
+        customContributeManager: CustomContributeManager,
+        transferValidityChecks: TransferValidityChecks.Presentation,
     ): ViewModel {
         return ConfirmContributeViewModel(
             router,
@@ -51,7 +53,8 @@ class ConfirmContributeModule {
             payload,
             validationSystem,
             customContributeManager,
-            externalAccountActions
+            externalAccountActions,
+            transferValidityChecks,
         )
     }
 

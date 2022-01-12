@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -24,10 +25,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.Controller
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.requireFee
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.requireFee
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -115,11 +115,7 @@ class SetControllerViewModel(
     private fun loadFee() {
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
-            feeConstructor = { asset ->
-                val feeInPlanks = interactor.estimateFee(stashAddress(), controllerAddress())
-
-                asset.token.amountFromPlanks(feeInPlanks)
-            },
+            feeConstructor = { interactor.estimateFee(controllerAddress()) },
             onRetryCancelled = ::backClicked
         )
     }
@@ -141,7 +137,7 @@ class SetControllerViewModel(
     private suspend fun controllerAddress() = accountStakingFlow.first().controllerAddress
 
     private suspend fun accountsInCurrentNetwork(): List<AddressModel> {
-        return stakingInteractor.getAccountsInCurrentNetwork()
+        return stakingInteractor.getAccountProjectionsInSelectedChains()
             .map { generateDestinationModel(it) }
     }
 

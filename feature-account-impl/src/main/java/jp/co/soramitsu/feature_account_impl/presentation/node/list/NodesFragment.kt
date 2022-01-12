@@ -12,9 +12,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
-import kotlinx.android.synthetic.main.fragment_nodes.addConnectionTv
-import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
-import kotlinx.android.synthetic.main.fragment_nodes.fearlessToolbar
+import kotlinx.android.synthetic.main.fragment_nodes.*
 
 class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
 
@@ -103,12 +101,12 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
             .show()
     }
 
+    // todo (Denis Lyazgin 18.11.2021) I don't think we still need this dialog
     private fun showNoAccountsDialog(networkType: Node.NetworkType) {
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
             .setTitle(R.string.account_needed_title)
             .setMessage(R.string.account_needed_message)
             .setPositiveButton(R.string.common_proceed) { dialog, _ ->
-                viewModel.createAccountForNetworkType(networkType)
                 dialog?.dismiss()
             }
             .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }

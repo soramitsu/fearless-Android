@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -79,10 +80,6 @@ class NodesViewModel(
 
     fun addNodeClicked() {
         router.openAddNode()
-    }
-
-    fun createAccountForNetworkType(networkType: Node.NetworkType) {
-        router.createAccountForNetworkType(networkType)
     }
 
     fun deleteNodeClicked(nodeModel: NodeModel) {

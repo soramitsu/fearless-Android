@@ -72,7 +72,7 @@ class CustomValidatorsSettingsViewModel(
     }.inBackground()
         .share()
 
-    val tokenNameFlow = tokenUseCase.currentTokenFlow().map { it.type.displayName }
+    val tokenNameFlow = tokenUseCase.currentTokenFlow().map { it.configuration.name }
 
     val isApplyButtonEnabled = combine(initialSettingsFlow, modifiedSettings) { initial, modified ->
         initial != modified

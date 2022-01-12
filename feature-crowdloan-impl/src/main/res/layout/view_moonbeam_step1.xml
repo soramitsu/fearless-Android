@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/tvMoonbeamTermsTitle"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/soramitsu_semibold"
+                android:text="@string/moonbeam_crowdloan_terms"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvMoonbeamTermsDesc"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:includeFontPadding="false"
+                android:lineSpacingExtra="3sp"
+                android:textColor="@color/button_text_colors"
+                android:textSize="12sp"
+                app:layout_constraintTop_toBottomOf="@id/tvMoonbeamTermsTitle"
+                tools:text="By accessing the Moonbeam Crowdloan Application Moonbeam Crowdloan Application, you represent and warrant to the Moonbeam Foundation LTD. (Moonbeam Foundation) as follows:" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/referralPrivacySwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:checked="true"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvMoonbeamTermsDesc" />
+
+            <TextView
+                android:id="@+id/tvMoonbeamTermsAgreed"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/crowdloan_privacy_policy"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@id/referralPrivacySwitch"
+                app:layout_constraintStart_toEndOf="@id/referralPrivacySwitch"
+                app:layout_constraintTop_toTopOf="@id/referralPrivacySwitch" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</merge>

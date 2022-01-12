@@ -2,8 +2,10 @@ package jp.co.soramitsu.common.utils
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.content.res.TypedArray
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +17,7 @@ import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
+import androidx.annotation.StyleableRes
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -155,4 +158,21 @@ fun TextView.setTextOrHide(newText: String?) {
     } else {
         setVisible(false)
     }
+}
+
+inline fun <reified T : Enum<T>> TypedArray.getEnum(index: Int, default: T) =
+    getInt(index, /*defValue*/-1).let {
+        if (it >= 0) enumValues<T>()[it] else default
+    }
+
+inline fun Context.useAttributes(
+    attributeSet: AttributeSet,
+    @StyleableRes styleable: IntArray,
+    block: (TypedArray) -> Unit
+) {
+    val typedArray = obtainStyledAttributes(attributeSet, styleable)
+
+    block(typedArray)
+
+    typedArray.recycle()
 }
