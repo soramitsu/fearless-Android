@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -19,8 +20,11 @@ import kotlinx.android.synthetic.main.fragment_rebond_custom.rebondAmount
 import kotlinx.android.synthetic.main.fragment_rebond_custom.rebondContinue
 import kotlinx.android.synthetic.main.fragment_rebond_custom.rebondFee
 import kotlinx.android.synthetic.main.fragment_rebond_custom.rebondToolbar
+import javax.inject.Inject
 
 class CustomRebondFragment : BaseFragment<CustomRebondViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,7 +65,7 @@ class CustomRebondFragment : BaseFragment<CustomRebondViewModel>() {
         viewModel.assetModelFlow.observe {
             rebondAmount.setAssetBalance(it.assetBalance)
             rebondAmount.setAssetName(it.tokenName)
-            rebondAmount.setAssetImageResource(it.tokenIconRes)
+            rebondAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         rebondAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)

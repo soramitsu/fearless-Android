@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -20,10 +21,13 @@ import kotlinx.android.synthetic.main.fragment_redeem.redeemContainer
 import kotlinx.android.synthetic.main.fragment_redeem.redeemFee
 import kotlinx.android.synthetic.main.fragment_redeem.redeemOriginAccount
 import kotlinx.android.synthetic.main.fragment_redeem.redeemToolbar
+import javax.inject.Inject
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 class RedeemFragment : BaseFragment<RedeemViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     companion object {
 
@@ -77,7 +81,7 @@ class RedeemFragment : BaseFragment<RedeemViewModel>() {
         viewModel.assetModelLiveData.observe {
             redeemAmount.setAssetBalance(it.assetBalance)
             redeemAmount.setAssetName(it.tokenName)
-            redeemAmount.setAssetImageResource(it.tokenIconRes)
+            redeemAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         viewModel.amountLiveData.observe { (amount, fiatAmount) ->

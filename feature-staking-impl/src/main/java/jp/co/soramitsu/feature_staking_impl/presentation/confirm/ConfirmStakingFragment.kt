@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -19,9 +20,24 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.displayFeeStatus
-import kotlinx.android.synthetic.main.fragment_confirm_stake.*
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeAmount
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeOriginAccount
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeRewardDestination
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidators
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidatorsCount
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeToolbar
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingEachEraLength
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeFiat
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeProgress
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeToken
+import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingUnstakingPeriodLength
+import kotlinx.android.synthetic.main.fragment_confirm_stake.stakingConfirmationContainer
+import javax.inject.Inject
 
 class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -83,7 +99,7 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         viewModel.assetModelLiveData.observe {
             confirmStakeAmount.setAssetBalance(it.assetBalance)
             confirmStakeAmount.setAssetName(it.tokenName)
-            confirmStakeAmount.setAssetImageResource(it.tokenIconRes)
+            confirmStakeAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         viewModel.feeLiveData.observe {

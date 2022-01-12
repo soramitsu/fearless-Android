@@ -6,11 +6,15 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.EditText
 import androidx.constraintlayout.widget.ConstraintLayout
+import coil.ImageLoader
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
-import kotlinx.android.synthetic.main.view_estimate_earning.view.*
+import kotlinx.android.synthetic.main.view_estimate_earning.view.estimateEarningAmount
+import kotlinx.android.synthetic.main.view_estimate_earning.view.stakeMoreActions
+import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingMonthGain
+import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingYearGain
 
 class EstimateEarningView @JvmOverloads constructor(
     context: Context,
@@ -43,6 +47,10 @@ class EstimateEarningView @JvmOverloads constructor(
 
     fun setAssetImageResource(imageRes: Int) {
         estimateEarningAmount.setAssetImageResource(imageRes)
+    }
+
+    fun setAssetImageUrl(imageUrl: String, imageLoader: ImageLoader) {
+        estimateEarningAmount.setAssetImageUrl(imageUrl, imageLoader)
     }
 
     fun setAssetName(name: String) {

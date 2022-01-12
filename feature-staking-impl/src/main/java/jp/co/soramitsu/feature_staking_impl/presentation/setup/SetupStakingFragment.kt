@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -27,8 +28,11 @@ import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeToke
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingNext
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingRewardDestinationChooser
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingToolbar
+import javax.inject.Inject
 
 class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,7 +79,7 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         viewModel.assetModelsFlow.observe {
             setupStakingAmountField.setAssetBalance(it.assetBalance)
             setupStakingAmountField.setAssetName(it.tokenName)
-            setupStakingAmountField.setAssetImageResource(it.tokenIconRes)
+            setupStakingAmountField.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         setupStakingAmountField.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
