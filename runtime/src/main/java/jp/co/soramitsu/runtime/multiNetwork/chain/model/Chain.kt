@@ -55,7 +55,7 @@ data class Chain(
         val isRelayChain: Boolean
             get() = chainId in listOf(
                 "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3", // polkadot
-                "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe"  // kusama
+                "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe" // kusama
             )
 
         val chainToSymbol = chainId to symbol

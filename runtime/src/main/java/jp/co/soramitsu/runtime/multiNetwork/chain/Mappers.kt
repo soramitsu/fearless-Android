@@ -80,7 +80,6 @@ fun mapChainRemoteToChain(
                     name = assetNativeChain?.name.orEmpty(),
                     iconUrl = assetRemote?.icon ?: assetNativeChain?.icon.orEmpty(),
                     chainId = chainRemote.chainId,
-                    chainParentId = chainRemote.parentId,
                     chainName = chainRemote.name,
                     chainIcon = chainRemote.icon,
                     nativeChainId = assetNativeChain?.chainId,
@@ -146,7 +145,6 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             precision = it.precision,
             staking = mapStakingTypeFromLocal(it.staking),
             priceProviders = mapToList(it.priceProviders),
-            chainParentId = chainLocal.chain.parentId,
             chainName = chainLocal.chain.name,
             chainIcon = chainLocal.chain.icon,
             isTestNet = chainLocal.chain.isTestNet
