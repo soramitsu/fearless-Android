@@ -15,7 +15,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/itemTransactionTime"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/itemTransactionHeader"
-        tools:src="@drawable/ic_token_ksm" />
+        tools:src="@drawable/ic_plus_circle" />
 
     <TextView
         android:id="@+id/itemTransactionHeader"
