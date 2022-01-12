@@ -17,7 +17,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@drawable/ic_token_ksm" />
+        tools:src="@drawable/ic_plus_circle" />
 
     <View
         android:id="@+id/itemAssetDivider"
@@ -66,7 +66,7 @@
             android:layout_width="16dp"
             android:layout_height="match_parent"
             android:layout_marginEnd="4dp"
-            tools:src="@drawable/ic_token_ksm" />
+            tools:src="@drawable/ic_plus_circle" />
 
         <TextView
             android:id="@+id/networkBadgeName"

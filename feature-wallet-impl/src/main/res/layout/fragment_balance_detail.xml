@@ -57,7 +57,7 @@
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenName"
-                    tools:src="@drawable/ic_token_ksm" />
+                    tools:src="@drawable/ic_plus_circle" />
 
                 <TextView
                     android:id="@+id/balanceDetailTokenName"
@@ -89,7 +89,7 @@
                         android:layout_height="match_parent"
                         android:layout_marginVertical="3dp"
                         android:layout_marginEnd="4dp"
-                        tools:src="@drawable/ic_token_ksm" />
+                        tools:src="@drawable/ic_plus_circle" />
 
                     <TextView
                         android:id="@+id/balanceAssetName"
