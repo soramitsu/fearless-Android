@@ -5,7 +5,6 @@ import androidx.recyclerview.widget.DiffUtil
 data class AssetModel(
     val chainId: String,
     val chainAssetId: String,
-    val tokenIconRes: Int,
     val imageUrl: String,
     val tokenName: String,
     val assetBalance: String

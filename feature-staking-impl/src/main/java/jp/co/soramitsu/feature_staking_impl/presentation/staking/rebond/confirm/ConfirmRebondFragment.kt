@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -19,10 +20,13 @@ import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondConfi
 import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondFee
 import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondOriginAccount
 import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondToolbar
+import javax.inject.Inject
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     companion object {
 
@@ -75,7 +79,7 @@ class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>() {
         viewModel.assetModelFlow.observe {
             confirmRebondAmount.setAssetBalance(it.assetBalance)
             confirmRebondAmount.setAssetName(it.tokenName)
-            confirmRebondAmount.setAssetImageResource(it.tokenIconRes)
+            confirmRebondAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         confirmRebondAmount.amountInput.setText(viewModel.amount)

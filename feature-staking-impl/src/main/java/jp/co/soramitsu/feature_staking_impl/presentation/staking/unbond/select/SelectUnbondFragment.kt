@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -21,8 +22,11 @@ import kotlinx.android.synthetic.main.fragment_select_unbond.unbondContinue
 import kotlinx.android.synthetic.main.fragment_select_unbond.unbondFee
 import kotlinx.android.synthetic.main.fragment_select_unbond.unbondPeriod
 import kotlinx.android.synthetic.main.fragment_select_unbond.unbondToolbar
+import javax.inject.Inject
 
 class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,7 +69,7 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>() {
         viewModel.assetModelFlow.observe {
             unbondAmount.setAssetBalance(it.assetBalance)
             unbondAmount.setAssetName(it.tokenName)
-            unbondAmount.setAssetImageResource(it.tokenIconRes)
+            unbondAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         unbondAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)

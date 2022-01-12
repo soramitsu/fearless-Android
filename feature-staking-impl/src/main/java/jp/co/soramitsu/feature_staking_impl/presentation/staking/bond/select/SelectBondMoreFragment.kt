@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -20,10 +21,13 @@ import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreContainer
 import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreContinue
 import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreFee
 import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreToolbar
+import javax.inject.Inject
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     companion object {
 
@@ -75,7 +79,7 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
         viewModel.assetModelFlow.observe {
             bondMoreAmount.setAssetBalance(it.assetBalance)
             bondMoreAmount.setAssetName(it.tokenName)
-            bondMoreAmount.setAssetImageResource(it.tokenIconRes)
+            bondMoreAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         bondMoreAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)

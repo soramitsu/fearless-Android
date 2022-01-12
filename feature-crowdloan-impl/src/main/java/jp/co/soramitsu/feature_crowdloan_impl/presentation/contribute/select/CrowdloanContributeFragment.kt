@@ -12,7 +12,6 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -44,6 +43,7 @@ import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeRew
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeTimeLeft
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeToolbar
 import kotlinx.android.synthetic.main.fragment_contribute.crowdloanContributeUnlockHint
+import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
@@ -135,7 +135,7 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         viewModel.assetModelFlow.observe {
             crowdloanContributeAmount.setAssetBalance(it.assetBalance)
             crowdloanContributeAmount.setAssetName(it.tokenName)
-            crowdloanContributeAmount.setAssetImageResource(it.tokenIconRes)
+            crowdloanContributeAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         crowdloanContributeAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
