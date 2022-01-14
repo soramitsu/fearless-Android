@@ -1,6 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
-import java.util.Locale
+import java.util.*
 
 typealias ChainId = String
 
@@ -64,6 +64,8 @@ data class Chain(
     data class Node(
         val url: String,
         val name: String,
+        val isActive: Boolean,
+        val isDefault: Boolean
     )
 
     data class ExternalApi(
@@ -81,4 +83,12 @@ data class Chain(
 
 enum class TypesUsage {
     BASE, OWN, BOTH,
+}
+
+@JvmInline
+value class NodeId(private val pair: Pair<String, String>) {
+    val chainId: String
+        get() = pair.first
+    val nodeUrl: String
+        get() = pair.second
 }

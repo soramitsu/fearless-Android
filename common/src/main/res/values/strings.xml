@@ -51,7 +51,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="about_privacy">Privacy policy</string>
     <string name="about_terms">Terms and conditions</string>
     <string name="language_title">Language</string>
-    <string name="connection_management_title">Networks</string>
+    <string name="connection_management_title">%s networks</string>
     <string name="onboarding_create_wallet">Create wallet</string>
     <string name="username_setup_choose_title">Name</string>
     <string name="username_setup_hint">This name will be displayed only for you and stored locally on your mobile device.</string>
@@ -519,4 +519,6 @@ to your account to avoid remaining stake.</string>
     <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
     <string name="transaction_successful">Transaction Successful!</string>
     <string name="moonbeam_ineligible_to_participate">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
+
+    <string name="switch_node">Switch node</string>
 </resources>

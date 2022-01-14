@@ -1,11 +1,14 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.details
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
@@ -13,6 +16,8 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,8 +27,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
@@ -47,6 +50,9 @@ class AccountDetailsViewModel(
         }
         .inBackground()
         .share()
+
+    private val _openChainOptionsDialog = MutableLiveData<Event<ChainActionsSheet.Payload>>()
+    val openChainOptionsDialog: LiveData<Event<ChainActionsSheet.Payload>> = _openChainOptionsDialog
 
     init {
         launch {
@@ -85,6 +91,7 @@ class AccountDetailsViewModel(
         } ?: resourceManager.getDrawable(R.drawable.ic_warning_filled)
 
         AccountInChainUi(
+            chainId = chain.id,
             chainName = chain.name,
             chainIcon = chain.icon,
             address = address,
@@ -94,5 +101,13 @@ class AccountDetailsViewModel(
 
     fun chainAccountClicked(item: AccountInChainUi) {
         // TODO view in external explorers
+    }
+
+    fun chainAccountOptionsClicked(item: AccountInChainUi) {
+        _openChainOptionsDialog.value = Event(ChainActionsSheet.Payload(item.chainId, item.chainName, item.address))
+    }
+
+    fun switchNode(chainId: String) {
+        accountRouter.openNodes(chainId)
     }
 }

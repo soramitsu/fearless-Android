@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
-import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.model.CryptoType
@@ -22,9 +21,7 @@ import jp.co.soramitsu.core.model.WithJson
 import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
-import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.AccountLocal
-import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
@@ -50,15 +47,11 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
-import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
-import jp.co.soramitsu.feature_account_impl.data.network.blockchain.AccountSubstrateSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.bouncycastle.util.encoders.Hex
@@ -68,65 +61,17 @@ class AccountRepositoryImpl(
     private val accountDao: AccountDao,
     private val metaAccountDao: MetaAccountDao,
     private val storeV2: SecretStoreV2,
-    private val nodeDao: NodeDao,
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
-    private val accountSubstrateSource: AccountSubstrateSource,
 ) : AccountRepository {
 
     override fun getEncryptionTypes(): List<CryptoType> {
         return CryptoType.values().toList()
     }
 
-    override suspend fun getNode(nodeId: Int): Node {
-        return withContext(Dispatchers.IO) {
-            val node = nodeDao.getNodeById(nodeId)
-
-            mapNodeLocalToNode(node)
-        }
-    }
-
-    override suspend fun getNetworks(): List<Network> {
-        return withContext(Dispatchers.Default) {
-            nodeDao.getNodes()
-                .map(::mapNodeLocalToNode)
-                .map(Node::networkType)
-                .distinct()
-                .map { getNetworkForType(it) }
-        }
-    }
-
-    override suspend fun getSelectedNodeOrDefault(): Node {
-        return accountDataSource.getSelectedNode() ?: mapNodeLocalToNode(nodeDao.getFirstNode())
-    }
-
-    override suspend fun selectNode(node: Node) {
-        accountDataSource.saveSelectedNode(node)
-    }
-
-    override suspend fun getDefaultNode(networkType: Node.NetworkType): Node {
-        return mapNodeLocalToNode(nodeDao.getDefaultNodeFor(networkType.ordinal))
-    }
-
-    override suspend fun selectAccount(metaAccountId: Long, newNode: Node?) {
+    override suspend fun selectAccount(metaAccountId: Long) {
         metaAccountDao.selectMetaAccount(metaAccountId)
-
-//        when {
-//            newNode != null -> {
-//                require(account.network.type == newNode.networkType) {
-//                    "Account network type is not the same as chosen node type"
-//                }
-//
-//                selectNode(newNode)
-//            }
-//
-//            account.network.type != accountDataSource.getSelectedNode()?.networkType -> {
-//                val defaultNode = getDefaultNode(account.address.networkType())
-//
-//                selectNode(defaultNode)
-//            }
-//        }
     }
 
     // TODO remove
@@ -421,13 +366,6 @@ class AccountRepositoryImpl(
         }
     }
 
-    override fun nodesFlow(): Flow<List<Node>> {
-        return nodeDao.nodesFlow()
-            .mapList { mapNodeLocalToNode(it) }
-            .filter { it.isNotEmpty() }
-            .flowOn(Dispatchers.Default)
-    }
-
     override fun getLanguages(): List<Language> {
         return languagesHolder.getLanguages()
     }
@@ -438,35 +376,6 @@ class AccountRepositoryImpl(
 
     override suspend fun changeLanguage(language: Language) {
         return accountDataSource.changeSelectedLanguage(language)
-    }
-
-    override suspend fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType) {
-        val nodeLocal = NodeLocal(nodeName, nodeHost, networkType.ordinal, false)
-        nodeDao.insert(nodeLocal)
-    }
-
-    override suspend fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType) {
-        nodeDao.updateNode(nodeId, newName, newHost, networkType.ordinal)
-    }
-
-    override suspend fun checkNodeExists(nodeHost: String): Boolean {
-        return nodeDao.checkNodeExists(nodeHost)
-    }
-
-    override suspend fun getNetworkName(nodeHost: String): String {
-        return accountSubstrateSource.getNodeNetworkType(nodeHost)
-    }
-
-    override suspend fun getAccountsByNetworkType(networkType: Node.NetworkType): List<Account> {
-        val accounts = accountDao.getAccountsByNetworkType(networkType.ordinal)
-
-        return withContext(Dispatchers.Default) {
-            accounts.map { mapAccountLocalToAccount(it) }
-        }
-    }
-
-    override suspend fun deleteNode(nodeId: Int) {
-        return nodeDao.deleteNode(nodeId)
     }
 
     override fun createQrAccountContent(payload: QrSharing.Payload): String {

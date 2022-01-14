@@ -22,7 +22,9 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSe
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
+import jp.co.soramitsu.feature_account_impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfiguration
@@ -404,8 +406,8 @@ class Navigator :
         navController?.navigate(R.id.action_open_accounts, AccountListFragment.getBundle(accountChosenNavDirection))
     }
 
-    override fun openNodes() {
-        navController?.navigate(R.id.action_mainFragment_to_nodesFragment)
+    override fun openNodes(chainId: String) {
+        navController?.navigate(R.id.action_accountDetailsFragment_to_nodesFragment, NodesFragment.getBundle(chainId))
     }
 
     override fun openLanguages() {
@@ -451,8 +453,8 @@ class Navigator :
         navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 
-    override fun openNodeDetails(nodeId: Int) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId))
+    override fun openNodeDetails(chainId: String, nodeUrl: String) {
+        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(chainId, nodeUrl))
     }
 
     override fun openAssetDetails(assetPayload: AssetPayload) {
@@ -461,8 +463,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
     }
 
-    override fun openAddNode() {
-        navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment)
+    override fun openAddNode(chainId: String) {
+        navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment, AddNodeFragment.getBundle(chainId))
     }
 
     override fun openExportMnemonic(accountAddress: String): DelayedNavigation {

@@ -17,12 +17,11 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
-import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
-import java.util.Random
+import java.util.*
 
 interface AccountFeatureDependencies {
 
@@ -43,8 +42,6 @@ interface AccountFeatureDependencies {
     fun deviceVibrator(): DeviceVibrator
 
     fun userDao(): AccountDao
-
-    fun nodeDao(): NodeDao
 
     fun languagesHolder(): LanguagesHolder
 

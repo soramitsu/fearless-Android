@@ -14,7 +14,6 @@ import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
-import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
@@ -47,12 +46,6 @@ class DbModule {
     @ApplicationScope
     fun provideUserDao(appDatabase: AppDatabase): AccountDao {
         return appDatabase.userDao()
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideNodeDao(appDatabase: AppDatabase): NodeDao {
-        return appDatabase.nodeDao()
     }
 
     @Provides

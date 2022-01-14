@@ -64,10 +64,12 @@ fun mapChainRemoteToChain(
 ): List<Chain> {
     val assetsById = assetsRemote.filter { it.id != null }.associateBy { it.id }
     return chainsRemote.map { chainRemote ->
-        val nodes = chainRemote.nodes?.map {
+        val nodes = chainRemote.nodes?.mapIndexed { index, node ->
             Chain.Node(
-                url = it.url,
-                name = it.name
+                url = node.url,
+                name = node.name,
+                isActive = index == 0,
+                isDefault = true
             )
         }
 
@@ -126,13 +128,15 @@ fun mapChainRemoteToChain(
     }
 }
 
+fun mapNodeLocalToNode(nodeLocal: ChainNodeLocal) = Chain.Node(
+    url = nodeLocal.url,
+    name = nodeLocal.name,
+    isActive = nodeLocal.isActive,
+    isDefault = nodeLocal.isDefault
+)
+
 fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
-    val nodes = chainLocal.nodes.map {
-        Chain.Node(
-            url = it.url,
-            name = it.name
-        )
-    }
+    val nodes = chainLocal.nodes.map(::mapNodeLocalToNode)
 
     val assets = chainLocal.assets.map {
         Chain.Asset(
@@ -189,7 +193,9 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
         ChainNodeLocal(
             url = it.url,
             name = it.name,
-            chainId = chain.id
+            chainId = chain.id,
+            isActive = it.isActive,
+            isDefault = it.isDefault
         )
     }
 

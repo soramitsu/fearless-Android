@@ -3,20 +3,36 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
+import coil.ImageLoader
+import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.AccountChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
-import kotlinx.android.synthetic.main.fragment_nodes.*
+import kotlinx.android.synthetic.main.fragment_nodes.addConnectionTv
+import kotlinx.android.synthetic.main.fragment_nodes.backButton
+import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
+import kotlinx.android.synthetic.main.fragment_nodes.rightText
+import kotlinx.android.synthetic.main.fragment_nodes.titleTextView
+import kotlinx.android.synthetic.main.fragment_nodes.tokenIcon
 
 class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
 
     private lateinit var adapter: NodesAdapter
+
+    companion object {
+        private const val CHAIN_ID_KEY = "chainIdKey"
+
+        fun getBundle(chainId: String) = bundleOf(CHAIN_ID_KEY to chainId)
+    }
+
+    @Inject
+    lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,11 +46,11 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         connectionsList.setHasFixedSize(true)
         connectionsList.adapter = adapter
 
-        fearlessToolbar.setHomeButtonListener {
+        backButton.setOnClickListener {
             viewModel.backClicked()
         }
 
-        fearlessToolbar.setRightActionClickListener {
+        rightText.setOnClickListener {
             viewModel.editClicked()
         }
 
@@ -44,31 +60,31 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     }
 
     override fun inject() {
+        val chainId = arguments?.getString(CHAIN_ID_KEY)!!
+
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .connectionsComponentFactory()
-            .create(this)
+            .create(this, chainId)
             .inject(this)
     }
 
     override fun subscribe(viewModel: NodesViewModel) {
         viewModel.groupedNodeModelsLiveData.observe(adapter::submitList)
 
-        viewModel.noAccountsEvent.observeEvent {
-            showNoAccountsDialog(it)
-        }
-
-        viewModel.showAccountChooserLiveData.observeEvent {
-            AccountChooserBottomSheetDialog(requireActivity(), it, viewModel::accountSelected).show()
-        }
-
         viewModel.editMode.observe(adapter::switchToEdit)
 
-        viewModel.toolbarAction.observe(fearlessToolbar::setTextRight)
+        viewModel.toolbarAction.observe(rightText::setText)
 
         viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
+
+        viewModel.chainInfo.observe {
+            val (name, icon) = it
+            tokenIcon.load(icon, imageLoader)
+            titleTextView.text = getString(R.string.connection_management_title, name)
+        }
     }
 
     override fun infoClicked(nodeModel: NodeModel) {
@@ -86,7 +102,6 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     private fun showDeleteNodeDialog(nodeModel: NodeModel) {
         val message = getString(
             R.string.connection_delete_description,
-            nodeModel.networkModelType.networkType.readableName,
             nodeModel.name
         )
 
@@ -95,18 +110,6 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
             .setMessage(message)
             .setPositiveButton(R.string.connection_delete_confirm) { dialog, _ ->
                 viewModel.confirmNodeDeletion(nodeModel)
-                dialog?.dismiss()
-            }
-            .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
-            .show()
-    }
-
-    // todo (Denis Lyazgin 18.11.2021) I don't think we still need this dialog
-    private fun showNoAccountsDialog(networkType: Node.NetworkType) {
-        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
-            .setTitle(R.string.account_needed_title)
-            .setMessage(R.string.account_needed_message)
-            .setPositiveButton(R.string.common_proceed) { dialog, _ ->
                 dialog?.dismiss()
             }
             .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }

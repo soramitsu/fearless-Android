@@ -10,9 +10,11 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.interfaces.NodesSettingsScenario
+import jp.co.soramitsu.feature_account_impl.domain.NodesSettingsScenarioImpl
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class NodeDetailsModule {
@@ -21,13 +23,13 @@ class NodeDetailsModule {
     @IntoMap
     @ViewModelKey(NodeDetailsViewModel::class)
     fun provideViewModel(
-        interactor: AccountInteractor,
+        nodesSettingsScenario: NodesSettingsScenario,
         router: AccountRouter,
-        nodeId: Int,
         clipboardManager: ClipboardManager,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        nodeId: Pair<String, String>
     ): ViewModel {
-        return NodeDetailsViewModel(interactor, router, nodeId, clipboardManager, resourceManager)
+        return NodeDetailsViewModel(nodesSettingsScenario, router, clipboardManager, resourceManager, nodeId.first, nodeId.second)
     }
 
     @Provides
@@ -36,5 +38,10 @@ class NodeDetailsModule {
         viewModelFactory: ViewModelProvider.Factory
     ): NodeDetailsViewModel {
         return ViewModelProvider(fragment, viewModelFactory).get(NodeDetailsViewModel::class.java)
+    }
+
+    @Provides
+    fun provideNodesSettingsScenario(chainRegistry: ChainRegistry): NodesSettingsScenario {
+        return NodesSettingsScenarioImpl(chainRegistry)
     }
 }

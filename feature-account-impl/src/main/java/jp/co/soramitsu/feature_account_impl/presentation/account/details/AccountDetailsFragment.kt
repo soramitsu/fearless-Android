@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
@@ -15,13 +16,13 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsChainAccounts
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsToolbar
-import javax.inject.Inject
 
 private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
 class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAccountsAdapter.Handler {
 
-    @Inject lateinit var imageLoader: ImageLoader
+    @Inject
+    lateinit var imageLoader: ImageLoader
 
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
         ChainAccountsAdapter(this, imageLoader)
@@ -68,9 +69,21 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
         accountDetailsNameField.content.bindTo(viewModel.accountNameFlow, viewLifecycleOwner.lifecycleScope)
 
         viewModel.chainAccountProjections.observe { adapter.submitList(it) }
+
+        viewModel.openChainOptionsDialog.observeEvent { showChainActionsSheet(it) }
+    }
+
+    private fun showChainActionsSheet(payload: ChainActionsSheet.Payload) {
+        ChainActionsSheet(requireContext(), payload) {
+            viewModel.switchNode(it)
+        }.show()
     }
 
     override fun chainAccountClicked(item: AccountInChainUi) {
         viewModel.chainAccountClicked(item)
+    }
+
+    override fun chainAccountOptionsClicked(item: AccountInChainUi) {
+        viewModel.chainAccountOptionsClicked(item)
     }
 }

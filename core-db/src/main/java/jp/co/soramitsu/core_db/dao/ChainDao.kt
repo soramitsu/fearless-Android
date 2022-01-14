@@ -21,16 +21,20 @@ abstract class ChainDao {
         removed: List<ChainLocal>,
         newOrUpdated: List<JoinedChainInfo>,
     ) {
+        //saving custom nodes before deleting
+        val customNodes = getCustomNodes()
+
         deleteChains(removed)
 
         deleteChains(newOrUpdated.map(JoinedChainInfo::chain)) // delete all nodes and assets associated with changed chains
 
         insertChains(newOrUpdated.map(JoinedChainInfo::chain))
         insertChainNodes(newOrUpdated.flatMap(JoinedChainInfo::nodes))
+        insertChainNodes(customNodes)
         insertChainAssets(newOrUpdated.flatMap(JoinedChainInfo::assets))
     }
 
-    @Delete
+    @Delete()
     protected abstract suspend fun deleteChains(chains: List<ChainLocal>)
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
@@ -38,6 +42,36 @@ abstract class ChainDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChainNodes(nodes: List<ChainNodeLocal>)
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    abstract suspend fun insertChainNode(nodes: ChainNodeLocal)
+
+    @Query("SELECT * FROM chain_nodes WHERE chainId = :chainId")
+    abstract fun nodesFlow(chainId: String): Flow<List<ChainNodeLocal>>
+
+    @Transaction
+    open suspend fun selectNode(chainId: String, nodeUrl: String) {
+        clearNodeSelection(chainId)
+        makeNodeSelected(chainId, nodeUrl)
+    }
+
+    @Query("UPDATE chain_nodes SET isActive = 0 WHERE chainId = :chainId AND isActive = 1")
+    protected abstract suspend fun clearNodeSelection(chainId: String)
+
+    @Query("SELECT * FROM chain_nodes WHERE isDefault = 0")
+    protected abstract suspend fun getCustomNodes(): List<ChainNodeLocal>
+
+    @Query("UPDATE chain_nodes SET isActive = 1 WHERE chainId = :chainId AND url = :nodeUrl")
+    protected abstract suspend fun makeNodeSelected(chainId: String, nodeUrl: String)
+
+    @Query("DELETE FROM chain_nodes WHERE chainId = :chainId AND url = :nodeUrl")
+    abstract suspend fun deleteNode(chainId: String, nodeUrl: String)
+
+    @Query("SELECT * FROM chain_nodes WHERE chainId = :chainId AND url = :nodeUrl")
+    abstract suspend fun getNode(chainId: String, nodeUrl: String): ChainNodeLocal
+
+    @Query("UPDATE chain_nodes SET name = :nodeName, url = :nodeUrl WHERE chainId = :chainId and url = :prevNodeUrl")
+    abstract suspend fun updateNode(chainId: String, prevNodeUrl: String, nodeName: String, nodeUrl: String)
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)

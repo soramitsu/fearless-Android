@@ -9,9 +9,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
-import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -24,7 +22,6 @@ import jp.co.soramitsu.feature_account_impl.data.mappers.mapChainAccountToAccoun
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapMetaAccountLocalToLightMetaAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapMetaAccountLocalToMetaAccount
 import jp.co.soramitsu.feature_account_impl.data.mappers.mapMetaAccountToAccount
-import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeLocalToNode
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +47,6 @@ private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 class AccountDataSourceImpl(
     private val preferences: Preferences,
     private val encryptedPreferences: EncryptedPreferences,
-    private val nodeDao: NodeDao,
     private val jsonMapper: Gson,
     private val metaAccountDao: MetaAccountDao,
     private val chainRegistry: ChainRegistry,
@@ -80,10 +76,6 @@ class AccountDataSourceImpl(
         ::mapMetaAccountLocalToMetaAccount
     )
         .inBackground()
-        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
-
-    private val selectedNodeFlow = nodeDao.activeNodeFlow()
-        .map { it?.let(::mapNodeLocalToNode) }
         .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     /**
@@ -131,12 +123,6 @@ class AccountDataSourceImpl(
         }
     }
 
-    override suspend fun saveSelectedNode(node: Node) = withContext(Dispatchers.Default) {
-        nodeDao.switchActiveNode(node.id)
-    }
-
-    override suspend fun getSelectedNode(): Node? = selectedNodeFlow.first()
-
     override suspend fun anyAccountSelected(): Boolean = selectedMetaAccountLocal.first() != null
 
     override suspend fun saveSelectedAccount(account: Account) = withContext(Dispatchers.Default) {
@@ -156,11 +142,6 @@ class AccountDataSourceImpl(
         } else {
             DEFAULT_CRYPTO_TYPE
         }
-    }
-
-    override fun selectedNodeFlow(): Flow<Node> {
-        return selectedNodeFlow
-            .filterNotNull()
     }
 
     override suspend fun getSelectedAccount(): Account {

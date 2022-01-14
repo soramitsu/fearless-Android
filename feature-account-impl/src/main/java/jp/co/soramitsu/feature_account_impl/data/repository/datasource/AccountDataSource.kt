@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_account_impl.data.repository.datasource
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.AuthType
@@ -22,10 +21,6 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun savePinCode(pinCode: String)
 
     suspend fun getPinCode(): String?
-
-    suspend fun saveSelectedNode(node: Node)
-
-    suspend fun getSelectedNode(): Node?
 
     suspend fun anyAccountSelected(): Boolean
 
@@ -49,8 +44,6 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun updateAccountPositions(accountOrdering: List<MetaAccountOrdering>)
 
     suspend fun getPreferredCryptoType(): CryptoType
-
-    fun selectedNodeFlow(): Flow<Node>
 
     suspend fun getSelectedLanguage(): Language
     suspend fun changeSelectedLanguage(language: Language)

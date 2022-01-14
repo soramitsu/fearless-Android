@@ -62,6 +62,7 @@ dependencies {
     implementation viewModelKtxDep
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
+    implementation coreKtx
 
     implementation daggerDep
     kapt daggerKapt
