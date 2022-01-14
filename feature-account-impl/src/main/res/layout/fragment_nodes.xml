@@ -7,15 +7,68 @@
     android:fitsSystemWindows="true"
     tools:background="@color/black">
 
-    <jp.co.soramitsu.common.view.Toolbar
-        android:id="@+id/fearlessToolbar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ImageView
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:paddingStart="@dimen/x2"
+        android:paddingEnd="@dimen/x2"
+        android:src="@drawable/ic_arrow_back_24dp"
+        app:layout_constraintBottom_toTopOf="@+id/toolbarGuideline"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/tokenIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="@dimen/x1"
+        app:layout_constraintBottom_toTopOf="@+id/toolbarGuideline"
+        app:layout_constraintEnd_toStartOf="@+id/titleTextView"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toEndOf="@+id/backButton"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleText="@string/connection_management_title"
-        app:textRight="@string/common_edit"/>
+        tools:src="@drawable/ic_token_ksm" />
+
+    <TextView
+        android:id="@+id/titleTextView"
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="middle"
+        android:maxLines="1"
+        android:textColor="@color/white"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toTopOf="@+id/toolbarGuideline"
+        app:layout_constraintEnd_toStartOf="@+id/rightText"
+        app:layout_constraintStart_toEndOf="@+id/tokenIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/connection_management_title" />
+
+    <TextView
+        android:id="@+id/rightText"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_gravity="center_vertical|end"
+        android:fontFamily="@font/soramitsu_semibold"
+        android:gravity="center"
+        android:paddingStart="@dimen/x2"
+        android:paddingEnd="@dimen/x2"
+        android:text="@string/common_edit"
+        android:textColor="@color/actions_color"
+        app:layout_constraintBottom_toTopOf="@+id/toolbarGuideline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/toolbarGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="44dp"
+        app:layout_constraintGuide_end="44dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/connectionsList"
@@ -25,7 +78,7 @@
         app:layout_constraintBottom_toTopOf="@+id/addConnectionTv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fearlessToolbar"
+        app:layout_constraintTop_toBottomOf="@+id/toolbarGuideline"
         tools:listitem="@layout/item_node" />
 
     <TextView

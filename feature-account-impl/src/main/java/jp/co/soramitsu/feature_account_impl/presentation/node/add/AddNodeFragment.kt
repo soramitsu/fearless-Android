@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.add
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
@@ -14,6 +15,11 @@ import kotlinx.android.synthetic.main.fragment_node_add.nodeHostField
 import kotlinx.android.synthetic.main.fragment_node_add.nodeNameField
 
 class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
+
+    companion object {
+        private const val CHAIN_ID_KEY = "chainIdKey"
+        fun getBundle(chainId: String) = bundleOf(CHAIN_ID_KEY to chainId)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,12 +40,14 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
     }
 
     override fun inject() {
+        val chainId = arguments?.getString(CHAIN_ID_KEY)!!
+
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .addNodeComponentFactory()
-            .create(this)
+            .create(this, chainId)
             .inject(this)
     }
 

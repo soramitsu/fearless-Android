@@ -12,7 +12,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import kotlinx.android.synthetic.main.item_node.view.nodeCheck
 import kotlinx.android.synthetic.main.item_node.view.nodeDelete
 import kotlinx.android.synthetic.main.item_node.view.nodeHost
-import kotlinx.android.synthetic.main.item_node.view.nodeIcon
 import kotlinx.android.synthetic.main.item_node.view.nodeInfo
 import kotlinx.android.synthetic.main.item_node.view.nodeTitle
 import kotlinx.android.synthetic.main.item_node_group.view.nodeGroupTitle
@@ -96,8 +95,6 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
                 isEnabled = true
                 setOnClickListener { handler.checkClicked(nodeModel) }
             }
-
-            nodeIcon.setImageResource(nodeModel.networkModelType.icon)
         }
     }
 }
@@ -113,7 +110,7 @@ private object NodesDiffCallback : BaseGroupedDiffCallback<NodeHeaderModel, Node
     }
 
     override fun areChildItemsTheSame(oldItem: NodeModel, newItem: NodeModel): Boolean {
-        return oldItem.id == newItem.id
+        return oldItem.link == newItem.link
     }
 
     override fun areChildContentsTheSame(oldItem: NodeModel, newItem: NodeModel): Boolean {

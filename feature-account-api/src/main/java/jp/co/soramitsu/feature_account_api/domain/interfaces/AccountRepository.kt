@@ -2,8 +2,6 @@ package jp.co.soramitsu.feature_account_api.domain.interfaces
 
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Network
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -21,17 +19,7 @@ interface AccountRepository {
 
     fun getEncryptionTypes(): List<CryptoType>
 
-    suspend fun getNode(nodeId: Int): Node
-
-    suspend fun getNetworks(): List<Network>
-
-    suspend fun getSelectedNodeOrDefault(): Node
-
-    suspend fun selectNode(node: Node)
-
-    suspend fun getDefaultNode(networkType: Node.NetworkType): Node
-
-    suspend fun selectAccount(metaAccountId: Long, newNode: Node? = null)
+    suspend fun selectAccount(metaAccountId: Long)
 
     fun selectedAccountFlow(): Flow<Account>
 
@@ -106,8 +94,6 @@ interface AccountRepository {
 
     suspend fun setBiometricOff()
 
-    fun nodesFlow(): Flow<List<Node>>
-
     suspend fun updateAccountsOrdering(accountOrdering: List<MetaAccountOrdering>)
 
     suspend fun processAccountJson(json: String): ImportJsonData
@@ -119,21 +105,6 @@ interface AccountRepository {
     suspend fun changeLanguage(language: Language)
 
     suspend fun getSecuritySource(accountAddress: String): SecuritySource
-
-    suspend fun addNode(nodeName: String, nodeHost: String, networkType: Node.NetworkType)
-
-    suspend fun updateNode(nodeId: Int, newName: String, newHost: String, networkType: Node.NetworkType)
-
-    suspend fun checkNodeExists(nodeHost: String): Boolean
-
-    /**
-     * @throws FearlessException
-     */
-    suspend fun getNetworkName(nodeHost: String): String
-
-    suspend fun getAccountsByNetworkType(networkType: Node.NetworkType): List<Account>
-
-    suspend fun deleteNode(nodeId: Int)
 
     fun createQrAccountContent(payload: QrSharing.Payload): String
 

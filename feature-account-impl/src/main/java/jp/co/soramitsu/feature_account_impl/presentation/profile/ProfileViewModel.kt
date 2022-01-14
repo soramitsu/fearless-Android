@@ -45,10 +45,6 @@ class ProfileViewModel(
         router.openWallets(AccountChosenNavDirection.MAIN)
     }
 
-    fun networksClicked() {
-        router.openNodes()
-    }
-
     fun languagesClicked() {
         router.openLanguages()
     }

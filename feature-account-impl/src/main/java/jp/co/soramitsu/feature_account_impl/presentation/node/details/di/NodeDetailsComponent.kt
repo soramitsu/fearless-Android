@@ -19,7 +19,7 @@ interface NodeDetailsComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance nodeId: Int,
+            @BindsInstance nodeId: Pair<String, String>
         ): NodeDetailsComponent
     }
 

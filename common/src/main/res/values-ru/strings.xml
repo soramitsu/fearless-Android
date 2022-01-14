@@ -29,7 +29,7 @@
     <string name="about_privacy">Политика конфиденциальности</string>
     <string name="about_terms">Условия использования</string>
     <string name="language_title">Язык</string>
-    <string name="connection_management_title">Сети</string>
+    <string name="connection_management_title">%s сети</string>
     <string name="onboarding_create_wallet">Создать кошелек</string>
     <string name="username_setup_choose_title">Имя</string>
     <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>

@@ -31,7 +31,7 @@ interface AccountRouter : SecureRouter {
 
     fun openWallets(accountChosenNavDirection: AccountChosenNavDirection)
 
-    fun openNodes()
+    fun openNodes(chainId: String)
 
     fun openLanguages()
 
@@ -43,9 +43,9 @@ interface AccountRouter : SecureRouter {
 
     fun backToMainScreen()
 
-    fun openNodeDetails(nodeId: Int)
+    fun openNodeDetails(chainId: String, nodeUrl: String)
 
-    fun openAddNode()
+    fun openAddNode(chainId: String)
 
     @PinRequired
     fun openExportMnemonic(accountAddress: String): DelayedNavigation

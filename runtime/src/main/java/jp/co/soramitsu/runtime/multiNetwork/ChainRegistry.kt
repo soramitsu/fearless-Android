@@ -4,11 +4,14 @@ import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
+import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
@@ -55,7 +58,10 @@ class ChainRegistry(
             }
 
             addedOrModified.forEach { chain ->
-                val connection = connectionPool.setupConnection(chain)
+
+                val connection = connectionPool.setupConnection(chain, onSelectedNodeChange = { chainId, newNodeUrl ->
+                    launch { selectNode(NodeId(chainId to newNodeUrl)) }
+                })
 
                 runtimeProviderPool.setupRuntimeProvider(chain)
                 runtimeSyncService.registerChain(chain, connection)
@@ -90,6 +96,19 @@ class ChainRegistry(
     }
 
     suspend fun getChain(chainId: String) = chainsById.first().getValue(chainId)
+
+    fun nodesFlow(chainId: String) = chainDao.nodesFlow(chainId)
+        .mapList(::mapNodeLocalToNode)
+
+    suspend fun selectNode(id: NodeId) = chainDao.selectNode(id.chainId, id.nodeUrl)
+
+    suspend fun addNode(chainId: String, nodeName: String, nodeUrl: String) = chainDao.insertChainNode(ChainNodeLocal(chainId, nodeUrl, nodeName, isActive = false, isDefault = false))
+
+    suspend fun deleteNode(id: NodeId) = chainDao.deleteNode(id.chainId, id.nodeUrl)
+
+    suspend fun getNode(id: NodeId) = mapNodeLocalToNode(chainDao.getNode(id.chainId, id.nodeUrl))
+
+    suspend fun updateNode(id: NodeId, name: String, url: String) = chainDao.updateNode(id.chainId, id.nodeUrl, name, url)
 }
 
 suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: String): Pair<Chain, Chain.Asset> {

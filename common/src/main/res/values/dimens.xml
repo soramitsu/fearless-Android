@@ -24,4 +24,6 @@
     <dimen name="element_chooser_padding">16dp</dimen>
 
     <dimen name="avatar_size">40dp</dimen>
+
+    <dimen name="chain_icon_size_small">24dp</dimen>
 </resources>

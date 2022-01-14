@@ -18,7 +18,8 @@ interface AddNodeComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance fragment: Fragment
+            @BindsInstance fragment: Fragment,
+            @BindsInstance chainId: String
         ): AddNodeComponent
     }
 

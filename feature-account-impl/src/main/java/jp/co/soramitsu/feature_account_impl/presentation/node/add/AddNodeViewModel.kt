@@ -6,17 +6,18 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.view.ButtonState
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.interfaces.NodesSettingsScenario
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.NodeDetailsRootViewModel
 import kotlinx.coroutines.launch
 
 class AddNodeViewModel(
-    private val interactor: AccountInteractor,
+    private val nodesSettingsScenario: NodesSettingsScenario,
     private val router: AccountRouter,
     private val nodeHostValidator: NodeHostValidator,
-    resourceManager: ResourceManager
+    resourceManager: ResourceManager,
+    private val chainId: String
 ) : NodeDetailsRootViewModel(resourceManager) {
 
     val nodeNameInputLiveData = MutableLiveData<String>()
@@ -47,7 +48,7 @@ class AddNodeViewModel(
         addingInProgressLiveData.value = true
 
         viewModelScope.launch {
-            val result = interactor.addNode(nodeName, nodeHost)
+            val result = nodesSettingsScenario.addNode(chainId, nodeName, nodeHost)
 
             if (result.isSuccess) {
                 router.back()
