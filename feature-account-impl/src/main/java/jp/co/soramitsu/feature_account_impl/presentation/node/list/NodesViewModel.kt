@@ -59,6 +59,7 @@ class NodesViewModel(
     fun selectNodeClicked(nodeModel: NodeModel) {
         viewModelScope.launch {
             nodesSettingsScenario.selectNode(NodeId(chainId to nodeModel.link))
+            router.openMain()
         }
     }
 
