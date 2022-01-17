@@ -44,6 +44,7 @@ dependencies {
     implementation kotlinDep
 
     implementation androidDep
+    implementation androidxCoreDep
     implementation materialDep
     implementation cardViewDep
     implementation constraintDep

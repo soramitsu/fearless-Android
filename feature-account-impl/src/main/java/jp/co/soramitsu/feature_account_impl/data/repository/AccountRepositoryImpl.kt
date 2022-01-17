@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.data.repository
 import android.database.sqlite.SQLiteConstraintException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -12,12 +13,10 @@ import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.JsonFormer
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.model.Network
 import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
-import jp.co.soramitsu.core.model.WithJson
 import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
@@ -29,6 +28,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
@@ -38,7 +38,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactor
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
@@ -47,7 +46,10 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.feature_account_api.domain.model.address
+import jp.co.soramitsu.feature_account_api.domain.model.cryptoType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -64,6 +66,7 @@ class AccountRepositoryImpl(
     private val jsonSeedDecoder: JsonSeedDecoder,
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
+    private val chainRegistry: ChainRegistry
 ) : AccountRepository {
 
     override fun getEncryptionTypes(): List<CryptoType> {
@@ -251,7 +254,6 @@ class AccountRepositoryImpl(
 
             val secretsV2 = MetaAccountSecrets(
                 substrateKeyPair = importData.keypair,
-                substrateDerivationPath = null,
                 seed = importData.seed
             )
 
@@ -325,26 +327,40 @@ class AccountRepositoryImpl(
         return accountDataSource.getSecuritySource(accountAddress)!!
     }
 
-    override suspend fun generateRestoreJson(account: Account, password: String): String {
-        return withContext(Dispatchers.Default) {
-            val securitySource = getSecuritySource(account.address)
-            require(securitySource is WithJson)
+    override suspend fun getMetaAccountSecrets(metaId: Long) = storeV2.getMetaAccountSecrets(metaId)
 
-            val seed = (securitySource.jsonFormer() as? JsonFormer.Seed)?.seed
-
-            val cryptoType = mapCryptoTypeToEncryption(account.cryptoType)
-            val runtimeConfiguration = account.network.type.runtimeConfiguration
-
-            jsonSeedEncoder.generate(
-                keypair = securitySource.keypair,
-                seed = seed,
-                password = password,
-                name = account.name.orEmpty(),
-                multiChainEncryption = MultiChainEncryption.Substrate(cryptoType),
-                genesisHash = runtimeConfiguration.genesisHash,
-                address = securitySource.keypair.publicKey.toAddress(runtimeConfiguration.addressByte)
+    override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) = withContext(Dispatchers.Default) {
+        val chain = chainRegistry.getChain(chainId)
+        val metaAccount = getMetaAccount(metaId)
+        val secrets = getMetaAccountSecrets(metaId)
+        val seed = secrets?.get(MetaAccountSecrets.Seed)
+        val keypairSchema = secrets?.get(MetaAccountSecrets.SubstrateKeypair)
+        val publicKey = keypairSchema?.get(KeyPairSchema.PublicKey)
+        val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
+        val nonce = keypairSchema?.get(KeyPairSchema.Nonce)
+        val keypair = when {
+            publicKey == null -> null
+            privateKey == null -> null
+            nonce == null -> null
+            else -> Sr25519Keypair(
+                publicKey = publicKey,
+                privateKey = privateKey,
+                nonce = nonce
             )
-        }
+        } ?: throw IllegalArgumentException("No keypair found")
+        val address = metaAccount.address(chain) ?: throw IllegalArgumentException("No address specified for chain ${chain.name}")
+
+        val cryptoType = mapCryptoTypeToEncryption(metaAccount.cryptoType(chain))
+
+        jsonSeedEncoder.generate(
+            keypair = keypair,
+            seed = seed,
+            password = password,
+            name = metaAccount.name,
+            multiChainEncryption = MultiChainEncryption.Substrate(cryptoType),
+            genesisHash = chain.id,
+            address = address
+        )
     }
 
     override suspend fun isAccountExists(accountId: AccountId): Boolean {
@@ -399,7 +415,7 @@ class AccountRepositoryImpl(
             val keys = SubstrateKeypairFactory.generate(
                 encryptionType = mapCryptoTypeToEncryption(cryptoType),
                 seed = derivationResult.seed,
-                decodedDerivationPath?.junctions.orEmpty()
+                junctions = decodedDerivationPath?.junctions.orEmpty()
             )
 
             val mnemonic = MnemonicCreator.fromWords(mnemonicWords)

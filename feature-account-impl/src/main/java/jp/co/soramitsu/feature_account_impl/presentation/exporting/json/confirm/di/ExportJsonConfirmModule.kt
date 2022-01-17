@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ExportJsonConfirmModule {
@@ -24,9 +25,10 @@ class ExportJsonConfirmModule {
         router: AccountRouter,
         resourceManager: ResourceManager,
         accountInteractor: AccountInteractor,
+        chainRegistry: ChainRegistry,
         payload: ExportJsonConfirmPayload
     ): ViewModel {
-        return ExportJsonConfirmViewModel(router, resourceManager, accountInteractor, payload)
+        return ExportJsonConfirmViewModel(router, resourceManager, accountInteractor, chainRegistry, payload)
     }
 
     @Provides

@@ -17,8 +17,11 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountLis
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
@@ -469,14 +472,14 @@ class Navigator :
         navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment, AddNodeFragment.getBundle(chainId))
     }
 
-    override fun openExportMnemonic(accountAddress: String): DelayedNavigation {
-        val extras = ExportMnemonicFragment.getBundle(accountAddress)
+    override fun openExportMnemonic(payload: ExportMnemonicPayload): DelayedNavigation {
+        val extras = ExportMnemonicFragment.getBundle(payload)
 
         return NavComponentDelayedNavigation(R.id.action_export_mnemonic, extras)
     }
 
-    override fun openExportSeed(accountAddress: String): DelayedNavigation {
-        val extras = ExportSeedFragment.getBundle(accountAddress)
+    override fun openExportSeed(payload: ExportSeedPayload): DelayedNavigation {
+        val extras = ExportSeedFragment.getBundle(payload)
 
         return NavComponentDelayedNavigation(R.id.action_export_seed, extras)
     }
@@ -487,8 +490,8 @@ class Navigator :
         navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }
 
-    override fun openExportJsonPassword(accountAddress: String): DelayedNavigation {
-        val extras = ExportJsonPasswordFragment.getBundle(accountAddress)
+    override fun openExportJsonPassword(payload: ExportJsonPasswordPayload): DelayedNavigation {
+        val extras = ExportJsonPasswordFragment.getBundle(payload)
 
         return NavComponentDelayedNavigation(R.id.action_export_json, extras)
     }

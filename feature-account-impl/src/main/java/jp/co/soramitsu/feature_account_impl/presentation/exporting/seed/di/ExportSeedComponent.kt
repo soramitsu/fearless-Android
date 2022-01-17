@@ -5,6 +5,7 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
 
 @Subcomponent(
     modules = [
@@ -19,7 +20,7 @@ interface ExportSeedComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance accountAddress: String
+            @BindsInstance payload: ExportSeedPayload
         ): ExportSeedComponent
     }
 

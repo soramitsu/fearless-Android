@@ -7,6 +7,8 @@ import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import coil.ImageLoader
+import coil.load
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeVisible
@@ -88,6 +90,11 @@ class LabeledTextView @JvmOverloads constructor(
     fun setTextIcon(icon: Drawable) {
         labeledTextIcon.makeVisible()
         labeledTextIcon.setImageDrawable(icon)
+    }
+
+    fun loadIcon(imageUrl: String, imageLoader: ImageLoader) {
+        labeledTextIcon.makeVisible()
+        labeledTextIcon.load(imageUrl, imageLoader)
     }
 
     fun setActionClickListener(listener: (View) -> Unit) {

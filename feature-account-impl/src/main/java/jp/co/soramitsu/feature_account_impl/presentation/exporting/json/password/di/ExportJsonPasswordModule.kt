@@ -10,7 +10,9 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ExportJsonPasswordModule {
@@ -21,9 +23,10 @@ class ExportJsonPasswordModule {
     fun provideViewModel(
         router: AccountRouter,
         accountInteractor: AccountInteractor,
-        accountAddress: String
+        chainRegistry: ChainRegistry,
+        payload: ExportJsonPasswordPayload
     ): ViewModel {
-        return ExportJsonPasswordViewModel(router, accountInteractor, accountAddress)
+        return ExportJsonPasswordViewModel(router, accountInteractor, chainRegistry, payload)
     }
 
     @Provides

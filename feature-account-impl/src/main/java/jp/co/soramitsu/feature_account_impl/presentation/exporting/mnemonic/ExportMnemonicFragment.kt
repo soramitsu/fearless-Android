@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -17,16 +18,12 @@ import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicToo
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicType
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicViewer
 
-private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
-
 class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
 
     companion object {
-        fun getBundle(accountAddress: String): Bundle {
-            return Bundle().apply {
-                putString(ACCOUNT_ADDRESS_KEY, accountAddress)
-            }
-        }
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+
+        fun getBundle(payload: ExportMnemonicPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -50,11 +47,11 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
     }
 
     override fun inject() {
-        val accountAddress = argument<String>(ACCOUNT_ADDRESS_KEY)
+        val payload = argument<ExportMnemonicPayload>(PAYLOAD_KEY)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
             .exportMnemonicFactory()
-            .create(this, accountAddress)
+            .create(this, payload)
             .inject(this)
     }
 

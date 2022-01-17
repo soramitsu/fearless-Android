@@ -79,7 +79,8 @@ class AccountFeatureModule {
         storeV2: SecretStoreV2,
         jsonSeedDecoder: JsonSeedDecoder,
         jsonSeedEncoder: JsonSeedEncoder,
-        languagesHolder: LanguagesHolder
+        languagesHolder: LanguagesHolder,
+        chainRegistry: ChainRegistry
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -88,7 +89,8 @@ class AccountFeatureModule {
             storeV2,
             jsonSeedDecoder,
             jsonSeedEncoder,
-            languagesHolder
+            languagesHolder,
+            chainRegistry
         )
     }
 
