@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
+import coil.ImageLoader
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.setDrawableStart
@@ -17,17 +19,16 @@ import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPa
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNewField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNext
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordToolbar
-
-private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
+import javax.inject.Inject
 
 class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
 
+    @Inject protected lateinit var imageLoader: ImageLoader
+
     companion object {
-        fun getBundle(accountAddress: String): Bundle {
-            return Bundle().apply {
-                putString(ACCOUNT_ADDRESS_KEY, accountAddress)
-            }
-        }
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+
+        fun getBundle(payload: ExportJsonPasswordPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -45,11 +46,11 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
     }
 
     override fun inject() {
-        val accountAddress = argument<String>(ACCOUNT_ADDRESS_KEY)
+        val payload = argument<ExportJsonPasswordPayload>(PAYLOAD_KEY)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
             .exportJsonPasswordFactory()
-            .create(this, accountAddress)
+            .create(this, payload)
             .inject(this)
     }
 
@@ -63,8 +64,8 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
             exportJsonPasswordMatchingError.setVisible(it, falseState = View.INVISIBLE)
         }
 
-        viewModel.networkTypeLiveData.observe {
-            exportJsonPasswordNetworkInput.setTextIcon(it.networkTypeUI.icon)
+        viewModel.chainLiveData.observe {
+            exportJsonPasswordNetworkInput.loadIcon(it.icon, imageLoader)
             exportJsonPasswordNetworkInput.setMessage(it.name)
         }
     }

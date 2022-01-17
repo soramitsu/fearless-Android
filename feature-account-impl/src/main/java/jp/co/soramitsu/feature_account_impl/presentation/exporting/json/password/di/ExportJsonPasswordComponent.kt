@@ -5,6 +5,7 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordPayload
 
 @Subcomponent(
     modules = [
@@ -19,7 +20,7 @@ interface ExportJsonPasswordComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance accountAddress: String
+            @BindsInstance payload: ExportJsonPasswordPayload
         ): ExportJsonPasswordComponent
     }
 

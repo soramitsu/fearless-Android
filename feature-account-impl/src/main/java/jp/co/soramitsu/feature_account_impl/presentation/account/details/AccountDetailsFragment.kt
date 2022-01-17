@@ -5,24 +5,28 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presenatation.actions.copyAddressClicked
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.ExportSourceChooserPayload
+import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsChainAccounts
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsToolbar
+import javax.inject.Inject
 
 private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
 class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAccountsAdapter.Handler {
 
-    @Inject
-    lateinit var imageLoader: ImageLoader
+    @Inject lateinit var imageLoader: ImageLoader
 
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
         ChainAccountsAdapter(this, imageLoader)
@@ -71,6 +75,9 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
         viewModel.chainAccountProjections.observe { adapter.submitList(it) }
 
         viewModel.openChainOptionsDialog.observeEvent { showChainActionsSheet(it) }
+
+        viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
+        viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
     }
 
     private fun showChainActionsSheet(payload: ChainActionsSheet.Payload) {
@@ -85,5 +92,23 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
 
     override fun chainAccountOptionsClicked(item: AccountInChainUi) {
         viewModel.chainAccountOptionsClicked(item)
+    }
+
+    private fun showAccountActions(payload: ExternalAccountActions.Payload) {
+        WalletAccountActionsSheet(
+            context = requireContext(),
+            content = payload,
+            onCopy = viewModel::copyAddressClicked,
+            onExternalView = viewModel::viewExternalClicked,
+            onExportAccount = { viewModel.exportClicked(payload.chainId) }
+        ).show()
+    }
+
+    private fun showExportSourceChooser(payload: ExportSourceChooserPayload) {
+        SourceTypeChooserBottomSheetDialog(
+            context = requireActivity(),
+            payload = DynamicListBottomSheet.Payload(payload.sources),
+            onClicked = { viewModel.exportTypeSelected(it, payload.chainId) }
+        ).show()
     }
 }

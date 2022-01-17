@@ -11,7 +11,9 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ExportSeedModule {
@@ -23,9 +25,10 @@ class ExportSeedModule {
         router: AccountRouter,
         resourceManager: ResourceManager,
         accountInteractor: AccountInteractor,
-        accountAddress: String
+        chainRegistry: ChainRegistry,
+        payload: ExportSeedPayload
     ): ViewModel {
-        return ExportSeedViewModel(router, resourceManager, accountInteractor, accountAddress)
+        return ExportSeedViewModel(router, resourceManager, accountInteractor, chainRegistry, payload)
     }
 
     @Provides

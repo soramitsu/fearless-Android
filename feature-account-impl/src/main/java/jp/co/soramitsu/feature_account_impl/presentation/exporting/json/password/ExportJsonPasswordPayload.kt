@@ -1,12 +1,11 @@
-package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm
+package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password
 
 import android.os.Parcelable
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class ExportJsonConfirmPayload(
+class ExportJsonPasswordPayload(
     val metaId: Long,
-    val chainId: ChainId,
-    val json: String
+    val chainId: ChainId
 ) : Parcelable

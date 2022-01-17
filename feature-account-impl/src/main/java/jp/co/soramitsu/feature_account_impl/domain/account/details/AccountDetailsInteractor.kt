@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.domain.account.details
 
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
@@ -44,5 +46,9 @@ class AccountDetailsInteractor(
                 from = if (metaAccount.hasChainAccount(chain.id)) From.CHAIN_ACCOUNT else From.META_ACCOUNT
             )
         }.groupBy(AccountInChain::from)
+    }
+
+    suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>? {
+        return accountRepository.getMetaAccountSecrets(metaId)
     }
 }

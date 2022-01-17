@@ -2,13 +2,13 @@ package jp.co.soramitsu.feature_account_impl.domain
 
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -16,10 +16,6 @@ import kotlinx.coroutines.withContext
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
-
-    override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
-        return accountRepository.getSecuritySource(accountAddress)
-    }
 
     override suspend fun generateMnemonic(): List<String> {
         return accountRepository.generateMnemonic()
@@ -163,11 +159,11 @@ class AccountInteractorImpl(
         return accountRepository.changeLanguage(language)
     }
 
-    override suspend fun generateRestoreJson(accountAddress: String, password: String): Result<String> {
-        val account = accountRepository.getAccount(accountAddress)
-
-        return runCatching {
-            accountRepository.generateRestoreJson(account, password)
-        }
+    override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) = runCatching {
+        accountRepository.generateRestoreJson(metaId, chainId, password)
     }
+
+    override suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
+
+    override suspend fun getMetaAccountSecrets(metaId: Long) = accountRepository.getMetaAccountSecrets(metaId)
 }

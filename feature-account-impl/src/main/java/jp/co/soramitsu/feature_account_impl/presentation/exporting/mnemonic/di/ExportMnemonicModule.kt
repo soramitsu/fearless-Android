@@ -11,7 +11,9 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ExportMnemonicModule {
@@ -23,9 +25,10 @@ class ExportMnemonicModule {
         router: AccountRouter,
         resourceManager: ResourceManager,
         accountInteractor: AccountInteractor,
-        accountAddress: String
+        chainRegistry: ChainRegistry,
+        payload: ExportMnemonicPayload
     ): ViewModel {
-        return ExportMnemonicViewModel(router, resourceManager, accountInteractor, accountAddress)
+        return ExportMnemonicViewModel(router, resourceManager, accountInteractor, chainRegistry, payload)
     }
 
     @Provides
