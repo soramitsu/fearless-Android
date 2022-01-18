@@ -100,7 +100,8 @@ class ConfirmMnemonicViewModel(
     }
 
     private fun finishConfirmGame() {
-        router.back()
+        router.finishExportFlow()
+        showMessage("Success")
     }
 
     private fun createAccount(extras: ConfirmMnemonicPayload.CreateExtras) {
