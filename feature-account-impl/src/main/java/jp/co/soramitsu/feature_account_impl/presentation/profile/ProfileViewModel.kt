@@ -6,13 +6,17 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
+import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
 
 private const val AVATAR_SIZE_DP = 32
 
@@ -20,8 +24,11 @@ class ProfileViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val getTotalBalance: GetTotalBalanceUseCase
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+
+    val totalBalanceLiveData = getTotalBalance().map(BigDecimal::formatAsCurrency).asLiveData()
 
     val selectedAccountLiveData: LiveData<Account> = interactor.selectedAccountFlow().asLiveData()
 

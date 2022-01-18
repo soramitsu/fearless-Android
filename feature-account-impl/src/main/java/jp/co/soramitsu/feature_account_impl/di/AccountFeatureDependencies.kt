@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.core_db.dao.AccountDao
+import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -69,4 +70,6 @@ interface AccountFeatureDependencies {
     fun rpcCalls(): RpcCalls
 
     fun imageLoader(): ImageLoader
+
+    fun assetDao(): AssetDao
 }
