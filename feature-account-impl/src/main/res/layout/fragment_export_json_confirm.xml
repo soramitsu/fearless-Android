@@ -55,7 +55,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 app:actionIcon="@drawable/ic_pin_white_24"
-                app:label="@string/common_choose_network"
+                app:label="@string/network"
                 app:enabled="false"
                 tools:message="Kusama"
                 tools:textIcon="@drawable/ic_ksm_24" />
@@ -68,16 +68,6 @@
     </ScrollView>
 
     <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/exportJsonConfirmChangePassword"
-        style="@style/Widget.Fearless.Button.Outline"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/account_export_password_change" />
-
-    <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/exportJsonConfirmExport"
         style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="match_parent"
@@ -86,4 +76,14 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
         android:text="@string/account_export_action" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/exportJsonConfirmChangePassword"
+        style="@style/Widget.Fearless.Button.Outline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/account_export_password_change" />
 </LinearLayout>

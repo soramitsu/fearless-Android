@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting
 
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_IMMUTABLE
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Intent
 import androidx.annotation.CallSuper
 import androidx.appcompat.app.AlertDialog
@@ -28,7 +30,7 @@ abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
 
         val receiver = Intent(requireContext(), ShareCompletedReceiver::class.java)
 
-        val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, receiver, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, receiver, FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT)
 
         val chooser = Intent.createChooser(intent, title, pendingIntent.intentSender)
 
