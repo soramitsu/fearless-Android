@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.Confir
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
@@ -73,6 +74,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRec
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
@@ -406,7 +408,7 @@ class Navigator :
         navController?.navigate(R.id.action_open_accounts, AccountListFragment.getBundle(accountChosenNavDirection))
     }
 
-    override fun openNodes(chainId: String) {
+    override fun openNodes(chainId: ChainId) {
         navController?.navigate(R.id.action_accountDetailsFragment_to_nodesFragment, NodesFragment.getBundle(chainId))
     }
 
@@ -453,8 +455,8 @@ class Navigator :
         navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 
-    override fun openNodeDetails(chainId: String, nodeUrl: String) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(chainId, nodeUrl))
+    override fun openNodeDetails(payload: NodeDetailsPayload) {
+        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(payload))
     }
 
     override fun openAssetDetails(assetPayload: AssetPayload) {
@@ -463,7 +465,7 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
     }
 
-    override fun openAddNode(chainId: String) {
+    override fun openAddNode(chainId: ChainId) {
         navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment, AddNodeFragment.getBundle(chainId))
     }
 

@@ -27,10 +27,9 @@ import kotlinx.coroutines.launch
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     companion object {
-        private const val CHAIN_ID_KEY = "chainId"
-        private const val NODE_URL_KEY = "nodeUrl"
+        private const val PAYLOAD_KEY = "payload"
 
-        fun getBundle(chainId: String, nodeUrl: String) = bundleOf(CHAIN_ID_KEY to chainId, NODE_URL_KEY to nodeUrl)
+        fun getBundle(payload: NodeDetailsPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     @Inject
@@ -55,15 +54,14 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
     }
 
     override fun inject() {
-        val chainId = argument<String>(CHAIN_ID_KEY)
-        val nodeUrl = argument<String>(NODE_URL_KEY)
+        val payload = argument<NodeDetailsPayload>(PAYLOAD_KEY)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .nodeDetailsComponentFactory()
-            .create(this, chainId to nodeUrl)
+            .create(this, payload)
             .inject(this)
     }
 

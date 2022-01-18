@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.NodesSettingsScenario
 import jp.co.soramitsu.feature_account_impl.domain.NodesSettingsScenarioImpl
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsViewModel
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
@@ -27,9 +28,9 @@ class NodeDetailsModule {
         router: AccountRouter,
         clipboardManager: ClipboardManager,
         resourceManager: ResourceManager,
-        nodeId: Pair<String, String>
+        payload: NodeDetailsPayload
     ): ViewModel {
-        return NodeDetailsViewModel(nodesSettingsScenario, router, clipboardManager, resourceManager, nodeId.first, nodeId.second)
+        return NodeDetailsViewModel(nodesSettingsScenario, router, clipboardManager, resourceManager, payload)
     }
 
     @Provides

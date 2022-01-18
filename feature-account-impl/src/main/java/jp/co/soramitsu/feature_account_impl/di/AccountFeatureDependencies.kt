@@ -22,7 +22,7 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
-import java.util.*
+import java.util.Random
 
 interface AccountFeatureDependencies {
 

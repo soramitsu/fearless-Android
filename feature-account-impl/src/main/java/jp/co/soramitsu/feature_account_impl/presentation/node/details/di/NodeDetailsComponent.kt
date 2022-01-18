@@ -5,6 +5,7 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsPayload
 
 @Subcomponent(
     modules = [
@@ -19,7 +20,7 @@ interface NodeDetailsComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance nodeId: Pair<String, String>
+            @BindsInstance nodeId: NodeDetailsPayload
         ): NodeDetailsComponent
     }
 

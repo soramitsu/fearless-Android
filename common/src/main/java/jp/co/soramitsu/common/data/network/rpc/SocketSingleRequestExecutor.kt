@@ -17,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
-//TODO this is not being used anywhere. Can we delete it?
+// TODO this is not being used anywhere. Can we delete it?
 @Suppress("EXPERIMENTAL_API_USAGE")
 class SocketSingleRequestExecutor(
     private val jsonMapper: Gson,

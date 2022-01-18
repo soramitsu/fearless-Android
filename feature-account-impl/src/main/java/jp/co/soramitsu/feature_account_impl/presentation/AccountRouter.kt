@@ -6,6 +6,8 @@ import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
+import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsPayload
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 interface AccountRouter : SecureRouter {
 
@@ -31,7 +33,7 @@ interface AccountRouter : SecureRouter {
 
     fun openWallets(accountChosenNavDirection: AccountChosenNavDirection)
 
-    fun openNodes(chainId: String)
+    fun openNodes(chainId: ChainId)
 
     fun openLanguages()
 
@@ -43,9 +45,9 @@ interface AccountRouter : SecureRouter {
 
     fun backToMainScreen()
 
-    fun openNodeDetails(chainId: String, nodeUrl: String)
+    fun openNodeDetails(payload: NodeDetailsPayload)
 
-    fun openAddNode(chainId: String)
+    fun openAddNode(chainId: ChainId)
 
     @PinRequired
     fun openExportMnemonic(accountAddress: String): DelayedNavigation

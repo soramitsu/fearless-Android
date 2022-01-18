@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 import kotlinx.coroutines.Dispatchers
@@ -107,7 +108,7 @@ class AccountDetailsViewModel(
         _openChainOptionsDialog.value = Event(ChainActionsSheet.Payload(item.chainId, item.chainName, item.address))
     }
 
-    fun switchNode(chainId: String) {
+    fun switchNode(chainId: ChainId) {
         accountRouter.openNodes(chainId)
     }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 open class ChainActionsSheet(
     context: Context,
@@ -12,7 +13,7 @@ open class ChainActionsSheet(
     private val onSwitchNode: (String) -> Unit
 ) : FixedListBottomSheet(context) {
 
-    data class Payload(val chainId: String, val chainName: String, val address: String)
+    data class Payload(val chainId: ChainId, val chainName: String, val address: String)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

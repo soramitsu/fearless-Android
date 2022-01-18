@@ -21,7 +21,7 @@ abstract class ChainDao {
         removed: List<ChainLocal>,
         newOrUpdated: List<JoinedChainInfo>,
     ) {
-        //saving custom nodes before deleting
+        // saving custom nodes before deleting
         val customNodes = getCustomNodes()
 
         deleteChains(removed)

@@ -22,16 +22,15 @@ class NodeDetailsViewModel(
     private val router: AccountRouter,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
-    private val chainId: String,
-    private val nodeUrl: String
+    private val payload: NodeDetailsPayload
 ) : NodeDetailsRootViewModel(resourceManager) {
 
     val nodeModelLiveData = liveData {
-        emit(nodesSettingsScenario.getNode(NodeId(chainId to nodeUrl)))
+        emit(nodesSettingsScenario.getNode(NodeId(payload.chainId to payload.nodeUrl)))
     }
 
     val chainInfoLiveData = liveData {
-        emit(nodesSettingsScenario.getChain(chainId))
+        emit(nodesSettingsScenario.getChain(payload.chainId))
     }
 
     val nameEditEnabled = nodeModelLiveData.map(::mapNodeNameEditState)
@@ -59,7 +58,7 @@ class NodeDetailsViewModel(
     fun updateClicked(name: String, hostUrl: String) {
         viewModelScope.launch {
 
-            val result = nodesSettingsScenario.updateNode(NodeId(chainId to nodeUrl), name, hostUrl)
+            val result = nodesSettingsScenario.updateNode(NodeId(payload.chainId to payload.nodeUrl), name, hostUrl)
 
             if (result.isSuccess) {
                 router.back()

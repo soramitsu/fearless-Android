@@ -1,6 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
-import java.util.*
+import java.util.Locale
 
 typealias ChainId = String
 
@@ -83,12 +83,4 @@ data class Chain(
 
 enum class TypesUsage {
     BASE, OWN, BOTH,
-}
-
-@JvmInline
-value class NodeId(private val pair: Pair<String, String>) {
-    val chainId: String
-        get() = pair.first
-    val nodeUrl: String
-        get() = pair.second
 }
