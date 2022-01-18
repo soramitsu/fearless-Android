@@ -24,7 +24,7 @@
         android:id="@+id/accountView"
         android:layout_marginStart="@dimen/x2"
         android:layout_marginEnd="@dimen/x2"
-        app:accountActionIcon="@drawable/ic_more_vertical"
+        app:accountActionIcon="@drawable/ic_info_white_24"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -56,13 +57,13 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         viewModel.selectedAccountLiveData.observe { account ->
             account.name?.let(accountView::setTitle)
 
-            accountView.setText(account.address)
-
             selectedNetworkTv.text = account.network.name
         }
 
         viewModel.accountIconLiveData.observe {
-            accountView.setAccountIcon(it.image)
+            //todo make avatar dynamic
+            val avatar = ContextCompat.getDrawable(requireContext(), R.drawable.ic_wallet_avatar) ?: return@observe
+            accountView.setAccountIcon(avatar)
         }
 
         viewModel.selectedLanguageLiveData.observe {
@@ -70,6 +71,10 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         }
 
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
+
+        viewModel.totalBalanceLiveData.observe {
+            accountView.setText(it)
+        }
     }
 
     private fun showAccountActions(payload: ExternalAccountActions.Payload) {
