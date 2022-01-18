@@ -59,9 +59,12 @@ class ChainRegistry(
 
             addedOrModified.forEach { chain ->
 
-                val connection = connectionPool.setupConnection(chain, onSelectedNodeChange = { chainId, newNodeUrl ->
-                    launch { selectNode(NodeId(chainId to newNodeUrl)) }
-                })
+                val connection = connectionPool.setupConnection(
+                    chain,
+                    onSelectedNodeChange = { chainId, newNodeUrl ->
+                        launch { selectNode(NodeId(chainId to newNodeUrl)) }
+                    }
+                )
 
                 runtimeProviderPool.setupRuntimeProvider(chain)
                 runtimeSyncService.registerChain(chain, connection)
@@ -95,14 +98,15 @@ class ChainRegistry(
         it.id == chainAssetId
     }
 
-    suspend fun getChain(chainId: String) = chainsById.first().getValue(chainId)
+    suspend fun getChain(chainId: ChainId) = chainsById.first().getValue(chainId)
 
     fun nodesFlow(chainId: String) = chainDao.nodesFlow(chainId)
         .mapList(::mapNodeLocalToNode)
 
     suspend fun selectNode(id: NodeId) = chainDao.selectNode(id.chainId, id.nodeUrl)
 
-    suspend fun addNode(chainId: String, nodeName: String, nodeUrl: String) = chainDao.insertChainNode(ChainNodeLocal(chainId, nodeUrl, nodeName, isActive = false, isDefault = false))
+    suspend fun addNode(chainId: ChainId, nodeName: String, nodeUrl: String) =
+        chainDao.insertChainNode(ChainNodeLocal(chainId, nodeUrl, nodeName, isActive = false, isDefault = false))
 
     suspend fun deleteNode(id: NodeId) = chainDao.deleteNode(id.chainId, id.nodeUrl)
 
@@ -111,19 +115,19 @@ class ChainRegistry(
     suspend fun updateNode(id: NodeId, name: String, url: String) = chainDao.updateNode(id.chainId, id.nodeUrl, name, url)
 }
 
-suspend fun ChainRegistry.chainWithAsset(chainId: String, assetId: String): Pair<Chain, Chain.Asset> {
+suspend fun ChainRegistry.chainWithAsset(chainId: ChainId, assetId: String): Pair<Chain, Chain.Asset> {
     val chain = chainsById.first().getValue(chainId)
 
     return chain to chain.assetsById.getValue(assetId)
 }
 
-suspend fun ChainRegistry.getRuntime(chainId: String): RuntimeSnapshot {
+suspend fun ChainRegistry.getRuntime(chainId: ChainId): RuntimeSnapshot {
     return getRuntimeProvider(chainId).get()
 }
 
-suspend fun ChainRegistry.getSocket(chainId: String) = getConnection(chainId).socketService
+suspend fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
 
-fun ChainRegistry.getService(chainId: String) = ChainService(
+fun ChainRegistry.getService(chainId: ChainId) = ChainService(
     runtimeProvider = getRuntimeProvider(chainId),
     connection = getConnection(chainId)
 )

@@ -78,7 +78,7 @@ class ChainConnection(
     private fun autoBalance(currentState: State) {
         if (currentState is State.WaitingForReconnect && (currentState.attempt % NODE_SWITCHING_FREQUENCY) == 0) {
             val currentNodeIndex = availableNodes.indexOfFirst { it.isActive }
-            //if current selected node is the last, start from first node
+            // if current selected node is the last, start from first node
             val nextNodeIndex = (currentNodeIndex + 1).let { newIndex -> if (newIndex >= availableNodes.size) 0 else newIndex }
             val nextNode = availableNodes[nextNodeIndex]
 

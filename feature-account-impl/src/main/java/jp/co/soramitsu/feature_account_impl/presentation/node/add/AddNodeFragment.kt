@@ -40,7 +40,7 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
     }
 
     override fun inject() {
-        val chainId = arguments?.getString(CHAIN_ID_KEY)!!
+        val chainId = argument<String>(CHAIN_ID_KEY)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),

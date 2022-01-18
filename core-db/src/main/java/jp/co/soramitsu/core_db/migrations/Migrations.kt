@@ -66,7 +66,6 @@ val MigrateTablesToV2_30_31 = object : Migration(30, 31) {
         database.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isDefault` INTEGER NOT NULL DEFAULT 1")
 
         database.execSQL("DROP TABLE nodes")
-
     }
 }
 

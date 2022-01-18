@@ -10,8 +10,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 
-class GetTotalBalanceUseCaseImpl(private val accountRepository: AccountRepository,
-                                 private val assetDao: AssetDao) : GetTotalBalanceUseCase {
+class GetTotalBalanceUseCaseImpl(
+    private val accountRepository: AccountRepository,
+    private val assetDao: AssetDao
+) : GetTotalBalanceUseCase {
 
     override operator fun invoke(): Flow<BigDecimal> {
         return accountRepository.selectedMetaAccountFlow()
@@ -27,7 +29,6 @@ class GetTotalBalanceUseCaseImpl(private val accountRepository: AccountRepositor
                     val toAdd = dollarAmount ?: BigDecimal.ZERO
 
                     acc + toAdd
-
                 }
             }
     }

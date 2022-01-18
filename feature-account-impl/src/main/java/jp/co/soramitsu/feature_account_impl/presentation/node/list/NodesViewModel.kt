@@ -11,8 +11,10 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.feature_account_api.domain.interfaces.NodesSettingsScenario
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import kotlinx.coroutines.launch
 
@@ -20,7 +22,7 @@ class NodesViewModel(
     private val router: AccountRouter,
     private val nodeListingMixin: NodeListingMixin,
     private val resourceManager: ResourceManager,
-    private val chainId: String,
+    private val chainId: ChainId,
     private val nodesSettingsScenario: NodesSettingsScenario,
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
@@ -53,7 +55,7 @@ class NodesViewModel(
     }
 
     fun infoClicked(nodeModel: NodeModel) {
-        router.openNodeDetails(chainId, nodeModel.link)
+        router.openNodeDetails(NodeDetailsPayload(chainId, nodeModel.link))
     }
 
     fun selectNodeClicked(nodeModel: NodeModel) {

@@ -61,7 +61,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         }
 
         viewModel.accountIconLiveData.observe {
-            //todo make avatar dynamic
+            // todo make avatar dynamic
             val avatar = ContextCompat.getDrawable(requireContext(), R.drawable.ic_wallet_avatar) ?: return@observe
             accountView.setAccountIcon(avatar)
         }

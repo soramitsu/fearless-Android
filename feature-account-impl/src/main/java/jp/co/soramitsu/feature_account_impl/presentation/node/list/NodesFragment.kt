@@ -60,7 +60,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     }
 
     override fun inject() {
-        val chainId = arguments?.getString(CHAIN_ID_KEY)!!
+        val chainId = argument<String>(CHAIN_ID_KEY)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
@@ -80,8 +80,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
         viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
 
-        viewModel.chainInfo.observe {
-            val (name, icon) = it
+        viewModel.chainInfo.observe { (name, icon) ->
             tokenIcon.load(icon, imageLoader)
             titleTextView.text = getString(R.string.connection_management_title, name)
         }
