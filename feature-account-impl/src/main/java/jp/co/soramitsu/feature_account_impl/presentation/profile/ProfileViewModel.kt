@@ -3,14 +3,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.profile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.AddressModel
-import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
-import jp.co.soramitsu.feature_account_api.domain.model.Account
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
@@ -30,13 +27,14 @@ class ProfileViewModel(
 
     val totalBalanceLiveData = getTotalBalance().map(BigDecimal::formatAsCurrency).asLiveData()
 
-    val selectedAccountLiveData: LiveData<Account> = interactor.selectedAccountFlow().asLiveData()
+    val selectedAccountLiveData: LiveData<MetaAccount> = interactor.selectedMetaAccountFlow().asLiveData()
 
-    val accountIconLiveData: LiveData<AddressModel> = selectedAccountLiveData.switchMap {
-        liveData {
-            emit(createIcon(it.address))
-        }
-    }
+    // todo update dynamic icon
+//    val accountIconLiveData: LiveData<AddressModel> = selectedAccountLiveData.switchMap {
+//        liveData {
+//            emit(createIcon(it.address))
+//        }
+//    }
 
     val selectedLanguageLiveData = liveData {
         val language = interactor.getSelectedLanguage()
@@ -62,11 +60,10 @@ class ProfileViewModel(
 
     fun accountActionsClicked() {
         val account = selectedAccountLiveData.value ?: return
-
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(account.address, account.network.type))
+        router.openAccountDetails(account.id)
     }
 
-    private suspend fun createIcon(accountAddress: String): AddressModel {
-        return addressIconGenerator.createAddressModel(accountAddress, AVATAR_SIZE_DP)
-    }
+//    private suspend fun createIcon(accountAddress: String): AddressModel {
+//        return addressIconGenerator.createAddressModel(accountAddress, AVATAR_SIZE_DP)
+//    }
 }
