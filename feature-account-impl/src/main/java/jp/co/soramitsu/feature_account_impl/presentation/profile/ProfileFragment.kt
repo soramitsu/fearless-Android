@@ -19,7 +19,6 @@ import kotlinx.android.synthetic.main.fragment_profile.changePinCodeTv
 import kotlinx.android.synthetic.main.fragment_profile.languageWrapper
 import kotlinx.android.synthetic.main.fragment_profile.profileWallets
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
-import kotlinx.android.synthetic.main.fragment_profile.selectedNetworkTv
 
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
@@ -55,16 +54,11 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         observeBrowserEvents(viewModel)
 
         viewModel.selectedAccountLiveData.observe { account ->
-            account.name?.let(accountView::setTitle)
-
-            selectedNetworkTv.text = account.network.name
+            account.name.let(accountView::setTitle)
         }
 
-        viewModel.accountIconLiveData.observe {
-            // todo make avatar dynamic
-            val avatar = ContextCompat.getDrawable(requireContext(), R.drawable.ic_wallet_avatar) ?: return@observe
-            accountView.setAccountIcon(avatar)
-        }
+        val avatar = ContextCompat.getDrawable(requireContext(), R.drawable.ic_wallet_avatar)
+        avatar?.let { accountView.setAccountIcon(it) }
 
         viewModel.selectedLanguageLiveData.observe {
             selectedLanguageTv.text = it.displayName

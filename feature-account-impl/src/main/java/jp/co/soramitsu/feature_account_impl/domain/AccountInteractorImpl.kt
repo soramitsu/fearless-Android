@@ -123,6 +123,8 @@ class AccountInteractorImpl(
 
     override fun selectedAccountFlow() = accountRepository.selectedAccountFlow()
 
+    override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
+
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
         return accountRepository.lightMetaAccountsFlow()
     }
