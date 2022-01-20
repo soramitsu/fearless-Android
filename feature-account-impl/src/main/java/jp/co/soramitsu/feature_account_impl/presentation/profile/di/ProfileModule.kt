@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccount
 import jp.co.soramitsu.feature_account_impl.domain.GetTotalBalanceUseCaseImpl
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.profile.ProfileViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ProfileModule {
@@ -46,7 +47,7 @@ class ProfileModule {
     }
 
     @Provides
-    fun provideGetTotalBalanceUseCase(accountRepository: AccountRepository, assetDao: AssetDao): GetTotalBalanceUseCase {
-        return GetTotalBalanceUseCaseImpl(accountRepository, assetDao)
+    fun provideGetTotalBalanceUseCase(accountRepository: AccountRepository, chainRegistry: ChainRegistry, assetDao: AssetDao): GetTotalBalanceUseCase {
+        return GetTotalBalanceUseCaseImpl(accountRepository, chainRegistry, assetDao)
     }
 }
