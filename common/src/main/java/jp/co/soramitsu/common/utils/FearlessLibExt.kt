@@ -8,6 +8,8 @@ import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.seed.SeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -32,7 +34,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import java.io.ByteArrayOutputStream
 
 val BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH: String
-    get() = "//44//60//0/0"
+    get() = "//44//60//0/0/0"
 
 fun BIP32JunctionDecoder.default() = decode(DEFAULT_DERIVATION_PATH)
 
@@ -133,7 +135,11 @@ fun ByteArray.decodeToInt() = fromUnsignedBytes().toInt()
 
 fun SeedFactory.createSeed32(length: Mnemonic.Length, password: String?) = cropSeedTo32Bytes(createSeed(length, password))
 
-fun SeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = cropSeedTo32Bytes(deriveSeed(mnemonicWords, password))
+// fun SeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = cropSeedTo32Bytes(deriveSeed(mnemonicWords, password))
+
+fun SubstrateSeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = cropSeedTo32Bytes(deriveSeed(mnemonicWords, password))
+
+fun EthereumSeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = deriveSeed(mnemonicWords, password)
 
 private fun cropSeedTo32Bytes(seedResult: SeedFactory.Result): SeedFactory.Result {
     return SeedFactory.Result(seed = seedResult.seed.copyOfRange(0, 32), seedResult.mnemonic)
