@@ -23,10 +23,10 @@ class ChainStateRepository(
     private val chainRegistry: ChainRegistry
 ) {
 
-    suspend fun expectedBlockTimeInMillis(chainId: ChainId): BigInteger {
+    suspend fun expectedBlockTimeInMillis(chainId: ChainId, default: BigInteger = 6000.toBigInteger()): BigInteger {
         val runtime = chainRegistry.getRuntime(chainId)
 
-        return runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)
+        return runCatching { runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime) }.getOrDefault(default)
     }
 
     suspend fun blockHashCount(chainId: ChainId): BigInteger? {

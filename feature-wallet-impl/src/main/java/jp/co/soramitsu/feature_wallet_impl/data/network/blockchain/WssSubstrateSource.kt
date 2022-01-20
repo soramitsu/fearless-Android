@@ -12,6 +12,8 @@ import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.transfer
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
@@ -58,7 +60,7 @@ class WssSubstrateSource(
             chain = chain,
             useBatchAll = batchAll,
             formExtrinsic = {
-                transfer(chain, transfer)
+                transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)
             }
         )
@@ -76,7 +78,7 @@ class WssSubstrateSource(
             accountId = accountId,
             useBatchAll = batchAll,
             formExtrinsic = {
-                transfer(chain, transfer)
+                transfer(chain, transfer, this.runtime.typeRegistry)
                 additional?.invoke(this)
             },
         ).getOrThrow()
@@ -125,8 +127,15 @@ class WssSubstrateSource(
         }.filterNotNull()
     }
 
-    private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer): ExtrinsicBuilder {
-        return transfer(
+    private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry): ExtrinsicBuilder {
+        return if (typeRegistry["Address"] is FixedByteArray) call(
+            moduleName = "Balances",
+            callName = "transfer",
+            arguments = mapOf(
+                "dest" to chain.accountIdOf(transfer.recipient),
+                "value" to transfer.amountInPlanks
+            )
+        ) else transfer(
             recipientAccountId = chain.accountIdOf(transfer.recipient),
             amount = transfer.amountInPlanks
         )
