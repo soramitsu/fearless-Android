@@ -32,6 +32,7 @@ import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
+import jp.co.soramitsu.core_db.migrations.EthereumDerivationPathMigration
 import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_29_30
 import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_30_31
 import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
@@ -57,7 +58,7 @@ import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 
 @Database(
-    version = 31,
+    version = 32,
     entities = [
         AccountLocal::class,
         AssetLocal::class,
@@ -116,6 +117,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 26))
                     .addMigrations(AddChainRegistryTables_27_28, V2Migration(storeV1, storeV2), MigrateTablesToV2_29_30)
                     .addMigrations(MigrateTablesToV2_30_31)
+                    .addMigrations(EthereumDerivationPathMigration(storeV2))
                     .build()
             }
             return instance!!
