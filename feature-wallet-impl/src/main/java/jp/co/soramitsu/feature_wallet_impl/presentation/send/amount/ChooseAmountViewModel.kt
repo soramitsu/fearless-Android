@@ -259,20 +259,17 @@ class ChooseAmountViewModel(
     }
 
     fun quickInputSelected(value: Double) {
-        val amount = assetModelLiveData.value?.available
+        val amount = assetModelLiveData.value?.available ?: return
+        val fee = feeLiveData.value?.feeAmount ?: return
 
-        val newAmount = if (value == QUICK_VALUE_MAX) {
-            val fee = feeLiveData.value?.feeAmount ?: return
+        val quickAmountRaw = amount * value.toBigDecimal()
+        val quickAmountWithoutFee = quickAmountRaw - fee
 
-            amount?.let {
-                it - fee - (existentialDeposit ?: return)
-            }
-        } else {
-            amount?.let {
-                it * value.toBigDecimal()
-            }
-        }?.format() ?: return
+        if (quickAmountWithoutFee < BigDecimal.ZERO) {
+            return
+        }
 
+        val newAmount = quickAmountWithoutFee.format()
         amountChanged(newAmount)
     }
 }
