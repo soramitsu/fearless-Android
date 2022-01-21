@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="profile_accounts_title_2_0">Wallets</string>
     <string name="username_setup_choose_title_2_0">Wallet nickname</string>
-    <string name="account_info_title_2_0">Wallet</string>
+    <string name="wallet_info_title">Wallet</string>
 
     <string name="account_shared_secret">Accounts with a shared secret</string>
     <string name="account_custom_secret">Accounts with a changed secret</string>
@@ -108,7 +107,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="about_medium">Read on Medium</string>
     <string name="about_announcement">Receive Announcements</string>
     <string name="about_support">Ask for Support</string>
-    <string name="about_crowdloand">Learn about Crowdloans</string>
+    <string name="about_crowdloans">Learn about Crowdloans</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
     <string name="account_info_title">Account</string>
