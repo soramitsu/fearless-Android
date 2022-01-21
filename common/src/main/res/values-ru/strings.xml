@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="wallet_info_title">Кошелёк</string>
+    <string name="wallet_assets">Активы</string>
+
+    <string name="account_shared_secret">Аккаунты с общим секретом</string>
+    <string name="account_custom_secret">Аккаунты с измененным секретом</string>
+
     <string name="common_details">Подробности</string>
     <string name="common_next">Далее</string>
     <string name="common_cancel">Отмена</string>
@@ -30,7 +36,7 @@
     <string name="about_terms">Условия использования</string>
     <string name="language_title">Язык</string>
     <string name="connection_management_title">%s сети</string>
-    <string name="onboarding_create_wallet">Создать кошелек</string>
+    <string name="onboarding_create_wallet">Создать кошелёк</string>
     <string name="username_setup_choose_title">Имя</string>
     <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
     <string name="common_no_screenshot_title">Не делайте скриншоты</string>
@@ -74,11 +80,17 @@
     <string name="pincode_biometry_dialog_title">Биометрия</string>
     <string name="common_edit">Редактировать</string>
     <string name="common_done">Готово</string>
-    <string name="wallets_add">Добавить кошелек</string>
+    <string name="wallets_add">Добавить кошелёк</string>
     <string name="account_add_already_exists_message">Аккаунт уже существует. Пожалуйста, попробуйте другой.</string>
     <string name="about_website">Официальный сайт</string>
     <string name="about_github">Исходный код на Github</string>
     <string name="about_telegram">Присоединяйтесь к группе Telegram</string>
+    <string name="about_twitter">Следить за новостями в Twitter</string>
+    <string name="about_youtube">Подписаться на YouTube</string>
+    <string name="about_medium">Читать на Medium</string>
+    <string name="about_announcement">Следить за новостями в Telegram</string>
+    <string name="about_support">Обратиться за поддержкой</string>
+    <string name="about_crowdloans">Learn about Crowdloans</string>
     <string name="common_email_chooser_title">Выберите приложение для работы с почтой</string>
     <string name="common_skip_process">Пропустить</string>
     <string name="account_info_title">Аккаунт</string>
