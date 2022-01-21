@@ -130,7 +130,7 @@ class AssetViewHolder(
 private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
 
     override fun areItemsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {
-        return oldItem.token.configuration.chainToSymbol == newItem.token.configuration.chainToSymbol
+        return oldItem.token.configuration.chainToSymbol == newItem.token.configuration.chainToSymbol && oldItem.metaId in listOf(null, newItem.metaId)
     }
 
     override fun areContentsTheSame(oldItem: AssetModel, newItem: AssetModel): Boolean {

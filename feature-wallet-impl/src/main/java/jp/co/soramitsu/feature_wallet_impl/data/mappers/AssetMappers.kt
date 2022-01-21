@@ -37,6 +37,7 @@ fun mapAssetLocalToAsset(
 ): Asset {
     return with(assetLocal) {
         Asset(
+            metaId = asset.metaId,
             token = mapTokenLocalToToken(token, chainAsset),
             freeInPlanks = asset.freeInPlanks,
             reservedInPlanks = asset.reservedInPlanks,
@@ -52,6 +53,7 @@ fun mapAssetLocalToAsset(
 fun mapAssetToAssetModel(asset: Asset): AssetModel {
     return with(asset) {
         AssetModel(
+            metaId = metaId,
             token = mapTokenToTokenModel(token),
             total = total,
             bonded = bonded,

@@ -4,6 +4,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigInteger
 
 class Asset(
+    val metaId: Long?,
     val token: Token,
     val freeInPlanks: BigInteger,
     val reservedInPlanks: BigInteger,
@@ -14,7 +15,8 @@ class Asset(
     val unbondingInPlanks: BigInteger
 ) {
     companion object {
-        fun createEmpty(chainAsset: Chain.Asset) = Asset(
+        fun createEmpty(chainAsset: Chain.Asset, metaId: Long? = null) = Asset(
+            metaId = metaId,
             Token(configuration = chainAsset, dollarRate = null, recentRateChange = null),
             freeInPlanks = BigInteger.ZERO,
             reservedInPlanks = BigInteger.ZERO,

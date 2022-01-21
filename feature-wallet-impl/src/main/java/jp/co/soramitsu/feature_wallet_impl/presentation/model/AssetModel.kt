@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.utils.applyDollarRate
 import java.math.BigDecimal
 
 data class AssetModel(
+    val metaId: Long?,
     val token: TokenModel,
     val total: BigDecimal,
     val dollarAmount: BigDecimal?,
