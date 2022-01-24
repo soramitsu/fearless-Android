@@ -64,9 +64,6 @@ class AccountDetailsViewModel(
         .inBackground()
         .share()
 
-    private val _openChainOptionsDialog = MutableLiveData<Event<ChainActionsSheet.Payload>>()
-    val openChainOptionsDialog: LiveData<Event<ChainActionsSheet.Payload>> = _openChainOptionsDialog
-
     init {
         launch {
             accountNameFlow.emit(metaAccount().name)
@@ -112,11 +109,7 @@ class AccountDetailsViewModel(
         )
     }
 
-    fun chainAccountClicked(item: AccountInChainUi) {
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, null, item.chainId))
-    }
-
-    fun exportClicked(chainId: ChainId?) = chainId?.let {
+    fun exportClicked(chainId: ChainId) {
         viewModelScope.launch {
             val sources = buildExportSourceTypes()
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
@@ -154,7 +147,7 @@ class AccountDetailsViewModel(
     }
 
     fun chainAccountOptionsClicked(item: AccountInChainUi) {
-        _openChainOptionsDialog.value = Event(ChainActionsSheet.Payload(item.chainId, item.chainName, item.address))
+        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, null, item.chainId, item.chainName))
     }
 
     fun switchNode(chainId: ChainId) {

@@ -74,20 +74,11 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
 
         viewModel.chainAccountProjections.observe { adapter.submitList(it) }
 
-        viewModel.openChainOptionsDialog.observeEvent { showChainActionsSheet(it) }
-
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
     }
 
-    private fun showChainActionsSheet(payload: ChainActionsSheet.Payload) {
-        ChainActionsSheet(requireContext(), payload) {
-            viewModel.switchNode(it)
-        }.show()
-    }
-
     override fun chainAccountClicked(item: AccountInChainUi) {
-        viewModel.chainAccountClicked(item)
     }
 
     override fun chainAccountOptionsClicked(item: AccountInChainUi) {
@@ -100,7 +91,8 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
             content = payload,
             onCopy = viewModel::copyAddressClicked,
             onExternalView = viewModel::viewExternalClicked,
-            onExportAccount = { viewModel.exportClicked(payload.chainId) }
+            onExportAccount = viewModel::exportClicked,
+            onSwitchNode = viewModel::switchNode
         ).show()
     }
 

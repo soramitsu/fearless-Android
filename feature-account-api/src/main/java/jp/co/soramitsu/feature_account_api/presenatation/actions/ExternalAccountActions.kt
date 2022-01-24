@@ -14,7 +14,8 @@ interface ExternalAccountActions : Browserable {
         val value: String,
         @Deprecated("Legacy", ReplaceWith("Chain from Json"))
         val networkType: Node.NetworkType?,
-        val chainId: ChainId? = null
+        val chainId: ChainId? = null,
+        val chainName: String? = null,
     ) {
         companion object {
 

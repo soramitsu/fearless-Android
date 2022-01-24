@@ -8,13 +8,15 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccount
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 class WalletAccountActionsSheet(
     context: Context,
     val content: ExternalAccountActions.Payload,
     onCopy: CopyCallback,
     onExternalView: ExternalViewCallback,
-    private val onExportAccount: (accountAddress: String) -> Unit
+    private val onExportAccount: (chainId: ChainId) -> Unit,
+    private val onSwitchNode: (chainId: ChainId) -> Unit
 ) : ExternalActionsSheet(
     context = context,
     payload = Payload(
@@ -25,10 +27,17 @@ class WalletAccountActionsSheet(
     onViewExternal = onExternalView
 ) {
     override fun onCreate(savedInstanceState: Bundle?) {
-        item(R.drawable.ic_share_arrow_white_24, R.string.account_export) {
-            onExportAccount(content.value)
+        content.chainId?.let { chainId ->
+            item(R.drawable.ic_share_arrow_white_24, R.string.account_export) {
+                onExportAccount(chainId)
+            }
+
+            item(jp.co.soramitsu.common.R.drawable.ic_refresh_white_24, R.string.switch_node) {
+                onSwitchNode(chainId)
+            }
         }
 
         super.onCreate(savedInstanceState)
+        setTitle("${content.chainName}\n\n${content.value}")
     }
 }
