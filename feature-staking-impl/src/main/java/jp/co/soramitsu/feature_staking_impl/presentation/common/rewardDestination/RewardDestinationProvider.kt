@@ -24,8 +24,8 @@ import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -42,7 +42,7 @@ class RewardDestinationProvider(
     override val rewardReturnsLiveData = MutableLiveData<RewardDestinationEstimations>()
     override val showDestinationChooserEvent = MutableLiveData<Event<DynamicListBottomSheet.Payload<AddressModel>>>()
 
-    override val rewardDestinationModelFlow = MutableStateFlow<RewardDestinationModel>(RewardDestinationModel.Restake)
+    override val rewardDestinationModelFlow = MutableSharedFlow<RewardDestinationModel>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -56,30 +56,31 @@ class RewardDestinationProvider(
         scope.launch {
             val currentAccount = interactor.getSelectedAccountProjection()
 
-            rewardDestinationModelFlow.value = RewardDestinationModel.Payout(generateDestinationModel(currentAccount))
+            rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(generateDestinationModel(currentAccount)))
         }
     }
 
     override fun payoutTargetClicked(scope: CoroutineScope) {
-        val selectedDestination = rewardDestinationModelFlow.value as? RewardDestinationModel.Payout ?: return
-
         scope.launch {
+            val selectedDestination = rewardDestinationModelFlow.first() as? RewardDestinationModel.Payout ?: return@launch
             val accountsInNetwork = accountsInCurrentNetwork()
 
             showDestinationChooserEvent.value = Event(DynamicListBottomSheet.Payload(accountsInNetwork, selectedDestination.destination))
         }
     }
 
-    override fun payoutDestinationChanged(newDestination: AddressModel) {
-        rewardDestinationModelFlow.value = RewardDestinationModel.Payout(newDestination)
+    override fun payoutDestinationChanged(newDestination: AddressModel, scope: CoroutineScope) {
+        scope.launch { rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(newDestination)) }
     }
 
     override fun learnMoreClicked() {
         openBrowserEvent.value = Event(appLinksProvider.payoutsLearnMore)
     }
 
-    override fun restakeClicked() {
-        rewardDestinationModelFlow.value = RewardDestinationModel.Restake
+    override fun restakeClicked(scope: CoroutineScope) {
+        scope.launch {
+            rewardDestinationModelFlow.emit(RewardDestinationModel.Restake)
+        }
     }
 
     override suspend fun loadActiveRewardDestination(stashState: StakingState.Stash) {
@@ -87,7 +88,7 @@ class RewardDestinationProvider(
         val rewardDestinationModel = mapRewardDestinationToRewardDestinationModel(rewardDestination)
 
         initialRewardDestination.emit(rewardDestinationModel)
-        rewardDestinationModelFlow.value = rewardDestinationModel
+        rewardDestinationModelFlow.emit(rewardDestinationModel)
     }
 
     override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {

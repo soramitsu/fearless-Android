@@ -24,11 +24,11 @@ interface RewardDestinationMixin : Browserable {
 
     fun payoutTargetClicked(scope: CoroutineScope)
 
-    fun payoutDestinationChanged(newDestination: AddressModel)
+    fun payoutDestinationChanged(newDestination: AddressModel, scope: CoroutineScope)
 
     fun learnMoreClicked()
 
-    fun restakeClicked()
+    fun restakeClicked(scope: CoroutineScope)
 
     interface Presentation : RewardDestinationMixin {
 
