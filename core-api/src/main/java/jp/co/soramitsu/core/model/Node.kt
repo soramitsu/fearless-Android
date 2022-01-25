@@ -61,7 +61,7 @@ data class Node(
             "Acala",
             RuntimeConfiguration(
                 addressByte = 10,
-                genesisHash = "6e966844cfd406ac4d2e9ff66ae485d60677d8b514fe8cfefb54e19a7c12e6c3",
+                genesisHash = "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
             )
         ),
         KARURA(
