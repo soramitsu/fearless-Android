@@ -2,12 +2,22 @@ package jp.co.soramitsu.core_db.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import java.math.BigInteger
 
 @Entity(
     tableName = "assets",
     primaryKeys = ["tokenSymbol", "chainId", "accountId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = ChainLocal::class,
+            parentColumns = ["id"],
+            childColumns = ["chainId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 data class AssetLocal(
     val tokenSymbol: String,
