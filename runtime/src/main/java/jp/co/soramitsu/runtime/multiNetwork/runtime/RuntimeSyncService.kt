@@ -82,7 +82,7 @@ class RuntimeSyncService(
     // Android may clear cache files sometimes so it necessary to have force sync mechanism
     fun cacheNotFound(chainId: String) {
         if (!syncingChains.contains(chainId)) {
-            launchSync(chainId)
+            launchSync(chainId, force = true)
         }
     }
 
@@ -90,15 +90,15 @@ class RuntimeSyncService(
         return syncingChains.containsKey(chainId)
     }
 
-    private fun launchSync(chainId: String) {
+    private fun launchSync(chainId: String, force: Boolean = false) {
         cancelExistingSync(chainId)
 
         syncingChains[chainId] = launch(syncDispatcher) {
-            sync(chainId)
+            sync(chainId, force)
         }
     }
 
-    private suspend fun sync(chainId: String) {
+    private suspend fun sync(chainId: String, force: Boolean) {
         val syncInfo = knownChains[chainId]
 
         if (syncInfo == null) {
@@ -108,7 +108,7 @@ class RuntimeSyncService(
 
         val runtimeInfo = chainDao.runtimeInfo(chainId) ?: return
 
-        val metadataHash = if (runtimeInfo.shouldSyncMetadata()) {
+        val metadataHash = if (force || runtimeInfo.shouldSyncMetadata()) {
             val runtimeMetadata = syncInfo.connection.socketService.executeAsync(GetMetadataRequest, mapper = pojo<String>().nonNull())
 
             runtimeFilesCache.saveChainMetadata(chainId, runtimeMetadata)
