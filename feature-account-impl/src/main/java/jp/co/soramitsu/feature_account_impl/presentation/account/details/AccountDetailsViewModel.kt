@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -44,6 +45,7 @@ class AccountDetailsViewModel(
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
+    private val chainRegistry: ChainRegistry,
     private val metaId: Long,
     private val externalAccountActions: ExternalAccountActions.Presentation
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
@@ -111,12 +113,13 @@ class AccountDetailsViewModel(
 
     fun exportClicked(chainId: ChainId) {
         viewModelScope.launch {
-            val sources = buildExportSourceTypes()
+            val isEthereumBased = chainRegistry.getChain(chainId).isEthereumBased
+            val sources = buildExportSourceTypes(isEthereumBased)
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
         }
     }
 
-    private suspend fun buildExportSourceTypes(): List<ExportSource> {
+    private suspend fun buildExportSourceTypes(isEthereumBased: Boolean): List<ExportSource> {
         val secrets = interactor.getMetaAccountSecrets(metaId)
 
         val options = mutableListOf<ExportSource>()
@@ -124,14 +127,14 @@ class AccountDetailsViewModel(
         when {
             secrets?.get(MetaAccountSecrets.Entropy) != null -> {
                 options += ExportSource.Mnemonic
-                options += ExportSource.Seed
+                if (!isEthereumBased) options += ExportSource.Seed
             }
             secrets?.get(MetaAccountSecrets.Seed) != null -> {
-                options += ExportSource.Seed
+                if (!isEthereumBased) options += ExportSource.Seed
             }
         }
 
-        options += ExportSource.Json
+        if (!isEthereumBased) options += ExportSource.Json
 
         return options
     }
