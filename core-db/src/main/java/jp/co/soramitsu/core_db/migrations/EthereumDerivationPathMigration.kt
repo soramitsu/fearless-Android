@@ -34,7 +34,7 @@ class EthereumDerivationPathMigration(private val storeV2: SecretStoreV2) : Migr
             val oldEthPubKey = secrets[MetaAccountSecrets.EthereumKeypair]?.get(KeyPairSchema.PublicKey)
 
             val entropy = secrets[MetaAccountSecrets.Entropy] ?: return@forEach
-            val mnemonic = MnemonicCreator.fromEntropy(entropy)
+            val mnemonic = MnemonicCreator.fromEntropy(entropy.clone())
 
             val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonic.words, password = decodedEthereumDerivationPath.password).seed
             val newEthereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
