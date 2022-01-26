@@ -73,7 +73,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/x1_5"
-            android:text="@string/about_crowdloand"
+            android:text="@string/about_crowdloans"
             android:textColor="@color/white"
             app:layout_constraintBottom_toTopOf="@id/learnMoreText"
             app:layout_constraintEnd_toStartOf="@id/learnMoreRightIcon"

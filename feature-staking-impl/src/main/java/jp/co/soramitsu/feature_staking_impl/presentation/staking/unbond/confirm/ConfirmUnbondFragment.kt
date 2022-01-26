@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -18,10 +19,13 @@ import kotlinx.android.synthetic.main.fragment_confirm_unbond.confirmUnbondConfi
 import kotlinx.android.synthetic.main.fragment_confirm_unbond.confirmUnbondFee
 import kotlinx.android.synthetic.main.fragment_confirm_unbond.confirmUnbondOriginAccount
 import kotlinx.android.synthetic.main.fragment_confirm_unbond.confirmUnbondToolbar
+import javax.inject.Inject
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 class ConfirmUnbondFragment : BaseFragment<ConfirmUnbondViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     companion object {
 
@@ -73,7 +77,7 @@ class ConfirmUnbondFragment : BaseFragment<ConfirmUnbondViewModel>() {
         viewModel.assetModelFlow.observe {
             confirmUnbondAmount.setAssetBalance(it.assetBalance)
             confirmUnbondAmount.setAssetName(it.tokenName)
-            confirmUnbondAmount.setAssetImageResource(it.tokenIconRes)
+            confirmUnbondAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         confirmUnbondAmount.amountInput.setText(viewModel.amount)

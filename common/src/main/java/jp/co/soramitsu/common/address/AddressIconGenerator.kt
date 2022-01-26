@@ -39,7 +39,7 @@ suspend fun AddressIconGenerator.createAddressModel(accountAddress: String, size
 
 @Throws(AddressFormatException::class)
 suspend fun AddressIconGenerator.createAddressIcon(accountAddress: String, sizeInDp: Int) = withContext(Dispatchers.Default) {
-    val addressId = accountAddress.toAccountId()
+    val addressId = runCatching { accountAddress.toAccountId() }.getOrDefault(ByteArray(32))
 
     createAddressIcon(addressId, sizeInDp)
 }

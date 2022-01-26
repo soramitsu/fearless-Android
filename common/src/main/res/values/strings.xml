@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="profile_accounts_title_2_0">Wallets</string>
     <string name="username_setup_choose_title_2_0">Wallet nickname</string>
-    <string name="account_info_title_2_0">Wallet</string>
+    <string name="wallet_info_title">Wallet</string>
 
     <string name="account_shared_secret">Accounts with a shared secret</string>
     <string name="account_custom_secret">Accounts with a changed secret</string>
@@ -51,7 +50,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="about_privacy">Privacy policy</string>
     <string name="about_terms">Terms and conditions</string>
     <string name="language_title">Language</string>
-    <string name="connection_management_title">Networks</string>
+    <string name="connection_management_title">%s networks</string>
     <string name="onboarding_create_wallet">Create wallet</string>
     <string name="username_setup_choose_title">Name</string>
     <string name="username_setup_hint">This name will be displayed only for you and stored locally on your mobile device.</string>
@@ -64,6 +63,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="common_crypto_type">Keypair crypto type</string>
     <string name="common_secret_derivation_path">Secret derivation path</string>
     <string name="common_choose_network">Choose network</string>
+    <string name="network">Network</string>
     <string name="sr25519_selection_subtitle">sr25519 (recommended)</string>
     <string name="ed25519_selection_subtitle">ed25519 (alternative)</string>
     <string name="ecdsa_selection_subtitle">(BTC/ETH compatible)</string>
@@ -107,7 +107,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="about_medium">Read on Medium</string>
     <string name="about_announcement">Receive Announcements</string>
     <string name="about_support">Ask for Support</string>
-    <string name="about_crowdloand">Learn about Crowdloans</string>
+    <string name="about_crowdloans">Learn about Crowdloans</string>
     <string name="common_email_chooser_title">Select email app</string>
     <string name="common_skip_process">Skip process</string>
     <string name="account_info_title">Account</string>
@@ -519,4 +519,6 @@ to your account to avoid remaining stake.</string>
     <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
     <string name="transaction_successful">Transaction Successful!</string>
     <string name="moonbeam_ineligible_to_participate">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
+
+    <string name="switch_node">Switch node</string>
 </resources>

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -16,10 +17,8 @@ import kotlinx.android.synthetic.main.fragment_profile.aboutTv
 import kotlinx.android.synthetic.main.fragment_profile.accountView
 import kotlinx.android.synthetic.main.fragment_profile.changePinCodeTv
 import kotlinx.android.synthetic.main.fragment_profile.languageWrapper
-import kotlinx.android.synthetic.main.fragment_profile.networkWrapper
 import kotlinx.android.synthetic.main.fragment_profile.profileWallets
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
-import kotlinx.android.synthetic.main.fragment_profile.selectedNetworkTv
 
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
@@ -37,7 +36,6 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         aboutTv.setOnClickListener { viewModel.aboutClicked() }
 
         profileWallets.setOnClickListener { viewModel.walletsClicked() }
-        networkWrapper.setOnClickListener { viewModel.networksClicked() }
         languageWrapper.setOnClickListener { viewModel.languagesClicked() }
         changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
     }
@@ -56,22 +54,21 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         observeBrowserEvents(viewModel)
 
         viewModel.selectedAccountLiveData.observe { account ->
-            account.name?.let(accountView::setTitle)
-
-            accountView.setText(account.address)
-
-            selectedNetworkTv.text = account.network.name
+            account.name.let(accountView::setTitle)
         }
 
-        viewModel.accountIconLiveData.observe {
-            accountView.setAccountIcon(it.image)
-        }
+        val avatar = ContextCompat.getDrawable(requireContext(), R.drawable.ic_wallet_avatar)
+        avatar?.let { accountView.setAccountIcon(it) }
 
         viewModel.selectedLanguageLiveData.observe {
             selectedLanguageTv.text = it.displayName
         }
 
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
+
+        viewModel.totalBalanceLiveData.observe {
+            accountView.setText(it)
+        }
     }
 
     private fun showAccountActions(payload: ExternalAccountActions.Payload) {

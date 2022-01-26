@@ -42,7 +42,7 @@
         app:layout_constraintBottom_toBottomOf="@id/stakingAssetToken"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/stakingAssetToken"
-        tools:src="@drawable/ic_token_ksm" />
+        tools:src="@drawable/ic_plus_circle" />
 
     <TextView
         android:id="@+id/stakingAssetToken"

@@ -1,18 +1,17 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Network
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SecuritySource
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 interface AccountInteractor {
-    suspend fun getSecuritySource(accountAddress: String): SecuritySource
-
     suspend fun generateMnemonic(): List<String>
 
     fun getCryptoTypes(): List<CryptoType>
@@ -62,9 +61,7 @@ interface AccountInteractor {
 
     fun selectedAccountFlow(): Flow<Account>
 
-    suspend fun selectedNetworkType(): Node.NetworkType
-
-    suspend fun getNetworks(): List<Network>
+    fun selectedMetaAccountFlow(): Flow<MetaAccount>
 
     fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
 
@@ -74,10 +71,6 @@ interface AccountInteractor {
 
     suspend fun updateAccountPositionsInNetwork(idsInNewOrder: List<Long>)
 
-    fun nodesFlow(): Flow<List<Node>>
-
-    suspend fun getNode(nodeId: Int): Node
-
     suspend fun processAccountJson(json: String): Result<ImportJsonData>
 
     fun getLanguages(): List<Language>
@@ -86,17 +79,9 @@ interface AccountInteractor {
 
     suspend fun changeSelectedLanguage(language: Language)
 
-    suspend fun addNode(nodeName: String, nodeHost: String): Result<Unit>
+    suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String): Result<String>
 
-    suspend fun updateNode(nodeId: Int, newName: String, newHost: String): Result<Unit>
+    suspend fun getMetaAccount(metaId: Long): MetaAccount
 
-    suspend fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Pair<List<Account>, Node>
-
-    suspend fun selectNodeAndAccount(nodeId: Int, accountAddress: String)
-
-    suspend fun selectNode(nodeId: Int)
-
-    suspend fun deleteNode(nodeId: Int)
-
-    suspend fun generateRestoreJson(accountAddress: String, password: String): Result<String>
+    suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>?
 }

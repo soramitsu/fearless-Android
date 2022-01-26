@@ -9,24 +9,28 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.setValueIfNew
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.interfaces.NodesSettingsScenario
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.data.mappers.mapNodeToNodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.NodeDetailsRootViewModel
-import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import kotlinx.coroutines.launch
 
 class NodeDetailsViewModel(
-    private val interactor: AccountInteractor,
+    private val nodesSettingsScenario: NodesSettingsScenario,
     private val router: AccountRouter,
-    private val nodeId: Int,
     private val clipboardManager: ClipboardManager,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val payload: NodeDetailsPayload
 ) : NodeDetailsRootViewModel(resourceManager) {
 
     val nodeModelLiveData = liveData {
-        emit(getNode(nodeId))
+        emit(nodesSettingsScenario.getNode(NodeId(payload.chainId to payload.nodeUrl)))
+    }
+
+    val chainInfoLiveData = liveData {
+        emit(nodesSettingsScenario.getChain(payload.chainId))
     }
 
     val nameEditEnabled = nodeModelLiveData.map(::mapNodeNameEditState)
@@ -45,7 +49,7 @@ class NodeDetailsViewModel(
 
     fun copyNodeHostClicked() {
         nodeModelLiveData.value?.let {
-            clipboardManager.addToClipboard(it.link)
+            clipboardManager.addToClipboard(it.url)
 
             showMessage(resourceManager.getString(R.string.common_copied))
         }
@@ -53,7 +57,8 @@ class NodeDetailsViewModel(
 
     fun updateClicked(name: String, hostUrl: String) {
         viewModelScope.launch {
-            val result = interactor.updateNode(nodeId, name, hostUrl)
+
+            val result = nodesSettingsScenario.updateNode(NodeId(payload.chainId to payload.nodeUrl), name, hostUrl)
 
             if (result.isSuccess) {
                 router.back()
@@ -63,17 +68,11 @@ class NodeDetailsViewModel(
         }
     }
 
-    private suspend fun getNode(nodeId: Int): NodeModel {
-        val node = interactor.getNode(nodeId)
-
-        return mapNodeToNodeModel(node)
-    }
-
-    private fun mapNodeNameEditState(node: NodeModel): Boolean {
+    private fun mapNodeNameEditState(node: Chain.Node): Boolean {
         return !node.isDefault
     }
 
-    private fun mapNodeHostEditState(node: NodeModel): Boolean {
+    private fun mapNodeHostEditState(node: Chain.Node): Boolean {
         return !node.isDefault && !node.isActive
     }
 }

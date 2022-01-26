@@ -6,12 +6,16 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 interface ExternalAccountActions : Browserable {
 
     class Payload(
         val value: String,
-        val networkType: Node.NetworkType?
+        @Deprecated("Legacy", ReplaceWith("Chain from Json"))
+        val networkType: Node.NetworkType?,
+        val chainId: ChainId? = null,
+        val chainName: String? = null,
     ) {
         companion object {
 

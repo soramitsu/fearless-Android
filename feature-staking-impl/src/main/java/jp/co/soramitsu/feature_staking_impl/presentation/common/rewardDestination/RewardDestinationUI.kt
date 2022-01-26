@@ -39,13 +39,13 @@ fun <V> BaseFragment<V>.observeRewardDestinationChooser(
         AddressChooserBottomSheetDialog(
             requireContext(),
             it,
-            viewModel::payoutDestinationChanged,
+            { address -> viewModel.payoutDestinationChanged(address, viewModel) },
             R.string.staking_setup_reward_payout_account
         ).show()
     }
 
     chooser.destinationPayout.setOnClickListener { viewModel.payoutClicked(viewModel) }
-    chooser.destinationRestake.setOnClickListener { viewModel.restakeClicked() }
+    chooser.destinationRestake.setOnClickListener { viewModel.restakeClicked(viewModel) }
     chooser.payoutTarget.setWholeClickListener { viewModel.payoutTargetClicked(viewModel) }
     chooser.learnMore.setOnClickListener { viewModel.learnMoreClicked() }
 }

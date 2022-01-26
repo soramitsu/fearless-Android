@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -18,10 +19,13 @@ import kotlinx.android.synthetic.main.fragment_confirm_bond_more.confirmBondMore
 import kotlinx.android.synthetic.main.fragment_confirm_bond_more.confirmBondMoreFee
 import kotlinx.android.synthetic.main.fragment_confirm_bond_more.confirmBondMoreOriginAccount
 import kotlinx.android.synthetic.main.fragment_confirm_bond_more.confirmBondMoreToolbar
+import javax.inject.Inject
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 class ConfirmBondMoreFragment : BaseFragment<ConfirmBondMoreViewModel>() {
+
+    @Inject protected lateinit var imageLoader: ImageLoader
 
     companion object {
 
@@ -73,7 +77,7 @@ class ConfirmBondMoreFragment : BaseFragment<ConfirmBondMoreViewModel>() {
         viewModel.assetModelFlow.observe {
             confirmBondMoreAmount.setAssetBalance(it.assetBalance)
             confirmBondMoreAmount.setAssetName(it.tokenName)
-            confirmBondMoreAmount.setAssetImageResource(it.tokenIconRes)
+            confirmBondMoreAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         confirmBondMoreAmount.amountInput.setText(viewModel.amount)

@@ -12,8 +12,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import java.util.LinkedList
-import java.util.Queue
 
 private const val NODE_SWITCHING_FREQUENCY = 5 // switch node every n attempt
 
@@ -21,6 +19,7 @@ class ChainConnection(
     val socketService: SocketService,
     externalRequirementFlow: Flow<ExternalRequirement>,
     initialNodes: List<Chain.Node>,
+    private val onSelectedNodeChange: (newNodeUrl: String) -> Unit
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     enum class ExternalRequirement {
@@ -28,7 +27,6 @@ class ChainConnection(
     }
 
     private var availableNodes: List<Chain.Node> = initialNodes
-    private var nodesStack: Queue<Chain.Node> = LinkedList<Chain.Node>().apply { addAll(initialNodes) }
 
     val state = socketService.networkStateFlow()
         .stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = State.Disconnected)
@@ -49,19 +47,24 @@ class ChainConnection(
             }
         }.launchIn(this)
 
-        socketService.start(nodesStack.getNextNode().url, remainPaused = true)
+        val firstActiveNodeUrl = getFirstActiveNode()?.url ?: availableNodes.first().url.also(onSelectedNodeChange)
+
+        socketService.start(firstActiveNodeUrl, remainPaused = true)
     }
+
+    private fun getFirstActiveNode() = availableNodes.firstOrNull { it.isActive }
 
     fun considerUpdateNodes(nodes: List<Chain.Node>) {
         if (nodes.isEmpty()) {
             return
         }
         if (nodes != availableNodes) { //  List equals() first checks for referential equality, so there will be no O(n) check if the chain is the same
+            val lastActiveNode = getFirstActiveNode()
             availableNodes = nodes
-            nodesStack.clear()
-            nodesStack.addAll(nodes)
-            if (state.value !is State.Connected) { // do not trigger reconnects and re-balancing if connection is OK
-                autoBalance(state.value)
+            val newActiveNode = getFirstActiveNode()
+
+            if (newActiveNode != null && lastActiveNode != newActiveNode) {
+                socketService.switchUrl(newActiveNode.url)
             }
         }
     }
@@ -74,15 +77,13 @@ class ChainConnection(
 
     private fun autoBalance(currentState: State) {
         if (currentState is State.WaitingForReconnect && (currentState.attempt % NODE_SWITCHING_FREQUENCY) == 0) {
-            val nextNode = nodesStack.getNextNode()
-            socketService.switchUrl(nextNode.url)
-        }
-    }
+            val currentNodeIndex = availableNodes.indexOfFirst { it.isActive }
+            // if current selected node is the last, start from first node
+            val nextNodeIndex = (currentNodeIndex + 1).let { newIndex -> if (newIndex >= availableNodes.size) 0 else newIndex }
+            val nextNode = availableNodes[nextNodeIndex]
 
-    private fun Queue<Chain.Node>.getNextNode(): Chain.Node {
-        if (this.isEmpty()) {
-            addAll(availableNodes)
+            socketService.switchUrl(nextNode.url)
+            onSelectedNodeChange(nextNode.url)
         }
-        return poll()!!
     }
 }

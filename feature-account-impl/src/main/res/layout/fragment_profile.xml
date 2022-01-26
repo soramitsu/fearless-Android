@@ -22,23 +22,23 @@
 
     <jp.co.soramitsu.common.view.AccountInfoView
         android:id="@+id/accountView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/x2"
         android:layout_marginEnd="@dimen/x2"
-        app:accountActionIcon="@drawable/ic_more_vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        app:accountActionIcon="@drawable/ic_info_white_24" />
 
     <Space
         android:layout_width="wrap_content"
         android:layout_height="32dp" />
 
     <TextView
+        android:id="@+id/profileWallets"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_primary_list_item"
         android:clickable="true"
-        android:id="@+id/profileWallets"
         android:drawableStart="@drawable/ic_settings_wallets"
         android:drawableEnd="@drawable/ic_arrow_right_24"
         android:drawablePadding="@dimen/x1_5"
@@ -57,43 +57,6 @@
         android:layout_marginStart="@dimen/x2"
         android:layout_marginEnd="@dimen/x2"
         android:background="@color/dividerGray" />
-
-    <LinearLayout
-        android:id="@+id/networkWrapper"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:focusable="true"
-        android:visibility="gone"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5">
-
-        <TextView
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_networks_24"
-            android:drawablePadding="@dimen/x1_5"
-            android:gravity="center_vertical"
-            android:text="@string/profile_network_title"
-            android:textColor="@color/white" />
-
-        <TextView
-            android:id="@+id/selectedNetworkTv"
-            style="@style/TextAppearance.Soramitsu.Body1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawableEnd="@drawable/ic_arrow_right_24"
-            android:gravity="center_vertical"
-            android:textColor="@color/white"
-            tools:text="Kusama" />
-
-    </LinearLayout>
 
     <View
         android:layout_width="match_parent"

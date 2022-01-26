@@ -22,5 +22,7 @@ import androidx.room.Index
 class ChainNodeLocal(
     val chainId: String,
     val url: String,
-    val name: String
+    val name: String,
+    val isActive: Boolean,
+    val isDefault: Boolean
 )

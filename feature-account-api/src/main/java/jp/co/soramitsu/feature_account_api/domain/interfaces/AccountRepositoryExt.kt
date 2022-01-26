@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 
 private val DEFAULT_NETWORK_TYPE = Node.NetworkType.KUSAMA
 
+// TODO remove
 suspend fun AccountRepository.currentNetworkType() = runCatching { getSelectedAccount().network.type }
     .recover { DEFAULT_NETWORK_TYPE }
     .requireValue()

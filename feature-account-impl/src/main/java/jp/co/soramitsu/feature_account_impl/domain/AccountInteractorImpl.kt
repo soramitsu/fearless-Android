@@ -2,18 +2,13 @@ package jp.co.soramitsu.feature_account_impl.domain
 
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Network
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
-import jp.co.soramitsu.feature_account_impl.domain.errors.NodeAlreadyExistsException
-import jp.co.soramitsu.feature_account_impl.domain.errors.UnsupportedNetworkException
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -21,10 +16,6 @@ import kotlinx.coroutines.withContext
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository
 ) : AccountInteractor {
-
-    override suspend fun getSecuritySource(accountAddress: String): SecuritySource {
-        return accountRepository.getSecuritySource(accountAddress)
-    }
 
     override suspend fun generateMnemonic(): List<String> {
         return accountRepository.generateMnemonic()
@@ -128,13 +119,7 @@ class AccountInteractorImpl(
 
     override fun selectedAccountFlow() = accountRepository.selectedAccountFlow()
 
-    override suspend fun selectedNetworkType(): Node.NetworkType {
-        return accountRepository.currentNetworkType()
-    }
-
-    override suspend fun getNetworks(): List<Network> {
-        return accountRepository.getNetworks()
-    }
+    override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
 
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
         return accountRepository.lightMetaAccountsFlow()
@@ -156,14 +141,6 @@ class AccountInteractorImpl(
         accountRepository.updateAccountsOrdering(ordering)
     }
 
-    override fun nodesFlow(): Flow<List<Node>> {
-        return accountRepository.nodesFlow()
-    }
-
-    override suspend fun getNode(nodeId: Int): Node {
-        return accountRepository.getNode(nodeId)
-    }
-
     override suspend fun processAccountJson(json: String): Result<ImportJsonData> {
         return runCatching {
             accountRepository.processAccountJson(json)
@@ -182,76 +159,11 @@ class AccountInteractorImpl(
         return accountRepository.changeLanguage(language)
     }
 
-    override suspend fun addNode(nodeName: String, nodeHost: String): Result<Unit> {
-        return ensureUniqueNode(nodeHost) {
-            val networkType = getNetworkTypeByNodeHost(nodeHost)
-
-            accountRepository.addNode(nodeName, nodeHost, networkType)
-        }
+    override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) = runCatching {
+        accountRepository.generateRestoreJson(metaId, chainId, password)
     }
 
-    override suspend fun updateNode(nodeId: Int, newName: String, newHost: String): Result<Unit> {
-        return ensureUniqueNode(newHost) {
-            val networkType = getNetworkTypeByNodeHost(newHost)
+    override suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
 
-            accountRepository.updateNode(nodeId, newName, newHost, networkType)
-        }
-    }
-
-    private suspend fun ensureUniqueNode(nodeHost: String, action: suspend () -> Unit): Result<Unit> {
-        val nodeExists = accountRepository.checkNodeExists(nodeHost)
-
-        return runCatching {
-            if (nodeExists) {
-                throw NodeAlreadyExistsException()
-            } else {
-                action()
-            }
-        }
-    }
-
-    /**
-     * @throws UnsupportedNetworkException, if node network is not supported
-     * @throws FearlessException - in case of network issues
-     */
-    private suspend fun getNetworkTypeByNodeHost(nodeHost: String): Node.NetworkType {
-        val networkName = accountRepository.getNetworkName(nodeHost)
-
-        val supportedNetworks = Node.NetworkType.values()
-        val networkType = supportedNetworks.firstOrNull { networkName == it.readableName }
-
-        return networkType ?: throw UnsupportedNetworkException()
-    }
-
-    override suspend fun getAccountsByNetworkTypeWithSelectedNode(networkType: Node.NetworkType): Pair<List<Account>, Node> {
-        val accounts = accountRepository.getAccountsByNetworkType(networkType)
-        val node = accountRepository.getSelectedNodeOrDefault()
-        return Pair(accounts, node)
-    }
-
-    override suspend fun selectNodeAndAccount(nodeId: Int, accountAddress: String) {
-        // todo do we still need this logic?
-//        val account = accountRepository.getAccount(accountAddress)
-//        val node = accountRepository.getNode(nodeId)
-//
-//        accountRepository.selectAccount(account, newNode = node)
-    }
-
-    override suspend fun selectNode(nodeId: Int) {
-        val node = accountRepository.getNode(nodeId)
-
-        accountRepository.selectNode(node)
-    }
-
-    override suspend fun deleteNode(nodeId: Int) {
-        return accountRepository.deleteNode(nodeId)
-    }
-
-    override suspend fun generateRestoreJson(accountAddress: String, password: String): Result<String> {
-        val account = accountRepository.getAccount(accountAddress)
-
-        return runCatching {
-            accountRepository.generateRestoreJson(account, password)
-        }
-    }
+    override suspend fun getMetaAccountSecrets(metaId: Long) = accountRepository.getMetaAccountSecrets(metaId)
 }

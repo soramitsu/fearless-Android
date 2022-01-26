@@ -45,6 +45,7 @@ class KaruraContributeInteractor(
         }
     }
 
+    // TODO remove network type
     suspend fun isReferralValid(referralCode: String) = try {
         val networkType = accountRepository.currentNetworkType()
 

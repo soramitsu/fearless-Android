@@ -13,21 +13,9 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:src="@drawable/ic_checkmark_white_24"
-        app:layout_constraintBottom_toBottomOf="@+id/nodeIcon"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/nodeIcon" />
-
-    <ImageView
-        android:id="@+id/nodeIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/nodeHost"
-        app:layout_constraintStart_toEndOf="@id/nodeCheck"
-        app:layout_constraintTop_toTopOf="@+id/nodeTitle"
-        tools:layout_height="24dp"
-        tools:layout_width="24dp"
-        tools:src="@drawable/ic_ksm_24" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/nodeTitle"
@@ -40,7 +28,7 @@
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/nodeHost"
         app:layout_constraintEnd_toStartOf="@+id/nodeInfo"
-        app:layout_constraintStart_toEndOf="@+id/nodeIcon"
+        app:layout_constraintStart_toEndOf="@+id/startBarrier"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="Kusama, Parity node" />
@@ -82,9 +70,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/nodeIcon"
+        android:src="@drawable/ic_delete_symbol"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/nodeIcon"
-        android:src="@drawable/ic_delete_symbol" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/startBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="nodeDelete,nodeCheck" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

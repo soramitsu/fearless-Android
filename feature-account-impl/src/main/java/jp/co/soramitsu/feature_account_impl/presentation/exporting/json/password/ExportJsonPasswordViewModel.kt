@@ -5,27 +5,24 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_api.domain.model.Account
-import jp.co.soramitsu.feature_account_impl.data.mappers.mapNetworkTypeToNetworkModel
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.launch
 
 class ExportJsonPasswordViewModel(
     private val router: AccountRouter,
     private val interactor: AccountInteractor,
-    private val accountAddress: String
+    private val chainRegistry: ChainRegistry,
+    private val payload: ExportJsonPasswordPayload
 ) : BaseViewModel() {
 
     val passwordLiveData = MutableLiveData<String>()
     val passwordConfirmationLiveData = MutableLiveData<String>()
 
-    private val accountLiveData = liveData { emit(loadAccount()) }
-
-    val networkTypeLiveData = accountLiveData.map { mapNetworkTypeToNetworkModel(it.network.type) }
+    val chainLiveData = liveData { emit(chainRegistry.getChain(payload.chainId)) }
 
     val showDoNotMatchingErrorLiveData = passwordLiveData.combine(passwordConfirmationLiveData) { password, confirmation ->
         confirmation.isNotBlank() && confirmation != password
@@ -43,17 +40,13 @@ class ExportJsonPasswordViewModel(
         val password = passwordLiveData.value!!
 
         viewModelScope.launch {
-            val result = interactor.generateRestoreJson(accountAddress, password)
+            val result = interactor.generateRestoreJson(payload.metaId, payload.chainId, password)
 
             if (result.isSuccess) {
-                val payload = ExportJsonConfirmPayload(accountAddress, result.requireValue())
+                val payload = ExportJsonConfirmPayload(payload.metaId, payload.chainId, result.requireValue())
 
                 router.openExportJsonConfirm(payload)
             }
         }
-    }
-
-    private suspend fun loadAccount(): Account {
-        return interactor.getAccount(accountAddress)
     }
 }

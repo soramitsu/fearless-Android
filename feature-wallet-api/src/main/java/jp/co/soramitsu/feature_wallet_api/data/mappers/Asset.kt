@@ -6,7 +6,6 @@ import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigDecimal
 
 fun mapAssetToAssetModel(
@@ -20,15 +19,11 @@ fun mapAssetToAssetModel(
 
     return with(asset) {
         AssetModel(
-            asset.token.configuration.chainId,
-            asset.token.configuration.id,
-            token.configuration.icon,
-            token.configuration.iconUrl,
-            token.configuration.symbol,
-            formattedAmount
+            chainId = asset.token.configuration.chainId,
+            chainAssetId = asset.token.configuration.id,
+            imageUrl = token.configuration.iconUrl,
+            tokenName = token.configuration.symbol,
+            assetBalance = formattedAmount
         )
     }
 }
-
-val Chain.Asset.icon: Int
-    get() = R.drawable.ic_token_dot // TODO wallet - token icon

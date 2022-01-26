@@ -5,7 +5,6 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.sqlite.db.SupportSQLiteDatabase
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.core_db.converters.CryptoTypeConverters
@@ -17,7 +16,6 @@ import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
-import jp.co.soramitsu.core_db.dao.NodeDao
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
@@ -34,7 +32,10 @@ import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
+import jp.co.soramitsu.core_db.migrations.EthereumDerivationPathMigration
 import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_29_30
+import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_30_31
+import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_32_33
 import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
 import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
@@ -44,7 +45,6 @@ import jp.co.soramitsu.core_db.migrations.V2Migration
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
-import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.StorageEntryLocal
@@ -57,13 +57,11 @@ import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
-import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
 @Database(
-    version = 30,
+    version = 33,
     entities = [
         AccountLocal::class,
-        NodeLocal::class,
         AssetLocal::class,
         TokenLocal::class,
         PhishingAddressLocal::class,
@@ -106,11 +104,6 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java, "app.db"
                 )
                     .fallbackToDestructiveMigration()
-                    .addCallback(object : RoomDatabase.Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            db.execSQL(defaultNodesInsertQuery(LATEST_DEFAULT_NODES))
-                        }
-                    })
                     .addMigrations(AddTokenTable_9_10, AddPhishingAddressesTable_10_11, AddRuntimeCacheTable_11_12)
                     .addMigrations(AddStorageCacheTable_12_13, AddNetworkTypeToStorageCache_13_14)
                     .addMigrations(AddAccountStakingTable_14_15, AddStakingRewardsTable_15_16, ChangePrimaryKeyForRewards_16_17)
@@ -124,13 +117,14 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 25))
                     .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 26))
                     .addMigrations(AddChainRegistryTables_27_28, V2Migration(storeV1, storeV2), MigrateTablesToV2_29_30)
+                    .addMigrations(MigrateTablesToV2_30_31)
+                    .addMigrations(EthereumDerivationPathMigration(storeV2))
+                    .addMigrations(MigrateTablesToV2_32_33)
                     .build()
             }
             return instance!!
         }
     }
-
-    abstract fun nodeDao(): NodeDao
 
     abstract fun userDao(): AccountDao
 

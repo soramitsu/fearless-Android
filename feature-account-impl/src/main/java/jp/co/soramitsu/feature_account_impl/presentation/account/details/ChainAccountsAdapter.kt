@@ -16,6 +16,7 @@ import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountAccount
 import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountAccountIcon
 import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountChainIcon
 import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountChainName
+import kotlinx.android.synthetic.main.item_chain_acount.view.labeledTextAction
 
 class ChainAccountsAdapter(
     private val handler: Handler,
@@ -25,6 +26,7 @@ class ChainAccountsAdapter(
     interface Handler {
 
         fun chainAccountClicked(item: AccountInChainUi)
+        fun chainAccountOptionsClicked(item: AccountInChainUi)
     }
 
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
@@ -56,6 +58,8 @@ class ChainAccountHolder(view: View) : GroupedListHolder(view) {
 
         chainAccountAccountIcon.setImageDrawable(item.accountIcon)
         chainAccountAccountAddress.text = item.address
+
+        labeledTextAction.setOnClickListener { handler.chainAccountOptionsClicked(item) }
 
         setOnClickListener { handler.chainAccountClicked(item) }
     }

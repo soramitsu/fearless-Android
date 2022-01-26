@@ -57,7 +57,7 @@
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenName"
-                    tools:src="@drawable/ic_token_ksm" />
+                    tools:src="@drawable/ic_plus_circle" />
 
                 <TextView
                     android:id="@+id/balanceDetailTokenName"
@@ -77,26 +77,28 @@
                     android:layout_marginEnd="16dp"
                     android:background="@drawable/bg_asset_badge"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="6dp"
                     app:layout_constraintBottom_toBottomOf="@+id/balanceDetailTokenName"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenName">
 
                     <ImageView
-                        android:id="@+id/assetBadgeIcon"
-                        android:layout_width="14dp"
+                        android:id="@+id/chainBadgeIcon"
+                        android:layout_width="16dp"
                         android:layout_height="match_parent"
-                        android:layout_marginVertical="3dp"
                         android:layout_marginEnd="4dp"
-                        tools:src="@drawable/ic_token_ksm" />
+                        tools:src="@drawable/ic_plus_circle" />
 
                     <TextView
-                        android:id="@+id/balanceAssetName"
-                        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+                        android:id="@+id/chainAssetName"
+                        style="@style/TextAppearance.Soramitsu.Body3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/soramitsu_bold"
                         android:includeFontPadding="false"
+                        android:textAllCaps="true"
                         android:textColor="@color/white_64"
                         tools:text="KUSAMA" />
                 </LinearLayout>

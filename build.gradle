@@ -1,8 +1,8 @@
 buildscript {
     ext {
         // App version
-        versionName = '2.0.0'
-        versionCode = 51
+        versionName = '2.0.1'
+        versionCode = 52
 
         // SDK and tools
         compileSdkVersion = 31
@@ -43,7 +43,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.96'
+        fearlessLibVersion = '1.0.97'
 
         gifVersion = '1.2.19'
 
@@ -67,6 +67,8 @@ buildscript {
 
         coilVersion = '1.2.1'
 
+        androidxCoreVersion = '1.7.0'
+
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
 
@@ -79,6 +81,7 @@ buildscript {
         recyclerViewDep = "androidx.recyclerview:recyclerview:$supportVersion"
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
         materialDep = "com.google.android.material:material:$supportVersion"
+        androidxCoreDep = "androidx.core:core-ktx:$androidxCoreVersion"
 
         daggerDep = "com.google.dagger:dagger:$daggerVersion"
         daggerKapt = "com.google.dagger:dagger-compiler:$daggerVersion"

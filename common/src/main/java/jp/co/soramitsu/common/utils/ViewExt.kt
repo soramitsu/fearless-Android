@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.utils
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.TypedArray
+import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
@@ -79,6 +80,22 @@ fun TextView.setDrawableStart(
 
     val drawable = context.getDrawableCompat(start)
 
+    tint?.let { drawable.mutate().setTint(context.getColor(it)) }
+
+    val widthInPx = if (widthInDp != null) (resources.displayMetrics.density * widthInDp).toInt() else drawable.intrinsicWidth
+    val heightInPx = if (heightInDp != null) (resources.displayMetrics.density * heightInDp).toInt() else drawable.intrinsicHeight
+
+    drawable.setBounds(0, 0, widthInPx, heightInPx)
+
+    setCompoundDrawablesRelative(drawable, null, null, null)
+}
+
+fun TextView.setDrawableStart(
+    drawable: Drawable,
+    widthInDp: Int? = null,
+    heightInDp: Int? = widthInDp,
+    @ColorRes tint: Int? = null
+) {
     tint?.let { drawable.mutate().setTint(context.getColor(it)) }
 
     val widthInPx = if (widthInDp != null) (resources.displayMetrics.density * widthInDp).toInt() else drawable.intrinsicWidth

@@ -17,12 +17,18 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountLis
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
+import jp.co.soramitsu.feature_account_impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsPayload
+import jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.ToolbarConfiguration
@@ -71,6 +77,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRec
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
@@ -404,8 +411,8 @@ class Navigator :
         navController?.navigate(R.id.action_open_accounts, AccountListFragment.getBundle(accountChosenNavDirection))
     }
 
-    override fun openNodes() {
-        navController?.navigate(R.id.action_mainFragment_to_nodesFragment)
+    override fun openNodes(chainId: ChainId) {
+        navController?.navigate(R.id.action_accountDetailsFragment_to_nodesFragment, NodesFragment.getBundle(chainId))
     }
 
     override fun openLanguages() {
@@ -440,7 +447,7 @@ class Navigator :
     override fun openAccountDetails(metaAccountId: Long) {
         val extras = AccountDetailsFragment.getBundle(metaAccountId)
 
-        navController?.navigate(R.id.action_accountsFragment_to_accountDetailsFragment, extras)
+        navController?.navigate(R.id.action_open_accountDetailsFragment, extras)
     }
 
     override fun openEditAccounts() {
@@ -451,8 +458,8 @@ class Navigator :
         navController?.navigate(R.id.action_editAccountsFragment_to_mainFragment)
     }
 
-    override fun openNodeDetails(nodeId: Int) {
-        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(nodeId))
+    override fun openNodeDetails(payload: NodeDetailsPayload) {
+        navController?.navigate(R.id.action_nodesFragment_to_nodeDetailsFragment, NodeDetailsFragment.getBundle(payload))
     }
 
     override fun openAssetDetails(assetPayload: AssetPayload) {
@@ -461,18 +468,18 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
     }
 
-    override fun openAddNode() {
-        navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment)
+    override fun openAddNode(chainId: ChainId) {
+        navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment, AddNodeFragment.getBundle(chainId))
     }
 
-    override fun openExportMnemonic(accountAddress: String): DelayedNavigation {
-        val extras = ExportMnemonicFragment.getBundle(accountAddress)
+    override fun openExportMnemonic(payload: ExportMnemonicPayload): DelayedNavigation {
+        val extras = ExportMnemonicFragment.getBundle(payload)
 
         return NavComponentDelayedNavigation(R.id.action_export_mnemonic, extras)
     }
 
-    override fun openExportSeed(accountAddress: String): DelayedNavigation {
-        val extras = ExportSeedFragment.getBundle(accountAddress)
+    override fun openExportSeed(payload: ExportSeedPayload): DelayedNavigation {
+        val extras = ExportSeedFragment.getBundle(payload)
 
         return NavComponentDelayedNavigation(R.id.action_export_seed, extras)
     }
@@ -483,8 +490,8 @@ class Navigator :
         navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }
 
-    override fun openExportJsonPassword(accountAddress: String): DelayedNavigation {
-        val extras = ExportJsonPasswordFragment.getBundle(accountAddress)
+    override fun openExportJsonPassword(payload: ExportJsonPasswordPayload): DelayedNavigation {
+        val extras = ExportJsonPasswordFragment.getBundle(payload)
 
         return NavComponentDelayedNavigation(R.id.action_export_json, extras)
     }

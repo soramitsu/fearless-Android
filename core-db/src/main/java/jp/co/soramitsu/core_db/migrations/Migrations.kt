@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.asBoolean
 import jp.co.soramitsu.core_db.model.NodeLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
+// TODO Should we keep it for previous versions of the app?
 class UpdateDefaultNodesList(
     private val nodesList: List<NodeLocal>,
     fromVersion: Int,
@@ -55,6 +56,44 @@ class UpdateDefaultNodesList(
 
         database.setTransactionSuccessful()
         database.endTransaction()
+    }
+}
+
+val MigrateTablesToV2_32_33 = object : Migration(32, 33) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+
+        // assets
+        database.execSQL("DROP TABLE assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `tokenSymbol` TEXT NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `metaId` INTEGER NOT NULL,
+            `freeInPlanks` TEXT NOT NULL,
+            `reservedInPlanks` TEXT NOT NULL,
+            `miscFrozenInPlanks` TEXT NOT NULL,
+            `feeFrozenInPlanks` TEXT NOT NULL,
+            `bondedInPlanks` TEXT NOT NULL,
+            `redeemableInPlanks` TEXT NOT NULL,
+            `unbondingInPlanks` TEXT NOT NULL,
+            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+    }
+}
+
+val MigrateTablesToV2_30_31 = object : Migration(30, 31) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+
+        database.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE chain_nodes ADD COLUMN `isDefault` INTEGER NOT NULL DEFAULT 1")
+
+        database.execSQL("DROP TABLE nodes")
     }
 }
 

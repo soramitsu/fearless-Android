@@ -12,7 +12,6 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -40,6 +39,7 @@ import kotlinx.android.synthetic.main.fragment_custom_contribute.customContribut
 import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeToolbar
 import kotlinx.android.synthetic.main.fragment_custom_contribute.customFlowContainer
 import kotlinx.coroutines.flow.first
+import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
@@ -177,7 +177,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                 it.setAssetBalance(model.assetBalance)
                 payload.parachainMetadata.isMoonbeam
                 it.setAssetName(model.tokenName)
-                it.setAssetImageResource(model.tokenIconRes)
+                it.setAssetImageUrl(model.imageUrl, imageLoader)
             }
         }
 

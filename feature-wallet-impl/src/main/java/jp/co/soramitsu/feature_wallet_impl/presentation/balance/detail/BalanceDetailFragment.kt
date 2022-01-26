@@ -23,8 +23,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.showState
-import kotlinx.android.synthetic.main.fragment_balance_detail.assetBadgeIcon
-import kotlinx.android.synthetic.main.fragment_balance_detail.balanceAssetName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetaiActions
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBack
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailContainer
@@ -34,6 +32,8 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateC
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailsInfo
+import kotlinx.android.synthetic.main.fragment_balance_detail.chainAssetName
+import kotlinx.android.synthetic.main.fragment_balance_detail.chainBadgeIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
 import javax.inject.Inject
 
@@ -113,10 +113,10 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         viewModel.assetLiveData.observe { asset ->
             balanceDetailTokenIcon.load(asset.token.configuration.iconUrl, imageLoader)
-            assetBadgeIcon.load(asset.token.configuration.iconUrl, imageLoader)
+            chainBadgeIcon.load(asset.token.configuration.chainIcon, imageLoader)
 
             balanceDetailTokenName.text = asset.token.configuration.symbol
-            balanceAssetName.text = asset.token.configuration.name
+            chainAssetName.text = asset.token.configuration.chainName
 
             balanceDetailRate.text = asset.token.dollarRate?.formatAsCurrency() ?: ""
 

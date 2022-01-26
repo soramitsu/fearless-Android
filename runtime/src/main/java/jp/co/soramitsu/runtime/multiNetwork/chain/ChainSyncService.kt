@@ -7,9 +7,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// todo add etherium support
-private const val MOONRIVER_ID = "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b"
-
 class ChainSyncService(
     private val dao: ChainDao,
     private val chainFetcher: ChainFetcher,
@@ -18,7 +15,7 @@ class ChainSyncService(
     suspend fun syncUp() = withContext(Dispatchers.Default) {
         val localChainsJoinedInfo = dao.getJoinChainInfo()
 
-        val chains = chainFetcher.getChains().filter { it.chainId != MOONRIVER_ID } // todo add etherium support
+        val chains = chainFetcher.getChains()
         val assets = chainFetcher.getAssets()
 
         val remoteChains = mapChainRemoteToChain(chains, assets)

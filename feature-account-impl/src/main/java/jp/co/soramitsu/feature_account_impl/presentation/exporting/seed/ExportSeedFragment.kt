@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -16,16 +17,12 @@ import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedToolbar
 import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedType
 import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedValue
 
-private const val ACCOUNT_ADDRESS_KEY = "ACCOUNT_ADDRESS_KEY"
-
 class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
     companion object {
-        fun getBundle(accountAddress: String): Bundle {
-            return Bundle().apply {
-                putString(ACCOUNT_ADDRESS_KEY, accountAddress)
-            }
-        }
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+
+        fun getBundle(payload: ExportSeedPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -47,11 +44,11 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
     }
 
     override fun inject() {
-        val accountAddress = argument<String>(ACCOUNT_ADDRESS_KEY)
+        val payload = argument<ExportSeedPayload>(PAYLOAD_KEY)
 
         FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
             .exportSeedFactory()
-            .create(this, accountAddress)
+            .create(this, payload)
             .inject(this)
     }
 
@@ -73,7 +70,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
         }
 
         viewModel.seedLiveData.observe {
-            exportSeedValue.setMessage(it)
+            it?.let { exportSeedValue.setMessage(it) }
         }
 
         viewModel.cryptoTypeLiveData.observe {

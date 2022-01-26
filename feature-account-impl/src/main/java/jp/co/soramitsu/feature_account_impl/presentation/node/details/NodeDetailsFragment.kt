@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.details
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
+import androidx.lifecycle.lifecycleScope
+import coil.ImageLoader
+import coil.request.ImageRequest
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
@@ -17,18 +22,18 @@ import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameField
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNetworkType
 import kotlinx.android.synthetic.main.fragment_node_details.nodeHostCopy
 import kotlinx.android.synthetic.main.fragment_node_details.updateBtn
+import kotlinx.coroutines.launch
 
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     companion object {
-        private const val KEY_NODE_ID = "node_id"
+        private const val PAYLOAD_KEY = "payload"
 
-        fun getBundle(nodeId: Int): Bundle {
-            return Bundle().apply {
-                putInt(KEY_NODE_ID, nodeId)
-            }
-        }
+        fun getBundle(payload: NodeDetailsPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
+
+    @Inject
+    lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,24 +54,34 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
     }
 
     override fun inject() {
-        val nodeId = argument<Int>(KEY_NODE_ID)
+        val payload = argument<NodeDetailsPayload>(PAYLOAD_KEY)
+
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .nodeDetailsComponentFactory()
-            .create(this, nodeId)
+            .create(this, payload)
             .inject(this)
     }
 
     override fun subscribe(viewModel: NodeDetailsViewModel) {
         viewModel.nodeModelLiveData.observe { node ->
             nodeDetailsNameField.content.setText(node.name)
-            nodeDetailsHostField.content.setText(node.link)
+            nodeDetailsHostField.content.setText(node.url)
+        }
 
-            with(node.networkModelType) {
-                nodeDetailsNetworkType.text = networkType.readableName
-                nodeDetailsNetworkType.setDrawableStart(icon)
+        viewModel.chainInfoLiveData.observe {
+            nodeDetailsNetworkType.text = it.name
+
+            val request = ImageRequest.Builder(requireContext())
+                .size(resources.getDimension(R.dimen.chain_icon_size_small).toInt())
+                .data(it.icon)
+                .build()
+
+            lifecycleScope.launch {
+                val drawable = imageLoader.execute(request).drawable ?: return@launch
+                nodeDetailsNetworkType.setDrawableStart(drawable)
             }
         }
 

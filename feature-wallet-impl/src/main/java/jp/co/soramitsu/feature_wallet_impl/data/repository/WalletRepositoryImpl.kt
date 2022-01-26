@@ -79,17 +79,13 @@ class WalletRepositoryImpl(
             }
 
             val assetsByChain: List<Asset> = chainRegistry.currentChains.firstOrNull().orEmpty()
-                .flatMap { it.assets.map(::createEmpty) }
+                .flatMap { it.assets.map { createEmpty(it, metaId) } }
 
             val notUpdatedAssets = assetsByChain.filter {
                 it.token.configuration.chainToSymbol !in updatedAssets.map { it.token.configuration.chainToSymbol }
             }
 
-            (updatedAssets + notUpdatedAssets).sortedWith(
-                compareBy(
-                    { it.token.configuration.symbol }, { !it.token.configuration.isNative }, { it.token.configuration.chainId }
-                )
-            )
+            updatedAssets + notUpdatedAssets
         }
     }
 
