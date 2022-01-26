@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccount
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class AccountDetailsModule {
@@ -28,6 +29,7 @@ class AccountDetailsModule {
         resourceManager: ResourceManager,
         @Caching
         iconGenerator: AddressIconGenerator,
+        chainRegistry: ChainRegistry,
         metaId: Long,
         externalAccountActions: ExternalAccountActions.Presentation
     ): ViewModel {
@@ -36,6 +38,7 @@ class AccountDetailsModule {
             router,
             iconGenerator,
             resourceManager,
+            chainRegistry,
             metaId,
             externalAccountActions
         )
