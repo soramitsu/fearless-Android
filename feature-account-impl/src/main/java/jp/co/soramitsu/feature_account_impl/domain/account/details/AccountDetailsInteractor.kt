@@ -10,6 +10,8 @@ import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.feature_account_api.domain.model.hasChainAccount
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain.From
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -28,7 +30,7 @@ class AccountDetailsInteractor(
     }
 
     suspend fun getChainProjections(metaAccount: MetaAccount): GroupedList<From, AccountInChain> = withContext(Dispatchers.Default) {
-        val chains = chainRegistry.currentChains.first()
+        val chains = chainRegistry.currentChains.first().sortedWith(chainSort())
 
         chains.map { chain ->
             val address = metaAccount.address(chain)
@@ -51,4 +53,7 @@ class AccountDetailsInteractor(
     suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>? {
         return accountRepository.getMetaAccountSecrets(metaId)
     }
+
+    private fun chainSort() = compareByDescending<Chain> { it.id.isPolkadotOrKusama() }
+        .thenBy { it.name }
 }
