@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.format
@@ -31,15 +32,14 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.networkType
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -52,6 +52,8 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 
 private const val AVATAR_SIZE_DP = 24
 
@@ -73,7 +75,8 @@ class ChooseAmountViewModel(
     private val walletConstants: WalletConstants,
     private val recipientAddress: String,
     private val assetPayload: AssetPayload,
-    private val phishingAddress: PhishingWarningMixin
+    private val phishingAddress: PhishingWarningMixin,
+    private val chainRegistry: ChainRegistry
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
@@ -167,11 +170,19 @@ class ChooseAmountViewModel(
         }
     }
 
-    fun recipientAddressClicked() {
-        val recipientAddress = recipientModelLiveData.value?.address ?: return
-        val networkType = assetLiveData.value?.token?.configuration?.networkType ?: return
+    fun recipientAddressClicked() = launch {
+        val recipientAddress = recipientModelLiveData.value?.address ?: return@launch
+        val chainId = assetLiveData.value?.token?.configuration?.chainId ?: return@launch
+        val chain = chainRegistry.getChain(chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, recipientAddress)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = recipientAddress,
+            chainId = chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
 
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(recipientAddress, networkType))
+        externalAccountActions.showExternalActions(externalActionsPayload)
     }
 
     fun warningConfirmed() {

@@ -3,16 +3,16 @@ package jp.co.soramitsu.feature_account_api.presenatation.actions
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 class ExternalAccountActionsProvider(
     val clipboardManager: ClipboardManager,
     val appLinksProvider: AppLinksProvider,
-    val resourceManager: ResourceManager
+    val resourceManager: ResourceManager,
+    val chainRegistry: ChainRegistry
 ) : ExternalAccountActions.Presentation {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
@@ -35,9 +35,7 @@ class ExternalAccountActionsProvider(
         messageShower.invoke(message)
     }
 
-    override fun viewExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {
-        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, networkType)
-
+    override fun viewExternalClicked(url: String) {
         openBrowserEvent.value = Event(url)
     }
 }

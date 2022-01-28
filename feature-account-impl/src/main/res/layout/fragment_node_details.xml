@@ -75,7 +75,7 @@
         android:gravity="center_vertical"
         android:includeFontPadding="false"
         android:padding="16dp"
-        tools:drawableStart="@drawable/ic_ksm_24"
+        tools:drawableStart="@drawable/ic_plus_circle"
         tools:text="Kusama" />
 
     <jp.co.soramitsu.common.view.PrimaryButton

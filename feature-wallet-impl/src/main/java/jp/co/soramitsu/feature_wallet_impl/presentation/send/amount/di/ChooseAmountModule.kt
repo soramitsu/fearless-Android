@@ -12,12 +12,13 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountViewModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.impl.PhishingWarningProvider
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ChooseAmountModule {
@@ -39,7 +40,8 @@ class ChooseAmountModule {
         recipientAddress: String,
         walletConstants: WalletConstants,
         assetPayload: AssetPayload,
-        phishingWarning: PhishingWarningMixin
+        phishingWarning: PhishingWarningMixin,
+        chainRegistry: ChainRegistry
     ): ViewModel {
         return ChooseAmountViewModel(
             interactor,
@@ -50,7 +52,8 @@ class ChooseAmountModule {
             walletConstants,
             recipientAddress,
             assetPayload,
-            phishingWarning
+            phishingWarning,
+            chainRegistry
         )
     }
 

@@ -4,10 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.StringRes
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
@@ -15,7 +16,7 @@ import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCal
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailCall
 import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailDate
 import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailFee
@@ -26,13 +27,11 @@ import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetail
 import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailStatusIcon
 import kotlinx.android.synthetic.main.fragment_extrinsic_details.extrinsicDetailToolbar
 
-private const val KEY_EXTRINSIC = "KEY_EXTRINSIC"
-
 class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.Extrinsic) = Bundle().apply {
-            putParcelable(KEY_EXTRINSIC, operation)
-        }
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+
+        fun getBundle(payload: ExtrinsicDetailsPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     override fun onCreateView(
@@ -54,19 +53,19 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<OperationParcelizeModel.Extrinsic>(KEY_EXTRINSIC)
+        val payload = argument<ExtrinsicDetailsPayload>(PAYLOAD_KEY)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .extrinsicDetailComponentFactory()
-            .create(this, operation)
+            .create(this, payload)
             .inject(this)
     }
 
     override fun subscribe(viewModel: ExtrinsicDetailViewModel) {
-        with(viewModel.operation) {
+        with(viewModel.payload.operation) {
             extrinsicDetailHash.setMessage(hash)
             extrinsicDetailStatus.setText(statusAppearance.labelRes)
             extrinsicDetailStatusIcon.setImageResource(statusAppearance.icon)
@@ -88,7 +87,7 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
-            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(viewModel.operation.originAddress)
+            ExternalActionsSource.FROM_ADDRESS -> showExternalAddressActions(viewModel.payload.operation.originAddress)
         }
     }
 
@@ -97,27 +96,29 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>() {
     ) = showExternalActionsSheet(
         copyLabelRes = R.string.common_copy_address,
         value = address,
-        externalViewCallback = viewModel::viewAccountExternalClicked
+        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address),
+        externalViewCallback = viewModel::openUrl
     )
 
-    private fun showExternalTransactionActions() {
-        showExternalActionsSheet(
-            R.string.transaction_details_copy_hash,
-            viewModel.operation.hash,
-            viewModel::viewTransactionExternalClicked
-        )
-    }
+    private fun showExternalTransactionActions() = showExternalActionsSheet(
+        copyLabelRes = R.string.transaction_details_copy_hash,
+        value = viewModel.payload.operation.hash,
+        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EXTRINSIC, viewModel.payload.operation.hash),
+        externalViewCallback = viewModel::openUrl
+    )
 
     private fun showExternalActionsSheet(
         @StringRes copyLabelRes: Int,
         value: String,
+        explorers: Map<Chain.Explorer.Type, String>,
         externalViewCallback: ExternalViewCallback
     ) {
         val payload = ExternalActionsSheet.Payload(
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = viewModel.operation.originAddress.networkType()
+                chainId = viewModel.payload.chainId,
+                explorers = explorers
             )
         )
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -25,6 +26,8 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -37,6 +40,7 @@ class ConfirmBondMoreViewModel(
     private val validationExecutor: ValidationExecutor,
     private val iconGenerator: AddressIconGenerator,
     private val validationSystem: BondMoreValidationSystem,
+    private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val payload: ConfirmBondMorePayload,
 ) : BaseViewModel(),
@@ -87,9 +91,16 @@ class ConfirmBondMoreViewModel(
         router.back()
     }
 
-    fun originAccountClicked() {
-        val externalActionsPayload = ExternalAccountActions.Payload.fromAddress(payload.stashAddress)
-
+    fun originAccountClicked() = launch {
+        val chainId = assetFlow.first().token.configuration.chainId
+        val chain = chainRegistry.getChain(chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, payload.stashAddress)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = payload.stashAddress,
+            chainId = chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
         externalAccountActions.showExternalActions(externalActionsPayload)
     }
 

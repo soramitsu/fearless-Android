@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
@@ -25,6 +26,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.Expo
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -149,8 +151,9 @@ class AccountDetailsViewModel(
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
-    fun chainAccountOptionsClicked(item: AccountInChainUi) {
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, null, item.chainId, item.chainName))
+    fun chainAccountOptionsClicked(item: AccountInChainUi) = launch {
+        val supportedExplorers = chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
+        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
     }
 
     fun switchNode(chainId: ChainId) {

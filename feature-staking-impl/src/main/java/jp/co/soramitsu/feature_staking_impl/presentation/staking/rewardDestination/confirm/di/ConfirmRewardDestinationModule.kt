@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmRewardDestinationModule {
@@ -34,6 +35,7 @@ class ConfirmRewardDestinationModule {
         validationSystem: RewardDestinationValidationSystem,
         validationExecutor: ValidationExecutor,
         rewardDestinationInteractor: ChangeRewardDestinationInteractor,
+        chainRegistry: ChainRegistry,
         externalAccountActions: ExternalAccountActions.Presentation,
         addressDisplayUseCase: AddressDisplayUseCase,
         payload: ConfirmRewardDestinationPayload
@@ -45,6 +47,7 @@ class ConfirmRewardDestinationModule {
             resourceManager,
             validationSystem,
             rewardDestinationInteractor,
+            chainRegistry,
             externalAccountActions,
             addressDisplayUseCase,
             validationExecutor,

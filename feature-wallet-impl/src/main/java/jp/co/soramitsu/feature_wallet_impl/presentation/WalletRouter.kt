@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.presentation
 
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailsPayload
 
 interface WalletRouter {
     fun openAssetDetails(assetPayload: AssetPayload)
@@ -22,9 +24,9 @@ interface WalletRouter {
 
     fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload)
 
-    fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.Extrinsic)
+    fun openExtrinsicDetail(payload: ExtrinsicDetailsPayload)
 
-    fun openRewardDetail(reward: OperationParcelizeModel.Reward)
+    fun openRewardDetail(payload: RewardDetailsPayload)
 
     fun openAddAccount()
 

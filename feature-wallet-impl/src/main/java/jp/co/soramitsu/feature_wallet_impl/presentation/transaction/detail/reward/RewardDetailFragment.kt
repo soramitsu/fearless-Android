@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.StringRes
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.data.network.ExternalAnalyzer
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.makeGone
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailDate
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailEra
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailHash
@@ -27,13 +28,11 @@ import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetail
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailToolbar
 import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailValidator
 
-private const val KEY_REWARD = "KEY_REWARD"
-
 class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     companion object {
-        fun getBundle(operation: OperationParcelizeModel.Reward) = Bundle().apply {
-            putParcelable(KEY_REWARD, operation)
-        }
+        private const val KEY_PAYLOAD = "KEY_PAYLOAD"
+
+        fun getBundle(payload: RewardDetailsPayload) = bundleOf(KEY_PAYLOAD to payload)
     }
 
     override fun onCreateView(
@@ -55,14 +54,14 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     }
 
     override fun inject() {
-        val operation = argument<OperationParcelizeModel.Reward>(KEY_REWARD)
+        val payload = argument<RewardDetailsPayload>(KEY_PAYLOAD)
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .rewardDetailComponentFactory()
-            .create(this, operation)
+            .create(this, payload)
             .inject(this)
     }
 
@@ -72,7 +71,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     }
 
     override fun subscribe(viewModel: RewardDetailViewModel) {
-        with(viewModel.operation) {
+        with(viewModel.payload.operation) {
             rewardDetailHash.setMessage(eventId)
             rewardDetailDate.text = time.formatDateTime(requireContext())
             rewardDetailReward.text = amount
@@ -104,7 +103,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
-        val transaction = viewModel.operation
+        val transaction = viewModel.payload.operation
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalEventActions()
@@ -112,36 +111,33 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
         }
     }
 
-    private fun showExternalAddressActions(
-        address: String
-    ) = showExternalActionsSheet(
+    private fun showExternalAddressActions(address: String) = showExternalActionsSheet(
         copyLabelRes = R.string.common_copy_address,
         value = address,
-        externalViewCallback = viewModel::viewAccountExternalClicked
+        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address),
+        externalViewCallback = viewModel::openUrl
     )
 
-    private fun showExternalEventActions() {
-        showExternalActionsSheet(
-            R.string.common_copy_id,
-            viewModel.operation.eventId,
-            viewModel::viewEventExternalClicked,
-            forceForbid = setOf(ExternalAnalyzer.SUBSCAN)
-        )
-    }
+    private fun showExternalEventActions() = showExternalActionsSheet(
+        copyLabelRes = R.string.common_copy_id,
+        value = viewModel.payload.operation.eventId,
+        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EVENT, viewModel.payload.operation.eventId),
+        externalViewCallback = viewModel::openUrl
+    )
 
     private fun showExternalActionsSheet(
         @StringRes copyLabelRes: Int,
         value: String,
-        externalViewCallback: ExternalViewCallback,
-        forceForbid: Set<ExternalAnalyzer> = emptySet(),
+        explorers: Map<Chain.Explorer.Type, String>,
+        externalViewCallback: ExternalViewCallback
     ) {
         val payload = ExternalActionsSheet.Payload(
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = viewModel.operation.address.networkType()
-            ),
-            forceForbid = forceForbid
+                chainId = viewModel.payload.chainId,
+                explorers = explorers
+            )
         )
 
         ExternalActionsSheet(

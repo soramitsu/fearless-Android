@@ -59,6 +59,23 @@ class UpdateDefaultNodesList(
     }
 }
 
+val AddChainExplorersTable_33_34 = object : Migration(33, 34) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_explorers` (
+            `chainId` TEXT NOT NULL,
+            `type` TEXT NOT NULL,
+            `types` TEXT NOT NULL,
+            `url` TEXT NOT NULL,
+            PRIMARY KEY(`chainId`, `type`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
+    }
+}
+
 val MigrateTablesToV2_32_33 = object : Migration(32, 33) {
     override fun migrate(database: SupportSQLiteDatabase) {
 

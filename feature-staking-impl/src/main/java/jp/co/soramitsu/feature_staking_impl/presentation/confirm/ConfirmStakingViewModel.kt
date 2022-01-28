@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -37,6 +38,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.staki
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
@@ -59,6 +62,7 @@ class ConfirmStakingViewModel(
     private val validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val setupStakingInteractor: SetupStakingInteractor,
+    private val chainRegistry: ChainRegistry,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val validationExecutor: ValidationExecutor,
@@ -168,19 +172,33 @@ class ConfirmStakingViewModel(
     fun originAccountClicked() {
         viewModelScope.launch {
             val account = interactor.getSelectedAccountProjection()
+            val chainId = controllerAssetFlow.first().token.configuration.chainId
+            val chain = chainRegistry.getChain(chainId)
+            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, account.address)
+            val externalActionsPayload = ExternalAccountActions.Payload(
+                value = account.address,
+                chainId = chainId,
+                chainName = chain.name,
+                explorers = supportedExplorers
+            )
 
-            val payload = ExternalAccountActions.Payload(account.address, account.network.type)
-
-            externalAccountActions.showExternalActions(payload)
+            externalAccountActions.showExternalActions(externalActionsPayload)
         }
     }
 
-    fun payoutAccountClicked() {
-        val payoutDestination = rewardDestinationLiveData.value as? RewardDestinationModel.Payout ?: return
+    fun payoutAccountClicked() = launch {
+        val payoutDestination = rewardDestinationLiveData.value as? RewardDestinationModel.Payout ?: return@launch
+        val chainId = controllerAssetFlow.first().token.configuration.chainId
+        val chain = chainRegistry.getChain(chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, payoutDestination.destination.address)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = payoutDestination.destination.address,
+            chainId = chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
 
-        val payload = ExternalAccountActions.Payload.fromAddress(payoutDestination.destination.address)
-
-        externalAccountActions.showExternalActions(payload)
+        externalAccountActions.showExternalActions(externalActionsPayload)
     }
 
     fun nominationsClicked() {

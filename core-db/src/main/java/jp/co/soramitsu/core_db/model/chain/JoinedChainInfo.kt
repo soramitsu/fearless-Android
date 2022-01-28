@@ -11,5 +11,8 @@ class JoinedChainInfo(
     val nodes: List<ChainNodeLocal>,
 
     @Relation(parentColumn = "id", entityColumn = "chainId", entity = ChainAssetLocal::class)
-    val assets: List<ChainAssetLocal>
+    val assets: List<ChainAssetLocal>,
+
+    @Relation(parentColumn = "id", entityColumn = "chainId", entity = ChainExplorerLocal::class)
+    val explorers: List<ChainExplorerLocal>
 )

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import java.util.Locale
 
 typealias ChainId = String
@@ -12,6 +13,7 @@ data class Chain(
     val name: String,
     val assets: List<Asset>,
     val nodes: List<Node>,
+    val explorers: List<Explorer>,
     val externalApi: ExternalApi?,
     val icon: String,
     val addressPrefix: Int,
@@ -76,7 +78,21 @@ data class Chain(
             }
         }
     }
+
+    data class Explorer(val type: Type, val types: List<String>, val url: String) {
+        enum class Type {
+            POLKASCAN, SUBSCAN, UNKNOWN;
+
+            val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
+        }
+    }
 }
+
+fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) = mapNotNull {
+    BlockExplorerUrlBuilder(it.url, it.types).build(type, value)?.let { url ->
+        it.type to url
+    }
+}.toMap()
 
 fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
 

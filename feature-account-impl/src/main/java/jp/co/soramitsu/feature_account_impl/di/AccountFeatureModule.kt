@@ -144,9 +144,10 @@ class AccountFeatureModule {
     fun provideExternalAccountActions(
         clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        chainRegistry: ChainRegistry
     ): ExternalAccountActions.Presentation {
-        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
+        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager, chainRegistry)
     }
 
     @Provides
