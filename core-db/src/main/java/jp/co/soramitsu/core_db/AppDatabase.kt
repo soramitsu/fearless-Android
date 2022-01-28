@@ -22,6 +22,7 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
+import jp.co.soramitsu.core_db.migrations.AddChainExplorersTable_33_34
 import jp.co.soramitsu.core_db.migrations.AddChainRegistryTables_27_28
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_23_24
@@ -52,6 +53,7 @@ import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
+import jp.co.soramitsu.core_db.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
@@ -59,7 +61,7 @@ import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 
 @Database(
-    version = 33,
+    version = 34,
     entities = [
         AccountLocal::class,
         AssetLocal::class,
@@ -75,7 +77,8 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
         ChainAssetLocal::class,
         ChainRuntimeInfoLocal::class,
         MetaAccountLocal::class,
-        ChainAccountLocal::class
+        ChainAccountLocal::class,
+        ChainExplorerLocal::class
     ]
 )
 @TypeConverters(
@@ -120,6 +123,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(MigrateTablesToV2_30_31)
                     .addMigrations(EthereumDerivationPathMigration(storeV2))
                     .addMigrations(MigrateTablesToV2_32_33)
+                    .addMigrations(AddChainExplorersTable_33_34)
                     .build()
             }
             return instance!!

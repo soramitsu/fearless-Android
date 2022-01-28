@@ -19,9 +19,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.ConfirmPayoutViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmPayoutModule {
@@ -35,6 +36,7 @@ class ConfirmPayoutModule {
         payload: ConfirmPayoutPayload,
         payoutInteractor: PayoutInteractor,
         addressIconGenerator: AddressIconGenerator,
+        chainRegistry: ChainRegistry,
         externalAccountActions: ExternalAccountActions.Presentation,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         validationSystem: ValidationSystem<MakePayoutPayload, PayoutValidationFailure>,
@@ -48,6 +50,7 @@ class ConfirmPayoutModule {
             router,
             payload,
             addressIconGenerator,
+            chainRegistry,
             externalAccountActions,
             feeLoaderMixin,
             addressDisplayUseCase,

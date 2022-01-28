@@ -47,7 +47,6 @@
     <string name="common_advanced">Продвинутый</string>
     <string name="common_crypto_type">Тип ключевой пары</string>
     <string name="common_secret_derivation_path">Последовательность для вывода секрета</string>
-    <string name="common_choose_network">Выберите сеть</string>
     <string name="network">Сеть</string>
     <string name="sr25519_selection_subtitle">sr25519 (рекомендованный)</string>
     <string name="ed25519_selection_subtitle">ed25519 (альтернативный)</string>
@@ -150,8 +149,7 @@
     <string name="wallet_balance_redeemable">Можно забрать</string>
     <string name="transaction_details_hash_title">Хеш транзакции</string>
     <string name="transaction_details_copy_hash">Копировать хеш</string>
-    <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
-    <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
+    <string name="view_in">Посмотреть в %s</string>
     <string name="wallet_balance_details_title">Детали баланса</string>
     <string name="wallet_balance_details_total">Общий баланс</string>
     <string name="wallet_balance_details_total_after">Общий после перевода</string>

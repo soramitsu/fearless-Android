@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDetailsViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class PayoutDetailsModule {
@@ -27,6 +28,7 @@ class PayoutDetailsModule {
         router: StakingRouter,
         payout: PendingPayoutParcelable,
         addressIconGenerator: AddressIconGenerator,
+        chainRegistry: ChainRegistry,
         externalAccountActions: ExternalAccountActions.Presentation,
         resourceManager: ResourceManager
     ): ViewModel {
@@ -35,6 +37,7 @@ class PayoutDetailsModule {
             router,
             payout,
             addressIconGenerator,
+            chainRegistry,
             externalAccountActions,
             resourceManager
         )

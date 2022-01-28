@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetCon
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmSetControllerModule {
@@ -31,6 +32,7 @@ class ConfirmSetControllerModule {
         payload: ConfirmSetControllerPayload,
         interactor: StakingInteractor,
         resourceManager: ResourceManager,
+        chainRegistry: ChainRegistry,
         externalActions: ExternalAccountActions.Presentation,
         validationExecutor: ValidationExecutor,
         validationSystem: SetControllerValidationSystem
@@ -42,6 +44,7 @@ class ConfirmSetControllerModule {
             payload,
             interactor,
             resourceManager,
+            chainRegistry,
             externalActions,
             validationExecutor,
             validationSystem

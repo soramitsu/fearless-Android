@@ -62,7 +62,6 @@ Terms and Conditions and Privacy Policy</string>
     <string name="common_advanced">Advanced</string>
     <string name="common_crypto_type">Keypair crypto type</string>
     <string name="common_secret_derivation_path">Secret derivation path</string>
-    <string name="common_choose_network">Choose network</string>
     <string name="network">Network</string>
     <string name="sr25519_selection_subtitle">sr25519 (recommended)</string>
     <string name="ed25519_selection_subtitle">ed25519 (alternative)</string>
@@ -167,8 +166,7 @@ from the right network</string>
     <string name="wallet_balance_redeemable">Redeemable</string>
     <string name="transaction_details_hash_title">Extrinsic Hash</string>
     <string name="transaction_details_copy_hash">Copy hash</string>
-    <string name="transaction_details_view_polkascan">View in Polkascan</string>
-    <string name="transaction_details_view_subscan">View in Subscan</string>
+    <string name="view_in">View in %s</string>
     <string name="wallet_balance_details_title">Balance details</string>
     <string name="wallet_balance_details_total">Total balance</string>
     <string name="wallet_balance_details_total_after">Total after transfer</string>

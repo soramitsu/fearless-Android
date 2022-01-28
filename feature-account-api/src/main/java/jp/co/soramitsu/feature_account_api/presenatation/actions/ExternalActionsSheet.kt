@@ -4,12 +4,10 @@ import android.content.Context
 import android.os.Bundle
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.data.network.ExternalAnalyzer
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
-import jp.co.soramitsu.core.model.Node
 
-typealias ExternalViewCallback = (ExternalAnalyzer, String, Node.NetworkType) -> Unit
+typealias ExternalViewCallback = (String) -> Unit
 typealias CopyCallback = (String) -> Unit
 
 open class ExternalActionsSheet(
@@ -22,7 +20,6 @@ open class ExternalActionsSheet(
     class Payload(
         @StringRes val copyLabel: Int,
         val content: ExternalAccountActions.Payload,
-        val forceForbid: Set<ExternalAnalyzer> = emptySet(),
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,22 +33,12 @@ open class ExternalActionsSheet(
             onCopy(value)
         }
 
-        val networkType: Node.NetworkType = payload.content.networkType ?: return
-
-        if (ExternalAnalyzer.POLKASCAN.isSupported(payload)) {
-            item(R.drawable.ic_globe_24, R.string.transaction_details_view_polkascan) {
-                onViewExternal(ExternalAnalyzer.POLKASCAN, value, networkType)
-            }
+        payload.content.explorers.map { (type, url) ->
+            item(
+                icon = R.drawable.ic_globe_24,
+                title = context.resources.getString(R.string.view_in, type.capitalizedName),
+                onClick = { onViewExternal(url) }
+            )
         }
-
-        if (ExternalAnalyzer.SUBSCAN.isSupported(payload)) {
-            item(R.drawable.ic_globe_24, R.string.transaction_details_view_subscan) {
-                onViewExternal(ExternalAnalyzer.SUBSCAN, value, networkType)
-            }
-        }
-    }
-
-    private fun ExternalAnalyzer.isSupported(payload: Payload): Boolean {
-        return isNetworkSupported(payload.content.networkType) and (this !in payload.forceForbid)
     }
 }

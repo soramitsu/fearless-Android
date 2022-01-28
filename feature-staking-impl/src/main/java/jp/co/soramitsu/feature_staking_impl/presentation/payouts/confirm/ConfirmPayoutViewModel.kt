@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.TitleAndMessage
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -33,6 +34,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.requireFee
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -43,6 +46,7 @@ class ConfirmPayoutViewModel(
     private val router: StakingRouter,
     private val payload: ConfirmPayoutPayload,
     private val addressModelGenerator: AddressIconGenerator,
+    private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val addressDisplayUseCase: AddressDisplayUseCase,
@@ -178,9 +182,18 @@ class ConfirmPayoutViewModel(
         return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
     }
 
-    private fun maybeShowExternalActions(addressProducer: () -> String?) {
-        val address = addressProducer() ?: return
+    private fun maybeShowExternalActions(addressProducer: () -> String?) = launch {
+        val address = addressProducer() ?: return@launch
+        val chainId = assetFlow.first().token.configuration.chainId
+        val chain = chainRegistry.getChain(chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = address,
+            chainId = chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
 
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(address))
+        externalAccountActions.showExternalActions(externalActionsPayload)
     }
 }

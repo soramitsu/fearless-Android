@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -28,6 +29,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.requireFee
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -42,6 +45,7 @@ class SetControllerViewModel(
     private val externalActions: ExternalAccountActions.Presentation,
     private val appLinksProvider: AppLinksProvider,
     private val resourceManager: ResourceManager,
+    private val chainRegistry: ChainRegistry,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: SetControllerValidationSystem
@@ -90,7 +94,18 @@ class SetControllerViewModel(
 
     fun openExternalActions() {
         viewModelScope.launch {
-            externalActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(stashAddress()))
+            val stashAddress = stashAddress()
+            val chainId = assetFlow.first().token.configuration.chainId
+            val chain = chainRegistry.getChain(chainId)
+            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, stashAddress)
+            val externalActionsPayload = ExternalAccountActions.Payload(
+                value = stashAddress,
+                chainId = chainId,
+                chainName = chain.name,
+                explorers = supportedExplorers
+            )
+
+            externalActions.showExternalActions(externalActionsPayload)
         }
     }
 

@@ -14,6 +14,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionStateMachine.Action
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionStateMachine.State
@@ -92,17 +94,17 @@ class TransactionHistoryProvider(
             val clickedOperation = operations.first { it.id == transactionModel.id }
 
             withContext(Dispatchers.Main) {
-                when (val payload = mapOperationToParcel(clickedOperation, resourceManager)) {
+                when (val operation = mapOperationToParcel(clickedOperation, resourceManager)) {
                     is OperationParcelizeModel.Transfer -> {
-                        router.openTransferDetail(payload, AssetPayload(chainId, assetId))
+                        router.openTransferDetail(operation, AssetPayload(chainId, assetId))
                     }
 
                     is OperationParcelizeModel.Extrinsic -> {
-                        router.openExtrinsicDetail(payload)
+                        router.openExtrinsicDetail(ExtrinsicDetailsPayload(operation, chainId))
                     }
 
                     is OperationParcelizeModel.Reward -> {
-                        router.openRewardDetail(payload)
+                        router.openRewardDetail(RewardDetailsPayload(operation, chainId))
                     }
                 }
             }

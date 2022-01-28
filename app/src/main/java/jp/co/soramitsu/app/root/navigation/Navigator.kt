@@ -75,7 +75,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmount
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.ChooseRecipientFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
@@ -395,14 +397,14 @@ class Navigator :
         navController?.navigate(R.id.open_transfer_detail, bundle)
     }
 
-    override fun openRewardDetail(reward: OperationParcelizeModel.Reward) {
-        val bundle = RewardDetailFragment.getBundle(reward)
+    override fun openRewardDetail(payload: RewardDetailsPayload) {
+        val bundle = RewardDetailFragment.getBundle(payload)
 
         navController?.navigate(R.id.open_reward_detail, bundle)
     }
 
-    override fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.Extrinsic) {
-        val bundle = ExtrinsicDetailFragment.getBundle(extrinsic)
+    override fun openExtrinsicDetail(payload: ExtrinsicDetailsPayload) {
+        val bundle = ExtrinsicDetailFragment.getBundle(payload)
 
         navController?.navigate(R.id.open_extrinsic_detail, bundle)
     }

@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
@@ -30,6 +31,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.select.rewardDestinationValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -44,6 +47,7 @@ class ConfirmRewardDestinationViewModel(
     private val resourceManager: ResourceManager,
     private val validationSystem: RewardDestinationValidationSystem,
     private val rewardDestinationInteractor: ChangeRewardDestinationInteractor,
+    private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val validationExecutor: ValidationExecutor,
@@ -98,10 +102,18 @@ class ConfirmRewardDestinationViewModel(
         showAddressExternalActions(payoutDestination.destination.address)
     }
 
-    private fun showAddressExternalActions(address: String) {
-        val payload = ExternalAccountActions.Payload.fromAddress(address)
+    private fun showAddressExternalActions(address: String) = launch {
+        val chainId = controllerAssetFlow.first().token.configuration.chainId
+        val chain = chainRegistry.getChain(chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = address,
+            chainId = chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
 
-        externalAccountActions.showExternalActions(payload)
+        externalAccountActions.showExternalActions(externalActionsPayload)
     }
 
     private suspend fun mapRewardDestinationParcelModelToRewardDestinationModel(
