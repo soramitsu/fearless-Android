@@ -84,4 +84,6 @@ interface AccountInteractor {
     suspend fun getMetaAccount(metaId: Long): MetaAccount
 
     suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>?
+
+    fun polkadotAddressForSelectedAccountFlow(): Flow<String>
 }

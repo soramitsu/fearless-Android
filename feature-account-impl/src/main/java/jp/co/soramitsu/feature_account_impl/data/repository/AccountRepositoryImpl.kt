@@ -51,6 +51,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.cryptoType
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -478,5 +479,12 @@ class AccountRepositoryImpl(
 
     private fun getNetworkForType(networkType: Node.NetworkType): Network {
         return Network(networkType)
+    }
+
+    override fun polkadotAddressForSelectedAccountFlow(): Flow<String> {
+        return selectedMetaAccountFlow().map {
+            val chain = chainRegistry.getChain(polkadotChainId)
+            it.address(chain) ?: ""
+        }
     }
 }

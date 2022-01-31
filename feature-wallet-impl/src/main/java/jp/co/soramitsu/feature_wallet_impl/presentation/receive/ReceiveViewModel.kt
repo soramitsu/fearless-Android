@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -90,7 +91,7 @@ class ReceiveViewModel(
     }
 
     private fun accountIconFlow(): Flow<AddressModel> {
-        return interactor.selectedAccountFlow(assetPayload.chainId)
+        return interactor.selectedAccountFlow(polkadotChainId)
             .map { addressIconGenerator.createAddressModel(it.address, AVATAR_SIZE_DP) }
     }
 

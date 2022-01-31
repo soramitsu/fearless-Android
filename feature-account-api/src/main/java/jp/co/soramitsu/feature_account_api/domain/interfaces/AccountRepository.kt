@@ -117,4 +117,6 @@ interface AccountRepository {
     suspend fun isAccountExists(accountId: AccountId): Boolean
 
     suspend fun isInCurrentNetwork(address: String, chainId: ChainId): Boolean
+
+    fun polkadotAddressForSelectedAccountFlow(): Flow<String>
 }

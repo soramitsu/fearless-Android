@@ -4,6 +4,9 @@ import java.util.Locale
 
 typealias ChainId = String
 
+const val polkadotChainId = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"
+const val kusamaChainId = "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe"
+
 data class Chain(
     val id: ChainId,
     val name: String,
@@ -75,10 +78,7 @@ data class Chain(
     }
 }
 
-fun ChainId.isPolkadotOrKusama() = this in listOf(
-    "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3", // polkadot
-    "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe" // kusama
-)
+fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
 
 enum class TypesUsage {
     BASE, OWN, BOTH,
