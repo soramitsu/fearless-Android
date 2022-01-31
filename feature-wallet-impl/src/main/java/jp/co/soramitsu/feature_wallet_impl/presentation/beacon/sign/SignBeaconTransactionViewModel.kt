@@ -2,14 +2,14 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign
 
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AmountModel
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignableOperation
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.WithAmount
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -42,7 +43,7 @@ class SignBeaconTransactionViewModel(
     private val feeLoaderProvider: FeeLoaderMixin.Presentation
 ) : BaseViewModel(), FeeLoaderMixin by feeLoaderProvider {
 
-    private val currentAccount = interactor.selectedAccountFlow()
+    private val currentAccount = interactor.selectedAccountFlow(polkadotChainId)
         .inBackground()
         .share()
 
@@ -69,7 +70,7 @@ class SignBeaconTransactionViewModel(
 
     val operationModel = combine(
         decodedOperation,
-        interactor.currentAssetFlow(),
+        interactor.assetFlow(polkadotChainId, "0"), //0 is polkadot asset id
         ::mapOperationToOperationModel
     )
 
@@ -86,7 +87,7 @@ class SignBeaconTransactionViewModel(
                 feeConstructor = {
                     val feeInPlanks = beaconInteractor.estimateFee(operation)
 
-                    it.token.amountFromPlanks(feeInPlanks)
+                    it.amountFromPlanks(feeInPlanks).toBigInteger()
                 },
                 onRetryCancelled = ::exit
             )

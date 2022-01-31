@@ -520,15 +520,13 @@ to your account to avoid remaining stake.</string>
 
     <string name="switch_node">Switch node</string>
 
+    <string name="beacon_title">Beacon</string>
     <string name="beacon_declined">Declined</string>
     <string name="beacon_pairing_cancelled">Pairing cancelled</string>
     <string name="beacon_signed">Approved</string>
     <string name="beacon_connected">Connected to %s</string>
     <string name="common_cannot_decode_transaction">Cannot decode transaction</string>
     <string name="common_transaction_raw_data">Transaction raw data</string>
-
-    <string name="common_module">Module</string>
-    <string name="common_call">Call</string>
 
     <string name="beacon_sign_review">Please review information below before confirming</string>
     <string name="beacon_decline_signing_message">Do you want to decline this transaction?</string>

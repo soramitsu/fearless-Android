@@ -59,8 +59,8 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
             requireContext(),
             onConfirm = { viewModel.exit() }
         ) {
-            setTitle(R.string.common_are_you_sure)
-            setMessage(R.string.beacon_exit_message)
+            setTitle("common_are_you_sure")//(R.string.common_are_you_sure)
+            setMessage("beacon_exit_message")//(R.string.beacon_exit_message)
         }
     }
 
@@ -103,7 +103,7 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
         val (statusMessageRes, statusIconTintRes) = if (active) {
             R.string.staking_nominator_status_active to R.color.green
         } else {
-            R.string.common_connecting to R.color.gray2
+            R.string.network_status_connecting to R.color.gray2
         }
 
         beaconStatus.showValue(getString(statusMessageRes))

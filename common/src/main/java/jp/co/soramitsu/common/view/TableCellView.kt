@@ -24,7 +24,7 @@ open class TableCellView @JvmOverloads constructor(
     val title: TextView
         get() = findViewById(R.id.tableCellTitle)
 
-    private val valuePrimary: TextView
+    val valuePrimary: TextView
         get() = findViewById(R.id.tableCellValuePrimary)
 
     private val valueSecondary: TextView

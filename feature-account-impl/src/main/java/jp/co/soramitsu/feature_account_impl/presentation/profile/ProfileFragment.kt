@@ -20,8 +20,6 @@ import kotlinx.android.synthetic.main.fragment_profile.accountView
 import kotlinx.android.synthetic.main.fragment_profile.changePinCodeTv
 import kotlinx.android.synthetic.main.fragment_profile.languageWrapper
 import kotlinx.android.synthetic.main.fragment_profile.profileWallets
-import kotlinx.android.synthetic.main.fragment_profile.networkWrapper
-import kotlinx.android.synthetic.main.fragment_profile.profileAccounts
 import kotlinx.android.synthetic.main.fragment_profile.profileBeacon
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
 

@@ -58,7 +58,7 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
             requireContext(),
             onConfirm = { viewModel.exit() }
         ) {
-            setTitle(R.string.common_are_you_sure)
+            setTitle("R.string.common_are_you_sure")
             setMessage(R.string.beacon_decline_signing_message)
         }
     }

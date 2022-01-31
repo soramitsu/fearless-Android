@@ -9,6 +9,7 @@ import it.airgap.beaconsdk.message.BeaconRequest
 import it.airgap.beaconsdk.message.PermissionBeaconRequest
 import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -21,6 +22,7 @@ import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.SideEffect
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -53,7 +55,7 @@ class BeaconViewModel(
 
     val state = stateMachine.currentState
 
-    private val currentAccount = interactor.selectedAccountFlow()
+    private val currentAccount = interactor.selectedAccountFlow(polkadotChainId)//todo stub
         .inBackground()
         .share()
 

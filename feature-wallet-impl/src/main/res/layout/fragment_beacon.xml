@@ -12,22 +12,22 @@
         android:id="@+id/beaconToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/beacon_title" />
+        app:titleText="beacon_title" />
 
 
     <ImageView
+        android:id="@+id/beaconAppIcon"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="24dp"
-        android:id="@+id/beaconAppIcon"
         android:src="@drawable/ic_globe_placeholder" />
 
     <TextView
+        android:id="@+id/beaconAppName"
         style="@style/TextAppearance.Soramitsu.Header2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/beaconAppName"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
         tools:text="Polkaswap" />
@@ -40,7 +40,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/profile_title" />
+        app:label="profile_title" />
 
     <jp.co.soramitsu.common.view.TableCellView
         android:id="@+id/beaconStatus"
@@ -52,16 +52,16 @@
         app:title="@string/transaction_detail_status" />
 
     <jp.co.soramitsu.common.view.TableCellView
+        android:id="@+id/beaconAppUrl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/beaconAppUrl"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        app:title="@string/beacon_connected_to" />
+        app:title="beacon_connected_to" />
 
     <jp.co.soramitsu.common.view.TableCellView
-        android:layout_width="match_parent"
         android:id="@+id/beaconAppAddress"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"

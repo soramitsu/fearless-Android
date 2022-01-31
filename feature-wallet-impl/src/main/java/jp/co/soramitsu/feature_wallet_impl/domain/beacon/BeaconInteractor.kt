@@ -13,18 +13,17 @@ import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
 import it.airgap.beaconsdk.message.SignPayloadBeaconResponse
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
-import jp.co.soramitsu.common.utils.SuspendableProperty
 import jp.co.soramitsu.common.utils.isTransfer
-import jp.co.soramitsu.common.utils.useValue
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentAccount
-import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -42,8 +41,9 @@ private class TransactionRawData(
 class BeaconInteractor(
     private val gson: Gson,
     private val accountRepository: AccountRepository,
-    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-    private val feeEstimator: FeeEstimator
+    private val chainRegistry: ChainRegistry,
+//    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
+//    private val feeEstimator: FeeEstimator
 ) {
 
     private val beaconClient by lazy {
@@ -71,11 +71,10 @@ class BeaconInteractor(
     }
 
     suspend fun decodeOperation(operation: String): Result<SignableOperation> = runCatching {
-        runtimeProperty.useValue { runtime ->
-            val call = GenericCall.fromHex(runtime, operation)
+        val runtime = chainRegistry.getRuntime(polkadotChainId) //todo stub
+        val call = GenericCall.fromHex(runtime, operation)
 
-            mapCallToSignableOperation(call)
-        }
+        mapCallToSignableOperation(call)
     }
 
     suspend fun reportSignDeclined(
@@ -86,7 +85,7 @@ class BeaconInteractor(
 
     suspend fun reportPermissionsDeclined(
         request: PermissionBeaconRequest
-    )  {
+    ) {
         beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
     }
 
@@ -137,12 +136,14 @@ class BeaconInteractor(
     }
 
     suspend fun estimateFee(operation: SignableOperation): BigInteger {
-        val accountAddress = accountRepository.getSelectedAccount().address
+        //todo estimate fee for beacon
+        return BigInteger.ZERO
+//        val accountAddress = accountRepository.getSelectedAccount().address
 
-        return withContext(Dispatchers.IO) {
-            feeEstimator.estimateFee(accountAddress) {
-                call(operation.module, operation.call, operation.args)
-            }
-        }
+//        return withContext(Dispatchers.IO) {
+//            feeEstimator.estimateFee(accountAddress) {
+//                call(operation.module, operation.call, operation.args)
+//            }
+//        }
     }
 }
