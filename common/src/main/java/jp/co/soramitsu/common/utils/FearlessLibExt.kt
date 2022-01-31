@@ -15,6 +15,7 @@ import jp.co.soramitsu.fearless_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericEvent
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
@@ -151,3 +152,12 @@ object Modules {
     const val SLOTS = "Slots"
     const val SESSION = "Session"
 }
+
+object Calls {
+    const val BALANCES_TRANSFER = "transfer"
+    const val BALANCES_TRANSFER_KEEP_ALIVE = "transfer_keep_alive"
+
+    val TRANSFERS = setOf(BALANCES_TRANSFER, BALANCES_TRANSFER_KEEP_ALIVE)
+}
+
+fun GenericCall.Instance.isTransfer() = module.name == Modules.BALANCES && function.name in Calls.TRANSFERS

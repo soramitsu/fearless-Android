@@ -23,3 +23,7 @@ suspend fun AccountRepository.signWithAccount(account: Account, message: ByteArr
 
     Signer.sign(MultiChainEncryption.Substrate(encryptionType), message, securitySource.keypair).signature
 }
+
+suspend fun AccountRepository.signWithCurrentAccount(message: ByteArray) = withContext(Dispatchers.Default) {
+    signWithAccount(getSelectedAccount(), message)
+}

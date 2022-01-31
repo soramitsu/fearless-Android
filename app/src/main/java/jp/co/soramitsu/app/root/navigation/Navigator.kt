@@ -66,10 +66,15 @@ import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
@@ -439,6 +444,19 @@ class Navigator :
         navController?.navigate(R.id.action_open_receive, bundle)
     }
 
+    override fun openSignBeaconTransaction(payload: String) {
+        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload))
+    }
+
+    override val beaconSignStatus: Flow<SignStatus>
+        get() = navController!!.currentBackStackEntry!!.savedStateHandle
+            .getLiveData<SignStatus>(SignBeaconTransactionFragment.SIGN_RESULT_KEY)
+            .asFlow()
+
+    override fun setBeaconSignStatus(status: SignStatus) {
+        navController!!.previousBackStackEntry!!.savedStateHandle.set(SignBeaconTransactionFragment.SIGN_RESULT_KEY, status)
+    }
+
     override fun returnToWallet() {
         // to achieve smooth animation
         postToUiThread {
@@ -512,6 +530,10 @@ class Navigator :
         val action = PinCodeAction.Change
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
+    }
+
+    override fun openBeacon(qrContent: String) {
+        navController?.navigate(R.id.actionOpenBeaconFragment, BeaconFragment.getBundle(qrContent))
     }
 
     override fun withPinCodeCheckRequired(

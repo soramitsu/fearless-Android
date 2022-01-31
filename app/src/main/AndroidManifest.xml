@@ -17,6 +17,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true">
 
+        <activity android:name="jp.co.soramitsu.common.qrScanner.QrScannerActivity" />
+
         <activity
             android:name="jp.co.soramitsu.app.root.presentation.RootActivity"
             android:screenOrientation="portrait"

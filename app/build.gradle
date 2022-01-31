@@ -133,6 +133,7 @@ dependencies {
     implementation insetterDep
 
     implementation liveDataKtxDep
+    implementation beaconDep
 
     kaptAndroidTest daggerKapt
 

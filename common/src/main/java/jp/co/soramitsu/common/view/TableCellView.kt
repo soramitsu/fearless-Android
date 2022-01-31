@@ -77,6 +77,14 @@ open class TableCellView @JvmOverloads constructor(
         tableCellValueDivider.setVisible(visible)
     }
 
+    fun showValueOrHide(primary: String?, secondary: String? = null) {
+        if (primary != null) {
+            showValue(primary, secondary)
+        } else {
+            makeGone()
+        }
+    }
+
     fun showValue(primary: String, secondary: String? = null) {
         contentGroup.makeVisible()
 

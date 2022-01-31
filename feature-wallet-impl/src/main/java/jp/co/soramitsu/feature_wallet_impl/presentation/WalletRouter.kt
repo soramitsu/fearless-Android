@@ -1,9 +1,13 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.TransactionModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import kotlinx.coroutines.flow.Flow
 
 interface WalletRouter {
     fun openAssetDetails(assetPayload: AssetPayload)
@@ -33,4 +37,11 @@ interface WalletRouter {
     fun openChangeAccountFromWallet()
 
     fun openReceive(assetPayload: AssetPayload)
+    fun openReceive()
+
+    fun openSignBeaconTransaction(payload: String)
+
+    val beaconSignStatus: Flow<SignStatus>
+
+    fun setBeaconSignStatus(status: SignStatus)
 }

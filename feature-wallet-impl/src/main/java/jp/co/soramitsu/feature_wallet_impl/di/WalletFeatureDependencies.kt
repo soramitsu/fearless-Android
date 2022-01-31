@@ -31,6 +31,8 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.runtime.extrinsic.FeeEstimator
 
 interface WalletFeatureDependencies {
 
@@ -93,4 +95,7 @@ interface WalletFeatureDependencies {
     fun extrinsicService(): ExtrinsicService
 
     fun imageLoader(): ImageLoader
+    fun extrinsicBuilderFactory(): ExtrinsicBuilderFactory
+
+    fun feeEstimator(): FeeEstimator
 }

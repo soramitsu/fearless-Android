@@ -10,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
@@ -25,6 +26,7 @@ class LabeledTextView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+
     init {
         View.inflate(context, R.layout.view_labeled_text, this)
 
@@ -54,7 +56,7 @@ class LabeledTextView @JvmOverloads constructor(
             isEnabled = enabled
 
             val actionIcon = typedArray.getDrawable(R.styleable.LabeledTextView_actionIcon)
-            actionIcon?.let(::setActionIcon)
+            setActionIcon(actionIcon)
 
             singleLine = typedArray.getBoolean(R.styleable.LabeledTextView_android_singleLine, true)
             labeledTextText.isSingleLine = singleLine
@@ -73,7 +75,7 @@ class LabeledTextView @JvmOverloads constructor(
         labeledTextLabel.text = label
     }
 
-    fun setActionIcon(icon: Drawable) {
+    fun setActionIcon(icon: Drawable?) {
         labeledTextAction.setImageDrawable(icon)
 
         labeledTextAction.setVisible(true)
@@ -106,4 +108,9 @@ class LabeledTextView @JvmOverloads constructor(
 
         setActionClickListener(listener)
     }
+}
+
+fun LabeledTextView.setFromAddressModel(addressModel: AddressModel) {
+    setMessage(addressModel.nameOrAddress)
+    setTextIcon(addressModel.image)
 }
