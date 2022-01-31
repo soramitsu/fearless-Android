@@ -78,6 +78,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         viewModel.currentAddressModelLiveData.observe {
             balanceListTotalTitle.text = it.nameOrAddress
+            balanceListAvatar.setImageDrawable(it.image)
         }
 
         viewModel.hideRefreshEvent.observeEvent {

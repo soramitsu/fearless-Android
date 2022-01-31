@@ -166,4 +166,6 @@ class AccountInteractorImpl(
     override suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
 
     override suspend fun getMetaAccountSecrets(metaId: Long) = accountRepository.getMetaAccountSecrets(metaId)
+
+    override fun polkadotAddressForSelectedAccountFlow() = accountRepository.polkadotAddressForSelectedAccountFlow()
 }

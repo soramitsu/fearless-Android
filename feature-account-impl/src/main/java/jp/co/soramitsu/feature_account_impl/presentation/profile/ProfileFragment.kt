@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -57,8 +56,9 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             account.name.let(accountView::setTitle)
         }
 
-        val avatar = ContextCompat.getDrawable(requireContext(), R.drawable.ic_wallet_avatar)
-        avatar?.let { accountView.setAccountIcon(it) }
+        viewModel.accountIconLiveData.observe {
+            accountView.setAccountIcon(it.image)
+        }
 
         viewModel.selectedLanguageLiveData.observe {
             selectedLanguageTv.text = it.displayName
