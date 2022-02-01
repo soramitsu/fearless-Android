@@ -72,4 +72,10 @@
         <attr name="icon" />
         <attr name="actionIcon" />
     </declare-styleable>
+
+    <declare-styleable name="BadgeView">
+        <attr name="text" format="string" />
+        <attr name="iconUrl" format="string" />
+        <attr name="iconRes" format="reference|color" />
+    </declare-styleable>
 </resources>

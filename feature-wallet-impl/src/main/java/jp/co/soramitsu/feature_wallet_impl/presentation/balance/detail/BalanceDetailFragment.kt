@@ -37,10 +37,9 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateC
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailsInfo
-import kotlinx.android.synthetic.main.fragment_balance_detail.chainAssetName
-import kotlinx.android.synthetic.main.fragment_balance_detail.chainBadgeIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
 import javax.inject.Inject
+import kotlinx.android.synthetic.main.fragment_balance_detail.tokenBadge
 
 private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
@@ -125,11 +124,11 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         viewModel.assetLiveData.observe { asset ->
             balanceDetailTokenIcon.load(asset.token.configuration.iconUrl, imageLoader)
-            chainBadgeIcon.load(asset.token.configuration.chainIcon, imageLoader)
+
+            tokenBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
 
             balanceDetailTokenName.text = asset.token.configuration.symbol
-            chainAssetName.text = asset.token.configuration.chainName
-
+            tokenBadge.setText(asset.token.configuration.chainName)
             balanceDetailRate.text = asset.token.dollarRate?.formatAsCurrency() ?: ""
             balanceDetailRate.isVisible = asset.token.dollarRate != null
 
