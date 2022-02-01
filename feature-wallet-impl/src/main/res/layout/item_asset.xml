@@ -47,71 +47,28 @@
         app:layout_constraintVertical_chainStyle="packed"
         tools:text="KUSAMA" />
 
-    <LinearLayout
+    <jp.co.soramitsu.common.view.BadgeView
         android:id="@+id/networkBadge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
-        android:background="@drawable/bg_asset_badge"
-        android:orientation="horizontal"
-        android:paddingVertical="2dp"
-        android:paddingStart="4dp"
-        android:paddingEnd="6dp"
         app:layout_constraintBottom_toBottomOf="@+id/itemAssetNetwork"
         app:layout_constraintStart_toEndOf="@id/itemAssetNetwork"
-        app:layout_constraintTop_toTopOf="@+id/itemAssetNetwork">
+        app:layout_constraintTop_toTopOf="@+id/itemAssetNetwork"
+        tools:iconRes="@drawable/ic_plus_circle"
+        tools:text="Kusama" />
 
-        <ImageView
-            android:id="@+id/networkBadgeIcon"
-            android:layout_width="16dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="4dp"
-            tools:src="@drawable/ic_plus_circle" />
-
-        <TextView
-            android:id="@+id/networkBadgeName"
-            style="@style/TextAppearance.Soramitsu.Body3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/soramitsu_bold"
-            android:includeFontPadding="false"
-            android:textAllCaps="true"
-            android:textColor="@color/white_64"
-            tools:text="KUSAMA" />
-    </LinearLayout>
-
-    <LinearLayout
+    <jp.co.soramitsu.common.view.BadgeView
         android:id="@+id/testnetBadge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
-        android:background="@drawable/bg_asset_badge"
-        android:orientation="horizontal"
-        android:paddingVertical="2dp"
-        android:paddingStart="3dp"
-        android:paddingEnd="6dp"
+        android:layout_marginEnd="16dp"
+        app:iconRes="@drawable/ic_token_testnet"
         app:layout_constraintBottom_toBottomOf="@+id/itemAssetNetwork"
         app:layout_constraintStart_toEndOf="@id/networkBadge"
-        app:layout_constraintTop_toTopOf="@+id/itemAssetNetwork">
-
-        <ImageView
-            android:id="@+id/testnetBadgeIcon"
-            android:layout_width="16dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="4dp"
-            android:src="@drawable/ic_token_testnet" />
-
-        <TextView
-            android:id="@+id/testnetBadgeName"
-            style="@style/TextAppearance.Soramitsu.Body3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/soramitsu_bold"
-            android:includeFontPadding="false"
-            android:textAllCaps="true"
-            android:textColor="@color/white_64"
-            android:text="@string/label_testnet" />
-    </LinearLayout>
+        app:layout_constraintTop_toTopOf="@+id/itemAssetNetwork"
+        app:text="@string/label_testnet" />
 
     <TextView
         android:id="@+id/itemAssetToken"

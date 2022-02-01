@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/badgeLayout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    tools:background="@drawable/bg_asset_badge"
+    android:orientation="horizontal"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <ImageView
+        android:id="@+id/badgeIcon"
+        android:layout_width="16dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="4dp"
+        android:layout_marginVertical="2dp"
+        android:layout_marginStart="3dp"
+        tools:src="@drawable/ic_token_testnet" />
+
+    <TextView
+        android:id="@+id/badgeName"
+        style="@style/TextAppearance.Soramitsu.Body3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="2dp"
+        android:fontFamily="@font/soramitsu_bold"
+        android:includeFontPadding="false"
+        android:textAllCaps="true"
+        android:layout_marginEnd="6dp"
+        android:textColor="@color/white_64"
+        tools:text="@string/label_testnet" />
+</merge>
