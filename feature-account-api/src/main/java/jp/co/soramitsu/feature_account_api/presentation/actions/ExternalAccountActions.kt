@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_api.presenatation.actions
+package jp.co.soramitsu.feature_account_api.presentation.actions
 
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.mixin.api.Browserable

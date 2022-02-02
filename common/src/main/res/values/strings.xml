@@ -519,4 +519,6 @@ to your account to avoid remaining stake.</string>
     <string name="moonbeam_ineligible_to_participate">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
 
     <string name="switch_node">Switch node</string>
+    <string name="account_option">Account option</string>
+
 </resources>

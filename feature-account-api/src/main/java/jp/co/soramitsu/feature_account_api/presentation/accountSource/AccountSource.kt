@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.accountSource
+package jp.co.soramitsu.feature_account_api.presentation.accountSource
 
 import androidx.annotation.StringRes
 

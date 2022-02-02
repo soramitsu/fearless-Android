@@ -7,7 +7,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry

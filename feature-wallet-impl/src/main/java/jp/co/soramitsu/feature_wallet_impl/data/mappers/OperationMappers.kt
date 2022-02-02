@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.core_db.model.OperationLocal
-import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount

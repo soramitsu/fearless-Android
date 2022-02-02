@@ -5,7 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
+import jp.co.soramitsu.feature_account_api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
@@ -14,6 +18,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
@@ -31,6 +36,9 @@ class BalanceDetailViewModel(
 ) : BaseViewModel(),
     TransactionHistoryUi by transactionHistoryMixin,
     BuyMixin by buyMixin {
+
+    private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
+    val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
@@ -101,5 +109,30 @@ class BalanceDetailViewModel(
     private fun currentAssetFlow(): Flow<AssetModel> {
         return interactor.assetFlow(assetPayload.chainId, assetPayload.chainAssetId)
             .map { mapAssetToAssetModel(it) }
+    }
+
+    fun switchNode() {
+        router.openNodes(assetPayload.chainId)
+    }
+
+    fun exportClicked() {
+        viewModelScope.launch {
+            val isEthereumBased = interactor.getChain(assetPayload.chainId).isEthereumBased
+            val sources = interactor.getMetaAccountSecrets().buildExportSourceTypes(isEthereumBased)
+            _showExportSourceChooser.value = Event(ExportSourceChooserPayload(assetPayload.chainId, sources))
+        }
+    }
+
+    fun exportTypeSelected(selected: ExportSource, chainId: ChainId) {
+        launch {
+            val metaId = interactor.getSelectedMetaAccount().id
+            val destination = when (selected) {
+                is ExportSource.Json -> router.openExportJsonPassword(metaId, chainId)
+                is ExportSource.Seed -> router.openExportSeed(metaId, chainId)
+                is ExportSource.Mnemonic -> router.openExportMnemonic(metaId, chainId)
+            }
+
+            router.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
+        }
     }
 }

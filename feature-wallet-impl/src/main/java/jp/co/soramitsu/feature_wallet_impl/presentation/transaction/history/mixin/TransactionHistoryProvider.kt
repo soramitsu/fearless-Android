@@ -4,7 +4,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
