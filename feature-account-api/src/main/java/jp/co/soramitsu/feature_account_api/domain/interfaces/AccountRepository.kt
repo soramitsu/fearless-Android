@@ -108,7 +108,7 @@ interface AccountRepository {
 
     suspend fun getSecuritySource(accountAddress: String): SecuritySource
 
-    suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>?
+    suspend fun getMetaAccountSecrets(metaId: Long?): EncodableStruct<MetaAccountSecrets>?
 
     fun createQrAccountContent(payload: QrSharing.Payload): String
 

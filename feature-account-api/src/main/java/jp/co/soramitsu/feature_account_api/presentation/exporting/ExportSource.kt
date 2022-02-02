@@ -1,8 +1,8 @@
-package jp.co.soramitsu.feature_account_impl.presentation.exporting
+package jp.co.soramitsu.feature_account_api.presentation.exporting
 
 import androidx.annotation.StringRes
-import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.AccountSource
+import jp.co.soramitsu.feature_account_api.R
+import jp.co.soramitsu.feature_account_api.presentation.accountSource.AccountSource
 
 sealed class ExportSource(@StringRes nameRes: Int) : AccountSource(nameRes) {
     object Json : ExportSource(R.string.recovery_json)

@@ -254,4 +254,10 @@ class WalletInteractorImpl(
     private fun mapAccountToWalletAccount(chain: Chain, account: MetaAccount) = with(account) {
         WalletAccount(account.address(chain)!!, name, stubNetwork(chain.id))
     }
+
+    override suspend fun getChain(chainId: ChainId) = chainRegistry.getChain(chainId)
+
+    override suspend fun getMetaAccountSecrets(metaId: Long?) = accountRepository.getMetaAccountSecrets(metaId)
+
+    override suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 }

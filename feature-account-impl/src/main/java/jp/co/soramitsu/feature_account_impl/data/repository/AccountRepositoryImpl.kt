@@ -36,6 +36,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountAlreadyExistsException
@@ -328,7 +329,10 @@ class AccountRepositoryImpl(
         return accountDataSource.getSecuritySource(accountAddress)!!
     }
 
-    override suspend fun getMetaAccountSecrets(metaId: Long) = storeV2.getMetaAccountSecrets(metaId)
+    override suspend fun getMetaAccountSecrets(metaId: Long?): EncodableStruct<MetaAccountSecrets>? {
+        val id = metaId ?: getSelectedMetaAccount().id
+        return storeV2.getMetaAccountSecrets(id)
+    }
 
     override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) = withContext(Dispatchers.Default) {
         val chain = chainRegistry.getChain(chainId)

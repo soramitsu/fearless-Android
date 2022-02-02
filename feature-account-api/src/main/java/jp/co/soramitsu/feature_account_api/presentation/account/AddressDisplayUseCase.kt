@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_api.presenatation.account
+package jp.co.soramitsu.feature_account_api.presentation.account
 
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import kotlinx.coroutines.Dispatchers

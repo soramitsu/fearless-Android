@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicAdvanced
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicConfirm
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicExport
@@ -23,7 +24,7 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(payload: ExportMnemonicPayload) = bundleOf(PAYLOAD_KEY to payload)
+        fun getBundle(metaId: Long, chainId: ChainId) = bundleOf(PAYLOAD_KEY to ExportMnemonicPayload(metaId, chainId))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
