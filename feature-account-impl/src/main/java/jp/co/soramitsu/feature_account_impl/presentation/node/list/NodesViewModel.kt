@@ -16,6 +16,10 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeList
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
+import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class NodesViewModel(
@@ -24,6 +28,7 @@ class NodesViewModel(
     private val resourceManager: ResourceManager,
     private val chainId: ChainId,
     private val nodesSettingsScenario: NodesSettingsScenario,
+    private val nodesSettingsStorage: NodesSettingsStorage,
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
     private val _editMode = MutableLiveData<Boolean>()
@@ -32,9 +37,19 @@ class NodesViewModel(
     private val _deleteNodeEvent = MutableLiveData<Event<NodeModel>>()
     val deleteNodeEvent: LiveData<Event<NodeModel>> = _deleteNodeEvent
 
-    val chainInfo: LiveData<Pair<String, String>> = liveData {
+    val hasCustomNodeModelsLiveData = groupedNodeModelsLiveData.map {
+        it.any { (it as? NodeModel)?.isDefault == false }
+    }
+
+    val chainName: LiveData<String> = liveData {
         val chain = nodesSettingsScenario.getChain(chainId)
-        emit(chain.name to chain.icon)
+        emit(chain.name)
+    }
+
+    val autoSelectedNodeFlow = MutableStateFlow(nodesSettingsStorage.getIsAutoSelectNodes(chainId)).apply {
+        this.drop(1)
+            .map { nodesSettingsStorage.setIsAutoSelectNodes(chainId, it) }
+            .share()
     }
 
     val toolbarAction = editMode.map {

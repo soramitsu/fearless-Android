@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -16,6 +17,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.list.NodesViewMode
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.api.NodeListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.node.mixin.impl.NodeListingProvider
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 
 @Module(includes = [ViewModelModule::class])
 class NodesModule {
@@ -35,9 +37,10 @@ class NodesModule {
         nodeListingMixin: NodeListingMixin,
         resourceManager: ResourceManager,
         chainId: String,
-        nodesSettingsScenario: NodesSettingsScenario
+        nodesSettingsScenario: NodesSettingsScenario,
+        nodesSettingsStorage: NodesSettingsStorage
     ): ViewModel {
-        return NodesViewModel(router, nodeListingMixin, resourceManager, chainId, nodesSettingsScenario)
+        return NodesViewModel(router, nodeListingMixin, resourceManager, chainId, nodesSettingsScenario, nodesSettingsStorage)
     }
 
     @Provides
@@ -51,5 +54,10 @@ class NodesModule {
     @Provides
     fun provideNodesSettingsScenario(chainRegistry: ChainRegistry): NodesSettingsScenario {
         return NodesSettingsScenarioImpl(chainRegistry)
+    }
+
+    @Provides
+    fun provideNodesSettingsStorage(preferences: Preferences): NodesSettingsStorage {
+        return NodesSettingsStorage(preferences)
     }
 }

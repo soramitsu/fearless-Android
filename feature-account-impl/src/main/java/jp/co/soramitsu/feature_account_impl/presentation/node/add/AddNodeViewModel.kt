@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.domain.interfaces.NodesSettingsScenario
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.NodeDetailsRootViewModel
@@ -20,8 +21,8 @@ class AddNodeViewModel(
     private val chainId: String
 ) : NodeDetailsRootViewModel(resourceManager) {
 
-    val nodeNameInputLiveData = MutableLiveData<String>()
-    val nodeHostInputLiveData = MutableLiveData<String>()
+    val nodeNameInputLiveData = MutableLiveData("")
+    val nodeHostInputLiveData = MutableLiveData("")
 
     private val addingInProgressLiveData = MutableLiveData(false)
 
@@ -31,9 +32,13 @@ class AddNodeViewModel(
         addingInProgressLiveData
     ) { (name: String, host: String, addingInProgress: Boolean) ->
         when {
-            addingInProgress -> ButtonState.PROGRESS
-            name.isNotEmpty() && nodeHostValidator.hostIsValid(host) -> ButtonState.NORMAL
-            else -> ButtonState.DISABLED
+            addingInProgress -> LabeledButtonState(ButtonState.PROGRESS)
+            name.isEmpty() -> LabeledButtonState(ButtonState.DISABLED, resourceManager.getString(R.string.error_message_enter_the_name))
+            !nodeHostValidator.hostIsValid(host) -> LabeledButtonState(
+                ButtonState.DISABLED,
+                resourceManager.getString(R.string.error_message_enter_the_url_address)
+            )
+            else -> LabeledButtonState(ButtonState.NORMAL, resourceManager.getString(R.string.add_node_button_title))
         }
     }
 

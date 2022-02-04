@@ -58,7 +58,7 @@
                 app:label="@string/network"
                 app:enabled="false"
                 tools:message="Kusama"
-                tools:textIcon="@drawable/ic_ksm_24" />
+                tools:textIcon="@drawable/ic_plus_circle" />
 
             <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/exportJsonConfirmAdvanced"

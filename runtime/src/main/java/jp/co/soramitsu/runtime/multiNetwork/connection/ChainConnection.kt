@@ -19,7 +19,8 @@ class ChainConnection(
     val socketService: SocketService,
     externalRequirementFlow: Flow<ExternalRequirement>,
     initialNodes: List<Chain.Node>,
-    private val onSelectedNodeChange: (newNodeUrl: String) -> Unit
+    private val onSelectedNodeChange: (newNodeUrl: String) -> Unit,
+    private val isAutoBalanceEnabled: () -> Boolean
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     enum class ExternalRequirement {
@@ -76,6 +77,8 @@ class ChainConnection(
     }
 
     private fun autoBalance(currentState: State) {
+        if (!isAutoBalanceEnabled()) return
+
         if (currentState is State.WaitingForReconnect && (currentState.attempt % NODE_SWITCHING_FREQUENCY) == 0) {
             val currentNodeIndex = availableNodes.indexOfFirst { it.isActive }
             // if current selected node is the last, start from first node

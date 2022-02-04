@@ -4,14 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
-import coil.request.ImageRequest
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
-import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -22,7 +18,7 @@ import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameField
 import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNetworkType
 import kotlinx.android.synthetic.main.fragment_node_details.nodeHostCopy
 import kotlinx.android.synthetic.main.fragment_node_details.updateBtn
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
@@ -72,17 +68,8 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
         }
 
         viewModel.chainInfoLiveData.observe {
-            nodeDetailsNetworkType.text = it.name
-
-            val request = ImageRequest.Builder(requireContext())
-                .size(resources.getDimension(R.dimen.chain_icon_size_small).toInt())
-                .data(it.icon)
-                .build()
-
-            lifecycleScope.launch {
-                val drawable = imageLoader.execute(request).drawable ?: return@launch
-                nodeDetailsNetworkType.setDrawableStart(drawable)
-            }
+            nodeDetailsNetworkType.setMessage(it.name)
+            nodeDetailsNetworkType.loadIcon(it.icon, imageLoader)
         }
 
         viewModel.nameEditEnabled.observe { editEnabled ->

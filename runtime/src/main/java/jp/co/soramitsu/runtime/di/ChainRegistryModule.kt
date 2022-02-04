@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.dao.ChainDao
@@ -20,6 +21,7 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
+import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Provider
 
@@ -84,10 +86,15 @@ class ChainRegistryModule {
 
     @Provides
     @ApplicationScope
+    fun provideNodeSettingsStorage(preferences: Preferences) = NodesSettingsStorage(preferences)
+
+    @Provides
+    @ApplicationScope
     fun provideConnectionPool(
         socketProvider: Provider<SocketService>,
-        externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>
-    ) = ConnectionPool(socketProvider, externalRequirementsFlow)
+        externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
+        nodesSettingsStorage: NodesSettingsStorage
+    ) = ConnectionPool(socketProvider, externalRequirementsFlow, nodesSettingsStorage)
 
     @Provides
     @ApplicationScope

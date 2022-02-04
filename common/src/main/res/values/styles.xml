@@ -47,6 +47,10 @@
         <item name="android:textSize">?attr/textSizeB1</item>
     </style>
 
+    <style name="TextAppearance.Soramitsu.Body1.WithDisabled">
+        <item name="android:textColor">@color/button_text_colors</item>
+    </style>
+
     <style name="TextAppearance.Soramitsu.Body2" parent="TextAppearance.AppCompat.Body1">
         <item name="android:fontFamily">?attr/fontRegular</item>
         <item name="android:textSize">?attr/textSizeB2</item>

@@ -50,7 +50,6 @@ Terms and Conditions and Privacy Policy</string>
     <string name="about_privacy">Privacy policy</string>
     <string name="about_terms">Terms and conditions</string>
     <string name="language_title">Language</string>
-    <string name="connection_management_title">%s networks</string>
     <string name="onboarding_create_wallet">Create wallet</string>
     <string name="username_setup_choose_title">Name</string>
     <string name="username_setup_hint">This name will be displayed only for you and stored locally on your mobile device.</string>
@@ -112,9 +111,10 @@ Terms and Conditions and Privacy Policy</string>
     <string name="account_info_title">Account</string>
     <string name="account_export">Export account</string>
     <string name="common_copied">Copied to clipboard</string>
-    <string name="connections_add_connection">Add connection</string>
-    <string name="connection_management_default_title">Default</string>
-    <string name="connection_management_custom_title">Custom</string>
+    <string name="add_node_button_title">Add node</string>
+    <string name="node">Node</string>
+    <string name="connection_management_default_title">Default nodes</string>
+    <string name="connection_management_custom_title">Custom nodes</string>
     <string name="account_delete_confirmation_title">Forget account?</string>
     <string name="account_delete_confirmation_description">Make sure you have exported your account before proceeding.</string>
     <string name="account_delete_confirm">Forget</string>
@@ -125,7 +125,9 @@ Terms and Conditions and Privacy Policy</string>
     <string name="wallet_asset_receive_template">Receive %s</string>
     <string name="wallet_assets_total_title">Assets value</string>
     <string name="network_info_title">Node Info</string>
-    <string name="network_info_address">Node address</string>
+    <string name="network_url_address">URL address</string>
+    <string name="error_message_enter_the_name">Enter the name…</string>
+    <string name="error_message_enter_the_url_address">Enter the URL address…</string>
     <string name="common_add">Add</string>
     <string name="common_update">Update</string>
     <string name="connection_add_invalid_error">Can\'t establish connection with node. Please, try another one.</string>
@@ -173,8 +175,8 @@ from the right network</string>
     <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than minimal balance.</string>
     <string name="common_warning">Warning</string>
     <string name="common_unknown">Unknown</string>
-    <string name="connection_delete_title">Delete network?</string>
-    <string name="connection_delete_description">Confirm %s deletion.</string>
+    <string name="delete_custom_node_title">Delete custom node?</string>
+    <string name="switch_node_autoselect_title">Auto select nodes</string>
     <string name="connection_delete_confirm">Delete</string>
     <string name="network_status_connecting">Connecting…</string>
     <string name="wallet_balance_frozen_template">Frozen %s</string>
