@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
 
+import it.airgap.beaconsdk.core.message.PermissionBeaconRequest
 import it.airgap.beaconsdk.message.PermissionBeaconRequest
 import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
 import jp.co.soramitsu.common.utils.StateMachine

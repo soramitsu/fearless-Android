@@ -2,19 +2,17 @@ package jp.co.soramitsu.feature_wallet_impl.domain.beacon
 
 import android.net.Uri
 import com.google.gson.Gson
-import it.airgap.beaconsdk.client.BeaconClient
-import it.airgap.beaconsdk.data.beacon.BeaconError
-import it.airgap.beaconsdk.data.beacon.P2pPeer
-import it.airgap.beaconsdk.message.BeaconRequest
-import it.airgap.beaconsdk.message.ErrorBeaconResponse
-import it.airgap.beaconsdk.message.PermissionBeaconRequest
-import it.airgap.beaconsdk.message.PermissionBeaconResponse
-import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
-import it.airgap.beaconsdk.message.SignPayloadBeaconResponse
+import it.airgap.beaconsdk.blockchain.substrate.substrate
+import it.airgap.beaconsdk.blockchain.tezos.message.request.SignPayloadTezosRequest
+import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
+import it.airgap.beaconsdk.core.data.BeaconError
+import it.airgap.beaconsdk.core.data.P2pPeer
+import it.airgap.beaconsdk.core.message.BeaconRequest
+import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
+import it.airgap.beaconsdk.core.message.PermissionBeaconRequest
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.isTransfer
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
@@ -47,7 +45,7 @@ class BeaconInteractor(
 ) {
 
     private val beaconClient by lazy {
-        GlobalScope.async { BeaconClient("Fearless Wallet") }
+        GlobalScope.async { BeaconWalletClient("Fearless Wallet", listOf(substrate())) }//BeaconClient("Fearless Wallet") }
     }
 
     private suspend fun beaconClient() = beaconClient.await()
