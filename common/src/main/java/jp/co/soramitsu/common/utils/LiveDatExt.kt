@@ -9,7 +9,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 
 fun MutableLiveData<Event<Unit>>.sendEvent() {
     this.value = Event(Unit)

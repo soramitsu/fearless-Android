@@ -34,13 +34,12 @@ class NodeListingProvider(
         val customNodes = list.filter { !it.isDefault }
 
         return mutableListOf<Any>().apply {
-            add(defaultHeader)
-            addAll(defaultNodes.map(::mapNodeToNodeModel))
-
             if (customNodes.isNotEmpty()) {
                 add(customHeader)
                 addAll(customNodes.map(::mapNodeToNodeModel))
             }
+            add(defaultHeader)
+            addAll(defaultNodes.map(::mapNodeToNodeModel))
         }
     }
 }

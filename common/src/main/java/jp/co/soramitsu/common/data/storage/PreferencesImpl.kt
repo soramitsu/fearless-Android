@@ -35,6 +35,14 @@ class PreferencesImpl(
         return sharedPreferences.getString(field, defaultValue) ?: defaultValue
     }
 
+    override fun putStringSet(field: String, value: Set<String>?) {
+        sharedPreferences.edit().putStringSet(field, value).apply()
+    }
+
+    override fun getStringSet(field: String, defaultValue: Set<String>): Set<String> {
+        return sharedPreferences.getStringSet(field, defaultValue) ?: defaultValue
+    }
+
     override fun getString(field: String): String? {
         return sharedPreferences.getString(field, null)
     }

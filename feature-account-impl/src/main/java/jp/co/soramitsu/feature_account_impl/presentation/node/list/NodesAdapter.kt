@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
+import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
@@ -30,7 +31,9 @@ class NodesAdapter(
     }
 
     private var editMode = false
+    private var isAuto = true
 
+    @SuppressLint("NotifyDataSetChanged")
     fun switchToEdit(editable: Boolean) {
         editMode = editable
 
@@ -42,6 +45,12 @@ class NodesAdapter(
         notifyItemRangeChanged(firstCustomNodeIndex, customNodesCount)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun handleAutoSelected(isAuto: Boolean) {
+        this.isAuto = isAuto
+        notifyDataSetChanged()
+    }
+
     override fun createGroupViewHolder(parent: ViewGroup): GroupedListHolder {
         return NodeGroupHolder(parent.inflateChild(R.layout.item_node_group))
     }
@@ -51,17 +60,18 @@ class NodesAdapter(
     }
 
     override fun bindGroup(holder: GroupedListHolder, group: NodeHeaderModel) {
-        (holder as NodeGroupHolder).bind(group)
+        (holder as NodeGroupHolder).bind(group, isAuto)
     }
 
     override fun bindChild(holder: GroupedListHolder, child: NodeModel) {
-        (holder as NodeHolder).bind(child, nodeItemHandler, editMode)
+        (holder as NodeHolder).bind(child, nodeItemHandler, { editMode }, isAuto)
     }
 }
 
 class NodeGroupHolder(view: View) : GroupedListHolder(view) {
-    fun bind(nodeHeaderModel: NodeHeaderModel) = with(containerView) {
+    fun bind(nodeHeaderModel: NodeHeaderModel, isAuto: Boolean) = with(containerView) {
         nodeGroupTitle.text = nodeHeaderModel.title
+        isEnabled = !isAuto
     }
 }
 
@@ -70,17 +80,19 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
     fun bind(
         nodeModel: NodeModel,
         handler: NodesAdapter.NodeItemHandler,
-        editMode: Boolean
+        getEditMode: () -> Boolean,
+        isAuto: Boolean
     ) {
         with(containerView) {
+            nodeTitle.isEnabled = !isAuto
             nodeTitle.text = nodeModel.name
             nodeHost.text = nodeModel.link
 
             val isChecked = nodeModel.isActive
 
-            nodeCheck.visibility = if (isChecked) View.VISIBLE else View.INVISIBLE
+            nodeCheck.visibility = if (isChecked && !isAuto) View.VISIBLE else View.INVISIBLE
 
-            if (!isChecked && !nodeModel.isDefault && editMode) {
+            if (getEditMode() && !isChecked && !nodeModel.isDefault) {
                 nodeDelete.visibility = View.VISIBLE
                 nodeDelete.setOnClickListener { handler.deleteClicked(nodeModel) }
                 nodeInfo.visibility = View.INVISIBLE
@@ -93,7 +105,12 @@ class NodeHolder(view: View) : GroupedListHolder(view) {
                 nodeInfo.visibility = View.VISIBLE
                 nodeInfo.setOnClickListener { handler.infoClicked(nodeModel) }
                 isEnabled = true
-                setOnClickListener { handler.checkClicked(nodeModel) }
+                setOnClickListener {
+                    when {
+                        isAuto || getEditMode() -> Unit
+                        else -> handler.checkClicked(nodeModel)
+                    }
+                }
             }
         }
     }
