@@ -4,6 +4,7 @@ import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.AssetReadOnlyCache
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.model.AssetLocal
+import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -64,5 +65,9 @@ class AssetCache(
 
             tokenDao.insertToken(newToken)
         }
+    }
+
+    suspend fun updateAsset(updateModel: List<AssetUpdateItem>): Int {
+        return assetDao.updateAssets(updateModel)
     }
 }

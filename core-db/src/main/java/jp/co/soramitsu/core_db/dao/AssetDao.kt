@@ -4,7 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import jp.co.soramitsu.core_db.model.AssetLocal
+import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
@@ -12,15 +14,17 @@ import kotlinx.coroutines.flow.Flow
 private const val RETRIEVE_ASSET_SQL_META_ID = """
            select * from assets as a inner join tokens as t ON a.tokenSymbol = t.symbol WHERE
             a.metaId = :metaId and a.chainId = :chainId AND a.tokenSymbol = :symbol
+            ORDER BY a.sortIndex
 """
 
 private const val RETRIEVE_ASSET_SQL_ACCOUNT_ID = """
            select * from assets as a inner join tokens as t ON a.tokenSymbol = t.symbol WHERE 
             a.accountId = :accountId and a.chainId = :chainId AND a.tokenSymbol = :symbol
+            ORDER BY a.sortIndex
 """
 
 private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
-       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId ORDER BY a.tokenSymbol, a.chainId
+       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId ORDER BY a.sortIndex
 """
 
 interface AssetReadOnlyCache {
@@ -60,4 +64,7 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)
+
+    @Update(entity = AssetLocal::class)
+    abstract suspend fun updateAssets(item: List<AssetUpdateItem>): Int
 }

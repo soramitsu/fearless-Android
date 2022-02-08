@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -14,7 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/connections_add_connection" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleText="@string/node" />
 
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/nodeNameField"
@@ -24,7 +25,8 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/username_setup_choose_title" />
+        android:hint="@string/username_setup_choose_title"
+        app:layout_constraintTop_toBottomOf="@id/fearlessToolbar" />
 
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/nodeHostField"
@@ -34,8 +36,9 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/network_info_address"
-        android:inputType="textWebEmailAddress|textNoSuggestions" />
+        android:hint="@string/network_url_address"
+        android:inputType="textWebEmailAddress|textNoSuggestions"
+        app:layout_constraintTop_toBottomOf="@id/nodeNameField" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/addBtn"
@@ -44,6 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:enabled="false"
-        android:text="@string/common_add" />
+        android:text="@string/add_node_button_title"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

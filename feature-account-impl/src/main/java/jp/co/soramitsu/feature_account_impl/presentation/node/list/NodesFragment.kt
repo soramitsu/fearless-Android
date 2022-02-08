@@ -4,22 +4,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
-import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
-import kotlinx.android.synthetic.main.fragment_nodes.addConnectionTv
-import kotlinx.android.synthetic.main.fragment_nodes.backButton
+import kotlinx.android.synthetic.main.fragment_nodes.addNodeButton
+import kotlinx.android.synthetic.main.fragment_nodes.autoSelectNodesLabel
+import kotlinx.android.synthetic.main.fragment_nodes.autoSelectNodesSwitch
 import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
-import kotlinx.android.synthetic.main.fragment_nodes.rightText
-import kotlinx.android.synthetic.main.fragment_nodes.titleTextView
-import kotlinx.android.synthetic.main.fragment_nodes.tokenIcon
+import kotlinx.android.synthetic.main.fragment_nodes.nodesToolbar
+import javax.inject.Inject
 
 class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
 
@@ -46,17 +46,19 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         connectionsList.setHasFixedSize(true)
         connectionsList.adapter = adapter
 
-        backButton.setOnClickListener {
+        nodesToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
 
-        rightText.setOnClickListener {
+        nodesToolbar.setRightActionClickListener {
             viewModel.editClicked()
         }
 
-        addConnectionTv.setOnClickListener {
+        addNodeButton.setOnClickListener {
             viewModel.addNodeClicked()
         }
+
+        autoSelectNodesSwitch.bindTo(viewModel.autoSelectedNodeFlow, lifecycleScope)
     }
 
     override fun inject() {
@@ -76,14 +78,18 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
         viewModel.editMode.observe(adapter::switchToEdit)
 
-        viewModel.toolbarAction.observe(rightText::setText)
+        viewModel.toolbarAction.observe(nodesToolbar.rightActionText::setText)
 
         viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
 
-        viewModel.chainInfo.observe { (name, icon) ->
-            tokenIcon.load(icon, imageLoader)
-            titleTextView.text = getString(R.string.connection_management_title, name)
+        viewModel.chainName.observe(nodesToolbar::setTitle)
+
+        viewModel.autoSelectedNodeFlow.observe {
+            autoSelectNodesLabel.isEnabled = it
+            adapter.handleAutoSelected(it)
         }
+
+        viewModel.hasCustomNodeModelsLiveData.observe(nodesToolbar.rightActionText::setEnabled)
     }
 
     override fun infoClicked(nodeModel: NodeModel) {
@@ -99,14 +105,9 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     }
 
     private fun showDeleteNodeDialog(nodeModel: NodeModel) {
-        val message = getString(
-            R.string.connection_delete_description,
-            nodeModel.name
-        )
-
         MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
-            .setTitle(R.string.connection_delete_title)
-            .setMessage(message)
+            .setTitle(R.string.delete_custom_node_title)
+            .setMessage(nodeModel.name)
             .setPositiveButton(R.string.connection_delete_confirm) { dialog, _ ->
                 viewModel.confirmNodeDeletion(nodeModel)
                 dialog?.dismiss()

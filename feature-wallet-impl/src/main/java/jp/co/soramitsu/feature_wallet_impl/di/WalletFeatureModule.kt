@@ -153,11 +153,13 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
         fileProvider: FileProvider,
+        preferences: Preferences
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         accountRepository,
         chainRegistry,
-        fileProvider
+        fileProvider,
+        preferences
     )
 
     @Provides

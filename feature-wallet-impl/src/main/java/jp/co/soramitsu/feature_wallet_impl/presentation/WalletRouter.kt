@@ -1,13 +1,17 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
+import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.navigation.PinRequired
+import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
-interface WalletRouter {
+interface WalletRouter : SecureRouter {
     fun openAssetDetails(assetPayload: AssetPayload)
 
     fun back()
@@ -41,4 +45,17 @@ interface WalletRouter {
     val beaconSignStatus: Flow<SignStatus>
 
     fun setBeaconSignStatus(status: SignStatus)
+
+    fun openNodes(chainId: ChainId)
+
+    @PinRequired
+    fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation
+
+    @PinRequired
+    fun openExportSeed(metaId: Long, chainId: ChainId): DelayedNavigation
+
+    @PinRequired
+    fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation
+
+    fun openManageAssets()
 }

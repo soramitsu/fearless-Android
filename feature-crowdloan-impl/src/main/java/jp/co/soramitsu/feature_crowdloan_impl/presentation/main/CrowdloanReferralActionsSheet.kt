@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.item
-import jp.co.soramitsu.feature_account_api.presenatation.actions.CopyCallback
+import jp.co.soramitsu.feature_account_api.presentation.actions.CopyCallback
 import jp.co.soramitsu.feature_crowdloan_impl.R
 
 typealias ShareCallback = (String) -> Unit

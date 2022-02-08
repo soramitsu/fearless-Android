@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.di.BalanceDetailComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.di.BalanceListComponent
+import jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets.di.ManageAssetsComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.di.BeaconComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.di.SignBeaconTransactionComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.di.ReceiveComponent
@@ -58,6 +59,8 @@ interface WalletFeatureComponent : WalletFeatureApi {
     fun beaconComponentFactory(): BeaconComponent.Factory
 
     fun signBeaconTransactionFactory(): SignBeaconTransactionComponent.Factory
+
+    fun manageAssetsComponentFactory(): ManageAssetsComponent.Factory
 
     @Component.Factory
     interface Factory {

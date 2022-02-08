@@ -35,7 +35,6 @@
     <string name="about_privacy">Политика конфиденциальности</string>
     <string name="about_terms">Условия использования</string>
     <string name="language_title">Язык</string>
-    <string name="connection_management_title">%s сети</string>
     <string name="onboarding_create_wallet">Создать кошелёк</string>
     <string name="username_setup_choose_title">Имя</string>
     <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
@@ -95,9 +94,10 @@
     <string name="account_info_title">Аккаунт</string>
     <string name="account_export">Экспорт аккаунта</string>
     <string name="common_copied">Скопировано в буфер обмена</string>
-    <string name="connections_add_connection">Добавить соединение</string>
-    <string name="connection_management_default_title">По умолчанию</string>
-    <string name="connection_management_custom_title">Добавленные</string>
+    <string name="add_node_button_title">Добавить ноду</string>
+    <string name="node">Нода</string>
+    <string name="connection_management_default_title">Ноды по умолчанию</string>
+    <string name="connection_management_custom_title">Добавленные ноды</string>
     <string name="account_delete_confirmation_title">Забыть аккаунт?</string>
     <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
     <string name="account_delete_confirm">Забыть</string>
@@ -108,7 +108,6 @@
     <string name="wallet_asset_receive_template">Получить %s</string>
     <string name="wallet_assets_total_title">Стоимость активов</string>
     <string name="network_info_title">Информация ноды</string>
-    <string name="network_info_address">Адрес ноды</string>
     <string name="common_add">Добавить</string>
     <string name="common_update">Обновить</string>
     <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
@@ -156,8 +155,7 @@
     <string name="wallet_send_existential_warning_message">Ваш перевод удалит аккаунт, так как общий баланс станет ниже минимального.</string>
     <string name="common_warning">Предупреждение</string>
     <string name="common_unknown">Неизвестно</string>
-    <string name="connection_delete_title">Удалить сеть?</string>
-    <string name="connection_delete_description">Подтвердите удаление %s.</string>
+    <string name="switch_node_autoselect_title">Автоматический выбор нод</string>
     <string name="connection_delete_confirm">Удалить</string>
     <string name="network_status_connecting">Подключение…</string>
     <string name="wallet_balance_frozen_template">Заморожено %s</string>
@@ -473,4 +471,5 @@
     <string name="transfer_title">Перевод</string>
     <string name="copy_referral_code">Копировать реферальный код</string>
     <string name="share_referral_code">Поделиться реферальным кодом</string>
+    <string name="wallet_transaction_history_unsupported_message">История транзакций для этой сети еще не поддерживается</string>
 </resources>

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.presentation.common.accountSource
+package jp.co.soramitsu.feature_account_api.presentation.accountSource
 
 import android.content.Context
 import android.os.Bundle
@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
-import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_api.R
 import kotlinx.android.synthetic.main.item_source.view.rightIcon
 import kotlinx.android.synthetic.main.item_source.view.sourceTv
 

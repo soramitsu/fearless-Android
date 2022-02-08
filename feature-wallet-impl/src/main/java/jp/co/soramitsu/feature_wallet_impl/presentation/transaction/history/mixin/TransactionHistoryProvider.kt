@@ -4,9 +4,10 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToParcel
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.HistoryNotSupportedException
@@ -81,9 +82,11 @@ class TransactionHistoryProvider(
             pageSize = TransactionStateMachine.PAGE_SIZE,
             filters = historyFiltersProvider.allFilters
         ).onFailure { throwable ->
-            if (throwable is HistoryNotSupportedException) {
-                domainState.emit(State.Empty(domainState.value.filters, throwable.message))
+            val message = when (throwable) {
+                is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
+                else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
             }
+            domainState.emit(State.Empty(domainState.value.filters, message))
         }
     }
 

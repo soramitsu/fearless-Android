@@ -28,12 +28,10 @@
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:background="@color/blurColorLight"
-                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailRate"
+                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailToolbarBottom"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.0" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
                     android:id="@+id/balanceDetailBack"
@@ -44,6 +42,17 @@
                     android:padding="8dp"
                     android:src="@drawable/ic_arrow_back_24dp"
                     app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/balanceDetailOptions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_more_vertical"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
@@ -69,39 +78,23 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/balanceDetailTokenIcon"
                     app:layout_constraintTop_toTopOf="@+id/balanceDetailBack"
-                    tools:text="KSM" />
+                    tools:text="KSM"
+                    tools:textColor="@color/white" />
 
-                <LinearLayout
+                <jp.co.soramitsu.common.view.BadgeView
+                    android:id="@+id/tokenBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:background="@drawable/bg_asset_badge"
+                    android:layout_marginTop="8dp"
                     android:orientation="horizontal"
                     android:paddingVertical="2dp"
                     android:paddingStart="4dp"
                     android:paddingEnd="6dp"
-                    app:layout_constraintBottom_toBottomOf="@+id/balanceDetailTokenName"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/balanceDetailTokenName">
-
-                    <ImageView
-                        android:id="@+id/chainBadgeIcon"
-                        android:layout_width="16dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginEnd="4dp"
-                        tools:src="@drawable/ic_plus_circle" />
-
-                    <TextView
-                        android:id="@+id/chainAssetName"
-                        style="@style/TextAppearance.Soramitsu.Body3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/soramitsu_bold"
-                        android:includeFontPadding="false"
-                        android:textAllCaps="true"
-                        android:textColor="@color/white_64"
-                        tools:text="KUSAMA" />
-                </LinearLayout>
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailTokenName"
+                    tools:iconRes="@drawable/ic_plus_circle"
+                    tools:text="Kusama" />
 
                 <TextView
                     android:id="@+id/balanceDetailRate"
@@ -109,11 +102,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:paddingBottom="8dp"
                     app:layout_constraintEnd_toStartOf="@+id/balanceDetailRateChange"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailTokenName"
+                    app:layout_constraintTop_toBottomOf="@+id/tokenBadge"
                     tools:text="$10.25"
                     tools:textColor="@color/white" />
 
@@ -131,6 +123,12 @@
                     app:layout_constraintVertical_bias="0.0"
                     tools:text="+25%"
                     tools:textColor="@color/green" />
+
+                <View
+                    android:id="@+id/balanceDetailToolbarBottom"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    app:layout_constraintTop_toBottomOf="@+id/balanceDetailRate" />
 
                 <jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailsView
                     android:id="@+id/balanceDetailsInfo"

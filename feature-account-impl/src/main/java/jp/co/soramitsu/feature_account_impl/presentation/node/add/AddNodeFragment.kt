@@ -52,6 +52,9 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
     }
 
     override fun subscribe(viewModel: AddNodeViewModel) {
-        viewModel.addButtonState.observe(addBtn::setState)
+        viewModel.addButtonState.observe {
+            addBtn.setState(it.state)
+            addBtn.text = it.label
+        }
     }
 }

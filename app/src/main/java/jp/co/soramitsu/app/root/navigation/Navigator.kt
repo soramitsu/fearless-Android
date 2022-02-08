@@ -17,11 +17,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountLis
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
@@ -417,7 +414,7 @@ class Navigator :
     }
 
     override fun openNodes(chainId: ChainId) {
-        navController?.navigate(R.id.action_accountDetailsFragment_to_nodesFragment, NodesFragment.getBundle(chainId))
+        navController?.navigate(R.id.action_open_nodesFragment, NodesFragment.getBundle(chainId))
     }
 
     override fun openLanguages() {
@@ -455,6 +452,10 @@ class Navigator :
         navController!!.previousBackStackEntry!!.savedStateHandle.set(SignBeaconTransactionFragment.SIGN_RESULT_KEY, status)
     }
 
+    override fun openManageAssets() {
+        navController?.navigate(R.id.action_mainFragment_to_manageAssetsFragment)
+    }
+
     override fun returnToWallet() {
         // to achieve smooth animation
         postToUiThread {
@@ -490,14 +491,14 @@ class Navigator :
         navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment, AddNodeFragment.getBundle(chainId))
     }
 
-    override fun openExportMnemonic(payload: ExportMnemonicPayload): DelayedNavigation {
-        val extras = ExportMnemonicFragment.getBundle(payload)
+    override fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation {
+        val extras = ExportMnemonicFragment.getBundle(metaId, chainId)
 
         return NavComponentDelayedNavigation(R.id.action_export_mnemonic, extras)
     }
 
-    override fun openExportSeed(payload: ExportSeedPayload): DelayedNavigation {
-        val extras = ExportSeedFragment.getBundle(payload)
+    override fun openExportSeed(metaId: Long, chainId: ChainId): DelayedNavigation {
+        val extras = ExportSeedFragment.getBundle(metaId, chainId)
 
         return NavComponentDelayedNavigation(R.id.action_export_seed, extras)
     }
@@ -508,8 +509,8 @@ class Navigator :
         navController?.navigate(R.id.action_exportMnemonicFragment_to_confirmExportMnemonicFragment, extras)
     }
 
-    override fun openExportJsonPassword(payload: ExportJsonPasswordPayload): DelayedNavigation {
-        val extras = ExportJsonPasswordFragment.getBundle(payload)
+    override fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation {
+        val extras = ExportJsonPasswordFragment.getBundle(metaId, chainId)
 
         return NavComponentDelayedNavigation(R.id.action_export_json, extras)
     }

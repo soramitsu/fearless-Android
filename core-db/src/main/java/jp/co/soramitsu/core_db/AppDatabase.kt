@@ -28,6 +28,7 @@ import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_23_24
 import jp.co.soramitsu.core_db.migrations.AddPhishingAddressesTable_10_11
 import jp.co.soramitsu.core_db.migrations.AddRuntimeCacheTable_11_12
+import jp.co.soramitsu.core_db.migrations.AssetsOrderMigration
 import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
@@ -61,7 +62,7 @@ import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 
 @Database(
-    version = 34,
+    version = 35,
     entities = [
         AccountLocal::class,
         AssetLocal::class,
@@ -124,6 +125,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(EthereumDerivationPathMigration(storeV2))
                     .addMigrations(MigrateTablesToV2_32_33)
                     .addMigrations(AddChainExplorersTable_33_34)
+                    .addMigrations(AssetsOrderMigration())
                     .build()
             }
             return instance!!

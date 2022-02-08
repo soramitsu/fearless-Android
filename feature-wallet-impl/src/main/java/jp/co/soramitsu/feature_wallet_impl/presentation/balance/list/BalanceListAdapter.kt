@@ -29,8 +29,6 @@ import kotlinx.android.synthetic.main.item_asset.view.itemAssetRate
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRateChange
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetToken
 import kotlinx.android.synthetic.main.item_asset.view.networkBadge
-import kotlinx.android.synthetic.main.item_asset.view.networkBadgeIcon
-import kotlinx.android.synthetic.main.item_asset.view.networkBadgeName
 import kotlinx.android.synthetic.main.item_asset.view.testnetBadge
 import java.math.BigDecimal
 
@@ -98,8 +96,8 @@ class AssetViewHolder(
         itemAssetToken.text = asset.token.configuration.symbol
 
         networkBadge.setVisible(!asset.token.configuration.isNative)
-        networkBadgeName.text = asset.token.configuration.chainName
-        networkBadgeIcon.load(asset.token.configuration.chainIcon, imageLoader)
+        networkBadge.setText(asset.token.configuration.chainName)
+        networkBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
 
         testnetBadge.setVisible(asset.token.configuration.isTestNet == true)
 

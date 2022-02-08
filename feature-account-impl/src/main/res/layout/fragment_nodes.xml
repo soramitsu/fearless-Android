@@ -7,94 +7,67 @@
     android:fitsSystemWindows="true"
     tools:background="@color/black">
 
-    <ImageView
-        android:id="@+id/backButton"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:background="@drawable/bg_primary_list_item"
-        android:paddingStart="@dimen/x2"
-        android:paddingEnd="@dimen/x2"
-        android:src="@drawable/ic_arrow_back_24dp"
-        app:layout_constraintBottom_toTopOf="@+id/toolbarGuideline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/tokenIcon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginEnd="@dimen/x1"
-        app:layout_constraintBottom_toTopOf="@+id/toolbarGuideline"
-        app:layout_constraintEnd_toStartOf="@+id/titleTextView"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toEndOf="@+id/backButton"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:src="@drawable/ic_token_ksm" />
-
-    <TextView
-        android:id="@+id/titleTextView"
-        style="@style/TextAppearance.Soramitsu.Header3"
-        android:layout_width="wrap_content"
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/nodesToolbar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="middle"
-        android:maxLines="1"
-        android:textColor="@color/white"
-        app:layout_constrainedWidth="true"
-        app:layout_constraintBottom_toTopOf="@+id/toolbarGuideline"
-        app:layout_constraintEnd_toStartOf="@+id/rightText"
-        app:layout_constraintStart_toEndOf="@+id/tokenIcon"
+        app:dividerVisible="false"
+        app:homeButtonIcon="@drawable/ic_close"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="@string/connection_management_title" />
+        app:textRight="@string/common_edit"
+        tools:titleText="Network name" />
 
-    <TextView
-        android:id="@+id/rightText"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_gravity="center_vertical|end"
-        android:fontFamily="@font/soramitsu_semibold"
-        android:gravity="center"
-        android:paddingStart="@dimen/x2"
-        android:paddingEnd="@dimen/x2"
-        android:text="@string/common_edit"
-        android:textColor="@color/actions_color"
-        app:layout_constraintBottom_toTopOf="@+id/toolbarGuideline"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/toolbarGuideline"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/autoSelectNodesContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:orientation="horizontal"
-        app:layout_constraintGuide_begin="44dp"
-        app:layout_constraintGuide_end="44dp" />
+        app:layout_constraintTop_toBottomOf="@id/nodesToolbar">
+
+        <TextView
+            android:id="@+id/autoSelectNodesLabel"
+            style="@style/TextAppearance.Soramitsu.Body1.WithDisabled"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFeatureSettings="tnum, lnum"
+            android:text="@string/switch_node_autoselect_title" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/autoSelectNodesSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/nodesToolbar" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="16dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintBottom_toBottomOf="@id/autoSelectNodesContainer" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/connectionsList"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@+id/addConnectionTv"
+        app:layout_constraintBottom_toTopOf="@+id/addNodeButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbarGuideline"
+        app:layout_constraintTop_toBottomOf="@+id/autoSelectNodesContainer"
         tools:listitem="@layout/item_node" />
 
-    <TextView
-        android:id="@+id/addConnectionTv"
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="0dp"
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/addNodeButton"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/gray4"
-        android:drawableStart="@drawable/ic_plus_accent_24"
-        android:drawableEnd="@drawable/ic_arrow_right_24"
-        android:drawablePadding="16dp"
-        android:padding="16dp"
-        android:text="@string/connections_add_connection"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="24dp"
+        android:text="@string/add_node_button_title"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

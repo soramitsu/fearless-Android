@@ -46,14 +46,12 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/balanceListTotalTitle" />
 
-        <!--TODO implement it-->
         <jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.AssetManageView
             android:id="@+id/manageAssets"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="4dp"
-            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/balanceListTotalAmount" />
 
         <androidx.recyclerview.widget.RecyclerView

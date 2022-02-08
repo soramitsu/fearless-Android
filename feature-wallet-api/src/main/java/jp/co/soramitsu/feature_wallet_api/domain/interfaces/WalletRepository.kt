@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -90,4 +91,6 @@ interface WalletRepository {
     suspend fun isAccountIdFromPhishingList(accountId: AccountId): Boolean
 
     suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId): BigInteger
+
+    suspend fun updateAssets(newItems: List<AssetUpdateItem>): Int
 }
