@@ -2,17 +2,20 @@ package jp.co.soramitsu.feature_wallet_impl.domain.beacon
 
 import android.net.Uri
 import com.google.gson.Gson
+import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
+import it.airgap.beaconsdk.blockchain.substrate.message.response.SignSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.substrate
-import it.airgap.beaconsdk.blockchain.tezos.message.request.SignPayloadTezosRequest
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.BeaconError
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
-import it.airgap.beaconsdk.core.message.PermissionBeaconRequest
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.isTransfer
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
@@ -76,33 +79,42 @@ class BeaconInteractor(
     }
 
     suspend fun reportSignDeclined(
-        request: SignPayloadBeaconRequest
+        request: SignSubstrateRequest
     ) {
         beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
     }
 
     suspend fun reportPermissionsDeclined(
-        request: PermissionBeaconRequest
+        request: PermissionSubstrateRequest
     ) {
         beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
     }
 
     suspend fun signPayload(
-        request: SignPayloadBeaconRequest
+        request: SignSubstrateRequest
     ) {
         val signature = accountRepository.signWithCurrentAccount(request.payload.fromHex())
         val signatureHex = signature.toHexString(withPrefix = true)
-
-        beaconClient().respond(SignPayloadBeaconResponse.from(request, request.signingType, signatureHex))
+        val response = createResponseFrom(request, signatureHex)
+        beaconClient().respond(response)
     }
 
     suspend fun allowPermissions(
-        forRequest: PermissionBeaconRequest
+        forRequest: PermissionSubstrateRequest
     ) {
         val address = accountRepository.getSelectedAccount().address
         val publicKey = address.toAccountId().toHexString()
-        val response = PermissionBeaconResponse.from(forRequest, publicKey)
-
+        val response = PermissionSubstrateResponse(
+            id = forRequest.id,
+            version = forRequest.version,
+            requestOrigin = forRequest.origin,
+            blockchainIdentifier = forRequest.blockchainIdentifier,
+            accountId = publicKey,
+            appMetadata = forRequest.appMetadata,
+            scopes = forRequest.scopes,
+            accounts = emptyList()//todo
+        )
+//        val response = PermissionSubstrateResponse.from(forRequest, publicKey)
         beaconClient().respond(response)
     }
 
@@ -144,4 +156,33 @@ class BeaconInteractor(
 //            }
 //        }
     }
+
+    fun createResponseFrom(request: SignSubstrateRequest, signature: String): SignSubstrateResponse =
+        when (request.mode) {
+            SignSubstrateRequest.Mode.Broadcast ->
+                SignSubstrateResponse.Broadcast(
+                    request.id,
+                    version = request.version,
+                    requestOrigin = request.origin,
+                    blockchainIdentifier = request.blockchainIdentifier,
+                    signature = signature
+                )
+            SignSubstrateRequest.Mode.BroadcastAndReturn ->
+                SignSubstrateResponse.BroadcastAndReturn(
+                    id = request.id,
+                    version = request.version,
+                    requestOrigin = request.origin,
+                    blockchainIdentifier = request.blockchainIdentifier,
+                    signature = signature,
+                    payload = request.payload
+                )
+            SignSubstrateRequest.Mode.Return ->
+                SignSubstrateResponse.Return(
+                    id = request.id,
+                    version = request.version,
+                    requestOrigin = request.origin,
+                    blockchainIdentifier = request.blockchainIdentifier,
+                    payload = request.payload
+                )
+        }
 }

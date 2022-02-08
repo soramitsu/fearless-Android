@@ -1,8 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
 
-import it.airgap.beaconsdk.core.message.PermissionBeaconRequest
-import it.airgap.beaconsdk.message.PermissionBeaconRequest
-import it.airgap.beaconsdk.message.SignPayloadBeaconRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateRequest
 import jp.co.soramitsu.common.utils.StateMachine
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.Event
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.SideEffect
@@ -16,12 +15,12 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
         class Connected(val dAppMetadata: DAppMetadataModel) : State()
 
         class AwaitingPermissionsApproval(
-            val request: PermissionBeaconRequest,
+            val request: PermissionSubstrateRequest,
             val dAppMetadata: DAppMetadataModel
         ) : State()
 
         class AwaitingSigningApproval(
-            val awaitingRequest: SignPayloadBeaconRequest,
+            val awaitingRequest: SignSubstrateRequest,
             val dAppMetadata: DAppMetadataModel
         ) : State()
 
@@ -31,13 +30,13 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
     sealed class Event {
         class ReceivedMetadata(val dAppMetadata: DAppMetadataModel) : Event()
 
-        class ReceivedPermissionsRequest(val request: PermissionBeaconRequest) : Event()
+        class ReceivedPermissionsRequest(val request: PermissionSubstrateRequest) : Event()
 
         object ApprovedPermissions : Event()
 
         object DeclinedPermissions : Event()
 
-        class ReceivedSigningRequest(val request: SignPayloadBeaconRequest) : Event()
+        class ReceivedSigningRequest(val request: SignSubstrateRequest) : Event()
 
         object ApprovedSigning : Event()
 
@@ -49,15 +48,15 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
     sealed class SideEffect {
         class AskPermissionsApproval(val dAppName: String) : SideEffect()
 
-        class AskSignApproval(val request: SignPayloadBeaconRequest) : SideEffect()
+        class AskSignApproval(val request: SignSubstrateRequest) : SideEffect()
 
-        class RespondApprovedPermissions(val request: PermissionBeaconRequest) : SideEffect()
+        class RespondApprovedPermissions(val request: PermissionSubstrateRequest) : SideEffect()
 
-        class RespondApprovedSign(val request: SignPayloadBeaconRequest) : SideEffect()
+        class RespondApprovedSign(val request: SignSubstrateRequest) : SideEffect()
 
-        class RespondDeclinedSign(val request: SignPayloadBeaconRequest) : SideEffect()
+        class RespondDeclinedSign(val request: SignSubstrateRequest) : SideEffect()
 
-        class RespondDeclinedPermissions(val request: PermissionBeaconRequest) : SideEffect()
+        class RespondDeclinedPermissions(val request: PermissionSubstrateRequest) : SideEffect()
 
         object Exit : SideEffect()
     }
