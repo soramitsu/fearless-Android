@@ -164,15 +164,17 @@ class WalletRepositoryImpl(
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
             if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY) {
-                throw HistoryNotSupportedException("Transaction history for this network is not supported yet")
+                throw HistoryNotSupportedException()
             }
+            val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
             val response = walletOperationsApi.getOperationsHistory(
                 url = historyUrl,
                 SubqueryHistoryRequest(
                     accountAddress = chain.addressOf(accountId),
                     pageSize,
                     cursor,
-                    filters
+                    filters,
+                    requestRewards
                 )
             ).data.query
 

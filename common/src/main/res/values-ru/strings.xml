@@ -471,4 +471,5 @@
     <string name="transfer_title">Перевод</string>
     <string name="copy_referral_code">Копировать реферальный код</string>
     <string name="share_referral_code">Поделиться реферальным кодом</string>
+    <string name="wallet_transaction_history_unsupported_message">История транзакций для этой сети еще не поддерживается</string>
 </resources>

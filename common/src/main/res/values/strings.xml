@@ -525,4 +525,6 @@ to your account to avoid remaining stake.</string>
 
 
     <string name="manage_assets_search_hint">Search by token or network</string>
+    <string name="wallet_transaction_history_unsupported_message">Transaction history for this network is not supported yet</string>
+    <string name="wallet_transaction_history_error_message">Service is currently unavailable</string>
 </resources>
