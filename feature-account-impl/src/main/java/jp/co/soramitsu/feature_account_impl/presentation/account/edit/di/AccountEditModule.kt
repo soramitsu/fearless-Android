@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.account.edit.EditAccountsViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.account.edit.AccountEditViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl.AccountListingProvider
 
@@ -28,20 +28,20 @@ class AccountEditModule {
 
     @Provides
     @IntoMap
-    @ViewModelKey(EditAccountsViewModel::class)
+    @ViewModelKey(AccountEditViewModel::class)
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
         accountListingMixin: AccountListingMixin
     ): ViewModel {
-        return EditAccountsViewModel(interactor, router, accountListingMixin)
+        return AccountEditViewModel(interactor, router, accountListingMixin)
     }
 
     @Provides
     fun provideViewModelCreator(
         fragment: Fragment,
         viewModelFactory: ViewModelProvider.Factory
-    ): EditAccountsViewModel {
-        return ViewModelProvider(fragment, viewModelFactory).get(EditAccountsViewModel::class.java)
+    ): AccountEditViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(AccountEditViewModel::class.java)
     }
 }

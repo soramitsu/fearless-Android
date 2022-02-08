@@ -46,7 +46,7 @@ interface MetaAccountDao {
     @Transaction
     fun getJoinedMetaAccountsInfo(): List<RelationJoinedMetaAccountInfo>
 
-    @Query("SELECT * FROM meta_accounts")
+    @Query("SELECT * FROM meta_accounts ORDER BY position")
     fun metaAccountsFlow(): Flow<List<MetaAccountLocal>>
 
     @Query("UPDATE meta_accounts SET isSelected = (id = :metaId)")

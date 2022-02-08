@@ -523,4 +523,6 @@ to your account to avoid remaining stake.</string>
     <string name="switch_node">Switch node</string>
     <string name="account_option">Account option</string>
 
+
+    <string name="manage_assets_search_hint">Search by token or network</string>
 </resources>

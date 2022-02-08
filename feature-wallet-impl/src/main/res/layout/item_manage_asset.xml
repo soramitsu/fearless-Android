@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/black">
+
+    <ImageView
+        android:id="@+id/manageAssetsItemIcon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_extrinsic_kusama" />
+
+    <TextView
+        android:id="@+id/manageAssetsItemName"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="7dp"
+        android:ellipsize="end"
+        android:includeFontPadding="false"
+        android:lines="1"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintEnd_toStartOf="@+id/manageAssetsBadge"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toEndOf="@+id/manageAssetsItemIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Kusama" />
+
+    <jp.co.soramitsu.common.view.BadgeView
+        android:id="@+id/manageAssetsBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toBottomOf="@+id/manageAssetsItemName"
+        app:layout_constraintEnd_toStartOf="@+id/testnetBadge"
+        app:layout_constraintStart_toEndOf="@+id/manageAssetsItemName"
+        app:layout_constraintTop_toTopOf="@+id/manageAssetsItemName"
+        tools:iconRes="@drawable/ic_plus_circle"
+        tools:text="Kusama" />
+
+    <jp.co.soramitsu.common.view.BadgeView
+        android:id="@+id/testnetBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="16dp"
+        app:iconRes="@drawable/ic_token_testnet"
+        app:layout_constraintBottom_toBottomOf="@+id/manageAssetsItemName"
+        app:layout_constraintEnd_toStartOf="@+id/manageAssetsItemSwitch"
+        app:layout_constraintStart_toEndOf="@+id/manageAssetsBadge"
+        app:layout_constraintTop_toTopOf="@+id/manageAssetsItemName"
+        app:text="@string/label_testnet" />
+
+    <TextView
+        android:id="@+id/manageAssetsItemAmount"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="8dp"
+        android:ellipsize="middle"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:textColor="@color/black2"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/manageAssetsItemSwitch"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@+id/manageAssetsItemIcon"
+        app:layout_constraintTop_toBottomOf="@id/manageAssetsItemName"
+        app:layout_goneMarginEnd="16dp"
+        app:layout_goneMarginStart="16dp"
+        tools:text="0.09545495495 KSM"
+        tools:visibility="gone" />
+
+    <TextView
+        android:id="@+id/manageAssetsMissingAccountMessage"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="8dp"
+        android:drawablePadding="4dp"
+        android:ellipsize="middle"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:textColor="@color/black2"
+        app:drawableStartCompat="@drawable/ic_warning_filled"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/manageAssetsItemSwitch"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@+id/manageAssetsItemIcon"
+        app:layout_constraintTop_toBottomOf="@id/manageAssetsItemName"
+        app:layout_goneMarginEnd="16dp"
+        app:layout_goneMarginStart="16dp"
+        tools:text="Add an account..." />
+
+    <Button
+        android:id="@+id/manageAssetsAddAccountButton"
+        style="@style/Widget.Fearless.Button.Text.Normal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:textAllCaps="false"
+        android:textColor="@color/colorAccent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Add account" />
+
+    <ImageView
+        android:id="@+id/manageAssetsItemDragView"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:src="@drawable/ic_drag"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/white" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/manageAssetsItemSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/manageAssetsItemDragView"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/dividerGray"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!--  TODO complete nine path background  -->
+    <TextView
+        android:id="@+id/manageAssetsCustomNetworkName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lines="1"
+        android:paddingStart="6dp"
+        android:paddingEnd="4dp"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/manageAssetsItemSwitch"
+        app:layout_constraintTop_toTopOf="@+id/manageAssetsItemName"
+        tools:ignore="SmallSp"
+        tools:text="SUSAasdkfngkdfafMA" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/manageAssetsAccountExistStateGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="manageAssetsItemAmount,manageAssetsItemDragView,manageAssetsItemSwitch"
+        tools:visibility="visible" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/manageAssetsMissingAccountStateGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="manageAssetsMissingAccountMessage,manageAssetsAddAccountButton"
+        tools:visibility="gone" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

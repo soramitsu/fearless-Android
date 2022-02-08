@@ -130,6 +130,14 @@
             app:popExitAnim="@anim/fragment_close_exit" />
 
         <action
+            android:id="@+id/action_mainFragment_to_manageAssetsFragment"
+            app:destination="@id/manageAssetsFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit" />
+
+        <action
             android:id="@+id/action_mainFragment_to_languagesFragment"
             app:destination="@id/languagesFragment"
             app:enterAnim="@anim/fragment_open_enter"
@@ -281,7 +289,7 @@
         android:id="@+id/accountDetailsFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment"
         android:label="AccountDetailsFragment"
-        tools:layout="@layout/fragment_account_details"/>
+        tools:layout="@layout/fragment_account_details" />
 
     <action
         android:id="@+id/action_open_nodesFragment"
@@ -289,7 +297,7 @@
         app:enterAnim="@anim/fragment_close_enter"
         app:exitAnim="@anim/fragment_close_exit"
         app:popEnterAnim="@anim/fragment_open_enter"
-        app:popExitAnim="@anim/fragment_open_exit"/>
+        app:popExitAnim="@anim/fragment_open_exit" />
 
     <fragment
         android:id="@+id/editAccountsFragment"
@@ -312,6 +320,12 @@
         android:name="jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment"
         android:label="BalanceDetailFragment"
         tools:layout="@layout/fragment_balance_detail" />
+
+    <fragment
+        android:id="@+id/manageAssetsFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets.ManageAssetsFragment"
+        android:label="ManageAssetsFragment"
+        tools:layout="@layout/fragment_manage_assets" />
 
     <fragment
         android:id="@+id/transferDetailFragment"

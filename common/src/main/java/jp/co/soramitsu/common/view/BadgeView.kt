@@ -12,9 +12,11 @@ import jp.co.soramitsu.common.R
 import kotlinx.android.synthetic.main.view_token_badge.view.badgeIcon
 import kotlinx.android.synthetic.main.view_token_badge.view.badgeName
 
-class BadgeView @JvmOverloads constructor(context: Context,
-                                          attrs: AttributeSet? = null,
-                                          defStyleAttr: Int = 0) : LinearLayout(context, attrs, defStyleAttr) {
+class BadgeView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayout(context, attrs, defStyleAttr) {
 
     init {
         View.inflate(context, R.layout.view_token_badge, this)
@@ -49,7 +51,7 @@ class BadgeView @JvmOverloads constructor(context: Context,
         badgeName.text = text
     }
 
-    fun setText(text: String?) {
-        badgeName.text = text
+    fun setText(stringText: String?) {
+        badgeName.text = stringText
     }
 }

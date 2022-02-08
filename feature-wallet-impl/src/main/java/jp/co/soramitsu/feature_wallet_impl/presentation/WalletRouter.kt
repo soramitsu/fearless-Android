@@ -48,4 +48,6 @@ interface WalletRouter : SecureRouter {
 
     @PinRequired
     fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation
+
+    fun openManageAssets()
 }
