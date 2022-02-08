@@ -39,13 +39,16 @@ fun mapAssetLocalToAsset(
         Asset(
             metaId = asset.metaId,
             token = mapTokenLocalToToken(token, chainAsset),
+            accountId = asset.accountId,
             freeInPlanks = asset.freeInPlanks,
             reservedInPlanks = asset.reservedInPlanks,
             feeFrozenInPlanks = asset.feeFrozenInPlanks,
             miscFrozenInPlanks = asset.miscFrozenInPlanks,
             bondedInPlanks = asset.bondedInPlanks,
             unbondingInPlanks = asset.unbondingInPlanks,
-            redeemableInPlanks = asset.redeemableInPlanks
+            redeemableInPlanks = asset.redeemableInPlanks,
+            sortIndex = asset.sortIndex,
+            enabled = asset.enabled
         )
     }
 }
@@ -63,7 +66,9 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             frozen = frozen,
             redeemable = redeemable,
             unbonding = unbonding,
-            dollarAmount = dollarAmount
+            dollarAmount = dollarAmount,
+            sortIndex = sortIndex,
+            enabed = enabled
         )
     }
 }

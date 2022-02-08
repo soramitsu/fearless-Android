@@ -16,12 +16,10 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -70,15 +68,13 @@ class BalanceListViewModel(
         return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
     }
 
-    private fun assetListSort() = compareByDescending<AssetModel> { it.total > BigDecimal.ZERO }
-        .thenByDescending { it.totalFiat ?: BigDecimal.ZERO }
-        .thenBy { it.token.configuration.isTestNet }
-        .thenByDescending { it.token.configuration.chainId.isPolkadotOrKusama() }
-        .thenBy { it.token.configuration.chainName }
-
     private fun balanceFlow(): Flow<BalanceModel> =
         interactor.assetsFlow()
             .mapList(::mapAssetToAssetModel)
-            .map { it.sortedWith(assetListSort()) }
+            .map { list -> list.filter { it.enabed } }
             .map(::BalanceModel)
+
+    fun manageAssetsClicked() {
+        router.openManageAssets()
+    }
 }

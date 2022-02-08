@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
@@ -75,11 +76,11 @@ class WalletRepositoryImpl(
             assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
             val updatedAssets = assetsLocal.mapNotNull { asset ->
-                mapAssetToLocalAsset(chainsById, asset)
+                mapAssetLocalToAsset(chainsById, asset)
             }
 
             val assetsByChain: List<Asset> = chainRegistry.currentChains.firstOrNull().orEmpty()
-                .flatMap { it.assets.map { createEmpty(it, metaId) } }
+                .flatMap { chain -> chain.assets.map { createEmpty(it, metaId) } }
 
             val notUpdatedAssets = assetsByChain.filter {
                 it.token.configuration.chainToSymbol !in updatedAssets.map { it.token.configuration.chainToSymbol }
@@ -94,11 +95,11 @@ class WalletRepositoryImpl(
         val assetsLocal = assetCache.getAssets(metaId)
 
         assetsLocal.mapNotNull {
-            mapAssetToLocalAsset(chainsById, it)
+            mapAssetLocalToAsset(chainsById, it)
         }
     }
 
-    private fun mapAssetToLocalAsset(
+    private fun mapAssetLocalToAsset(
         chainsById: Map<ChainId, Chain>,
         assetLocal: AssetWithToken
     ): Asset? {
@@ -286,6 +287,10 @@ class WalletRepositoryImpl(
 
     override suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId) =
         substrateSource.getAccountInfo(chainId, accountId).data.free
+
+    override suspend fun updateAssets(newItems: List<AssetUpdateItem>): Int {
+        return assetCache.updateAsset(newItems)
+    }
 
     private fun createOperation(
         hash: String,

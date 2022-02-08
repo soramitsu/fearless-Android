@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -79,4 +80,8 @@ interface WalletInteractor {
     suspend fun getMetaAccountSecrets(metaId: Long? = null): EncodableStruct<MetaAccountSecrets>?
 
     suspend fun getSelectedMetaAccount(): MetaAccount
+
+    suspend fun updateAssets(newItems: List<AssetUpdateItem>)
+
+    var customAssetSorting: Boolean
 }

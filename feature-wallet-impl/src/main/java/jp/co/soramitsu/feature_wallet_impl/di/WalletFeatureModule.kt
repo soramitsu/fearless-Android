@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.di
 
 import dagger.Module
 import dagger.Provides
+import javax.inject.Named
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -46,7 +47,6 @@ import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import javax.inject.Named
 
 @Module
 class WalletFeatureModule {
@@ -142,11 +142,13 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
         fileProvider: FileProvider,
+        preferences: Preferences
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         accountRepository,
         chainRegistry,
-        fileProvider
+        fileProvider,
+        preferences
     )
 
     @Provides

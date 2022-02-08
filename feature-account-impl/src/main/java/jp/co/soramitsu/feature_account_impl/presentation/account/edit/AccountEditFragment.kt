@@ -4,10 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.dragAndDropItemTouchHelper
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -16,7 +15,7 @@ import kotlinx.android.synthetic.main.fragment_accounts.addAccount
 import kotlinx.android.synthetic.main.fragment_edit_accounts.accountsList
 import kotlinx.android.synthetic.main.fragment_edit_accounts.fearlessToolbar
 
-class AccountEditFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsAdapter.EditAccountItemHandler {
+class AccountEditFragment : BaseFragment<AccountEditViewModel>(), EditAccountsAdapter.EditAccountItemHandler {
     private lateinit var adapter: EditAccountsAdapter
 
     override fun onCreateView(
@@ -28,7 +27,8 @@ class AccountEditFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsA
     override fun initViews() {
         accountsList.setHasFixedSize(true)
 
-        val dragHelper = createTouchHelper()
+        val dragHelper = dragAndDropItemTouchHelper(viewModel.dragAndDropDelegate)
+
         dragHelper.attachToRecyclerView(accountsList)
 
         adapter = EditAccountsAdapter(this, dragHelper)
@@ -55,13 +55,13 @@ class AccountEditFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsA
             .inject(this)
     }
 
-    override fun subscribe(viewModel: EditAccountsViewModel) {
+    override fun subscribe(viewModel: AccountEditViewModel) {
         viewModel.accountListingLiveData.observe(adapter::submitList)
 
         viewModel.deleteConfirmationLiveData.observeEvent(::showDeleteConfirmation)
 
-        viewModel.unsyncedSwapLiveData.observe { payload ->
-            adapter.submitList(payload.newState)
+        viewModel.dragAndDropDelegate.unsyncedSwapLiveData.observe { payload ->
+            adapter.submitList(payload)
         }
     }
 
@@ -78,47 +78,5 @@ class AccountEditFragment : BaseFragment<EditAccountsViewModel>(), EditAccountsA
 
     override fun deleteClicked(accountModel: LightMetaAccountUi) {
         viewModel.deleteClicked(accountModel)
-    }
-
-    private fun createTouchHelper(): ItemTouchHelper {
-        val callback = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
-            var dragFrom: Int? = null
-            var dragTo: Int? = null
-
-            override fun isLongPressDragEnabled() = false
-
-            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                val from = viewHolder.adapterPosition
-                val to = target.adapterPosition
-
-                if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) return false
-
-                if (dragFrom == null) {
-                    dragFrom = from
-                }
-
-                dragTo = to
-
-                viewModel.onItemDrag(from, to)
-
-                return false
-            }
-
-            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
-                super.clearView(recyclerView, viewHolder)
-
-                if (dragFrom != null && dragTo != null) {
-                    viewModel.onItemDrop()
-                }
-
-                dragFrom = null
-                dragTo = null
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-            }
-        }
-
-        return ItemTouchHelper(callback)
     }
 }
