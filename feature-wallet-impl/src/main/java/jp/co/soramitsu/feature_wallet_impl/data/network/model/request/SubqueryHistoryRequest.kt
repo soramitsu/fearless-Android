@@ -28,7 +28,8 @@ class SubqueryHistoryRequest(
     accountAddress: String,
     pageSize: Int = 1,
     cursor: String? = null,
-    filters: Set<TransactionFilter>
+    filters: Set<TransactionFilter>,
+    requestRewards: Boolean
 ) {
     val query = """
     {
@@ -50,7 +51,7 @@ class SubqueryHistoryRequest(
                     id
                     timestamp
                     address
-                    reward
+                    ${if (requestRewards) "reward" else ""}
                     extrinsic
                     transfer
                 }

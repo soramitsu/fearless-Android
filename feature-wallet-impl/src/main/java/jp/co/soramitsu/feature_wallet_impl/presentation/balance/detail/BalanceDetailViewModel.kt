@@ -11,7 +11,6 @@ import jp.co.soramitsu.feature_account_api.presentation.exporting.buildExportSou
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
@@ -20,7 +19,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixi
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -66,15 +64,10 @@ class BalanceDetailViewModel(
 
     fun sync() {
         viewModelScope.launch {
+            async { transactionHistoryMixin.syncFirstOperationsPage() }.start()
+
             val deferredAssetSync = async { interactor.syncAssetsRates() }
-            val deferredTransactionsSync = async { transactionHistoryMixin.syncFirstOperationsPage() }
-
-            val results = awaitAll(deferredAssetSync, deferredTransactionsSync)
-
-            val firstError = results.mapNotNull { it.exceptionOrNull() }
-                .firstOrNull { it !is HistoryNotSupportedException }
-
-            firstError?.let(::showError)
+            deferredAssetSync.await().exceptionOrNull()?.message?.let(::showMessage)
 
             _hideRefreshEvent.value = Event(Unit)
         }
