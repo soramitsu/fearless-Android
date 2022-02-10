@@ -27,11 +27,11 @@ class BalancesUpdateSystem(
             val chains = chainRegistry.currentChains.first()
 
             val mergedFlow = chains.map { chain ->
-                val updater = paymentUpdaterFactory.create(chain.id)
-                val socket = chainRegistry.getSocket(chain.id)
-
-                val subscriptionBuilder = StorageSubscriptionBuilder.create(socket)
                 try {
+                    val updater = paymentUpdaterFactory.create(chain.id)
+                    val socket = chainRegistry.getSocket(chain.id)
+
+                    val subscriptionBuilder = StorageSubscriptionBuilder.create(socket)
                     val updaterFlow = updater.listenForUpdates(subscriptionBuilder)
                         .flowOn(Dispatchers.Default)
 
