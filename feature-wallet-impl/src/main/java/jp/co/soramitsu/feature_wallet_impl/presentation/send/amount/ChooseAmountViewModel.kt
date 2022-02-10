@@ -40,6 +40,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.warning.ap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -52,8 +53,8 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private const val AVATAR_SIZE_DP = 24
 
@@ -145,7 +146,10 @@ class ChooseAmountViewModel(
     }
 
     private suspend fun updateExistentialDeposit(tokenConfiguration: Chain.Asset) {
-        val amountInPlanks = walletConstants.existentialDeposit(tokenConfiguration.chainId)
+        val amountInPlanks = kotlin.runCatching {
+            walletConstants.existentialDeposit(tokenConfiguration.chainId)
+        }.getOrDefault(BigInteger.ZERO)
+
         existentialDeposit = tokenConfiguration.amountFromPlanks(amountInPlanks)
     }
 
@@ -199,10 +203,10 @@ class ChooseAmountViewModel(
         router.back()
     }
 
-    @OptIn(ExperimentalTime::class)
+    @OptIn(FlowPreview::class)
     private fun feeFlow(): Flow<Fee?> = amountEvents
         .mapNotNull(String::toBigDecimalOrNull)
-        .debounce(500.milliseconds)
+        .debounce(500.toDuration(DurationUnit.MILLISECONDS))
         .distinctUntilChanged()
         .onEach { _feeLoadingLiveData.postValue(true) }
         .mapLatest<BigDecimal, Fee?> { amount ->
