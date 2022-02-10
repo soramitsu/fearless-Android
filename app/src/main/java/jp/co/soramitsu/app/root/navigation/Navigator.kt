@@ -62,14 +62,14 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.
 import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
+import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm.ConfirmTransferFragment
@@ -136,10 +136,10 @@ class Navigator :
 
         val navOptions = NavOptions.Builder()
             .setPopUpTo(R.id.pincodeFragment, true)
-            .setEnterAnim(R.anim.fragment_open_enter)
-            .setExitAnim(R.anim.fragment_open_exit)
-            .setPopEnterAnim(R.anim.fragment_close_enter)
-            .setPopExitAnim(R.anim.fragment_close_exit)
+            .setEnterAnim(R.animator.fragment_open_enter)
+            .setExitAnim(R.animator.fragment_open_exit)
+            .setPopEnterAnim(R.animator.fragment_close_enter)
+            .setPopExitAnim(R.animator.fragment_close_exit)
             .build()
 
         navController?.navigate(delayedNavigation.globalActionId, delayedNavigation.extras, navOptions)
