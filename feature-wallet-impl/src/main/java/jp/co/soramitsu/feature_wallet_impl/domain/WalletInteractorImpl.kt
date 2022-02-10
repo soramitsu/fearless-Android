@@ -29,8 +29,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -41,6 +39,8 @@ import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Calendar
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting"
 
@@ -291,4 +291,6 @@ class WalletInteractorImpl(
     override suspend fun getMetaAccountSecrets(metaId: Long?) = accountRepository.getMetaAccountSecrets(metaId)
 
     override suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
+
+    override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) = getSelectedMetaAccount().address(getChain(chainId))
 }

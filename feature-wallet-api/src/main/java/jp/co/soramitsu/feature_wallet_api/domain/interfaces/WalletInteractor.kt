@@ -81,6 +81,8 @@ interface WalletInteractor {
 
     suspend fun getSelectedMetaAccount(): MetaAccount
 
+    suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId): String?
+
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 
     var customAssetSorting: Boolean
