@@ -14,19 +14,19 @@
         <action
             android:id="@+id/action_welcomeFragment_to_createAccountFragment"
             app:destination="@id/createAccountFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
+            app:enterAnim="@animator/fragment_open_enter"
+            app:exitAnim="@animator/fragment_open_exit"
+            app:popEnterAnim="@animator/fragment_close_enter"
+            app:popExitAnim="@animator/fragment_close_exit" />
 
 
         <action
             android:id="@+id/importAction"
             app:destination="@id/importAccountFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
+            app:enterAnim="@animator/fragment_open_enter"
+            app:exitAnim="@animator/fragment_open_exit"
+            app:popEnterAnim="@animator/fragment_close_enter"
+            app:popExitAnim="@animator/fragment_close_exit" />
 
     </fragment>
 
@@ -39,10 +39,10 @@
         <action
             android:id="@+id/action_createAccountFragment_to_backupMnemonicFragment"
             app:destination="@id/backupMnemonicFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit">
+            app:enterAnim="@animator/fragment_open_enter"
+            app:exitAnim="@animator/fragment_open_exit"
+            app:popEnterAnim="@animator/fragment_close_enter"
+            app:popExitAnim="@animator/fragment_close_exit">
 
         </action>
 
@@ -58,12 +58,12 @@
         <action
             android:id="@+id/action_importAccountFragment_to_pincodeFragment"
             app:destination="@id/pincodeFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
+            app:enterAnim="@animator/fragment_open_enter"
+            app:exitAnim="@animator/fragment_open_exit"
             app:popUpTo="@id/welcomeFragment"
             app:popUpToInclusive="true"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit">
+            app:popEnterAnim="@animator/fragment_close_enter"
+            app:popExitAnim="@animator/fragment_close_exit">
 
         </action>
 
@@ -78,10 +78,10 @@
         <action
             android:id="@+id/action_backupMnemonicFragment_to_confirmMnemonicFragment"
             app:destination="@id/confirmMnemonicFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit">
+            app:enterAnim="@animator/fragment_open_enter"
+            app:exitAnim="@animator/fragment_open_exit"
+            app:popEnterAnim="@animator/fragment_close_enter"
+            app:popExitAnim="@animator/fragment_close_exit">
 
         </action>
 
@@ -96,12 +96,12 @@
         <action
             android:id="@+id/action_confirmMnemonicFragment_to_pincodeFragment"
             app:destination="@id/pincodeFragment"
-            app:enterAnim="@anim/fragment_open_enter"
+            app:enterAnim="@animator/fragment_open_enter"
             app:popUpTo="@id/welcomeFragment"
             app:popUpToInclusive="true"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit">
+            app:exitAnim="@animator/fragment_open_exit"
+            app:popEnterAnim="@animator/fragment_close_enter"
+            app:popExitAnim="@animator/fragment_close_exit">
 
         </action>
 
