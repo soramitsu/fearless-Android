@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.transfer
@@ -22,8 +23,10 @@ import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.bindTransferExtrinsic
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
@@ -128,16 +131,32 @@ class WssSubstrateSource(
     }
 
     private fun ExtrinsicBuilder.transfer(chain: Chain, transfer: Transfer, typeRegistry: TypeRegistry): ExtrinsicBuilder {
-        return if (typeRegistry["Address"] is FixedByteArray) call(
-            moduleName = "Balances",
-            callName = "transfer",
-            arguments = mapOf(
-                "dest" to chain.accountIdOf(transfer.recipient),
-                "value" to transfer.amountInPlanks
+        return when {
+            chain.id.isOrml() -> {
+                val symbol = chain.utilityAsset.symbol
+
+                call(
+                    moduleName = "Tokens",
+                    callName = "transfer",
+                    arguments = mapOf(
+                        "dest" to chain.accountIdOf(transfer.recipient),
+                        "currency_id" to DictEnum.Entry("Token", DictEnum.Entry(symbol, null)),
+                        "amount" to transfer.amountInPlanks
+                    )
+                )
+            }
+            typeRegistry["Address"] is FixedByteArray -> call(
+                moduleName = "Balances",
+                callName = "transfer",
+                arguments = mapOf(
+                    "dest" to chain.accountIdOf(transfer.recipient),
+                    "value" to transfer.amountInPlanks
+                )
             )
-        ) else transfer(
-            recipientAccountId = chain.accountIdOf(transfer.recipient),
-            amount = transfer.amountInPlanks
-        )
+            else -> transfer(
+                recipientAccountId = chain.accountIdOf(transfer.recipient),
+                amount = transfer.amountInPlanks
+            )
+        }
     }
 }
