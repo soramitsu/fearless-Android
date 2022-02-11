@@ -53,7 +53,7 @@ buildscript {
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
         firebaseAppDistrVersion = '2.1.1'
-        playPublisherVersion = '2.5.0'
+        playPublisherVersion = '3.7.0'
 
         wsVersion = "2.10"
 
