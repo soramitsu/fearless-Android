@@ -45,6 +45,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -256,8 +257,18 @@ class WalletRepositoryImpl(
 
         val chainAsset = transfer.chainAsset
 
-        val recipientInfo = substrateSource.getAccountInfo(chain.id, chain.accountIdOf(transfer.recipient))
-        val totalRecipientBalanceInPlanks = recipientInfo.totalBalance
+        val totalRecipientBalanceInPlanks = when {
+            chain.id.isOrml() -> {
+                val symbol = chain.utilityAsset.symbol
+                val ormlTokensAccountData = substrateSource.getOrmlTokensAccountData(chain.id, symbol, chain.accountIdOf(transfer.recipient))
+                ormlTokensAccountData.totalBalance
+            }
+            else -> {
+                val recipientInfo = substrateSource.getAccountInfo(chain.id, chain.accountIdOf(transfer.recipient))
+                recipientInfo.totalBalance
+            }
+        }
+
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
         val assetLocal = assetCache.getAsset(accountId, chainAsset.chainId, chainAsset.symbol)!!
@@ -287,8 +298,13 @@ class WalletRepositoryImpl(
         phishingAddresses.contains(accountId.toHexString(withPrefix = true))
     }
 
-    override suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId) =
-        substrateSource.getAccountInfo(chainId, accountId).data.free
+    override suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId) = when {
+        chainId.isOrml() -> {
+            val assetSymbol = chainRegistry.getChain(chainId).utilityAsset.symbol
+            substrateSource.getOrmlTokensAccountData(chainId, assetSymbol, accountId).free
+        }
+        else -> substrateSource.getAccountInfo(chainId, accountId).data.free
+    }
 
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>): Int {
         return assetCache.updateAsset(newItems)
