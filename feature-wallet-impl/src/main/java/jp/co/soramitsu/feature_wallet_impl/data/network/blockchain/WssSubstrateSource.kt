@@ -5,11 +5,14 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.Phase
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
+import jp.co.soramitsu.common.data.network.runtime.binding.bindOrmlTokensAccountData
 import jp.co.soramitsu.common.utils.system
+import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
@@ -49,6 +52,18 @@ class WssSubstrateSource(
             },
             binding = { scale, runtime ->
                 scale?.let { bindAccountInfo(it, runtime) } ?: AccountInfo.empty()
+            }
+        )
+    }
+
+    override suspend fun getOrmlTokensAccountData(chainId: ChainId, assetSymbol: String, accountId: AccountId): OrmlTokensAccountData {
+        return remoteStorageSource.query(
+            chainId = chainId,
+            keyBuilder = {
+                it.metadata.tokens().storage("Accounts").storageKey(it, accountId, DictEnum.Entry("Token", DictEnum.Entry(assetSymbol, null)))
+            },
+            binding = { scale, runtime ->
+                scale?.let { bindOrmlTokensAccountData(it, runtime) } ?: OrmlTokensAccountData.empty()
             }
         )
     }
