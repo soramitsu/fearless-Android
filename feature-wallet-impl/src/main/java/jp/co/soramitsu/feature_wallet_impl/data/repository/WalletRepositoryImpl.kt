@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -274,7 +275,7 @@ class WalletRepositoryImpl(
         val assetLocal = assetCache.getAsset(accountId, chainAsset.chainId, chainAsset.symbol)!!
         val asset = mapAssetLocalToAsset(assetLocal, chainAsset)
 
-        val existentialDepositInPlanks = walletConstants.existentialDeposit(chain.id)
+        val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
         return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
