@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.seed
 
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.deriveSeed32
@@ -32,7 +33,13 @@ class ExportSeedViewModel(
     ExportSource.Seed
 ) {
 
-    val seedLiveData = secretLiveData.map { it?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(it) }
+    val seedLiveData = secretLiveData.map {
+        if (chainLiveData.value?.isEthereumBased == true) {
+            it?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)
+        } else {
+            it?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(it)
+        }
+    }
         .map { it?.toHexString(withPrefix = true) }
 
     private fun seedFromEntropy(secret: EncodableStruct<MetaAccountSecrets>?) = secret?.get(MetaAccountSecrets.Entropy)?.let { entropy ->
