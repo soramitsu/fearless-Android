@@ -195,7 +195,6 @@ class AccountRepositoryImpl(
         selectAccount(metaAccountId)
     }
 
-    // todo add etherium support
     override suspend fun importFromSeed(
         seed: String,
         username: String,
@@ -216,12 +215,16 @@ class AccountRepositoryImpl(
                 decodedDerivationPath?.junctions.orEmpty()
             )
 
+            val ethereumKeypair = EthereumKeypairFactory.createWithPrivateKey(seedBytes)
+
             val position = metaAccountDao.getNextPosition()
 
             val secretsV2 = MetaAccountSecrets(
                 substrateKeyPair = keys,
                 substrateDerivationPath = derivationPath,
-                seed = seedBytes
+                seed = seedBytes,
+                ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH,
+                ethereumKeypair = ethereumKeypair
             )
 
             val metaAccount = MetaAccountLocal(
@@ -231,8 +234,8 @@ class AccountRepositoryImpl(
                 name = username,
                 isSelected = true,
                 position = position,
-                ethereumAddress = null,
-                ethereumPublicKey = null
+                ethereumPublicKey = ethereumKeypair.publicKey,
+                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
             )
 
             val metaAccountId = insertAccount(metaAccount)
@@ -241,7 +244,6 @@ class AccountRepositoryImpl(
         }
     }
 
-    // todo add etherium support
     override suspend fun importFromJson(
         json: String,
         password: String,
@@ -254,9 +256,12 @@ class AccountRepositoryImpl(
 
             val position = metaAccountDao.getNextPosition()
 
+            val ethereumKeypair = EthereumKeypairFactory.createWithPrivateKey(keys.privateKey)
+
             val secretsV2 = MetaAccountSecrets(
                 substrateKeyPair = importData.keypair,
-                seed = importData.seed
+                seed = importData.seed,
+                ethereumKeypair = ethereumKeypair,
             )
 
             val metaAccount = MetaAccountLocal(
@@ -266,8 +271,8 @@ class AccountRepositoryImpl(
                 name = name,
                 isSelected = true,
                 position = position,
-                ethereumAddress = null,
-                ethereumPublicKey = null
+                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                ethereumPublicKey = ethereumKeypair.publicKey
             )
 
             val metaAccountId = insertAccount(metaAccount)
