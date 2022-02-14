@@ -85,5 +85,7 @@ interface WalletInteractor {
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 
-    var customAssetSorting: Boolean
+    suspend fun enableCustomAssetSorting()
+
+    suspend fun customAssetSortingEnabled(): Boolean
 }

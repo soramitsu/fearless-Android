@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.DragAndDropTouchHelperCallback
+import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,8 +83,26 @@ class ManageAssetsViewModel(
                 item.position = index
                 item.toUpdateItem()
             }
+
             walletInteractor.updateAssets(newItems)
+
+            if (isSortingUpdated(newItems)) {
+                walletInteractor.enableCustomAssetSorting()
+            }
+
             walletRouter.back()
         }
+    }
+
+    private fun isSortingUpdated(newItems: List<AssetUpdateItem>): Boolean {
+        initialAssets.forEachIndexed { index, item ->
+            newItems[index].let {
+                val areItemsTheSame = it.accountId.contentEquals(item.accountId) && it.chainId == item.chainId && it.tokenSymbol == item.tokenSymbol
+                if (areItemsTheSame.not()) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }

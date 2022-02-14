@@ -29,6 +29,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -39,10 +41,8 @@ import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Calendar
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
-private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting"
+private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -54,18 +54,12 @@ class WalletInteractorImpl(
     private var lastRatesSyncMillis = 0L
     private val minRatesRefreshDuration = 30.toDuration(DurationUnit.SECONDS)
 
-    override var customAssetSorting: Boolean
-        get() = preferences.getBoolean(CUSTOM_ASSET_SORTING_PREFS_KEY, false)
-        set(value) {
-            preferences.putBoolean(CUSTOM_ASSET_SORTING_PREFS_KEY, value)
-        }
-
     override fun assetsFlow(): Flow<List<Asset>> {
         return accountRepository.selectedMetaAccountFlow()
             .flatMapLatest { walletRepository.assetsFlow(it.id) }
             .filter { it.isNotEmpty() }
             .map { assets ->
-                if (customAssetSorting)
+                if (customAssetSortingEnabled())
                     assets.sortedBy { it.sortIndex }
                 else
                     assets.sortedWith(defaultAssetListSort())
@@ -276,10 +270,7 @@ class WalletInteractorImpl(
     }
 
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
-        val updatedItemsCount = walletRepository.updateAssets(newItems)
-        if (updatedItemsCount > 0) {
-            customAssetSorting = true
-        }
+        walletRepository.updateAssets(newItems)
     }
 
     private fun mapAccountToWalletAccount(chain: Chain, account: MetaAccount) = with(account) {
@@ -293,4 +284,14 @@ class WalletInteractorImpl(
     override suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 
     override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) = getSelectedMetaAccount().address(getChain(chainId))
+
+    override suspend fun customAssetSortingEnabled(): Boolean {
+        val metaId = accountRepository.getSelectedMetaAccount().id
+        return preferences.getBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", false)
+    }
+
+    override suspend fun enableCustomAssetSorting() {
+        val metaId = accountRepository.getSelectedMetaAccount().id
+        preferences.putBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", true)
+    }
 }
