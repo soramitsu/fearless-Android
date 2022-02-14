@@ -122,8 +122,7 @@ class BalanceDetailViewModel(
 
     fun exportClicked() {
         viewModelScope.launch {
-            val isEthereumBased = interactor.getChain(assetPayload.chainId).isEthereumBased
-            val sources = interactor.getMetaAccountSecrets().buildExportSourceTypes(isEthereumBased)
+            val sources = interactor.getMetaAccountSecrets().buildExportSourceTypes()
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(assetPayload.chainId, sources))
         }
     }

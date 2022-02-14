@@ -29,7 +29,7 @@ abstract class DynamicListBottomSheet<T>(
     private val onClicked: ClickHandler<T>
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog), DynamicListSheetAdapter.Handler<T> {
 
-    class Payload<T>(val data: List<T>, val selected: T? = null)
+    class Payload<T>(val data: Collection<T>, val selected: T? = null)
 
     @CallSuper
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +41,7 @@ abstract class DynamicListBottomSheet<T>(
         val adapter = DynamicListSheetAdapter(payload.selected, this, diffCallback, holderCreator())
         dynamicListSheetContent.adapter = adapter
 
-        adapter.submitList(payload.data)
+        adapter.submitList(payload.data.toList())
     }
 
     abstract fun holderCreator(): HolderCreator<T>

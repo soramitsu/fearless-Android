@@ -27,6 +27,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.BaseKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
@@ -343,15 +344,25 @@ class AccountRepositoryImpl(
         val chain = chainRegistry.getChain(chainId)
         val metaAccount = getMetaAccount(metaId)
         val secrets = getMetaAccountSecrets(metaId)
+
+        val keypairSchema = if (chain.isEthereumBased) {
+            secrets?.get(MetaAccountSecrets.EthereumKeypair)
+        } else {
+            secrets?.get(MetaAccountSecrets.SubstrateKeypair)
+        }
+
         val seed = secrets?.get(MetaAccountSecrets.Seed)
-        val keypairSchema = secrets?.get(MetaAccountSecrets.SubstrateKeypair)
         val publicKey = keypairSchema?.get(KeyPairSchema.PublicKey)
         val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
+
         val nonce = keypairSchema?.get(KeyPairSchema.Nonce)
         val keypair = when {
             publicKey == null -> null
             privateKey == null -> null
-            nonce == null -> null
+            nonce == null -> BaseKeypair(
+                publicKey = publicKey,
+                privateKey = privateKey,
+            )
             else -> Sr25519Keypair(
                 publicKey = publicKey,
                 privateKey = privateKey,
@@ -361,13 +372,14 @@ class AccountRepositoryImpl(
         val address = metaAccount.address(chain) ?: throw IllegalArgumentException("No address specified for chain ${chain.name}")
 
         val cryptoType = mapCryptoTypeToEncryption(metaAccount.cryptoType(chain))
+        val multiChainEncryption = if (chain.isEthereumBased) MultiChainEncryption.Ethereum else MultiChainEncryption.Substrate(cryptoType)
 
         jsonSeedEncoder.generate(
             keypair = keypair,
             seed = seed,
             password = password,
             name = metaAccount.name,
-            multiChainEncryption = MultiChainEncryption.Substrate(cryptoType),
+            multiChainEncryption = multiChainEncryption,
             genesisHash = chain.id,
             address = address
         )

@@ -24,6 +24,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -34,8 +36,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
@@ -112,8 +112,7 @@ class AccountDetailsViewModel(
 
     fun exportClicked(chainId: ChainId) {
         viewModelScope.launch {
-            val isEthereumBased = chainRegistry.getChain(chainId).isEthereumBased
-            val sources = interactor.getMetaAccountSecrets(metaId).buildExportSourceTypes(isEthereumBased)
+            val sources = interactor.getMetaAccountSecrets(metaId).buildExportSourceTypes()
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
         }
     }
