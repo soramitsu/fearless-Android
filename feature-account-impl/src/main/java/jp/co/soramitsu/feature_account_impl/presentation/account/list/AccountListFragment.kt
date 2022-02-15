@@ -62,10 +62,19 @@ class AccountListFragment : BaseFragment<AccountListViewModel>(), AccountsAdapte
 
     override fun subscribe(viewModel: AccountListViewModel) {
         viewModel.accountsFlow.observe { adapter.submitList(it) }
+
+        viewModel.openWalletOptionsEvent.observeEvent { metaAccountId ->
+            WalletOptionsBottomSheet(
+                context = requireContext(),
+                metaAccountId = metaAccountId,
+                onViewWallet = viewModel::openWalletDetails,
+                onExportWallet = viewModel::openExportWallet
+            ).show()
+        }
     }
 
-    override fun infoClicked(accountModel: LightMetaAccountUi) {
-        viewModel.infoClicked(accountModel)
+    override fun optionsClicked(accountModel: LightMetaAccountUi) {
+        viewModel.optionsClicked(accountModel)
     }
 
     override fun checkClicked(accountModel: LightMetaAccountUi) {

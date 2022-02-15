@@ -4,5 +4,10 @@ import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
 interface GetTotalBalanceUseCase {
-    operator fun invoke(): Flow<BigDecimal>
+    /**
+     * Calculate total account balance
+     *
+     * @param metaId - when specified calculation performed for particular metaAccountId, if not - for current metaAccountId
+     */
+    operator fun invoke(metaId: Long? = null): Flow<BigDecimal>
 }

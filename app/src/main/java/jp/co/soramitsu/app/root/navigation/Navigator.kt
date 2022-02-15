@@ -10,8 +10,11 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.utils.postToUiThread
+import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.feature_account_impl.presentation.account.export.WalletExportFragment
+import jp.co.soramitsu.feature_account_impl.presentation.account.exportaccounts.AccountsForExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
@@ -451,6 +454,18 @@ class Navigator :
         val extras = AccountDetailsFragment.getBundle(metaAccountId)
 
         navController?.navigate(R.id.action_open_accountDetailsFragment, extras)
+    }
+
+    override fun openExportWallet(metaAccountId: Long) {
+        val extras = WalletExportFragment.getBundle(metaAccountId)
+
+        navController?.navigate(R.id.action_open_walletExportFragment, extras)
+    }
+
+    override fun openAccountsForExport(metaId: Long, from: AccountInChain.From) {
+        val extras = AccountsForExportFragment.getBundle(metaId, from)
+
+        navController?.navigate(R.id.action_open_accountsForExportFragment, extras)
     }
 
     override fun openEditAccounts() {

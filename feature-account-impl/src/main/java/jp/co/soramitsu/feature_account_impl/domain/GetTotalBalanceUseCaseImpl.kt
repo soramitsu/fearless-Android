@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 
@@ -18,13 +19,14 @@ class GetTotalBalanceUseCaseImpl(
     private val assetDao: AssetDao
 ) : GetTotalBalanceUseCase {
 
-    override operator fun invoke(): Flow<BigDecimal> {
-
-        return accountRepository.selectedMetaAccountFlow()
+    override operator fun invoke(metaId: Long?): Flow<BigDecimal> {
+        return when (metaId) {
+            null -> accountRepository.selectedMetaAccountFlow()
+            else -> flow { emit(accountRepository.getMetaAccount(metaId)) }
+        }
             .flatMapLatest { assetDao.observeAssets(it.id) }
             .filter { it.isNotEmpty() }
             .map { items ->
-
                 items.fold(BigDecimal.ZERO) { acc, current ->
                     val chainAsset = chainRegistry.chainsById.first().getValue(current.asset.chainId).assets
                         .firstOrNull { it.id == current.asset.tokenSymbol.lowercase() }

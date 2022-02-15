@@ -19,7 +19,7 @@ class AccountsAdapter(
 
     interface AccountItemHandler {
 
-        fun infoClicked(accountModel: LightMetaAccountUi)
+        fun optionsClicked(accountModel: LightMetaAccountUi)
 
         fun checkClicked(accountModel: LightMetaAccountUi)
     }
@@ -48,7 +48,7 @@ class AccountHolder(view: View) : GroupedListHolder(view) {
 
             setOnClickListener { handler.checkClicked(accountModel) }
 
-            accountInfo.setOnClickListener { handler.infoClicked(accountModel) }
+            accountInfo.setOnClickListener { handler.optionsClicked(accountModel) }
         }
     }
 }

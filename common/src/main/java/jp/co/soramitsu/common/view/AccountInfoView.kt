@@ -8,8 +8,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.shape.addRipple
-import jp.co.soramitsu.common.view.shape.getIdleDrawable
+import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 import kotlinx.android.synthetic.main.view_account_info.view.accountAction
 import kotlinx.android.synthetic.main.view_account_info.view.accountAddressText
 import kotlinx.android.synthetic.main.view_account_info.view.accountIcon
@@ -24,7 +25,7 @@ class AccountInfoView @JvmOverloads constructor(
     init {
         View.inflate(context, R.layout.view_account_info, this)
 
-        background = with(context) { addRipple(getIdleDrawable()) }
+        background = with(context) { addRipple(getCutCornersStateDrawable()) }
 
         isFocusable = true
         isClickable = true
@@ -42,8 +43,17 @@ class AccountInfoView @JvmOverloads constructor(
             val textVisible = typedArray.getBoolean(R.styleable.AccountInfoView_textVisible, true)
             accountAddressText.visibility = if (textVisible) View.VISIBLE else View.GONE
 
+            val enabled = typedArray.getBoolean(R.styleable.AccountInfoView_enabled, true)
+            isEnabled = enabled
+
             typedArray.recycle()
         }
+    }
+
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+
+        accountAction.setVisible(enabled)
     }
 
     fun setActionIcon(icon: Drawable) {

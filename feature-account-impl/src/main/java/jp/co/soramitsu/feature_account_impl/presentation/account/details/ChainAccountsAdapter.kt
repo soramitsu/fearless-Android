@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
@@ -59,9 +60,12 @@ class ChainAccountHolder(view: View) : GroupedListHolder(view) {
         chainAccountAccountIcon.setImageDrawable(item.accountIcon)
         chainAccountAccountAddress.text = item.address
 
-        labeledTextAction.setOnClickListener { handler.chainAccountOptionsClicked(item) }
+        labeledTextAction.isVisible = item.enabled
+        if (item.enabled) {
+            labeledTextAction.setOnClickListener { handler.chainAccountOptionsClicked(item) }
 
-        setOnClickListener { handler.chainAccountClicked(item) }
+            setOnClickListener { handler.chainAccountClicked(item) }
+        }
     }
 }
 

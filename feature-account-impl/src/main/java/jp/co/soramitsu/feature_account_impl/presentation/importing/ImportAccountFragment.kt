@@ -10,9 +10,9 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
@@ -137,7 +137,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private fun showTypeChooser(it: Payload<ImportSource>) {
-        SourceTypeChooserBottomSheetDialog(requireActivity(), it, viewModel::sourceTypeChanged)
+        SourceTypeChooserBottomSheetDialog(
+            context = requireActivity(),
+            payload = it,
+            onClicked = viewModel::sourceTypeChanged
+        )
             .show()
     }
 
