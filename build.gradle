@@ -43,7 +43,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.98'
+        fearlessLibVersion = '1.0.101'
 
         gifVersion = '1.2.19'
 
@@ -159,7 +159,7 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.1.0'
+        classpath 'com.android.tools.build:gradle:7.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath 'com.google.gms:google-services:4.3.10'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"

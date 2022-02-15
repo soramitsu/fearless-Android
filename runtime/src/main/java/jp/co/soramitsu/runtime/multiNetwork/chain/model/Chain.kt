@@ -1,12 +1,14 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
-import java.util.Locale
 
 typealias ChainId = String
 
 const val polkadotChainId = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"
 const val kusamaChainId = "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe"
+
+const val kitsugiChainId = "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b"
+const val interlayChainId = "ed86d448b84db333cdbe07362ddc79530343b907bd88712557c024d7a94296bb"
 
 data class Chain(
     val id: ChainId,
@@ -52,7 +54,7 @@ data class Chain(
         }
 
         val symbol: String
-            get() = id.toUpperCase(Locale.ROOT)
+            get() = id.uppercase()
 
         val isNative: Boolean
             get() = nativeChainId == null || nativeChainId == chainId
@@ -95,6 +97,8 @@ fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Typ
 }.toMap()
 
 fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
+
+fun ChainId.isOrml() = this in listOf(kitsugiChainId, interlayChainId) // todo rework, probably asset's parameter
 
 enum class TypesUsage {
     BASE, OWN, BOTH,

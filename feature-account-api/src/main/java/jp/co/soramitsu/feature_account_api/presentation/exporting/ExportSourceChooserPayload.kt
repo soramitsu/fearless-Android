@@ -4,5 +4,5 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 data class ExportSourceChooserPayload(
     val chainId: ChainId,
-    val sources: List<ExportSource>
+    val sources: Set<ExportSource>
 )

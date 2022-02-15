@@ -1,7 +1,9 @@
 package jp.co.soramitsu.feature_wallet_api.data.cache
 
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.bindOrmlTokensAccountData
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -33,4 +35,8 @@ private fun accountInfoUpdater(accountInfo: AccountInfo) = { asset: AssetLocal -
 
 fun bindAccountInfoOrDefault(hex: String?, runtime: RuntimeSnapshot): AccountInfo {
     return hex?.let { bindAccountInfo(it, runtime) } ?: AccountInfo.empty()
+}
+
+fun bindOrmlTokensAccountDataOrDefault(hex: String?, runtime: RuntimeSnapshot): OrmlTokensAccountData {
+    return hex?.let { bindOrmlTokensAccountData(it, runtime) } ?: OrmlTokensAccountData.empty()
 }

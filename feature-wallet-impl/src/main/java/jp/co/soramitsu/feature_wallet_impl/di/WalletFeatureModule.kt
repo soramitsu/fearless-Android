@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.di.Wallet
+import jp.co.soramitsu.feature_wallet_api.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImpl
@@ -217,6 +218,11 @@ class WalletFeatureModule {
     fun provideWalletConstants(
         chainRegistry: ChainRegistry,
     ): WalletConstants = RuntimeWalletConstants(chainRegistry)
+
+    @Provides
+    @FeatureScope
+    fun provideAccountAddressUseCase(accountRepository: AccountRepository, chainRegistry: ChainRegistry) =
+        CurrentAccountAddressUseCase(accountRepository, chainRegistry)
 
     @Provides
     @FeatureScope

@@ -97,6 +97,8 @@ fun RuntimeMetadata.staking() = module(Modules.STAKING)
 
 fun RuntimeMetadata.system() = module(Modules.SYSTEM)
 
+fun RuntimeMetadata.tokens() = module(Modules.TOKENS)
+
 fun RuntimeMetadata.balances() = module(Modules.BALANCES)
 
 fun RuntimeMetadata.crowdloan() = module(Modules.CROWDLOAN)
@@ -151,6 +153,7 @@ object Modules {
     const val BABE = "Babe"
     const val SLOTS = "Slots"
     const val SESSION = "Session"
+    const val TOKENS = "Tokens"
 }
 
 object Calls {

@@ -57,7 +57,7 @@ class ChainRegistry(
                 connectionPool.removeConnection(chainId)
             }
 
-            addedOrModified.forEach { chain ->
+            addedOrModified.filter { !it.nodes.isNullOrEmpty() }.forEach { chain ->
 
                 val connection = connectionPool.setupConnection(
                     chain,

@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_account_api.presentation.exporting.buildExportSourceTypes
@@ -31,9 +32,14 @@ class BalanceDetailViewModel(
     private val assetPayload: AssetPayload,
     private val buyMixin: BuyMixin.Presentation,
     private val transactionHistoryMixin: TransactionHistoryMixin,
+    private val externalAccountActions: ExternalAccountActions.Presentation
 ) : BaseViewModel(),
     TransactionHistoryUi by transactionHistoryMixin,
+    ExternalAccountActions by externalAccountActions,
     BuyMixin by buyMixin {
+
+    private val _showAccountOptions = MutableLiveData<Event<String>>()
+    val showAccountOptions: LiveData<Event<String>> = _showAccountOptions
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
@@ -85,6 +91,12 @@ class BalanceDetailViewModel(
         router.openReceive(assetPayload)
     }
 
+    fun accountOptionsClicked() = launch {
+        interactor.getChainAddressForSelectedMetaAccount(assetPayload.chainId)?.let { address ->
+            _showAccountOptions.postValue(Event(address))
+        }
+    }
+
     fun buyClicked() {
         viewModelScope.launch {
             interactor.selectedAccountFlow(assetPayload.chainId).firstOrNull()?.let { wallet ->
@@ -110,8 +122,7 @@ class BalanceDetailViewModel(
 
     fun exportClicked() {
         viewModelScope.launch {
-            val isEthereumBased = interactor.getChain(assetPayload.chainId).isEthereumBased
-            val sources = interactor.getMetaAccountSecrets().buildExportSourceTypes(isEthereumBased)
+            val sources = interactor.getMetaAccountSecrets().buildExportSourceTypes()
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(assetPayload.chainId, sources))
         }
     }

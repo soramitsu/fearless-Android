@@ -17,8 +17,9 @@ import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClicked
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -37,9 +38,9 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateC
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailsInfo
+import kotlinx.android.synthetic.main.fragment_balance_detail.tokenBadge
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
 import javax.inject.Inject
-import kotlinx.android.synthetic.main.fragment_balance_detail.tokenBadge
 
 private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
@@ -79,11 +80,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         balanceDetailBack.setOnClickListener { viewModel.backClicked() }
         balanceDetailOptions.setOnClickListener {
-            BalanceDetailOptionsBottomSheet(
-                requireContext(),
-                onExportAccount = viewModel::exportClicked,
-                onSwitchNode = viewModel::switchNode
-            ).show()
+            viewModel.accountOptionsClicked()
         }
 
         balanceDetaiActions.send.setOnClickListener {
@@ -104,7 +101,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = arguments!![KEY_ASSET_PAYLOAD] as AssetPayload
+        val token = requireArguments()[KEY_ASSET_PAYLOAD] as AssetPayload
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -157,6 +154,18 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         balanceDetaiActions.buy.isEnabled = viewModel.buyEnabled
 
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
+
+        viewModel.showAccountOptions.observeEvent(::showAccountOptions)
+    }
+
+    private fun showAccountOptions(address: String) {
+        BalanceDetailOptionsBottomSheet(
+            requireContext(),
+            address = address,
+            onExportAccount = viewModel::exportClicked,
+            onSwitchNode = viewModel::switchNode,
+            onCopy = viewModel::copyAddressClicked
+        ).show()
     }
 
     private fun setRefreshEnabled(bottomSheetState: Int) {
