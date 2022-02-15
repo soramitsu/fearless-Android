@@ -141,6 +141,7 @@ class BeaconViewModel(
     private fun initializeFromQr(qrContent: String) = launch {
         beaconInteractor.connectFromQR(qrContent)
             .onFailure {
+                 Log.e(BeaconViewModel::class.java.name, it.localizedMessage ?: it.message ?: "Failed connect to beacon qr code")
                 showMessage("Invalid QR code")
                 router.back()
             }.onSuccess { (peer, requestsFlow) ->

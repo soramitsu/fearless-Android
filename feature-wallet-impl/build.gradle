@@ -97,5 +97,6 @@ dependencies {
 
     implementation insetterDep
 
-    implementation beaconDep
+    implementation jnaDep
+    implementation beaconDep, withoutJna
 }

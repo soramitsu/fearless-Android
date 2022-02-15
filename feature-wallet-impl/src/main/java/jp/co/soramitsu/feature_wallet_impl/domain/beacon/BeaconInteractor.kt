@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.domain.beacon
 
 import android.net.Uri
 import com.google.gson.Gson
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateNetwork
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
@@ -9,9 +11,11 @@ import it.airgap.beaconsdk.blockchain.substrate.message.response.SignSubstrateRe
 import it.airgap.beaconsdk.blockchain.substrate.substrate
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.BeaconError
+import it.airgap.beaconsdk.core.data.P2P
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
+import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.isTransfer
@@ -48,7 +52,13 @@ class BeaconInteractor(
 ) {
 
     private val beaconClient by lazy {
-        GlobalScope.async { BeaconWalletClient("Fearless Wallet", listOf(substrate())) }//BeaconClient("Fearless Wallet") }
+        GlobalScope.async {
+            BeaconWalletClient("Fearless Wallet", listOf(substrate())) {
+                addConnections(
+                    P2P(p2pMatrix()),
+                )
+            }
+        }
     }
 
     private suspend fun beaconClient() = beaconClient.await()
@@ -59,14 +69,13 @@ class BeaconInteractor(
             val encodedPeer = qrUri.getQueryParameter("data")!!
             val jsonContent = encodedPeer.fromBase58Check().decodeToString()
             val peer = gson.fromJson(jsonContent, P2pPeer::class.java)
-
             val beaconClient = beaconClient()
 
             beaconClient.addPeers(peer)
 
             val requestsFlow = beaconClient.connect()
                 .map { it.getOrNull() }
-
+            hashCode()
             peer to requestsFlow
         }
     }
@@ -95,26 +104,27 @@ class BeaconInteractor(
     ) {
         val signature = accountRepository.signWithCurrentAccount(request.payload.fromHex())
         val signatureHex = signature.toHexString(withPrefix = true)
-        val response = createResponseFrom(request, signatureHex)
+        val response = SignSubstrateResponse.from(request, signatureHex, payload = null)
         beaconClient().respond(response)
     }
 
+    //todo add multi-assets support
     suspend fun allowPermissions(
         forRequest: PermissionSubstrateRequest
     ) {
         val address = accountRepository.getSelectedAccount().address
         val publicKey = address.toAccountId().toHexString()
-        val response = PermissionSubstrateResponse(
-            id = forRequest.id,
-            version = forRequest.version,
-            requestOrigin = forRequest.origin,
-            blockchainIdentifier = forRequest.blockchainIdentifier,
-            accountId = publicKey,
-            appMetadata = forRequest.appMetadata,
-            scopes = forRequest.scopes,
-            accounts = emptyList()//todo
+        //todo stub
+        val testAccount = SubstrateAccount(
+            network = SubstrateNetwork(//todo check
+                genesisHash = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+                name = "Polkadot",
+                rpcUrl = null
+            ),
+            addressPrefix = 0,
+            publicKey = publicKey
         )
-//        val response = PermissionSubstrateResponse.from(forRequest, publicKey)
+        val response = PermissionSubstrateResponse.from(forRequest, listOf(testAccount))
         beaconClient().respond(response)
     }
 
@@ -156,33 +166,4 @@ class BeaconInteractor(
 //            }
 //        }
     }
-
-    fun createResponseFrom(request: SignSubstrateRequest, signature: String): SignSubstrateResponse =
-        when (request.mode) {
-            SignSubstrateRequest.Mode.Broadcast ->
-                SignSubstrateResponse.Broadcast(
-                    request.id,
-                    version = request.version,
-                    requestOrigin = request.origin,
-                    blockchainIdentifier = request.blockchainIdentifier,
-                    signature = signature
-                )
-            SignSubstrateRequest.Mode.BroadcastAndReturn ->
-                SignSubstrateResponse.BroadcastAndReturn(
-                    id = request.id,
-                    version = request.version,
-                    requestOrigin = request.origin,
-                    blockchainIdentifier = request.blockchainIdentifier,
-                    signature = signature,
-                    payload = request.payload
-                )
-            SignSubstrateRequest.Mode.Return ->
-                SignSubstrateResponse.Return(
-                    id = request.id,
-                    version = request.version,
-                    requestOrigin = request.origin,
-                    blockchainIdentifier = request.blockchainIdentifier,
-                    payload = request.payload
-                )
-        }
 }

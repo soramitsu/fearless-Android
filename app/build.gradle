@@ -133,7 +133,9 @@ dependencies {
     implementation insetterDep
 
     implementation liveDataKtxDep
-    implementation beaconDep
+
+    implementation jnaDep
+    implementation beaconDep, withoutJna
 
     kaptAndroidTest daggerKapt
 
