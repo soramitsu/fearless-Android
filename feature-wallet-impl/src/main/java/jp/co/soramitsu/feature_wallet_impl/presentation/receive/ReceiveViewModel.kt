@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.write
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_wallet_api.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
@@ -39,7 +40,8 @@ class ReceiveViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val assetPayload: AssetPayload,
     private val router: WalletRouter,
-    private val chainRegistry: ChainRegistry
+    private val chainRegistry: ChainRegistry,
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     val assetSymbol = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbol
@@ -79,9 +81,9 @@ class ReceiveViewModel(
 
     fun shareButtonClicked() {
         val qrBitmap = qrBitmapLiveData.value ?: return
-        val address = accountIconLiveData.value?.address ?: return
 
         viewModelScope.launch {
+            val address = currentAccountAddress(assetPayload.chainId) ?: return@launch
             val result = interactor.createFileInTempStorageAndRetrieveAsset(QR_TEMP_IMAGE_NAME)
 
             if (result.isSuccess) {
