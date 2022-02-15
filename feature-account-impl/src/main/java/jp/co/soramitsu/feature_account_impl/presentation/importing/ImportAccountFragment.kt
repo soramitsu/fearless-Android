@@ -48,7 +48,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         sourceTypeInput.setWholeClickListener { viewModel.openSourceChooserClicked() }
 
-        advancedBlockView.setOnEncryptionTypeClickListener {
+        advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
             viewModel.chooseEncryptionClicked()
         }
 
@@ -100,14 +100,15 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
 
         viewModel.selectedEncryptionTypeLiveData.observe {
-            advancedBlockView.setEncryption(it.name)
+            advancedBlockView.setSubstrateEncryption(it.name)
         }
 
         viewModel.nextButtonState.observe(nextBtn::setState)
 
         viewModel.advancedBlockExceptNetworkEnabled.observe(::setSelectorsEnabled)
 
-        advancedBlockView.derivationPathEditText.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
+        advancedBlockView.substrateDerivationPathEditText.bindTo(viewModel.substrateDerivationPathLiveData, viewLifecycleOwner)
+        advancedBlockView.ethereumDerivationPathEditText.bindTo(viewModel.ethereumDerivationPathLiveData, viewLifecycleOwner)
     }
 
     private fun observeFeatures(source: ImportSource) {
@@ -123,8 +124,9 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         val derivationPathState = getFieldState(selectorsEnabled, disabledState = FieldState.HIDDEN)
 
         with(advancedBlockView) {
-            configure(encryptionTypeField, chooserState)
-            configure(derivationPathField, derivationPathState)
+            configure(substrateEncryptionTypeField, chooserState)
+            configure(substrateDerivationPathField, derivationPathState)
+            configure(ethereumDerivationPathField, derivationPathState)
         }
     }
 

@@ -33,14 +33,16 @@ class AccountInteractorImpl(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
     ): Result<Unit> {
         return runCatching {
             accountRepository.createAccount(
                 accountName,
                 mnemonic,
                 encryptionType,
-                derivationPath
+                substrateDerivationPath,
+                ethereumDerivationPath
             )
         }
     }
@@ -48,14 +50,16 @@ class AccountInteractorImpl(
     override suspend fun importFromMnemonic(
         keyString: String,
         username: String,
-        derivationPath: String,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromMnemonic(
                 keyString,
                 username,
-                derivationPath,
+                substrateDerivationPath,
+                ethereumDerivationPath,
                 selectedEncryptionType
             )
         }

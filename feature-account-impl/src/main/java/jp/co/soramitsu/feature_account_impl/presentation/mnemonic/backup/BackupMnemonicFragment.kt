@@ -44,12 +44,12 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
             viewModel.infoClicked()
         }
 
-        advancedBlockView.setOnEncryptionTypeClickListener {
+        advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
             viewModel.chooseEncryptionClicked()
         }
 
         nextBtn.setOnClickListener {
-            viewModel.nextClicked(advancedBlockView.getDerivationPath())
+            viewModel.nextClicked(advancedBlockView.getSubstrateDerivationPath(), advancedBlockView.getEthereumDerivationPath())
         }
     }
 
@@ -70,7 +70,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         viewModel.encryptionTypeChooserEvent.observeEvent(::showEncryptionChooser)
 
         viewModel.selectedEncryptionTypeLiveData.observe {
-            advancedBlockView.setEncryption(it.name)
+            advancedBlockView.setSubstrateEncryption(it.name)
         }
 
         viewModel.showInfoEvent.observeEvent {

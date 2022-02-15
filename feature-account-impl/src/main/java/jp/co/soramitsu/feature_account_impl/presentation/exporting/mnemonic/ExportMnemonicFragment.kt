@@ -67,18 +67,26 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             exportMnemonicViewer.submitList(it)
         }
 
-        viewModel.derivationPathLiveData.observe {
+        viewModel.substrateDerivationPathLiveData.observe {
             val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
             with(exportMnemonicAdvanced) {
-                configure(derivationPathField, state)
+                configureSubstrate(state)
+                setSubstrateDerivationPath(it)
+            }
+        }
 
-                setDerivationPath(it)
+        viewModel.ethereumDerivationPathLiveData.observe {
+            val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
+
+            with(exportMnemonicAdvanced) {
+                configureEthereum(state)
+                setEthereumDerivationPath(it)
             }
         }
 
         viewModel.cryptoTypeLiveData.observe {
-            exportMnemonicAdvanced.setEncryption(it.name)
+            exportMnemonicAdvanced.setSubstrateEncryption(it.name)
         }
     }
 }

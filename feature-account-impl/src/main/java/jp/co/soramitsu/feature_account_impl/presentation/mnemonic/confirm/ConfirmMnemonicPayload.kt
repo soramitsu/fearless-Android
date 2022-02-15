@@ -13,6 +13,7 @@ class ConfirmMnemonicPayload(
     class CreateExtras(
         val accountName: String,
         val cryptoType: CryptoType,
-        val derivationPath: String
+        val substrateDerivationPath: String,
+        val ethereumDerivationPath: String
     ) : Parcelable
 }

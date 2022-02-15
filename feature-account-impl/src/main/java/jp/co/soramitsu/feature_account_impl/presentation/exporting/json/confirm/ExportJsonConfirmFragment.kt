@@ -42,8 +42,10 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
         exportJsonConfirmChangePassword.setOnClickListener { viewModel.changePasswordClicked() }
 
         with(exportJsonConfirmAdvanced) {
-            configure(encryptionTypeField, FieldState.DISABLED)
-            configure(derivationPathField, FieldState.HIDDEN)
+            configure(substrateEncryptionTypeField, FieldState.DISABLED)
+            configure(substrateDerivationPathField, FieldState.HIDDEN)
+            configureHint(substrateDerivationPathHintView, FieldState.HIDDEN)
+            configureEthereum(FieldState.HIDDEN)
         }
 
         exportJsonConfirmNetworkInput.isEnabled = false
@@ -62,7 +64,7 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
         super.subscribe(viewModel)
 
         viewModel.cryptoTypeLiveData.observe {
-            exportJsonConfirmAdvanced.setEncryption(it.name)
+            exportJsonConfirmAdvanced.setSubstrateEncryption(it.name)
         }
 
         viewModel.chainLiveData.observe {

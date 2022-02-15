@@ -22,13 +22,15 @@ interface AccountInteractor {
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
     ): Result<Unit>
 
     suspend fun importFromMnemonic(
         keyString: String,
         username: String,
-        derivationPath: String,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType
     ): Result<Unit>
 
