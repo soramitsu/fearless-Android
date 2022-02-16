@@ -99,7 +99,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="about_website">Official Website</string>
     <string name="about_github">Github Source Code</string>
     <string name="about_telegram">Join on Telegram</string>
-    <string name="about_wiki">Learn on Wiki</string>
+    <string name="about_wiki">Узнать в Wiki</string>
     <string name="about_twitter">Follow on Twitter</string>
     <string name="about_youtube">Subscribe on YouTube</string>
     <string name="about_instagram">Like on Instagram</string>
@@ -390,8 +390,8 @@ Derivation path: %s</string>
     <string name="crowdloan_enter_referral">Enter your referral code</string>
     <string name="staking_add_controller">Add controller account %s to the application to perform this action.</string>
     <string name="contribution_type">Contribution type</string>
-    <string name="contribution_type_direct_dot">Direct DOT</string>
-    <string name="contribution_type_lcdot">lcDOT</string>
+    <string name="contribution_type_direct_dot" translatable="false">Direct DOT</string>
+    <string name="contribution_type_lcdot" translatable="false">lcDOT</string>
     <string name="crowdloan_empty_bonus_title">Get a special bonus</string>
     <string name="crowdloan_empty_email_title">Enter your email</string>
     <string name="crowdloan_agreement_required">Agreement required</string>
@@ -406,7 +406,7 @@ Derivation path: %s</string>
     <string name="share_referral_code">Share referral code</string>
     <string name="crowdloan_email_hint">Email address</string>
     <string name="label_link">Link</string>
-    <string name="till_format">till %s</string>
+    <string name="common_till_date">till %s</string>
     <string name="crowdloan_astar_referral_code_invalid">Invalid referral address, only Polkadot addresses accepted, please try again</string>
     <string name="staking_start_change_validators_custom_subtitle">You should trust your nominations to act competently and honest, basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
     <string name="staking_select_recommended">Select recommended</string>
@@ -500,11 +500,11 @@ to your account to avoid remaining stake.</string>
     <string name="wallet_transfer_details_title">Transfer details</string>
     <string name="wallet_manage_assets">Manage assets</string>
     <string name="wallet_send_transferable_amount_caption">Transferable: %s</string>
-    <string name="wallet_send_asset">Send %s</string>
-    <string name="wallet_send_quick_input_max">MAX</string>
-    <string name="wallet_send_quick_input_75">75%</string>
-    <string name="wallet_send_quick_input_50">50%</string>
-    <string name="wallet_send_quick_input_25">25%</string>
+    <string name="wallet_send_navigation_title">Send %s</string>
+    <string name="wallet_send_quick_input_max" translatable="false">MAX</string>
+    <string name="wallet_send_quick_input_75" translatable="false">75%</string>
+    <string name="wallet_send_quick_input_50" translatable="false">50%</string>
+    <string name="wallet_send_quick_input_25" translatable="false">25%</string>
 
     <string name="wallet_asset_your_balance">Your balance</string>
     <string name="wallet_asset_transferable_caption">Transferable</string>
@@ -516,7 +516,7 @@ to your account to avoid remaining stake.</string>
     <string name="moonbeam_registration">Moonbeam Crowdloan Registration</string>
     <string name="moonbeam_signed_successful">You have successfully signed the terms and conditions for the Moonbeam Crowdloan and a transaction has been sent.\n\nThis is the hash of your transaction:</string>
     <string name="moonbeam_registration_description">This transaction confirms that you agree to the Moonbeam Crowdloan Terms and Conditions.\n\nA signed system.remark extrinsic transaction will be sent as proof of your agreement.\n\nThis information will be processed and stored on the Polkadot Relay Chain.\n\nPlease note that this signing transaction will be subject to transaction fees on the Polkadot network.</string>
-    <string name="moonbeam_registration_description_system_remark">system.remark</string>
+    <string name="moonbeam_registration_description_system_remark" translatable="false">system.remark</string>
     <string name="crowdloan_privacy_policy">I have read and agree to Terms and Conditions</string>
     <string name="transaction_successful">Transaction Successful!</string>
     <string name="moonbeam_ineligible_to_participate">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
@@ -526,7 +526,10 @@ to your account to avoid remaining stake.</string>
     <string name="wallet_settings">Wallet settings</string>
     <string name="view_wallet">View wallet</string>
     <string name="export_wallet">Export wallet</string>
-    <string name="plus_others_template">+ %s others</string>
+    <plurals name="plus_others_template">
+        <item quantity="one">+ %d other</item>
+        <item quantity="other">+ %d others</item>
+    </plurals>
     <string name="accounts_with_one_key">Accounts with one key</string>
     <string name="accounts_with_changed_key">Accounts with changed key</string>
     <string name="select_save_type">Select save type</string>

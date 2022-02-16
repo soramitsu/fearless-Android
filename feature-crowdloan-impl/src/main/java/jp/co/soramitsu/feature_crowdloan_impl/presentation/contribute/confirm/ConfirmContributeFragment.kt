@@ -116,7 +116,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         viewModel.crowdloanInfoFlow.observe {
             confirmContributeLeasingPeriod.showValue(
                 primary = it.leasePeriod,
-                secondary = getString(R.string.till_format, it.leasedUntil)
+                secondary = getString(R.string.common_till_date, it.leasedUntil)
             )
         }
 
