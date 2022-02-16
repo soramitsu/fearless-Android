@@ -99,6 +99,22 @@
         app:popEnterAnim="@anim/fragment_close_enter"
         app:popExitAnim="@anim/fragment_close_exit" />
 
+    <action
+        android:id="@+id/action_open_walletExportFragment"
+        app:destination="@id/walletExportFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
+    <action
+        android:id="@+id/action_open_accountsForExportFragment"
+        app:destination="@id/accountsForExportFragment"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="jp.co.soramitsu.app.root.presentation.main.MainFragment"
@@ -290,6 +306,18 @@
         android:name="jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment"
         android:label="AccountDetailsFragment"
         tools:layout="@layout/fragment_account_details" />
+
+    <fragment
+        android:id="@+id/walletExportFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.export.WalletExportFragment"
+        android:label="WalletExportFragment"
+        tools:layout="@layout/fragment_wallet_export" />
+
+    <fragment
+        android:id="@+id/accountsForExportFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.exportaccounts.AccountsForExportFragment"
+        android:label="AccountsForExportFragment"
+        tools:layout="@layout/fragment_accounts_for_export" />
 
     <action
         android:id="@+id/action_open_nodesFragment"

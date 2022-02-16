@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <ImageView
+        android:id="@+id/checkMark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="6dp"
+        android:src="@drawable/ic_checkmark_white_24"
+        android:tint="@color/colorAccent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/accountsOneKeyTitle"
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="11dp"
+        android:layout_marginEnd="@dimen/x2"
+        android:includeFontPadding="false"
+        android:text="@string/accounts_with_one_key"
+        android:textColor="@color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/x1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="11dp"
+        app:layout_constraintEnd_toEndOf="@id/accountsOneKeyTitle"
+        app:layout_constraintStart_toStartOf="@id/accountsOneKeyTitle"
+        app:layout_constraintTop_toBottomOf="@id/accountsOneKeyTitle">
+
+        <ImageView
+            android:id="@+id/chainIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            tools:src="@drawable/ic_plus_circle" />
+
+        <TextView
+            android:id="@+id/chainName"
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:includeFontPadding="false"
+            tools:text="Polkadot"
+            tools:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/moreChainsBadge"
+            style="@style/TextAppearance.Soramitsu.CapsTitle2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/x1"
+            android:background="@drawable/bg_asset_badge"
+            android:includeFontPadding="false"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="1.5dp"
+            tools:text="+ 18 others"
+            tools:textColor="@color/white" />
+    </LinearLayout>
+
+
+</merge>

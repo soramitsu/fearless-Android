@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_api.presentation.accountSource
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeInvisible
@@ -16,6 +17,7 @@ import kotlinx.android.synthetic.main.item_source.view.rightIcon
 import kotlinx.android.synthetic.main.item_source.view.sourceTv
 
 class SourceTypeChooserBottomSheetDialog<T : AccountSource>(
+    @StringRes private val titleRes: Int = R.string.recovery_source_type,
     context: Context,
     payload: Payload<T>,
     onClicked: ClickHandler<T>
@@ -24,7 +26,7 @@ class SourceTypeChooserBottomSheetDialog<T : AccountSource>(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.recovery_source_type)
+        setTitle(titleRes)
     }
 
     override fun holderCreator(): HolderCreator<T> = {

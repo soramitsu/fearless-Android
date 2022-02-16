@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/exportWalletToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:dividerVisible="false"
+        app:homeButtonIcon="@drawable/ic_arrow_back_24dp"
+        app:titleText="" />
+
+    <TextView
+        style="@style/TextAppearance.Soramitsu.Header2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        android:text="@string/what_accounts_for_export"
+        tools:textColor="@color/white" />
+
+    <jp.co.soramitsu.common.view.AccountInfoView
+        android:id="@+id/exportWalletInfoView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginTop="@dimen/x3"
+        android:layout_marginEnd="@dimen/x2"
+        app:enabled="false" />
+
+    <jp.co.soramitsu.common.view.AmountsWithOneKeyView
+        android:id="@+id/amountsWithOneKeyView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/x2"
+        android:layout_marginTop="@dimen/x2"
+        android:checked="true" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/continueBtn"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginBottom="@dimen/x3"
+        android:text="@string/common_continue" />
+
+</LinearLayout>

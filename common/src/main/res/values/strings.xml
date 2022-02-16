@@ -522,6 +522,15 @@ to your account to avoid remaining stake.</string>
 
     <string name="switch_node">Switch node</string>
     <string name="account_option">Account option</string>
+    <string name="wallet_settings">Wallet settings</string>
+    <string name="view_wallet">View wallet</string>
+    <string name="export_wallet">Export wallet</string>
+    <string name="plus_others_template">+ %s others</string>
+    <string name="accounts_with_one_key">Accounts with one key</string>
+    <string name="accounts_with_changed_key">Accounts with changed key</string>
+    <string name="select_save_type">Select save type</string>
+    <string name="accounts_for_export">Accounts for export</string>
+    <string name="what_accounts_for_export">What accounts in the wallet do you want to export?</string>
 
 
     <string name="manage_assets_search_hint">Search by token or network</string>

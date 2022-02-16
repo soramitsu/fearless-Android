@@ -34,6 +34,7 @@ fun Context.getCutCornersStateDrawable(
 fun Context.getFocusedDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.white)
 fun Context.getDisabledDrawable(): Drawable = getCutCornerDrawable(fillColorRes = R.color.gray3)
 fun Context.getIdleDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.gray2)
+fun Context.getSelectedDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.colorAccent)
 
 fun Context.getCutCornerDrawable(
     @ColorRes fillColorRes: Int = R.color.black,

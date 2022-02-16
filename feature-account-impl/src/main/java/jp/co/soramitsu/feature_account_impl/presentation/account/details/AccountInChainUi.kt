@@ -8,5 +8,6 @@ class AccountInChainUi(
     val chainName: String,
     val chainIcon: String,
     val address: String,
-    val accountIcon: Drawable
+    val accountIcon: Drawable,
+    val enabled: Boolean = true
 )
