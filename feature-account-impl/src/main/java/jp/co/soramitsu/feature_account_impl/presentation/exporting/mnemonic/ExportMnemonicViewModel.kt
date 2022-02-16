@@ -35,8 +35,12 @@ class ExportMnemonicViewModel(
         mapMnemonicToMnemonicWords(it.wordList)
     }
 
-    val derivationPathLiveData = secretLiveData.map {
+    val substrateDerivationPathLiveData = secretLiveData.map {
         it?.get(MetaAccountSecrets.SubstrateDerivationPath)
+    }
+
+    val ethereumDerivationPathLiveData = secretLiveData.map {
+        it?.get(MetaAccountSecrets.EthereumDerivationPath)
     }
 
     fun back() {
@@ -52,7 +56,7 @@ class ExportMnemonicViewModel(
 
         val chainName = chainLiveData.value?.name ?: return
 
-        val derivationPath = derivationPathLiveData.value
+        val derivationPath = substrateDerivationPathLiveData.value
 
         val shareText = if (derivationPath.isNullOrBlank()) {
             resourceManager.getString(R.string.export_mnemonic_without_derivation, chainName, mnemonic)

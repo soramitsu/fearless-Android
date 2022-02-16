@@ -29,6 +29,7 @@
     <string name="common_copy_address">Copy address</string>
     <string name="connection_error_message">Please, check internet connection and try again later.</string>
     <string name="onboarding_restore_wallet">Import wallet</string>
+    <string name="onboarding_title">I already have a wallet</string>
     <string name="onboarding_terms_and_conditions_1">I have read and agreed to
 Terms and Conditions and Privacy Policy</string>
     <string name="contribute_terms">I have read and agreed to Terms and Conditions</string>
@@ -536,4 +537,13 @@ to your account to avoid remaining stake.</string>
     <string name="manage_assets_search_hint">Search by token or network</string>
     <string name="wallet_transaction_history_unsupported_message">Transaction history for this network is not supported yet</string>
     <string name="wallet_transaction_history_error_message">Service is currently unavailable</string>
+
+    <string name="onboarding_ethereum_crypto_type">Substrate keypair crypto type</string>
+    <string name="onboarding_substrate_crypto_type">Ethereum keypair crypto type</string>
+    <string name="onboarding_substrate_derivation_path_hint">Example: //hard/soft///password</string>
+    <string name="onboarding_ethereum_derivation_path_hint">Example: //44//60//0/0/0</string>
+    <string name="onboarding_substrate_derivation_path_title">Substrate secret derivation path</string>
+    <string name="onboarding_ethereum_derivation_path_title">Ethereum secret derivation path</string>
+
+    <string name="ECDSA_crypto_type">ECDSA | BTC/ETH compatible</string>
 </resources>

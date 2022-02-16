@@ -64,9 +64,9 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
             val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
             with(exportSeedAdvanced) {
-                configure(derivationPathField, state)
+                configure(substrateDerivationPathField, state)
 
-                setDerivationPath(it)
+                setSubstrateDerivationPath(it)
             }
         }
 
@@ -75,7 +75,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
         }
 
         viewModel.cryptoTypeLiveData.observe {
-            exportSeedAdvanced.setEncryption(it.name)
+            exportSeedAdvanced.setSubstrateEncryption(it.name)
         }
     }
 }

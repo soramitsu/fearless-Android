@@ -49,7 +49,8 @@ interface AccountRepository {
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
     )
 
     suspend fun deleteAccount(metaId: Long)
@@ -65,7 +66,8 @@ interface AccountRepository {
     suspend fun importFromMnemonic(
         keyString: String,
         username: String,
-        derivationPath: String,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType
     )
 

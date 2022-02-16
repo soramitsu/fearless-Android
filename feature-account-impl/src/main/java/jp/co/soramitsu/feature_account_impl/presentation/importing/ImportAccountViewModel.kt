@@ -49,7 +49,8 @@ class ImportAccountViewModel(
     private val _showSourceChooserLiveData = MutableLiveData<Event<Payload<ImportSource>>>()
     val showSourceSelectorChooserLiveData: LiveData<Event<Payload<ImportSource>>> = _showSourceChooserLiveData
 
-    val derivationPathLiveData = MutableLiveData<String>()
+    val substrateDerivationPathLiveData = MutableLiveData<String>()
+    val ethereumDerivationPathLiveData = MutableLiveData<String>()
 
     private val sourceTypeValid = _selectedSourceTypeLiveData.switchMap(ImportSource::validationLiveData)
 
@@ -93,11 +94,12 @@ class ImportAccountViewModel(
         val sourceType = selectedSourceTypeLiveData.value!!
 
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
-        val derivationPath = derivationPathLiveData.value.orEmpty()
+        val substrateDerivationPath = substrateDerivationPathLiveData.value.orEmpty()
+        val ethereumDerivationPath = ethereumDerivationPathLiveData.value.orEmpty()
         val name = nameLiveData.value!!
 
         viewModelScope.launch {
-            val result = import(sourceType, name, derivationPath, cryptoType)
+            val result = import(sourceType, name, substrateDerivationPath, ethereumDerivationPath, cryptoType)
 
             if (result.isSuccess) {
                 continueBasedOnCodeStatus()
@@ -167,20 +169,22 @@ class ImportAccountViewModel(
     private suspend fun import(
         sourceType: ImportSource,
         name: String,
-        derivationPath: String,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String,
         cryptoType: CryptoType
     ): Result<Unit> {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(
                 sourceType.mnemonicContentLiveData.value!!,
                 name,
-                derivationPath,
+                substrateDerivationPath,
+                ethereumDerivationPath,
                 cryptoType
             )
             is RawSeedImportSource -> interactor.importFromSeed(
                 sourceType.rawSeedLiveData.value!!,
                 name,
-                derivationPath,
+                substrateDerivationPath,
                 cryptoType
             )
             is JsonImportSource -> interactor.importFromJson(

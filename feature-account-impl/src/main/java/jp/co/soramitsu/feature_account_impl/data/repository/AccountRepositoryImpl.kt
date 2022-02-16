@@ -140,12 +140,14 @@ class AccountRepositoryImpl(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
     ) {
         val metaAccountId = saveFromMnemonic(
             accountName,
             mnemonic,
-            derivationPath,
+            substrateDerivationPath,
+            ethereumDerivationPath,
             encryptionType
         )
 
@@ -183,13 +185,15 @@ class AccountRepositoryImpl(
     override suspend fun importFromMnemonic(
         keyString: String,
         username: String,
-        derivationPath: String,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
     ) {
         val metaAccountId = saveFromMnemonic(
             username,
             keyString,
-            derivationPath,
+            substrateDerivationPath,
+            ethereumDerivationPath,
             selectedEncryptionType
         )
 
@@ -423,12 +427,13 @@ class AccountRepositoryImpl(
     private suspend fun saveFromMnemonic(
         accountName: String,
         mnemonicWords: String,
-        derivationPath: String,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String,
         cryptoType: CryptoType,
     ): Long {
         return withContext(Dispatchers.Default) {
-            val derivationPathOrNull = derivationPath.nullIfEmpty()
-            val decodedDerivationPath = derivationPathOrNull?.let {
+            val substrateDerivationPathOrNull = substrateDerivationPath.nullIfEmpty()
+            val decodedDerivationPath = substrateDerivationPathOrNull?.let {
                 SubstrateJunctionDecoder.decode(it)
             }
 
@@ -442,8 +447,8 @@ class AccountRepositoryImpl(
 
             val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
-            val ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-            val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPath)
+            val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+            val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
             val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
             val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
             val position = metaAccountDao.getNextPosition()
@@ -452,9 +457,9 @@ class AccountRepositoryImpl(
                 substrateKeyPair = keys,
                 entropy = mnemonic.entropy,
                 seed = null,
-                substrateDerivationPath = derivationPath,
+                substrateDerivationPath = substrateDerivationPath,
                 ethereumKeypair = ethereumKeypair,
-                ethereumDerivationPath = ethereumDerivationPath
+                ethereumDerivationPath = ethereumDerivationPathOrDefault
             )
 
             val metaAccount = MetaAccountLocal(

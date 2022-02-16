@@ -38,7 +38,7 @@ class BackupMnemonicViewModel(
         _showInfoEvent.value = Event(Unit)
     }
 
-    fun nextClicked(derivationPath: String) {
+    fun nextClicked(substrateDerivationPath: String, ethereumDerivationPath: String) {
         val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: return
 
         val mnemonicWords = mnemonicLiveData.value ?: return
@@ -50,7 +50,8 @@ class BackupMnemonicViewModel(
             CreateExtras(
                 accountName,
                 cryptoTypeModel.cryptoType,
-                derivationPath
+                substrateDerivationPath,
+                ethereumDerivationPath
             )
         )
 

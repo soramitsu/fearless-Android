@@ -75,8 +75,6 @@ class LabeledTextView @JvmOverloads constructor(
 
     fun setActionIcon(icon: Drawable) {
         labeledTextAction.setImageDrawable(icon)
-
-        labeledTextAction.setVisible(true)
     }
 
     fun setMessage(@StringRes messageRes: Int) = setMessage(context.getString(messageRes))
