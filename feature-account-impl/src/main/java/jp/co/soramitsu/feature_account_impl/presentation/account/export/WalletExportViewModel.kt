@@ -47,7 +47,7 @@ class WalletExportViewModel(
 
             val chainAccounts = interactor.getChainProjections(metaAccount())[AccountInChain.From.META_ACCOUNT]
             chainAccounts?.size?.let {
-                amountsWithOneKeyAmountBadgeLiveData.postValue(resourceManager.getString(R.string.plus_others_template, it))
+                amountsWithOneKeyAmountBadgeLiveData.postValue(resourceManager.getQuantityString(R.plurals.plus_others_template, it, it))
             }
             chainAccounts?.firstOrNull { it.chain.id == polkadotChainId }?.let {
                 amountsWithOneKeyChainNameLiveData.postValue(it.chain.name)

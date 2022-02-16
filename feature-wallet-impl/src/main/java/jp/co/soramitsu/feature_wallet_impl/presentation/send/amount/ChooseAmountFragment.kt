@@ -129,7 +129,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
             chooseAmountField.setAssetBalance(transferableAmount)
             chooseAmountField.setAssetName(it.token.configuration.symbol)
             chooseAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
-            val toolbarTitle = resources.getString(R.string.wallet_send_asset, it.token.configuration.symbol)
+            val toolbarTitle = resources.getString(R.string.wallet_send_navigation_title, it.token.configuration.symbol)
             chooseAmountToolbar.setTitle(toolbarTitle)
         }
 

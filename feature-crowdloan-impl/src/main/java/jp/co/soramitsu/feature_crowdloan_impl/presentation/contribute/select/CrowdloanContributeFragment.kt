@@ -157,7 +157,7 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         viewModel.crowdloanDetailModelFlow.observe {
             crowdloanContributeLeasingPeriod.showValue(
                 primary = it.leasePeriod,
-                secondary = getString(R.string.till_format, it.leasedUntil)
+                secondary = getString(R.string.common_till_date, it.leasedUntil)
             )
             crowdloanContributeTimeLeft.showValue(it.timeLeft)
             crowdloanContributeRaised.showValue(it.raised, it.raisedPercentage)
