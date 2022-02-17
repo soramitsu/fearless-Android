@@ -22,6 +22,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedFragment
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
@@ -168,8 +169,9 @@ class Navigator :
         navController?.navigate(R.id.action_profileFragment_to_aboutFragment)
     }
 
-    override fun openImportAccountScreen() {
-        navController?.navigate(R.id.importAction)
+    override fun openImportAccountScreen(blockChainType: Int) {
+        val arguments = ImportAccountFragment.getBundle(blockChainType)
+        navController?.navigate(R.id.importAction, arguments)
     }
 
     override fun openMnemonicScreen(accountName: String) {

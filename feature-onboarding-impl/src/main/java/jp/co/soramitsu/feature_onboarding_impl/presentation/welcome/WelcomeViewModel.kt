@@ -14,6 +14,10 @@ class WelcomeViewModel(
     private val appLinksProvider: AppLinksProvider
 ) : BaseViewModel(), Browserable {
 
+    companion object {
+        private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
+    }
+
     val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(shouldShowBack)
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
@@ -23,7 +27,7 @@ class WelcomeViewModel(
     }
 
     fun importAccountClicked() {
-        router.openImportAccountScreen()
+        router.openImportAccountScreen(SUBSTRATE_BLOCKCHAIN_TYPE)
     }
 
     fun termsClicked() {

@@ -31,20 +31,23 @@ interface AccountInteractor {
         username: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
-        selectedEncryptionType: CryptoType
+        selectedEncryptionType: CryptoType,
+        withEth: Boolean
     ): Result<Unit>
 
     suspend fun importFromSeed(
-        keyString: String,
+        substrateSeed: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType
+        selectedEncryptionType: CryptoType,
+        ethSeed: String?
     ): Result<Unit>
 
     suspend fun importFromJson(
         json: String,
         password: String,
-        name: String
+        name: String,
+        ethJson: String?
     ): Result<Unit>
 
     suspend fun isCodeSet(): Boolean

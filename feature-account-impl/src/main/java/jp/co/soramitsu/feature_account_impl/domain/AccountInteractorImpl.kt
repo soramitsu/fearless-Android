@@ -52,7 +52,8 @@ class AccountInteractorImpl(
         username: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
-        selectedEncryptionType: CryptoType
+        selectedEncryptionType: CryptoType,
+        withEth: Boolean
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromMnemonic(
@@ -60,23 +61,26 @@ class AccountInteractorImpl(
                 username,
                 substrateDerivationPath,
                 ethereumDerivationPath,
-                selectedEncryptionType
+                selectedEncryptionType,
+                withEth
             )
         }
     }
 
     override suspend fun importFromSeed(
-        keyString: String,
+        substrateSeed: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType
+        selectedEncryptionType: CryptoType,
+        ethSeed: String?
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromSeed(
-                keyString,
+                substrateSeed,
                 username,
                 derivationPath,
-                selectedEncryptionType
+                selectedEncryptionType,
+                ethSeed
             )
         }
     }
@@ -84,10 +88,11 @@ class AccountInteractorImpl(
     override suspend fun importFromJson(
         json: String,
         password: String,
-        name: String
+        name: String,
+        ethJson: String?
     ): Result<Unit> {
         return runCatching {
-            accountRepository.importFromJson(json, password, name)
+            accountRepository.importFromJson(json, password, name, ethJson)
         }
     }
 

@@ -74,7 +74,11 @@ Terms and Conditions and Privacy Policy</string>
     <string name="common_undefined_error_message">Please, try again with another input. If the error appears again, please, contact support.</string>
     <string name="recovery_source_type">Source type</string>
     <string name="recovery_raw_seed">Raw seed</string>
+    <string name="recovery_raw_seed_substrate">Substrate accounts raw seed (64 hex symbols)</string>
+    <string name="recovery_raw_seed_eth">ETH accounts raw seed (64 hex symbols)</string>
     <string name="recovery_json">Restore JSON</string>
+    <string name="recovery_json_substrate">Restore JSON for Substrate accounts</string>
+    <string name="recovery_json_eth">Restore JSON for ETH-based accounts</string>
     <string name="account_import_password_placeholder">Password</string>
     <string name="recover_json_hint">Paste json or upload file…</string>
     <string name="import_json_paste">Paste json</string>
@@ -549,4 +553,12 @@ to your account to avoid remaining stake.</string>
     <string name="onboarding_ethereum_derivation_path_title">Ethereum secret derivation path</string>
 
     <string name="ECDSA_crypto_type">ECDSA | BTC/ETH compatible</string>
+
+    <string name="common_yes">Yes</string>
+    <string name="common_no">No</string>
+
+    <string name="eth_import_title">ETH accounts</string>
+    <string name="eth_import_message">Add Moonbeam and Moonriver accounts?</string>
+
+
 </resources>

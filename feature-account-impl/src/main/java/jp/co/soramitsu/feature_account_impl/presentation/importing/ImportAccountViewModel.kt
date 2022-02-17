@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.view.ButtonState
@@ -26,6 +25,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class ImportAccountViewModel(
@@ -34,17 +35,18 @@ class ImportAccountViewModel(
     private val resourceManager: ResourceManager,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
     private val clipboardManager: ClipboardManager,
-    private val fileReader: FileReader
+    private val fileReader: FileReader,
+    initialBlockchainType: ImportAccountType
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
+    private val _showEthAccountsDialog = MutableLiveData<Event<Unit>>()
+    val showEthAccountsDialog: LiveData<Event<Unit>> = _showEthAccountsDialog
+
+    private val _blockchainTypeFlow = MutableStateFlow(initialBlockchainType)
+    val blockchainTypeFlow: Flow<ImportAccountType> = _blockchainTypeFlow
+
     val nameLiveData = MutableLiveData<String>()
-
-    val sourceTypes = provideSourceType()
-
-    private val _selectedSourceTypeLiveData = MutableLiveData<ImportSource>()
-
-    val selectedSourceTypeLiveData: LiveData<ImportSource> = _selectedSourceTypeLiveData
 
     private val _showSourceChooserLiveData = MutableLiveData<Event<Payload<ImportSource>>>()
     val showSourceSelectorChooserLiveData: LiveData<Event<Payload<ImportSource>>> = _showSourceChooserLiveData
@@ -52,9 +54,13 @@ class ImportAccountViewModel(
     val substrateDerivationPathLiveData = MutableLiveData<String>()
     val ethereumDerivationPathLiveData = MutableLiveData<String>()
 
-    private val sourceTypeValid = _selectedSourceTypeLiveData.switchMap(ImportSource::validationLiveData)
+    val sourceTypes = provideSourceType()
+    private val _selectedSourceTypeFlow = MutableStateFlow(sourceTypes.first())
+    val selectedSourceTypeFlow: Flow<ImportSource> = _selectedSourceTypeFlow
 
-    private val importInProgressLiveData = MutableLiveData<Boolean>(false)
+    private val sourceTypeValid = _selectedSourceTypeFlow.asLiveData().switchMap(ImportSource::validationLiveData)
+
+    private val importInProgressLiveData = MutableLiveData(false)
 
     private val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
         sourceTypeValid && name.isNotEmpty()
@@ -68,10 +74,13 @@ class ImportAccountViewModel(
         }
     }
 
-    val advancedBlockExceptNetworkEnabled = _selectedSourceTypeLiveData.map { it !is JsonImportSource }
+    private var substrateSeed: String? = null
+    private var ethSeed: String? = null
+    private var substrateJson: String? = null
+    private var ethJson: String? = null
 
     init {
-        _selectedSourceTypeLiveData.value = sourceTypes.first()
+        _selectedSourceTypeFlow.value = sourceTypes.first()
     }
 
     fun homeButtonClicked() {
@@ -79,19 +88,51 @@ class ImportAccountViewModel(
     }
 
     fun openSourceChooserClicked() {
-        selectedSourceTypeLiveData.value?.let {
+        _selectedSourceTypeFlow.value.let {
             _showSourceChooserLiveData.value = Event(Payload(sourceTypes, it))
         }
     }
 
     fun sourceTypeChanged(it: ImportSource) {
-        _selectedSourceTypeLiveData.value = it
+        _selectedSourceTypeFlow.value = it
     }
 
     fun nextClicked() {
-        importInProgressLiveData.value = true
+        val source = _selectedSourceTypeFlow.value
+        when {
+            source is MnemonicImportSource -> {
+                import(withEth = true)
+            }
+            source is RawSeedImportSource && _blockchainTypeFlow.value == ImportAccountType.Substrate -> {
+                source.rawSeedLiveData.value?.let {
+                    substrateSeed = it
+                    _showEthAccountsDialog.value = Event(Unit)
+                }
+            }
+            source is RawSeedImportSource && _blockchainTypeFlow.value == ImportAccountType.Ethereum -> {
+                source.rawSeedLiveData.value?.let {
+                    ethSeed = it
+                    import(withEth = true)
+                }
+            }
+            source is JsonImportSource && _blockchainTypeFlow.value == ImportAccountType.Substrate -> {
+                source.jsonContentLiveData.value?.let {
+                    substrateJson = it
+                    _showEthAccountsDialog.value = Event(Unit)
+                }
+            }
+            source is JsonImportSource && _blockchainTypeFlow.value == ImportAccountType.Ethereum -> {
+                source.jsonContentLiveData.value?.let {
+                    ethJson = it
+                    import(withEth = true)
+                }
+            }
+        }
+    }
 
-        val sourceType = selectedSourceTypeLiveData.value!!
+    private fun import(withEth: Boolean) {
+        importInProgressLiveData.value = true
+        val sourceType = _selectedSourceTypeFlow.value
 
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
         val substrateDerivationPath = substrateDerivationPathLiveData.value.orEmpty()
@@ -99,7 +140,7 @@ class ImportAccountViewModel(
         val name = nameLiveData.value!!
 
         viewModelScope.launch {
-            val result = import(sourceType, name, substrateDerivationPath, ethereumDerivationPath, cryptoType)
+            val result = import(sourceType, name, substrateDerivationPath, ethereumDerivationPath, cryptoType, withEth)
 
             if (result.isSuccess) {
                 continueBasedOnCodeStatus()
@@ -112,7 +153,7 @@ class ImportAccountViewModel(
     }
 
     fun systemCallResultReceived(requestCode: Int, intent: Intent) {
-        val selectedSource = selectedSourceTypeLiveData.value!!
+        val selectedSource = _selectedSourceTypeFlow.value
 
         if (selectedSource is FileRequester) {
             val currentRequestCode = selectedSource.chooseJsonFileEvent.value!!.peekContent()
@@ -132,7 +173,7 @@ class ImportAccountViewModel(
     }
 
     private fun handleCreateAccountError(throwable: Throwable) {
-        var errorMessage = selectedSourceTypeLiveData.value?.handleError(throwable)
+        var errorMessage = _selectedSourceTypeFlow.value.handleError(throwable)
 
         if (errorMessage == null) {
             errorMessage = when (throwable) {
@@ -171,7 +212,8 @@ class ImportAccountViewModel(
         name: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
-        cryptoType: CryptoType
+        cryptoType: CryptoType,
+        withEth: Boolean
     ): Result<Unit> {
         return when (sourceType) {
             is MnemonicImportSource -> interactor.importFromMnemonic(
@@ -179,19 +221,35 @@ class ImportAccountViewModel(
                 name,
                 substrateDerivationPath,
                 ethereumDerivationPath,
-                cryptoType
+                cryptoType,
+                withEth
             )
             is RawSeedImportSource -> interactor.importFromSeed(
-                sourceType.rawSeedLiveData.value!!,
+                substrateSeed!!,
                 name,
                 substrateDerivationPath,
-                cryptoType
+                cryptoType,
+                ethSeed
             )
             is JsonImportSource -> interactor.importFromJson(
-                sourceType.jsonContentLiveData.value!!,
+                substrateJson!!,
                 sourceType.passwordLiveData.value!!,
-                name
+                name,
+                ethJson
             )
         }
+    }
+
+    fun onAddEthAccountConfirmed() {
+        _blockchainTypeFlow.value = ImportAccountType.Ethereum
+        (_selectedSourceTypeFlow.value as? RawSeedImportSource)?.rawSeedLiveData?.value = ""
+        (_selectedSourceTypeFlow.value as? JsonImportSource)?.apply {
+            jsonContentLiveData.value = ""
+            passwordLiveData.value = ""
+        }
+    }
+
+    fun onAddEthAccountDeclined() {
+        import(false)
     }
 }

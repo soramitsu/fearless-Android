@@ -9,9 +9,12 @@ import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
-import kotlinx.android.synthetic.main.import_source_json.view.*
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonContent
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordInput
+import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameInput
 
 class JsonImportView @JvmOverloads constructor(
     context: Context,
@@ -23,7 +26,23 @@ class JsonImportView @JvmOverloads constructor(
         get() = importJsonUsernameInput
 
     init {
+        init()
+    }
+
+    constructor(context: Context, importAccountType: ImportAccountType) : this(context) {
+        init(importAccountType)
+    }
+
+    private fun init(importAccountType: ImportAccountType = ImportAccountType.Substrate) {
         importJsonUsernameInput.editText!!.filters = nameInputFilters()
+        setImportAccountType(importAccountType)
+    }
+
+    private fun setImportAccountType(type: ImportAccountType) {
+        when (type) {
+            ImportAccountType.Substrate -> importJsonContent.setLabel(R.string.recovery_json_substrate)
+            ImportAccountType.Ethereum -> importJsonContent.setLabel(R.string.recovery_json_eth)
+        }
     }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
