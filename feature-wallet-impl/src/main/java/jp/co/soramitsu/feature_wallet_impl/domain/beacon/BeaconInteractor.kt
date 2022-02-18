@@ -9,6 +9,7 @@ import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateReq
 import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.message.response.SignSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.substrate
+import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.BeaconError
 import it.airgap.beaconsdk.core.data.P2P
@@ -53,7 +54,7 @@ class BeaconInteractor(
 
     private val beaconClient by lazy {
         GlobalScope.async {
-            BeaconWalletClient("Fearless Wallet", listOf(substrate())) {
+            BeaconWalletClient("Fearless Wallet", listOf(substrate(), tezos())) {
                 addConnections(
                     P2P(p2pMatrix()),
                 )
@@ -66,16 +67,21 @@ class BeaconInteractor(
     suspend fun connectFromQR(qrCode: String): Result<Pair<P2pPeer, Flow<BeaconRequest?>>> = withContext(Dispatchers.Default) {
         runCatching {
             val qrUri = Uri.parse(qrCode)
-            val encodedPeer = qrUri.getQueryParameter("data")!!
-            val jsonContent = encodedPeer.fromBase58Check().decodeToString()
+
+//            val encodedPeer = qrUri.getQueryParameter("data")!!
+            val jsonContent = qrCode.fromBase58Check().decodeToString()
+//            val jsonContent = encodedPeer.fromBase58Check().decodeToString()
             val peer = gson.fromJson(jsonContent, P2pPeer::class.java)
             val beaconClient = beaconClient()
 
             beaconClient.addPeers(peer)
 
             val requestsFlow = beaconClient.connect()
-                .map { it.getOrNull() }
-            hashCode()
+                .map {
+                    hashCode()
+                    it.getOrNull()
+                }
+
             peer to requestsFlow
         }
     }
