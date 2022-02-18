@@ -6,7 +6,7 @@ interface OnboardingRouter {
 
     fun backToWelcomeScreen()
 
-    fun openImportAccountScreen()
+    fun openImportAccountScreen(blockChainType: Int)
 
     fun back()
 }

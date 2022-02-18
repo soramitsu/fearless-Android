@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.importing.FileReader
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -34,7 +35,8 @@ class ImportAccountModule {
         resourceManager: ResourceManager,
         cryptoChooserMixin: CryptoTypeChooserMixin,
         clipboardManager: ClipboardManager,
-        fileReader: FileReader
+        fileReader: FileReader,
+        blockChainType: ImportAccountType
     ): ViewModel {
         return ImportAccountViewModel(
             interactor,
@@ -42,7 +44,8 @@ class ImportAccountModule {
             resourceManager,
             cryptoChooserMixin,
             clipboardManager,
-            fileReader
+            fileReader,
+            blockChainType
         )
     }
 

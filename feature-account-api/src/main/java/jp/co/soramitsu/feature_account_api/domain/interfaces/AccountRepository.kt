@@ -68,20 +68,23 @@ interface AccountRepository {
         username: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
-        selectedEncryptionType: CryptoType
+        selectedEncryptionType: CryptoType,
+        withEth: Boolean
     )
 
     suspend fun importFromSeed(
         seed: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType
+        selectedEncryptionType: CryptoType,
+        ethSeed: String?
     )
 
     suspend fun importFromJson(
         json: String,
         password: String,
-        name: String
+        name: String,
+        ethJson: String?
     )
 
     suspend fun isCodeSet(): Boolean

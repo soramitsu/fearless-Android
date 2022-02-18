@@ -28,6 +28,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.BaseKeypair
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
@@ -148,7 +149,8 @@ class AccountRepositoryImpl(
             mnemonic,
             substrateDerivationPath,
             ethereumDerivationPath,
-            encryptionType
+            encryptionType,
+            true
         )
 
         selectAccount(metaAccountId)
@@ -188,13 +190,15 @@ class AccountRepositoryImpl(
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         selectedEncryptionType: CryptoType,
+        withEth: Boolean,
     ) {
         val metaAccountId = saveFromMnemonic(
             username,
             keyString,
             substrateDerivationPath,
             ethereumDerivationPath,
-            selectedEncryptionType
+            selectedEncryptionType,
+            withEth
         )
 
         selectAccount(metaAccountId)
@@ -205,9 +209,11 @@ class AccountRepositoryImpl(
         username: String,
         derivationPath: String,
         selectedEncryptionType: CryptoType,
+        ethSeed: String?
     ) {
         return withContext(Dispatchers.Default) {
-            val seedBytes = Hex.decode(seed.removePrefix("0x"))
+            val substrateSeedBytes = Hex.decode(seed.removePrefix("0x"))
+            val ethSeedBytes = ethSeed?.let { Hex.decode(it.removePrefix("0x")) }
 
             val derivationPathOrNull = derivationPath.nullIfEmpty()
             val decodedDerivationPath = derivationPathOrNull?.let {
@@ -216,18 +222,18 @@ class AccountRepositoryImpl(
 
             val keys = SubstrateKeypairFactory.generate(
                 mapCryptoTypeToEncryption(selectedEncryptionType),
-                seedBytes,
+                substrateSeedBytes,
                 decodedDerivationPath?.junctions.orEmpty()
             )
 
-            val ethereumKeypair = EthereumKeypairFactory.createWithPrivateKey(seedBytes)
+            val ethereumKeypair = ethSeedBytes?.let { EthereumKeypairFactory.createWithPrivateKey(it) }
 
             val position = metaAccountDao.getNextPosition()
 
             val secretsV2 = MetaAccountSecrets(
                 substrateKeyPair = keys,
                 substrateDerivationPath = derivationPath,
-                seed = seedBytes,
+                seed = substrateSeedBytes,
                 ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH,
                 ethereumKeypair = ethereumKeypair
             )
@@ -239,8 +245,8 @@ class AccountRepositoryImpl(
                 name = username,
                 isSelected = true,
                 position = position,
-                ethereumPublicKey = ethereumKeypair.publicKey,
-                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                ethereumPublicKey = ethereumKeypair?.publicKey,
+                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
             )
 
             val metaAccountId = insertAccount(metaAccount)
@@ -253,31 +259,34 @@ class AccountRepositoryImpl(
         json: String,
         password: String,
         name: String,
+        ethJson: String?
     ) {
         return withContext(Dispatchers.Default) {
-            val importData = jsonSeedDecoder.decode(json, password)
+            val substrateImportData = jsonSeedDecoder.decode(json, password)
+            val ethImportData = ethJson?.let { jsonSeedDecoder.decode(ethJson, password) }
 
-            val keys = importData.keypair
+            val substrateKeys = substrateImportData.keypair
+            val ethKeys = ethImportData?.keypair
 
             val position = metaAccountDao.getNextPosition()
 
-            val ethereumKeypair = EthereumKeypairFactory.createWithPrivateKey(keys.privateKey)
+            val ethereumKeypair = ethKeys?.let { EthereumKeypairFactory.createWithPrivateKey(it.privateKey) }
 
             val secretsV2 = MetaAccountSecrets(
-                substrateKeyPair = importData.keypair,
-                seed = importData.seed,
+                substrateKeyPair = substrateKeys,
+                seed = substrateImportData.seed,
                 ethereumKeypair = ethereumKeypair,
             )
 
             val metaAccount = MetaAccountLocal(
-                substratePublicKey = keys.publicKey,
-                substrateAccountId = keys.publicKey.substrateAccountId(),
-                substrateCryptoType = mapEncryptionToCryptoType(importData.multiChainEncryption.encryptionType),
+                substratePublicKey = substrateKeys.publicKey,
+                substrateAccountId = substrateKeys.publicKey.substrateAccountId(),
+                substrateCryptoType = mapEncryptionToCryptoType(substrateImportData.multiChainEncryption.encryptionType),
                 name = name,
                 isSelected = true,
                 position = position,
-                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
-                ethereumPublicKey = ethereumKeypair.publicKey
+                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
+                ethereumPublicKey = ethereumKeypair?.publicKey
             )
 
             val metaAccountId = insertAccount(metaAccount)
@@ -430,6 +439,7 @@ class AccountRepositoryImpl(
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
         cryptoType: CryptoType,
+        withEth: Boolean,
     ): Long {
         return withContext(Dispatchers.Default) {
             val substrateDerivationPathOrNull = substrateDerivationPath.nullIfEmpty()
@@ -447,10 +457,15 @@ class AccountRepositoryImpl(
 
             val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
 
-            val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-            val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
-            val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
-            val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
+            val (ethereumKeypair: Keypair?, ethereumDerivationPathOrDefault: String?) = if (withEth) {
+                val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
+                val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
+                val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
+
+                ethereumKeypair to ethereumDerivationPathOrDefault
+            } else null to null
+
             val position = metaAccountDao.getNextPosition()
 
             val secretsV2 = MetaAccountSecrets(
@@ -466,8 +481,8 @@ class AccountRepositoryImpl(
                 substratePublicKey = keys.publicKey,
                 substrateAccountId = keys.publicKey.substrateAccountId(),
                 substrateCryptoType = cryptoType,
-                ethereumPublicKey = ethereumKeypair.publicKey,
-                ethereumAddress = ethereumKeypair.publicKey.ethereumAddressFromPublicKey(),
+                ethereumPublicKey = ethereumKeypair?.publicKey,
+                ethereumAddress = ethereumKeypair?.publicKey?.ethereumAddressFromPublicKey(),
                 name = accountName,
                 isSelected = true,
                 position = position

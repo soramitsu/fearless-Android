@@ -5,6 +5,7 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountType
 
 @Subcomponent(
     modules = [
@@ -18,7 +19,8 @@ interface ImportAccountComponent {
     interface Factory {
 
         fun create(
-            @BindsInstance fragment: Fragment
+            @BindsInstance fragment: Fragment,
+            @BindsInstance blockChainType: ImportAccountType
         ): ImportAccountComponent
     }
 
