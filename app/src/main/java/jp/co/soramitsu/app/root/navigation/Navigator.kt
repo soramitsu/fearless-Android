@@ -10,8 +10,10 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.utils.postToUiThread
+import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.export.WalletExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.exportaccounts.AccountsForExportFragment
@@ -124,6 +126,32 @@ class Navigator :
         navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
     }
 
+    override fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload) {
+        val bundle = CreateAccountFragment.getBundle(payload)
+        navController?.navigate(
+            R.id.action_welcomeFragment_to_createAccountFragment,
+            bundle,
+            NavOptions.Builder().setPopUpTo(R.id.welcomeFragment, true).build()
+        )
+    }
+
+    override fun openImportAccountSkipWelcome(payload: ChainAccountCreatePayload) {
+        val bundle = ImportAccountFragment.getBundle(payload)
+        navController?.navigate(
+            R.id.importAction,
+            bundle,
+            NavOptions.Builder().setPopUpTo(R.id.welcomeFragment, true).build()
+        )
+    }
+
+    override fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean) {
+        val bundle = WelcomeFragment.getBundle(
+            displayBack = true,
+            chainAccountData = ChainAccountCreatePayload(chainId, metaId, isImport),
+        )
+        navController?.navigate(R.id.action_to_onboardingNavGraph, bundle)
+    }
+
     override fun backToWelcomeScreen() {
         navController?.popBackStack()
     }
@@ -174,8 +202,8 @@ class Navigator :
         navController?.navigate(R.id.importAction, arguments)
     }
 
-    override fun openMnemonicScreen(accountName: String) {
-        val bundle = BackupMnemonicFragment.getBundle(accountName)
+    override fun openMnemonicScreen(accountName: String, payload: ChainAccountCreatePayload?) {
+        val bundle = BackupMnemonicFragment.getBundle(accountName, payload)
         navController?.navigate(R.id.action_createAccountFragment_to_backupMnemonicFragment, bundle)
     }
 

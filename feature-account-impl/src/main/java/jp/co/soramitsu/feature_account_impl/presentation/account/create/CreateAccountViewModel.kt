@@ -5,9 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
 class CreateAccountViewModel(
+    private val payload: ChainAccountCreatePayload?,
     private val interactor: AccountInteractor,
     private val router: AccountRouter
 ) : BaseViewModel() {
@@ -31,6 +33,6 @@ class CreateAccountViewModel(
     }
 
     fun screenshotWarningConfirmed(accountName: String) {
-        router.openMnemonicScreen(accountName)
+        router.openMnemonicScreen(accountName, payload)
     }
 }

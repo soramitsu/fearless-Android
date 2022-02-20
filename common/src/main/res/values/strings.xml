@@ -4,7 +4,9 @@
     <string name="wallet_info_title">Wallet</string>
 
     <string name="account_shared_secret">Accounts with a shared secret</string>
+    <string name="default_account_shared_secret">Default accounts with a shared secret</string>
     <string name="account_custom_secret">Accounts with a changed secret</string>
+    <string name="account_unique_secret">Accounts with a unique secrets</string>
 
     <string name="wallet_assets">Assets</string>
 
@@ -539,6 +541,8 @@ to your account to avoid remaining stake.</string>
     <string name="select_save_type">Select save type</string>
     <string name="accounts_for_export">Accounts for export</string>
     <string name="what_accounts_for_export">What accounts in the wallet do you want to export?</string>
+    <string name="replace_account">Replace account</string>
+    <string name="replace_account_template">Replace %s account</string>
 
 
     <string name="manage_assets_search_hint">Search by token or network</string>
@@ -553,6 +557,8 @@ to your account to avoid remaining stake.</string>
     <string name="onboarding_ethereum_derivation_path_title">Ethereum secret derivation path</string>
 
     <string name="ECDSA_crypto_type">ECDSA | BTC/ETH compatible</string>
+    <string name="create_new_account">Create a new account</string>
+    <string name="already_have_account">I already have an account</string>
 
     <string name="common_yes">Yes</string>
     <string name="common_no">No</string>

@@ -12,11 +12,14 @@ import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.headers.TextHeaderHolder
 import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.view.shape.getCutLeftBottomCornerDrawableFromColors
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountAccountAddress
 import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountAccountIcon
 import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountChainIcon
 import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountChainName
+import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountNameBadge
 import kotlinx.android.synthetic.main.item_chain_acount.view.labeledTextAction
 
 class ChainAccountsAdapter(
@@ -66,6 +69,14 @@ class ChainAccountHolder(view: View) : GroupedListHolder(view) {
 
             setOnClickListener { handler.chainAccountClicked(item) }
         }
+
+        chainAccountNameBadge.isVisible = !item.accountName.isNullOrEmpty()
+        chainAccountNameBadge.text = item.accountName.orEmpty()
+        when (item.accountFrom) {
+            AccountInChain.From.CHAIN_ACCOUNT -> context.getCutLeftBottomCornerDrawableFromColors()
+            AccountInChain.From.META_ACCOUNT -> context.getCutLeftBottomCornerDrawableFromColors(context.getColor(R.color.white_50))
+            else -> null
+        }?.let(chainAccountNameBadge::setBackground)
     }
 }
 

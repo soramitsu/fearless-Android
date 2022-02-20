@@ -517,6 +517,8 @@
 
     <string name="wallet_transaction_history_error_message">Сервис временно недоступен</string>
 
+    <string name="replace_account">Заменить аккаунт</string>
+    <string name="replace_account_template">Заменить %s аккаунт</string>
     <string name="common_yes">Да</string>
     <string name="common_no">Нет</string>
 

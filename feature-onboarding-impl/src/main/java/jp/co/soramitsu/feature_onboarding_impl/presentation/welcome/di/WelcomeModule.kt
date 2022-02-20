@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
+import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragmentPayload
 import jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -21,9 +22,9 @@ class WelcomeModule {
     fun provideViewModel(
         router: OnboardingRouter,
         appLinksProvider: AppLinksProvider,
-        shouldShowBack: Boolean
+        payload: WelcomeFragmentPayload
     ): ViewModel {
-        return WelcomeViewModel(shouldShowBack, router, appLinksProvider)
+        return WelcomeViewModel(payload, router, appLinksProvider)
     }
 
     @Provides

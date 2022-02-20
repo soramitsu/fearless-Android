@@ -15,6 +15,7 @@ class WalletAccountActionsSheet(
     val content: ExternalAccountActions.Payload,
     onCopy: CopyCallback,
     onExternalView: ExternalViewCallback,
+    private val onReplace: (chainId: ChainId) -> Unit,
     private val onExportAccount: (chainId: ChainId) -> Unit,
     private val onSwitchNode: (chainId: ChainId) -> Unit
 ) : ExternalActionsSheet(
@@ -30,6 +31,10 @@ class WalletAccountActionsSheet(
         content.chainId?.let { chainId ->
             item(R.drawable.ic_share_arrow_white_24, R.string.account_export) {
                 onExportAccount(chainId)
+            }
+
+            item(R.drawable.ic_change_account, R.string.replace_account) {
+                onReplace(chainId)
             }
 
             item(jp.co.soramitsu.common.R.drawable.ic_refresh_white_24, R.string.switch_node) {

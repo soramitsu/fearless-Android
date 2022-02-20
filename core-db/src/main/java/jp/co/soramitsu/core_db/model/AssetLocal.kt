@@ -32,7 +32,8 @@ data class AssetLocal(
     val redeemableInPlanks: BigInteger,
     val unbondingInPlanks: BigInteger,
     val sortIndex: Int,
-    val enabled: Boolean
+    val enabled: Boolean,
+    val chainAccountName: String?
 ) {
     companion object {
         fun createEmpty(
@@ -53,7 +54,8 @@ data class AssetLocal(
             redeemableInPlanks = BigInteger.ZERO,
             unbondingInPlanks = BigInteger.ZERO,
             sortIndex = Int.MAX_VALUE,
-            enabled = true
+            enabled = true,
+            chainAccountName = null
         )
     }
 }

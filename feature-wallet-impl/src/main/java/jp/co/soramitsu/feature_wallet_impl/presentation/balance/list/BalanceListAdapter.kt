@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -17,9 +18,11 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
+import jp.co.soramitsu.common.view.shape.getCutLeftBottomCornerDrawableFromColors
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import kotlinx.android.extensions.LayoutContainer
+import kotlinx.android.synthetic.main.item_asset.view.chainAssetNameBadge
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetBalance
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetContainer
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetDollarAmount
@@ -102,6 +105,10 @@ class AssetViewHolder(
         testnetBadge.setVisible(asset.token.configuration.isTestNet == true)
 
         setOnClickListener { itemHandler.assetClicked(asset) }
+
+        chainAssetNameBadge.isVisible = !asset.chainAccountName.isNullOrEmpty()
+        chainAssetNameBadge.text = asset.chainAccountName
+        chainAssetNameBadge.background = context.getCutLeftBottomCornerDrawableFromColors()
     }
 
     fun bindTotal(asset: AssetModel) {

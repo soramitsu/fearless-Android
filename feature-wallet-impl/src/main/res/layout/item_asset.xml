@@ -131,4 +131,19 @@
         app:layout_constraintEnd_toEndOf="@+id/itemAssetDollarAmount"
         tools:text="120.0849" />
 
+    <TextView
+        android:id="@+id/chainAssetNameBadge"
+        style="@style/TextAppearance.Soramitsu.CapsTitle1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:paddingVertical="1.5dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="8dp"
+        android:text="KINTSUGI"
+        android:textColor="@color/white"
+        android:textSize="10sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

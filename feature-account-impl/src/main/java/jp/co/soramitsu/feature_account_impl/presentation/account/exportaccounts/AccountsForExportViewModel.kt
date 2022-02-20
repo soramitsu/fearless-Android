@@ -79,7 +79,9 @@ class AccountsForExportViewModel(
             chainIcon = chain.icon,
             address = address,
             accountIcon = accountIcon,
-            enabled = false
+            enabled = false,
+            accountName = accountInChain.name,
+            accountFrom = accountInChain.from
         )
     }
 

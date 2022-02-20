@@ -31,23 +31,26 @@ class AccountDetailsInteractor(
 
     suspend fun getChainProjections(metaAccount: MetaAccount): GroupedList<From, AccountInChain> = withContext(Dispatchers.Default) {
         val chains = chainRegistry.currentChains.first().sortedWith(chainSort())
+        chains.map { it.toAccountInChain(metaAccount) }
+            .groupBy(AccountInChain::from)
+            .toSortedMap(compareBy { it.name })
+    }
 
-        chains.map { chain ->
-            val address = metaAccount.address(chain)
-            val accountId = metaAccount.accountId(chain)
+    fun Chain.toAccountInChain(metaAccount: MetaAccount): AccountInChain {
+        val address = metaAccount.address(this)
+        val accountId = metaAccount.accountId(this)
 
-            val projection = if (address != null && accountId != null) {
-                AccountInChain.Projection(address, accountId)
-            } else {
-                null
-            }
+        val projection = when {
+            address == null || accountId == null -> null
+            else -> AccountInChain.Projection(address, accountId)
+        }
 
-            AccountInChain(
-                chain = chain,
-                projection = projection,
-                from = if (metaAccount.hasChainAccount(chain.id)) From.CHAIN_ACCOUNT else From.META_ACCOUNT
-            )
-        }.groupBy(AccountInChain::from)
+        return AccountInChain(
+            chain = this,
+            projection = projection,
+            from = if (metaAccount.hasChainAccount(this.id)) From.CHAIN_ACCOUNT else From.META_ACCOUNT,
+            name = null
+        )
     }
 
     suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>? {

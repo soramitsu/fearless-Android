@@ -2,60 +2,49 @@ package jp.co.soramitsu.core_db.migrations
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import jp.co.soramitsu.common.utils.asBoolean
-import jp.co.soramitsu.core_db.model.NodeLocal
-import jp.co.soramitsu.core_db.prepopulate.nodes.defaultNodesInsertQuery
 
-// TODO Should we keep it for previous versions of the app?
-class UpdateDefaultNodesList(
-    private val nodesList: List<NodeLocal>,
-    fromVersion: Int,
-) : Migration(fromVersion, fromVersion + 1) {
-
-    init {
-        require(nodesList.all { it.isActive.not() }) {
-            "Nodes should not be active by default"
-        }
-    }
-
-    /**
-     * Replacing default set of nodes, taking care of active node:
-     *      If active node is default one, then it will be changed to first default node from new set with the same network type
-     *      If active node is not default, it will remain active, since it 100% wont be deleted
-     *      If there are no active node (clean start), nothing will happen
-     */
+val RemoveLegacyData_35_36 = object : Migration(35, 36) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.beginTransaction()
+        database.execSQL("DROP TABLE chain_accounts")
 
-        val activeNodeLinkCursor = database.query("SELECT networkType, isDefault FROM nodes WHERE isActive = 1")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_accounts` (
+            `metaId` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `publicKey` BLOB NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `cryptoType` TEXT NOT NULL,
+            `name` TEXT NOT NULL,
+            PRIMARY KEY(`metaId`, `chainId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
 
-        val (activeNodeNetworkType, isActiveNodeDefault) = if (activeNodeLinkCursor.moveToNext()) {
-            val networkType = activeNodeLinkCursor.getInt(activeNodeLinkCursor.getColumnIndex("networkType"))
-            val isDefaultInt = activeNodeLinkCursor.getInt(activeNodeLinkCursor.getColumnIndex("isDefault"))
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
 
-            networkType to isDefaultInt.asBoolean()
-        } else null to null
-
-        activeNodeLinkCursor.close()
-
-        val modifiedNodesList = if (activeNodeNetworkType != null && isActiveNodeDefault == true) {
-            val mutableNodesList = nodesList.toMutableList()
-
-            val firstRelevantDefaultNode = nodesList.first { it.networkType == activeNodeNetworkType && it.isDefault }
-            val indexOfRelevantNode = nodesList.indexOf(firstRelevantDefaultNode)
-
-            mutableNodesList[indexOfRelevantNode] = firstRelevantDefaultNode.copy(isActive = true)
-
-            mutableNodesList
-        } else {
-            nodesList
-        }
-
-        database.execSQL("DELETE FROM nodes WHERE isDefault = 1")
-        database.execSQL(defaultNodesInsertQuery(modifiedNodesList))
-
-        database.setTransactionSuccessful()
-        database.endTransaction()
+        // remove `networkType` INTEGER NOT NULL
+        database.setForeignKeyConstraintsEnabled(false)
+        database.execSQL("ALTER TABLE users RENAME TO _users")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `users` (
+                `address` TEXT NOT NULL, 
+                `username` TEXT NOT NULL, 
+                `publicKey` TEXT NOT NULL, 
+                `cryptoType` INTEGER NOT NULL, 
+                `position` INTEGER NOT NULL, 
+                PRIMARY KEY(`address`)
+            )
+            """.trimIndent()
+        )
+        database.execSQL("INSERT INTO users SELECT * FROM _users")
+        database.execSQL("DROP TABLE _users")
+        database.setForeignKeyConstraintsEnabled(false)
     }
 }
 
@@ -399,21 +388,6 @@ val AddTotalRewardsTableToDb_21_22 = object : Migration(21, 22) {
                  PRIMARY KEY(`accountAddress`))
             """.trimIndent()
         )
-    }
-}
-
-@Suppress("ClassName")
-class MoveActiveNodeTrackingToDb_18_19(private val migrator: PrefsToDbActiveNodeMigrator) : Migration(18, 19) {
-
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.beginTransaction()
-
-        database.execSQL("ALTER TABLE nodes ADD COLUMN `isActive` INTEGER NOT NULL DEFAULT 0")
-
-        migrator.migrate(database)
-
-        database.setTransactionSuccessful()
-        database.endTransaction()
     }
 }
 

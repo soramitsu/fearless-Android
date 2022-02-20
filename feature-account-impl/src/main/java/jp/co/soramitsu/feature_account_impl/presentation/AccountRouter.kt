@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
+import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
@@ -20,7 +21,7 @@ interface AccountRouter : SecureRouter {
 
     fun openCreatePincode()
 
-    fun openMnemonicScreen(accountName: String)
+    fun openMnemonicScreen(accountName: String, payload: ChainAccountCreatePayload?)
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
 
@@ -72,4 +73,6 @@ interface AccountRouter : SecureRouter {
     fun finishExportFlow()
 
     fun openChangePinCode()
+
+    fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
 }

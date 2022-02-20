@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.seed
 
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -7,6 +8,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.nullIfEmpty
+import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
@@ -35,11 +37,17 @@ class ExportSeedViewModel(
     ExportSource.Seed
 ) {
 
-    val seedLiveData = secretLiveData.map {
-        if (chainLiveData.value?.isEthereumBased == true) {
-            it?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)
-        } else {
-            it?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(it)
+    val seedLiveData = isChainAccountLiveData.switchMap { isChainAccount ->
+        when {
+            isChainAccount -> chainSecretLiveData.map {
+                it?.get(ChainAccountSecrets.Seed)
+            }
+            else -> secretLiveData.map {
+                when (chainLiveData.value?.isEthereumBased) {
+                    true -> it?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)
+                    else -> it?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(it)
+                }
+            }
         }
     }
         .map { it?.toHexString(withPrefix = true) }
@@ -51,8 +59,15 @@ class ExportSeedViewModel(
         SubstrateSeedFactory.deriveSeed32(mnemonicWords, password).seed
     }
 
-    val derivationPathLiveData = secretLiveData.map {
-        it?.get(MetaAccountSecrets.SubstrateDerivationPath)
+    val derivationPathLiveData = isChainAccountLiveData.switchMap { isChainAccount ->
+        when {
+            isChainAccount -> chainSecretLiveData.map {
+                it?.get(ChainAccountSecrets.DerivationPath)
+            }
+            else -> secretLiveData.map {
+                it?.get(MetaAccountSecrets.SubstrateDerivationPath)
+            }
+        }
     }
 
     fun back() {

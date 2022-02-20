@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 class BackupMnemonicViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    private val accountName: String,
+    private val payload: BackupMnemonicPayload,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
@@ -45,14 +45,25 @@ class BackupMnemonicViewModel(
 
         val mnemonic = mnemonicWords.map(MnemonicWordModel::word)
 
-        val payload = ConfirmMnemonicPayload(
-            mnemonic,
-            CreateExtras(
-                accountName,
+        val createExtras = when (payload.chainAccountData) {
+            null -> CreateExtras(
+                payload.accountName,
                 cryptoTypeModel.cryptoType,
                 substrateDerivationPath,
                 ethereumDerivationPath
             )
+            else -> ConfirmMnemonicPayload.CreateChainExtras(
+                payload.accountName,
+                cryptoTypeModel.cryptoType,
+                substrateDerivationPath,
+                ethereumDerivationPath,
+                payload.chainAccountData.chainId,
+                payload.chainAccountData.metaId
+            )
+        }
+        val payload = ConfirmMnemonicPayload(
+            mnemonic,
+            createExtras
         )
 
         router.openConfirmMnemonicOnCreate(payload)

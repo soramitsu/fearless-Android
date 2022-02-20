@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.karura
 
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralCodePayload
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.parcel.Parcelize
 import java.math.BigDecimal
 
@@ -9,6 +10,7 @@ val KARURA_BONUS_MULTIPLIER = 0.05.toBigDecimal() // 5%
 @Parcelize
 class KaruraBonusPayload(
     override val referralCode: String,
+    val chainId: ChainId,
     private val rewardRate: BigDecimal?
 ) : ReferralCodePayload {
 

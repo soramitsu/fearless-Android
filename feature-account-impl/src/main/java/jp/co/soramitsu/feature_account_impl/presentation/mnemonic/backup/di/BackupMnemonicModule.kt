@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicViewModel
 
 @Module(includes = [ViewModelModule::class])
@@ -22,13 +23,13 @@ class BackupMnemonicModule {
     fun provideViewModel(
         interactor: AccountInteractor,
         router: AccountRouter,
-        accountName: String,
+        payload: BackupMnemonicPayload,
         cryptoTypeChooserMixin: CryptoTypeChooserMixin
     ): ViewModel {
         return BackupMnemonicViewModel(
             interactor,
             router,
-            accountName,
+            payload,
             cryptoTypeChooserMixin
         )
     }

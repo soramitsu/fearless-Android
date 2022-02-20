@@ -6,6 +6,7 @@ typealias ChainId = String
 
 const val polkadotChainId = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3"
 const val kusamaChainId = "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe"
+const val rococoChainId = "aaf2cd1b74b5f726895921259421b534124726263982522174147046b8827897"
 
 const val kitsugiChainId = "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b"
 const val interlayChainId = "ed86d448b84db333cdbe07362ddc79530343b907bd88712557c024d7a94296bb"

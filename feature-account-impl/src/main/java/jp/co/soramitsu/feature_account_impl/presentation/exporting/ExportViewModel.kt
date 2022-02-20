@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.model.cryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.hasChainAccount
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -27,6 +28,9 @@ abstract class ExportViewModel(
     val exportEvent: LiveData<Event<String>> = _exportEvent
 
     private val accountLiveData = liveData { emit(loadAccount()) }
+    val chainSecretLiveData = liveData { emit(loadSecrets(chainId)) }
+    val isChainAccountLiveData = liveData { emit(accountInteractor.getMetaAccount(metaId).hasChainAccount(chainId)) }
+
     val secretLiveData = liveData { emit(loadSecrets()) }
     val chainLiveData = liveData { emit(loadChain()) }
 
@@ -54,4 +58,6 @@ abstract class ExportViewModel(
     private suspend fun loadChain() = chainRegistry.getChain(chainId)
 
     private suspend fun loadSecrets() = accountInteractor.getMetaAccountSecrets(metaId)
+
+    private suspend fun loadSecrets(chainId: ChainId) = accountInteractor.getChainAccountSecrets(metaId, chainId)
 }
