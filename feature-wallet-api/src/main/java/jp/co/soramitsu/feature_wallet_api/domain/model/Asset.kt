@@ -16,10 +16,11 @@ class Asset(
     val redeemableInPlanks: BigInteger,
     val unbondingInPlanks: BigInteger,
     val sortIndex: Int,
-    val enabled: Boolean
+    val enabled: Boolean,
+    val chainAccountName: String?
 ) {
     companion object {
-        fun createEmpty(chainAsset: Chain.Asset, metaId: Long? = null) = Asset(
+        fun createEmpty(chainAsset: Chain.Asset, metaId: Long? = null, chainAccountName: String? = null) = Asset(
             metaId = metaId,
             Token(configuration = chainAsset, dollarRate = null, recentRateChange = null),
             accountId = ByteArray(0),
@@ -31,7 +32,8 @@ class Asset(
             redeemableInPlanks = BigInteger.ZERO,
             unbondingInPlanks = BigInteger.ZERO,
             sortIndex = Int.MAX_VALUE,
-            enabled = true
+            enabled = true,
+            chainAccountName = chainAccountName
         )
     }
 

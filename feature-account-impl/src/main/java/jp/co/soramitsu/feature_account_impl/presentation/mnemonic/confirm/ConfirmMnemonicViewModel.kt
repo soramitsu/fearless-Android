@@ -90,12 +90,10 @@ class ConfirmMnemonicViewModel(
     }
 
     private fun proceed() {
-        val createExtras = payload.createExtras
-
-        if (createExtras != null) {
-            createAccount(createExtras)
-        } else {
-            finishConfirmGame()
+        when (val createExtras = payload.createExtras) {
+            null -> finishConfirmGame()
+            is ConfirmMnemonicPayload.CreateChainExtras -> createChainAccount(createExtras)
+            else -> createAccount(createExtras)
         }
     }
 
@@ -110,6 +108,23 @@ class ConfirmMnemonicViewModel(
 
             with(extras) {
                 val result = interactor.createAccount(accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath)
+
+                if (result.isSuccess) {
+                    continueBasedOnCodeStatus()
+                } else {
+                    showError(result.requireException())
+                }
+            }
+        }
+    }
+
+    private fun createChainAccount(extras: ConfirmMnemonicPayload.CreateChainExtras) {
+        viewModelScope.launch {
+            val mnemonicString = originMnemonic.joinToString(" ")
+
+            with(extras) {
+                val result =
+                    interactor.createChainAccount(metaId, chainId, accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath)
 
                 if (result.isSuccess) {
                     continueBasedOnCodeStatus()

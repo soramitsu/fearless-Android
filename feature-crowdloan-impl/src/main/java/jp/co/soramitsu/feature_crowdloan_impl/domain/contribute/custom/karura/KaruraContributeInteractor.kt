@@ -3,8 +3,8 @@ package jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.karura
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.currentNetworkType
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.karura.KaruraApi
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import java.math.BigDecimal
 
 class KaruraContributeInteractor(
@@ -45,12 +45,9 @@ class KaruraContributeInteractor(
         }
     }
 
-    // TODO remove network type
-    suspend fun isReferralValid(referralCode: String) = try {
-        val networkType = accountRepository.currentNetworkType()
-
+    suspend fun isReferralValid(referralCode: String, chainId: ChainId) = try {
         httpExceptionHandler.wrap {
-            karuraApi.isReferralValid(KaruraApi.getBaseUrl(networkType), referralCode).result
+            karuraApi.isReferralValid(KaruraApi.getBaseUrl(chainId), referralCode).result
         }
     } catch (e: BaseException) {
         if (e.kind == BaseException.Kind.HTTP) {

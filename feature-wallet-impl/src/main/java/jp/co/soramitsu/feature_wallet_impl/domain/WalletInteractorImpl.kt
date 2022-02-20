@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
-import jp.co.soramitsu.feature_account_api.data.mappers.stubNetwork
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
@@ -29,8 +28,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -41,6 +38,8 @@ import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Calendar
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -56,7 +55,10 @@ class WalletInteractorImpl(
 
     override fun assetsFlow(): Flow<List<Asset>> {
         return accountRepository.selectedMetaAccountFlow()
-            .flatMapLatest { walletRepository.assetsFlow(it.id) }
+            .flatMapLatest {
+                val chainAccounts = it.chainAccounts.values.toList()
+                walletRepository.assetsFlow(it.id, chainAccounts)
+            }
             .filter { it.isNotEmpty() }
             .map { assets ->
                 if (customAssetSortingEnabled())
@@ -274,7 +276,7 @@ class WalletInteractorImpl(
     }
 
     private fun mapAccountToWalletAccount(chain: Chain, account: MetaAccount) = with(account) {
-        WalletAccount(account.address(chain)!!, name, stubNetwork(chain.id))
+        WalletAccount(account.address(chain)!!, name)
     }
 
     override suspend fun getChain(chainId: ChainId) = chainRegistry.getChain(chainId)

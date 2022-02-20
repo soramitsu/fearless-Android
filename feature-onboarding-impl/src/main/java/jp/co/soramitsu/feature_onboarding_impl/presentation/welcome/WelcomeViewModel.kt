@@ -9,7 +9,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_onboarding_impl.OnboardingRouter
 
 class WelcomeViewModel(
-    shouldShowBack: Boolean,
+    payload: WelcomeFragmentPayload,
     private val router: OnboardingRouter,
     private val appLinksProvider: AppLinksProvider
 ) : BaseViewModel(), Browserable {
@@ -18,9 +18,18 @@ class WelcomeViewModel(
         private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
     }
 
-    val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(shouldShowBack)
+    val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(payload.displayBack)
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
+
+    init {
+        payload.createChainAccount?.run {
+            when (isImport) {
+                true -> router.openImportAccountSkipWelcome(this)
+                else -> router.openCreateAccountSkipWelcome(this)
+            }
+        }
+    }
 
     fun createAccountClicked() {
         router.openCreateAccount()

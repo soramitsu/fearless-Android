@@ -14,6 +14,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -72,11 +73,16 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
 ) : WalletRepository {
 
-    override fun assetsFlow(metaId: Long): Flow<List<Asset>> {
+    override fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
         return combine(
             chainRegistry.chainsById,
             assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
+
+            val chainAssets = chainAccounts.flatMap { chainAccount ->
+                chainAccount.chain?.assets?.map { createEmpty(it, chainAccount.metaId, chainAccount.accountName) }.orEmpty()
+            }
+
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)
             }

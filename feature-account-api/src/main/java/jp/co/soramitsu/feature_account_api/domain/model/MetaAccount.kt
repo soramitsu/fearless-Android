@@ -57,10 +57,11 @@ class MetaAccount(
 
     class ChainAccount(
         val metaId: Long,
-        val chain: Chain,
+        val chain: Chain?,
         val publicKey: ByteArray,
         val accountId: ByteArray,
         val cryptoType: CryptoType,
+        val accountName: String
     )
 }
 
@@ -79,6 +80,13 @@ fun MetaAccount.address(chain: Chain): String? {
         hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
         chain.isEthereumBased -> ethereumAddress?.ethereumAddressToHex()
         else -> substrateAccountId.toAddress(chain.addressPrefix.toShort())
+    }
+}
+
+fun MetaAccount.chainAddress(chain: Chain): String? {
+    return when {
+        hasChainAccount(chain.id) -> chain.addressOf(chainAccounts.getValue(chain.id).accountId)
+        else -> null
     }
 }
 

@@ -48,7 +48,8 @@ fun mapAssetLocalToAsset(
             unbondingInPlanks = asset.unbondingInPlanks,
             redeemableInPlanks = asset.redeemableInPlanks,
             sortIndex = asset.sortIndex,
-            enabled = asset.enabled
+            enabled = asset.enabled,
+            chainAccountName = asset.chainAccountName
         )
     }
 }
@@ -68,7 +69,8 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             unbonding = unbonding,
             dollarAmount = dollarAmount,
             sortIndex = sortIndex,
-            enabed = enabled
+            enabed = enabled,
+            chainAccountName = chainAccountName
         )
     }
 }

@@ -8,15 +8,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
-import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
@@ -36,16 +38,14 @@ import kotlinx.android.synthetic.main.fragment_import_account.nextBtn
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeContainer
 import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
-
     companion object {
-        private const val BLOCKCHAIN_TYPE_KEY = "blockchainType"
+        private const val BLOCKCHAIN_TYPE_KEY = "BLOCKCHAIN_TYPE_KEY"
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(blockChainType: Int = 0) = bundleOf(BLOCKCHAIN_TYPE_KEY to blockChainType)
+        fun getBundle(chainAccountData: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to chainAccountData)
     }
 
     override fun onCreateView(
@@ -71,14 +71,18 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     override fun inject() {
-        val blockChainType = argument<Int>(BLOCKCHAIN_TYPE_KEY)
+        val blockChainType = arguments?.getInt(BLOCKCHAIN_TYPE_KEY)?.let { int ->
+            ImportAccountType.values().getOrNull(int)
+        }
+
+        val chainCreateAccountData: ChainAccountCreatePayload? = arguments?.get(PAYLOAD_KEY) as? ChainAccountCreatePayload
 
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .importAccountComponentFactory()
-            .create(this, ImportAccountType.values()[blockChainType])
+            .create(this, blockChainType, chainCreateAccountData)
             .inject(this)
     }
 
@@ -105,14 +109,17 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         viewModel.showEthAccountsDialog.observeEvent { showEthDialog() }
 
-        lifecycleScope.launch {
-            combine(viewModel.blockchainTypeFlow, viewModel.selectedSourceTypeFlow) { blockchainType: ImportAccountType, sourceType: ImportSource ->
+        mediateWith(
+            viewModel.blockchainLiveData,
+            viewModel.selectedSourceLiveData
+        ) { (blockchainType: ImportAccountType?, sourceType: ImportSource) ->
+            blockchainType?.let {
                 val sourceViews = buildSourceTypesViews(blockchainType)
                 setupSourceTypes(sourceType, sourceViews)
 
                 setupAdvancedBlock(blockchainType, sourceType)
-            }.collect()
-        }
+            }
+        }.observe { }
     }
 
     private fun buildSourceTypesViews(blockchainType: ImportAccountType) = viewModel.sourceTypes.map {

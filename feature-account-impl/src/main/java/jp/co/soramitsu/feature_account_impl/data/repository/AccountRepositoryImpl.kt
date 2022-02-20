@@ -1,8 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
+import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
@@ -14,23 +16,19 @@ import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
-import jp.co.soramitsu.core.model.Network
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
-import jp.co.soramitsu.core.model.chainId
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.core_db.model.AccountLocal
+import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.BaseKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
@@ -51,8 +49,10 @@ import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.feature_account_api.domain.model.cryptoType
+import jp.co.soramitsu.feature_account_api.domain.model.hasChainAccount
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.Dispatchers
@@ -84,13 +84,13 @@ class AccountRepositoryImpl(
     // TODO remove
     override fun selectedAccountFlow(): Flow<Account> {
         return accountDataSource.selectedAccountMapping.map {
-            it.getValue(Node.NetworkType.POLKADOT.chainId)!!
+            it.getValue(polkadotChainId)!!
         }
     }
 
     // TODO remove
     override suspend fun getSelectedAccount(): Account {
-        return getSelectedAccount(Node.NetworkType.POLKADOT.chainId)
+        return getSelectedAccount(polkadotChainId)
     }
 
     override suspend fun getSelectedAccount(chainId: String): Account {
@@ -130,11 +130,23 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun getPreferredCryptoType(): CryptoType {
-        return accountDataSource.getPreferredCryptoType()
+        return accountDataSource.getPreferredCryptoTypeOrSelected()
     }
 
     override suspend fun isAccountSelected(): Boolean {
         return accountDataSource.anyAccountSelected()
+    }
+
+    override suspend fun createChainAccount(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        mnemonicWords: String,
+        cryptoType: CryptoType,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
+    ) {
+        saveChainAccountFromMnemonic(metaId, chainId, accountName, mnemonicWords, cryptoType, substrateDerivationPath, ethereumDerivationPath)
     }
 
     override suspend fun createAccount(
@@ -204,6 +216,18 @@ class AccountRepositoryImpl(
         selectAccount(metaAccountId)
     }
 
+    override suspend fun importChainAccountFromMnemonic(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        mnemonicWords: String,
+        cryptoType: CryptoType,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
+    ) {
+        saveChainAccountFromMnemonic(metaId, chainId, accountName, mnemonicWords, cryptoType, substrateDerivationPath, ethereumDerivationPath)
+    }
+
     override suspend fun importFromSeed(
         seed: String,
         username: String,
@@ -255,6 +279,71 @@ class AccountRepositoryImpl(
         }
     }
 
+    override suspend fun importChainFromSeed(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        seed: String,
+        substrateDerivationPath: String,
+        selectedEncryptionType: CryptoType
+    ) {
+        return withContext(Dispatchers.Default) {
+            val seedBytes = Hex.decode(seed.removePrefix("0x"))
+
+            val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
+            val keyPair = when {
+                ethereumBased -> EthereumKeypairFactory.createWithPrivateKey(seedBytes)
+                else -> {
+                    val derivationPathOrNull = substrateDerivationPath.nullIfEmpty()
+                    val decodedDerivationPath = derivationPathOrNull?.let {
+                        SubstrateJunctionDecoder.decode(it)
+                    }
+
+                    SubstrateKeypairFactory.generate(
+                        mapCryptoTypeToEncryption(selectedEncryptionType),
+                        seedBytes,
+                        decodedDerivationPath?.junctions.orEmpty()
+                    )
+                }
+            }
+
+            val derPath = when {
+                ethereumBased -> BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                else -> substrateDerivationPath
+            }
+
+            val secretsV2 = ChainAccountSecrets(
+                keyPair = keyPair,
+                seed = seedBytes,
+                derivationPath = derPath
+            )
+
+            val publicKey = keyPair.publicKey
+
+            val accountId = when {
+                ethereumBased -> publicKey.ethereumAddressFromPublicKey()
+                else -> publicKey.substrateAccountId()
+            }
+
+            val crypto = when {
+                ethereumBased -> CryptoType.ECDSA
+                else -> selectedEncryptionType
+            }
+
+            val chainAccount = ChainAccountLocal(
+                metaId = metaId,
+                chainId = chainId,
+                publicKey = publicKey,
+                accountId = accountId,
+                cryptoType = crypto,
+                name = accountName
+            )
+
+            insertChainAccount(chainAccount)
+            storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
+        }
+    }
+
     override suspend fun importFromJson(
         json: String,
         password: String,
@@ -293,6 +382,53 @@ class AccountRepositoryImpl(
             storeV2.putMetaAccountSecrets(metaAccountId, secretsV2)
 
             selectAccount(metaAccountId)
+        }
+    }
+
+    override suspend fun importChainFromJson(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        json: String,
+        password: String,
+    ) {
+        return withContext(Dispatchers.Default) {
+            val importData = jsonSeedDecoder.decode(json, password)
+
+            val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
+            val keyPair = when {
+                ethereumBased -> EthereumKeypairFactory.createWithPrivateKey(importData.keypair.privateKey)
+                else -> importData.keypair
+            }
+
+            val secretsV2 = ChainAccountSecrets(
+                keyPair = keyPair,
+                seed = importData.seed,
+            )
+
+            val publicKey = keyPair.publicKey
+
+            val accountId = when {
+                ethereumBased -> publicKey.ethereumAddressFromPublicKey()
+                else -> publicKey.substrateAccountId()
+            }
+
+            val crypto = when {
+                ethereumBased -> CryptoType.ECDSA
+                else -> mapEncryptionToCryptoType(importData.multiChainEncryption.encryptionType)
+            }
+
+            val chainAccount = ChainAccountLocal(
+                metaId = metaId,
+                chainId = chainId,
+                publicKey = publicKey,
+                accountId = accountId,
+                cryptoType = crypto,
+                name = accountName
+            )
+
+            insertChainAccount(chainAccount)
+            storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
         }
     }
 
@@ -348,6 +484,18 @@ class AccountRepositoryImpl(
         return accountDataSource.getSecuritySource(accountAddress)!!
     }
 
+    override suspend fun getChainAccountSecrets(metaId: Long?, chainId: ChainId): EncodableStruct<ChainAccountSecrets>? {
+        return (metaId?.let { getMetaAccount(it) } ?: getSelectedMetaAccount()).let { metaAccount ->
+            if (metaAccount.hasChainAccount((chainId))) {
+                metaAccount.chainAccounts[chainId]?.accountId?.let { accountId ->
+                    storeV2.getChainAccountSecrets(metaAccount.id, accountId)
+                }
+            } else {
+                null
+            }
+        }
+    }
+
     override suspend fun getMetaAccountSecrets(metaId: Long?): EncodableStruct<MetaAccountSecrets>? {
         val id = metaId ?: getSelectedMetaAccount().id
         return storeV2.getMetaAccountSecrets(id)
@@ -356,15 +504,28 @@ class AccountRepositoryImpl(
     override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) = withContext(Dispatchers.Default) {
         val chain = chainRegistry.getChain(chainId)
         val metaAccount = getMetaAccount(metaId)
-        val secrets = getMetaAccountSecrets(metaId)
 
-        val keypairSchema = if (chain.isEthereumBased) {
-            secrets?.get(MetaAccountSecrets.EthereumKeypair)
+        val hasChainAccount = metaAccount.hasChainAccount(chainId)
+        val (keypairSchema, seed) = if (hasChainAccount) {
+            val secrets = getChainAccountSecrets(metaId, chainId)
+
+            val keypairSchema = secrets?.get(ChainAccountSecrets.Keypair)
+
+            val seed = secrets?.get(ChainAccountSecrets.Seed)
+            keypairSchema to seed
         } else {
-            secrets?.get(MetaAccountSecrets.SubstrateKeypair)
+            val secrets = getMetaAccountSecrets(metaId)
+
+            val keypairSchema = if (chain.isEthereumBased) {
+                secrets?.get(MetaAccountSecrets.EthereumKeypair)
+            } else {
+                secrets?.get(MetaAccountSecrets.SubstrateKeypair)
+            }
+
+            val seed = secrets?.get(MetaAccountSecrets.Seed)
+            keypairSchema to seed
         }
 
-        val seed = secrets?.get(MetaAccountSecrets.Seed)
         val publicKey = keypairSchema?.get(KeyPairSchema.PublicKey)
         val privateKey = keypairSchema?.get(KeyPairSchema.PrivateKey)
 
@@ -372,11 +533,7 @@ class AccountRepositoryImpl(
         val keypair = when {
             publicKey == null -> null
             privateKey == null -> null
-            nonce == null -> BaseKeypair(
-                publicKey = publicKey,
-                privateKey = privateKey,
-            )
-            else -> Sr25519Keypair(
+            else -> Keypair(
                 publicKey = publicKey,
                 privateKey = privateKey,
                 nonce = nonce
@@ -495,16 +652,90 @@ class AccountRepositoryImpl(
         }
     }
 
-    private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
-        val network = getNetworkForType(accountLocal.networkType)
+    private suspend fun saveChainAccountFromMnemonic(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        mnemonicWords: String,
+        cryptoType: CryptoType,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
+    ) {
+        val substrateDerivationPathOrNull = substrateDerivationPath.nullIfEmpty()
+        val decodedDerivationPath = substrateDerivationPathOrNull?.let {
+            SubstrateJunctionDecoder.decode(it)
+        }
 
+        val derivationResult = SubstrateSeedFactory.deriveSeed32(mnemonicWords, decodedDerivationPath?.password)
+
+        val keys = SubstrateKeypairFactory.generate(
+            encryptionType = mapCryptoTypeToEncryption(cryptoType),
+            seed = derivationResult.seed,
+            junctions = decodedDerivationPath?.junctions.orEmpty()
+        )
+
+        val mnemonic = MnemonicCreator.fromWords(mnemonicWords)
+
+        val ethereumDerivationPathOrDefault = ethereumDerivationPath.nullIfEmpty() ?: BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+        val decodedEthereumDerivationPath = BIP32JunctionDecoder.decode(ethereumDerivationPathOrDefault)
+        val ethereumSeed = EthereumSeedFactory.deriveSeed32(mnemonicWords, password = decodedEthereumDerivationPath.password).seed
+        val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
+
+        val ethereumBased = chainRegistry.getChain(chainId).isEthereumBased
+        val keyPair = when {
+            ethereumBased -> ethereumKeypair
+            else -> keys
+        }
+
+        val seed = when {
+            ethereumBased -> ethereumSeed
+            else -> derivationResult.seed
+        }
+
+        val derPath = when {
+            ethereumBased -> ethereumDerivationPathOrDefault
+            else -> substrateDerivationPath
+        }
+
+        val secretsV2 = ChainAccountSecrets(
+            keyPair = keyPair,
+            entropy = mnemonic.entropy,
+            seed = seed,
+            derivationPath = derPath
+        )
+
+        val publicKey = keyPair.publicKey
+
+        val accountId = when {
+            ethereumBased -> publicKey.ethereumAddressFromPublicKey()
+            else -> publicKey.substrateAccountId()
+        }
+
+        val crypto = when {
+            ethereumBased -> CryptoType.ECDSA
+            else -> cryptoType
+        }
+
+        val chainAccount = ChainAccountLocal(
+            metaId = metaId,
+            chainId = chainId,
+            publicKey = publicKey,
+            accountId = accountId,
+            cryptoType = crypto,
+            name = accountName
+        )
+
+        insertChainAccount(chainAccount)
+        storeV2.putChainAccountSecrets(metaId, accountId, secretsV2)
+    }
+
+    private fun mapAccountLocalToAccount(accountLocal: AccountLocal): Account {
         return with(accountLocal) {
             Account(
                 address = address,
                 name = username,
                 accountIdHex = publicKey,
                 cryptoType = CryptoType.values()[accountLocal.cryptoType],
-                network = network,
                 position = position
             )
         }
@@ -518,8 +749,12 @@ class AccountRepositoryImpl(
         throw AccountAlreadyExistsException()
     }
 
-    private fun getNetworkForType(networkType: Node.NetworkType): Network {
-        return Network(networkType)
+    private suspend fun insertChainAccount(
+        chainAccount: ChainAccountLocal
+    ) = try {
+        metaAccountDao.insertChainAccount(chainAccount)
+    } catch (e: SQLiteConstraintException) {
+        throw AccountAlreadyExistsException()
     }
 
     override fun polkadotAddressForSelectedAccountFlow(): Flow<String> {
@@ -527,5 +762,9 @@ class AccountRepositoryImpl(
             val chain = chainRegistry.getChain(polkadotChainId)
             it.address(chain) ?: ""
         }
+    }
+
+    override suspend fun getChain(chainId: ChainId): Chain {
+        return chainRegistry.getChain(chainId)
     }
 }

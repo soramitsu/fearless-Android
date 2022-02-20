@@ -2,7 +2,6 @@ package jp.co.soramitsu.core_db.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import jp.co.soramitsu.core.model.Node
 
 @Entity(tableName = "users")
 data class AccountLocal(
@@ -11,5 +10,4 @@ data class AccountLocal(
     val publicKey: String,
     val cryptoType: Int,
     val position: Int,
-    val networkType: Node.NetworkType
 )

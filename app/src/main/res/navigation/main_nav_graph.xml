@@ -5,6 +5,16 @@
     android:id="@+id/main_nav_graph"
     app:startDestination="@id/mainFragment">
 
+    <include app:graph="@navigation/onboarding_nav_graph" />
+
+    <action
+        android:id="@+id/action_to_onboardingNavGraph"
+        app:destination="@id/onboarding_nav_graph"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit" />
+
     <action
         android:id="@+id/action_open_send"
         app:destination="@id/chooseRecipientFragment"

@@ -61,3 +61,16 @@ fun Context.getCutCornerDrawableFromColors(
 
     return ShapeDrawable(CutCornersShape(cornerSizePx, strokeSizePx, fillColor, strokeColor))
 }
+
+fun Context.getCutLeftBottomCornerDrawableFromColors(
+    @ColorInt fillColor: Int = getColor(R.color.colorAccent_50),
+    cornerSizeXInDp: Int = 10,
+    cornerSizeYInDp: Int = 8
+): Drawable {
+    val density = resources.displayMetrics.density
+
+    val cornerSizeXPx = density * cornerSizeXInDp
+    val cornerSizeYPx = density * cornerSizeYInDp
+
+    return ShapeDrawable(CutLeftBottomCornerShape(cornerSizeXPx, cornerSizeYPx, fillColor))
+}

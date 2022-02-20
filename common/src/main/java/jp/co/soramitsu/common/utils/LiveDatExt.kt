@@ -69,6 +69,36 @@ fun <R> combine(
     }
 }
 
+/**
+ * Supports up to N sources, where N is last componentN() in ComponentHolder
+ * @see ComponentHolder
+ */
+fun <R> mediateWith(
+    vararg sources: LiveData<*>,
+    combiner: (ComponentHolder) -> R?
+): LiveData<R> {
+    return MediatorLiveData<R>().apply {
+        var isInitialized = false
+
+        fun handleChanges() {
+            combiner.invoke(ComponentHolder(sources.map { it.value }))?.let { newValue ->
+                value = newValue
+            }
+        }
+
+        for (source in sources) {
+            addSource(source) {
+                if (isInitialized) {
+                    handleChanges()
+                }
+            }
+        }
+
+        isInitialized = true
+        handleChanges()
+    }
+}
+
 fun <FIRST, SECOND, RESULT> LiveData<FIRST>.combine(
     another: LiveData<SECOND>,
     initial: RESULT? = null,

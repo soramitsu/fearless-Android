@@ -52,6 +52,9 @@ class AccountDetailsViewModel(
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
 
+    private val _showImportChainAccountChooser = MutableLiveData<Event<ImportChainAccountsPayload>>()
+    val showImportChainAccountChooser: LiveData<Event<ImportChainAccountsPayload>> = _showImportChainAccountChooser
+
     val accountNameFlow: MutableStateFlow<String> = MutableStateFlow("")
 
     private val metaAccount = async(Dispatchers.Default) { interactor.getMetaAccount(metaId) }
@@ -88,8 +91,8 @@ class AccountDetailsViewModel(
 
     private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader {
         val resId = when (from) {
-            AccountInChain.From.META_ACCOUNT -> R.string.account_shared_secret
-            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_custom_secret
+            AccountInChain.From.META_ACCOUNT -> R.string.default_account_shared_secret
+            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_unique_secret
         }
 
         return TextHeader(resourceManager.getString(resId))
@@ -106,7 +109,9 @@ class AccountDetailsViewModel(
             chainName = chain.name,
             chainIcon = chain.icon,
             address = address,
-            accountIcon = accountIcon
+            accountIcon = accountIcon,
+            accountName = accountInChain.name,
+            accountFrom = accountInChain.from
         )
     }
 
@@ -115,6 +120,25 @@ class AccountDetailsViewModel(
             val isEthereumBased = chainRegistry.getChain(chainId).isEthereumBased
             val sources = interactor.getMetaAccountSecrets(metaId).buildExportSourceTypes(isEthereumBased)
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
+        }
+    }
+
+    fun showImportChainAccountChooser(chainId: ChainId) {
+        viewModelScope.launch {
+            val name = chainRegistry.getChain(chainId).name
+            _showImportChainAccountChooser.postValue(Event(ImportChainAccountsPayload(chainId, metaId, name)))
+        }
+    }
+
+    fun createChainAccount(chainId: ChainId, metaId: Long) {
+        viewModelScope.launch {
+            accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = false)
+        }
+    }
+
+    fun importChainAccount(chainId: ChainId, metaId: Long) {
+        viewModelScope.launch {
+            accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
         }
     }
 
