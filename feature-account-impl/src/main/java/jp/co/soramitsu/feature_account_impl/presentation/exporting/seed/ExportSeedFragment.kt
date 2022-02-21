@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.core.BuildConfig
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
@@ -13,6 +15,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragmen
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedAdvanced
+import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedCopyButton
 import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedExport
 import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedToolbar
 import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedType
@@ -36,6 +39,9 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
         configureAdvancedBlock()
 
         exportSeedExport.setOnClickListener { viewModel.exportClicked() }
+
+        exportSeedCopyButton.setOnClickListener { viewModel.seedClicked() }
+        exportSeedCopyButton.isVisible = BuildConfig.DEBUG
     }
 
     private fun configureAdvancedBlock() {

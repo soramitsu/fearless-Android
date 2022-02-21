@@ -523,7 +523,7 @@ class Navigator :
     }
 
     override fun finishExportFlow() {
-        navController?.navigate(R.id.finish_export_flow)
+        navController?.navigate(R.id.action_return_to_wallet)
     }
 
     override fun openChangePinCode() {

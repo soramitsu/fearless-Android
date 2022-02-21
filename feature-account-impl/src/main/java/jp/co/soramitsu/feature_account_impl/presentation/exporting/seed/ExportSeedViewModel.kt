@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.exporting.seed
 
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.map
@@ -23,7 +24,8 @@ class ExportSeedViewModel(
     resourceManager: ResourceManager,
     accountInteractor: AccountInteractor,
     chainRegistry: ChainRegistry,
-    payload: ExportSeedPayload
+    payload: ExportSeedPayload,
+    private val clipboardManager: ClipboardManager,
 ) : ExportViewModel(
     accountInteractor,
     resourceManager,
@@ -74,5 +76,10 @@ class ExportSeedViewModel(
         }
 
         exportText(shareText)
+    }
+
+    fun seedClicked() {
+        clipboardManager.addToClipboard(seedLiveData.value!!)
+        showMessage(resourceManager.getString(R.string.common_copied))
     }
 }

@@ -1,11 +1,14 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import coil.ImageLoader
+import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -18,11 +21,11 @@ import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonCon
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmNetworkInput
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmToolbar
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmValue
-import javax.inject.Inject
 
 class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -73,5 +76,12 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
         }
 
         exportJsonConfirmValue.setMessage(viewModel.json)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == CHOOSER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            viewModel.shareCompleted()
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }
