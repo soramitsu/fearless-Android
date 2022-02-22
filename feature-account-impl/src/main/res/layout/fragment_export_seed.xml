@@ -36,18 +36,31 @@
                 app:label="@string/recovery_source_type"
                 app:message="@string/recovery_raw_seed" />
 
-            <jp.co.soramitsu.common.view.LabeledTextView
-                android:id="@+id/exportSeedValue"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:minHeight="156dp"
-                android:singleLine="false"
-                app:enabled="false"
-                app:label="@string/recovery_raw_seed"
-                tools:message="0x1aa03512d3bba4997b499521504d36b81dfa28628a3a0bc10a13f2eb0b3e910b" />
+                android:layout_marginEnd="16dp">
+
+                <jp.co.soramitsu.common.view.LabeledTextView
+                    android:id="@+id/exportSeedValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="156dp"
+                    android:singleLine="false"
+                    app:enabled="false"
+                    app:label="@string/recovery_raw_seed"
+                    tools:message="0x1aa03512d3bba4997b499521504d36b81dfa28628a3a0bc10a13f2eb0b3e910b" />
+
+                <ImageView
+                    android:id="@+id/exportSeedCopyButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|bottom"
+                    android:layout_margin="8dp"
+                    android:src="@drawable/ic_copy_24" />
+            </FrameLayout>
 
             <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/exportSeedAdvanced"
@@ -64,6 +77,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
-        android:visibility="gone"
-        android:text="@string/account_export_action" />
+        android:text="@string/account_export_action"
+        android:visibility="gone" />
 </LinearLayout>

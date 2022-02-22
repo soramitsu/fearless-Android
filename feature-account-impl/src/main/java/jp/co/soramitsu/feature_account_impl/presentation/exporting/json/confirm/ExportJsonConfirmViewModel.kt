@@ -2,8 +2,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm
 
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
+import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
@@ -27,5 +27,9 @@ class ExportJsonConfirmViewModel(
 
     fun confirmClicked() {
         exportText(json)
+    }
+
+    fun shareCompleted() {
+        router.finishExportFlow()
     }
 }
