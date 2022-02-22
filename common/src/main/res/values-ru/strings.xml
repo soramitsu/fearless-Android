@@ -522,6 +522,8 @@
     <string name="common_yes">Да</string>
     <string name="common_no">Нет</string>
 
+    <string name="create_new_wallet">Создать новый кошелек</string>
+
     <string name="eth_import_title">ETH аккаунты</string>
     <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
 </resources>

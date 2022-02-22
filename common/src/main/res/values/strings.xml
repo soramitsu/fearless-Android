@@ -560,6 +560,8 @@ to your account to avoid remaining stake.</string>
     <string name="create_new_account">Create a new account</string>
     <string name="already_have_account">I already have an account</string>
 
+    <string name="create_new_wallet">Create a new wallet</string>
+
     <string name="common_yes">Yes</string>
     <string name="common_no">No</string>
 
