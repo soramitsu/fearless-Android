@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.nullIfEmpty
@@ -34,23 +35,30 @@ class ExportSeedViewModel(
     chainRegistry,
     payload.metaId,
     payload.chainId,
+    payload.isExportWallet,
     ExportSource.Seed
 ) {
 
     val seedLiveData = isChainAccountLiveData.switchMap { isChainAccount ->
         when {
             isChainAccount -> chainSecretLiveData.map {
-                it?.get(ChainAccountSecrets.Seed)
+                ComponentHolder(
+                    listOf(
+                        if (isEthereum.value == false) it?.get(ChainAccountSecrets.Seed) else null,
+                        if (isEthereum.value == true) it?.get(ChainAccountSecrets.Seed) else null
+                    ).map { seed -> seed?.toHexString(withPrefix = true) }
+                )
             }
             else -> secretLiveData.map {
-                when (chainLiveData.value?.isEthereumBased) {
-                    true -> it?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)
-                    else -> it?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(it)
-                }
+                ComponentHolder(
+                    listOf(
+                        it?.get(MetaAccountSecrets.Seed) ?: seedFromEntropy(it),
+                        it?.get(MetaAccountSecrets.EthereumKeypair)?.get(KeyPairSchema.PrivateKey)
+                    ).map { seed -> seed?.toHexString(withPrefix = true) }
+                )
             }
         }
     }
-        .map { it?.toHexString(withPrefix = true) }
 
     private fun seedFromEntropy(secret: EncodableStruct<MetaAccountSecrets>?) = secret?.get(MetaAccountSecrets.Entropy)?.let { entropy ->
         val mnemonicWords = MnemonicCreator.fromEntropy(entropy).words
@@ -79,22 +87,24 @@ class ExportSeedViewModel(
     }
 
     override fun securityWarningConfirmed() {
-        val seed = seedLiveData.value ?: return
+        val seed = seedLiveData.value?.component1<String>() ?: return
         val chainName = chainLiveData.value?.name ?: return
 
-        val derivationPath = derivationPathLiveData.value
-
-        val shareText = if (derivationPath.isNullOrBlank()) {
-            resourceManager.getString(R.string.export_seed_without_derivation, chainName, seed)
-        } else {
-            resourceManager.getString(R.string.export_seed_with_derivation, chainName, seed, derivationPath)
-        }
-
-        exportText(shareText)
+        exportText(resourceManager.getString(R.string.export_seed_without_derivation, chainName, seed))
     }
 
-    fun seedClicked() {
-        clipboardManager.addToClipboard(seedLiveData.value!!)
+    fun substrateSeedClicked() {
+        val seed = seedLiveData.value?.component1<String>() ?: return
+        copy(seed)
+    }
+
+    fun ethereumSeedClicked() {
+        val seed = seedLiveData.value?.component2<String>() ?: return
+        copy(seed)
+    }
+
+    private fun copy(seed: String) {
+        clipboardManager.addToClipboard(seed)
         showMessage(resourceManager.getString(R.string.common_copied))
     }
 }

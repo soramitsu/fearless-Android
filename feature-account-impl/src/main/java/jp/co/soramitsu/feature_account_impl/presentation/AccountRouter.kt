@@ -59,10 +59,10 @@ interface AccountRouter : SecureRouter {
     fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation
 
     @PinRequired
-    fun openExportSeed(metaId: Long, chainId: ChainId): DelayedNavigation
+    fun openExportSeed(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
     @PinRequired
-    fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation
+    fun openExportJsonPassword(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
     fun openConfirmMnemonicOnExport(mnemonic: List<String>)
 

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -67,24 +68,21 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             exportMnemonicViewer.submitList(it)
         }
 
-        viewModel.substrateDerivationPathLiveData.observe {
-            val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
+        viewModel.derivationPathLiveData.observe { (substrateDerivationPath: String?, ethereumDerivationPath: String?) ->
+            if (substrateDerivationPath.isNullOrBlank() && ethereumDerivationPath.isNullOrBlank()) {
+                exportMnemonicAdvanced.isVisible = false
+                return@observe
+            }
+            val substrateState = if (substrateDerivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
+            val ethereumState = if (ethereumDerivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
             with(exportMnemonicAdvanced) {
-                configureSubstrate(state)
-                setSubstrateDerivationPath(it)
+                configureSubstrate(substrateState)
+                configureEthereum(ethereumState)
+                setSubstrateDerivationPath(substrateDerivationPath)
+                setEthereumDerivationPath(ethereumDerivationPath)
             }
         }
-
-        viewModel.ethereumDerivationPathLiveData.observe {
-            val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
-
-            with(exportMnemonicAdvanced) {
-                configureEthereum(state)
-                setEthereumDerivationPath(it)
-            }
-        }
-
         viewModel.cryptoTypeLiveData.observe {
             exportMnemonicAdvanced.setSubstrateEncryption(it.name)
         }
