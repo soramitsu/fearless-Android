@@ -37,6 +37,7 @@
                 app:message="@string/recovery_raw_seed" />
 
             <FrameLayout
+                android:id="@+id/exportSeedSubstrateLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -44,17 +45,42 @@
                 android:layout_marginEnd="16dp">
 
                 <jp.co.soramitsu.common.view.LabeledTextView
-                    android:id="@+id/exportSeedValue"
+                    android:id="@+id/exportSeedSubstrateValue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="156dp"
                     android:singleLine="false"
                     app:enabled="false"
-                    app:label="@string/recovery_raw_seed"
+                    app:label="@string/recovery_raw_seed_substrate"
                     tools:message="0x1aa03512d3bba4997b499521504d36b81dfa28628a3a0bc10a13f2eb0b3e910b" />
 
                 <ImageView
-                    android:id="@+id/exportSeedCopyButton"
+                    android:id="@+id/exportSubstrateSeedCopyButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|bottom"
+                    android:layout_margin="8dp"
+                    android:src="@drawable/ic_copy_24" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/exportSeedEthereumLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp">
+
+                <jp.co.soramitsu.common.view.LabeledTextView
+                    android:id="@+id/exportSeedEthereumValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="false"
+                    app:enabled="false"
+                    app:label="@string/recovery_raw_seed_eth"
+                    tools:message="0x1aa03512d3bba4997b499521504d36b81dfa28628a3a0bc10a13f2eb0b3e910b" />
+
+                <ImageView
+                    android:id="@+id/exportEthereumSeedCopyButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end|bottom"

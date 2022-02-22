@@ -87,8 +87,8 @@ class AccountsForExportViewModel(
 
     fun exportTypeSelected(selected: ExportSource, chainId: ChainId) {
         val destination = when (selected) {
-            is ExportSource.Json -> accountRouter.openExportJsonPassword(payload.metaId, chainId)
-            is ExportSource.Seed -> accountRouter.openExportSeed(payload.metaId, chainId)
+            is ExportSource.Json -> accountRouter.openExportJsonPassword(payload.metaId, chainId, true)
+            is ExportSource.Seed -> accountRouter.openExportSeed(payload.metaId, chainId, true)
             is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(payload.metaId, chainId)
         }
 

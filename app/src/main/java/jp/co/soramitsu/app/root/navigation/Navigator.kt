@@ -526,10 +526,20 @@ class Navigator :
         return NavComponentDelayedNavigation(R.id.action_export_mnemonic, extras)
     }
 
-    override fun openExportSeed(metaId: Long, chainId: ChainId): DelayedNavigation {
-        val extras = ExportSeedFragment.getBundle(metaId, chainId)
+    override fun openExportSeed(metaId: Long, chainId: ChainId, isExportWallet: Boolean): DelayedNavigation {
+        val extras = ExportSeedFragment.getBundle(metaId, chainId, isExportWallet)
 
         return NavComponentDelayedNavigation(R.id.action_export_seed, extras)
+    }
+
+    override fun openExportSeed(metaId: Long, chainId: ChainId): DelayedNavigation {
+        return openExportSeed(metaId, chainId, isExportWallet = false)
+    }
+
+    override fun openExportJsonPassword(metaId: Long, chainId: ChainId, isExportWallet: Boolean): DelayedNavigation {
+        val extras = ExportJsonPasswordFragment.getBundle(metaId, chainId, isExportWallet)
+
+        return NavComponentDelayedNavigation(R.id.action_export_json, extras)
     }
 
     override fun openConfirmMnemonicOnExport(mnemonic: List<String>) {
@@ -539,9 +549,7 @@ class Navigator :
     }
 
     override fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation {
-        val extras = ExportJsonPasswordFragment.getBundle(metaId, chainId)
-
-        return NavComponentDelayedNavigation(R.id.action_export_json, extras)
+        return openExportJsonPassword(metaId, chainId, isExportWallet = false)
     }
 
     override fun openExportJsonConfirm(payload: ExportJsonConfirmPayload) {

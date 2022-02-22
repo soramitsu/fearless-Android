@@ -5,7 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.ComponentHolder
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.map
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
@@ -30,6 +33,7 @@ class ExportMnemonicViewModel(
     chainRegistry,
     payload.metaId,
     payload.chainId,
+    false,
     ExportSource.Mnemonic
 ) {
 
@@ -89,6 +93,16 @@ class ExportMnemonicViewModel(
                 }
             }
         }
+    val derivationPathLiveData = secretLiveData.map {
+        ComponentHolder(
+            listOf(
+                it?.get(MetaAccountSecrets.SubstrateDerivationPath),
+                it?.get(MetaAccountSecrets.EthereumDerivationPath).takeIf { path ->
+                    path != BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                }
+            )
+        )
+    }
 
     fun back() {
         router.back()
@@ -103,15 +117,7 @@ class ExportMnemonicViewModel(
 
         val chainName = chainLiveData.value?.name ?: return
 
-        val derivationPath = substrateDerivationPathLiveData.value
-
-        val shareText = if (derivationPath.isNullOrBlank()) {
-            resourceManager.getString(R.string.export_mnemonic_without_derivation, chainName, mnemonic)
-        } else {
-            resourceManager.getString(R.string.export_mnemonic_with_derivation, chainName, mnemonic, derivationPath)
-        }
-
-        exportText(shareText)
+        exportText(resourceManager.getString(R.string.export_mnemonic_without_derivation, chainName, mnemonic))
     }
 
     fun openConfirmMnemonic() {

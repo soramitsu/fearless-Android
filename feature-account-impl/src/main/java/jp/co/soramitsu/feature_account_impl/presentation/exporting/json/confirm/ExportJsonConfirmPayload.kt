@@ -8,5 +8,7 @@ import kotlinx.android.parcel.Parcelize
 class ExportJsonConfirmPayload(
     val metaId: Long,
     val chainId: ChainId,
-    val json: String
+    val substrateJson: String?,
+    val ethereumJson: String?,
+    val isExportWallet: Boolean
 ) : Parcelable

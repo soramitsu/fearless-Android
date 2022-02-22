@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import coil.ImageLoader
 import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -15,12 +16,13 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportEthereumJsonConfirmValue
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmAdvanced
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmChangePassword
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmExport
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmNetworkInput
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmToolbar
-import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmValue
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportSubstrateJsonConfirmValue
 
 class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
@@ -52,6 +54,7 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
         }
 
         exportJsonConfirmNetworkInput.isEnabled = false
+        exportJsonConfirmNetworkInput.isVisible = !viewModel.isExportFromWallet
     }
 
     override fun inject() {
@@ -75,7 +78,28 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
             exportJsonConfirmNetworkInput.setMessage(it.name)
         }
 
-        exportJsonConfirmValue.setMessage(viewModel.json)
+        viewModel.isEthereum.observe { isEthereum ->
+            exportJsonConfirmAdvanced.isVisible = false
+            when {
+                viewModel.isExportFromWallet -> {
+                    exportSubstrateJsonConfirmValue.isVisible = true
+                    exportEthereumJsonConfirmValue.isVisible = true
+                    exportJsonConfirmAdvanced.isVisible = false
+                }
+                !viewModel.isExportFromWallet && !isEthereum -> {
+                    exportSubstrateJsonConfirmValue.isVisible = true
+                    exportEthereumJsonConfirmValue.isVisible = false
+                    exportJsonConfirmAdvanced.isVisible = true
+                }
+                !viewModel.isExportFromWallet && isEthereum -> {
+                    exportSubstrateJsonConfirmValue.isVisible = false
+                    exportEthereumJsonConfirmValue.isVisible = true
+                }
+            }
+        }
+
+        viewModel.substrateJson?.let { exportSubstrateJsonConfirmValue.setMessage(it) }
+        viewModel.ethereumJson?.let { exportEthereumJsonConfirmValue.setMessage(it) }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

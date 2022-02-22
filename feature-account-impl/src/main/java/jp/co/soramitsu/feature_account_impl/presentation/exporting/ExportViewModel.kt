@@ -22,6 +22,7 @@ abstract class ExportViewModel(
     private val chainRegistry: ChainRegistry,
     private val metaId: Long,
     private val chainId: ChainId,
+    val isExportFromWallet: Boolean = false,
     val exportSource: ExportSource
 ) : BaseViewModel() {
     private val _exportEvent = MutableLiveData<Event<String>>()
@@ -33,6 +34,7 @@ abstract class ExportViewModel(
 
     val secretLiveData = liveData { emit(loadSecrets()) }
     val chainLiveData = liveData { emit(loadChain()) }
+    val isEthereum = chainLiveData.map { it.isEthereumBased }
 
     val cryptoTypeLiveData = chainLiveData.switchMap { chain ->
         accountLiveData.map { it.cryptoType(chain) }

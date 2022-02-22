@@ -13,9 +13,10 @@ class ExportJsonConfirmViewModel(
     accountInteractor: AccountInteractor,
     chainRegistry: ChainRegistry,
     payload: ExportJsonConfirmPayload
-) : ExportViewModel(accountInteractor, resourceManager, chainRegistry, payload.metaId, payload.chainId, ExportSource.Json) {
+) : ExportViewModel(accountInteractor, resourceManager, chainRegistry, payload.metaId, payload.chainId, payload.isExportWallet, ExportSource.Json) {
 
-    val json = payload.json
+    val substrateJson = payload.substrateJson
+    val ethereumJson = payload.ethereumJson
 
     fun changePasswordClicked() {
         back()
@@ -26,7 +27,20 @@ class ExportJsonConfirmViewModel(
     }
 
     fun confirmClicked() {
-        exportText(json)
+        val exportText = when {
+            isExportFromWallet -> {
+                "Substrate: $substrateJson \n Ethereum: $ethereumJson"
+            }
+            !isExportFromWallet && substrateJson != null && ethereumJson == null -> {
+                substrateJson
+            }
+            !isExportFromWallet && substrateJson == null && ethereumJson != null -> {
+                ethereumJson
+            }
+            else -> null
+        }
+
+        exportText?.let { exportText(it) }
     }
 
     fun shareCompleted() {

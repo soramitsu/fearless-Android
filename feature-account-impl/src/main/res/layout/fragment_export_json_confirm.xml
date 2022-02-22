@@ -37,14 +37,25 @@
                 app:message="@string/recovery_json" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
-                android:id="@+id/exportJsonConfirmValue"
+                android:id="@+id/exportSubstrateJsonConfirmValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 app:enabled="false"
-                app:label="@string/recovery_json"
+                app:label="@string/recovery_json_substrate"
+                tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportEthereumJsonConfirmValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:enabled="false"
+                app:label="@string/recovery_json_eth"
                 tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
