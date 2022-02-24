@@ -240,7 +240,8 @@ Derivation path: %s</string>
     <string name="staking_month_period_title">monthly</string>
     <string name="staking_year_period_title">yearly</string>
     <string name="staking_recommended_title">Validators</string>
-    <string name="staking_recommended_section_title">Recommended validators</string>
+    <string name="staking_recommended_section_title">Validators suggested by algorithm</string>
+    <string name="select_validators_disclaimer">DISCLAIMER: Algorithmic validator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity, and algorithmic validator suggestions do not necessarily mitigate this risk. A validator suggested by the algorithm could still be slashed. A validator suggested by the algorithm could also change their parameters (e.g.,commission rates, etc.) at any time after having been suggested and/or selected. You could lose tokens or rewards for these or other reasons. Only stake tokens and use validator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
     <string name="staking_recommended_feature_1">Most profitable</string>
     <string name="staking_recommended_feature_2">Not oversubscribed</string>
     <string name="staking_recommended_feature_3">Having onchain identity</string>
@@ -401,7 +402,7 @@ Derivation path: %s</string>
     <string name="crowdloan_empty_bonus_title">Get a special bonus</string>
     <string name="crowdloan_empty_email_title">Enter your email</string>
     <string name="crowdloan_agreement_required">Agreement required</string>
-    <string name="staking_start_change_validators_recommended_title">Stake with recommended validators</string>
+    <string name="staking_start_change_validators_recommended_title">Stake with validators suggested by algorithm</string>
     <string name="staking_start_change_validators_custom_title">Stake with your validators</string>
     <string name="common_applied">Applied</string>
     <string name="crowdloan_referral_code_invalid">Referral code is invalid. Please, try another one</string>
@@ -418,7 +419,7 @@ Derivation path: %s</string>
     <string name="staking_select_recommended">Select recommended</string>
     <string name="staking_select_custom">Select by yourself</string>
     <string name="staking_selected_validators_count_v1.9.1" formatted="false">selected %d (max %d)</string>
-    <string name="staking_start_change_validators_recommended_subtitle">Fearless algorithm selected a list of recommended validators based on the criteria:</string>
+    <string name="staking_start_change_validators_recommended_subtitle">Fearless algorithm has select a list of recommended validators based on the criteria:</string>
     <string name="common_not_enough_funds_message">Sorry, you don\'t have enough funds to pay the network fee.</string>
     <string name="choose_amount_error_too_big">Sorry, you don\'t have enough funds to spend specified amount</string>
     <string name="staking_custom_validators_list_title">Select validators</string>
