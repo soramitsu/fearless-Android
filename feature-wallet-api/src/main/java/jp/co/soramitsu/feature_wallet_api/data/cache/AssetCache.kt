@@ -34,11 +34,10 @@ class AssetCache(
         assetUpdateMutex.withLock {
             tokenDao.ensureToken(symbol)
 
-            val cachedAsset = assetDao.getAsset(metaId, chainId, symbol)?.asset ?: AssetLocal.createEmpty(accountId, symbol, chainId, metaId)
-
-            val newAsset = builder.invoke(cachedAsset)
-
-            assetDao.insertAsset(newAsset)
+            when (val cachedAsset = assetDao.getAsset(accountId, chainId, symbol)?.asset) {
+                null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, symbol, chainId, metaId)))
+                else -> assetDao.updateAsset(builder.invoke(cachedAsset))
+            }
         }
     }
 
@@ -67,7 +66,23 @@ class AssetCache(
         }
     }
 
-    suspend fun updateAsset(updateModel: List<AssetUpdateItem>): Int {
-        return assetDao.updateAssets(updateModel)
+    suspend fun updateAsset(updateModel: List<AssetUpdateItem>) {
+        val onlyUpdates = mutableListOf<AssetUpdateItem>()
+        updateModel.listIterator().forEach {
+            val cached = assetDao.getAsset(it.metaId, it.chainId, it.tokenSymbol)?.asset
+            if (cached == null) {
+                val initial = AssetLocal.createEmpty(it.accountId, it.tokenSymbol, it.chainId, it.metaId)
+                val newAsset = initial.copy(
+                    sortIndex = it.sortIndex,
+                    enabled = it.enabled
+                )
+                assetDao.insertAsset(newAsset)
+            } else {
+                onlyUpdates.add(it)
+            }
+        }
+        assetUpdateMutex.withLock {
+            assetDao.updateAssets(onlyUpdates)
+        }
     }
 }

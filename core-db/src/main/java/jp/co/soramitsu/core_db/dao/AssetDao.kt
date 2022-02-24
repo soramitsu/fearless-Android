@@ -67,4 +67,7 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     @Update(entity = AssetLocal::class)
     abstract suspend fun updateAssets(item: List<AssetUpdateItem>): Int
+
+    @Update(entity = AssetLocal::class)
+    abstract suspend fun updateAsset(asset: AssetLocal)
 }

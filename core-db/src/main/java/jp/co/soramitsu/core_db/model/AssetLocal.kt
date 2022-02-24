@@ -9,7 +9,7 @@ import java.math.BigInteger
 
 @Entity(
     tableName = "assets",
-    primaryKeys = ["tokenSymbol", "chainId", "accountId"],
+    primaryKeys = ["tokenSymbol", "chainId", "accountId", "metaId"],
     foreignKeys = [
         ForeignKey(
             entity = ChainLocal::class,
@@ -61,6 +61,7 @@ data class AssetLocal(
 }
 
 data class AssetUpdateItem(
+    val metaId: Long,
     val chainId: String,
     val accountId: AccountId,
     val tokenSymbol: String,

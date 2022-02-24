@@ -313,8 +313,8 @@ class WalletRepositoryImpl(
         else -> substrateSource.getAccountInfo(chainId, accountId).data.free
     }
 
-    override suspend fun updateAssets(newItems: List<AssetUpdateItem>): Int {
-        return assetCache.updateAsset(newItems)
+    override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
+        assetCache.updateAsset(newItems)
     }
 
     private fun createOperation(
