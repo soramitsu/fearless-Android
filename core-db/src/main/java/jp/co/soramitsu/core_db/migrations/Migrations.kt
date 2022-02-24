@@ -3,6 +3,63 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val FixAssetsMigration_36_37 = object : Migration(36, 37) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        database.execSQL("ALTER TABLE assets RENAME TO _assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `tokenSymbol` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `accountId` BLOB NOT NULL, 
+            `metaId` INTEGER NOT NULL, 
+            `freeInPlanks` TEXT NOT NULL, 
+            `reservedInPlanks` TEXT NOT NULL, 
+            `miscFrozenInPlanks` TEXT NOT NULL, 
+            `feeFrozenInPlanks` TEXT NOT NULL, 
+            `bondedInPlanks` TEXT NOT NULL, 
+            `redeemableInPlanks` TEXT NOT NULL, 
+            `unbondingInPlanks` TEXT NOT NULL, 
+            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
+            `enabled` INTEGER NOT NULL DEFAULT 1, 
+            `chainAccountName` TEXT, 
+            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`, `metaId`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO assets SELECT 
+                a.tokenSymbol,
+                a.chainId,
+                a.accountId,
+                a.metaId,
+                a.freeInPlanks,
+                a.reservedInPlanks,
+                a.miscFrozenInPlanks,
+                a.feeFrozenInPlanks,
+                a.bondedInPlanks,
+                a.redeemableInPlanks,
+                a.unbondingInPlanks, 
+                0 as `sortIndex`, 
+                1 as `enabled`, 
+                null as `chainAccountName` 
+            FROM _assets a
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE _assets")
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
+
 val RemoveLegacyData_35_36 = object : Migration(35, 36) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("DROP TABLE chain_accounts")
@@ -28,7 +85,6 @@ val RemoveLegacyData_35_36 = object : Migration(35, 36) {
         database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
 
         // remove `networkType` INTEGER NOT NULL
-        database.setForeignKeyConstraintsEnabled(false)
         database.execSQL("ALTER TABLE users RENAME TO _users")
         database.execSQL(
             """
@@ -42,9 +98,8 @@ val RemoveLegacyData_35_36 = object : Migration(35, 36) {
             )
             """.trimIndent()
         )
-        database.execSQL("INSERT INTO users SELECT * FROM _users")
+        database.execSQL("INSERT INTO users SELECT address, username, publicKey, cryptoType, position FROM _users")
         database.execSQL("DROP TABLE _users")
-        database.setForeignKeyConstraintsEnabled(false)
     }
 }
 
