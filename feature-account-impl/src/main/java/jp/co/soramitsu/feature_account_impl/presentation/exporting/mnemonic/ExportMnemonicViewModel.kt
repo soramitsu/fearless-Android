@@ -1,16 +1,15 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.map
-import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.switchMap
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -54,7 +53,7 @@ class ExportMnemonicViewModel(
         mapMnemonicToMnemonicWords(it.wordList)
     }
 
-    val substrateDerivationPathLiveData = mediateWith(
+    val derivationPathLiveData = mediateWith(
         isChainAccountLiveData, isChainEthereumBased
     ) { (isChainAccount: Boolean?, isEthereum: Boolean?) ->
         when {
@@ -64,45 +63,34 @@ class ExportMnemonicViewModel(
     }
         .switchMap { (isChain, isEthereum) ->
             when {
-                isChain && isEthereum -> MutableLiveData(null)
+                isChain && !isEthereum -> chainSecretLiveData.map {
+                    ComponentHolder(
+                        listOf(
+                            it?.get(ChainAccountSecrets.DerivationPath),
+                            null
+                        )
+                    )
+                }
                 isChain -> chainSecretLiveData.map {
-                    it?.get(ChainAccountSecrets.DerivationPath)
+                    ComponentHolder(
+                        listOf(
+                            null,
+                            it?.get(ChainAccountSecrets.DerivationPath)
+                        )
+                    )
                 }
                 else -> secretLiveData.map {
-                    it?.get(MetaAccountSecrets.SubstrateDerivationPath)
+                    ComponentHolder(
+                        listOf(
+                            it?.get(MetaAccountSecrets.SubstrateDerivationPath),
+                            it?.get(MetaAccountSecrets.EthereumDerivationPath).takeIf { path ->
+                                path != BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                            }
+                        )
+                    )
                 }
             }
         }
-
-    val ethereumDerivationPathLiveData = mediateWith(
-        isChainAccountLiveData, isChainEthereumBased
-    ) { (isChainAccount: Boolean?, isEthereum: Boolean?) ->
-        when {
-            isChainAccount == null || isEthereum == null -> null
-            else -> isChainAccount to isEthereum
-        }
-    }
-        .switchMap { (isChain, isEthereum) ->
-            when {
-                isChain && !isEthereum -> MutableLiveData(null)
-                isChain -> chainSecretLiveData.map {
-                    it?.get(ChainAccountSecrets.DerivationPath)
-                }
-                else -> secretLiveData.map {
-                    it?.get(MetaAccountSecrets.EthereumDerivationPath)
-                }
-            }
-        }
-    val derivationPathLiveData = secretLiveData.map {
-        ComponentHolder(
-            listOf(
-                it?.get(MetaAccountSecrets.SubstrateDerivationPath),
-                it?.get(MetaAccountSecrets.EthereumDerivationPath).takeIf { path ->
-                    path != BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-                }
-            )
-        )
-    }
 
     fun back() {
         router.back()
