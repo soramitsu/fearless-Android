@@ -11,11 +11,12 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
+import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
-import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumDerivationPathInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumDerivationPathHint
+import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumDerivationPathInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumEncryptionTypeInput
 import kotlinx.android.synthetic.main.view_advanced_block.view.substrateDerivationPathHint
 import kotlinx.android.synthetic.main.view_advanced_block.view.substrateDerivationPathInput
@@ -145,6 +146,19 @@ class AdvancedBlockView @JvmOverloads constructor(
     fun configure(fieldState: FieldState) {
         configureSubstrate(fieldState)
         configureEthereum(fieldState)
+    }
+
+    fun configure(blockchainType: ImportAccountType) {
+        when (blockchainType) {
+            ImportAccountType.Substrate -> {
+                configureSubstrate(FieldState.NORMAL)
+                configureEthereum(FieldState.HIDDEN)
+            }
+            ImportAccountType.Ethereum -> {
+                configureSubstrate(FieldState.HIDDEN)
+                configureEthereum(FieldState.NORMAL)
+            }
+        }
     }
 
     fun configureSubstrate(fieldState: FieldState) {

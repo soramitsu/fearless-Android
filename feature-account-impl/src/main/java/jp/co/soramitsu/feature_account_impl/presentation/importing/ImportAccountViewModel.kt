@@ -48,7 +48,11 @@ class ImportAccountViewModel(
     private val _blockchainTypeLiveData = MutableLiveData<ImportAccountType>()
     val blockchainLiveData: LiveData<ImportAccountType> = _blockchainTypeLiveData
 
-    val nameLiveData = MutableLiveData<String>()
+    val nameLiveData = MutableLiveData<String>().apply {
+        if (getIsChainAccount()) {
+            value = ""
+        }
+    }
 
     private val _showSourceChooserLiveData = MutableLiveData<Event<Payload<ImportSource>>>()
     val showSourceSelectorChooserLiveData: LiveData<Event<Payload<ImportSource>>> = _showSourceChooserLiveData
@@ -65,7 +69,7 @@ class ImportAccountViewModel(
     private val importInProgressLiveData = MutableLiveData(false)
 
     private val nextButtonEnabledLiveData = sourceTypeValid.combine(nameLiveData) { sourceTypeValid, name ->
-        sourceTypeValid && name.isNotEmpty()
+        sourceTypeValid && (name.isNotEmpty() || getIsChainAccount())
     }
 
     val nextButtonState = nextButtonEnabledLiveData.combine(importInProgressLiveData) { enabled, inProgress ->
@@ -90,6 +94,8 @@ class ImportAccountViewModel(
             initialBlockchainType != null -> _blockchainTypeLiveData.value = initialBlockchainType
         }
     }
+
+    fun getIsChainAccount() = chainCreateAccountData != null
 
     fun homeButtonClicked() {
         router.backToWelcomeScreen()
@@ -145,7 +151,7 @@ class ImportAccountViewModel(
         val cryptoType = selectedEncryptionTypeLiveData.value!!.cryptoType
         val substrateDerivationPath = substrateDerivationPathLiveData.value.orEmpty()
         val ethereumDerivationPath = ethereumDerivationPathLiveData.value.orEmpty()
-        val name = nameLiveData.value!!
+        val name = if (getIsChainAccount()) "" else nameLiveData.value!!
 
         viewModelScope.launch {
             val result = when (chainCreateAccountData) {

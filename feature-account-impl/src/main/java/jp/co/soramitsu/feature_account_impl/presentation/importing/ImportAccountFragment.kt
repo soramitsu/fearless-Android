@@ -109,6 +109,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         viewModel.showEthAccountsDialog.observeEvent { showEthDialog() }
 
+        if (viewModel.getIsChainAccount()) {
+            toolbar.setTitle(R.string.onboarding_restore_account)
+        }
+
         mediateWith(
             viewModel.blockchainLiveData,
             viewModel.selectedSourceLiveData
@@ -116,8 +120,8 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             blockchainType?.let {
                 val sourceViews = buildSourceTypesViews(blockchainType)
                 setupSourceTypes(sourceType, sourceViews)
-
-                setupAdvancedBlock(blockchainType, sourceType)
+                val isChainAccount = viewModel.getIsChainAccount()
+                setupAdvancedBlock(blockchainType, sourceType, isChainAccount)
             }
         }.observe { }
     }
@@ -142,20 +146,18 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         sourceTypeInput.setMessage(sourceType.nameRes)
     }
 
-    private fun setupAdvancedBlock(blockchainType: ImportAccountType, sourceType: ImportSource) {
+    private fun setupAdvancedBlock(blockchainType: ImportAccountType, sourceType: ImportSource, isChainAccount: Boolean) {
         advancedBlockView.makeVisible()
         advancedBlockView.apply {
             when {
+                sourceType is MnemonicImportSource && isChainAccount -> {
+                    configure(blockchainType)
+                }
                 sourceType is MnemonicImportSource -> {
                     configure(FieldState.NORMAL)
                 }
-                sourceType is RawSeedImportSource && blockchainType == ImportAccountType.Substrate -> {
-                    configureSubstrate(FieldState.NORMAL)
-                    configureEthereum(FieldState.HIDDEN)
-                }
-                sourceType is RawSeedImportSource && blockchainType == ImportAccountType.Ethereum -> {
-                    configureSubstrate(FieldState.HIDDEN)
-                    configureEthereum(FieldState.NORMAL)
+                sourceType is RawSeedImportSource -> {
+                    configure(blockchainType)
                 }
                 sourceType is JsonImportSource -> {
                     advancedBlockView.makeGone()
@@ -194,10 +196,12 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     private fun createSourceView(source: ImportSource, blockchainType: ImportAccountType): ImportSourceView {
         val context = requireContext()
 
+        val isChainAccount = viewModel.getIsChainAccount()
+
         return when (source) {
-            is JsonImportSource -> JsonImportView(context, blockchainType)
-            is MnemonicImportSource -> MnemonicImportView(context)
-            is RawSeedImportSource -> SeedImportView(context, blockchainType)
+            is JsonImportSource -> JsonImportView(context, blockchainType, isChainAccount)
+            is MnemonicImportSource -> MnemonicImportView(context, isChainAccount)
+            is RawSeedImportSource -> SeedImportView(context, blockchainType, isChainAccount)
         }
     }
 

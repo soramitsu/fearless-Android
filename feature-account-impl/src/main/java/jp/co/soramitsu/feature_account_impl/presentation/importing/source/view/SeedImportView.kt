@@ -2,22 +2,25 @@ package jp.co.soramitsu.feature_account_impl.presentation.importing.source.view
 
 import android.content.Context
 import android.util.AttributeSet
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedContent
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedContentContainer
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedTitle
 import kotlinx.android.synthetic.main.import_source_seed.view.importSeedUsernameInput
+import kotlinx.android.synthetic.main.import_source_seed.view.usernameHintTv
 
 class SeedImportView @JvmOverloads constructor(
     context: Context,
+    private val isChainAccount: Boolean,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_seed, context, attrs, defStyleAttr) {
@@ -29,7 +32,7 @@ class SeedImportView @JvmOverloads constructor(
         init()
     }
 
-    constructor(context: Context, type: ImportAccountType) : this(context) {
+    constructor(context: Context, type: ImportAccountType, isChainAccount: Boolean) : this(context, isChainAccount) {
         init(type)
     }
 
@@ -39,6 +42,9 @@ class SeedImportView @JvmOverloads constructor(
         importSeedUsernameInput.content.filters = nameInputFilters()
 
         setImportAccountType(type)
+
+        importSeedUsernameInput.isVisible = !isChainAccount
+        usernameHintTv.isVisible = !isChainAccount
     }
 
     private fun setImportAccountType(type: ImportAccountType) {

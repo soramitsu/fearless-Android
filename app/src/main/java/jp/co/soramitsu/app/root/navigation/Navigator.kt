@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountDetailsFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.export.WalletExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.exportaccounts.AccountsForExportFragment
@@ -127,12 +126,8 @@ class Navigator :
     }
 
     override fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload) {
-        val bundle = CreateAccountFragment.getBundle(payload)
-        navController?.navigate(
-            R.id.action_welcomeFragment_to_createAccountFragment,
-            bundle,
-            NavOptions.Builder().setPopUpTo(R.id.welcomeFragment, true).build()
-        )
+        val bundle = BackupMnemonicFragment.getBundle("", payload)
+        navController?.navigate(R.id.action_welcomeFragment_to_backupMnemonicFragment, bundle)
     }
 
     override fun openImportAccountSkipWelcome(payload: ChainAccountCreatePayload) {
