@@ -54,9 +54,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
     }
 
     private fun configureAdvancedBlock() {
-        with(exportSeedAdvanced) {
-            configure(FieldState.DISABLED)
-        }
+        exportSeedAdvanced.configure(FieldState.DISABLED)
     }
 
     override fun inject() {
@@ -77,7 +75,6 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
         combine(viewModel.isEthereum, viewModel.derivationPathLiveData) { it }
             .observe { (isEthereum: Boolean, derivationPath: String?) ->
-                exportSeedAdvanced.isVisible = isEthereum.not()
                 val state = if (derivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
                 with(exportSeedAdvanced) {
@@ -94,6 +91,8 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
                     isEthereum -> {
                         exportSeedSubstrateLayout.isVisible = false
                         exportSeedEthereumLayout.isVisible = true
+                        exportSeedAdvanced.configureSubstrate(FieldState.HIDDEN)
+                        FieldState.DISABLED.applyTo(exportSeedAdvanced.ethereumEncryptionTypeField)
                     }
                     isEthereum.not() -> {
                         exportSeedSubstrateLayout.isVisible = true

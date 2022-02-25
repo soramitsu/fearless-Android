@@ -156,8 +156,11 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
                 sourceType is MnemonicImportSource -> {
                     configure(FieldState.NORMAL)
                 }
-                sourceType is RawSeedImportSource -> {
+                sourceType is RawSeedImportSource && isChainAccount -> {
                     configure(blockchainType)
+                }
+                sourceType is RawSeedImportSource -> {
+                    advancedBlockView.makeGone()
                 }
                 sourceType is JsonImportSource -> {
                     advancedBlockView.makeGone()

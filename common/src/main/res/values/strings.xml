@@ -33,8 +33,7 @@
     <string name="onboarding_restore_wallet">Import wallet</string>
     <string name="onboarding_restore_account">Import account</string>
     <string name="onboarding_title">I already have a wallet</string>
-    <string name="onboarding_terms_and_conditions_1">I have read and agreed to
-Terms and Conditions and Privacy Policy</string>
+    <string name="onboarding_terms_and_conditions_1">I have read and agreed to\nTerms and Conditions and Privacy Policy</string>
     <string name="contribute_terms">I have read and agreed to Terms and Conditions</string>
     <string name="referral_email_acala">I agree to receive email from Acala</string>
     <string name="contribute_terms_clickable">Terms and Conditions</string>
