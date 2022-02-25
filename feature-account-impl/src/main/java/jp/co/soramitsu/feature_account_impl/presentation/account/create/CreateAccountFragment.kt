@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.utils.showSoftKeyboard
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.R
@@ -43,6 +44,8 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
         }
 
         accountNameInput.content.filters = nameInputFilters()
+        accountNameInput.content.requestFocus()
+        accountNameInput.content.showSoftKeyboard()
     }
 
     override fun inject() {
