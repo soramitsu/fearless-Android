@@ -66,6 +66,7 @@ class CrowdloanContributeInteractor(
         ) { fundInfo, blockNumber ->
             val contribution = crowdloanRepository.getContribution(chain.id, accountId, parachainId, fundInfo.trieIndex)
             val hasWonAuction = crowdloanRepository.hasWonAuction(chain.id, fundInfo)
+            val minContribution = crowdloanRepository.minContribution(chain.id)
 
             mapFundInfoToCrowdloan(
                 fundInfo = fundInfo,
@@ -75,7 +76,8 @@ class CrowdloanContributeInteractor(
                 expectedBlockTimeInMillis = expectedBlockTime,
                 blocksPerLeasePeriod = blocksPerLeasePeriod,
                 contribution = contribution,
-                hasWonAuction = hasWonAuction
+                hasWonAuction = hasWonAuction,
+                minContribution = minContribution
             )
         }
     }
