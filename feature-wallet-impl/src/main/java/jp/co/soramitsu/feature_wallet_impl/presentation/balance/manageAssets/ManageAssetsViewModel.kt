@@ -80,8 +80,8 @@ class ManageAssetsViewModel(
     fun onApply() {
         launch {
             val newItems = _unsyncedItemsFlow.first().mapIndexed { index, item ->
-                item.position = index
-                item.toUpdateItem()
+                val metaId = walletInteractor.getSelectedMetaAccount().id
+                item.toUpdateItem(metaId, index)
             }
 
             walletInteractor.updateAssets(newItems)

@@ -116,11 +116,13 @@ fun mapChainRemoteToChain(
         }
 
         val externalApi = chainRemote.externalApi?.let { externalApi ->
-            Chain.ExternalApi(
-                history = mapSectionRemoteToSection(externalApi.history),
-                staking = mapSectionRemoteToSection(externalApi.staking),
-                crowdloans = mapSectionRemoteToSection(externalApi.crowdloans)
-            )
+            (externalApi.history ?: externalApi.staking ?: externalApi.crowdloans)?.let {
+                Chain.ExternalApi(
+                    history = mapSectionRemoteToSection(externalApi.history),
+                    staking = mapSectionRemoteToSection(externalApi.staking),
+                    crowdloans = mapSectionRemoteToSection(externalApi.crowdloans)
+                )
+            }
         }
 
         val explorers = chainRemote.externalApi?.explorers?.map { it.toExplorer() }

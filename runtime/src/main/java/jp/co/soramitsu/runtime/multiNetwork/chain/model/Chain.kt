@@ -69,7 +69,27 @@ data class Chain(
         val name: String,
         val isActive: Boolean,
         val isDefault: Boolean
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Node
+
+            if (url != other.url) return false
+            if (name != other.name) return false
+            if (isDefault != other.isDefault) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = url.hashCode()
+            result = 31 * result + name.hashCode()
+            result = 31 * result + isDefault.hashCode()
+            return result
+        }
+    }
 
     data class ExternalApi(
         val staking: Section?,

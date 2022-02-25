@@ -47,4 +47,4 @@ fun Asset.toAssetModel(): ManageAssetModel {
     )
 }
 
-fun ManageAssetModel.toUpdateItem() = AssetUpdateItem(chainId, accountId, tokenSymbol, position, enabled)
+fun ManageAssetModel.toUpdateItem(metaId: Long, setPosition: Int?) = AssetUpdateItem(metaId, chainId, accountId, tokenSymbol, setPosition ?: position, enabled)
