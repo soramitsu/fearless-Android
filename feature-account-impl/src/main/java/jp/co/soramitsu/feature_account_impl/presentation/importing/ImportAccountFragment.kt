@@ -109,7 +109,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         viewModel.showEthAccountsDialog.observeEvent { showEthDialog() }
 
-        if (viewModel.getIsChainAccount()) {
+        if (viewModel.isChainAccount) {
             toolbar.setTitle(R.string.onboarding_restore_account)
         }
 
@@ -120,7 +120,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             blockchainType?.let {
                 val sourceViews = buildSourceTypesViews(blockchainType)
                 setupSourceTypes(sourceType, sourceViews)
-                val isChainAccount = viewModel.getIsChainAccount()
+                val isChainAccount = viewModel.isChainAccount
                 setupAdvancedBlock(blockchainType, sourceType, isChainAccount)
             }
         }.observe { }
@@ -199,7 +199,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     private fun createSourceView(source: ImportSource, blockchainType: ImportAccountType): ImportSourceView {
         val context = requireContext()
 
-        val isChainAccount = viewModel.getIsChainAccount()
+        val isChainAccount = viewModel.isChainAccount
 
         return when (source) {
             is JsonImportSource -> JsonImportView(context, blockchainType, isChainAccount)
