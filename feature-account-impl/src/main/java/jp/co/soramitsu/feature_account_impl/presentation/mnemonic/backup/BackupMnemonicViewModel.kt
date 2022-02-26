@@ -27,8 +27,13 @@ class BackupMnemonicViewModel(
         emit(generateMnemonic())
     }
 
+    private val substrateDerivationPathRegex = Regex("(//?[^/]+)*(///[^/]+)?")
+
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
+
+    private val _showInvalidSubstrateDerivationPathError = MutableLiveData<Event<Unit>>()
+    val showInvalidSubstrateDerivationPathError: LiveData<Event<Unit>> = _showInvalidSubstrateDerivationPathError
 
     fun homeButtonClicked() {
         router.backToCreateAccountScreen()
@@ -44,6 +49,12 @@ class BackupMnemonicViewModel(
         val mnemonicWords = mnemonicLiveData.value ?: return
 
         val mnemonic = mnemonicWords.map(MnemonicWordModel::word)
+
+        val isSubstrateDerivationPathValid = substrateDerivationPath.matches(substrateDerivationPathRegex)
+        if (isSubstrateDerivationPathValid.not()) {
+            _showInvalidSubstrateDerivationPathError.value = Event(Unit)
+            return
+        }
 
         val createExtras = when (payload.chainAccountData) {
             null -> CreateExtras(

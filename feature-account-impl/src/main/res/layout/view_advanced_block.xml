@@ -55,7 +55,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/onboarding_substrate_derivation_path_title" />
+            android:hint="@string/onboarding_substrate_derivation_path_title"
+            android:inputType="text" />
 
         <TextView
             android:id="@+id/substrateDerivationPathHint"
@@ -81,6 +82,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:inputType="text"
             android:hint="@string/onboarding_ethereum_derivation_path_title" />
 
         <TextView

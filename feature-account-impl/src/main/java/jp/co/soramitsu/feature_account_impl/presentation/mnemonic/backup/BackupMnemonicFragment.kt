@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 
 import android.os.Bundle
+import android.text.method.DigitsKeyListener
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -48,6 +49,9 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
             viewModel.chooseEncryptionClicked()
         }
+        advancedBlockView.ethereumDerivationPathField.content.keyListener = DigitsKeyListener.getInstance("0123456789/")
+
+        advancedBlockView.ethereumDerivationPathField.content.addTextChangedListener(EthereumDerivationPathTransformer)
 
         nextBtn.setOnClickListener {
             viewModel.nextClicked(advancedBlockView.getSubstrateDerivationPath(), advancedBlockView.getEthereumDerivationPath())
@@ -76,6 +80,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
 
         viewModel.showInfoEvent.observeEvent {
             showMnemonicInfoDialog()
+        }
+
+        viewModel.showInvalidSubstrateDerivationPathError.observe {
+            showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
         }
     }
 
