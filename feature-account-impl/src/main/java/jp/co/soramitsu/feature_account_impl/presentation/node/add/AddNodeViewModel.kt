@@ -59,6 +59,7 @@ class AddNodeViewModel(
                 router.back()
             } else {
                 handleNodeException(result.requireException())
+                addingInProgressLiveData.postValue(false)
             }
         }
     }

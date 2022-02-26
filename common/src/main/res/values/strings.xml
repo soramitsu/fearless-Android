@@ -31,9 +31,9 @@
     <string name="common_copy_address">Copy address</string>
     <string name="connection_error_message">Please, check internet connection and try again later.</string>
     <string name="onboarding_restore_wallet">Import wallet</string>
+    <string name="onboarding_restore_account">Import account</string>
     <string name="onboarding_title">I already have a wallet</string>
-    <string name="onboarding_terms_and_conditions_1">I have read and agreed to
-Terms and Conditions and Privacy Policy</string>
+    <string name="onboarding_terms_and_conditions_1">I have read and agreed to\nTerms and Conditions and Privacy Policy</string>
     <string name="contribute_terms">I have read and agreed to Terms and Conditions</string>
     <string name="referral_email_acala">I agree to receive email from Acala</string>
     <string name="contribute_terms_clickable">Terms and Conditions</string>
@@ -562,6 +562,7 @@ to your account to avoid remaining stake.</string>
     <string name="already_have_account">I already have an account</string>
 
     <string name="create_new_wallet">Create a new wallet</string>
+    <string name="create_account">Create account</string>
 
     <string name="common_yes">Yes</string>
     <string name="common_no">No</string>
