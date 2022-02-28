@@ -26,21 +26,14 @@ class ExportJsonConfirmViewModel(
         router.back()
     }
 
-    fun confirmClicked() {
-        val exportText = when {
-            isExportFromWallet -> {
-                "Substrate: $substrateJson \n Ethereum: $ethereumJson"
-            }
-            !isExportFromWallet && substrateJson != null && ethereumJson == null -> {
-                substrateJson
-            }
-            !isExportFromWallet && substrateJson == null && ethereumJson != null -> {
-                ethereumJson
-            }
-            else -> null
-        }
+    fun confirmSubstrateClicked() {
+        substrateJson ?: return
+        exportText(substrateJson)
+    }
 
-        exportText?.let { exportText(it) }
+    fun confirmEthereumClicked() {
+        ethereumJson ?: return
+        exportText(ethereumJson)
     }
 
     fun shareCompleted() {

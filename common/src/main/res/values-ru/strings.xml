@@ -528,4 +528,7 @@
     <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
 
     <string name="common_invalid_hard_soft_numeric_password_message">Пожалуйста, удостоверьтесь, что введенная строка это комбинация //\'hard\' и /\'soft\' где \'hard\' и \'soft\' могут быть любой последовательностью символов, не включая /.  Путь может оканчиваться ///\'password\'. Например, //0/1//0///mypass</string>
+
+    <string name="account_export_substrate_action">Экспорт substrate</string>
+    <string name="account_export_ethereum_action">Экспорт ethereum</string>
 </resources>
