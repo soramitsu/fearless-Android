@@ -62,6 +62,11 @@ class ImportAccountViewModel(
     val substrateDerivationPathLiveData = MutableLiveData<String>()
     val ethereumDerivationPathLiveData = MutableLiveData<String>()
 
+    private val _showInvalidSubstrateDerivationPathError = MutableLiveData<Event<Unit>>()
+    val showInvalidSubstrateDerivationPathError: LiveData<Event<Unit>> = _showInvalidSubstrateDerivationPathError
+
+    private val substrateDerivationPathRegex = Regex("(//?[^/]+)*(///[^/]+)?")
+
     val sourceTypes = provideSourceType()
     private val _selectedSourceTypeLiveData = MutableLiveData(sourceTypes.first())
     val selectedSourceLiveData: LiveData<ImportSource> = _selectedSourceTypeLiveData
@@ -112,6 +117,11 @@ class ImportAccountViewModel(
     }
 
     fun nextClicked() {
+        val isSubstrateDerivationPathValid = substrateDerivationPathLiveData.value?.matches(substrateDerivationPathRegex)
+        if (isSubstrateDerivationPathValid == false) {
+            _showInvalidSubstrateDerivationPathError.value = Event(Unit)
+            return
+        }
         val source = _selectedSourceTypeLiveData.value
         when {
             source is MnemonicImportSource -> {

@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.importing
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.method.DigitsKeyListener
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
@@ -31,6 +32,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.I
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.JsonImportView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.MnemonicImportView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.SeedImportView
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.EthereumDerivationPathTransformer
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_import_account.advancedBlockView
@@ -68,6 +70,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         nextBtn.setOnClickListener { viewModel.nextClicked() }
 
         nextBtn.prepareForProgress(viewLifecycleOwner)
+
+        advancedBlockView.ethereumDerivationPathField.content.keyListener = DigitsKeyListener.getInstance("0123456789/")
+
+        advancedBlockView.ethereumDerivationPathField.content.addTextChangedListener(EthereumDerivationPathTransformer)
     }
 
     override fun inject() {
@@ -124,6 +130,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
                 setupAdvancedBlock(blockchainType, sourceType, isChainAccount)
             }
         }.observe { }
+
+        viewModel.showInvalidSubstrateDerivationPathError.observe {
+            showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
+        }
     }
 
     private fun buildSourceTypesViews(blockchainType: ImportAccountType) = viewModel.sourceTypes.map {
