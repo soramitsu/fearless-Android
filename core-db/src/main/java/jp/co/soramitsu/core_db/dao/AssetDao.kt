@@ -42,9 +42,9 @@ interface AssetReadOnlyCache {
 
     fun observeAsset(metaId: Long, chainId: String, symbol: String): Flow<AssetWithToken>
 
-    fun observeAsset(accountId: AccountId, chainId: String, symbol: String, emptyAccountId: AccountId = emptyAccountIdValue): Flow<AssetWithToken>
+    fun observeAsset(accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken>
 
-    suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String, emptyAccountId: AccountId = emptyAccountIdValue): AssetWithToken?
+    suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken?
 
     suspend fun getAsset(metaId: Long, chainId: String, symbol: String): AssetWithToken?
 }
@@ -61,11 +61,17 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Query(RETRIEVE_ASSET_SQL_META_ID)
     abstract override fun observeAsset(metaId: Long, chainId: String, symbol: String): Flow<AssetWithToken>
 
-    @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
-    abstract override fun observeAsset(accountId: AccountId, chainId: String, symbol: String, emptyAccountId: AccountId): Flow<AssetWithToken>
+    override fun observeAsset(accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken> =
+        observeAssetWithEmpty(accountId, chainId, symbol, emptyAccountIdValue)
 
     @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
-    abstract override suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String, emptyAccountId: AccountId): AssetWithToken?
+    protected abstract fun observeAssetWithEmpty(accountId: AccountId, chainId: String, symbol: String, emptyAccountId: AccountId): Flow<AssetWithToken>
+
+    override suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken? =
+        getAssetWithEmpty(accountId, chainId, symbol, emptyAccountIdValue)
+
+    @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
+    protected abstract suspend fun getAssetWithEmpty(accountId: AccountId, chainId: String, symbol: String, emptyAccountId: AccountId): AssetWithToken?
 
     @Query(RETRIEVE_ASSET_SQL_META_ID)
     abstract override suspend fun getAsset(metaId: Long, chainId: String, symbol: String): AssetWithToken?
