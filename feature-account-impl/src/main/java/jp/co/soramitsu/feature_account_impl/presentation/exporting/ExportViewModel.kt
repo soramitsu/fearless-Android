@@ -28,7 +28,7 @@ abstract class ExportViewModel(
     private val _exportEvent = MutableLiveData<Event<String>>()
     val exportEvent: LiveData<Event<String>> = _exportEvent
 
-    private val accountLiveData = liveData { emit(loadAccount()) }
+    val accountLiveData = liveData { emit(loadAccount()) }
     val chainSecretLiveData = liveData { emit(loadSecrets(chainId)) }
     val isChainAccountLiveData = liveData { emit(accountInteractor.getMetaAccount(metaId).hasChainAccount(chainId)) }
 
