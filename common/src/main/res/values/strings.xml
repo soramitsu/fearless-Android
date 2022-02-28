@@ -574,4 +574,7 @@ to your account to avoid remaining stake.</string>
 
     <string name="account_export_substrate_action">Export substrate</string>
     <string name="account_export_ethereum_action">Export ethereum</string>
+
+    <string name="json_export_type_text">Export as text</string>
+    <string name="json_export_type_file">Export to file</string>
 </resources>

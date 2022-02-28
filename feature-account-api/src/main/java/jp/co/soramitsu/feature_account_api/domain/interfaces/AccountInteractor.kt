@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
+import java.io.File
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.core.model.CryptoType
@@ -134,4 +135,6 @@ interface AccountInteractor {
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
 
     suspend fun getChain(chainId: ChainId): Chain
+
+    suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 }

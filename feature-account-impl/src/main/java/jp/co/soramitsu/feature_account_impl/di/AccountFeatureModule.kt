@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -97,9 +98,10 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountInteractor(
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        fileProvider: FileProvider
     ): AccountInteractor {
-        return AccountInteractorImpl(accountRepository)
+        return AccountInteractorImpl(accountRepository, fileProvider)
     }
 
     @Provides
