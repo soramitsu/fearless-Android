@@ -6,9 +6,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import coil.ImageLoader
+import java.io.File
 import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
@@ -28,7 +30,7 @@ import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportSubstra
 class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
     @Inject
-    protected lateinit var imageLoader: ImageLoader
+    lateinit var imageLoader: ImageLoader
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -108,6 +110,30 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
         viewModel.substrateJson?.let { exportSubstrateJsonConfirmValue.setMessage(it) }
         viewModel.ethereumJson?.let { exportEthereumJsonConfirmValue.setMessage(it) }
+
+        viewModel.shareEvent.observeEvent(::shareJson)
+        viewModel.showJsonImportTypeEvent.observeEvent(::showExportTypeSheet)
+    }
+
+    private fun showExportTypeSheet(isEthereum: Boolean) {
+        JsonExportTypeSheet(
+            requireContext(),
+            { viewModel.onExportByText(isEthereum) },
+            { viewModel.onExportByFile(isEthereum) }
+        ).show()
+    }
+
+    private fun shareJson(file: File) {
+        val jsonUri = FileProvider.getUriForFile(activity!!, "${activity!!.packageName}.provider", file)
+
+        if (jsonUri != null) {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, jsonUri)
+            }
+
+            startActivity(Intent.createChooser(intent, "Json"))
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

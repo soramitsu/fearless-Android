@@ -531,4 +531,7 @@
 
     <string name="account_export_substrate_action">Экспорт substrate</string>
     <string name="account_export_ethereum_action">Экспорт ethereum</string>
+
+    <string name="json_export_type_text">Экспортировать как текст</string>
+    <string name="json_export_type_file">Экспортировать в файл</string>
 </resources>

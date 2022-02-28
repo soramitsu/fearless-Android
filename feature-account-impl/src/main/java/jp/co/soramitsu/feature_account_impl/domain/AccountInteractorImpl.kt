@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
+import java.io.File
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -14,7 +16,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val fileProvider: FileProvider,
 ) : AccountInteractor {
 
     override suspend fun generateMnemonic(): List<String> {
@@ -252,4 +255,8 @@ class AccountInteractorImpl(
     override fun polkadotAddressForSelectedAccountFlow() = accountRepository.polkadotAddressForSelectedAccountFlow()
 
     override suspend fun getChain(chainId: ChainId) = accountRepository.getChain(chainId)
+
+    override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> = runCatching {
+        fileProvider.getFileInExternalCacheStorage(fileName)
+    }
 }

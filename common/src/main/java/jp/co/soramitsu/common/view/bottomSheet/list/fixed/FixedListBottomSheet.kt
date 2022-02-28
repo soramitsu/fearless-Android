@@ -73,3 +73,11 @@ fun FixedListBottomSheet.item(@DrawableRes icon: Int, title: String, onClick: (V
         view.setDismissingClickListener(onClick)
     }
 }
+
+fun FixedListBottomSheet.textItem(@StringRes titleRes: Int, onClick: (View) -> Unit) {
+    item(R.layout.item_sheet_label) { view ->
+        view.itemExternalActionContent.text = context.resources.getString(titleRes)
+
+        view.setDismissingClickListener(onClick)
+    }
+}
