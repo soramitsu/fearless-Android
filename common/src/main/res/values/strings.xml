@@ -572,4 +572,6 @@ to your account to avoid remaining stake.</string>
 
     <string name="common_invalid_hard_soft_numeric_password_message">Please, check that input is a mix of //\'hard\' and /\'soft\' where \'hard\' and \'soft\' can be any sequence of characters not including /. The path can end up with ///\'password\'. For example, //0/1//0///mypass.</string>
 
+    <string name="account_export_substrate_action">Export substrate</string>
+    <string name="account_export_ethereum_action">Export ethereum</string>
 </resources>
