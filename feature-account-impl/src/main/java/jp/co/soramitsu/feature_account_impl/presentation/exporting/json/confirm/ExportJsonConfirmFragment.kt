@@ -16,12 +16,13 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportEthereumJsonConfirmExport
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportEthereumJsonConfirmValue
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmAdvanced
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmChangePassword
-import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmExport
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmNetworkInput
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmToolbar
+import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportSubstrateJsonConfirmExport
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportSubstrateJsonConfirmValue
 
 class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
@@ -42,7 +43,8 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
     override fun initViews() {
         exportJsonConfirmToolbar.setHomeButtonListener { viewModel.back() }
 
-        exportJsonConfirmExport.setOnClickListener { viewModel.confirmClicked() }
+        exportSubstrateJsonConfirmExport.setOnClickListener { viewModel.confirmSubstrateClicked() }
+        exportEthereumJsonConfirmExport.setOnClickListener { viewModel.confirmEthereumClicked() }
 
         exportJsonConfirmChangePassword.setOnClickListener { viewModel.changePasswordClicked() }
 
@@ -85,15 +87,21 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
                     exportSubstrateJsonConfirmValue.isVisible = true
                     exportEthereumJsonConfirmValue.isVisible = true
                     exportJsonConfirmAdvanced.isVisible = false
+                    exportSubstrateJsonConfirmExport.isVisible = true
+                    exportEthereumJsonConfirmExport.isVisible = true
                 }
                 !viewModel.isExportFromWallet && !isEthereum -> {
                     exportSubstrateJsonConfirmValue.isVisible = true
                     exportEthereumJsonConfirmValue.isVisible = false
                     exportJsonConfirmAdvanced.isVisible = true
+                    exportSubstrateJsonConfirmExport.isVisible = true
+                    exportEthereumJsonConfirmExport.isVisible = false
                 }
                 !viewModel.isExportFromWallet && isEthereum -> {
                     exportSubstrateJsonConfirmValue.isVisible = false
                     exportEthereumJsonConfirmValue.isVisible = true
+                    exportSubstrateJsonConfirmExport.isVisible = false
+                    exportEthereumJsonConfirmExport.isVisible = true
                 }
             }
         }
