@@ -4,6 +4,9 @@ import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import java.math.BigInteger
 
@@ -15,7 +18,17 @@ class StakingConstantsRepository(
 
     suspend fun lockupPeriodInEras(chainId: ChainId): BigInteger = getNumberConstant(chainId, "BondingDuration")
 
-    suspend fun maxValidatorsPerNominator(chainId: ChainId): Int = getNumberConstant(chainId, "MaxNominations").toInt()
+    suspend fun maxValidatorsPerNominator(chainId: ChainId): Int {
+        return try {
+            getNumberConstant(chainId, "MaxNominations").toInt()
+        } catch (e: NoSuchElementException) {
+            when (chainId) {
+                kusamaChainId -> 24
+                polkadotChainId, westendChainId -> 16
+                else -> throw e
+            }
+        }
+    }
 
     private suspend fun getNumberConstant(chainId: ChainId, constantName: String): BigInteger {
         val runtime = chainRegistry.getRuntime(chainId)
