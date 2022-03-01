@@ -11,20 +11,28 @@ import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
 
+val emptyAccountIdValue: AccountId = ByteArray(0)
+
 private const val RETRIEVE_ASSET_SQL_META_ID = """
-           select * from assets as a inner join tokens as t ON a.tokenSymbol = t.symbol WHERE
-            a.metaId = :metaId and a.chainId = :chainId AND a.tokenSymbol = :symbol
+            SELECT a.*, t.* FROM assets AS a INNER JOIN tokens AS t ON a.tokenSymbol = t.symbol 
+            LEFT JOIN chain_accounts AS ca ON ca.metaId = a.metaId AND ca.chainId = a.chainId
+            WHERE a.metaId = :metaId AND a.chainId = :chainId AND a.tokenSymbol = :symbol 
+              AND (ca.accountId IS NULL OR ca.accountId = a.accountId)
             ORDER BY a.sortIndex
 """
 
 private const val RETRIEVE_ASSET_SQL_ACCOUNT_ID = """
-           select * from assets as a inner join tokens as t ON a.tokenSymbol = t.symbol WHERE 
-            a.accountId = :accountId and a.chainId = :chainId AND a.tokenSymbol = :symbol
+            SELECT * FROM assets AS a INNER JOIN tokens AS t ON a.tokenSymbol = t.symbol 
+            WHERE a.accountId IN (:accountId, :emptyAccountId) AND a.chainId = :chainId AND a.tokenSymbol = :symbol
             ORDER BY a.sortIndex
 """
 
 private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
-       select * from assets as a inner join tokens as t on a.tokenSymbol = t.symbol WHERE a.metaId = :metaId ORDER BY a.sortIndex
+            SELECT a.*, t.* FROM assets AS a 
+            INNER JOIN tokens AS t ON a.tokenSymbol = t.symbol 
+            LEFT JOIN chain_accounts AS ca ON ca.metaId = a.metaId AND ca.chainId = a.chainId
+            WHERE a.metaId = :metaId AND (ca.accountId IS NULL OR ca.accountId = a.accountId)
+            ORDER BY a.sortIndex
 """
 
 interface AssetReadOnlyCache {
@@ -53,11 +61,17 @@ abstract class AssetDao : AssetReadOnlyCache {
     @Query(RETRIEVE_ASSET_SQL_META_ID)
     abstract override fun observeAsset(metaId: Long, chainId: String, symbol: String): Flow<AssetWithToken>
 
-    @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
-    abstract override fun observeAsset(accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken>
+    override fun observeAsset(accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken> =
+        observeAssetWithEmpty(accountId, chainId, symbol, emptyAccountIdValue)
 
     @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
-    abstract override suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken?
+    protected abstract fun observeAssetWithEmpty(accountId: AccountId, chainId: String, symbol: String, emptyAccountId: AccountId): Flow<AssetWithToken>
+
+    override suspend fun getAsset(accountId: AccountId, chainId: String, symbol: String): AssetWithToken? =
+        getAssetWithEmpty(accountId, chainId, symbol, emptyAccountIdValue)
+
+    @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
+    protected abstract suspend fun getAssetWithEmpty(accountId: AccountId, chainId: String, symbol: String, emptyAccountId: AccountId): AssetWithToken?
 
     @Query(RETRIEVE_ASSET_SQL_META_ID)
     abstract override suspend fun getAsset(metaId: Long, chainId: String, symbol: String): AssetWithToken?

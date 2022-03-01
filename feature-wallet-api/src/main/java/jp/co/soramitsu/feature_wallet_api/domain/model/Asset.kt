@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.core_db.dao.emptyAccountIdValue
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigInteger
@@ -23,7 +24,7 @@ class Asset(
         fun createEmpty(chainAsset: Chain.Asset, metaId: Long? = null, chainAccountName: String? = null) = Asset(
             metaId = metaId,
             Token(configuration = chainAsset, dollarRate = null, recentRateChange = null),
-            accountId = ByteArray(0),
+            accountId = emptyAccountIdValue,
             freeInPlanks = BigInteger.ZERO,
             reservedInPlanks = BigInteger.ZERO,
             miscFrozenInPlanks = BigInteger.ZERO,

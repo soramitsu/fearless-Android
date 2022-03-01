@@ -78,11 +78,6 @@ class WalletRepositoryImpl(
             chainRegistry.chainsById,
             assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
-
-            val chainAssets = chainAccounts.flatMap { chainAccount ->
-                chainAccount.chain?.assets?.map { createEmpty(it, chainAccount.metaId, chainAccount.accountName) }.orEmpty()
-            }
-
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)
             }
