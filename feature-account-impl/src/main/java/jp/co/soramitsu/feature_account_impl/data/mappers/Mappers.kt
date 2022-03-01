@@ -13,7 +13,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -126,7 +125,7 @@ fun mapChainAccountToAccount(
     val chain = chainAccount.chain
 
     return Account(
-        address = chain?.addressOf(chainAccount.accountId) ?: "Invalid chain (removed)",
+        address = chain?.let { parent.address(chain) } ?: "Invalid chain (removed)",
         name = parent.name,
         accountIdHex = chainAccount.accountId.toHexString(),
         cryptoType = chainAccount.cryptoType,

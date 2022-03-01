@@ -91,7 +91,7 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.assetFlow(accountId, chainAsset)
+            walletRepository.assetFlow(metaAccount.id, accountId, chainAsset)
         }.onStart {
             chainRegistry.getAsset(chainId, chainAssetId)?.let { emit(Asset.createEmpty(it)) }
         }
@@ -101,7 +101,7 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(metaAccount.accountId(chain)!!, chainAsset)!!
+        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset)!!
     }
 
     override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {
@@ -215,7 +215,7 @@ class WalletInteractorImpl(
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
         val accountId = metaAccount.accountId(chain)!!
 
-        val validityStatus = walletRepository.checkTransferValidity(accountId, chain, transfer)
+        val validityStatus = walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer)
 
         if (validityStatus.level > maxAllowedLevel) {
             return Result.failure(NotValidTransferStatus(validityStatus))
@@ -238,7 +238,7 @@ class WalletInteractorImpl(
             val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.checkTransferValidity(accountId, chain, transfer)
+            walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer)
         }
     }
 

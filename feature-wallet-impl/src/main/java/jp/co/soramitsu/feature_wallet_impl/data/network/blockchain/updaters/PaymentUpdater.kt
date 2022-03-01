@@ -89,6 +89,7 @@ class PaymentUpdater(
 
                         assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset) {
                             it.copy(
+                                accountId = accountId,
                                 freeInPlanks = ormlTokensAccountData.free,
                                 miscFrozenInPlanks = ormlTokensAccountData.frozen,
                                 reservedInPlanks = ormlTokensAccountData.reserved

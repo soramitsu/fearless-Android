@@ -25,6 +25,7 @@ class AssetUseCaseImpl(
         val (chain, chainAsset) = chainAndAsset
 
         walletRepository.assetFlow(
+            metaId = selectedMetaAccount.id,
             accountId = selectedMetaAccount.accountId(chain)!!,
             chainAsset = chainAsset
         )

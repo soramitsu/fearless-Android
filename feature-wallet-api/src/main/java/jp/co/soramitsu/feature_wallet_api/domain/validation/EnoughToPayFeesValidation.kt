@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_api.domain.validation
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -30,6 +31,7 @@ class EnoughToPayFeesValidation<P, E>(
 }
 
 fun <P> EnoughToPayFeesValidation.Companion.assetBalanceProducer(
+    accountRepository: AccountRepository,
     walletRepository: WalletRepository,
     stakingSharedState: SingleAssetSharedState,
     originAddressExtractor: (P) -> String,
@@ -37,8 +39,9 @@ fun <P> EnoughToPayFeesValidation.Companion.assetBalanceProducer(
 ): AmountProducer<P> = { payload ->
     val chain = stakingSharedState.chain()
     val accountId = chain.accountIdOf(originAddressExtractor(payload))
+    val meta = accountRepository.getSelectedMetaAccount()
 
-    val asset = walletRepository.getAsset(accountId, chainAssetExtractor(payload))!!
+    val asset = walletRepository.getAsset(meta.id, accountId, chainAssetExtractor(payload))!!
 
     asset.transferable
 }
