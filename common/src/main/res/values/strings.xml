@@ -90,6 +90,7 @@
     <string name="import_json_invalid_password">Please, check password correctness and try again.</string>
     <string name="account_confirmation_title">Confirm mnemonic</string>
     <string name="account_confirmation_details">Choose words in the right order</string>
+    <string name="confirm_mnemonic_mismatch_error_message_2_0">Invalid mnemonic passphrase, please check one more time the words order</string>
     <string name="pincode_create_top_title">Create pin code</string>
     <string name="pincode_fingerprint_error">You are not authorized. Try another finger.</string>
     <string name="pincode_fingerprint_switch_dialog_title">Use biometric to authorize</string>
