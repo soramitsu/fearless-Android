@@ -240,9 +240,11 @@ class StakingInteractor(
     fun assetFlow(accountAddress: String): Flow<Asset> {
         return flow {
             val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+            val meta = accountRepository.getSelectedMetaAccount()
 
             emitAll(
                 walletRepository.assetFlow(
+                    metaId = meta.id,
                     accountId = chain.accountIdOf(accountAddress),
                     chainAsset = chainAsset
                 )
@@ -335,10 +337,11 @@ class StakingInteractor(
     ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
         val chainAsset = stakingSharedState.chainAsset()
         val chainId = chainAsset.chainId
+        val meta = accountRepository.getSelectedMetaAccount()
 
         combine(
             stakingRepository.observeActiveEraIndex(chainId),
-            walletRepository.assetFlow(state.accountId, chainAsset),
+            walletRepository.assetFlow(meta.id, state.accountId, chainAsset),
             stakingRewardsRepository.totalRewardFlow(state.stashAddress)
         ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded

@@ -130,7 +130,7 @@ class CrowdloanContributeInteractor(
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
         val accountId = metaAccount.accountId(chain)!!
 
-        val validityStatus = walletRepository.checkTransferValidity(accountId, chain, transfer, additional, batchAll)
+        val validityStatus = walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer, additional, batchAll)
 
         if (validityStatus.level > maxAllowedLevel) {
             return Result.failure(NotValidTransferStatus(validityStatus))

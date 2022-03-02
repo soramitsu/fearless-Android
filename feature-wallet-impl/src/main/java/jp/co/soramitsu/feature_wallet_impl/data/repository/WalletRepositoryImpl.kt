@@ -83,9 +83,16 @@ class WalletRepositoryImpl(
             }
 
             val assetsByChain: List<Asset> = chainRegistry.currentChains.firstOrNull().orEmpty()
+                .filter { it.id !in chainAccounts.mapNotNull { it.chain?.id } }
                 .flatMap { chain -> chain.assets.map { createEmpty(it, metaId) } }
 
-            val notUpdatedAssets = assetsByChain.filter {
+            val assetsByUniqueAccounts = chainAccounts.mapNotNull {
+                createEmpty(it)
+            }
+
+            val assetsMain = assetsByChain.plus(assetsByUniqueAccounts)
+
+            val notUpdatedAssets = assetsMain.filter {
                 it.token.configuration.chainToSymbol !in updatedAssets.map { it.token.configuration.chainToSymbol }
             }
 
@@ -128,14 +135,14 @@ class WalletRepositoryImpl(
         }
     }
 
-    override fun assetFlow(accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset> {
-        return assetCache.observeAsset(accountId, chainAsset.chainId, chainAsset.symbol)
+    override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset> {
+        return assetCache.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)
             .mapNotNull { it }
             .map { mapAssetLocalToAsset(it, chainAsset) }
     }
 
-    override suspend fun getAsset(accountId: AccountId, chainAsset: Chain.Asset): Asset? {
-        val assetLocal = assetCache.getAsset(accountId, chainAsset.chainId, chainAsset.symbol)
+    override suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Asset? {
+        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)
 
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset) }
     }
@@ -249,6 +256,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun checkTransferValidity(
+        metaId: Long,
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
@@ -273,7 +281,7 @@ class WalletRepositoryImpl(
 
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetCache.getAsset(accountId, chainAsset.chainId, chainAsset.symbol)!!
+        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)!!
         val asset = mapAssetLocalToAsset(assetLocal, chainAsset)
 
         val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)

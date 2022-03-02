@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationFailure
@@ -23,10 +24,12 @@ class BondMoreValidationsModule {
     fun provideFeeValidation(
         stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository,
+        accountRepository: AccountRepository
     ): BondMoreFeeValidation {
         return EnoughToPayFeesValidation(
             feeExtractor = { it.fee },
             availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
+                accountRepository,
                 walletRepository,
                 originAddressExtractor = { it.stashAddress },
                 chainAssetExtractor = { it.chainAsset },

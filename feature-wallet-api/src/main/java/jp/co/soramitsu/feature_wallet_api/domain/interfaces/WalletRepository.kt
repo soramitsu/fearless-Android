@@ -24,15 +24,9 @@ interface WalletRepository {
 
     suspend fun syncAssetsRates()
 
-    fun assetFlow(
-        accountId: AccountId,
-        chainAsset: Chain.Asset
-    ): Flow<Asset>
+    fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset>
 
-    suspend fun getAsset(
-        accountId: AccountId,
-        chainAsset: Chain.Asset
-    ): Asset?
+    suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Asset?
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,
@@ -80,6 +74,7 @@ interface WalletRepository {
     )
 
     suspend fun checkTransferValidity(
+        metaId: Long,
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
