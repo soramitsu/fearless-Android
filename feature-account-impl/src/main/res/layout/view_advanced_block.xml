@@ -42,21 +42,56 @@
         tools:visibility="visible">
 
         <jp.co.soramitsu.common.view.LabeledTextView
-            android:id="@+id/encryptionTypeInput"
+            android:id="@+id/substrateEncryptionTypeInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:actionIcon="@drawable/ic_pin_white_24"
-            app:label="@string/common_crypto_type"
+            app:label="@string/onboarding_ethereum_crypto_type"
             app:message="@string/sr25519_selection_title" />
 
         <jp.co.soramitsu.common.view.InputField
-            android:id="@+id/derivationPathInput"
+            android:id="@+id/substrateDerivationPathInput"
             style="@style/Widget.Fearless.Input.Primary.External"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/common_secret_derivation_path" />
+            android:hint="@string/onboarding_substrate_derivation_path_title"
+            android:inputType="text" />
 
+        <TextView
+            android:id="@+id/substrateDerivationPathHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/onboarding_substrate_derivation_path_hint"
+            android:textAppearance="@style/TextAppearance.Soramitsu.Body2" />
+
+        <jp.co.soramitsu.common.view.LabeledTextView
+            android:id="@+id/ethereumEncryptionTypeInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:actionIcon="@drawable/ic_pin_white_24"
+            app:enabled="false"
+            app:label="@string/onboarding_substrate_crypto_type"
+            app:message="@string/ECDSA_crypto_type" />
+
+        <jp.co.soramitsu.common.view.InputField
+            android:id="@+id/ethereumDerivationPathInput"
+            style="@style/Widget.Fearless.Input.Primary.External"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:inputType="text"
+            android:hint="@string/onboarding_ethereum_derivation_path_title" />
+
+        <TextView
+            android:id="@+id/ethereumDerivationPathHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/onboarding_ethereum_derivation_path_hint"
+            android:textAppearance="@style/TextAppearance.Soramitsu.Body2" />
     </LinearLayout>
 
 </merge>

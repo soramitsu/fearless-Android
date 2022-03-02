@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="username_setup_choose_title_2_0">Псевдоним кошелька</string>
     <string name="wallet_info_title">Кошелёк</string>
     <string name="wallet_assets">Активы</string>
+
+    <string name="account_no_chain_projection">Аккаунт не найден</string>
 
     <string name="account_shared_secret">Аккаунты с общим секретом</string>
     <string name="account_custom_secret">Аккаунты с измененным секретом</string>
@@ -15,8 +18,9 @@
     <string name="common_copy_address">Копировать адрес</string>
     <string name="connection_error_message">Пожалуйста, проверьте подключение к Интернету и повторите попытку.</string>
     <string name="onboarding_restore_wallet">Восстановить</string>
-    <string name="onboarding_terms_and_conditions_1">Я подтверждаю, что прочитал и согласен с
-Условиями использования и Политикой конфиденциальности</string>
+    <string name="onboarding_restore_account">Восстановить</string>
+    <string name="onboarding_title">У меня уже есть кошелек</string>
+    <string name="onboarding_terms_and_conditions_1">Я подтверждаю, что прочитал и согласен с\nУсловиями использования и Политикой конфиденциальности</string>
     <string name="contribute_terms">Я подтверждаю, что прочитал и согласен с Условиями использования</string>
     <string name="contribute_terms_clickable">Условиями использования</string>
     <string name="onboarding_terms_and_conditions_2">Условиями использования</string>
@@ -35,7 +39,6 @@
     <string name="about_privacy">Политика конфиденциальности</string>
     <string name="about_terms">Условия использования</string>
     <string name="language_title">Язык</string>
-    <string name="connection_management_title">%s сети</string>
     <string name="onboarding_create_wallet">Создать кошелёк</string>
     <string name="username_setup_choose_title">Имя</string>
     <string name="username_setup_hint">Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
@@ -47,7 +50,6 @@
     <string name="common_advanced">Продвинутый</string>
     <string name="common_crypto_type">Тип ключевой пары</string>
     <string name="common_secret_derivation_path">Последовательность для вывода секрета</string>
-    <string name="common_choose_network">Выберите сеть</string>
     <string name="network">Сеть</string>
     <string name="sr25519_selection_subtitle">sr25519 (рекомендованный)</string>
     <string name="ed25519_selection_subtitle">ed25519 (альтернативный)</string>
@@ -60,6 +62,10 @@
     <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
     <string name="recovery_source_type">Тип источника</string>
     <string name="recovery_raw_seed">Сид</string>
+    <string name="recovery_raw_seed_substrate">Substrate сид</string>
+    <string name="recovery_raw_seed_eth">ETH сид</string>
+    <string name="recovery_json_substrate">Восстановить JSON для Substrate аккаунтов</string>
+    <string name="recovery_json_eth">Восстановить JSON лдя ETHаккаунтов</string>
     <string name="recovery_json">JSON для восстановления</string>
     <string name="account_import_password_placeholder">Пароль</string>
     <string name="recover_json_hint">Вставьте json строку или загрузите файл…</string>
@@ -70,6 +76,7 @@
     <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
     <string name="account_confirmation_title">Подтверждение</string>
     <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
+    <string name="confirm_mnemonic_mismatch_error_message_2_0">Неверная мнемоническая фраза, пожалуйста, проверьте еще раз порядок слов</string>
     <string name="pincode_create_top_title">Новый PIN-код</string>
     <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
     <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
@@ -85,20 +92,23 @@
     <string name="about_website">Официальный сайт</string>
     <string name="about_github">Исходный код на Github</string>
     <string name="about_telegram">Присоединяйтесь к группе Telegram</string>
+    <string name="about_wiki">Узнать в Wiki</string>
     <string name="about_twitter">Следить за новостями в Twitter</string>
     <string name="about_youtube">Подписаться на YouTube</string>
+    <string name="about_instagram">Поставьте лайк в Instagram</string>
     <string name="about_medium">Читать на Medium</string>
     <string name="about_announcement">Следить за новостями в Telegram</string>
     <string name="about_support">Обратиться за поддержкой</string>
-    <string name="about_crowdloans">Learn about Crowdloans</string>
+    <string name="about_crowdloans">Узнайте больше о Crowdloans</string>
     <string name="common_email_chooser_title">Выберите приложение для работы с почтой</string>
     <string name="common_skip_process">Пропустить</string>
     <string name="account_info_title">Аккаунт</string>
     <string name="account_export">Экспорт аккаунта</string>
     <string name="common_copied">Скопировано в буфер обмена</string>
-    <string name="connections_add_connection">Добавить соединение</string>
-    <string name="connection_management_default_title">По умолчанию</string>
-    <string name="connection_management_custom_title">Добавленные</string>
+    <string name="add_node_button_title">Добавить ноду</string>
+    <string name="node">Нода</string>
+    <string name="connection_management_default_title">Ноды по умолчанию</string>
+    <string name="connection_management_custom_title">Добавленные ноды</string>
     <string name="account_delete_confirmation_title">Забыть аккаунт?</string>
     <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
     <string name="account_delete_confirm">Забыть</string>
@@ -109,7 +119,9 @@
     <string name="wallet_asset_receive_template">Получить %s</string>
     <string name="wallet_assets_total_title">Стоимость активов</string>
     <string name="network_info_title">Информация ноды</string>
-    <string name="network_info_address">Адрес ноды</string>
+    <string name="network_url_address">URL-адрес</string>
+    <string name="error_message_enter_the_name">Введите имя…</string>
+    <string name="error_message_enter_the_url_address">Введите URL-адрес…</string>
     <string name="common_add">Добавить</string>
     <string name="common_update">Обновить</string>
     <string name="connection_add_invalid_error">Не удается установить соединение с узлом. Пожалуйста, попробуйте другой узел.</string>
@@ -150,16 +162,15 @@
     <string name="wallet_balance_redeemable">Можно забрать</string>
     <string name="transaction_details_hash_title">Хеш транзакции</string>
     <string name="transaction_details_copy_hash">Копировать хеш</string>
-    <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
-    <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
+    <string name="view_in">Посмотреть в %s</string>
     <string name="wallet_balance_details_title">Детали баланса</string>
     <string name="wallet_balance_details_total">Общий баланс</string>
     <string name="wallet_balance_details_total_after">Общий после перевода</string>
     <string name="wallet_send_existential_warning_message">Ваш перевод удалит аккаунт, так как общий баланс станет ниже минимального.</string>
     <string name="common_warning">Предупреждение</string>
     <string name="common_unknown">Неизвестно</string>
-    <string name="connection_delete_title">Удалить сеть?</string>
-    <string name="connection_delete_description">Подтвердите удаление %s.</string>
+    <string name="delete_custom_node_title">Удалить выбранную ноду?</string>
+    <string name="switch_node_autoselect_title">Автоматический выбор нод</string>
     <string name="connection_delete_confirm">Удалить</string>
     <string name="network_status_connecting">Подключение…</string>
     <string name="wallet_balance_frozen_template">Заморожено %s</string>
@@ -377,6 +388,7 @@
     <string name="staking_start_change_validators_custom_title">Стейкинг с выбранными валидаторами</string>
     <string name="common_applied">Применено</string>
     <string name="crowdloan_referral_code_invalid">Реферальный код недействителен. Пожалуйста, попробуйте другой.</string>
+    <string name="common_till_date">до %s</string>
     <string name="crowdloan_astar_referral_code_invalid">Реферальный адрес недействителен, допустимы только адреса Polkadot, пожалуйста, попробуйте снова.</string>
     <string name="staking_start_change_validators_custom_subtitle">Вы должны доверять своим валидаторам, чтобы они действовали грамотно и честно. Принятие решения исключительно на основе их текущей прибыльности может привести к снижению прибыли или даже потере средств.</string>
     <string name="staking_select_recommended">Выбрать рекомендованных</string>
@@ -470,9 +482,57 @@
     <string name="wallet_extrinsic_details_title">Детали транзакции</string>
     <string name="transaction_details_extrinsic_fee">Комиссия</string>
     <string name="wallet_transfer_details_title">Детали перевода</string>
+    <string name="wallet_send_navigation_title">Перевести %s</string>
     <string name="common_event">Событие</string>
     <string name="common_copy_id">Копировать идентификатор</string>
     <string name="transfer_title">Перевод</string>
+    <string name="crowdloan_referral_code_hint">Реферальный код</string>
     <string name="copy_referral_code">Копировать реферальный код</string>
     <string name="share_referral_code">Поделиться реферальным кодом</string>
+    <string name="wallet_transaction_history_unsupported_message">История транзакций для этой сети еще не поддерживается</string>
+
+    <string name="onboarding_ethereum_crypto_type">Тип ключевой пары Substrate</string>
+    <string name="onboarding_substrate_crypto_type">Тип ключевой пары Ethereum</string>
+    <string name="onboarding_substrate_derivation_path_hint">Пример: //hard/soft///password</string>
+    <string name="onboarding_ethereum_derivation_path_hint">Пример: //44//60//0/0/0</string>
+    <string name="onboarding_substrate_derivation_path_title">Substrate последовательность для вывода секрета</string>
+    <string name="onboarding_ethereum_derivation_path_title">Ethereum последовательность для вывода секрета</string>
+    <string name="ECDSA_crypto_type">ECDSA | BTC/ETH совместимый</string>
+
+    <string name="wallet_asset_your_balance">Ваш баланс</string>
+    <string name="wallet_asset_transferable_caption">Доступны к отправке</string>
+
+    <string name="moonbeam_ethereum_address">Адрес Moonbeam Ethereum</string>
+    <string name="moonbeam_crowdloan_terms">Правила и условия Moonbeam краудлоуна</string>
+    <string name="moonbeam_registration">Регистрация в краудлоуне Moonbeam</string>
+    <string name="moonbeam_signed_successful">Вы успешно подписали правила и условия краудлоуна Moonbeam, и транзакция была отправлена.\n\nЭто хэш вашей транзакции:</string>
+    <string name="moonbeam_registration_description">Эта транзакция подтверждает, что вы согласны с правилами и условиями краудлоуна Moonbeam.\n\nВ качестве доказательства вашего согласия будет отправлена подписанная транзакция system.remark extrinsic. Эта информация будет обработана и сохранена в Polkadot Relay Chain.\n\nОбратите внимание, что за данную подписанную транзакцию будет взиматься комиссия в сети Polkadot.</string>
+    <string name="crowdloan_privacy_policy">Я подтверждаю, что прочитал и согласен с Условиями использования и Политикой конфиденциальности</string>
+    <string name="transaction_successful">Транзакция успешна!</string>
+    <string name="moonbeam_ineligible_to_participate">К сожалению, вы не можете участвовать в кампании Moonbeam Crowdloan Campaign из-за вашего местоположения.</string>
+
+    <string name="switch_node">Выбрать ноду</string>
+    <string name="wallet_settings">Настройки кошелька</string>
+    <string name="view_wallet">Посмотреть кошелек</string>
+    <string name="export_wallet">Экспорт аккаунта</string>
+
+    <string name="wallet_transaction_history_error_message">Сервис временно недоступен</string>
+
+    <string name="replace_account">Заменить аккаунт</string>
+    <string name="replace_account_template">Заменить %s аккаунт</string>
+    <string name="common_yes">Да</string>
+    <string name="common_no">Нет</string>
+
+    <string name="create_new_wallet">Создать новый кошелек</string>
+
+    <string name="eth_import_title">ETH аккаунты</string>
+    <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
+
+    <string name="common_invalid_hard_soft_numeric_password_message">Пожалуйста, удостоверьтесь, что введенная строка это комбинация //\'hard\' и /\'soft\' где \'hard\' и \'soft\' могут быть любой последовательностью символов, не включая /.  Путь может оканчиваться ///\'password\'. Например, //0/1//0///mypass</string>
+
+    <string name="account_export_substrate_action">Экспорт substrate</string>
+    <string name="account_export_ethereum_action">Экспорт ethereum</string>
+
+    <string name="json_export_type_text">Экспортировать как текст</string>
+    <string name="json_export_type_file">Экспортировать в файл</string>
 </resources>

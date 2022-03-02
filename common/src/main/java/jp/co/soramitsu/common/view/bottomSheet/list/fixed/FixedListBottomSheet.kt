@@ -62,10 +62,21 @@ abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(contex
     }
 }
 
-fun FixedListBottomSheet.item(@DrawableRes icon: Int, @StringRes titleRes: Int, onClick: (View) -> Unit) {
+fun FixedListBottomSheet.item(@DrawableRes icon: Int, @StringRes titleRes: Int, onClick: (View) -> Unit) =
+    item(icon, context.resources.getString(titleRes), onClick)
+
+fun FixedListBottomSheet.item(@DrawableRes icon: Int, title: String, onClick: (View) -> Unit) {
     item(R.layout.item_sheet_iconic_label) { view ->
-        view.itemExternalActionContent.setText(titleRes)
+        view.itemExternalActionContent.text = title
         view.itemExternalActionContent.setDrawableStart(icon, widthInDp = 24, tint = R.color.white)
+
+        view.setDismissingClickListener(onClick)
+    }
+}
+
+fun FixedListBottomSheet.textItem(@StringRes titleRes: Int, onClick: (View) -> Unit) {
+    item(R.layout.item_sheet_label) { view ->
+        view.itemExternalActionContent.text = context.resources.getString(titleRes)
 
         view.setDismissingClickListener(onClick)
     }

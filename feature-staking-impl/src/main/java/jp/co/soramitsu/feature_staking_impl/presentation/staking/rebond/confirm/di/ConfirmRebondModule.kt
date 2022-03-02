@@ -11,14 +11,15 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondViewModel
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmRebondModule {
@@ -35,6 +36,7 @@ class ConfirmRebondModule {
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         validationSystem: RebondValidationSystem,
         iconGenerator: AddressIconGenerator,
+        chainRegistry: ChainRegistry,
         externalAccountActions: ExternalAccountActions.Presentation,
         payload: ConfirmRebondPayload,
     ): ViewModel {
@@ -46,6 +48,7 @@ class ConfirmRebondModule {
             validationExecutor,
             validationSystem,
             iconGenerator,
+            chainRegistry,
             externalAccountActions,
             feeLoaderMixin,
             payload

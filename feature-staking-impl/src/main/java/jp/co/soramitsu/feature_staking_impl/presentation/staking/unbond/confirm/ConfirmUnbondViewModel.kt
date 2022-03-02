@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -12,7 +13,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -27,6 +28,8 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -40,6 +43,7 @@ class ConfirmUnbondViewModel(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     private val iconGenerator: AddressIconGenerator,
+    private val chainRegistry: ChainRegistry,
     private val validationSystem: UnbondValidationSystem,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val payload: ConfirmUnbondPayload,
@@ -99,10 +103,17 @@ class ConfirmUnbondViewModel(
         router.back()
     }
 
-    fun originAccountClicked() {
-        val originAddressModel = originAddressModelLiveData.value ?: return
-
-        val externalActionsPayload = ExternalAccountActions.Payload.fromAddress(originAddressModel.address)
+    fun originAccountClicked() = launch {
+        val originAddressModel = originAddressModelLiveData.value ?: return@launch
+        val chainId = assetFlow.first().token.configuration.chainId
+        val chain = chainRegistry.getChain(chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, originAddressModel.address)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = originAddressModel.address,
+            chainId = chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
 
         externalAccountActions.showExternalActions(externalActionsPayload)
     }

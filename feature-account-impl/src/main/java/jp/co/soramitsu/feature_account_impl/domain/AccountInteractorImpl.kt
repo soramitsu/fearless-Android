@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
+import java.io.File
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -14,7 +16,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class AccountInteractorImpl(
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val fileProvider: FileProvider,
 ) : AccountInteractor {
 
     override suspend fun generateMnemonic(): List<String> {
@@ -33,14 +36,38 @@ class AccountInteractorImpl(
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
     ): Result<Unit> {
         return runCatching {
             accountRepository.createAccount(
                 accountName,
                 mnemonic,
                 encryptionType,
-                derivationPath
+                substrateDerivationPath,
+                ethereumDerivationPath
+            )
+        }
+    }
+
+    override suspend fun createChainAccount(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        mnemonicWords: String,
+        cryptoType: CryptoType,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
+    ): Result<Unit> {
+        return runCatching {
+            accountRepository.createChainAccount(
+                metaId,
+                chainId,
+                accountName,
+                mnemonicWords,
+                cryptoType,
+                substrateDerivationPath,
+                ethereumDerivationPath
             )
         }
     }
@@ -48,31 +75,74 @@ class AccountInteractorImpl(
     override suspend fun importFromMnemonic(
         keyString: String,
         username: String,
-        derivationPath: String,
-        selectedEncryptionType: CryptoType
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String,
+        selectedEncryptionType: CryptoType,
+        withEth: Boolean
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromMnemonic(
                 keyString,
                 username,
-                derivationPath,
-                selectedEncryptionType
+                substrateDerivationPath,
+                ethereumDerivationPath,
+                selectedEncryptionType,
+                withEth
+            )
+        }
+    }
+
+    override suspend fun importChainAccountFromMnemonic(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        mnemonicWords: String,
+        cryptoType: CryptoType,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
+    ): Result<Unit> {
+        return runCatching {
+            accountRepository.importChainAccountFromMnemonic(
+                metaId,
+                chainId,
+                accountName,
+                mnemonicWords,
+                cryptoType,
+                substrateDerivationPath,
+                ethereumDerivationPath
             )
         }
     }
 
     override suspend fun importFromSeed(
-        keyString: String,
+        substrateSeed: String,
         username: String,
         derivationPath: String,
-        selectedEncryptionType: CryptoType
+        selectedEncryptionType: CryptoType,
+        ethSeed: String?
     ): Result<Unit> {
         return runCatching {
             accountRepository.importFromSeed(
-                keyString,
+                substrateSeed,
                 username,
                 derivationPath,
-                selectedEncryptionType
+                selectedEncryptionType,
+                ethSeed
+            )
+        }
+    }
+
+    override suspend fun importChainFromSeed(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        seed: String,
+        substrateDerivationPath: String,
+        selectedEncryptionType: CryptoType
+    ): Result<Unit> {
+        return runCatching {
+            accountRepository.importChainFromSeed(
+                metaId, chainId, accountName, seed, substrateDerivationPath, selectedEncryptionType
             )
         }
     }
@@ -80,10 +150,23 @@ class AccountInteractorImpl(
     override suspend fun importFromJson(
         json: String,
         password: String,
-        name: String
+        name: String,
+        ethJson: String?
     ): Result<Unit> {
         return runCatching {
-            accountRepository.importFromJson(json, password, name)
+            accountRepository.importFromJson(json, password, name, ethJson)
+        }
+    }
+
+    override suspend fun importChainFromJson(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        json: String,
+        password: String,
+    ): Result<Unit> {
+        return runCatching {
+            accountRepository.importChainFromJson(metaId, chainId, accountName, json, password)
         }
     }
 
@@ -166,4 +249,14 @@ class AccountInteractorImpl(
     override suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
 
     override suspend fun getMetaAccountSecrets(metaId: Long) = accountRepository.getMetaAccountSecrets(metaId)
+
+    override suspend fun getChainAccountSecrets(metaId: Long, chainId: ChainId) = accountRepository.getChainAccountSecrets(metaId, chainId)
+
+    override fun polkadotAddressForSelectedAccountFlow() = accountRepository.polkadotAddressForSelectedAccountFlow()
+
+    override suspend fun getChain(chainId: ChainId) = accountRepository.getChain(chainId)
+
+    override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> = runCatching {
+        fileProvider.getFileInExternalCacheStorage(fileName)
+    }
 }

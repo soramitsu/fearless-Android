@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.ContributeValidationSystem
@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.Co
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmContributeModule {
@@ -32,6 +33,7 @@ class ConfirmContributeModule {
         interactor: CrowdloanContributeInteractor,
         router: CrowdloanRouter,
         resourceManager: ResourceManager,
+        chainRegistry: ChainRegistry,
         assetUseCase: AssetUseCase,
         validationExecutor: ValidationExecutor,
         payload: ConfirmContributePayload,
@@ -46,6 +48,7 @@ class ConfirmContributeModule {
             router,
             interactor,
             resourceManager,
+            chainRegistry,
             assetUseCase,
             accountUseCase,
             addressIconGenerator,

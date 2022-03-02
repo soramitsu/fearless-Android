@@ -11,12 +11,12 @@ import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
-import jp.co.soramitsu.feature_account_api.presenatation.actions.copyAddressClicked
+import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClicked
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.ExportSourceChooserPayload
-import jp.co.soramitsu.feature_account_impl.presentation.common.accountSource.SourceTypeChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsChainAccounts
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsToolbar
@@ -76,6 +76,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
 
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
+        viewModel.showImportChainAccountChooser.observeEvent(::showImportChainAccountChooser)
     }
 
     override fun chainAccountClicked(item: AccountInChainUi) {
@@ -90,6 +91,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
             context = requireContext(),
             content = payload,
             onCopy = viewModel::copyAddressClicked,
+            onReplace = viewModel::showImportChainAccountChooser,
             onExternalView = viewModel::viewExternalClicked,
             onExportAccount = viewModel::exportClicked,
             onSwitchNode = viewModel::switchNode
@@ -101,6 +103,15 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
             context = requireActivity(),
             payload = DynamicListBottomSheet.Payload(payload.sources),
             onClicked = { viewModel.exportTypeSelected(it, payload.chainId) }
+        ).show()
+    }
+
+    private fun showImportChainAccountChooser(payload: ImportChainAccountsPayload) {
+        ImportChainAccountActionsSheet(
+            context = requireContext(),
+            payload = payload,
+            onCreateAccount = viewModel::createChainAccount,
+            onImportAccount = viewModel::importChainAccount,
         ).show()
     }
 }

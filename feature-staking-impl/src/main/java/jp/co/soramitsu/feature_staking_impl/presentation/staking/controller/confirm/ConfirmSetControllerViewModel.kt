@@ -5,11 +5,12 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
@@ -19,6 +20,9 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set.bondSetControllerValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -29,6 +33,7 @@ class ConfirmSetControllerViewModel(
     private val payload: ConfirmSetControllerPayload,
     private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
+    private val chainRegistry: ChainRegistry,
     private val externalActions: ExternalAccountActions.Presentation,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: SetControllerValidationSystem
@@ -60,13 +65,33 @@ class ConfirmSetControllerViewModel(
 
     fun openStashExternalActions() {
         viewModelScope.launch {
-            externalActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(payload.stashAddress))
+            val chainId = assetFlow.first().token.configuration.chainId
+            val chain = chainRegistry.getChain(chainId)
+            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, payload.stashAddress)
+            val externalActionsPayload = ExternalAccountActions.Payload(
+                value = payload.stashAddress,
+                chainId = chainId,
+                chainName = chain.name,
+                explorers = supportedExplorers
+            )
+
+            externalActions.showExternalActions(externalActionsPayload)
         }
     }
 
     fun openControllerExternalActions() {
         viewModelScope.launch {
-            externalActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(payload.controllerAddress))
+            val chainId = assetFlow.first().token.configuration.chainId
+            val chain = chainRegistry.getChain(chainId)
+            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, payload.controllerAddress)
+            val externalActionsPayload = ExternalAccountActions.Payload(
+                value = payload.controllerAddress,
+                chainId = chainId,
+                chainName = chain.name,
+                explorers = supportedExplorers
+            )
+
+            externalActions.showExternalActions(externalActionsPayload)
         }
     }
 

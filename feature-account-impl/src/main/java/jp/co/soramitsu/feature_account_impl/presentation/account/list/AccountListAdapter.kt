@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.LightMetaAccountDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
 import kotlinx.android.synthetic.main.item_account.view.accountCheck
+import kotlinx.android.synthetic.main.item_account.view.accountIcon
 import kotlinx.android.synthetic.main.item_account.view.accountInfo
 import kotlinx.android.synthetic.main.item_account.view.accountTitle
 
@@ -18,7 +19,7 @@ class AccountsAdapter(
 
     interface AccountItemHandler {
 
-        fun infoClicked(accountModel: LightMetaAccountUi)
+        fun optionsClicked(accountModel: LightMetaAccountUi)
 
         fun checkClicked(accountModel: LightMetaAccountUi)
     }
@@ -40,14 +41,14 @@ class AccountHolder(view: View) : GroupedListHolder(view) {
     ) {
         with(containerView) {
             accountTitle.text = accountModel.name
-            // todo support new dynamic avatar
-//            accountIcon.setImageDrawable(accountModel.picture.value)
+
+            accountIcon.setImageDrawable(accountModel.picture.value)
 
             accountCheck.visibility = if (accountModel.isSelected) View.VISIBLE else View.INVISIBLE
 
             setOnClickListener { handler.checkClicked(accountModel) }
 
-            accountInfo.setOnClickListener { handler.infoClicked(accountModel) }
+            accountInfo.setOnClickListener { handler.optionsClicked(accountModel) }
         }
     }
 }

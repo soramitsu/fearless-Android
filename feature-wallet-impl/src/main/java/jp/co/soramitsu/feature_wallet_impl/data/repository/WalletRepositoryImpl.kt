@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
@@ -13,6 +14,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -44,6 +46,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -54,6 +57,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -69,19 +73,26 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
 ) : WalletRepository {
 
-    override fun assetsFlow(metaId: Long): Flow<List<Asset>> {
+    override fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
         return combine(
             chainRegistry.chainsById,
             assetCache.observeAssets(metaId)
         ) { chainsById, assetsLocal ->
             val updatedAssets = assetsLocal.mapNotNull { asset ->
-                mapAssetToLocalAsset(chainsById, asset)
+                mapAssetLocalToAsset(chainsById, asset)
             }
 
             val assetsByChain: List<Asset> = chainRegistry.currentChains.firstOrNull().orEmpty()
-                .flatMap { it.assets.map { createEmpty(it, metaId) } }
+                .filter { it.id !in chainAccounts.mapNotNull { it.chain?.id } }
+                .flatMap { chain -> chain.assets.map { createEmpty(it, metaId) } }
 
-            val notUpdatedAssets = assetsByChain.filter {
+            val assetsByUniqueAccounts = chainAccounts.mapNotNull {
+                createEmpty(it)
+            }
+
+            val assetsMain = assetsByChain.plus(assetsByUniqueAccounts)
+
+            val notUpdatedAssets = assetsMain.filter {
                 it.token.configuration.chainToSymbol !in updatedAssets.map { it.token.configuration.chainToSymbol }
             }
 
@@ -94,11 +105,11 @@ class WalletRepositoryImpl(
         val assetsLocal = assetCache.getAssets(metaId)
 
         assetsLocal.mapNotNull {
-            mapAssetToLocalAsset(chainsById, it)
+            mapAssetLocalToAsset(chainsById, it)
         }
     }
 
-    private fun mapAssetToLocalAsset(
+    private fun mapAssetLocalToAsset(
         chainsById: Map<ChainId, Chain>,
         assetLocal: AssetWithToken
     ): Asset? {
@@ -124,14 +135,14 @@ class WalletRepositoryImpl(
         }
     }
 
-    override fun assetFlow(accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset> {
-        return assetCache.observeAsset(accountId, chainAsset.chainId, chainAsset.symbol)
+    override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset> {
+        return assetCache.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)
             .mapNotNull { it }
             .map { mapAssetLocalToAsset(it, chainAsset) }
     }
 
-    override suspend fun getAsset(accountId: AccountId, chainAsset: Chain.Asset): Asset? {
-        val assetLocal = assetCache.getAsset(accountId, chainAsset.chainId, chainAsset.symbol)
+    override suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Asset? {
+        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)
 
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset) }
     }
@@ -163,15 +174,17 @@ class WalletRepositoryImpl(
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
             if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY) {
-                throw HistoryNotSupportedException("Transaction history for this network is not supported yet")
+                throw HistoryNotSupportedException()
             }
+            val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
             val response = walletOperationsApi.getOperationsHistory(
                 url = historyUrl,
                 SubqueryHistoryRequest(
                     accountAddress = chain.addressOf(accountId),
                     pageSize,
                     cursor,
-                    filters
+                    filters,
+                    requestRewards
                 )
             ).data.query
 
@@ -243,6 +256,7 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun checkTransferValidity(
+        metaId: Long,
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
@@ -253,14 +267,24 @@ class WalletRepositoryImpl(
 
         val chainAsset = transfer.chainAsset
 
-        val recipientInfo = substrateSource.getAccountInfo(chain.id, chain.accountIdOf(transfer.recipient))
-        val totalRecipientBalanceInPlanks = recipientInfo.totalBalance
+        val totalRecipientBalanceInPlanks = when {
+            chain.id.isOrml() -> {
+                val symbol = chain.utilityAsset.symbol
+                val ormlTokensAccountData = substrateSource.getOrmlTokensAccountData(chain.id, symbol, chain.accountIdOf(transfer.recipient))
+                ormlTokensAccountData.totalBalance
+            }
+            else -> {
+                val recipientInfo = substrateSource.getAccountInfo(chain.id, chain.accountIdOf(transfer.recipient))
+                recipientInfo.totalBalance
+            }
+        }
+
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetCache.getAsset(accountId, chainAsset.chainId, chainAsset.symbol)!!
+        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)!!
         val asset = mapAssetLocalToAsset(assetLocal, chainAsset)
 
-        val existentialDepositInPlanks = walletConstants.existentialDeposit(chain.id)
+        val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
         return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
@@ -284,8 +308,17 @@ class WalletRepositoryImpl(
         phishingAddresses.contains(accountId.toHexString(withPrefix = true))
     }
 
-    override suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId) =
-        substrateSource.getAccountInfo(chainId, accountId).data.free
+    override suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId) = when {
+        chainId.isOrml() -> {
+            val assetSymbol = chainRegistry.getChain(chainId).utilityAsset.symbol
+            substrateSource.getOrmlTokensAccountData(chainId, assetSymbol, accountId).free
+        }
+        else -> substrateSource.getAccountInfo(chainId, accountId).data.free
+    }
+
+    override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
+        assetCache.updateAsset(newItems)
+    }
 
     private fun createOperation(
         hash: String,

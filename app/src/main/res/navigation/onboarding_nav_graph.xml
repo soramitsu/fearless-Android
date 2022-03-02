@@ -19,6 +19,17 @@
             app:popEnterAnim="@anim/fragment_close_enter"
             app:popExitAnim="@anim/fragment_close_exit" />
 
+        <action
+            android:id="@+id/action_welcomeFragment_to_backupMnemonicFragment"
+            app:destination="@id/backupMnemonicFragment"
+            app:enterAnim="@anim/fragment_open_enter"
+            app:exitAnim="@anim/fragment_open_exit"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true"
+            />
+
 
         <action
             android:id="@+id/importAction"

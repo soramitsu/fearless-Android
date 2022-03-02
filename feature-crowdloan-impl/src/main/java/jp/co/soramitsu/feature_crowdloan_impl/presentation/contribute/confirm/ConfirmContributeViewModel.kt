@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -13,7 +14,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_API_URL
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.parachain.FLOW_BONUS_URL
@@ -39,6 +40,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -49,6 +52,7 @@ class ConfirmContributeViewModel(
     private val router: CrowdloanRouter,
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
+    private val chainRegistry: ChainRegistry,
     assetUseCase: AssetUseCase,
     accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
@@ -145,8 +149,11 @@ class ConfirmContributeViewModel(
     fun originAccountClicked() {
         launch {
             val accountAddress = selectedAddressModelFlow.first().address
-
-            externalAccountActions.showExternalActions(ExternalAccountActions.Payload.fromAddress(accountAddress))
+            val chainId = assetFlow.first().token.configuration.chainId
+            val chain = chainRegistry.getChain(chainId)
+            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, accountAddress)
+            val payload = ExternalAccountActions.Payload(accountAddress, chainId, chain.name, supportedExplorers)
+            externalAccountActions.showExternalActions(payload)
         }
     }
 

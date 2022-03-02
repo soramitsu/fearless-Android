@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.core_db.converters.CryptoTypeConverters
 import jp.co.soramitsu.core_db.converters.LongMathConverters
-import jp.co.soramitsu.core_db.converters.NetworkTypeConverters
 import jp.co.soramitsu.core_db.converters.OperationConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
@@ -22,6 +21,7 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.migrations.AddAccountStakingTable_14_15
+import jp.co.soramitsu.core_db.migrations.AddChainExplorersTable_33_34
 import jp.co.soramitsu.core_db.migrations.AddChainRegistryTables_27_28
 import jp.co.soramitsu.core_db.migrations.AddNetworkTypeToStorageCache_13_14
 import jp.co.soramitsu.core_db.migrations.AddOperationsTablesToDb_23_24
@@ -31,16 +31,16 @@ import jp.co.soramitsu.core_db.migrations.AddStakingRewardsTable_15_16
 import jp.co.soramitsu.core_db.migrations.AddStorageCacheTable_12_13
 import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
+import jp.co.soramitsu.core_db.migrations.AssetsOrderMigration
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
 import jp.co.soramitsu.core_db.migrations.EthereumDerivationPathMigration
+import jp.co.soramitsu.core_db.migrations.FixAssetsMigration_36_37
 import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_29_30
 import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_30_31
 import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_32_33
-import jp.co.soramitsu.core_db.migrations.MoveActiveNodeTrackingToDb_18_19
-import jp.co.soramitsu.core_db.migrations.PrefsToDbActiveNodeMigrator
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
+import jp.co.soramitsu.core_db.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.core_db.migrations.RemoveStakingRewardsTable_22_23
-import jp.co.soramitsu.core_db.migrations.UpdateDefaultNodesList
 import jp.co.soramitsu.core_db.migrations.V2Migration
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
@@ -52,14 +52,14 @@ import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.core_db.model.TotalRewardLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
+import jp.co.soramitsu.core_db.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
-import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
 
 @Database(
-    version = 33,
+    version = 37,
     entities = [
         AccountLocal::class,
         AssetLocal::class,
@@ -75,12 +75,12 @@ import jp.co.soramitsu.core_db.prepopulate.nodes.LATEST_DEFAULT_NODES
         ChainAssetLocal::class,
         ChainRuntimeInfoLocal::class,
         MetaAccountLocal::class,
-        ChainAccountLocal::class
+        ChainAccountLocal::class,
+        ChainExplorerLocal::class
     ]
 )
 @TypeConverters(
     LongMathConverters::class,
-    NetworkTypeConverters::class,
     OperationConverters::class,
     CryptoTypeConverters::class
 )
@@ -94,7 +94,6 @@ abstract class AppDatabase : RoomDatabase() {
         @Synchronized
         fun get(
             context: Context,
-            prefsToDbActiveNodeMigrator: PrefsToDbActiveNodeMigrator,
             storeV1: SecretStoreV1,
             storeV2: SecretStoreV2
         ): AppDatabase {
@@ -108,18 +107,16 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AddStorageCacheTable_12_13, AddNetworkTypeToStorageCache_13_14)
                     .addMigrations(AddAccountStakingTable_14_15, AddStakingRewardsTable_15_16, ChangePrimaryKeyForRewards_16_17)
                     .addMigrations(RemoveAccountForeignKeyFromAsset_17_18)
-                    .addMigrations(MoveActiveNodeTrackingToDb_18_19(prefsToDbActiveNodeMigrator))
-                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 19))
-                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 20))
                     .addMigrations(AddTotalRewardsTableToDb_21_22, RemoveStakingRewardsTable_22_23)
                     .addMigrations(AddOperationsTablesToDb_23_24)
-                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 24))
-                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 25))
-                    .addMigrations(UpdateDefaultNodesList(LATEST_DEFAULT_NODES, fromVersion = 26))
                     .addMigrations(AddChainRegistryTables_27_28, V2Migration(storeV1, storeV2), MigrateTablesToV2_29_30)
                     .addMigrations(MigrateTablesToV2_30_31)
                     .addMigrations(EthereumDerivationPathMigration(storeV2))
                     .addMigrations(MigrateTablesToV2_32_33)
+                    .addMigrations(AddChainExplorersTable_33_34)
+                    .addMigrations(AssetsOrderMigration())
+                    .addMigrations(RemoveLegacyData_35_36)
+                    .addMigrations(FixAssetsMigration_36_37)
                     .build()
             }
             return instance!!

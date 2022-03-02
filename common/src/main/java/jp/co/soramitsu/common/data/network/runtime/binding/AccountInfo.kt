@@ -1,9 +1,11 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import java.math.BigInteger
 
@@ -13,6 +15,20 @@ class AccountData(
     val miscFrozen: BigInteger,
     val feeFrozen: BigInteger,
 )
+
+class OrmlTokensAccountData(
+    val free: BigInteger,
+    val reserved: BigInteger,
+    val frozen: BigInteger,
+) {
+    companion object {
+        fun empty() = OrmlTokensAccountData(
+            free = BigInteger.ZERO,
+            reserved = BigInteger.ZERO,
+            frozen = BigInteger.ZERO
+        )
+    }
+}
 
 class AccountInfo(
     val nonce: BigInteger,
@@ -54,5 +70,18 @@ fun bindAccountInfo(scale: String, runtime: RuntimeSnapshot): AccountInfo {
     return AccountInfo(
         nonce = bindNonce(dynamicInstance["nonce"]),
         data = bindAccountData(dynamicInstance.getTyped("data"))
+    )
+}
+
+@UseCaseBinding
+fun bindOrmlTokensAccountData(scale: String, runtime: RuntimeSnapshot): OrmlTokensAccountData {
+    val type = runtime.metadata.module(Modules.TOKENS).storage("Accounts").returnType()
+
+    val dynamicInstance = type.fromHexOrNull(runtime, scale).cast<Struct.Instance>()
+
+    return OrmlTokensAccountData(
+        free = bindNumber(dynamicInstance["free"]),
+        reserved = bindNumber(dynamicInstance["reserved"]),
+        frozen = bindNumber(dynamicInstance["frozen"]),
     )
 }

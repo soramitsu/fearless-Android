@@ -6,15 +6,21 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
+import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
 import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
-import kotlinx.android.synthetic.main.view_advanced_block.view.derivationPathInput
-import kotlinx.android.synthetic.main.view_advanced_block.view.encryptionTypeInput
+import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumDerivationPathHint
+import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumDerivationPathInput
+import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumEncryptionTypeInput
+import kotlinx.android.synthetic.main.view_advanced_block.view.substrateDerivationPathHint
+import kotlinx.android.synthetic.main.view_advanced_block.view.substrateDerivationPathInput
+import kotlinx.android.synthetic.main.view_advanced_block.view.substrateEncryptionTypeInput
 
 class AdvancedBlockView @JvmOverloads constructor(
     context: Context,
@@ -57,14 +63,29 @@ class AdvancedBlockView @JvmOverloads constructor(
         advancedTv.setOnClickListener(showClickListener)
     }
 
-    val derivationPathEditText: EditText
-        get() = derivationPathInput.content
+    val substrateDerivationPathEditText: EditText
+        get() = substrateDerivationPathInput.content
 
-    val derivationPathField: InputField
-        get() = derivationPathInput
+    val substrateDerivationPathField: InputField
+        get() = substrateDerivationPathInput
 
-    val encryptionTypeField: LabeledTextView
-        get() = encryptionTypeInput
+    val substrateEncryptionTypeField: LabeledTextView
+        get() = substrateEncryptionTypeInput
+
+    val ethereumDerivationPathEditText: EditText
+        get() = ethereumDerivationPathInput.content
+
+    val ethereumDerivationPathField: InputField
+        get() = ethereumDerivationPathInput
+
+    val ethereumEncryptionTypeField: LabeledTextView
+        get() = ethereumEncryptionTypeInput
+
+    val substrateDerivationPathHintView: TextView
+        get() = substrateDerivationPathHint
+
+    val ethereumDerivationPathHintView: TextView
+        get() = ethereumDerivationPathHint
 
     fun toggle() {
         if (advancedView.visibility == View.VISIBLE) {
@@ -84,31 +105,72 @@ class AdvancedBlockView @JvmOverloads constructor(
         advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus_white_24, 0)
     }
 
-    fun setOnEncryptionTypeClickListener(clickListener: () -> Unit) {
-        encryptionTypeInput.setWholeClickListener {
-            maybeCallSelectorListener(encryptionTypeInput, clickListener)
+    fun setOnSubstrateEncryptionTypeClickListener(clickListener: () -> Unit) {
+        substrateEncryptionTypeInput.setWholeClickListener {
+            maybeCallSelectorListener(substrateEncryptionTypeInput, clickListener)
         }
     }
 
-    fun getDerivationPath(): String {
-        return derivationPathEditText.text?.toString() ?: ""
+    fun getSubstrateDerivationPath(): String {
+        return substrateDerivationPathEditText.text?.toString() ?: ""
     }
 
-    fun setDerivationPath(path: String?) {
-        derivationPathEditText.setText(path)
+    fun setSubstrateDerivationPath(path: String?) {
+        substrateDerivationPathEditText.setText(path)
     }
 
-    fun setEncryption(encryption: String) {
-        encryptionTypeInput.setMessage(encryption)
+    fun setSubstrateEncryption(encryption: String) {
+        substrateEncryptionTypeInput.setMessage(encryption)
+    }
+
+    fun getEthereumDerivationPath(): String {
+        return ethereumDerivationPathEditText.text?.toString() ?: ""
+    }
+
+    fun setEthereumDerivationPath(path: String?) {
+        ethereumDerivationPathEditText.setText(path)
     }
 
     fun configure(field: View, fieldState: FieldState) {
         fieldState.applyTo(field)
     }
 
+    fun configureHint(hint: View, fieldState: FieldState) {
+        when (fieldState) {
+            FieldState.NORMAL -> hint.makeVisible()
+            FieldState.DISABLED -> hint.makeGone()
+            FieldState.HIDDEN -> hint.makeGone()
+        }
+    }
+
     fun configure(fieldState: FieldState) {
-        configure(encryptionTypeField, fieldState)
-        configure(derivationPathField, fieldState)
+        configureSubstrate(fieldState)
+        configureEthereum(fieldState)
+    }
+
+    fun configure(blockchainType: ImportAccountType) {
+        when (blockchainType) {
+            ImportAccountType.Substrate -> {
+                configureSubstrate(FieldState.NORMAL)
+                configureEthereum(FieldState.HIDDEN)
+            }
+            ImportAccountType.Ethereum -> {
+                configureSubstrate(FieldState.HIDDEN)
+                configureEthereum(FieldState.NORMAL)
+            }
+        }
+    }
+
+    fun configureSubstrate(fieldState: FieldState) {
+        configure(substrateEncryptionTypeField, fieldState)
+        configure(substrateDerivationPathField, fieldState)
+        configureHint(substrateDerivationPathHintView, fieldState)
+    }
+
+    fun configureEthereum(fieldState: FieldState) {
+        configure(ethereumEncryptionTypeField, fieldState)
+        configure(ethereumDerivationPathField, fieldState)
+        configureHint(ethereumDerivationPathHintView, fieldState)
     }
 
     fun setEnabled(field: View, enabled: Boolean) {

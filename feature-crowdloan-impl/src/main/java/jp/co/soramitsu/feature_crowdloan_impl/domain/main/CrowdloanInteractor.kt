@@ -1,7 +1,5 @@
 package jp.co.soramitsu.feature_crowdloan_impl.domain.main
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
@@ -13,11 +11,13 @@ import jp.co.soramitsu.feature_crowdloan_api.data.repository.getContributions
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.mapFundInfoToCrowdloan
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
-import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.BigInteger
+import kotlin.reflect.KClass
 
 class Crowdloan(
     val parachainMetadata: ParachainMetadata?,
@@ -89,6 +89,7 @@ class CrowdloanInteractor(
                 val aa = fundInfos.values
                     .map { fundInfo ->
                         val paraId = fundInfo.paraId
+                        val minContribution = crowdloanRepository.minContribution(chain.id)
 
                         mapFundInfoToCrowdloan(
                             fundInfo = fundInfo,
@@ -98,7 +99,8 @@ class CrowdloanInteractor(
                             expectedBlockTimeInMillis = expectedBlockTime,
                             blocksPerLeasePeriod = blocksPerLeasePeriod,
                             contribution = contributions[paraId],
-                            hasWonAuction = winnerInfo.getValue(paraId)
+                            hasWonAuction = winnerInfo.getValue(paraId),
+                            minContribution = minContribution
                         )
                     }
                     .sortedWith(

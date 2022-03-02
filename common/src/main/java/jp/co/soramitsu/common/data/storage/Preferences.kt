@@ -14,6 +14,10 @@ interface Preferences {
 
     fun getString(field: String): String?
 
+    fun putStringSet(field: String, value: Set<String>?)
+
+    fun getStringSet(field: String, defaultValue: Set<String>): Set<String>
+
     fun putBoolean(field: String, value: Boolean)
 
     fun getBoolean(field: String, defaultValue: Boolean): Boolean

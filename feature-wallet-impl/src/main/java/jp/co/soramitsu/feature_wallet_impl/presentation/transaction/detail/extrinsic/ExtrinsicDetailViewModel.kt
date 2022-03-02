@@ -6,17 +6,17 @@ import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.ExternalAnalyzer
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlinx.coroutines.flow.flow
 
 private const val ICON_SIZE_DP = 32
 
@@ -25,13 +25,13 @@ enum class ExternalActionsSource {
 }
 
 class ExtrinsicDetailViewModel(
-    private val appLinksProvider: AppLinksProvider,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
-    val operation: OperationParcelizeModel.Extrinsic,
+    val chainRegistry: ChainRegistry,
+    val payload: ExtrinsicDetailsPayload
 ) : BaseViewModel(), Browserable {
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalExtrinsicActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
@@ -39,23 +39,20 @@ class ExtrinsicDetailViewModel(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val fromAddressModelLiveData = liveData {
-        emit(getIcon(operation.originAddress))
+        emit(getIcon(payload.operation.originAddress))
     }
+
+    private val chainExplorers = flow { emit(chainRegistry.getChain(payload.chainId).explorers) }.share()
+
+    fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
+        chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(
         address,
         ICON_SIZE_DP, addressDisplayUseCase(address)
     )
 
-    fun viewTransactionExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
-        val url = appLinksProvider.getExternalTransactionUrl(analyzer, hash, networkType)
-
-        openBrowserEvent.value = Event(url)
-    }
-
-    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {
-        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, networkType)
-
+    fun openUrl(url: String) {
         openBrowserEvent.value = Event(url)
     }
 

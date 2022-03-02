@@ -6,14 +6,14 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.sumByBigInteger
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
@@ -26,6 +26,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Valid
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -40,6 +42,7 @@ class ValidatorDetailsViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val appLinksProvider: AppLinksProvider,
     private val resourceManager: ResourceManager,
+    private val chainRegistry: ChainRegistry,
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
     private val assetFlow = interactor.currentAssetFlow()
@@ -126,8 +129,18 @@ class ValidatorDetailsViewModel(
         }
     }
 
-    fun accountActionsClicked() {
-        val address = validatorDetails.value?.address ?: return
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(address, address.networkType()))
+    fun accountActionsClicked() = launch {
+        val address = validatorDetails.value?.address ?: return@launch
+        val chainId = assetFlow.first().token.configuration.chainId
+        val chain = chainRegistry.getChain(chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = address,
+            chainId = chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
+
+        externalAccountActions.showExternalActions(externalActionsPayload)
     }
 }

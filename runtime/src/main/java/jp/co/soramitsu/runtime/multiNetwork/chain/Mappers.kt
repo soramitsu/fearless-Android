@@ -3,6 +3,7 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
+import jp.co.soramitsu.core_db.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
@@ -21,8 +22,15 @@ private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) 
     else -> Chain.ExternalApi.Section.Type.UNKNOWN
 }
 
+private fun mapExplorerTypeRemoteToExplorerType(explorer: String) = when (explorer) {
+    "polkascan" -> Chain.Explorer.Type.POLKASCAN
+    "subscan" -> Chain.Explorer.Type.SUBSCAN
+    else -> Chain.Explorer.Type.UNKNOWN
+}
+
 private fun mapSectionTypeToSectionTypeLocal(sectionType: Chain.ExternalApi.Section.Type): String = sectionType.name
 private fun mapSectionTypeLocalToSectionType(sectionType: String): Chain.ExternalApi.Section.Type = enumValueOf(sectionType)
+private fun mapExplorerTypeLocalToExplorerType(explorerType: String): Chain.Explorer.Type = enumValueOf(explorerType)
 
 private fun mapStakingStringToStakingType(stakingString: String?): Chain.Asset.StakingType {
     return when (stakingString) {
@@ -34,6 +42,12 @@ private fun mapStakingStringToStakingType(stakingString: String?): Chain.Asset.S
 
 private fun mapStakingTypeToLocal(stakingType: Chain.Asset.StakingType): String = stakingType.name
 private fun mapStakingTypeFromLocal(stakingTypeLocal: String): Chain.Asset.StakingType = enumValueOf(stakingTypeLocal)
+
+private fun ChainExternalApiRemote.Explorer.toExplorer() = Chain.Explorer(
+    type = mapExplorerTypeRemoteToExplorerType(type),
+    types = types,
+    url = url
+)
 
 private fun mapSectionRemoteToSection(sectionRemote: ChainExternalApiRemote.Section?) = sectionRemote?.let {
     Chain.ExternalApi.Section(
@@ -102,12 +116,16 @@ fun mapChainRemoteToChain(
         }
 
         val externalApi = chainRemote.externalApi?.let { externalApi ->
-            Chain.ExternalApi(
-                history = mapSectionRemoteToSection(externalApi.history),
-                staking = mapSectionRemoteToSection(externalApi.staking),
-                crowdloans = mapSectionRemoteToSection(externalApi.crowdloans),
-            )
+            (externalApi.history ?: externalApi.staking ?: externalApi.crowdloans)?.let {
+                Chain.ExternalApi(
+                    history = mapSectionRemoteToSection(externalApi.history),
+                    staking = mapSectionRemoteToSection(externalApi.staking),
+                    crowdloans = mapSectionRemoteToSection(externalApi.crowdloans)
+                )
+            }
         }
+
+        val explorers = chainRemote.externalApi?.explorers?.map { it.toExplorer() }
 
         val optionsOrEmpty = chainRemote.options.orEmpty()
 
@@ -118,6 +136,7 @@ fun mapChainRemoteToChain(
             assets = assets.orEmpty(),
             types = types,
             nodes = nodes.orEmpty(),
+            explorers = explorers.orEmpty(),
             icon = chainRemote.icon.orEmpty(),
             externalApi = externalApi,
             addressPrefix = chainRemote.addressPrefix,
@@ -170,6 +189,14 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
         )
     }
 
+    val explorers = chainLocal.explorers.map {
+        Chain.Explorer(
+            type = mapExplorerTypeLocalToExplorerType(it.type),
+            types = mapToList(it.types).orEmpty(),
+            url = it.url
+        )
+    }
+
     return with(chainLocal.chain) {
         Chain(
             id = id,
@@ -178,6 +205,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             assets = assets,
             types = types,
             nodes = nodes,
+            explorers = explorers,
             icon = icon,
             externalApi = externalApi,
             addressPrefix = prefix,
@@ -228,6 +256,15 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
         )
     }
 
+    val explorers = chain.explorers.map { explorer ->
+        ChainExplorerLocal(
+            chainId = chain.id,
+            type = explorer.type.name,
+            types = Gson().toJson(explorer.types),
+            url = explorer.url
+        )
+    }
+
     val chainLocal = with(chain) {
         ChainLocal(
             id = id,
@@ -246,7 +283,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     return JoinedChainInfo(
         chain = chainLocal,
         nodes = nodes,
-        assets = assets
+        assets = assets,
+        explorers = explorers
     )
 }
 

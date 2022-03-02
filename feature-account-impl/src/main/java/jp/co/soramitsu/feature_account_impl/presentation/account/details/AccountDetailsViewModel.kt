@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -13,18 +13,17 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
+import jp.co.soramitsu.feature_account_api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.ExportSourceChooserPayload
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportSource
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordPayload
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicPayload
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -52,6 +51,9 @@ class AccountDetailsViewModel(
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
+
+    private val _showImportChainAccountChooser = MutableLiveData<Event<ImportChainAccountsPayload>>()
+    val showImportChainAccountChooser: LiveData<Event<ImportChainAccountsPayload>> = _showImportChainAccountChooser
 
     val accountNameFlow: MutableStateFlow<String> = MutableStateFlow("")
 
@@ -89,8 +91,8 @@ class AccountDetailsViewModel(
 
     private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader {
         val resId = when (from) {
-            AccountInChain.From.META_ACCOUNT -> R.string.account_shared_secret
-            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_custom_secret
+            AccountInChain.From.META_ACCOUNT -> R.string.default_account_shared_secret
+            AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_unique_secret
         }
 
         return TextHeader(resourceManager.getString(resId))
@@ -107,50 +109,52 @@ class AccountDetailsViewModel(
             chainName = chain.name,
             chainIcon = chain.icon,
             address = address,
-            accountIcon = accountIcon
+            accountIcon = accountIcon,
+            accountName = accountInChain.name,
+            accountFrom = accountInChain.from
         )
     }
 
     fun exportClicked(chainId: ChainId) {
         viewModelScope.launch {
             val isEthereumBased = chainRegistry.getChain(chainId).isEthereumBased
-            val sources = buildExportSourceTypes(isEthereumBased)
+            val sources = interactor.getMetaAccountSecrets(metaId).buildExportSourceTypes(isEthereumBased)
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
         }
     }
 
-    private suspend fun buildExportSourceTypes(isEthereumBased: Boolean): List<ExportSource> {
-        val secrets = interactor.getMetaAccountSecrets(metaId)
-
-        val options = mutableListOf<ExportSource>()
-
-        when {
-            secrets?.get(MetaAccountSecrets.Entropy) != null -> {
-                options += ExportSource.Mnemonic
-                if (!isEthereumBased) options += ExportSource.Seed
-            }
-            secrets?.get(MetaAccountSecrets.Seed) != null -> {
-                if (!isEthereumBased) options += ExportSource.Seed
-            }
+    fun showImportChainAccountChooser(chainId: ChainId) {
+        viewModelScope.launch {
+            val name = chainRegistry.getChain(chainId).name
+            _showImportChainAccountChooser.postValue(Event(ImportChainAccountsPayload(chainId, metaId, name)))
         }
+    }
 
-        if (!isEthereumBased) options += ExportSource.Json
+    fun createChainAccount(chainId: ChainId, metaId: Long) {
+        viewModelScope.launch {
+            accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = false)
+        }
+    }
 
-        return options
+    fun importChainAccount(chainId: ChainId, metaId: Long) {
+        viewModelScope.launch {
+            accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
+        }
     }
 
     fun exportTypeSelected(selected: ExportSource, chainId: ChainId) {
         val destination = when (selected) {
-            is ExportSource.Json -> accountRouter.openExportJsonPassword(ExportJsonPasswordPayload(metaId, chainId))
-            is ExportSource.Seed -> accountRouter.openExportSeed(ExportSeedPayload(metaId, chainId))
-            is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(ExportMnemonicPayload(metaId, chainId))
+            is ExportSource.Json -> accountRouter.openExportJsonPassword(metaId, chainId)
+            is ExportSource.Seed -> accountRouter.openExportSeed(metaId, chainId)
+            is ExportSource.Mnemonic -> accountRouter.openExportMnemonic(metaId, chainId)
         }
 
         accountRouter.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
     }
 
-    fun chainAccountOptionsClicked(item: AccountInChainUi) {
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, null, item.chainId, item.chainName))
+    fun chainAccountOptionsClicked(item: AccountInChainUi) = launch {
+        val supportedExplorers = chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
+        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
     }
 
     fun switchNode(chainId: ChainId) {

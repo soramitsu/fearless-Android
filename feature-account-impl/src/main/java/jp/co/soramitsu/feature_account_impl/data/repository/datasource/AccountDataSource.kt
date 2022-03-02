@@ -43,7 +43,7 @@ interface AccountDataSource : SecretStoreV1 {
     suspend fun selectMetaAccount(metaId: Long)
     suspend fun updateAccountPositions(accountOrdering: List<MetaAccountOrdering>)
 
-    suspend fun getPreferredCryptoType(): CryptoType
+    suspend fun getPreferredCryptoTypeOrSelected(metaId: Long? = null): CryptoType
 
     suspend fun getSelectedLanguage(): Language
     suspend fun changeSelectedLanguage(language: Language)

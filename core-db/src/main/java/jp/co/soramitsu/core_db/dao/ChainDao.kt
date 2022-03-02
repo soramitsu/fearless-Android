@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
+import jp.co.soramitsu.core_db.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
 import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
@@ -22,7 +23,10 @@ abstract class ChainDao {
         newOrUpdated: List<JoinedChainInfo>,
     ) {
         // saving custom nodes before deleting
-        val customNodes = getCustomNodes()
+        val customNodes = getCustomNodes().filter {
+            // excluding nodes for removed chains
+            it.chainId !in removed.map { it.id }
+        }
 
         deleteChains(removed)
 
@@ -32,6 +36,7 @@ abstract class ChainDao {
         insertChainNodes(newOrUpdated.flatMap(JoinedChainInfo::nodes))
         insertChainNodes(customNodes)
         insertChainAssets(newOrUpdated.flatMap(JoinedChainInfo::assets))
+        insertChainExplorers(newOrUpdated.flatMap(JoinedChainInfo::explorers))
     }
 
     @Delete()
@@ -75,6 +80,9 @@ abstract class ChainDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChainAssets(assets: List<ChainAssetLocal>)
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    protected abstract suspend fun insertChainExplorers(explorers: List<ChainExplorerLocal>)
 
     @Query("SELECT * FROM chains")
     @Transaction

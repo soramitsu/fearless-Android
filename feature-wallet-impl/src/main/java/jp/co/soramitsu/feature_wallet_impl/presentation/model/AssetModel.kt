@@ -14,7 +14,10 @@ data class AssetModel(
     val reserved: BigDecimal,
     val redeemable: BigDecimal,
     val unbonding: BigDecimal,
-    val available: BigDecimal
+    val available: BigDecimal,
+    val sortIndex: Int,
+    val enabed: Boolean,
+    val chainAccountName: String?
 ) {
     val totalFiat = total.applyDollarRate(token.dollarRate)
     val availableFiat = available.applyDollarRate(token.dollarRate)

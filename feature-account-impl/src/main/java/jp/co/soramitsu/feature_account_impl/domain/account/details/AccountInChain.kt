@@ -6,7 +6,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 class AccountInChain(
     val chain: Chain,
     val projection: Projection?,
-    val from: From
+    val from: From,
+    val name: String?
 ) {
 
     class Projection(val address: String, val accountId: AccountId)

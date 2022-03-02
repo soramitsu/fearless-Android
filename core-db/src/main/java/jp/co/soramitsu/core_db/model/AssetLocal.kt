@@ -9,7 +9,7 @@ import java.math.BigInteger
 
 @Entity(
     tableName = "assets",
-    primaryKeys = ["tokenSymbol", "chainId", "accountId"],
+    primaryKeys = ["tokenSymbol", "chainId", "accountId", "metaId"],
     foreignKeys = [
         ForeignKey(
             entity = ChainLocal::class,
@@ -31,6 +31,9 @@ data class AssetLocal(
     val bondedInPlanks: BigInteger,
     val redeemableInPlanks: BigInteger,
     val unbondingInPlanks: BigInteger,
+    val sortIndex: Int,
+    val enabled: Boolean,
+    val chainAccountName: String?
 ) {
     companion object {
         fun createEmpty(
@@ -49,7 +52,19 @@ data class AssetLocal(
             feeFrozenInPlanks = BigInteger.ZERO,
             bondedInPlanks = BigInteger.ZERO,
             redeemableInPlanks = BigInteger.ZERO,
-            unbondingInPlanks = BigInteger.ZERO
+            unbondingInPlanks = BigInteger.ZERO,
+            sortIndex = Int.MAX_VALUE,
+            enabled = true,
+            chainAccountName = null
         )
     }
 }
+
+data class AssetUpdateItem(
+    val metaId: Long,
+    val chainId: String,
+    val accountId: AccountId,
+    val tokenSymbol: String,
+    var sortIndex: Int,
+    var enabled: Boolean
+)

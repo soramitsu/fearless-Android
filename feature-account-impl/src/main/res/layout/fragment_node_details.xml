@@ -15,22 +15,31 @@
         app:homeButtonIcon="@drawable/ic_close"
         app:titleText="@string/network_info_title" />
 
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/nodeDetailsNetworkType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        app:enabled="false"
+        app:label="@string/network"
+        tools:message="Kusama"
+        tools:textIcon="@drawable/ic_plus_circle" />
+
     <jp.co.soramitsu.common.view.InputField
         android:id="@+id/nodeDetailsNameField"
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
         android:hint="@string/username_setup_choose_title" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp">
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp">
 
         <jp.co.soramitsu.common.view.InputField
             android:id="@+id/nodeDetailsHostField"
@@ -38,7 +47,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="4dp"
-            android:hint="@string/network_info_address"
+            android:hint="@string/network_url_address"
             android:inputType="textWebEmailAddress|textNoSuggestions"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/nodeHostCopy"
@@ -62,21 +71,10 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <TextView
-        android:id="@+id/nodeDetailsNetworkType"
-        style="@style/TextAppearance.Soramitsu.Body1"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/bg_button_primary_disabled"
-        android:drawablePadding="8dp"
-        android:gravity="center_vertical"
-        android:includeFontPadding="false"
-        android:padding="16dp"
-        tools:drawableStart="@drawable/ic_ksm_24"
-        tools:text="Kusama" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/updateBtn"
@@ -85,6 +83,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:enabled="false"
-        android:text="@string/common_update" />
+        android:text="@string/common_confirm" />
 
 </LinearLayout>

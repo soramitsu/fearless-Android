@@ -6,23 +6,24 @@ import android.view.ViewGroup
 import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.networkType
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalActionsSheet
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalViewCallback
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalActionsSheet
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailAmount
 import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDate
 import kotlinx.android.synthetic.main.fragment_transfer_details.transactionDetailDivider4
@@ -175,32 +176,34 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>() {
         }
     }
 
-    private fun showExternalAddressActions(
-        address: String
-    ) = showExternalActionsSheet(
+    private fun showExternalAddressActions(address: String) = showExternalActionsSheet(
         copyLabelRes = R.string.common_copy_address,
         value = address,
-        externalViewCallback = viewModel::viewAccountExternalClicked
+        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address),
+        externalViewCallback = viewModel::openUrl
     )
 
-    private fun showExternalTransactionActions() {
+    private fun showExternalTransactionActions() = viewModel.operation.hash?.let { hash ->
         showExternalActionsSheet(
-            R.string.transaction_details_copy_hash,
-            viewModel.operation.hash!!,
-            viewModel::viewTransactionExternalClicked
+            copyLabelRes = R.string.transaction_details_copy_hash,
+            value = hash,
+            explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EXTRINSIC, hash),
+            externalViewCallback = viewModel::openUrl
         )
     }
 
     private fun showExternalActionsSheet(
         @StringRes copyLabelRes: Int,
         value: String,
+        explorers: Map<Chain.Explorer.Type, String>,
         externalViewCallback: ExternalViewCallback
     ) {
         val payload = ExternalActionsSheet.Payload(
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                networkType = viewModel.operation.address.networkType()
+                chainId = viewModel.assetPayload.chainId,
+                explorers = explorers
             )
         )
 

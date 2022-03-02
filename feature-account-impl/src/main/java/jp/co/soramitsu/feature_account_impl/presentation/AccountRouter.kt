@@ -3,11 +3,10 @@ package jp.co.soramitsu.feature_account_impl.presentation
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
+import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordPayload
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicPayload
-import jp.co.soramitsu.feature_account_impl.presentation.exporting.seed.ExportSeedPayload
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.feature_account_impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -22,7 +21,7 @@ interface AccountRouter : SecureRouter {
 
     fun openCreatePincode()
 
-    fun openMnemonicScreen(accountName: String)
+    fun openMnemonicScreen(accountName: String, payload: ChainAccountCreatePayload?)
 
     fun openConfirmMnemonicOnCreate(confirmMnemonicPayload: ConfirmMnemonicPayload)
 
@@ -44,6 +43,10 @@ interface AccountRouter : SecureRouter {
 
     fun openAccountDetails(metaAccountId: Long)
 
+    fun openExportWallet(metaAccountId: Long)
+
+    fun openAccountsForExport(metaId: Long, from: AccountInChain.From)
+
     fun openEditAccounts()
 
     fun backToMainScreen()
@@ -53,13 +56,13 @@ interface AccountRouter : SecureRouter {
     fun openAddNode(chainId: ChainId)
 
     @PinRequired
-    fun openExportMnemonic(payload: ExportMnemonicPayload): DelayedNavigation
+    fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation
 
     @PinRequired
-    fun openExportSeed(payload: ExportSeedPayload): DelayedNavigation
+    fun openExportSeed(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
     @PinRequired
-    fun openExportJsonPassword(payload: ExportJsonPasswordPayload): DelayedNavigation
+    fun openExportJsonPassword(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
     fun openConfirmMnemonicOnExport(mnemonic: List<String>)
 
@@ -70,4 +73,6 @@ interface AccountRouter : SecureRouter {
     fun finishExportFlow()
 
     fun openChangePinCode()
+
+    fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
 }

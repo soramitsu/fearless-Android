@@ -1,15 +1,17 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
-import javax.inject.Provider
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Provider
 
 class ConnectionPool(
     private val socketServiceProvider: Provider<SocketService>,
-    private val externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>
+    private val externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
+    private val nodesSettingsStorage: NodesSettingsStorage
 ) {
 
     private val pool = ConcurrentHashMap<String, ChainConnection>()
@@ -22,7 +24,8 @@ class ConnectionPool(
                 socketService = socketServiceProvider.get(),
                 initialNodes = chain.nodes,
                 externalRequirementFlow = externalRequirementFlow,
-                onSelectedNodeChange = { onSelectedNodeChange(chain.id, it) }
+                onSelectedNodeChange = { onSelectedNodeChange(chain.id, it) },
+                isAutoBalanceEnabled = { nodesSettingsStorage.getIsAutoSelectNodes(chain.id) }
             )
         }
 

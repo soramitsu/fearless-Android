@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import kotlinx.coroutines.launch
 
 class ExportJsonPasswordViewModel(
@@ -19,6 +20,7 @@ class ExportJsonPasswordViewModel(
     private val payload: ExportJsonPasswordPayload
 ) : BaseViewModel() {
 
+    val isExportWallet = payload.isExportWallet
     val passwordLiveData = MutableLiveData<String>()
     val passwordConfirmationLiveData = MutableLiveData<String>()
 
@@ -40,13 +42,42 @@ class ExportJsonPasswordViewModel(
         val password = passwordLiveData.value!!
 
         viewModelScope.launch {
-            val result = interactor.generateRestoreJson(payload.metaId, payload.chainId, password)
+            val isEthBased = chainLiveData.value?.isEthereumBased
 
-            if (result.isSuccess) {
-                val payload = ExportJsonConfirmPayload(payload.metaId, payload.chainId, result.requireValue())
+            val substrateJsonResult = interactor.generateRestoreJson(payload.metaId, payload.chainId, password)
+            val ethereumJsonResult = interactor.generateRestoreJson(payload.metaId, moonriverChainId, password)
 
-                router.openExportJsonConfirm(payload)
+            val payload = when {
+                payload.isExportWallet && substrateJsonResult.isSuccess && ethereumJsonResult.isSuccess -> {
+                    ExportJsonConfirmPayload(
+                        payload.metaId,
+                        payload.chainId,
+                        substrateJsonResult.requireValue(),
+                        ethereumJsonResult.requireValue(),
+                        payload.isExportWallet
+                    )
+                }
+                !payload.isExportWallet && isEthBased == false && substrateJsonResult.isSuccess -> {
+                    ExportJsonConfirmPayload(
+                        payload.metaId,
+                        payload.chainId,
+                        substrateJsonResult.requireValue(),
+                        null,
+                        payload.isExportWallet
+                    )
+                }
+                !payload.isExportWallet && isEthBased == true && ethereumJsonResult.isSuccess -> {
+                    ExportJsonConfirmPayload(
+                        payload.metaId,
+                        payload.chainId,
+                        null,
+                        ethereumJsonResult.requireValue(),
+                        payload.isExportWallet
+                    )
+                }
+                else -> null
             }
+            payload?.let { router.openExportJsonConfirm(it) }
         }
     }
 }

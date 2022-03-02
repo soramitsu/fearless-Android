@@ -9,7 +9,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 
 fun MutableLiveData<Event<Unit>>.sendEvent() {
     this.value = Event(Unit)
@@ -67,6 +66,36 @@ fun <R> combine(
                 }
             }
         }
+    }
+}
+
+/**
+ * Supports up to N sources, where N is last componentN() in ComponentHolder
+ * @see ComponentHolder
+ */
+fun <R> mediateWith(
+    vararg sources: LiveData<*>,
+    combiner: (ComponentHolder) -> R?
+): LiveData<R> {
+    return MediatorLiveData<R>().apply {
+        var isInitialized = false
+
+        fun handleChanges() {
+            combiner.invoke(ComponentHolder(sources.map { it.value }))?.let { newValue ->
+                value = newValue
+            }
+        }
+
+        for (source in sources) {
+            addSource(source) {
+                if (isInitialized) {
+                    handleChanges()
+                }
+            }
+        }
+
+        isInitialized = true
+        handleChanges()
     }
 }
 

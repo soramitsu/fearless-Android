@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain
 
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -16,6 +17,11 @@ class TransferExtrinsicWithStatus(
 )
 
 interface SubstrateRemoteSource {
+    suspend fun getOrmlTokensAccountData(
+        chainId: ChainId,
+        assetSymbol: String,
+        accountId: AccountId
+    ): OrmlTokensAccountData
 
     suspend fun getAccountInfo(
         chainId: ChainId,

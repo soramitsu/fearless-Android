@@ -6,17 +6,17 @@ import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.AppLinksProvider
-import jp.co.soramitsu.common.data.network.ExternalAnalyzer
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlinx.coroutines.flow.flow
 
 private const val ICON_SIZE_DP = 32
 
@@ -25,13 +25,13 @@ enum class ExternalActionsSource {
 }
 
 class RewardDetailViewModel(
-    val operation: OperationParcelizeModel.Reward,
-    private val appLinksProvider: AppLinksProvider,
+    val payload: RewardDetailsPayload,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val router: WalletRouter,
+    private val chainRegistry: ChainRegistry,
 ) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
@@ -40,28 +40,23 @@ class RewardDetailViewModel(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val validatorAddressModelLiveData = liveData {
-        val icon = operation.validator?.let { getIcon(it) }
+        val icon = payload.operation.validator?.let { getIcon(it) }
 
         emit(icon)
     }
 
     val eraLiveData = liveData {
-        emit(resourceManager.getString(R.string.staking_era_index_no_prefix, operation.era))
+        emit(resourceManager.getString(R.string.staking_era_index_no_prefix, payload.operation.era))
     }
+
+    private val chainExplorers = flow { emit(chainRegistry.getChain(payload.chainId).explorers) }.share()
+
+    fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
+        chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))
 
-    fun viewEventExternalClicked(analyzer: ExternalAnalyzer, hash: String, networkType: Node.NetworkType) {
-        val url = appLinksProvider.getExternalEventUrl(analyzer, hash, networkType)
-
-        url?.let {
-            openBrowserEvent.value = Event(it)
-        }
-    }
-
-    fun viewAccountExternalClicked(analyzer: ExternalAnalyzer, address: String, networkType: Node.NetworkType) {
-        val url = appLinksProvider.getExternalAddressUrl(analyzer, address, networkType)
-
+    fun openUrl(url: String) {
         openBrowserEvent.value = Event(url)
     }
 

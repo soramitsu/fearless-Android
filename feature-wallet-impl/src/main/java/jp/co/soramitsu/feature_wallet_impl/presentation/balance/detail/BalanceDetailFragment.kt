@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import coil.ImageLoader
 import coil.load
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -15,6 +16,10 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClicked
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -27,13 +32,13 @@ import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetaiAction
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailBack
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailContainer
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailContent
+import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailOptions
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRate
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailRateChange
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenIcon
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailTokenName
 import kotlinx.android.synthetic.main.fragment_balance_detail.balanceDetailsInfo
-import kotlinx.android.synthetic.main.fragment_balance_detail.chainAssetName
-import kotlinx.android.synthetic.main.fragment_balance_detail.chainBadgeIcon
+import kotlinx.android.synthetic.main.fragment_balance_detail.tokenBadge
 import kotlinx.android.synthetic.main.fragment_balance_detail.transfersContainer
 import javax.inject.Inject
 
@@ -74,6 +79,9 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         }
 
         balanceDetailBack.setOnClickListener { viewModel.backClicked() }
+        balanceDetailOptions.setOnClickListener {
+            viewModel.accountOptionsClicked()
+        }
 
         balanceDetaiActions.send.setOnClickListener {
             viewModel.sendClicked()
@@ -93,7 +101,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = arguments!![KEY_ASSET_PAYLOAD] as AssetPayload
+        val token = requireArguments()[KEY_ASSET_PAYLOAD] as AssetPayload
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
@@ -113,17 +121,19 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
         viewModel.assetLiveData.observe { asset ->
             balanceDetailTokenIcon.load(asset.token.configuration.iconUrl, imageLoader)
-            chainBadgeIcon.load(asset.token.configuration.chainIcon, imageLoader)
+
+            tokenBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
 
             balanceDetailTokenName.text = asset.token.configuration.symbol
-            chainAssetName.text = asset.token.configuration.chainName
-
+            tokenBadge.setText(asset.token.configuration.chainName)
             balanceDetailRate.text = asset.token.dollarRate?.formatAsCurrency() ?: ""
+            balanceDetailRate.isVisible = asset.token.dollarRate != null
 
             asset.token.recentRateChange?.let {
                 balanceDetailRateChange.setTextColorRes(asset.token.rateChangeColorRes)
                 balanceDetailRateChange.text = it.formatAsChange()
             }
+            balanceDetailRateChange.isVisible = asset.token.recentRateChange != null
 
             balanceDetailsInfo.total.text = asset.total.formatTokenAmount(asset.token.configuration)
             balanceDetailsInfo.totalFiat.setTextOrHide(asset.totalFiat?.formatAsCurrency())
@@ -142,6 +152,20 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
         viewModel.showFrozenDetailsEvent.observeEvent(::showFrozenDetails)
 
         balanceDetaiActions.buy.isEnabled = viewModel.buyEnabled
+
+        viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
+
+        viewModel.showAccountOptions.observeEvent(::showAccountOptions)
+    }
+
+    private fun showAccountOptions(address: String) {
+        BalanceDetailOptionsBottomSheet(
+            requireContext(),
+            address = address,
+            onExportAccount = viewModel::exportClicked,
+            onSwitchNode = viewModel::switchNode,
+            onCopy = viewModel::copyAddressClicked
+        ).show()
     }
 
     private fun setRefreshEnabled(bottomSheetState: Int) {
@@ -151,5 +175,13 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
     private fun showFrozenDetails(model: AssetModel) {
         FrozenTokensBottomSheet(requireContext(), model).show()
+    }
+
+    private fun showExportSourceChooser(payload: ExportSourceChooserPayload) {
+        SourceTypeChooserBottomSheetDialog(
+            context = requireActivity(),
+            payload = DynamicListBottomSheet.Payload(payload.sources),
+            onClicked = { viewModel.exportTypeSelected(it, payload.chainId) }
+        ).show()
     }
 }

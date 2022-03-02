@@ -77,6 +77,7 @@ class ChainAccountLocal(
     val publicKey: ByteArray,
     val accountId: ByteArray,
     val cryptoType: CryptoType,
+    val name: String,
 )
 
 interface JoinedMetaAccountInfo {

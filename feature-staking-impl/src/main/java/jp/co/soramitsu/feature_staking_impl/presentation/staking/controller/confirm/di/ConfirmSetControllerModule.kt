@@ -11,13 +11,14 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerViewModel
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class ConfirmSetControllerModule {
@@ -31,6 +32,7 @@ class ConfirmSetControllerModule {
         payload: ConfirmSetControllerPayload,
         interactor: StakingInteractor,
         resourceManager: ResourceManager,
+        chainRegistry: ChainRegistry,
         externalActions: ExternalAccountActions.Presentation,
         validationExecutor: ValidationExecutor,
         validationSystem: SetControllerValidationSystem
@@ -42,6 +44,7 @@ class ConfirmSetControllerModule {
             payload,
             interactor,
             resourceManager,
+            chainRegistry,
             externalActions,
             validationExecutor,
             validationSystem

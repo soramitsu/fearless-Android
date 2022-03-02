@@ -22,7 +22,6 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="16dp"
-        android:src="@drawable/ic_wallet_avatar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/accountCheck"
         app:layout_constraintTop_toTopOf="parent"
@@ -51,8 +50,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/bg_primary_list_item"
         android:padding="16dp"
-        android:src="@drawable/ic_info_24"
-        android:tint="@color/white"
+        android:src="@drawable/ic_dots_horizontal_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

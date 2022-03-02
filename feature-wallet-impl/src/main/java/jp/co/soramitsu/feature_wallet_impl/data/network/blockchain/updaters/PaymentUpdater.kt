@@ -3,19 +3,20 @@ package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.system
-import jp.co.soramitsu.core.model.Node
-import jp.co.soramitsu.core.model.chainId
+import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.feature_wallet_api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationStatusToOperationLocalStatus
@@ -26,6 +27,7 @@ import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -39,7 +41,7 @@ class PaymentUpdaterFactory(
     private val scope: AccountUpdateScope,
 ) {
 
-    fun create(chainId: ChainId): PaymentUpdater {
+    fun create(chainId: ChainId): Updater {
         return PaymentUpdater(
             substrateSource,
             assetCache,
@@ -57,7 +59,7 @@ class PaymentUpdater(
     private val operationDao: OperationDao,
     private val chainRegistry: ChainRegistry,
     override val scope: AccountUpdateScope,
-    private val chainId: ChainId = Node.NetworkType.POLKADOT.chainId,
+    private val chainId: ChainId
 ) : Updater {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)
@@ -70,13 +72,36 @@ class PaymentUpdater(
         val accountId = scope.getAccount().accountId(chain) ?: return emptyFlow()
         val runtime = chainRegistry.getRuntime(chainId)
 
-        val key = runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+        val key = when {
+            chainId.isOrml() -> {
+                val symbol = chain.utilityAsset.symbol
+                runtime.metadata.tokens().storage("Accounts")
+                    .storageKey(runtime, accountId, DictEnum.Entry("Token", DictEnum.Entry(symbol, null)))
+            }
+            else -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+        }
 
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->
-                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
+                when {
+                    chainId.isOrml() -> {
+                        val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
 
-                assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset, newAccountInfo)
+                        assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset) {
+                            it.copy(
+                                accountId = accountId,
+                                freeInPlanks = ormlTokensAccountData.free,
+                                miscFrozenInPlanks = ormlTokensAccountData.frozen,
+                                reservedInPlanks = ormlTokensAccountData.reserved
+                            )
+                        }
+                    }
+                    else -> {
+                        val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
+
+                        assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset, newAccountInfo)
+                    }
+                }
 
                 fetchTransfers(change.block, chain, accountId)
             }

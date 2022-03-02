@@ -1,9 +1,15 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
+import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.navigation.PinRequired
+import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
-interface WalletRouter {
+interface WalletRouter : SecureRouter {
     fun openAssetDetails(assetPayload: AssetPayload)
 
     fun back()
@@ -22,13 +28,26 @@ interface WalletRouter {
 
     fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload)
 
-    fun openExtrinsicDetail(extrinsic: OperationParcelizeModel.Extrinsic)
+    fun openExtrinsicDetail(payload: ExtrinsicDetailsPayload)
 
-    fun openRewardDetail(reward: OperationParcelizeModel.Reward)
+    fun openRewardDetail(payload: RewardDetailsPayload)
 
     fun openAddAccount()
 
     fun openChangeAccountFromWallet()
 
     fun openReceive(assetPayload: AssetPayload)
+
+    fun openNodes(chainId: ChainId)
+
+    @PinRequired
+    fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation
+
+    @PinRequired
+    fun openExportSeed(metaId: Long, chainId: ChainId): DelayedNavigation
+
+    @PinRequired
+    fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation
+
+    fun openManageAssets()
 }

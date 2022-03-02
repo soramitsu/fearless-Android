@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -21,9 +22,9 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.feature_account_api.presenatation.account.AddressDisplayUseCase
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActionsProvider
+import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActionsProvider
 import jp.co.soramitsu.feature_account_impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
@@ -97,9 +98,10 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideAccountInteractor(
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        fileProvider: FileProvider
     ): AccountInteractor {
-        return AccountInteractorImpl(accountRepository)
+        return AccountInteractorImpl(accountRepository, fileProvider)
     }
 
     @Provides
@@ -144,9 +146,10 @@ class AccountFeatureModule {
     fun provideExternalAccountActions(
         clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        chainRegistry: ChainRegistry
     ): ExternalAccountActions.Presentation {
-        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager)
+        return ExternalAccountActionsProvider(clipboardManager, appLinksProvider, resourceManager, chainRegistry)
     }
 
     @Provides

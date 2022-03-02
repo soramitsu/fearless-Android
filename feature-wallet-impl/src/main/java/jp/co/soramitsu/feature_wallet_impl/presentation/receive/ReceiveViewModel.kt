@@ -8,19 +8,23 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.write
-import jp.co.soramitsu.feature_account_api.presenatation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_wallet_api.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -36,7 +40,8 @@ class ReceiveViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val assetPayload: AssetPayload,
     private val router: WalletRouter,
-    private val chainRegistry: ChainRegistry
+    private val chainRegistry: ChainRegistry,
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     val assetSymbol = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbol
@@ -56,12 +61,18 @@ class ReceiveViewModel(
     private val _shareEvent = MutableLiveData<Event<QrSharingPayload>>()
     val shareEvent: LiveData<Event<QrSharingPayload>> = _shareEvent
 
-    fun recipientClicked() {
-        val account = accountLiveData.value ?: return
+    fun recipientClicked() = launch {
+        val account = accountLiveData.value ?: return@launch
+        val chain = chainRegistry.getChain(assetPayload.chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, account.address)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = account.address,
+            chainId = assetPayload.chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
 
-        val payload = ExternalAccountActions.Payload(account.address, account.network.type)
-
-        externalAccountActions.showExternalActions(payload)
+        externalAccountActions.showExternalActions(externalActionsPayload)
     }
 
     fun backClicked() {
@@ -70,9 +81,9 @@ class ReceiveViewModel(
 
     fun shareButtonClicked() {
         val qrBitmap = qrBitmapLiveData.value ?: return
-        val address = accountIconLiveData.value?.address ?: return
 
         viewModelScope.launch {
+            val address = currentAccountAddress(assetPayload.chainId) ?: return@launch
             val result = interactor.createFileInTempStorageAndRetrieveAsset(QR_TEMP_IMAGE_NAME)
 
             if (result.isSuccess) {
@@ -90,7 +101,7 @@ class ReceiveViewModel(
     }
 
     private fun accountIconFlow(): Flow<AddressModel> {
-        return interactor.selectedAccountFlow(assetPayload.chainId)
+        return interactor.selectedAccountFlow(polkadotChainId)
             .map { addressIconGenerator.createAddressModel(it.address, AVATAR_SIZE_DP) }
     }
 

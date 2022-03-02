@@ -5,12 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicAdvanced
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicConfirm
 import kotlinx.android.synthetic.main.fragment_export_mnemonic.exportMnemonicExport
@@ -23,7 +25,7 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(payload: ExportMnemonicPayload) = bundleOf(PAYLOAD_KEY to payload)
+        fun getBundle(metaId: Long, chainId: ChainId) = bundleOf(PAYLOAD_KEY to ExportMnemonicPayload(metaId, chainId))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -66,18 +68,23 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             exportMnemonicViewer.submitList(it)
         }
 
-        viewModel.derivationPathLiveData.observe {
-            val state = if (it.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
+        viewModel.derivationPathLiveData.observe { (substrateDerivationPath: String?, ethereumDerivationPath: String?) ->
+            if (substrateDerivationPath.isNullOrBlank() && ethereumDerivationPath.isNullOrBlank()) {
+                exportMnemonicAdvanced.isVisible = false
+                return@observe
+            }
+            val substrateState = if (substrateDerivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
+            val ethereumState = if (ethereumDerivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
             with(exportMnemonicAdvanced) {
-                configure(derivationPathField, state)
-
-                setDerivationPath(it)
+                configureSubstrate(substrateState)
+                configureEthereum(ethereumState)
+                setSubstrateDerivationPath(substrateDerivationPath)
+                setEthereumDerivationPath(ethereumDerivationPath)
             }
         }
-
         viewModel.cryptoTypeLiveData.observe {
-            exportMnemonicAdvanced.setEncryption(it.name)
+            exportMnemonicAdvanced.setSubstrateEncryption(it.name)
         }
     }
 }

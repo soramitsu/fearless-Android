@@ -4,16 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import kotlinx.coroutines.launch
 
 class ConfirmMnemonicViewModel(
+    private val resourceManager: ResourceManager,
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val deviceVibrator: DeviceVibrator,
@@ -90,12 +93,10 @@ class ConfirmMnemonicViewModel(
     }
 
     private fun proceed() {
-        val createExtras = payload.createExtras
-
-        if (createExtras != null) {
-            createAccount(createExtras)
-        } else {
-            finishConfirmGame()
+        when (val createExtras = payload.createExtras) {
+            null -> finishConfirmGame()
+            is ConfirmMnemonicPayload.CreateChainExtras -> createChainAccount(createExtras)
+            else -> createAccount(createExtras)
         }
     }
 
@@ -109,7 +110,24 @@ class ConfirmMnemonicViewModel(
             val mnemonicString = originMnemonic.joinToString(" ")
 
             with(extras) {
-                val result = interactor.createAccount(accountName, mnemonicString, cryptoType, derivationPath)
+                val result = interactor.createAccount(accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath)
+
+                if (result.isSuccess) {
+                    continueBasedOnCodeStatus()
+                } else {
+                    showError(result.requireException())
+                }
+            }
+        }
+    }
+
+    private fun createChainAccount(extras: ConfirmMnemonicPayload.CreateChainExtras) {
+        viewModelScope.launch {
+            val mnemonicString = originMnemonic.joinToString(" ")
+
+            with(extras) {
+                val result =
+                    interactor.createChainAccount(metaId, chainId, accountName, mnemonicString, cryptoType, substrateDerivationPath, ethereumDerivationPath)
 
                 if (result.isSuccess) {
                     continueBasedOnCodeStatus()
@@ -121,6 +139,7 @@ class ConfirmMnemonicViewModel(
     }
 
     fun matchingErrorAnimationCompleted() {
+        showError(resourceManager.getString(R.string.confirm_mnemonic_mismatch_error_message_2_0))
         reset()
     }
 

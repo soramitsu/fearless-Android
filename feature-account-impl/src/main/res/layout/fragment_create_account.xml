@@ -22,7 +22,7 @@
         android:layout_marginTop="@dimen/x2"
         android:layout_marginEnd="@dimen/x2"
         android:layout_marginBottom="@dimen/x1"
-        android:hint="@string/username_setup_choose_title" />
+        android:hint="@string/username_setup_choose_title_2_0" />
 
     <TextView
         style="@style/TextAppearance.Soramitsu.Body2"
@@ -43,6 +43,6 @@
         android:layout_marginEnd="@dimen/x2"
         android:layout_marginBottom="@dimen/x3"
         android:enabled="false"
-        android:text="@string/common_next" />
+        android:text="@string/common_continue" />
 
 </LinearLayout>

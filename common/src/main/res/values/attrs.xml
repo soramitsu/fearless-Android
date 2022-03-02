@@ -50,6 +50,7 @@
     <declare-styleable name="AccountInfoView">
         <attr name="accountActionIcon" format="reference|color" />
         <attr name="textVisible" format="boolean" />
+        <attr name="enabled" />
     </declare-styleable>
 
     <declare-styleable name="InputField">
@@ -59,6 +60,10 @@
 
     <declare-styleable name="AmountView">
         <attr name="android:enabled" />
+    </declare-styleable>
+
+    <declare-styleable name="AmountsWithOneKeyView">
+        <attr name="android:checked" />
     </declare-styleable>
 
     <declare-styleable name="TableCellView">
@@ -71,5 +76,11 @@
         <attr name="android:text" />
         <attr name="icon" />
         <attr name="actionIcon" />
+    </declare-styleable>
+
+    <declare-styleable name="BadgeView">
+        <attr name="text" format="string" />
+        <attr name="iconUrl" format="string" />
+        <attr name="iconRes" format="reference|color" />
     </declare-styleable>
 </resources>

@@ -47,6 +47,10 @@
         <item name="android:textSize">?attr/textSizeB1</item>
     </style>
 
+    <style name="TextAppearance.Soramitsu.Body1.WithDisabled">
+        <item name="android:textColor">@color/button_text_colors</item>
+    </style>
+
     <style name="TextAppearance.Soramitsu.Body2" parent="TextAppearance.AppCompat.Body1">
         <item name="android:fontFamily">?attr/fontRegular</item>
         <item name="android:textSize">?attr/textSizeB2</item>
@@ -74,8 +78,23 @@
         <item name="android:background">@drawable/bg_button_primary_selector</item>
     </style>
 
-    <style  name="Widget.Fearless.Button.Outline">
+    <style name="Widget.Fearless.Button.Outline">
         <item name="android:background">@drawable/bg_button_outline_selector</item>
+    </style>
+
+    <style name="Widget.Fearless.Button.Text" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/button_text_colors</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textSize">?attr/textSizeB1</item>
+        <item name="android:fontFamily">?attr/fontBold</item>
+    </style>
+
+    <style name="Widget.Fearless.Button.Text.Normal">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textSize">?attr/textSizeB1</item>
+        <item name="android:fontFamily">?attr/fontRegular</item>
     </style>
 
     <style name="Widget.Fearless.Puller" parent="">
