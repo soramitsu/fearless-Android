@@ -10,10 +10,10 @@
     <action
         android:id="@+id/action_to_onboardingNavGraph"
         app:destination="@id/onboarding_nav_graph"
-        app:enterAnim="@anim/fragment_open_enter"
-        app:exitAnim="@anim/fragment_open_exit"
-        app:popEnterAnim="@anim/fragment_close_enter"
-        app:popExitAnim="@anim/fragment_close_exit" />
+        app:enterAnim="@animator/fragment_open_enter"
+        app:exitAnim="@animator/fragment_open_exit"
+        app:popEnterAnim="@animator/fragment_close_enter"
+        app:popExitAnim="@animator/fragment_close_exit" />
 
     <action
         android:id="@+id/action_open_send"
@@ -112,18 +112,18 @@
     <action
         android:id="@+id/action_open_walletExportFragment"
         app:destination="@id/walletExportFragment"
-        app:enterAnim="@anim/fragment_open_enter"
-        app:exitAnim="@anim/fragment_open_exit"
-        app:popEnterAnim="@anim/fragment_close_enter"
-        app:popExitAnim="@anim/fragment_close_exit" />
+        app:enterAnim="@animator/fragment_open_enter"
+        app:exitAnim="@animator/fragment_open_exit"
+        app:popEnterAnim="@animator/fragment_close_enter"
+        app:popExitAnim="@animator/fragment_close_exit" />
 
     <action
         android:id="@+id/action_open_accountsForExportFragment"
         app:destination="@id/accountsForExportFragment"
-        app:enterAnim="@anim/fragment_open_enter"
-        app:exitAnim="@anim/fragment_open_exit"
-        app:popEnterAnim="@anim/fragment_close_enter"
-        app:popExitAnim="@anim/fragment_close_exit" />
+        app:enterAnim="@animator/fragment_open_enter"
+        app:exitAnim="@animator/fragment_open_exit"
+        app:popEnterAnim="@animator/fragment_close_enter"
+        app:popExitAnim="@animator/fragment_close_exit" />
 
     <fragment
         android:id="@+id/mainFragment"

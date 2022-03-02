@@ -593,4 +593,7 @@ to your account to avoid remaining stake.</string>
 
     <string name="json_export_type_text">Export as text</string>
     <string name="json_export_type_file">Export to file</string>
+
+    <string name="common_connect">Connect</string>
+    <string name="beacon_connected_to">Connected to</string>
 </resources>

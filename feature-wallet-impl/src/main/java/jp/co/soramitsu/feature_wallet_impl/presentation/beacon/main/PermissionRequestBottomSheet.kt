@@ -19,11 +19,8 @@ class PermissionRequestBottomSheet(
 
         setTitle(dAppName)
 
-//        item(titleRes = R.string.common_connect) {
-//            onApprove()
-//        }
         item(R.layout.item_text_header) { view ->//todo fix
-            view.textHeader.text = "common_connect"
+            view.textHeader.text = context.getString(R.string.common_connect)
             view.setDismissingClickListener { onApprove() }
         }
 
@@ -31,10 +28,6 @@ class PermissionRequestBottomSheet(
             view.textHeader.setText(R.string.common_cancel)
             view.setDismissingClickListener { onDeny() }
         }
-
-//        item(titleRes = R.string.common_cancel) {
-//            onDeny()
-//        }
 
         setCancelable(false)
     }

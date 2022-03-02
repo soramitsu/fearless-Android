@@ -535,4 +535,7 @@
 
     <string name="json_export_type_text">Экспортировать как текст</string>
     <string name="json_export_type_file">Экспортировать в файл</string>
+
+    <string name="common_connect">Подключиться</string>
+    <string name="beacon_connected_to">Подключено к</string>
 </resources>
