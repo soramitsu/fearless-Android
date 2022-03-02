@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
+import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -19,12 +21,22 @@ class AccountListViewModel(
     accountListingMixin: AccountListingMixin,
 ) : BaseViewModel() {
 
+    val openWalletOptionsEvent = MutableLiveData<Event<Long>>()
+
     val accountsFlow = accountListingMixin.accountsFlow()
         .inBackground()
         .share()
 
-    fun infoClicked(accountModel: LightMetaAccountUi) {
-        accountRouter.openAccountDetails(accountModel.id)
+    fun optionsClicked(accountModel: LightMetaAccountUi) {
+        openWalletOptionsEvent.postValue(Event(accountModel.id))
+    }
+
+    fun openWalletDetails(metaAccountId: Long) {
+        accountRouter.openAccountDetails(metaAccountId)
+    }
+
+    fun openExportWallet(metaAccountId: Long) {
+        accountRouter.openExportWallet(metaAccountId)
     }
 
     fun editClicked() {

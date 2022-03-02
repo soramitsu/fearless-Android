@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain.alerts
 
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -26,7 +27,8 @@ class AlertsInteractor(
     private val stakingRepository: StakingRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val sharedState: StakingSharedState,
-    private val walletRepository: WalletRepository
+    private val walletRepository: WalletRepository,
+    private val accountRepository: AccountRepository,
 ) {
 
     class AlertContext(
@@ -117,10 +119,11 @@ class AlertsInteractor(
 
         val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id)
         val minimumNominatorBond = stakingRepository.minimumNominatorBond(chain.id)
+        val meta = accountRepository.getSelectedMetaAccount()
 
         val alertsFlow = combine(
             stakingRepository.electedExposuresInActiveEra(chain.id),
-            walletRepository.assetFlow(stakingState.accountId, chainAsset),
+            walletRepository.assetFlow(meta.id, stakingState.accountId, chainAsset),
             stakingRepository.observeActiveEraIndex(chain.id)
         ) { exposures, asset, activeEra ->
 

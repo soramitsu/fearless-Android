@@ -34,6 +34,7 @@ fun Context.getCutCornersStateDrawable(
 fun Context.getFocusedDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.white)
 fun Context.getDisabledDrawable(): Drawable = getCutCornerDrawable(fillColorRes = R.color.gray3)
 fun Context.getIdleDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.gray2)
+fun Context.getSelectedDrawable(): Drawable = getCutCornerDrawable(strokeColorRes = R.color.colorAccent)
 
 fun Context.getCutCornerDrawable(
     @ColorRes fillColorRes: Int = R.color.black,
@@ -59,4 +60,17 @@ fun Context.getCutCornerDrawableFromColors(
     val strokeSizePx = density * strokeSizeInDp
 
     return ShapeDrawable(CutCornersShape(cornerSizePx, strokeSizePx, fillColor, strokeColor))
+}
+
+fun Context.getCutLeftBottomCornerDrawableFromColors(
+    @ColorInt fillColor: Int = getColor(R.color.colorAccent_50),
+    cornerSizeXInDp: Int = 10,
+    cornerSizeYInDp: Int = 8
+): Drawable {
+    val density = resources.displayMetrics.density
+
+    val cornerSizeXPx = density * cornerSizeXInDp
+    val cornerSizeYPx = density * cornerSizeYInDp
+
+    return ShapeDrawable(CutLeftBottomCornerShape(cornerSizeXPx, cornerSizeYPx, fillColor))
 }

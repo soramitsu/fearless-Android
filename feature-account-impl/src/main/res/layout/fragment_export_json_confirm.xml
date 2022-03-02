@@ -37,14 +37,25 @@
                 app:message="@string/recovery_json" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
-                android:id="@+id/exportJsonConfirmValue"
+                android:id="@+id/exportSubstrateJsonConfirmValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 app:enabled="false"
-                app:label="@string/recovery_json"
+                app:label="@string/recovery_json_substrate"
+                tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
+
+            <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/exportEthereumJsonConfirmValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:enabled="false"
+                app:label="@string/recovery_json_eth"
                 tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
@@ -55,8 +66,8 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 app:actionIcon="@drawable/ic_pin_white_24"
-                app:label="@string/network"
                 app:enabled="false"
+                app:label="@string/network"
                 tools:message="Kusama"
                 tools:textIcon="@drawable/ic_plus_circle" />
 
@@ -68,14 +79,26 @@
     </ScrollView>
 
     <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/exportJsonConfirmExport"
+        android:id="@+id/exportSubstrateJsonConfirmExport"
         style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
-        android:text="@string/account_export_action" />
+        android:text="@string/account_export_substrate_action"
+        android:visibility="gone" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/exportEthereumJsonConfirmExport"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        android:text="@string/account_export_ethereum_action"
+        android:visibility="gone" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/exportJsonConfirmChangePassword"

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_api.data.cache
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.AssetReadOnlyCache
 import jp.co.soramitsu.core_db.dao.TokenDao
+import jp.co.soramitsu.core_db.dao.emptyAccountIdValue
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.core_db.model.TokenLocal
@@ -34,11 +35,16 @@ class AssetCache(
         assetUpdateMutex.withLock {
             tokenDao.ensureToken(symbol)
 
-            val cachedAsset = assetDao.getAsset(metaId, chainId, symbol)?.asset ?: AssetLocal.createEmpty(accountId, symbol, chainId, metaId)
-
-            val newAsset = builder.invoke(cachedAsset)
-
-            assetDao.insertAsset(newAsset)
+            when (val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, symbol)?.asset) {
+                null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, symbol, chainId, metaId)))
+                else -> when (cachedAsset.accountId) {
+                    emptyAccountIdValue -> {
+                        assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, symbol)
+                        assetDao.insertAsset(builder.invoke(cachedAsset))
+                    }
+                    else -> assetDao.updateAsset(builder.invoke(cachedAsset))
+                }
+            }
         }
     }
 
@@ -67,7 +73,25 @@ class AssetCache(
         }
     }
 
-    suspend fun updateAsset(updateModel: List<AssetUpdateItem>): Int {
-        return assetDao.updateAssets(updateModel)
+    suspend fun updateAsset(updateModel: List<AssetUpdateItem>) {
+        val onlyUpdates = mutableListOf<AssetUpdateItem>()
+        updateModel.listIterator().forEach {
+            val cached = assetDao.getAsset(it.metaId, it.accountId, it.chainId, it.tokenSymbol)?.asset
+            if (cached == null) {
+                val initial = AssetLocal.createEmpty(it.accountId, it.tokenSymbol, it.chainId, it.metaId)
+                val newAsset = initial.copy(
+                    sortIndex = it.sortIndex,
+                    enabled = it.enabled
+                )
+                assetUpdateMutex.withLock {
+                    assetDao.insertAsset(newAsset)
+                }
+            } else {
+                onlyUpdates.add(it)
+            }
+        }
+        assetUpdateMutex.withLock {
+            assetDao.updateAssets(onlyUpdates)
+        }
     }
 }

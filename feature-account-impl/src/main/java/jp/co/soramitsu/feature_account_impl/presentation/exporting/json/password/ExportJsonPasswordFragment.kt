@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import coil.ImageLoader
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.setDrawableStart
@@ -20,16 +22,17 @@ import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPa
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNewField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNext
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordToolbar
-import javax.inject.Inject
 
 class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(metaId: Long, chainId: ChainId) = bundleOf(PAYLOAD_KEY to ExportJsonPasswordPayload(metaId, chainId))
+        fun getBundle(metaId: Long, chainId: ChainId, isExportWallet: Boolean) =
+            bundleOf(PAYLOAD_KEY to ExportJsonPasswordPayload(metaId, chainId, isExportWallet))
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -44,6 +47,7 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
         exportJsonPasswordMatchingError.setDrawableStart(R.drawable.ic_red_cross, 24)
 
         exportJsonPasswordNetworkInput.isEnabled = false
+        exportJsonPasswordNetworkInput.isVisible = viewModel.isExportWallet.not()
     }
 
     override fun inject() {

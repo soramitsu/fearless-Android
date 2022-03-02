@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
@@ -17,21 +18,15 @@ import java.math.BigInteger
 
 interface WalletRepository {
 
-    fun assetsFlow(metaId: Long): Flow<List<Asset>>
+    fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount> = emptyList()): Flow<List<Asset>>
 
     suspend fun getAssets(metaId: Long): List<Asset>
 
     suspend fun syncAssetsRates()
 
-    fun assetFlow(
-        accountId: AccountId,
-        chainAsset: Chain.Asset
-    ): Flow<Asset>
+    fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset>
 
-    suspend fun getAsset(
-        accountId: AccountId,
-        chainAsset: Chain.Asset
-    ): Asset?
+    suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Asset?
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,
@@ -79,6 +74,7 @@ interface WalletRepository {
     )
 
     suspend fun checkTransferValidity(
+        metaId: Long,
         accountId: AccountId,
         chain: Chain,
         transfer: Transfer,
@@ -92,5 +88,5 @@ interface WalletRepository {
 
     suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId): BigInteger
 
-    suspend fun updateAssets(newItems: List<AssetUpdateItem>): Int
+    suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 }

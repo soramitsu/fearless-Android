@@ -18,8 +18,6 @@ import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.substrateAccountId
-import jp.co.soramitsu.common.utils.toAddress
-import jp.co.soramitsu.core.model.Node
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core_db.AppDatabase
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
@@ -34,6 +32,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.test_shared.HashMapEncryptedPreferences
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
@@ -276,16 +275,16 @@ class V2MigrationTest {
             )
         }
 
-        saveSecuritySource(SUBSTRATE_KEYPAIR.publicKey.toAddress(Node.NetworkType.POLKADOT), securitySource)
+        saveSecuritySource(SUBSTRATE_KEYPAIR.publicKey.toAddress(0), securitySource)
     }
 
     private fun SupportSQLiteDatabase.insertAccount(publicKey: ByteArray, encryptionType: EncryptionType) {
         val params = ContentValues().apply {
-            put("address", publicKey.toAddress(Node.NetworkType.POLKADOT))
+            put("address", publicKey.toAddress(0))
             put("publicKey", publicKey)
             put("cryptoType", mapEncryptionToCryptoType(encryptionType).ordinal)
             put("position", 0)
-            put("networkType", Node.NetworkType.POLKADOT.ordinal)
+            put("networkType", 0)
             put("username", NAME)
         }
 

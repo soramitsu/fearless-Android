@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
@@ -12,6 +13,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.ImportJsonData
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
@@ -27,7 +29,7 @@ interface AccountRepository {
 
     suspend fun getSelectedAccount(): Account
 
-    suspend fun getSelectedAccount(chainId: String): Account
+    suspend fun getSelectedAccount(chainId: ChainId): Account
     suspend fun getSelectedMetaAccount(): MetaAccount
     suspend fun getMetaAccount(metaId: Long): MetaAccount
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
@@ -49,7 +51,28 @@ interface AccountRepository {
         accountName: String,
         mnemonic: String,
         encryptionType: CryptoType,
-        derivationPath: String
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
+    )
+
+    suspend fun importChainAccountFromMnemonic(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        mnemonicWords: String,
+        cryptoType: CryptoType,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
+    )
+
+    suspend fun createChainAccount(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        mnemonicWords: String,
+        cryptoType: CryptoType,
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
     )
 
     suspend fun deleteAccount(metaId: Long)
@@ -65,21 +88,42 @@ interface AccountRepository {
     suspend fun importFromMnemonic(
         keyString: String,
         username: String,
-        derivationPath: String,
-        selectedEncryptionType: CryptoType
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String,
+        selectedEncryptionType: CryptoType,
+        withEth: Boolean
     )
 
     suspend fun importFromSeed(
         seed: String,
         username: String,
         derivationPath: String,
+        selectedEncryptionType: CryptoType,
+        ethSeed: String?
+    )
+
+    suspend fun importChainFromSeed(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        seed: String,
+        substrateDerivationPath: String,
         selectedEncryptionType: CryptoType
     )
 
     suspend fun importFromJson(
         json: String,
         password: String,
-        name: String
+        name: String,
+        ethJson: String?
+    )
+
+    suspend fun importChainFromJson(
+        metaId: Long,
+        chainId: ChainId,
+        accountName: String,
+        json: String,
+        password: String,
     )
 
     suspend fun isCodeSet(): Boolean
@@ -108,6 +152,8 @@ interface AccountRepository {
 
     suspend fun getSecuritySource(accountAddress: String): SecuritySource
 
+    suspend fun getChainAccountSecrets(metaId: Long?, chainId: ChainId): EncodableStruct<ChainAccountSecrets>?
+
     suspend fun getMetaAccountSecrets(metaId: Long?): EncodableStruct<MetaAccountSecrets>?
 
     fun createQrAccountContent(payload: QrSharing.Payload): String
@@ -119,4 +165,6 @@ interface AccountRepository {
     suspend fun isInCurrentNetwork(address: String, chainId: ChainId): Boolean
 
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
+
+    suspend fun getChain(chainId: ChainId): Chain
 }

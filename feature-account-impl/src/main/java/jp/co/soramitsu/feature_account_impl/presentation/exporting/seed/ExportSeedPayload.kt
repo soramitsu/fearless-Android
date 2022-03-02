@@ -7,5 +7,6 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 class ExportSeedPayload(
     val metaId: Long,
-    val chainId: ChainId
+    val chainId: ChainId,
+    val isExportWallet: Boolean = false
 ) : Parcelable

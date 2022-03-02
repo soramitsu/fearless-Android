@@ -9,6 +9,7 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountViewModel
 
@@ -19,10 +20,11 @@ class CreateAccountModule {
     @IntoMap
     @ViewModelKey(CreateAccountViewModel::class)
     fun provideViewModel(
+        payload: ChainAccountCreatePayload?,
         interactor: AccountInteractor,
         router: AccountRouter
     ): ViewModel {
-        return CreateAccountViewModel(interactor, router)
+        return CreateAccountViewModel(payload, interactor, router)
     }
 
     @Provides

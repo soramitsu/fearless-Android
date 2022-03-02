@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 class BackupMnemonicViewModel(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    private val accountName: String,
+    private val payload: BackupMnemonicPayload,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
@@ -27,8 +27,13 @@ class BackupMnemonicViewModel(
         emit(generateMnemonic())
     }
 
+    private val substrateDerivationPathRegex = Regex("(//?[^/]+)*(///[^/]+)?")
+
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
+
+    private val _showInvalidSubstrateDerivationPathError = MutableLiveData<Event<Unit>>()
+    val showInvalidSubstrateDerivationPathError: LiveData<Event<Unit>> = _showInvalidSubstrateDerivationPathError
 
     fun homeButtonClicked() {
         router.backToCreateAccountScreen()
@@ -38,20 +43,38 @@ class BackupMnemonicViewModel(
         _showInfoEvent.value = Event(Unit)
     }
 
-    fun nextClicked(derivationPath: String) {
+    fun nextClicked(substrateDerivationPath: String, ethereumDerivationPath: String) {
         val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: return
 
         val mnemonicWords = mnemonicLiveData.value ?: return
 
         val mnemonic = mnemonicWords.map(MnemonicWordModel::word)
 
+        val isSubstrateDerivationPathValid = substrateDerivationPath.matches(substrateDerivationPathRegex)
+        if (isSubstrateDerivationPathValid.not()) {
+            _showInvalidSubstrateDerivationPathError.value = Event(Unit)
+            return
+        }
+
+        val createExtras = when (payload.chainAccountData) {
+            null -> CreateExtras(
+                payload.accountName,
+                cryptoTypeModel.cryptoType,
+                substrateDerivationPath,
+                ethereumDerivationPath
+            )
+            else -> ConfirmMnemonicPayload.CreateChainExtras(
+                payload.accountName,
+                cryptoTypeModel.cryptoType,
+                substrateDerivationPath,
+                ethereumDerivationPath,
+                payload.chainAccountData.chainId,
+                payload.chainAccountData.metaId
+            )
+        }
         val payload = ConfirmMnemonicPayload(
             mnemonic,
-            CreateExtras(
-                accountName,
-                cryptoTypeModel.cryptoType,
-                derivationPath
-            )
+            createExtras
         )
 
         router.openConfirmMnemonicOnCreate(payload)

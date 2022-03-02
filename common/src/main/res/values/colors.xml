@@ -4,6 +4,7 @@
     <color name="colorSelected">#66FF009A</color>
     <color name="colorPrimaryDark">#80004CB7</color>
     <color name="colorAccent">#FF009A</color>
+    <color name="colorAccent_50">#80FF009A</color>
     <color name="white">#fff</color>
     <color name="colorHint">#ccc</color>
     <color name="black">#000</color>

@@ -2,17 +2,26 @@ package jp.co.soramitsu.feature_account_impl.presentation.importing
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.method.DigitsKeyListener
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
@@ -23,6 +32,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.I
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.JsonImportView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.MnemonicImportView
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.SeedImportView
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.EthereumDerivationPathTransformer
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import kotlinx.android.synthetic.main.fragment_import_account.advancedBlockView
@@ -32,8 +42,13 @@ import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
 import kotlinx.android.synthetic.main.fragment_import_account.toolbar
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
+    companion object {
+        private const val BLOCKCHAIN_TYPE_KEY = "BLOCKCHAIN_TYPE_KEY"
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-    private var sourceViews: List<View>? = null
+        fun getBundle(blockChainType: Int = 0) = bundleOf(BLOCKCHAIN_TYPE_KEY to blockChainType)
+        fun getBundle(chainAccountData: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to chainAccountData)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,47 +63,37 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         sourceTypeInput.setWholeClickListener { viewModel.openSourceChooserClicked() }
 
-        advancedBlockView.setOnEncryptionTypeClickListener {
+        advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
             viewModel.chooseEncryptionClicked()
         }
 
         nextBtn.setOnClickListener { viewModel.nextClicked() }
 
         nextBtn.prepareForProgress(viewLifecycleOwner)
+
+        advancedBlockView.ethereumDerivationPathField.content.keyListener = DigitsKeyListener.getInstance("0123456789/")
+
+        advancedBlockView.ethereumDerivationPathField.content.addTextChangedListener(EthereumDerivationPathTransformer)
     }
 
     override fun inject() {
+        val blockChainType = arguments?.getInt(BLOCKCHAIN_TYPE_KEY)?.let { int ->
+            ImportAccountType.values().getOrNull(int)
+        }
+
+        val chainCreateAccountData: ChainAccountCreatePayload? = arguments?.get(PAYLOAD_KEY) as? ChainAccountCreatePayload
+
         FeatureUtils.getFeature<AccountFeatureComponent>(
             requireContext(),
             AccountFeatureApi::class.java
         )
             .importAccountComponentFactory()
-            .create(this)
+            .create(this, blockChainType, chainCreateAccountData)
             .inject(this)
     }
 
     override fun subscribe(viewModel: ImportAccountViewModel) {
-        sourceViews = viewModel.sourceTypes.map {
-            val view = createSourceView(it)
-
-            view.observeSource(it, viewLifecycleOwner)
-            view.observeCommon(viewModel, viewLifecycleOwner)
-
-            observeFeatures(it)
-
-            view
-        }
-
         viewModel.showSourceSelectorChooserLiveData.observeEvent(::showTypeChooser)
-
-        viewModel.selectedSourceTypeLiveData.observe {
-            val index = viewModel.sourceTypes.indexOf(it)
-
-            sourceTypeContainer.removeAllViews()
-            sourceTypeContainer.addView(sourceViews!![index])
-
-            sourceTypeInput.setMessage(it.nameRes)
-        }
 
         viewModel.encryptionTypeChooserEvent.observeEvent {
             EncryptionTypeChooserBottomSheetDialog(
@@ -100,14 +105,78 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
 
         viewModel.selectedEncryptionTypeLiveData.observe {
-            advancedBlockView.setEncryption(it.name)
+            advancedBlockView.setSubstrateEncryption(it.name)
         }
 
         viewModel.nextButtonState.observe(nextBtn::setState)
 
-        viewModel.advancedBlockExceptNetworkEnabled.observe(::setSelectorsEnabled)
+        advancedBlockView.substrateDerivationPathEditText.bindTo(viewModel.substrateDerivationPathLiveData, viewLifecycleOwner)
+        advancedBlockView.ethereumDerivationPathEditText.bindTo(viewModel.ethereumDerivationPathLiveData, viewLifecycleOwner)
 
-        advancedBlockView.derivationPathEditText.bindTo(viewModel.derivationPathLiveData, viewLifecycleOwner)
+        viewModel.showEthAccountsDialog.observeEvent { showEthDialog() }
+
+        if (viewModel.isChainAccount) {
+            toolbar.setTitle(R.string.onboarding_restore_account)
+        }
+
+        mediateWith(
+            viewModel.blockchainLiveData,
+            viewModel.selectedSourceLiveData
+        ) { (blockchainType: ImportAccountType?, sourceType: ImportSource) ->
+            blockchainType?.let {
+                val sourceViews = buildSourceTypesViews(blockchainType)
+                setupSourceTypes(sourceType, sourceViews)
+                val isChainAccount = viewModel.isChainAccount
+                setupAdvancedBlock(blockchainType, sourceType, isChainAccount)
+            }
+        }.observe { }
+
+        viewModel.showInvalidSubstrateDerivationPathError.observe {
+            showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
+        }
+    }
+
+    private fun buildSourceTypesViews(blockchainType: ImportAccountType) = viewModel.sourceTypes.map {
+        val view = createSourceView(it, blockchainType)
+
+        view.observeSource(it, viewLifecycleOwner)
+        view.observeCommon(viewModel, viewLifecycleOwner)
+
+        observeFeatures(it)
+
+        view
+    }
+
+    private fun setupSourceTypes(sourceType: ImportSource, sourceViews: List<ImportSourceView>) {
+        val index = viewModel.sourceTypes.indexOf(sourceType)
+
+        sourceTypeContainer.removeAllViews()
+        sourceTypeContainer.addView(sourceViews[index])
+
+        sourceTypeInput.setMessage(sourceType.nameRes)
+    }
+
+    private fun setupAdvancedBlock(blockchainType: ImportAccountType, sourceType: ImportSource, isChainAccount: Boolean) {
+        advancedBlockView.makeVisible()
+        advancedBlockView.apply {
+            when {
+                sourceType is MnemonicImportSource && isChainAccount -> {
+                    configure(blockchainType)
+                }
+                sourceType is MnemonicImportSource -> {
+                    configure(FieldState.NORMAL)
+                }
+                sourceType is RawSeedImportSource && isChainAccount -> {
+                    configure(blockchainType)
+                }
+                sourceType is RawSeedImportSource -> {
+                    advancedBlockView.makeGone()
+                }
+                sourceType is JsonImportSource -> {
+                    advancedBlockView.makeGone()
+                }
+            }
+        }
     }
 
     private fun observeFeatures(source: ImportSource) {
@@ -118,26 +187,16 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
     }
 
-    private fun setSelectorsEnabled(selectorsEnabled: Boolean) {
-        val chooserState = getFieldState(selectorsEnabled)
-        val derivationPathState = getFieldState(selectorsEnabled, disabledState = FieldState.HIDDEN)
-
-        with(advancedBlockView) {
-            configure(encryptionTypeField, chooserState)
-            configure(derivationPathField, derivationPathState)
-        }
-    }
-
-    private fun getFieldState(isEnabled: Boolean, disabledState: FieldState = FieldState.DISABLED): FieldState {
-        return if (isEnabled) FieldState.NORMAL else disabledState
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         data?.let { viewModel.systemCallResultReceived(requestCode, it) }
     }
 
     private fun showTypeChooser(it: Payload<ImportSource>) {
-        SourceTypeChooserBottomSheetDialog(requireActivity(), it, viewModel::sourceTypeChanged)
+        SourceTypeChooserBottomSheetDialog(
+            context = requireActivity(),
+            payload = it,
+            onClicked = viewModel::sourceTypeChanged
+        )
             .show()
     }
 
@@ -147,13 +206,25 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         startActivityForResult(intent, it)
     }
 
-    private fun createSourceView(source: ImportSource): ImportSourceView {
+    private fun createSourceView(source: ImportSource, blockchainType: ImportAccountType): ImportSourceView {
         val context = requireContext()
 
+        val isChainAccount = viewModel.isChainAccount
+
         return when (source) {
-            is JsonImportSource -> JsonImportView(context)
-            is MnemonicImportSource -> MnemonicImportView(context)
-            is RawSeedImportSource -> SeedImportView(context)
+            is JsonImportSource -> JsonImportView(context, blockchainType, isChainAccount)
+            is MnemonicImportSource -> MnemonicImportView(context, isChainAccount)
+            is RawSeedImportSource -> SeedImportView(context, blockchainType, isChainAccount)
         }
+    }
+
+    private fun showEthDialog() {
+        AlertDialog.Builder(ContextThemeWrapper(context, jp.co.soramitsu.common.R.style.WhiteOverlay))
+            .setTitle(R.string.eth_import_title)
+            .setMessage(R.string.eth_import_message)
+            .setPositiveButton(R.string.common_yes) { _, _ -> viewModel.onAddEthAccountConfirmed() }
+            .setNegativeButton(R.string.common_no) { _, _ -> viewModel.onAddEthAccountDeclined() }
+            .create()
+            .show()
     }
 }

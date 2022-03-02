@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
-import jp.co.soramitsu.feature_account_api.data.mappers.stubNetwork
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
@@ -29,8 +28,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -41,6 +38,8 @@ import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Calendar
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -56,7 +55,10 @@ class WalletInteractorImpl(
 
     override fun assetsFlow(): Flow<List<Asset>> {
         return accountRepository.selectedMetaAccountFlow()
-            .flatMapLatest { walletRepository.assetsFlow(it.id) }
+            .flatMapLatest {
+                val chainAccounts = it.chainAccounts.values.toList()
+                walletRepository.assetsFlow(it.id, chainAccounts)
+            }
             .filter { it.isNotEmpty() }
             .map { assets ->
                 if (customAssetSortingEnabled())
@@ -89,7 +91,7 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.assetFlow(accountId, chainAsset)
+            walletRepository.assetFlow(metaAccount.id, accountId, chainAsset)
         }.onStart {
             chainRegistry.getAsset(chainId, chainAssetId)?.let { emit(Asset.createEmpty(it)) }
         }
@@ -99,7 +101,7 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(metaAccount.accountId(chain)!!, chainAsset)!!
+        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset)!!
     }
 
     override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {
@@ -213,7 +215,7 @@ class WalletInteractorImpl(
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
         val accountId = metaAccount.accountId(chain)!!
 
-        val validityStatus = walletRepository.checkTransferValidity(accountId, chain, transfer)
+        val validityStatus = walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer)
 
         if (validityStatus.level > maxAllowedLevel) {
             return Result.failure(NotValidTransferStatus(validityStatus))
@@ -236,7 +238,7 @@ class WalletInteractorImpl(
             val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.checkTransferValidity(accountId, chain, transfer)
+            walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer)
         }
     }
 
@@ -274,7 +276,7 @@ class WalletInteractorImpl(
     }
 
     private fun mapAccountToWalletAccount(chain: Chain, account: MetaAccount) = with(account) {
-        WalletAccount(account.address(chain)!!, name, stubNetwork(chain.id))
+        WalletAccount(account.address(chain)!!, name)
     }
 
     override suspend fun getChain(chainId: ChainId) = chainRegistry.getChain(chainId)

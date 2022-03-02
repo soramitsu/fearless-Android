@@ -17,11 +17,12 @@ class KaruraContributeViewState(
 ) {
 
     override fun createBonusPayload(referralCode: String, email: String?, agreeReceiveEmail: Boolean?): ReferralCodePayload {
-        return KaruraBonusPayload(referralCode, customContributePayload.parachainMetadata.rewardRate)
+        return KaruraBonusPayload(referralCode, customContributePayload.chainId, customContributePayload.parachainMetadata.rewardRate)
     }
 
     override suspend fun validatePayload(payload: ReferralCodePayload) {
-        val isReferralValid = interactor.isReferralValid(payload.referralCode)
+        require(payload is KaruraBonusPayload)
+        val isReferralValid = interactor.isReferralValid(payload.referralCode, payload.chainId)
 
         if (!isReferralValid) throw IllegalArgumentException(resourceManager.getString(R.string.crowdloan_referral_code_invalid))
     }

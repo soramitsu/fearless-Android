@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_crowdloan_impl.data.network.api.karura
 
-import jp.co.soramitsu.core.model.Node
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.rococoChainId
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -9,13 +11,13 @@ import retrofit2.http.Path
 interface KaruraApi {
 
     companion object {
-        private val URL_BY_NETWORK_TYPE = mapOf(
-            Node.NetworkType.ROCOCO to "crowdloan-api.laminar.codes",
-            Node.NetworkType.KUSAMA to "api.aca-staging.network"
+        private val URL_BY_CHAIN_ID = mapOf(
+            rococoChainId to "crowdloan-api.laminar.codes",
+            kusamaChainId to "api.aca-staging.network"
         )
 
-        fun getBaseUrl(networkType: Node.NetworkType) = URL_BY_NETWORK_TYPE[networkType]
-            ?: throw UnsupportedOperationException("Network ${networkType.readableName} is not supported for Karura")
+        fun getBaseUrl(chainId: ChainId) = URL_BY_CHAIN_ID[chainId]
+            ?: throw UnsupportedOperationException("Network with genesis($chainId) is not supported for Karura")
     }
 
     @GET("//{baseUrl}/referral/{referral}")

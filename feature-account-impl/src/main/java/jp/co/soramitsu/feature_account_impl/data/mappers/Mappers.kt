@@ -6,7 +6,6 @@ import jp.co.soramitsu.core_db.model.chain.ChainAccountLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedMetaAccountInfo
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.feature_account_api.data.mappers.stubNetwork
 import jp.co.soramitsu.feature_account_api.domain.model.Account
 import jp.co.soramitsu.feature_account_api.domain.model.LightMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
@@ -14,7 +13,6 @@ import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.hexAccountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -80,10 +78,11 @@ fun mapMetaAccountLocalToMetaAccount(
         valueTransform = {
             MetaAccount.ChainAccount(
                 metaId = joinedMetaAccountInfo.metaAccount.id,
-                chain = chainsById.getValue(it.chainId),
+                chain = chainsById[it.chainId],
                 publicKey = it.publicKey,
                 accountId = it.accountId,
-                cryptoType = it.cryptoType
+                cryptoType = it.cryptoType,
+                accountName = it.name
             )
         }
     )
@@ -115,7 +114,6 @@ fun mapMetaAccountToAccount(chain: Chain, metaAccount: MetaAccount): Account? {
             accountIdHex = accountId,
             cryptoType = metaAccount.substrateCryptoType,
             position = 0,
-            network = stubNetwork(chain.id),
         )
     }
 }
@@ -127,11 +125,10 @@ fun mapChainAccountToAccount(
     val chain = chainAccount.chain
 
     return Account(
-        address = chain.addressOf(chainAccount.accountId),
+        address = chain?.let { parent.address(chain) } ?: "Invalid chain (removed)",
         name = parent.name,
         accountIdHex = chainAccount.accountId.toHexString(),
         cryptoType = chainAccount.cryptoType,
         position = 0,
-        network = stubNetwork(chain.id),
     )
 }
