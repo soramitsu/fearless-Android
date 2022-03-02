@@ -14,8 +14,8 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.toAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
@@ -171,11 +171,11 @@ class BeaconViewModel(
     }
 
     private suspend fun mapP2pPeerToDAppMetadataModel(p2pPeer: P2pPeer) = with(p2pPeer) {
-        val networkType = currentAccount.first().network.type
+//        val networkType = currentAccount.first().network.type
 
         DAppMetadataModel(
-            url = appUrl,
-            address = p2pPeer.publicKey.fromHex().toAddress(networkType),
+            url = appUrl,//todo address stub
+            address = "",//p2pPeer.publicKey.fromHex().toAddress(networkType),
             icon = icon,
             name = name
         )

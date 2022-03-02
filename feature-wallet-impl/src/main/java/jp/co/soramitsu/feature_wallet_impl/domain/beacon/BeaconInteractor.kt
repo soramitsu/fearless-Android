@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.domain.beacon
 
 import android.net.Uri
+import android.util.Log
 import com.google.gson.Gson
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateNetwork
@@ -15,6 +16,7 @@ import it.airgap.beaconsdk.core.data.BeaconError
 import it.airgap.beaconsdk.core.data.P2P
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
+import it.airgap.beaconsdk.core.message.BeaconResponse
 import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
@@ -54,10 +56,11 @@ class BeaconInteractor(
 
     private val beaconClient by lazy {
         GlobalScope.async {
-            BeaconWalletClient("Fearless Wallet", listOf(substrate(), tezos())) {
+            BeaconWalletClient("Fearless Wallet", listOf(tezos())) {
                 addConnections(
                     P2P(p2pMatrix()),
                 )
+                ignoreUnsupportedBlockchains = true
             }
         }
     }
@@ -68,9 +71,9 @@ class BeaconInteractor(
         runCatching {
             val qrUri = Uri.parse(qrCode)
 
-//            val encodedPeer = qrUri.getQueryParameter("data")!!
-            val jsonContent = qrCode.fromBase58Check().decodeToString()
-//            val jsonContent = encodedPeer.fromBase58Check().decodeToString()
+            val encodedPeer = qrUri.getQueryParameter("data")!!
+//            val jsonContent = qrCode.fromBase58Check().decodeToString()
+            val jsonContent = encodedPeer.fromBase58Check().decodeToString()
             val peer = gson.fromJson(jsonContent, P2pPeer::class.java)
             val beaconClient = beaconClient()
 
@@ -81,7 +84,12 @@ class BeaconInteractor(
                     hashCode()
                     it.getOrNull()
                 }
-
+            val peers = beaconClient.getPeers()
+            val hasPeers = peers.isNotEmpty()
+            if(!hasPeers) Log.d("&&&", "no peers")
+            hashCode()
+            BeaconResponse
+            beaconClient().respond()
             peer to requestsFlow
         }
     }
