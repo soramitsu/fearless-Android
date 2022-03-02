@@ -76,6 +76,7 @@
     <string name="import_json_invalid_password">Пожалуйста, проверьте корректность пароля и попробуйте снова.</string>
     <string name="account_confirmation_title">Подтверждение</string>
     <string name="account_confirmation_details">Выберите слова в правильном порядке</string>
+    <string name="confirm_mnemonic_mismatch_error_message_2_0">Неверная мнемоническая фраза, пожалуйста, проверьте еще раз порядок слов</string>
     <string name="pincode_create_top_title">Новый PIN-код</string>
     <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
     <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>

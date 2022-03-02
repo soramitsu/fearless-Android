@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -21,12 +22,13 @@ class ConfirmMnemonicModule {
     @IntoMap
     @ViewModelKey(ConfirmMnemonicViewModel::class)
     fun provideViewModel(
+        resourceManager: ResourceManager,
         interactor: AccountInteractor,
         router: AccountRouter,
         deviceVibrator: DeviceVibrator,
         payload: ConfirmMnemonicPayload
     ): ViewModel {
-        return ConfirmMnemonicViewModel(interactor, router, deviceVibrator, payload)
+        return ConfirmMnemonicViewModel(resourceManager, interactor, router, deviceVibrator, payload)
     }
 
     @Provides
