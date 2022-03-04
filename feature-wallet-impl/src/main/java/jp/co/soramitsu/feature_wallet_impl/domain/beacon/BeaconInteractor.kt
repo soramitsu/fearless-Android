@@ -10,6 +10,9 @@ import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateReq
 import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.message.response.SignSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.substrate
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosNetwork
+import it.airgap.beaconsdk.blockchain.tezos.message.request.PermissionTezosRequest
+import it.airgap.beaconsdk.blockchain.tezos.message.response.PermissionTezosResponse
 import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.BeaconError
@@ -56,7 +59,7 @@ class BeaconInteractor(
 
     private val beaconClient by lazy {
         GlobalScope.async {
-            BeaconWalletClient("Fearless Wallet", listOf(tezos())) {
+            BeaconWalletClient("Fearless Wallet", listOf(tezos(), substrate())) {
                 addConnections(
                     P2P(p2pMatrix()),
                 )
@@ -84,12 +87,7 @@ class BeaconInteractor(
                     hashCode()
                     it.getOrNull()
                 }
-            val peers = beaconClient.getPeers()
-            val hasPeers = peers.isNotEmpty()
-            if(!hasPeers) Log.d("&&&", "no peers")
-            hashCode()
-            BeaconResponse
-            beaconClient().respond()
+
             peer to requestsFlow
         }
     }
@@ -139,6 +137,25 @@ class BeaconInteractor(
             publicKey = publicKey
         )
         val response = PermissionSubstrateResponse.from(forRequest, listOf(testAccount))
+        beaconClient().respond(response)
+    }
+
+    suspend fun allowPermissionsTezos(
+        forRequest: PermissionTezosRequest
+    ) {
+        val address = accountRepository.getSelectedAccount().address
+        val publicKey = address.toAccountId().toHexString()
+        //todo stub
+        val testAccount = SubstrateAccount(
+            network = SubstrateNetwork(//todo check
+                genesisHash = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+                name = "Polkadot",
+                rpcUrl = null
+            ),
+            addressPrefix = 0,
+            publicKey = publicKey
+        )
+        val response = PermissionTezosResponse.from(forRequest, publicKey, TezosNetwork())
         beaconClient().respond(response)
     }
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateRequest
+import it.airgap.beaconsdk.blockchain.tezos.message.request.PermissionTezosRequest
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -95,6 +96,11 @@ class BeaconViewModel(
 
                     showMessage(resourceManager.getString(R.string.beacon_connected, it.request.appMetadata.name))
                 }
+                is SideEffect.RespondApprovedPermissionsTezos -> {
+                    beaconInteractor.allowPermissions(it.request)
+
+                    showMessage(resourceManager.getString(R.string.beacon_connected, it.request.appMetadata.name))
+                }
 
                 SideEffect.Exit -> {
                     beaconInteractor.disconnect()
@@ -159,6 +165,9 @@ class BeaconViewModel(
             .onEach {
                 Log.d("RX", it.toString())
                 when (it) {
+                    is PermissionTezosRequest -> {
+                        stateMachine.transition(BeaconStateMachine.Event.ReceivedPermissionsRequestTezos(it))
+                    }
                     is PermissionSubstrateRequest -> {
                         stateMachine.transition(BeaconStateMachine.Event.ReceivedPermissionsRequest(it))
                     }

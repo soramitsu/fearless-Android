@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
 
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateRequest
+import it.airgap.beaconsdk.blockchain.tezos.message.request.PermissionTezosRequest
 import jp.co.soramitsu.common.utils.StateMachine
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.Event
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.SideEffect
@@ -19,6 +20,11 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
             val dAppMetadata: DAppMetadataModel
         ) : State()
 
+        class AwaitingPermissionsApprovalTezos(
+            val request: PermissionTezosRequest,
+            val dAppMetadata: DAppMetadataModel
+        ) : State()
+
         class AwaitingSigningApproval(
             val awaitingRequest: SignSubstrateRequest,
             val dAppMetadata: DAppMetadataModel
@@ -31,6 +37,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
         class ReceivedMetadata(val dAppMetadata: DAppMetadataModel) : Event()
 
         class ReceivedPermissionsRequest(val request: PermissionSubstrateRequest) : Event()
+        class ReceivedPermissionsRequestTezos(val request: PermissionTezosRequest) : Event()
 
         object ApprovedPermissions : Event()
 
@@ -51,6 +58,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
         class AskSignApproval(val request: SignSubstrateRequest) : SideEffect()
 
         class RespondApprovedPermissions(val request: PermissionSubstrateRequest) : SideEffect()
+        class RespondApprovedPermissionsTezos(val request: PermissionTezosRequest) : SideEffect()
 
         class RespondApprovedSign(val request: SignSubstrateRequest) : SideEffect()
 
@@ -78,14 +86,21 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
                 else -> state
             }
 
-            is Event.ApprovedPermissions -> when (state) {
-                is State.AwaitingPermissionsApproval -> {
-                    sideEffect(SideEffect.RespondApprovedPermissions(state.request))
+            is Event.ApprovedPermissions -> {
+                hashCode()
+                when (state) {
+                    is State.AwaitingPermissionsApproval -> {
+                        sideEffect(SideEffect.RespondApprovedPermissions(state.request))
 
-                    State.Connected(state.dAppMetadata)
+                        State.Connected(state.dAppMetadata)
+                    }
+                    is State.AwaitingPermissionsApprovalTezos -> {
+                        sideEffect(SideEffect.RespondApprovedPermissions(state.request))
+
+                        State.Connected(state.dAppMetadata)
+                    }
+                    else -> state
                 }
-
-                else -> state
             }
 
             is Event.ReceivedSigningRequest -> when (state) {
@@ -135,6 +150,15 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
                 sideEffect(SideEffect.Exit)
 
                 State.Finished
+            }
+            is Event.ReceivedPermissionsRequestTezos -> when (state) {
+                is State.Connected -> {
+                    sideEffect(SideEffect.AskPermissionsApproval(event.request.appMetadata.name))
+
+                    State.AwaitingPermissionsApprovalTezos(event.request, state.dAppMetadata)
+                }
+
+                else -> state
             }
         }
     }
