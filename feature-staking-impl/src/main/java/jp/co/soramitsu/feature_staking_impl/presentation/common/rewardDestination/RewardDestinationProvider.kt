@@ -42,7 +42,9 @@ class RewardDestinationProvider(
     override val rewardReturnsLiveData = MutableLiveData<RewardDestinationEstimations>()
     override val showDestinationChooserEvent = MutableLiveData<Event<DynamicListBottomSheet.Payload<AddressModel>>>()
 
-    override val rewardDestinationModelFlow = MutableSharedFlow<RewardDestinationModel>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    override val rewardDestinationModelFlow = MutableSharedFlow<RewardDestinationModel>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST).apply {
+        tryEmit(RewardDestinationModel.Restake)
+    }
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
