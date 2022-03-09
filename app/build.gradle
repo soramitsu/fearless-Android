@@ -72,8 +72,8 @@ android {
 
 play {
     serviceAccountCredentials = file(System.env.CI_PLAY_KEY ?: "../key/fake.json")
-    track = "beta"
-    releaseStatus = ReleaseStatus.COMPLETED
+    track = "production"
+    releaseStatus = ReleaseStatus.DRAFT
 }
 
 dependencies {
