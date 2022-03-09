@@ -26,7 +26,7 @@ class Asset(
         fun createEmpty(chainAccount: MetaAccount.ChainAccount) = chainAccount.chain?.let {
             Asset(
                 metaId = chainAccount.metaId,
-                token = Token(configuration = it.utilityAsset, dollarRate = null, recentRateChange = null),
+                token = Token(configuration = it.utilityAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
                 accountId = chainAccount.accountId,
                 freeInPlanks = BigInteger.ZERO,
                 reservedInPlanks = BigInteger.ZERO,
@@ -43,7 +43,7 @@ class Asset(
 
         fun createEmpty(chainAsset: Chain.Asset, metaId: Long? = null, chainAccountName: String? = null) = Asset(
             metaId = metaId,
-            Token(configuration = chainAsset, dollarRate = null, recentRateChange = null),
+            Token(configuration = chainAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
             accountId = emptyAccountIdValue,
             freeInPlanks = BigInteger.ZERO,
             reservedInPlanks = BigInteger.ZERO,
@@ -74,7 +74,7 @@ class Asset(
     val redeemable = token.amountFromPlanks(redeemableInPlanks)
     val unbonding = token.amountFromPlanks(unbondingInPlanks)
 
-    val dollarAmount = token.dollarRate?.multiply(total)
+    val fiatAmount = token.fiatRate?.multiply(total)
 }
 
 fun calculateTotalBalance(

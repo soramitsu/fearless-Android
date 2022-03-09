@@ -126,8 +126,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
             balanceDetailTokenName.text = asset.token.configuration.symbol
             tokenBadge.setText(asset.token.configuration.chainName)
-            balanceDetailRate.text = asset.token.dollarRate?.formatAsCurrency() ?: ""
-            balanceDetailRate.isVisible = asset.token.dollarRate != null
+            balanceDetailRate.text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol) ?: ""
+            balanceDetailRate.isVisible = asset.token.fiatRate != null
 
             asset.token.recentRateChange?.let {
                 balanceDetailRateChange.setTextColorRes(asset.token.rateChangeColorRes)
@@ -136,13 +136,13 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
             balanceDetailRateChange.isVisible = asset.token.recentRateChange != null
 
             balanceDetailsInfo.total.text = asset.total.formatTokenAmount(asset.token.configuration)
-            balanceDetailsInfo.totalFiat.setTextOrHide(asset.totalFiat?.formatAsCurrency())
+            balanceDetailsInfo.totalFiat.setTextOrHide(asset.totalFiat?.formatAsCurrency(asset.token.fiatSymbol))
 
             balanceDetailsInfo.transferable.text = asset.available.formatTokenAmount(asset.token.configuration)
-            balanceDetailsInfo.transferableFiat.setTextOrHide(asset.availableFiat?.formatAsCurrency())
+            balanceDetailsInfo.transferableFiat.setTextOrHide(asset.availableFiat?.formatAsCurrency(asset.token.fiatSymbol))
 
             balanceDetailsInfo.locked.text = asset.frozen.formatTokenAmount(asset.token.configuration)
-            balanceDetailsInfo.lockedFiat.setTextOrHide(asset.frozenFiat?.formatAsCurrency())
+            balanceDetailsInfo.lockedFiat.setTextOrHide(asset.frozenFiat?.formatAsCurrency(asset.token.fiatSymbol))
         }
 
         viewModel.hideRefreshEvent.observeEvent {

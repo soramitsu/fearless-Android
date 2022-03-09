@@ -111,7 +111,7 @@
         tools:text="+25%" />
 
     <TextView
-        android:id="@+id/itemAssetDollarAmount"
+        android:id="@+id/itemAssetFiatAmount"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -128,7 +128,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="4dp"
         app:layout_constraintBaseline_toBaselineOf="@+id/itemAssetToken"
-        app:layout_constraintEnd_toEndOf="@+id/itemAssetDollarAmount"
+        app:layout_constraintEnd_toEndOf="@+id/itemAssetFiatAmount"
         tools:text="120.0849" />
 
     <TextView

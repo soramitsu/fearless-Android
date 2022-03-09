@@ -101,7 +101,7 @@ private fun stakeToScoring(stakeInPlanks: BigInteger?, token: Token): ValidatorM
 
     return ValidatorModel.Scoring.TwoFields(
         primary = stake.formatTokenAmount(token.configuration),
-        secondary = token.fiatAmount(stake)?.formatAsCurrency()
+        secondary = token.fiatAmount(stake)?.formatAsCurrency(token.fiatSymbol)
     )
 }
 
@@ -195,7 +195,7 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
             is ValidatorStakeParcelModel.Active -> {
                 val totalStake = token.amountFromPlanks(stake.totalStake)
                 val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
-                val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency()
+                val totalStakeFiatFormatted = token.fiatAmount(totalStake)?.formatAsCurrency(token.fiatSymbol)
                 val nominatorsCount = stake.nominators.size
                 val apyPercentageFormatted = (PERCENT_MULTIPLIER * stake.apy).formatAsPercentage()
 

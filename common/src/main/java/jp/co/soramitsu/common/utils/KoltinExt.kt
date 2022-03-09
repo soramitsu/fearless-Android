@@ -82,4 +82,4 @@ inline fun <T> Iterable<T>.filterToSet(predicate: (T) -> Boolean): Set<T> = filt
 
 fun String.nullIfEmpty(): String? = if (isEmpty()) null else this
 
-fun BigDecimal.applyDollarRate(rate: BigDecimal?): BigDecimal? = rate?.let { this.multiply(rate) }
+fun BigDecimal.applyFiatRate(rate: BigDecimal?): BigDecimal? = rate?.let { this.multiply(rate) }

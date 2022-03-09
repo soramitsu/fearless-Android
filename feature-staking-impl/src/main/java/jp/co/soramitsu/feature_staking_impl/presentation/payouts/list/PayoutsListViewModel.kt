@@ -122,7 +122,7 @@ class PayoutsListViewModel(
                 createdAt = createdAt,
                 daysLeftColor = if (closeToExpire) R.color.error_red else R.color.white_64,
                 amount = amount.formatTokenChange(token.configuration, isIncome = true),
-                amountFiat = token.fiatAmount(amount)?.formatAsCurrency()
+                amountFiat = token.fiatAmount(amount)?.formatAsCurrency(token.fiatSymbol)
             )
         }
     }

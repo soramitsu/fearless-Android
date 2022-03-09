@@ -73,7 +73,7 @@ class ConfirmPayoutViewModel(
         val token = it.token
         val totalReward = token.amountFromPlanks(payload.totalRewardInPlanks)
         val inToken = totalReward.formatTokenAmount(token.configuration)
-        val inFiat = token.fiatAmount(totalReward)?.formatAsCurrency()
+        val inFiat = token.fiatAmount(totalReward)?.formatAsCurrency(token.fiatSymbol)
 
         inToken to inFiat
     }

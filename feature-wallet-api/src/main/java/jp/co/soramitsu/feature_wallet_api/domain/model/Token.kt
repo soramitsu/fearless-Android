@@ -5,12 +5,13 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 class Token(
-    val dollarRate: BigDecimal?,
+    val fiatRate: BigDecimal?,
+    val fiatSymbol: String?,
     val recentRateChange: BigDecimal?,
     val configuration: Chain.Asset
 ) {
 
-    fun fiatAmount(tokenAmount: BigDecimal): BigDecimal? = dollarRate?.multiply(tokenAmount)
+    fun fiatAmount(tokenAmount: BigDecimal): BigDecimal? = fiatRate?.multiply(tokenAmount)
 }
 
 fun Token.amountFromPlanks(amountInPlanks: BigInteger) = configuration.amountFromPlanks(amountInPlanks)

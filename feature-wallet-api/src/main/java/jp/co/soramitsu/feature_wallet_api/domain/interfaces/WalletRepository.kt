@@ -22,7 +22,7 @@ interface WalletRepository {
 
     suspend fun getAssets(metaId: Long): List<Asset>
 
-    suspend fun syncAssetsRates()
+    suspend fun syncAssetsRates(currencyId: String)
 
     fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset>
 

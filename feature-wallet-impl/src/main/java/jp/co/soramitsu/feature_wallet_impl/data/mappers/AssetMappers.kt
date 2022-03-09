@@ -15,7 +15,8 @@ fun mapTokenLocalToToken(
     return with(tokenLocal) {
         Token(
             configuration = chainAsset,
-            dollarRate = dollarRate,
+            fiatRate = fiatRate,
+            fiatSymbol = fiatSymbol,
             recentRateChange = recentRateChange
         )
     }
@@ -25,7 +26,8 @@ fun mapTokenToTokenModel(token: Token): TokenModel {
     return with(token) {
         TokenModel(
             configuration = configuration,
-            dollarRate = dollarRate,
+            fiatRate = fiatRate,
+            fiatSymbol = fiatSymbol,
             recentRateChange = recentRateChange
         )
     }
@@ -67,7 +69,7 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             frozen = frozen,
             redeemable = redeemable,
             unbonding = unbonding,
-            dollarAmount = dollarAmount,
+            fiatAmount = fiatAmount,
             sortIndex = sortIndex,
             enabed = enabled,
             chainAccountName = chainAccountName

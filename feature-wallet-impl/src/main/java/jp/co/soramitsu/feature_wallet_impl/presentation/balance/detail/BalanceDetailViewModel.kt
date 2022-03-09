@@ -23,6 +23,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -72,7 +73,7 @@ class BalanceDetailViewModel(
         viewModelScope.launch {
             async { transactionHistoryMixin.syncFirstOperationsPage() }.start()
 
-            val deferredAssetSync = async { interactor.syncAssetsRates() }
+            val deferredAssetSync = async { interactor.syncAssetsRates().last() }
             deferredAssetSync.await().exceptionOrNull()?.message?.let(::showMessage)
 
             _hideRefreshEvent.value = Event(Unit)

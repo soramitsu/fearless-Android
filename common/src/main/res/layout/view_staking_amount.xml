@@ -21,7 +21,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/stakingAssetDollarAmount"
+        android:id="@+id/stakingAssetFiatAmount"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

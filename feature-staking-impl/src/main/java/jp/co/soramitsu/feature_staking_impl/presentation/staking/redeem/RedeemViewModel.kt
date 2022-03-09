@@ -67,7 +67,7 @@ class RedeemViewModel(
     val amountLiveData = assetFlow.map { asset ->
         val redeemable = asset.redeemable
 
-        redeemable.format() to asset.token.fiatAmount(redeemable)?.formatAsCurrency()
+        redeemable.format() to asset.token.fiatAmount(redeemable)?.formatAsCurrency(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()

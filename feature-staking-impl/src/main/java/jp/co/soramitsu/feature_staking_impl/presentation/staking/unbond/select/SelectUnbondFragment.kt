@@ -75,7 +75,7 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>() {
         unbondAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
 
         viewModel.enteredFiatAmountFlow.observe {
-            it?.let(unbondAmount::setAssetBalanceDollarAmount)
+            it?.let(unbondAmount::setAssetBalanceFiatAmount)
         }
 
         viewModel.feeLiveData.observe(unbondFee::setFeeStatus)

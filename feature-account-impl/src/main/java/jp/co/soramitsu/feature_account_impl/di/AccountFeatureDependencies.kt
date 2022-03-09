@@ -23,6 +23,7 @@ import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import java.util.Random
+import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.interfaces.FileProvider
 
 interface AccountFeatureDependencies {
@@ -75,4 +76,6 @@ interface AccountFeatureDependencies {
     fun assetDao(): AssetDao
 
     fun fileProvider(): FileProvider
+
+    fun networkCreator(): NetworkApiCreator
 }

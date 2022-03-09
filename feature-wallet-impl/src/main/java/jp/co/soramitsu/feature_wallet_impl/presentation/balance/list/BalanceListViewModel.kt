@@ -7,8 +7,13 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
+import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
@@ -27,10 +32,15 @@ class BalanceListViewModel(
     private val interactor: WalletInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
+    private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
+    private val selectedFiat: SelectedFiat
 ) : BaseViewModel() {
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
+
+    private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
+    val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
@@ -38,11 +48,14 @@ class BalanceListViewModel(
 
     fun sync() {
         viewModelScope.launch {
+            getAvailableFiatCurrencies()
+
             val result = interactor.syncAssetsRates()
 
-            result.exceptionOrNull()?.let(::showError)
-
-            _hideRefreshEvent.value = Event(Unit)
+            result.collect {
+                it.exceptionOrNull()?.let(::showError)
+                _hideRefreshEvent.value = Event(Unit)
+            }
         }
     }
 
@@ -72,9 +85,29 @@ class BalanceListViewModel(
         interactor.assetsFlow()
             .mapList(::mapAssetToAssetModel)
             .map { list -> list.filter { it.enabed } }
-            .map(::BalanceModel)
+            .map { assets ->
+                val selectedFiat = selectedFiat.get()
+                val fiatCurrency = getAvailableFiatCurrencies().firstOrNull { it.id == selectedFiat }
+                BalanceModel(assets, fiatCurrency?.symbol ?: "")
+            }
 
     fun manageAssetsClicked() {
         router.openManageAssets()
+    }
+
+    fun onBalanceClicked() {
+        viewModelScope.launch {
+            val currencies = getAvailableFiatCurrencies()
+            if (currencies.isEmpty()) return@launch
+            val selected = selectedFiat.get()
+            val selectedItem = currencies.first { it.id == selected }
+            _showFiatChooser.value = FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
+        }
+    }
+
+    fun onFiatSelected(item: FiatCurrency) {
+        viewModelScope.launch {
+            selectedFiat.set(item.id)
+        }
     }
 }
