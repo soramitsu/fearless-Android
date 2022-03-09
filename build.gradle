@@ -1,8 +1,8 @@
 buildscript {
     ext {
         // App version
-        versionName = '2.0.2'
-        versionCode = 54
+        versionName = '2.0.3'
+        versionCode = 55
 
         // SDK and tools
         compileSdkVersion = 31
@@ -186,7 +186,7 @@ dependencies {
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
     classpath = configurations.ktlint
-    main = "com.pinterest.ktlint.Main"
+    mainClass.set("com.pinterest.ktlint.Main")
     args "--reporter=plain"
     args "--android"
     args "--reporter=checkstyle,output=${project.buildDir}/reports/checkstyle/ktlint.xml"
@@ -196,7 +196,7 @@ task ktlint(type: JavaExec, group: "verification") {
 task ktlintFormat(type: JavaExec, group: "formatting") {
     description = "Fix Kotlin code style deviations."
     classpath = configurations.ktlint
-    main = "com.pinterest.ktlint.Main"
+    mainClass.set("com.pinterest.ktlint.Main")
     args "-F", "$project.rootDir/**/src/main/**/*.kt"
     args "--android"
 }
