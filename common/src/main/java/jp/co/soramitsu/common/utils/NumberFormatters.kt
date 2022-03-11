@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.formatting.DynamicPrecisionFormatter
 import jp.co.soramitsu.common.utils.formatting.FixedPrecisionFormatter
 import jp.co.soramitsu.common.utils.formatting.NumberAbbreviation
 
+const val DOLLAR_SIGN = "$"
 private const val DECIMAL_PATTERN_BASE = "###,###."
 
 private const val GROUPING_SEPARATOR = ','
@@ -56,8 +57,8 @@ private val trillionAbbreviation = NumberAbbreviation(
 private val defaultNumberFormatter = defaultNumberFormatter()
 private val currencyFormatter = currencyFormatter()
 
-fun BigDecimal.formatAsCurrency(): String {
-    return "$" + currencyFormatter.format(this)
+fun BigDecimal.formatAsCurrency(symbol: String?): String {
+    return (symbol ?: DOLLAR_SIGN) + currencyFormatter.format(this)
 }
 
 fun BigDecimal.format(): String {

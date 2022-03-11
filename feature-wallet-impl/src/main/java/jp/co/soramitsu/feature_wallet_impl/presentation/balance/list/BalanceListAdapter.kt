@@ -25,7 +25,7 @@ import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_asset.view.chainAssetNameBadge
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetBalance
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetContainer
-import kotlinx.android.synthetic.main.item_asset.view.itemAssetDollarAmount
+import kotlinx.android.synthetic.main.item_asset.view.itemAssetFiatAmount
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetImage
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetNetwork
 import kotlinx.android.synthetic.main.item_asset.view.itemAssetRate
@@ -35,7 +35,7 @@ import kotlinx.android.synthetic.main.item_asset.view.networkBadge
 import kotlinx.android.synthetic.main.item_asset.view.testnetBadge
 import java.math.BigDecimal
 
-val dollarRateExtractor = { assetModel: AssetModel -> assetModel.token.dollarRate }
+val fiatRateExtractor = { assetModel: AssetModel -> assetModel.token.fiatRate }
 val recentChangeExtractor = { assetModel: AssetModel -> assetModel.token.recentRateChange }
 
 class BalanceListAdapter(
@@ -64,7 +64,7 @@ class BalanceListAdapter(
 
         resolvePayload(holder, position, payloads) {
             when (it) {
-                dollarRateExtractor -> holder.bindDollarInfo(item)
+                fiatRateExtractor -> holder.bindFiatInfo(item)
                 recentChangeExtractor -> holder.bindRecentChange(item)
                 AssetModel::total -> holder.bindTotal(item)
             }
@@ -90,7 +90,7 @@ class AssetViewHolder(
         itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
         itemAssetNetwork.text = asset.token.configuration.name
 
-        bindDollarInfo(asset)
+        bindFiatInfo(asset)
 
         bindRecentChange(asset)
 
@@ -114,7 +114,7 @@ class AssetViewHolder(
     fun bindTotal(asset: AssetModel) {
         containerView.itemAssetBalance.text = asset.total.format()
 
-        bindDollarAmount(asset.dollarAmount)
+        bindFiatAmount(asset.fiatAmount, asset.token.fiatSymbol)
     }
 
     fun bindRecentChange(asset: AssetModel) = with(containerView) {
@@ -122,13 +122,13 @@ class AssetViewHolder(
         itemAssetRateChange.text = asset.token.recentRateChange?.formatAsChange()
     }
 
-    fun bindDollarInfo(asset: AssetModel) = with(containerView) {
-        itemAssetRate.text = asset.token.dollarRate?.formatAsCurrency()
-        bindDollarAmount(asset.dollarAmount)
+    fun bindFiatInfo(asset: AssetModel) = with(containerView) {
+        itemAssetRate.text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol)
+        bindFiatAmount(asset.fiatAmount, asset.token.fiatSymbol)
     }
 
-    private fun bindDollarAmount(dollarAmount: BigDecimal?) {
-        containerView.itemAssetDollarAmount.text = dollarAmount?.formatAsCurrency()
+    private fun bindFiatAmount(fiatAmount: BigDecimal?, fiatSymbol: String?) {
+        containerView.itemAssetFiatAmount.text = fiatAmount?.formatAsCurrency(fiatSymbol)
     }
 }
 
@@ -148,5 +148,5 @@ private object AssetDiffCallback : DiffUtil.ItemCallback<AssetModel>() {
 }
 
 private object AssetPayloadGenerator : PayloadGenerator<AssetModel>(
-    dollarRateExtractor, recentChangeExtractor, AssetModel::total
+    fiatRateExtractor, recentChangeExtractor, AssetModel::total
 )

@@ -8,9 +8,12 @@ import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
@@ -61,6 +64,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         manageAssets.setWholeClickListener {
             viewModel.manageAssetsClicked()
         }
+
+        balanceListTotalAmount.setOnClickListener { viewModel.onBalanceClicked() }
     }
 
     override fun inject() {
@@ -79,7 +84,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)
 
-            balanceListTotalAmount.text = it.totalBalance.formatAsCurrency()
+            balanceListTotalAmount.text = it.totalBalance.formatAsCurrency(it.fiatSymbol)
         }
 
         viewModel.currentAddressModelLiveData.observe {
@@ -90,6 +95,12 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         viewModel.hideRefreshEvent.observeEvent {
             walletContainer.isRefreshing = false
         }
+
+        viewModel.showFiatChooser.observeEvent(::showFiatChooser)
+    }
+
+    private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
+        FiatCurrenciesChooserBottomSheetDialog(requireContext(), imageLoader, payload, viewModel::onFiatSelected).show()
     }
 
     override fun assetClicked(asset: AssetModel) {

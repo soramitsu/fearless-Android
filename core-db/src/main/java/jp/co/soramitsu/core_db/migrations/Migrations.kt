@@ -3,6 +3,27 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val DifferentCurrenciesMigrations_37_38 = object : Migration(37, 38) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        database.execSQL("DROP TABLE tokens")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `tokens` (
+                `symbol` TEXT NOT NULL,
+                `fiatRate` TEXT,
+                `fiatSymbol` TEXT,
+                `recentRateChange` TEXT,
+                PRIMARY KEY(`symbol`)
+                )
+            """.trimIndent()
+        )
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
+
 val FixAssetsMigration_36_37 = object : Migration(36, 37) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.beginTransaction()

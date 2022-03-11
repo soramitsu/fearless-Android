@@ -1,7 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
@@ -36,10 +38,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.util.Calendar
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -49,9 +47,8 @@ class WalletInteractorImpl(
     private val chainRegistry: ChainRegistry,
     private val fileProvider: FileProvider,
     private val preferences: Preferences,
+    private val selectedFiat: SelectedFiat
 ) : WalletInteractor {
-    private var lastRatesSyncMillis = 0L
-    private val minRatesRefreshDuration = 30.toDuration(DurationUnit.SECONDS)
 
     override fun assetsFlow(): Flow<List<Asset>> {
         return accountRepository.selectedMetaAccountFlow()
@@ -69,19 +66,16 @@ class WalletInteractorImpl(
     }
 
     private fun defaultAssetListSort() = compareByDescending<Asset> { it.total > BigDecimal.ZERO }
-        .thenByDescending { it.dollarAmount ?: BigDecimal.ZERO }
+        .thenByDescending { it.fiatAmount ?: BigDecimal.ZERO }
         .thenBy { it.token.configuration.isTestNet }
         .thenByDescending { it.token.configuration.chainId.isPolkadotOrKusama() }
         .thenBy { it.token.configuration.chainName }
 
-    override suspend fun syncAssetsRates(): Result<Unit> {
-        return runCatching {
-            val shouldRefreshRates = Calendar.getInstance().timeInMillis - lastRatesSyncMillis > minRatesRefreshDuration.toInt(DurationUnit.MILLISECONDS)
-            if (shouldRefreshRates) {
-                walletRepository.syncAssetsRates()
-                lastRatesSyncMillis = Calendar.getInstance().timeInMillis
-            } else {
-                return Result.success(Unit)
+    override suspend fun syncAssetsRates(): Flow<Result<Unit>> {
+        return selectedFiat.flow().map {
+            runCatching {
+                walletRepository.syncAssetsRates(it)
+                return@map Result.success(Unit)
             }
         }
     }

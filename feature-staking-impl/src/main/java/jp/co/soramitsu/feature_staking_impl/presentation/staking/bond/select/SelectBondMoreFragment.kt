@@ -85,7 +85,7 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
         bondMoreAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
 
         viewModel.enteredFiatAmountFlow.observe {
-            it?.let(bondMoreAmount::setAssetBalanceDollarAmount)
+            it?.let(bondMoreAmount::setAssetBalanceFiatAmount)
         }
 
         viewModel.feeLiveData.observe(bondMoreFee::setFeeStatus)

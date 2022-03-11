@@ -1,8 +1,11 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
-import jp.co.soramitsu.common.data.network.coingecko.PriceInfo
+import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
+import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
@@ -33,7 +36,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodeToOperation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationToOperationLocalDb
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.model.request.SubqueryHistoryRequest
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.HistoryNotSupportedException
@@ -56,8 +58,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -71,6 +71,7 @@ class WalletRepositoryImpl(
     private val cursorStorage: TransferCursorStorage,
     private val coingeckoApi: CoingeckoApi,
     private val chainRegistry: ChainRegistry,
+    private val availableFiatCurrencies: GetAvailableFiatCurrencies
 ) : WalletRepository {
 
     override fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
@@ -122,15 +123,20 @@ class WalletRepositoryImpl(
         return mapAssetLocalToAsset(assetLocal, chainAsset)
     }
 
-    override suspend fun syncAssetsRates() {
-        // TODO FLW-1147 - coingecko integration
+    override suspend fun syncAssetsRates(currencyId: String) {
         val chains = chainRegistry.currentChains.first()
+        val priceIds = chains.mapNotNull { it.utilityAsset.priceId }
+        val priceStats = getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
+
         chains.forEach { chain ->
             val asset = chain.utilityAsset
+            val stat = priceStats[chain.utilityAsset.priceId] ?: return@forEach
+            val price = stat[currencyId]
+            val changeKey = "${currencyId}_24h_change"
+            val change = stat[changeKey]
+            val fiatCurrency = availableFiatCurrencies[currencyId]
             asset.priceId?.let {
-                val priceStats = getAssetPriceCoingecko(it)
-
-                updateAssetRates(asset.symbol, priceStats)
+                updateAssetRates(asset.symbol, fiatCurrency?.symbol, price, change)
             }
         }
     }
@@ -342,21 +348,19 @@ class WalletRepositoryImpl(
 
     private suspend fun updateAssetRates(
         symbol: String,
-        priceStats: Map<String, PriceInfo>?,
+        fiatSymbol: String?,
+        price: BigDecimal?,
+        change: BigDecimal?,
     ) = assetCache.updateToken(symbol) { cached ->
-        val priceStat = priceStats?.values?.first()
-
-        val price = priceStat?.price
-        val change = priceStat?.rateChange
-
         cached.copy(
-            dollarRate = price,
+            fiatRate = price,
+            fiatSymbol = fiatSymbol,
             recentRateChange = change
         )
     }
 
-    private suspend fun getAssetPriceCoingecko(priceId: String): Map<String, PriceInfo> {
-        return apiCall { coingeckoApi.getAssetPrice(priceId, "usd", true) }
+    private suspend fun getAssetPriceCoingecko(vararg priceId: String, currencyId: String): Map<String, Map<String, BigDecimal>> {
+        return apiCall { coingeckoApi.getAssetPrice(priceId.joinToString(","), currencyId, true) }
     }
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)

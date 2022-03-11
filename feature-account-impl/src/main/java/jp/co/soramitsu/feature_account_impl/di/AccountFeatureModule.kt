@@ -4,11 +4,15 @@ import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -179,4 +183,18 @@ class AccountFeatureModule {
         accountRepository,
         chainRegistry
     )
+
+    @Provides
+    @FeatureScope
+    fun provideCoingeckoApi(networkApiCreator: NetworkApiCreator): CoingeckoApi {
+        return networkApiCreator.create(CoingeckoApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
+
+    @Provides
+    @FeatureScope
+    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
 }

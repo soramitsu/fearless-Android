@@ -83,6 +83,7 @@
     <string name="profile_accounts_title">Аккаунты</string>
     <string name="profile_wallets_title">Кошельки</string>
     <string name="profile_network_title">Сеть</string>
+    <string name="profile_currency_title">Валюта</string>
     <string name="profile_pincode_change_title">Изменить PIN-код</string>
     <string name="pincode_biometry_dialog_title">Биометрия</string>
     <string name="common_edit">Редактировать</string>
@@ -535,4 +536,6 @@
 
     <string name="json_export_type_text">Экспортировать как текст</string>
     <string name="json_export_type_file">Экспортировать в файл</string>
+
+    <string name="fiat_chooser_title">Валюты</string>
 </resources>

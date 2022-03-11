@@ -97,6 +97,7 @@
     <string name="profile_accounts_title">Accounts</string>
     <string name="profile_wallets_title">Wallets</string>
     <string name="profile_network_title">Networks</string>
+    <string name="profile_currency_title">Currency</string>
     <string name="profile_pincode_change_title">Change pin code</string>
     <string name="pincode_biometry_dialog_title">Biometry</string>
     <string name="common_edit">Edit</string>
@@ -578,4 +579,6 @@ to your account to avoid remaining stake.</string>
 
     <string name="json_export_type_text">Export as text</string>
     <string name="json_export_type_file">Export to file</string>
+
+    <string name="fiat_chooser_title">Currency</string>
 </resources>

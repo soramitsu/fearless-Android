@@ -73,7 +73,7 @@ class SetupStakingViewModel(
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
 
-        asset.token.fiatAmount(amount)?.formatAsCurrency()
+        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
     }
         .flowOn(Dispatchers.Default)
         .asLiveData()

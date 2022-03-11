@@ -91,10 +91,10 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
 
             with(viewModel.transferDraft) {
                 confirmFee.text = fee.formatTokenAmount(chainAsset)
-                confirmFeeFiat.text = it.token.fiatAmount(fee)?.formatAsCurrency()
+                confirmFeeFiat.text = it.token.fiatAmount(fee)?.formatAsCurrency(it.token.fiatSymbol)
 
                 confirmAmountField.amountInput.setText(totalTransaction.formatTokenAmount(chainAsset))
-                confirmAmountField.setAssetBalanceDollarAmount(it.token.fiatAmount(totalTransaction)?.formatAsCurrency())
+                confirmAmountField.setAssetBalanceFiatAmount(it.token.fiatAmount(totalTransaction)?.formatAsCurrency(it.token.fiatSymbol))
             }
         }
 

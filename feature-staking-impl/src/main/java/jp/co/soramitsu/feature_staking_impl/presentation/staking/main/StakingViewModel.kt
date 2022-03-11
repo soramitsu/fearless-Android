@@ -182,7 +182,7 @@ class StakingViewModel(
     }
 
     private fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {
-        val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency()
+        val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency(token.fiatSymbol)
         val formattedAmount = amount.formatTokenAmount(token.configuration)
 
         return buildString {
@@ -261,12 +261,12 @@ class StakingViewModel(
         val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
         val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
 
-        val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
+        val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
 
         val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
         val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
 
-        val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency()
+        val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
 
         val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
             .format(networkInfo.lockupPeriodInDays)

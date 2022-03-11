@@ -26,7 +26,7 @@ interface WalletInteractor {
 
     fun assetsFlow(): Flow<List<Asset>>
 
-    suspend fun syncAssetsRates(): Result<Unit>
+    suspend fun syncAssetsRates(): Flow<Result<Unit>>
 
     fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset>
 

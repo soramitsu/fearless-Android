@@ -134,7 +134,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.enteredFiatAmountLiveData.observe {
-            it?.let(chooseAmountField::setAssetBalanceDollarAmount)
+            it?.let(chooseAmountField::setAssetBalanceFiatAmount)
         }
 
         viewModel.amountRawLiveData.observe {

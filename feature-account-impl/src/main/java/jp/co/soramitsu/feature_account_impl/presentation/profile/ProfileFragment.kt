@@ -4,9 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import coil.ImageLoader
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
+import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClicked
@@ -16,10 +21,14 @@ import kotlinx.android.synthetic.main.fragment_profile.aboutTv
 import kotlinx.android.synthetic.main.fragment_profile.accountView
 import kotlinx.android.synthetic.main.fragment_profile.changePinCodeTv
 import kotlinx.android.synthetic.main.fragment_profile.languageWrapper
+import kotlinx.android.synthetic.main.fragment_profile.profileCurrency
 import kotlinx.android.synthetic.main.fragment_profile.profileWallets
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
 
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
+
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,6 +46,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         profileWallets.setOnClickListener { viewModel.walletsClicked() }
         languageWrapper.setOnClickListener { viewModel.languagesClicked() }
         changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
+        profileCurrency.setOnClickListener { viewModel.currencyClicked() }
     }
 
     override fun inject() {
@@ -69,6 +79,12 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         viewModel.totalBalanceLiveData.observe {
             accountView.setText(it)
         }
+
+        viewModel.showFiatChooser.observeEvent(::showFiatChooser)
+    }
+
+    private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
+        FiatCurrenciesChooserBottomSheetDialog(requireContext(), imageLoader, payload, viewModel::onFiatSelected).show()
     }
 
     private fun showAccountActions(payload: ExternalAccountActions.Payload) {

@@ -30,6 +30,6 @@ fun mapAmountToAmountModel(
 
     return AmountModel(
         token = amount.formatTokenAmount(token.configuration),
-        fiat = fiatAmount?.formatAsCurrency()
+        fiat = fiatAmount?.formatAsCurrency(token.fiatSymbol)
     )
 }
