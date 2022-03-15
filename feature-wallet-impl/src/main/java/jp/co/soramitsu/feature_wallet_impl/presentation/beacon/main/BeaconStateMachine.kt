@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
 
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
-import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import jp.co.soramitsu.common.utils.StateMachine
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.Event
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.SideEffect
@@ -20,7 +20,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
         ) : State()
 
         class AwaitingSigningApproval(
-            val awaitingRequest: SignSubstrateRequest,
+            val awaitingRequest: SignPayloadSubstrateRequest,
             val dAppMetadata: DAppMetadataModel
         ) : State()
 
@@ -36,7 +36,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
         object DeclinedPermissions : Event()
 
-        class ReceivedSigningRequest(val request: SignSubstrateRequest) : Event()
+        class ReceivedSigningRequest(val request: SignPayloadSubstrateRequest) : Event()
 
         object ApprovedSigning : Event()
 
@@ -48,13 +48,13 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
     sealed class SideEffect {
         class AskPermissionsApproval(val dAppName: String) : SideEffect()
 
-        class AskSignApproval(val request: SignSubstrateRequest) : SideEffect()
+        class AskSignApproval(val request: SignPayloadSubstrateRequest) : SideEffect()
 
         class RespondApprovedPermissions(val request: PermissionSubstrateRequest) : SideEffect()
 
-        class RespondApprovedSign(val request: SignSubstrateRequest) : SideEffect()
+        class RespondApprovedSign(val request: SignPayloadSubstrateRequest) : SideEffect()
 
-        class RespondDeclinedSign(val request: SignSubstrateRequest) : SideEffect()
+        class RespondDeclinedSign(val request: SignPayloadSubstrateRequest) : SideEffect()
 
         class RespondDeclinedPermissions(val request: PermissionSubstrateRequest) : SideEffect()
 

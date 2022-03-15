@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
-import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -14,8 +14,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
@@ -25,7 +23,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateM
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -141,7 +138,7 @@ class BeaconViewModel(
     private fun initializeFromQr(qrContent: String) = launch {
         beaconInteractor.connectFromQR(qrContent)
             .onFailure {
-                 Log.e(BeaconViewModel::class.java.name, it.localizedMessage ?: it.message ?: "Failed connect to beacon qr code")
+                Log.e(BeaconViewModel::class.java.name, it.localizedMessage ?: it.message ?: "Failed connect to beacon qr code")
                 showMessage("Invalid QR code")
                 router.back()
             }.onSuccess { (peer, requestsFlow) ->
@@ -163,7 +160,7 @@ class BeaconViewModel(
                         stateMachine.transition(BeaconStateMachine.Event.ReceivedPermissionsRequest(it))
                     }
 
-                    is SignSubstrateRequest -> {
+                    is SignPayloadSubstrateRequest -> {
                         stateMachine.transition(BeaconStateMachine.Event.ReceivedSigningRequest(it))
                     }
                 }

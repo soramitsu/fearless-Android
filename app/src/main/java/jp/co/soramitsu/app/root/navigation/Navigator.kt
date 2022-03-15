@@ -6,6 +6,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.common.navigation.DelayedNavigation
@@ -467,8 +468,8 @@ class Navigator :
         navController?.navigate(R.id.action_open_receive, bundle)
     }
 
-    override fun openSignBeaconTransaction(payload: String) {
-        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload))
+    override fun openSignBeaconTransaction(payload: SubstrateSignerPayload) {//todo fix
+        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle("payload"))
     }
 
     override val beaconSignStatus: Flow<SignStatus>

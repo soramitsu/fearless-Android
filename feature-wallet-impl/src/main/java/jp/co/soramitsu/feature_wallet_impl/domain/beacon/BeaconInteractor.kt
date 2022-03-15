@@ -1,28 +1,24 @@
 package jp.co.soramitsu.feature_wallet_impl.domain.beacon
 
 import android.net.Uri
-import android.util.Log
 import com.google.gson.Gson
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateNetwork
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
-import it.airgap.beaconsdk.blockchain.substrate.message.request.SignSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
-import it.airgap.beaconsdk.blockchain.substrate.message.response.SignSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.substrate
-import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.BeaconError
-import it.airgap.beaconsdk.core.data.P2P
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
-import it.airgap.beaconsdk.core.message.BeaconResponse
 import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.isTransfer
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
@@ -38,7 +34,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
 
 private class TransactionRawData(
     val module: String,
@@ -56,10 +51,9 @@ class BeaconInteractor(
 
     private val beaconClient by lazy {
         GlobalScope.async {
-            BeaconWalletClient("Fearless Wallet", listOf(substrate())) {
-                addConnections(
-                    P2P(p2pMatrix()),
-                )
+            BeaconWalletClient("Fearless Wallet") {
+                support(substrate())
+                use(p2pMatrix())
                 ignoreUnsupportedBlockchains = true
             }
         }
@@ -96,7 +90,7 @@ class BeaconInteractor(
     }
 
     suspend fun reportSignDeclined(
-        request: SignSubstrateRequest
+        request: SignPayloadSubstrateRequest
     ) {
         beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
     }
@@ -108,12 +102,14 @@ class BeaconInteractor(
     }
 
     suspend fun signPayload(
-        request: SignSubstrateRequest
+        request: SignPayloadSubstrateRequest
     ) {
-        val signature = accountRepository.signWithCurrentAccount(request.payload.fromHex())
-        val signatureHex = signature.toHexString(withPrefix = true)
-        val response = SignSubstrateResponse.from(request, signatureHex, payload = null)
-        beaconClient().respond(response)
+        val payload = (request.payload as? SubstrateSignerPayload.Raw)?.takeIf { it.dataType == SubstrateSignerPayload.Raw.DataType.Bytes }?.data
+        hashCode()
+//        val signature = accountRepository.signWithCurrentAccount(request.payload.fromHex())
+//        val signatureHex = signature.toHexString(withPrefix = true)
+//        val response = SignSubstrateResponse.from(request, signatureHex, payload = null)
+//        beaconClient().respond(response)
     }
 
     //todo add multi-assets support
@@ -129,7 +125,7 @@ class BeaconInteractor(
                 name = "Polkadot",
                 rpcUrl = null
             ),
-            addressPrefix = 0,
+            address = address,
             publicKey = publicKey
         )
         val response = PermissionSubstrateResponse.from(forRequest, listOf(testAccount))

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
@@ -40,7 +41,7 @@ interface WalletRouter : SecureRouter {
 
     fun openReceive(assetPayload: AssetPayload)
 
-    fun openSignBeaconTransaction(payload: String)
+    fun openSignBeaconTransaction(payload: SubstrateSignerPayload)
 
     val beaconSignStatus: Flow<SignStatus>
 
