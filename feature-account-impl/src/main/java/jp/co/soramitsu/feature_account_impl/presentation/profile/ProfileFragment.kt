@@ -23,6 +23,7 @@ import kotlinx.android.synthetic.main.fragment_profile.changePinCodeTv
 import kotlinx.android.synthetic.main.fragment_profile.languageWrapper
 import kotlinx.android.synthetic.main.fragment_profile.profileCurrency
 import kotlinx.android.synthetic.main.fragment_profile.profileWallets
+import kotlinx.android.synthetic.main.fragment_profile.selectedCurrencyTv
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
 
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
@@ -81,6 +82,8 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         }
 
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
+
+        viewModel.selectedFiatLiveData.observe(selectedCurrencyTv::setText)
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
