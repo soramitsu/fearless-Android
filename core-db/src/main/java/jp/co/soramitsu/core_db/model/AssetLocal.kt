@@ -24,16 +24,16 @@ data class AssetLocal(
     val chainId: String,
     val accountId: AccountId,
     @ColumnInfo(index = true) val metaId: Long,
-    val freeInPlanks: BigInteger,
-    val reservedInPlanks: BigInteger,
-    val miscFrozenInPlanks: BigInteger,
-    val feeFrozenInPlanks: BigInteger,
-    val bondedInPlanks: BigInteger,
-    val redeemableInPlanks: BigInteger,
-    val unbondingInPlanks: BigInteger,
-    val sortIndex: Int,
-    val enabled: Boolean,
-    val chainAccountName: String?
+    val freeInPlanks: BigInteger? = null,
+    val reservedInPlanks: BigInteger? = null,
+    val miscFrozenInPlanks: BigInteger? = null,
+    val feeFrozenInPlanks: BigInteger? = null,
+    val bondedInPlanks: BigInteger? = null,
+    val redeemableInPlanks: BigInteger? = null,
+    val unbondingInPlanks: BigInteger? = null,
+    val sortIndex: Int = Int.MAX_VALUE,
+    val enabled: Boolean = true,
+    val chainAccountName: String? = null
 ) {
     companion object {
         fun createEmpty(
@@ -46,16 +46,6 @@ data class AssetLocal(
             chainId = chainId,
             accountId = accountId,
             metaId = metaId,
-            freeInPlanks = BigInteger.ZERO,
-            reservedInPlanks = BigInteger.ZERO,
-            miscFrozenInPlanks = BigInteger.ZERO,
-            feeFrozenInPlanks = BigInteger.ZERO,
-            bondedInPlanks = BigInteger.ZERO,
-            redeemableInPlanks = BigInteger.ZERO,
-            unbondingInPlanks = BigInteger.ZERO,
-            sortIndex = Int.MAX_VALUE,
-            enabled = true,
-            chainAccountName = null
         )
     }
 }

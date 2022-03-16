@@ -23,6 +23,42 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Account name" />
 
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/balanceListTotalAmountShimmer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toStartOf="@+id/balanceListAvatar"
+            app:layout_constraintStart_toStartOf="@+id/balanceListTotalTitle"
+            app:layout_constraintTop_toBottomOf="@+id/balanceListTotalTitle">
+
+            <TextView
+                android:id="@+id/balanceListTotalAmountShimmerInner"
+                style="@style/TextAppearance.Soramitsu.Header1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                tools:text="$21,000.43" />
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/balanceListTotalAmountEmptyShimmer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/balanceListTotalAmountShimmer"
+            app:layout_constraintStart_toStartOf="@+id/balanceListTotalTitle"
+            app:layout_constraintTop_toTopOf="@+id/balanceListTotalAmountShimmer"
+            tools:visibility="visible">
+
+            <View
+                android:layout_width="164dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_shimmer_rounded" />
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
         <TextView
             android:id="@+id/balanceListTotalAmount"
             style="@style/TextAppearance.Soramitsu.Header1"
@@ -32,7 +68,6 @@
             android:ellipsize="end"
             android:singleLine="true"
             app:layout_constraintEnd_toStartOf="@+id/balanceListAvatar"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="@+id/balanceListTotalTitle"
             app:layout_constraintTop_toBottomOf="@+id/balanceListTotalTitle"
             tools:text="$21,000.43" />

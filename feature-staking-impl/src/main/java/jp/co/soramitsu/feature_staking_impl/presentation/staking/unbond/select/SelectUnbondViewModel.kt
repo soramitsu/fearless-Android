@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -116,7 +117,7 @@ class SelectUnbondViewModel(
                 val amountInPlanks = token.planksFromAmount(amount)
                 val asset = assetFlow.first()
 
-                unbondInteractor.estimateFee(accountStakingFlow.first(), asset.bondedInPlanks, amountInPlanks)
+                unbondInteractor.estimateFee(accountStakingFlow.first(), asset.bondedInPlanks.orZero(), amountInPlanks)
             },
             onRetryCancelled = ::backClicked
         )

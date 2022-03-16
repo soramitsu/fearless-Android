@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -42,13 +43,13 @@ fun mapAssetLocalToAsset(
             metaId = asset.metaId,
             token = mapTokenLocalToToken(token, chainAsset),
             accountId = asset.accountId,
-            freeInPlanks = asset.freeInPlanks,
-            reservedInPlanks = asset.reservedInPlanks,
-            feeFrozenInPlanks = asset.feeFrozenInPlanks,
-            miscFrozenInPlanks = asset.miscFrozenInPlanks,
-            bondedInPlanks = asset.bondedInPlanks,
-            unbondingInPlanks = asset.unbondingInPlanks,
-            redeemableInPlanks = asset.redeemableInPlanks,
+            freeInPlanks = asset.freeInPlanks.orZero(),
+            reservedInPlanks = asset.reservedInPlanks.orZero(),
+            feeFrozenInPlanks = asset.feeFrozenInPlanks.orZero(),
+            miscFrozenInPlanks = asset.miscFrozenInPlanks.orZero(),
+            bondedInPlanks = asset.bondedInPlanks.orZero(),
+            unbondingInPlanks = asset.unbondingInPlanks.orZero(),
+            redeemableInPlanks = asset.redeemableInPlanks.orZero(),
             sortIndex = asset.sortIndex,
             enabled = asset.enabled,
             chainAccountName = asset.chainAccountName
@@ -71,7 +72,7 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             unbonding = unbonding,
             fiatAmount = fiatAmount,
             sortIndex = sortIndex,
-            enabed = enabled,
+            enabled = enabled,
             chainAccountName = chainAccountName
         )
     }

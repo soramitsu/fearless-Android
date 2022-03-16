@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
@@ -106,6 +107,7 @@ class StakingUpdatersModule {
         accountStakingDao: AccountStakingDao,
         assetCache: AssetCache,
         storageCache: StorageCache,
+        updatesMixin: UpdatesMixin,
         accountUpdateScope: AccountUpdateScope,
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
@@ -115,6 +117,7 @@ class StakingUpdatersModule {
             accountStakingDao,
             storageCache,
             assetCache,
+            updatesMixin,
             accountUpdateScope
         )
     }
@@ -199,11 +202,13 @@ class StakingUpdatersModule {
         scope: AccountStakingScope,
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
+        updatesMixin: UpdatesMixin
     ) = AccountControllerBalanceUpdater(
         scope,
         sharedState,
         chainRegistry,
-        assetCache
+        assetCache,
+        updatesMixin
     )
 
     @Provides

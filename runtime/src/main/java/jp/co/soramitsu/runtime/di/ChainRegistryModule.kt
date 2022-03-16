@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -67,7 +68,13 @@ class ChainRegistryModule {
         typesFetcher: TypesFetcher,
         runtimeFilesCache: RuntimeFilesCache,
         chainDao: ChainDao,
-    ) = RuntimeSyncService(typesFetcher, runtimeFilesCache, chainDao)
+        updatesMixin: UpdatesMixin
+    ) = RuntimeSyncService(
+        typesFetcher = typesFetcher,
+        runtimeFilesCache = runtimeFilesCache,
+        chainDao = chainDao,
+        updatesMixin = updatesMixin
+    )
 
     @Provides
     @ApplicationScope
@@ -117,6 +124,7 @@ class ChainRegistryModule {
         chainSyncService: ChainSyncService,
         baseTypeSynchronizer: BaseTypeSynchronizer,
         runtimeSyncService: RuntimeSyncService,
+        updatesMixin: UpdatesMixin
     ) = ChainRegistry(
         runtimeProviderPool,
         chainConnectionPool,
@@ -124,6 +132,7 @@ class ChainRegistryModule {
         chainDao,
         chainSyncService,
         baseTypeSynchronizer,
-        runtimeSyncService
+        runtimeSyncService,
+        updatesMixin
     )
 }

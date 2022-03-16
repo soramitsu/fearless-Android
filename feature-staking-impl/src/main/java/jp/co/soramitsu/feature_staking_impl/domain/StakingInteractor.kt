@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
 import jp.co.soramitsu.common.utils.combineToPair
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -164,7 +165,7 @@ class StakingInteractor(
 
             else -> {
                 val inactiveReason = when {
-                    it.asset.bondedInPlanks < minimumStake(eraStakers, stakingRepository.minimumNominatorBond(chainId)) -> {
+                    it.asset.bondedInPlanks.orZero() < minimumStake(eraStakers, stakingRepository.minimumNominatorBond(chainId)) -> {
                         NominatorStatus.Inactive.Reason.MIN_STAKE
                     }
                     else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR

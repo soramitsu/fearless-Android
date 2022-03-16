@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters
 
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
@@ -39,6 +41,7 @@ class PaymentUpdaterFactory(
     private val operationDao: OperationDao,
     private val chainRegistry: ChainRegistry,
     private val scope: AccountUpdateScope,
+    private val updatesMixin: UpdatesMixin,
 ) {
 
     fun create(chainId: ChainId): Updater {
@@ -48,7 +51,8 @@ class PaymentUpdaterFactory(
             operationDao,
             chainRegistry,
             scope,
-            chainId
+            chainId,
+            updatesMixin
         )
     }
 }
@@ -59,8 +63,9 @@ class PaymentUpdater(
     private val operationDao: OperationDao,
     private val chainRegistry: ChainRegistry,
     override val scope: AccountUpdateScope,
-    private val chainId: ChainId
-) : Updater {
+    private val chainId: ChainId,
+    private val updatesMixin: UpdatesMixin
+) : Updater, UpdatesProviderUi by updatesMixin {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)
 
@@ -71,6 +76,8 @@ class PaymentUpdater(
 
         val accountId = scope.getAccount().accountId(chain) ?: return emptyFlow()
         val runtime = chainRegistry.getRuntime(chainId)
+
+        updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, chain.utilityAsset.symbol)
 
         val key = when {
             chainId.isOrml() -> {

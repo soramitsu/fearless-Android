@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.alerts
 
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
@@ -84,9 +85,9 @@ class AlertsInteractor(
             if (
                 // do not show alert for validators
                 state !is StakingState.Stash.Validator &&
-                asset.bondedInPlanks < minimalStakeInPlanks &&
+                asset.bondedInPlanks.orZero() < minimalStakeInPlanks &&
                 // prevent alert for situation where all tokens are being unbounded
-                asset.bondedInPlanks > BigInteger.ZERO
+                asset.bondedInPlanks.orZero() > BigInteger.ZERO
             ) {
                 val minimalStake = asset.token.amountFromPlanks(minimalStakeInPlanks)
 
