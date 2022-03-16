@@ -173,6 +173,7 @@
     <string name="delete_custom_node_title">Удалить выбранную ноду?</string>
     <string name="switch_node_autoselect_title">Автоматический выбор нод</string>
     <string name="connection_delete_confirm">Удалить</string>
+    <string name="network_status_connected">Подключено</string>
     <string name="network_status_connecting">Подключение…</string>
     <string name="wallet_balance_frozen_template">Заморожено %s</string>
     <string name="wallet_receive_description">Покажите этот QR-код отправителю</string>

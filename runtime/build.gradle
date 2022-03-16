@@ -50,6 +50,7 @@ dependencies {
     implementation kotlinDep
 
     implementation coroutinesDep
+    implementation liveDataKtxDep
 
     implementation retrofitDep
 

@@ -12,8 +12,6 @@ import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.di.scope.ApplicationScope
-import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
-import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
@@ -110,9 +108,6 @@ class NetworkModule {
         socketFactory: WebSocketFactory,
         resourceManager: ResourceManager
     ) = SocketSingleRequestExecutor(mapper, logger, socketFactory, resourceManager)
-
-    @Provides
-    fun provideNetworkStateMixin(): NetworkStateMixin = NetworkStateProvider()
 
     @Provides
     @ApplicationScope

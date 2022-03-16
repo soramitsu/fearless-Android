@@ -75,7 +75,7 @@ fun <T> Flow<T>.asLiveData(scope: CoroutineScope): LiveData<T> {
     val liveData = MutableLiveData<T>()
 
     onEach {
-        liveData.value = it
+        liveData.postValue(it)
     }.launchIn(scope)
 
     return liveData

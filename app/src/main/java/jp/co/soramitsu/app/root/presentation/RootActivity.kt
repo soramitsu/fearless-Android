@@ -2,6 +2,10 @@ package jp.co.soramitsu.app.root.presentation
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.animation.Animation
+import android.view.animation.TranslateAnimation
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import jp.co.soramitsu.app.R
@@ -11,7 +15,6 @@ import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
-import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
@@ -20,6 +23,11 @@ import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
 import javax.inject.Inject
 
 class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
+
+    companion object {
+        private const val ANIM_DURATION = 150L
+        private const val ANIM_START_POSITION = 100f
+    }
 
     @Inject
     lateinit var navigator: Navigator
@@ -45,7 +53,7 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
         navigator.attach(navController, this)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
-            view.updatePadding(top = insets.systemWindowInsetTop)
+            view.updatePadding(top = WindowInsetsCompat.toWindowInsetsCompat(insets, view).getInsets(WindowInsetsCompat.Type.systemBars()).top)
 
             insets
         }
@@ -88,7 +96,10 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 
     override fun subscribe(viewModel: RootViewModel) {
         viewModel.showConnectingBarLiveData.observe(this) { show ->
-            rootNetworkBar.setVisible(show)
+            when {
+                show -> showBadConnectionView()
+                else -> hideBadConnectionView()
+            }
         }
 
         viewModel.messageLiveData.observe(
@@ -97,6 +108,45 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
                 showToast(it)
             }
         )
+    }
+
+    private fun showBadConnectionView() {
+        if (rootNetworkBar.isVisible) {
+            return
+        }
+
+        val errorColor = getColor(R.color.colorAccent)
+        rootNetworkBar.setText(R.string.network_status_connecting)
+        rootNetworkBar.setBackgroundColor(errorColor)
+        val animation = TranslateAnimation(0f, 0f, -ANIM_START_POSITION, 0f)
+        animation.duration = ANIM_DURATION
+        rootNetworkBar.startAnimation(animation)
+        rootNetworkBar.isVisible = true
+    }
+
+    private fun hideBadConnectionView() {
+        if (!rootNetworkBar.isVisible) {
+            return
+        }
+
+        val successColor = getColor(R.color.green)
+        rootNetworkBar.setText(R.string.network_status_connected)
+        rootNetworkBar.setBackgroundColor(successColor)
+        val animation = TranslateAnimation(0f, 0f, 0f, -ANIM_START_POSITION)
+        animation.duration = ANIM_DURATION
+        animation.startOffset = 500
+        animation.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationRepeat(p0: Animation?) {
+            }
+
+            override fun onAnimationEnd(p0: Animation?) {
+                rootNetworkBar.isVisible = false
+            }
+
+            override fun onAnimationStart(p0: Animation?) {
+            }
+        })
+        rootNetworkBar.startAnimation(animation)
     }
 
     override fun removeSplashBackground() {
