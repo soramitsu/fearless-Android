@@ -1,6 +1,8 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.md5
 import jp.co.soramitsu.common.utils.newLimitedThreadPoolExecutor
 import jp.co.soramitsu.common.utils.retryUntilDone
@@ -41,7 +43,8 @@ class RuntimeSyncService(
     private val runtimeFilesCache: RuntimeFilesCache,
     private val chainDao: ChainDao,
     maxConcurrentUpdates: Int = 8,
-) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+    private val updatesMixin: UpdatesMixin
+) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
     private val syncDispatcher = newLimitedThreadPoolExecutor(maxConcurrentUpdates).asCoroutineDispatcher()
     private val knownChains = ConcurrentHashMap<String, SyncInfo>()
@@ -99,6 +102,7 @@ class RuntimeSyncService(
     }
 
     private suspend fun sync(chainId: String, force: Boolean) {
+        updatesMixin.startChainSyncUp(chainId)
         val syncInfo = knownChains[chainId]
 
         if (syncInfo == null) {
@@ -145,7 +149,8 @@ class RuntimeSyncService(
         syncingChains.remove(chainId)?.apply { cancel() }
     }
 
-    private fun syncFinished(chainId: String) {
+    private suspend fun syncFinished(chainId: String) {
+        updatesMixin.finishChainSyncUp(chainId)
         syncingChains.remove(chainId)
     }
 

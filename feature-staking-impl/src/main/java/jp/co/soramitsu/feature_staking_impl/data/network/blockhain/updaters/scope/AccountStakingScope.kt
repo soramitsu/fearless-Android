@@ -34,4 +34,6 @@ class AccountStakingScope(
 
         return accountStakingDao.get(chain.id, chainAsset.id, account.accountId(chain)!!)
     }
+
+    suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 }

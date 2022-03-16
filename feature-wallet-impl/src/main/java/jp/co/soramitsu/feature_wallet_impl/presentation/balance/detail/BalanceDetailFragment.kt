@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -135,13 +136,13 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
             }
             balanceDetailRateChange.isVisible = asset.token.recentRateChange != null
 
-            balanceDetailsInfo.total.text = asset.total.formatTokenAmount(asset.token.configuration)
+            balanceDetailsInfo.total.text = asset.total.orZero().formatTokenAmount(asset.token.configuration)
             balanceDetailsInfo.totalFiat.setTextOrHide(asset.totalFiat?.formatAsCurrency(asset.token.fiatSymbol))
 
-            balanceDetailsInfo.transferable.text = asset.available.formatTokenAmount(asset.token.configuration)
+            balanceDetailsInfo.transferable.text = asset.available?.formatTokenAmount(asset.token.configuration)
             balanceDetailsInfo.transferableFiat.setTextOrHide(asset.availableFiat?.formatAsCurrency(asset.token.fiatSymbol))
 
-            balanceDetailsInfo.locked.text = asset.frozen.formatTokenAmount(asset.token.configuration)
+            balanceDetailsInfo.locked.text = asset.frozen?.formatTokenAmount(asset.token.configuration)
             balanceDetailsInfo.lockedFiat.setTextOrHide(asset.frozenFiat?.formatAsCurrency(asset.token.fiatSymbol))
         }
 

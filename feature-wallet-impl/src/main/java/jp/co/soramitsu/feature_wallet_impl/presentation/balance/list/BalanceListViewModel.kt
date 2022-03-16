@@ -11,8 +11,13 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
@@ -21,6 +26,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetUpdateState
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetWithStateModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -33,8 +40,9 @@ class BalanceListViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
-    private val selectedFiat: SelectedFiat
-) : BaseViewModel() {
+    private val selectedFiat: SelectedFiat,
+    private val updatesMixin: UpdatesMixin
+) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
@@ -44,7 +52,28 @@ class BalanceListViewModel(
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
-    val balanceLiveData = balanceFlow().asLiveData()
+    private val fiatSymbolLiveData = fiatSymbolFlow().asLiveData()
+    private val assetModelsLiveData = assetModelsFlow().asLiveData()
+
+    val balanceLiveData = mediateWith(
+        assetModelsLiveData,
+        fiatSymbolLiveData,
+        tokenRates,
+        assets,
+        chains
+    ) { (assetModels: List<AssetModel>?, fiatSymbol: String?, tokenRatesUpdate: Set<String>?, assetsUpdate: Set<AssetKey>?, chainsUpdates: Set<String>?) ->
+        val assets = assetModels?.map { asset ->
+            val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.symbol in it }
+            val balanceUpdate = assetsUpdate?.let { asset.primaryKey in it }
+            val chainUpdate = chainsUpdates?.let { asset.token.configuration.chainId in it }
+            AssetWithStateModel(
+                asset = asset,
+                state = AssetUpdateState(rateUpdate, balanceUpdate, chainUpdate)
+            )
+        }.orEmpty()
+
+        BalanceModel(assets, fiatSymbol.orEmpty())
+    }
 
     fun sync() {
         viewModelScope.launch {
@@ -81,15 +110,16 @@ class BalanceListViewModel(
         return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
     }
 
-    private fun balanceFlow(): Flow<BalanceModel> =
+    private fun assetModelsFlow(): Flow<List<AssetModel>> =
         interactor.assetsFlow()
             .mapList(::mapAssetToAssetModel)
-            .map { list -> list.filter { it.enabed } }
-            .map { assets ->
-                val selectedFiat = selectedFiat.get()
-                val fiatCurrency = getAvailableFiatCurrencies().firstOrNull { it.id == selectedFiat }
-                BalanceModel(assets, fiatCurrency?.symbol ?: "")
-            }
+            .map { list -> list.filter { it.enabled } }
+
+    private fun fiatSymbolFlow(): Flow<String> = flowOf {
+        val selectedFiat = selectedFiat.get()
+        val fiatCurrency = getAvailableFiatCurrencies().firstOrNull { it.id == selectedFiat }
+        fiatCurrency?.symbol ?: ""
+    }
 
     fun manageAssetsClicked() {
         router.openManageAssets()

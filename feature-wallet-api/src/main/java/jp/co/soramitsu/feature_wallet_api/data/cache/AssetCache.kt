@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_wallet_api.data.cache
 
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.AssetReadOnlyCache
 import jp.co.soramitsu.core_db.dao.TokenDao
@@ -19,7 +21,9 @@ class AssetCache(
     private val tokenDao: TokenDao,
     private val accountRepository: AccountRepository,
     private val assetDao: AssetDao,
-) : AssetReadOnlyCache by assetDao {
+    private val updatesMixin: UpdatesMixin,
+) : AssetReadOnlyCache by assetDao,
+    UpdatesProviderUi by updatesMixin {
 
     private val assetUpdateMutex = Mutex()
 
@@ -35,16 +39,16 @@ class AssetCache(
         assetUpdateMutex.withLock {
             tokenDao.ensureToken(symbol)
 
-            when (val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, symbol)?.asset) {
-                null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, symbol, chainId, metaId)))
-                else -> when (cachedAsset.accountId) {
-                    emptyAccountIdValue -> {
-                        assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, symbol)
-                        assetDao.insertAsset(builder.invoke(cachedAsset))
-                    }
-                    else -> assetDao.updateAsset(builder.invoke(cachedAsset))
+            val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, symbol)?.asset
+            when {
+                cachedAsset == null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, symbol, chainId, metaId)))
+                cachedAsset.accountId.contentEquals(emptyAccountIdValue) -> {
+                    assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, symbol)
+                    assetDao.insertAsset(builder.invoke(cachedAsset))
                 }
+                else -> assetDao.updateAsset(builder.invoke(cachedAsset))
             }
+            updatesMixin.finishUpdateAsset(metaId, chainId, accountId, symbol)
         }
     }
 
@@ -70,6 +74,7 @@ class AssetCache(
             val newToken = builder.invoke(tokenLocal)
 
             tokenDao.insertToken(newToken)
+            updatesMixin.finishUpdateToken(symbol)
         }
     }
 

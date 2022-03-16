@@ -3,6 +3,63 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val AssetsMigration_38_39 = object : Migration(36, 37) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        database.execSQL("ALTER TABLE assets RENAME TO _assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `tokenSymbol` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `accountId` BLOB NOT NULL, 
+            `metaId` INTEGER NOT NULL, 
+            `freeInPlanks` TEXT, 
+            `reservedInPlanks` TEXT, 
+            `miscFrozenInPlanks` TEXT, 
+            `feeFrozenInPlanks` TEXT, 
+            `bondedInPlanks` TEXT, 
+            `redeemableInPlanks` TEXT, 
+            `unbondingInPlanks` TEXT, 
+            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
+            `enabled` INTEGER NOT NULL DEFAULT 1, 
+            `chainAccountName` TEXT, 
+            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`, `metaId`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO assets SELECT 
+                a.tokenSymbol,
+                a.chainId,
+                a.accountId,
+                a.metaId,
+                a.freeInPlanks,
+                a.reservedInPlanks,
+                a.miscFrozenInPlanks,
+                a.feeFrozenInPlanks,
+                a.bondedInPlanks,
+                a.redeemableInPlanks,
+                a.unbondingInPlanks, 
+                0 as `sortIndex`, 
+                1 as `enabled`, 
+                null as `chainAccountName` 
+            FROM _assets a
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE _assets")
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
+
 val DifferentCurrenciesMigrations_37_38 = object : Migration(37, 38) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.beginTransaction()

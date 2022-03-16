@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.modules.Caching
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -93,4 +94,6 @@ interface CommonApi {
     fun secretStoreV1(): SecretStoreV1
 
     fun secretStoreV2(): SecretStoreV2
+
+    fun updatesMixin(): UpdatesMixin
 }

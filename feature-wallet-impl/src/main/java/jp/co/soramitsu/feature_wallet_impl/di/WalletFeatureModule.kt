@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.di
 
 import dagger.Module
 import dagger.Provides
-import javax.inject.Named
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -11,6 +10,7 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.OperationDao
@@ -50,6 +50,7 @@ import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
 
 @Module
 class WalletFeatureModule {
@@ -71,9 +72,10 @@ class WalletFeatureModule {
     fun provideAssetCache(
         tokenDao: TokenDao,
         assetDao: AssetDao,
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        updatesMixin: UpdatesMixin
     ): AssetCache {
-        return AssetCache(tokenDao, accountRepository, assetDao)
+        return AssetCache(tokenDao, accountRepository, assetDao, updatesMixin)
     }
 
     @Provides
@@ -124,7 +126,8 @@ class WalletFeatureModule {
         coingeckoApi: CoingeckoApi,
         cursorStorage: TransferCursorStorage,
         chainRegistry: ChainRegistry,
-        availableFiatCurrencies: GetAvailableFiatCurrencies
+        availableFiatCurrencies: GetAvailableFiatCurrencies,
+        updatesMixin: UpdatesMixin
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -137,7 +140,8 @@ class WalletFeatureModule {
         cursorStorage,
         coingeckoApi,
         chainRegistry,
-        availableFiatCurrencies
+        availableFiatCurrencies,
+        updatesMixin
     )
 
     @Provides
@@ -187,12 +191,14 @@ class WalletFeatureModule {
         operationDao: OperationDao,
         accountUpdateScope: AccountUpdateScope,
         chainRegistry: ChainRegistry,
+        updatesMixin: UpdatesMixin
     ) = PaymentUpdaterFactory(
         remoteSource,
         assetCache,
         operationDao,
         chainRegistry,
-        accountUpdateScope
+        accountUpdateScope,
+        updatesMixin
     )
 
     @Provides
