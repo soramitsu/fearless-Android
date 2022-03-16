@@ -1,12 +1,13 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.mapList
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
@@ -58,6 +59,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -71,8 +74,9 @@ class WalletRepositoryImpl(
     private val cursorStorage: TransferCursorStorage,
     private val coingeckoApi: CoingeckoApi,
     private val chainRegistry: ChainRegistry,
-    private val availableFiatCurrencies: GetAvailableFiatCurrencies
-) : WalletRepository {
+    private val availableFiatCurrencies: GetAvailableFiatCurrencies,
+    private val updatesMixin: UpdatesMixin,
+) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
         return combine(
@@ -128,7 +132,11 @@ class WalletRepositoryImpl(
         val priceIds = chains.mapNotNull { it.utilityAsset.priceId }
         val priceStats = getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
 
-        chains.forEach { chain ->
+        val chainsWithAssetPrices = chains.filter { it.utilityAsset.priceId != null }
+
+        updatesMixin.startUpdateTokens(chainsWithAssetPrices.map { it.utilityAsset.symbol })
+
+        chainsWithAssetPrices.forEach { chain ->
             val asset = chain.utilityAsset
             val stat = priceStats[chain.utilityAsset.priceId] ?: return@forEach
             val price = stat[currencyId]
@@ -293,7 +301,7 @@ class WalletRepositoryImpl(
         val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
-        return transfer.validityStatus(asset.transferable, asset.total, feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
+        return transfer.validityStatus(asset.transferable, asset.total.orZero(), feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
     }
 
     // TODO adapt for ethereum chains

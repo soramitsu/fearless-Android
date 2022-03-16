@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoSet
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.CapExceededValidation
@@ -58,7 +59,7 @@ class ContributeValidationsModule {
         walletConstants: WalletConstants,
     ): ContributeValidation = ContributeExistentialDepositValidation(
         walletConstants = walletConstants,
-        totalBalanceProducer = { it.asset.total },
+        totalBalanceProducer = { it.asset.total.orZero() },
         feeProducer = { it.fee },
         extraAmountProducer = { it.contributionAmount },
         tokenProducer = { it.asset.token },

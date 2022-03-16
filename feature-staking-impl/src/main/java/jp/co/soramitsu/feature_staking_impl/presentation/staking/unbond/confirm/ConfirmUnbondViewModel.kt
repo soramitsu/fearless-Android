@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
@@ -142,7 +143,7 @@ class ConfirmUnbondViewModel(
     private fun sendTransaction(validPayload: UnbondValidationPayload) = launch {
         val amountInPlanks = validPayload.asset.token.configuration.planksFromAmount(payload.amount)
 
-        val result = unbondInteractor.unbond(validPayload.stash, validPayload.asset.bondedInPlanks, amountInPlanks)
+        val result = unbondInteractor.unbond(validPayload.stash, validPayload.asset.bondedInPlanks.orZero(), amountInPlanks)
 
         _showNextProgress.value = false
 

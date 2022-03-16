@@ -1,5 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
@@ -42,7 +44,8 @@ class ChainRegistry(
     private val chainSyncService: ChainSyncService,
     private val baseTypeSynchronizer: BaseTypeSynchronizer,
     private val runtimeSyncService: RuntimeSyncService,
-) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+    private val updatesMixin: UpdatesMixin,
+) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
     val currentChains = chainDao.joinChainInfoFlow()
         .mapList(::mapChainLocalToChain)
@@ -57,6 +60,7 @@ class ChainRegistry(
                 connectionPool.removeConnection(chainId)
             }
 
+            updatesMixin.startChainsSyncUp(addedOrModified.filter { !it.nodes.isNullOrEmpty() }.map { it.id })
             addedOrModified.filter { !it.nodes.isNullOrEmpty() }.forEach { chain ->
 
                 val connection = connectionPool.setupConnection(

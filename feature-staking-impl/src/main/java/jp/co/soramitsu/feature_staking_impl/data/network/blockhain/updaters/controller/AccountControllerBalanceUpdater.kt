@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.controller
 
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
@@ -11,6 +13,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scop
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
+import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.state.chainAndAsset
@@ -25,7 +28,8 @@ class AccountControllerBalanceUpdater(
     private val sharedState: StakingSharedState,
     private val chainRegistry: ChainRegistry,
     private val assetCache: AssetCache,
-) : Updater {
+    private val updatesMixin: UpdatesMixin,
+) : Updater, UpdatesProviderUi by updatesMixin {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM, Modules.STAKING)
 
@@ -52,6 +56,9 @@ class AccountControllerBalanceUpdater(
         }
 
         val key = runtime.metadata.system().storage("Account").storageKey(runtime, companionAccountId)
+
+        val metaId = scope.getSelectedMetaAccount().id
+        updatesMixin.startUpdateAsset(metaId, chain.id, companionAccountId, chain.utilityAsset.symbol)
 
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->

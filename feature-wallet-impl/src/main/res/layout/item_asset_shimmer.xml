@@ -82,6 +82,18 @@
         app:layout_constraintTop_toBottomOf="@+id/itemAssetNetwork"
         tools:text="KSM" />
 
+    <View
+        android:id="@+id/itemAssetRateShimmer"
+        android:layout_width="52dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_shimmer_rounded"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/itemAssetRate"
+        app:layout_constraintStart_toStartOf="@+id/itemAssetRate"
+        app:layout_constraintTop_toTopOf="@+id/itemAssetRate"
+        tools:visibility="visible" />
+
     <TextView
         android:id="@+id/itemAssetRate"
         style="@style/TextAppearance.Soramitsu.Body1"
@@ -96,6 +108,7 @@
         app:layout_constraintTop_toBottomOf="@+id/itemAssetToken"
         tools:text="$10.25" />
 
+
     <TextView
         android:id="@+id/itemAssetRateChange"
         style="@style/TextAppearance.Soramitsu.Body1"
@@ -109,6 +122,18 @@
         app:layout_constraintTop_toTopOf="@+id/itemAssetRate"
         tools:text="+25%" />
 
+    <View
+        android:id="@+id/itemAssetFiatAmountShimmer"
+        android:layout_width="56dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_shimmer_rounded"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/itemAssetFiatAmount"
+        app:layout_constraintEnd_toEndOf="@+id/itemAssetFiatAmount"
+        app:layout_constraintTop_toTopOf="@+id/itemAssetFiatAmount"
+        tools:visibility="visible" />
+
     <TextView
         android:id="@+id/itemAssetFiatAmount"
         style="@style/TextAppearance.Soramitsu.Body1"
@@ -119,6 +144,18 @@
         app:layout_constraintBaseline_toBaselineOf="@+id/itemAssetRate"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="$1,000.05" />
+
+    <View
+        android:id="@+id/itemAssetBalanceShimmer"
+        android:layout_width="80dp"
+        android:layout_height="12dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_shimmer_rounded"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/itemAssetBalance"
+        app:layout_constraintEnd_toEndOf="@+id/itemAssetBalance"
+        app:layout_constraintTop_toTopOf="@+id/itemAssetBalance"
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/itemAssetBalance"

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets
 
 import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -26,7 +27,7 @@ data class ManageAssetModel(
 }
 
 fun Asset.toAssetModel(): ManageAssetModel {
-    val totalAmount = calculateTotalBalance(freeInPlanks, reservedInPlanks)
+    val totalAmount = calculateTotalBalance(freeInPlanks, reservedInPlanks).orZero()
     val totalBalance = token.amountFromPlanks(totalAmount).format()
 
     val network = if (token.configuration.isNative) null else token.configuration.chainName?.let {

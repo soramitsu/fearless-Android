@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -65,8 +66,8 @@ class WalletInteractorImpl(
             }
     }
 
-    private fun defaultAssetListSort() = compareByDescending<Asset> { it.total > BigDecimal.ZERO }
-        .thenByDescending { it.fiatAmount ?: BigDecimal.ZERO }
+    private fun defaultAssetListSort() = compareByDescending<Asset> { it.total.orZero() > BigDecimal.ZERO }
+        .thenByDescending { it.fiatAmount.orZero() }
         .thenBy { it.token.configuration.isTestNet }
         .thenByDescending { it.token.configuration.chainId.isPolkadotOrKusama() }
         .thenBy { it.token.configuration.chainName }
@@ -86,8 +87,9 @@ class WalletInteractorImpl(
             val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.assetFlow(metaAccount.id, accountId, chainAsset)
-        }.onStart {
-            chainRegistry.getAsset(chainId, chainAssetId)?.let { emit(Asset.createEmpty(it)) }
+                .onStart {
+                    emit(Asset.createEmpty(chainAsset, metaAccount.id))
+                }
         }
     }
 

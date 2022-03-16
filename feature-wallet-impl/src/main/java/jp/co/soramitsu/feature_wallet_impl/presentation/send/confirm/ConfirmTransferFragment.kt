@@ -8,6 +8,7 @@ import coil.ImageLoader
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -84,7 +85,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
             val chainAsset = it.token.configuration
 
             val transferableAmount =
-                resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.formatTokenAmount(it.token.configuration))
+                resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.orZero().formatTokenAmount(it.token.configuration))
             confirmAmountField.setAssetBalance(transferableAmount)
             confirmAmountField.setAssetName(it.token.configuration.symbol)
             confirmAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)

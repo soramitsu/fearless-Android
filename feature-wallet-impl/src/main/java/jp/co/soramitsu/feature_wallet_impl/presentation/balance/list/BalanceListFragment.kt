@@ -6,13 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -22,9 +22,13 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
+import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmountEmptyShimmer
+import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmountShimmer
+import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmountShimmerInner
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalTitle
 import kotlinx.android.synthetic.main.fragment_balance_list.manageAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
+import javax.inject.Inject
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
 
@@ -84,7 +88,11 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)
 
-            balanceListTotalAmount.text = it.totalBalance.formatAsCurrency(it.fiatSymbol)
+            balanceListTotalAmount.text = it.totalBalance?.formatAsCurrency(it.fiatSymbol)
+            balanceListTotalAmountShimmerInner.text = it.totalBalance?.formatAsCurrency(it.fiatSymbol)
+            balanceListTotalAmountShimmer.setVisible(it.totalBalance != null && it.isUpdating, View.INVISIBLE)
+            balanceListTotalAmountEmptyShimmer.setVisible(it.totalBalance == null && it.isUpdating)
+            balanceListTotalAmount.setVisible(!it.isUpdating, View.INVISIBLE)
         }
 
         viewModel.currentAddressModelLiveData.observe {
