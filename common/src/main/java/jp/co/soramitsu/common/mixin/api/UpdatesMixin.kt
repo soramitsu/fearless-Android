@@ -17,6 +17,8 @@ interface UpdatesProviderUi {
 
     suspend fun startUpdateTokens(symbols: List<String>)
 
+    suspend fun finishUpdateTokens(symbols: List<String>)
+
     suspend fun finishUpdateToken(symbol: String)
 
     suspend fun startUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, tokenSymbol: String)

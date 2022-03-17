@@ -74,7 +74,6 @@ class AssetCache(
             val newToken = builder.invoke(tokenLocal)
 
             tokenDao.insertToken(newToken)
-            updatesMixin.finishUpdateToken(symbol)
         }
     }
 
