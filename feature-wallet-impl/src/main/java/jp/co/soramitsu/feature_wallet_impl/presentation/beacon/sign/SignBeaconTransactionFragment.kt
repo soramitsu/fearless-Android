@@ -3,7 +3,9 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import com.google.gson.Gson
 import dev.chrisbanes.insetter.applyInsetter
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.dialog.warningDialog
@@ -29,8 +31,18 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
 
         const val SIGN_RESULT_KEY = "SIGN_STATUS_KEY"
 
-        fun getBundle(payload: String) = Bundle().apply {
-            putString(SIGN_PAYLOAD_KEY, payload)
+//        fun getBundle(payload: String) = Bundle().apply {
+//            putString(SIGN_PAYLOAD_KEY, payload)
+//        }
+
+        fun getBundle(payload: SubstrateSignerPayload) = Bundle().apply {
+            val result = when(payload) {
+                is SubstrateSignerPayload.Raw -> {
+                    payload.data
+                }
+                else -> ""
+            }
+            putString(SIGN_PAYLOAD_KEY, result)
         }
     }
 

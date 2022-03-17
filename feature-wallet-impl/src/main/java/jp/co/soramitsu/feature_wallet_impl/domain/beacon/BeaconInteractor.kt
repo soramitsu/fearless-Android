@@ -8,6 +8,7 @@ import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
+import it.airgap.beaconsdk.blockchain.substrate.message.response.SignPayloadSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.substrate
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.BeaconError
@@ -19,6 +20,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.isTransfer
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
@@ -104,12 +106,13 @@ class BeaconInteractor(
     suspend fun signPayload(
         request: SignPayloadSubstrateRequest
     ) {
-        val payload = (request.payload as? SubstrateSignerPayload.Raw)?.takeIf { it.dataType == SubstrateSignerPayload.Raw.DataType.Bytes }?.data
+        val payload = (request.payload as? SubstrateSignerPayload.Raw)?.data ?: return
         hashCode()
-//        val signature = accountRepository.signWithCurrentAccount(request.payload.fromHex())
-//        val signatureHex = signature.toHexString(withPrefix = true)
-//        val response = SignSubstrateResponse.from(request, signatureHex, payload = null)
-//        beaconClient().respond(response)
+        val signature = accountRepository.signWithCurrentAccount(payload.fromHex())
+        val signatureHex = signature.toHexString(withPrefix = true)
+
+        val response = SignPayloadSubstrateResponse.from(request, transactionHash = null, signature = signatureHex, payload = null)
+        beaconClient().respond(response)
     }
 
     //todo add multi-assets support

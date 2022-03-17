@@ -1,6 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign
 
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -24,7 +27,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import java.math.BigDecimal
 
 class SignableOperationModel(
     val module: String,
@@ -53,6 +55,12 @@ class SignBeaconTransactionViewModel(
         .share()
 
     private val decodedOperation = flow {
+        if (payloadToSign.isEmpty()) {
+            showMessage(resourceManager.getString(R.string.common_cannot_decode_transaction))
+
+            exit()
+            return@flow
+        }
         val result = beaconInteractor.decodeOperation(payloadToSign)
 
         if (result.isSuccess) {
@@ -70,7 +78,7 @@ class SignBeaconTransactionViewModel(
 
     val operationModel = combine(
         decodedOperation,
-        interactor.assetFlow(polkadotChainId, "0"), //0 is polkadot asset id
+        interactor.assetFlow(polkadotChainId, "dot"), //0 is polkadot asset id
         ::mapOperationToOperationModel
     )
 

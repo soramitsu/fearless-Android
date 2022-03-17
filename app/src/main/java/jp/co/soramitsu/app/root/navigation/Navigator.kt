@@ -469,7 +469,7 @@ class Navigator :
     }
 
     override fun openSignBeaconTransaction(payload: SubstrateSignerPayload) {//todo fix
-        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle("payload"))
+        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload))
     }
 
     override val beaconSignStatus: Flow<SignStatus>
