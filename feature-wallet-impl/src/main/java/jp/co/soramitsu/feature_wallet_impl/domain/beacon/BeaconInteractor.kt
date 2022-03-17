@@ -26,7 +26,7 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentAccount
+import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentMetaAccount
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
@@ -107,8 +107,8 @@ class BeaconInteractor(
         request: SignPayloadSubstrateRequest
     ) {
         val payload = (request.payload as? SubstrateSignerPayload.Raw)?.data ?: return
-        hashCode()
-        val signature = accountRepository.signWithCurrentAccount(payload.fromHex())
+
+        val signature = accountRepository.signWithCurrentMetaAccount(payload.fromHex())
         val signatureHex = signature.toHexString(withPrefix = true)
 
         val response = SignPayloadSubstrateResponse.from(request, transactionHash = null, signature = signatureHex, payload = null)

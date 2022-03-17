@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateNetwork
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.core.data.P2pPeer
@@ -63,6 +64,8 @@ class BeaconViewModel(
 
     private val _showPermissionRequestSheet = MutableLiveData<Event<String>>()
     val showPermissionRequestSheet: LiveData<Event<String>> = _showPermissionRequestSheet
+
+    private var beaconRequestedNetworks = listOf<SubstrateNetwork>()
 
     init {
         listenSideEffects()
@@ -157,6 +160,7 @@ class BeaconViewModel(
                 Log.d("RX", it.toString())
                 when (it) {
                     is PermissionSubstrateRequest -> {
+                        beaconRequestedNetworks = it.networks
                         stateMachine.transition(BeaconStateMachine.Event.ReceivedPermissionsRequest(it))
                     }
 
