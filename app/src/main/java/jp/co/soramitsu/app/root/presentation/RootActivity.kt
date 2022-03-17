@@ -6,6 +6,10 @@ import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import jp.co.soramitsu.app.R
@@ -22,7 +26,7 @@ import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
 import javax.inject.Inject
 
-class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
+class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, LifecycleObserver {
 
     companion object {
         private const val ANIM_DURATION = 150L
@@ -49,6 +53,7 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
         navigator.attach(navController, this)
 
@@ -82,15 +87,13 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder {
     override fun initViews() {
     }
 
-    override fun onStop() {
-        super.onStop()
-
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    fun onMoveToBackground() {
         viewModel.noticeInBackground()
     }
 
-    override fun onStart() {
-        super.onStart()
-
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    fun onMoveToForeground() {
         viewModel.noticeInForeground()
     }
 

@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.util.Date
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class RootViewModel(
     private val interactor: RootInteractor,
@@ -21,8 +24,12 @@ class RootViewModel(
     private val resourceManager: ResourceManager,
     private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
+    companion object {
+        private const val IDLE_MINUTES: Long = 20
+    }
 
     private var willBeClearedForLanguageChange = false
+    private var timeInBackground: Date? = null
 
     init {
         interactor.runBalancesUpdate()
@@ -55,12 +62,23 @@ class RootViewModel(
         if (!willBeClearedForLanguageChange) {
             externalConnectionRequirementFlow.value = ExternalRequirement.STOPPED
         }
+        timeInBackground = Date()
     }
 
     fun noticeInForeground() {
         if (externalConnectionRequirementFlow.value == ExternalRequirement.STOPPED) {
             externalConnectionRequirementFlow.value = ExternalRequirement.ALLOWED
         }
+        timeInBackground?.let {
+            if (idleTimePassedFrom(it)) {
+                rootRouter.openPincodeCheck()
+            }
+        }
+        timeInBackground = null
+    }
+
+    private fun idleTimePassedFrom(timeInBackground: Date): Boolean {
+        return Date().time - timeInBackground.time >= IDLE_MINUTES.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
     }
 
     fun noticeLanguageLanguage() {
