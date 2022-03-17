@@ -18,6 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+
             android:layout_marginTop="16dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -25,9 +26,11 @@
 
         <com.facebook.shimmer.ShimmerFrameLayout
             android:id="@+id/balanceListTotalAmountShimmer"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:layout_constrainedWidth="true"
             app:layout_constraintEnd_toStartOf="@+id/balanceListAvatar"
+            app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="@+id/balanceListTotalTitle"
             app:layout_constraintTop_toBottomOf="@+id/balanceListTotalTitle"
             app:shimmer_duration="3000">
@@ -39,6 +42,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:ellipsize="end"
+                android:gravity="start"
+                android:layoutDirection="ltr"
                 android:singleLine="true"
                 tools:text="$21,000.43" />
         </com.facebook.shimmer.ShimmerFrameLayout>
@@ -63,12 +68,15 @@
         <TextView
             android:id="@+id/balanceListTotalAmount"
             style="@style/TextAppearance.Soramitsu.Header1"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:ellipsize="end"
+            android:layoutDirection="ltr"
             android:singleLine="true"
+            app:layout_constrainedWidth="true"
             app:layout_constraintEnd_toStartOf="@+id/balanceListAvatar"
+            app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="@+id/balanceListTotalTitle"
             app:layout_constraintTop_toBottomOf="@+id/balanceListTotalTitle"
             tools:text="$21,000.43" />
