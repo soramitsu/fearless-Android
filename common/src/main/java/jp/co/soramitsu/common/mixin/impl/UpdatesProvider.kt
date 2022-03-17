@@ -58,6 +58,14 @@ class UpdatesProvider : UpdatesMixin {
         }
     }
 
+    override suspend fun finishUpdateTokens(symbols: List<String>) {
+        if (symbols.isEmpty()) return
+        tokensMutex.withLock {
+            tokensCache.removeAll(symbols)
+            _tokenRates.postValue(tokensCache)
+        }
+    }
+
     override suspend fun finishUpdateToken(symbol: String) {
         tokensMutex.withLock {
             tokensCache.remove(symbol)

@@ -29,7 +29,8 @@
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toStartOf="@+id/balanceListAvatar"
             app:layout_constraintStart_toStartOf="@+id/balanceListTotalTitle"
-            app:layout_constraintTop_toBottomOf="@+id/balanceListTotalTitle">
+            app:layout_constraintTop_toBottomOf="@+id/balanceListTotalTitle"
+            app:shimmer_duration="3000">
 
             <TextView
                 android:id="@+id/balanceListTotalAmountShimmerInner"

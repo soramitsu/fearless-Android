@@ -134,7 +134,8 @@ class WalletRepositoryImpl(
 
         val chainsWithAssetPrices = chains.filter { it.utilityAsset.priceId != null }
 
-        updatesMixin.startUpdateTokens(chainsWithAssetPrices.map { it.utilityAsset.symbol })
+        val symbols = chainsWithAssetPrices.map { it.utilityAsset.symbol }
+        updatesMixin.startUpdateTokens(symbols)
 
         chainsWithAssetPrices.forEach { chain ->
             val asset = chain.utilityAsset
@@ -147,6 +148,7 @@ class WalletRepositoryImpl(
                 updateAssetRates(asset.symbol, fiatCurrency?.symbol, price, change)
             }
         }
+        updatesMixin.finishUpdateTokens(symbols)
     }
 
     override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset> {
