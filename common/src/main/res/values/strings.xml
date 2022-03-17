@@ -187,6 +187,7 @@ from the right network</string>
     <string name="delete_custom_node_title">Delete custom node?</string>
     <string name="switch_node_autoselect_title">Auto select nodes</string>
     <string name="connection_delete_confirm">Delete</string>
+    <string name="network_status_connected">Connected</string>
     <string name="network_status_connecting">Connecting…</string>
     <string name="wallet_balance_frozen_template">Frozen %s</string>
     <string name="wallet_receive_description">Show this QR to sender</string>

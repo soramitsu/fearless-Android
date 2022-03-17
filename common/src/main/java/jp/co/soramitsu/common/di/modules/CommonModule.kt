@@ -25,7 +25,9 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.mixin.impl.UpdatesProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ContextManager
@@ -192,4 +194,8 @@ class CommonModule {
     @Provides
     @ApplicationScope
     fun provideUpdatesMixin(): UpdatesMixin = UpdatesProvider()
+
+    @Provides
+    @ApplicationScope
+    fun provideNetworkStateMixin(): NetworkStateMixin = NetworkStateProvider()
 }

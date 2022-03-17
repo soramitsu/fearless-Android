@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
@@ -100,8 +101,9 @@ class ChainRegistryModule {
     fun provideConnectionPool(
         socketProvider: Provider<SocketService>,
         externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-        nodesSettingsStorage: NodesSettingsStorage
-    ) = ConnectionPool(socketProvider, externalRequirementsFlow, nodesSettingsStorage)
+        nodesSettingsStorage: NodesSettingsStorage,
+        networkStateMixin: NetworkStateMixin
+    ) = ConnectionPool(socketProvider, externalRequirementsFlow, nodesSettingsStorage, networkStateMixin)
 
     @Provides
     @ApplicationScope

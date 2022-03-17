@@ -16,16 +16,17 @@
 
     <TextView
         android:id="@+id/rootNetworkBar"
+        style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
         android:background="@color/colorAccent"
-        android:text="@string/network_status_connecting"
         android:gravity="center"
         android:paddingTop="16dp"
-        android:visibility="gone"
         android:paddingBottom="2dp"
-        style="@style/TextAppearance.Soramitsu.Body2"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top" />
+        android:text="@string/network_status_connecting"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
 
 </FrameLayout>
