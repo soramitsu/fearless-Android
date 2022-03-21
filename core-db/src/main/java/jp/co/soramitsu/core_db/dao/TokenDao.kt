@@ -19,6 +19,9 @@ abstract class TokenDao {
     @Query("select * from tokens where symbol = :symbol")
     abstract fun observeToken(symbol: String): Flow<TokenLocal>
 
+    @Query("delete from tokens")
+    abstract suspend fun clearTokens()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertToken(token: TokenLocal)
 

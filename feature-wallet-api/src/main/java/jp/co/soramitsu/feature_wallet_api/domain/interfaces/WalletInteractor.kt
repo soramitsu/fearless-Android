@@ -88,4 +88,6 @@ interface WalletInteractor {
     suspend fun enableCustomAssetSorting()
 
     suspend fun customAssetSortingEnabled(): Boolean
+
+    suspend fun clearTokens()
 }

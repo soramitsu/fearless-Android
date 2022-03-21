@@ -89,4 +89,6 @@ interface WalletRepository {
     suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId): BigInteger
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
+
+    suspend fun clearTokens()
 }

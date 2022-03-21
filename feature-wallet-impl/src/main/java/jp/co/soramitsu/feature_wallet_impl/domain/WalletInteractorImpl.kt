@@ -292,4 +292,8 @@ class WalletInteractorImpl(
         val metaId = accountRepository.getSelectedMetaAccount().id
         preferences.putBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", true)
     }
+
+    override suspend fun clearTokens() {
+        walletRepository.clearTokens()
+    }
 }
