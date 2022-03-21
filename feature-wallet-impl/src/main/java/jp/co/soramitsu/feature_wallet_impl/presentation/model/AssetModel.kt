@@ -19,6 +19,7 @@ data class AssetModel(
     val available: BigDecimal?,
     val sortIndex: Int,
     val enabled: Boolean,
+    val minSupportedVersion: String?,
     val chainAccountName: String?
 ) {
     val totalFiat = total?.applyFiatRate(token.fiatRate)
@@ -31,4 +32,16 @@ data class AssetModel(
         accountId = emptyAccountIdValue,
         chainId = token.configuration.chainId
     )
+
+    val isSupported: Boolean
+        get() = isAppVersionSupported()
+
+    private fun isAppVersionSupported(): Boolean {
+//        BuildConfig.VERSION_NAME
+        val appVersionName = "2.0.2" // todo
+        minSupportedVersion.orEmpty().split(".").map {
+            it.toIntOrNull() ?: 0
+        }
+        return minSupportedVersion != null && true
+    }
 }

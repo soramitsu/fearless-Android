@@ -22,6 +22,7 @@ class Asset(
     val unbondingInPlanks: BigInteger?,
     val sortIndex: Int,
     val enabled: Boolean,
+    val minSupportedVersion: String?,
     val chainAccountName: String?
 ) {
     companion object {
@@ -39,25 +40,27 @@ class Asset(
                 unbondingInPlanks = null,
                 sortIndex = Int.MAX_VALUE,
                 enabled = true,
+                minSupportedVersion = it.minSupportedVersion,
                 chainAccountName = chainAccount.accountName
             )
         }
 
-        fun createEmpty(chainAsset: Chain.Asset, metaId: Long, chainAccountName: String? = null) = Asset(
-            metaId = metaId,
-            Token(configuration = chainAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
-            accountId = emptyAccountIdValue,
-            freeInPlanks = null,
-            reservedInPlanks = null,
-            miscFrozenInPlanks = null,
-            feeFrozenInPlanks = null,
-            bondedInPlanks = null,
-            redeemableInPlanks = null,
-            unbondingInPlanks = null,
-            sortIndex = Int.MAX_VALUE,
-            enabled = true,
-            chainAccountName = chainAccountName
-        )
+        fun createEmpty(chainAsset: Chain.Asset, metaId: Long, chainAccountName: String? = null, minSupportedVersion: String?) = Asset(
+                metaId = metaId,
+                Token(configuration = chainAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
+                accountId = emptyAccountIdValue,
+                freeInPlanks = null,
+                reservedInPlanks = null,
+                miscFrozenInPlanks = null,
+                feeFrozenInPlanks = null,
+                bondedInPlanks = null,
+                redeemableInPlanks = null,
+                unbondingInPlanks = null,
+                sortIndex = Int.MAX_VALUE,
+                enabled = true,
+                minSupportedVersion = minSupportedVersion,
+                chainAccountName = chainAccountName
+            )
     }
 
     val free = token.amountFromPlanks(freeInPlanks.orZero())

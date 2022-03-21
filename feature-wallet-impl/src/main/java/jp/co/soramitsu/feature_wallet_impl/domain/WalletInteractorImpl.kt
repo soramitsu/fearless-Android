@@ -115,9 +115,13 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.assetFlow(metaAccount.id, accountId, chainAsset)
+            walletRepository.assetFlow(metaAccount.id, accountId, chainAsset, chain.minSupportedVersion)
                 .onStart {
-                    emit(Asset.createEmpty(chainAsset, metaAccount.id))
+                    emit(Asset.createEmpty(
+                        chainAsset = chainAsset,
+                        metaId = metaAccount.id,
+                        minSupportedVersion = chain.minSupportedVersion
+                    ))
                 }
         }
     }
@@ -126,7 +130,7 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset)!!
+        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
     }
 
     override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {

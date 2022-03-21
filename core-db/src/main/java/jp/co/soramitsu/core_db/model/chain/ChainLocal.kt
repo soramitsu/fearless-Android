@@ -9,6 +9,7 @@ class ChainLocal(
     @PrimaryKey val id: String,
     val parentId: String?,
     val name: String,
+    val minSupportedVersion: String?,
     val icon: String,
     @Embedded
     val types: TypesConfig?,

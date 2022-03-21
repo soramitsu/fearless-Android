@@ -16,6 +16,7 @@ const val interlayChainId = "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7
 data class Chain(
     val id: ChainId,
     val name: String,
+    val minSupportedVersion: String?,
     val assets: List<Asset>,
     val nodes: List<Node>,
     val explorers: List<Explorer>,

@@ -99,6 +99,9 @@ class AssetViewHolder(
     fun bind(model: AssetWithStateModel, itemHandler: BalanceListAdapter.ItemAssetHandler) {
         val asset = model.asset
 
+        if (asset.isSupported.not()) { // update to get more from the app
+        }
+
         content.itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
         shimmer.itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
 

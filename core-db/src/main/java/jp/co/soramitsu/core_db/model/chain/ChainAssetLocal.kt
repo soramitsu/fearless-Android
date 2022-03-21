@@ -3,7 +3,6 @@ package jp.co.soramitsu.core_db.model.chain
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
-import java.util.Locale
 
 @Entity(
     tableName = "chain_assets",
@@ -32,5 +31,5 @@ class ChainAssetLocal(
     val nativeChainId: String?
 ) {
     val symbol: String
-        get() = id.toUpperCase(Locale.ROOT)
+        get() = id.uppercase()
 }

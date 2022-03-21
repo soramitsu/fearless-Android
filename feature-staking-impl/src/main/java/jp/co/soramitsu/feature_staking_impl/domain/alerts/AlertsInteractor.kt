@@ -124,7 +124,7 @@ class AlertsInteractor(
 
         val alertsFlow = combine(
             stakingRepository.electedExposuresInActiveEra(chain.id),
-            walletRepository.assetFlow(meta.id, stakingState.accountId, chainAsset),
+            walletRepository.assetFlow(meta.id, stakingState.accountId, chainAsset, chain.minSupportedVersion),
             stakingRepository.observeActiveEraIndex(chain.id)
         ) { exposures, asset, activeEra ->
 

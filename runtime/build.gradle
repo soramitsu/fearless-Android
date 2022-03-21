@@ -11,7 +11,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.2/chains/chains_dev.json\""
+        buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/feature/min_version/chains/chains_dev.json\""
         buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.2/chains/assets.json\""
     }
 

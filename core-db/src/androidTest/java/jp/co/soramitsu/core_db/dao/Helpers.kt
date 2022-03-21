@@ -18,12 +18,12 @@ fun createTestChain(
     }
     val assets = with(chain) {
         listOf(
-            assetOf(0, symbol = "A"),
-            assetOf(1, symbol = "B")
+            assetOf("0", symbol = "A"),
+            assetOf("1", symbol = "B")
         )
     }
 
-    return JoinedChainInfo(chain, nodes, assets)
+    return JoinedChainInfo(chain, nodes, assets, emptyList())
 }
 
 fun chainOf(
@@ -39,7 +39,8 @@ fun chainOf(
     isTestNet = false,
     isEthereumBased = false,
     externalApi = null,
-    hasCrowdloans = false
+    hasCrowdloans = false,
+    minSupportedVersion = "2.0.3"
 )
 
 fun ChainLocal.nodeOf(
@@ -47,20 +48,24 @@ fun ChainLocal.nodeOf(
 ) = ChainNodeLocal(
     name = "Test",
     url = link,
-    chainId = id
+    chainId = id,
+    isActive = false,
+    isDefault = true
 )
 
 fun ChainLocal.assetOf(
-    assetId: Int,
+    assetId: String,
     symbol: String,
 ) = ChainAssetLocal(
     name = "Test",
     chainId = id,
-    symbol = symbol,
     id = assetId,
     precision = 10,
     priceId = null,
-    staking = "test"
+    staking = "test",
+    icon = "",
+    priceProviders = null,
+    nativeChainId = null
 )
 
 suspend fun ChainDao.addChain(joinedChainInfo: JoinedChainInfo) {

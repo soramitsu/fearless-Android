@@ -63,14 +63,14 @@ class BalanceListViewModel(
     val balanceLiveData = mediateWith(
         assetModelsLiveData,
         fiatSymbolLiveData,
-        tokenRates,
-        assets,
-        chains
-    ) { (assetModels: List<AssetModel>?, fiatSymbol: String?, tokenRatesUpdate: Set<String>?, assetsUpdate: Set<AssetKey>?, chainsUpdates: Set<String>?) ->
-        val assets = assetModels?.map { asset ->
+        tokenRatesUpdate,
+        assetsUpdate,
+        chainsUpdate
+    ) { (assetModels: List<AssetModel>?, fiatSymbol: String?, tokenRatesUpdate: Set<String>?, assetsUpdate: Set<AssetKey>?, chainsUpdate: Set<String>?) ->
+        val assetsWithState = assetModels?.map { asset ->
             val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.symbol in it }
             val balanceUpdate = assetsUpdate?.let { asset.primaryKey in it }
-            val chainUpdate = chainsUpdates?.let { asset.token.configuration.chainId in it }
+            val chainUpdate = chainsUpdate?.let { asset.token.configuration.chainId in it }
             val isTokenFiatChanged = when {
                 fiatSymbol == null -> false
                 asset.token.fiatSymbol == null -> false
@@ -83,7 +83,7 @@ class BalanceListViewModel(
             )
         }.orEmpty()
 
-        BalanceModel(assets, fiatSymbol.orEmpty())
+        BalanceModel(assetsWithState, fiatSymbol.orEmpty())
     }
 
     fun sync() {
