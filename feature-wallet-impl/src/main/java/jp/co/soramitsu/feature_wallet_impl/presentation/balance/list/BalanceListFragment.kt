@@ -37,6 +37,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
     private lateinit var adapter: BalanceListAdapter
 
+    private var previousFiat: String? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -102,6 +104,13 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         viewModel.hideRefreshEvent.observeEvent {
             walletContainer.isRefreshing = false
+        }
+
+        viewModel.fiatSymbolFlow.observe {
+            if (previousFiat != it) {
+                viewModel.clearTokens()
+                previousFiat = it
+            }
         }
 
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)

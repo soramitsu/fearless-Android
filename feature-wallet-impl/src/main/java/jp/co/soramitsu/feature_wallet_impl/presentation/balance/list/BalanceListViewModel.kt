@@ -54,10 +54,10 @@ class BalanceListViewModel(
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
-    private val fiatSymbolLiveData =
-        combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
-            fiatCurrencies[selectedFiat]?.symbol
-        }.asLiveData()
+    val fiatSymbolFlow = combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
+        fiatCurrencies[selectedFiat]?.symbol
+    }
+    private val fiatSymbolLiveData = fiatSymbolFlow.asLiveData()
     private val assetModelsLiveData = assetModelsFlow().asLiveData()
 
     val balanceLiveData = mediateWith(
@@ -137,6 +137,12 @@ class BalanceListViewModel(
     fun onFiatSelected(item: FiatCurrency) {
         viewModelScope.launch {
             selectedFiat.set(item.id)
+        }
+    }
+
+    fun clearTokens() {
+        launch {
+            interactor.clearTokens()
         }
     }
 }

@@ -43,6 +43,7 @@ import java.math.BigDecimal
 val fiatRateExtractor = { item: AssetWithStateModel -> item.asset.token.fiatRate }
 val recentChangeExtractor = { item: AssetWithStateModel -> item.asset.token.recentRateChange }
 val totalExtractor = { item: AssetWithStateModel -> item.asset.total }
+val stateExtractor = { item: AssetWithStateModel -> item.state }
 
 class BalanceListAdapter(
     private val imageLoader: ImageLoader,
@@ -70,6 +71,7 @@ class BalanceListAdapter(
 
         resolvePayload(holder, position, payloads) {
             when (it) {
+                stateExtractor -> holder.bindState(model)
                 fiatRateExtractor -> holder.bindFiatInfo(model)
                 recentChangeExtractor -> holder.bindRecentChange(model)
                 totalExtractor -> holder.bindTotal(model)
@@ -97,32 +99,20 @@ class AssetViewHolder(
 
     fun bind(model: AssetWithStateModel, itemHandler: BalanceListAdapter.ItemAssetHandler) {
         val asset = model.asset
-        val state = model.state
 
         content.itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
         shimmer.itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
-        content.itemAssetImage.setVisible(state.chainUpdate == false, View.INVISIBLE)
-        shimmer.itemAssetImage.setVisible(state.chainUpdate != false, View.INVISIBLE)
 
         content.itemAssetNetwork.text = asset.token.configuration.name
         shimmer.itemAssetNetwork.text = asset.token.configuration.name
-        content.itemAssetNetwork.setVisible(state.chainUpdate == false, View.INVISIBLE)
-        shimmer.itemAssetNetwork.setVisible(state.chainUpdate != false, View.INVISIBLE)
 
         content.itemAssetToken.text = asset.token.configuration.symbol
         shimmer.itemAssetToken.text = asset.token.configuration.symbol
-        content.itemAssetToken.setVisible(state.chainUpdate == false, View.INVISIBLE)
-        shimmer.itemAssetToken.setVisible(state.chainUpdate != false, View.INVISIBLE)
 
         content.networkBadge.setText(asset.token.configuration.chainName)
         content.networkBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
         shimmer.networkBadge.setText(asset.token.configuration.chainName)
         shimmer.networkBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
-        content.networkBadge.isVisible = !asset.token.configuration.isNative && state.chainUpdate == false
-        shimmer.networkBadge.isVisible = !asset.token.configuration.isNative && state.chainUpdate != false
-
-        content.testnetBadge.isVisible = asset.token.configuration.isTestNet == true && state.chainUpdate == false
-        shimmer.testnetBadge.isVisible = asset.token.configuration.isTestNet == true && state.chainUpdate != false
 
         content.setOnClickListener { itemHandler.assetClicked(asset) }
         shimmer.setOnClickListener { itemHandler.assetClicked(asset) }
@@ -131,6 +121,29 @@ class AssetViewHolder(
         content.chainAssetNameBadge.background = content.context.getCutLeftBottomCornerDrawableFromColors()
         shimmer.chainAssetNameBadge.text = asset.chainAccountName
         shimmer.chainAssetNameBadge.background = content.context.getCutLeftBottomCornerDrawableFromColors()
+
+        bindState(model)
+    }
+
+    fun bindState(model: AssetWithStateModel) {
+        val asset = model.asset
+        val state = model.state
+
+        content.itemAssetImage.setVisible(state.chainUpdate == false, View.INVISIBLE)
+        shimmer.itemAssetImage.setVisible(state.chainUpdate != false, View.INVISIBLE)
+
+        content.itemAssetNetwork.setVisible(state.chainUpdate == false, View.INVISIBLE)
+        shimmer.itemAssetNetwork.setVisible(state.chainUpdate != false, View.INVISIBLE)
+
+        content.itemAssetToken.setVisible(state.chainUpdate == false, View.INVISIBLE)
+        shimmer.itemAssetToken.setVisible(state.chainUpdate != false, View.INVISIBLE)
+
+        content.networkBadge.isVisible = !asset.token.configuration.isNative && state.chainUpdate == false
+        shimmer.networkBadge.isVisible = !asset.token.configuration.isNative && state.chainUpdate != false
+
+        content.testnetBadge.isVisible = asset.token.configuration.isTestNet == true && state.chainUpdate == false
+        shimmer.testnetBadge.isVisible = asset.token.configuration.isTestNet == true && state.chainUpdate != false
+
         content.chainAssetNameBadge.isVisible = !asset.chainAccountName.isNullOrEmpty() && state.chainUpdate == false
         shimmer.chainAssetNameBadge.isVisible = !asset.chainAccountName.isNullOrEmpty() && state.chainUpdate != false
 
@@ -195,12 +208,11 @@ private object AssetDiffCallback : DiffUtil.ItemCallback<AssetWithStateModel>() 
         return oldItem == newItem
     }
 
-    // todo restore logic
-//    override fun getChangePayload(oldItem: AssetWithStateModel, newItem: AssetWithStateModel): Any? {
-//        return AssetPayloadGenerator.diff(oldItem, newItem)
-//    }
+    override fun getChangePayload(oldItem: AssetWithStateModel, newItem: AssetWithStateModel): Any? {
+        return AssetPayloadGenerator.diff(oldItem, newItem)
+    }
 }
 
 private object AssetPayloadGenerator : PayloadGenerator<AssetWithStateModel>(
-    fiatRateExtractor, recentChangeExtractor, totalExtractor
+    fiatRateExtractor, recentChangeExtractor, totalExtractor, stateExtractor
 )
