@@ -267,7 +267,7 @@ Derivation path: %s</string>
     <string name="validator_not_elected_description">This account is not elected by network to participate in the current era</string>
     <string name="staking_main_network_title">%s network</string>
     <string name="staking_total_staked">Total staked</string>
-    <string name="staking_main_minimum_stake_title">Minimum stake</string>
+    <string name="staking_main_minimum_stake_title">Minimum active stake</string>
     <string name="staking_main_active_nominators_title">Active nominators</string>
     <plurals name="staking_main_lockup_period_value">
         <item quantity="one">%d day</item>
@@ -582,4 +582,7 @@ to your account to avoid remaining stake.</string>
     <string name="json_export_type_file">Export to file</string>
 
     <string name="fiat_chooser_title">Currency</string>
+
+    <string name="minimum_stake_alert_title">Inactive bond</string>
+    <string name="minimum_stake_alert_message">The bonded amount is less than the current active minimum nominated amount of %1$s and depending on the network state, may not be selected to participate</string>
 </resources>

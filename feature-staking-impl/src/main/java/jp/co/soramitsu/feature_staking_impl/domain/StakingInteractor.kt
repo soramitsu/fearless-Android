@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
@@ -45,6 +46,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.chainAsset
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -55,8 +57,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
-import kotlin.time.ExperimentalTime
 
 const val HOURS_IN_DAY = 24
 
@@ -191,6 +191,12 @@ class StakingInteractor(
                 nominatorsCount = activeNominators(chainId, exposures),
             )
         }
+    }
+
+    suspend fun getMinimumStake(chainId: ChainId): BigInteger {
+        val exposures = stakingRepository.electedExposuresInActiveEra(chainId).first().values
+        val minimumNominatorBond = stakingRepository.minimumNominatorBond(chainId)
+        return minimumStake(exposures, minimumNominatorBond)
     }
 
     suspend fun getLockupPeriodInDays() = withContext(Dispatchers.Default) {

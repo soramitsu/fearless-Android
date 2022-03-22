@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -8,7 +9,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.flatMapLoading
-import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
@@ -51,7 +51,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 private const val CURRENT_ICON_SIZE = 40
 

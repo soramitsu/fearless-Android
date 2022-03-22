@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common
 
 import android.util.Log
+import java.math.BigDecimal
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.math.BigDecimal
 
 sealed class SetupStakingProcess {
 
