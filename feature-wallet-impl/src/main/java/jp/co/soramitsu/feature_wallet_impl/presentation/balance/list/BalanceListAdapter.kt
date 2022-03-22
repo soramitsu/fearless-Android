@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.shape.addRipple
@@ -70,12 +71,10 @@ class BalanceListAdapter(
         val model = getItem(position)
 
         resolvePayload(holder, position, payloads) {
-            when (it) {
-                stateExtractor -> holder.bindState(model)
-                fiatRateExtractor -> holder.bindFiatInfo(model)
-                recentChangeExtractor -> holder.bindRecentChange(model)
-                totalExtractor -> holder.bindTotal(model)
-            }
+            if (it == stateExtractor) holder.bindState(model)
+            if (it == fiatRateExtractor) holder.bindFiatInfo(model)
+            if (it == recentChangeExtractor) holder.bindRecentChange(model)
+            if (it == totalExtractor) holder.bindTotal(model)
         }
     }
 }
@@ -158,8 +157,8 @@ class AssetViewHolder(
         val asset = model.asset
         shimmer.itemAssetBalanceShimmer.isVisible = asset.total == null && model.state.isBalanceUpdating
         shimmer.itemAssetBalance.setVisible(asset.total != null && model.state.isBalanceUpdating, View.INVISIBLE)
-        shimmer.itemAssetBalance.text = asset.total?.format()
-        content.itemAssetBalance.text = asset.total?.format()
+        shimmer.itemAssetBalance.text = asset.total.orZero().format()
+        content.itemAssetBalance.text = asset.total.orZero().format()
         content.itemAssetBalance.setVisible(!model.state.isBalanceUpdating, View.INVISIBLE)
 
         bindFiatAmount(asset.fiatAmount, asset.token.fiatSymbol, model.state.isFiatUpdating)

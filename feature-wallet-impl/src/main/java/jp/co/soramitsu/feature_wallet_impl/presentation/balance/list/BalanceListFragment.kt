@@ -37,8 +37,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
     private lateinit var adapter: BalanceListAdapter
 
-    private var previousFiat: String? = null
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,6 +70,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         }
 
         balanceListTotalAmount.setOnClickListener { viewModel.onBalanceClicked() }
+        balanceListTotalAmountShimmer.setOnClickListener { viewModel.onBalanceClicked() }
+        balanceListTotalAmountEmptyShimmer.setOnClickListener { viewModel.onBalanceClicked() }
     }
 
     override fun inject() {
@@ -92,8 +92,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
             balanceListTotalAmount.text = it.totalBalance?.formatAsCurrency(it.fiatSymbol)
             balanceListTotalAmountShimmerInner.text = it.totalBalance?.formatAsCurrency(it.fiatSymbol)
-            balanceListTotalAmountShimmer.setVisible(it.totalBalance != null && it.isUpdating, View.INVISIBLE)
-            balanceListTotalAmountEmptyShimmer.setVisible(it.totalBalance == null && it.isUpdating)
+            balanceListTotalAmountShimmer.setVisible(it.isUpdating && it.totalBalance != null && it.isTokensUpdated, View.INVISIBLE)
+            balanceListTotalAmountEmptyShimmer.setVisible(it.isUpdating && (it.totalBalance == null || !it.isTokensUpdated))
             balanceListTotalAmount.setVisible(!it.isUpdating, View.INVISIBLE)
         }
 
@@ -104,13 +104,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         viewModel.hideRefreshEvent.observeEvent {
             walletContainer.isRefreshing = false
-        }
-
-        viewModel.fiatSymbolFlow.observe {
-            if (previousFiat != it) {
-                viewModel.clearTokens()
-                previousFiat = it
-            }
         }
 
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)

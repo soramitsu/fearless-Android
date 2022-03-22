@@ -6,9 +6,10 @@ import java.math.BigDecimal
 class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: String) {
     val totalBalance = calculateTotalBalance()
     val isUpdating = checkIsUpdating()
+    val isTokensUpdated = checkIsTokensUpdated()
 
     private fun calculateTotalBalance(): BigDecimal? {
-        return if (assetModels.any { it.asset.fiatAmount != null }) {
+        return if (assetModels.filter { it.asset.token.fiatSymbol == fiatSymbol }.any { it.asset.fiatAmount != null }) {
             assetModels.fold(BigDecimal.ZERO) { acc, current ->
                 val toAdd = current.asset.fiatAmount ?: BigDecimal.ZERO
 
@@ -20,4 +21,8 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
     }
 
     private fun checkIsUpdating(): Boolean = assetModels.any { it.state.isFiatUpdating }
+
+    private fun checkIsTokensUpdated(): Boolean {
+        return !assetModels.any { it.state.isTokenFiatChanged == true }
+    }
 }

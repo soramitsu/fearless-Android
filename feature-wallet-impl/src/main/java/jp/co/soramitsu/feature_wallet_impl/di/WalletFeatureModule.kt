@@ -152,14 +152,16 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         fileProvider: FileProvider,
         preferences: Preferences,
-        selectedFiat: SelectedFiat
+        selectedFiat: SelectedFiat,
+        updatesMixin: UpdatesMixin,
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         accountRepository,
         chainRegistry,
         fileProvider,
         preferences,
-        selectedFiat
+        selectedFiat,
+        updatesMixin
     )
 
     @Provides

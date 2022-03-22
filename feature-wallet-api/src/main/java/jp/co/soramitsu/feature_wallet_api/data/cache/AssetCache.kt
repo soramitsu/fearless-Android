@@ -64,8 +64,6 @@ class AssetCache(
         }
     }
 
-    suspend fun clearTokens() = tokenDao.clearTokens()
-
     suspend fun updateToken(
         symbol: String,
         builder: (local: TokenLocal) -> TokenLocal,
