@@ -252,7 +252,7 @@
     <string name="validator_not_elected_description">Эта учетная запись не выбрана сетью для участия в текущей эпохе</string>
     <string name="staking_main_network_title">Сеть %s</string>
     <string name="staking_total_staked">Всего застейкано</string>
-    <string name="staking_main_minimum_stake_title">Минимальный стейк</string>
+    <string name="staking_main_minimum_stake_title">Минимальный активный стейк</string>
     <string name="staking_main_active_nominators_title">Активные номинаторы</string>
     <plurals name="staking_main_lockup_period_value">
         <item quantity="one">%d день</item>

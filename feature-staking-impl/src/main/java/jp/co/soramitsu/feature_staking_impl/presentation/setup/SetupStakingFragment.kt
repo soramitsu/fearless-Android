@@ -7,12 +7,14 @@ import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
@@ -28,11 +30,11 @@ import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeToke
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingNext
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingRewardDestinationChooser
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingToolbar
-import javax.inject.Inject
 
 class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -93,6 +95,16 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
                 it,
                 FeeViews(setupStakingFeeProgress, setupStakingFeeFiat, setupStakingFeeToken)
             )
+        }
+
+        viewModel.showMinimumStakeAlert.observeEvent {
+            AlertBottomSheet.Builder(requireContext())
+                .setTitle(R.string.minimum_stake_alert_title)
+                .setMessage(resources.getString(R.string.minimum_stake_alert_message, it))
+                .setButtonText(R.string.common_confirm)
+                .callback { viewModel.minimumStakeConfirmed() }
+                .build()
+                .show()
         }
     }
 }
