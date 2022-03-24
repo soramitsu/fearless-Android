@@ -6,7 +6,8 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.domain.GetAppVersion
+import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.common.domain.isSupportedByMinVersion
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -27,7 +28,6 @@ class RootViewModel(
     private val externalConnectionRequirementFlow: MutableStateFlow<ExternalRequirement>,
     private val resourceManager: ResourceManager,
     private val networkStateMixin: NetworkStateMixin,
-    private val getAppVersion: GetAppVersion,
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
     companion object {
         private const val IDLE_MINUTES: Long = 20
@@ -55,9 +55,9 @@ class RootViewModel(
     }
 
     private fun checkAppVersion() = viewModelScope.launch {
-        val appVersion = getAppVersion()
+        val appVersion = AppVersion.current()
         val appConfig = interactor.getRemoteConfig()
-        val isCurrentVersionSupported = appConfig.excludedVersions.contains(appVersion).not()
+        val isCurrentVersionSupported = appConfig.excludedVersions.contains(appVersion).not() && appConfig.minSupportedVersion.isSupportedByMinVersion()
 
         if (isCurrentVersionSupported.not()) {
             _showUnsupportedAppVersionAlert.value = Event(Unit)

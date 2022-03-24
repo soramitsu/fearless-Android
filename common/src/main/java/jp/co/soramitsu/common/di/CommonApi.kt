@@ -31,7 +31,6 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
 import java.util.Random
-import jp.co.soramitsu.common.domain.GetAppVersion
 
 interface CommonApi {
 
@@ -97,6 +96,4 @@ interface CommonApi {
     fun secretStoreV2(): SecretStoreV2
 
     fun updatesMixin(): UpdatesMixin
-
-    fun provideAppVersionUseCase(): GetAppVersion
 }

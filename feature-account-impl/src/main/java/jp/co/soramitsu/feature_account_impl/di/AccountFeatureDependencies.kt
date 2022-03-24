@@ -5,12 +5,14 @@ import coil.ImageLoader
 import com.google.gson.Gson
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.modules.Caching
+import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -23,9 +25,6 @@ import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import java.util.Random
-import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.domain.GetAppVersion
-import jp.co.soramitsu.common.interfaces.FileProvider
 
 interface AccountFeatureDependencies {
 
@@ -79,6 +78,4 @@ interface AccountFeatureDependencies {
     fun fileProvider(): FileProvider
 
     fun networkCreator(): NetworkApiCreator
-
-    fun getAppVersion(): GetAppVersion
 }

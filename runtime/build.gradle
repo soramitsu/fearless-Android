@@ -13,6 +13,7 @@ android {
 
         buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.2/chains/chains_dev.json\""
         buildConfigField "String", "ASSETS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.2/chains/assets.json\""
+        buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
     }
 
     buildTypes {

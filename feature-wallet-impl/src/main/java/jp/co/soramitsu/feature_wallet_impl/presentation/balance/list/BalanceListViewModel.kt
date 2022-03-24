@@ -9,13 +9,10 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
-import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.domain.FiatCurrencies
-import jp.co.soramitsu.common.domain.GetAppVersion
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.get
-import jp.co.soramitsu.common.domain.isAppVersionSupported
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
@@ -47,7 +44,6 @@ class BalanceListViewModel(
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin,
-    private val getAppVersion: GetAppVersion
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
@@ -69,7 +65,6 @@ class BalanceListViewModel(
     }
     private val fiatSymbolLiveData = fiatSymbolFlow.asLiveData()
     private val assetModelsLiveData = assetModelsFlow().asLiveData()
-    private val appVersion: AppVersion = getAppVersion()
 
     val balanceLiveData = mediateWith(
         assetModelsLiveData,
@@ -139,7 +134,7 @@ class BalanceListViewModel(
 
     private fun assetModelsFlow(): Flow<List<AssetModel>> =
         interactor.assetsFlow()
-            .mapList { mapAssetToAssetModel(it, isAppVersionSupported(it.minSupportedVersion, appVersion)) }
+            .mapList { mapAssetToAssetModel(it) }
             .map { list -> list.filter { it.enabled } }
 
     fun manageAssetsClicked() {

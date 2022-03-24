@@ -42,7 +42,6 @@ import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import java.security.SecureRandom
 import java.util.Random
 import javax.inject.Qualifier
-import jp.co.soramitsu.common.domain.GetAppVersion
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
@@ -69,12 +68,6 @@ class CommonModule {
     @ApplicationScope
     fun provideResourceManager(contextManager: ContextManager): ResourceManager {
         return ResourceManagerImpl(contextManager)
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideAppVersionUseCase(contextManager: ContextManager): GetAppVersion {
-        return GetAppVersion(contextManager)
     }
 
     @Provides

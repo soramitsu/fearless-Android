@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.model
 
+import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.core_db.dao.emptyAccountIdValue
@@ -21,11 +22,15 @@ data class AssetModel(
     val enabled: Boolean,
     val minSupportedVersion: String?,
     val chainAccountName: String?,
-    val isSupported: Boolean = true
 ) {
     val totalFiat = total?.applyFiatRate(token.fiatRate)
     val availableFiat = available?.applyFiatRate(token.fiatRate)
     val frozenFiat = frozen?.applyFiatRate(token.fiatRate)
+
+    val isSupported: Boolean = when (minSupportedVersion) {
+        null -> true
+        else -> AppVersion.isSupported(minSupportedVersion)
+    }
 
     val primaryKey = AssetKey(
         metaId = metaId,

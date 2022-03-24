@@ -59,7 +59,7 @@ fun mapAssetLocalToAsset(
     }
 }
 
-fun mapAssetToAssetModel(asset: Asset, isSupported: Boolean = true): AssetModel {
+fun mapAssetToAssetModel(asset: Asset): AssetModel {
     return with(asset) {
         AssetModel(
             metaId = metaId,
@@ -77,7 +77,6 @@ fun mapAssetToAssetModel(asset: Asset, isSupported: Boolean = true): AssetModel 
             enabled = enabled,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = chainAccountName,
-            isSupported = isSupported
         )
     }
 }
