@@ -3,8 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.setup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -41,6 +39,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class SetupStakingViewModel(
     private val router: StakingRouter,
@@ -101,18 +101,7 @@ class SetupStakingViewModel(
     }
 
     fun nextClicked() {
-        launch {
-            val amount = parsedAmountFlow.first()
-            val asset = assetFlow.first()
-
-            val minimumStakeAmount = asset.token.configuration.amountFromPlanks(minimumStake)
-
-            if (amount < minimumStakeAmount) {
-                _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatTokenAmount(asset.token.configuration.symbol))
-                return@launch
-            }
-            maybeGoToNext()
-        }
+        maybeGoToNext()
     }
 
     fun backClicked() {
@@ -140,7 +129,13 @@ class SetupStakingViewModel(
     }
 
     fun minimumStakeConfirmed() {
-        maybeGoToNext()
+        launch {
+            val amount = parsedAmountFlow.first()
+            val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
+            val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
+            val currentAccountAddress = interactor.getSelectedAccountProjection().address
+            goToNextStep(amount, rewardDestination, currentAccountAddress)
+        }
     }
 
     private fun maybeGoToNext() = requireFee { fee ->
@@ -166,7 +161,12 @@ class SetupStakingViewModel(
             ) {
                 _showNextProgress.value = false
 
-                goToNextStep(amount, rewardDestination, currentAccountAddress)
+                val minimumStakeAmount = payload.asset.token.configuration.amountFromPlanks(minimumStake)
+                if (amount < minimumStakeAmount) {
+                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatTokenAmount(payload.asset.token.configuration.symbol))
+                } else {
+                    goToNextStep(amount, rewardDestination, currentAccountAddress)
+                }
             }
         }
     }
