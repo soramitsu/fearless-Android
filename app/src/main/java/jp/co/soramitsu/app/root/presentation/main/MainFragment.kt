@@ -39,6 +39,11 @@ class MainFragment : BaseFragment<MainViewModel>() {
         backCallback.isEnabled = false
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.onScreenAppears()
+    }
+
     override fun initViews() {
         bottomNavigationView.setOnApplyWindowInsetsListener { _, insets ->
             // overwrite BottomNavigation behavior and ignore insets

@@ -1,5 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.details
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -21,6 +24,9 @@ import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsCha
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsToolbar
 import javax.inject.Inject
+import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
+import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
+import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 
 private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
@@ -77,9 +83,30 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
         viewModel.showImportChainAccountChooser.observeEvent(::showImportChainAccountChooser)
+        viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
+        viewModel.openPlayMarket.observeEvent { openPlayMarket() }
+    }
+
+    private fun showUnsupportedChainAlert() {
+        AlertBottomSheet.Builder(requireContext())
+            .setTitle(R.string.common_update_needed)
+            .setMessage(R.string.unsupported_chain_alert_message)
+            .setButtonText(R.string.common_update)
+            .callback { viewModel.updateAppClicked() }
+            .build()
+            .show()
+    }
+
+    private fun openPlayMarket() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
+        } catch (e: ActivityNotFoundException) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
+        }
     }
 
     override fun chainAccountClicked(item: AccountInChainUi) {
+        viewModel.chainAccountClicked(item)
     }
 
     override fun chainAccountOptionsClicked(item: AccountInChainUi) {

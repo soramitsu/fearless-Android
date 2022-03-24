@@ -1,14 +1,17 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
 import androidx.lifecycle.asFlow
+import androidx.lifecycle.map
+import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.domain.model.AppConfig
+import jp.co.soramitsu.common.domain.model.toDomain
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
@@ -44,7 +47,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -60,7 +62,7 @@ class WalletInteractorImpl(
 
     override fun assetsFlow(): Flow<List<Asset>> {
         val previousSort = mutableMapOf<AssetKey, Int>()
-        return updatesMixin.tokenRates.map {
+        return updatesMixin.tokenRatesUpdate.map {
             it.isNotEmpty()
         }.asFlow()
             .distinctUntilChanged()
@@ -117,11 +119,13 @@ class WalletInteractorImpl(
 
             walletRepository.assetFlow(metaAccount.id, accountId, chainAsset, chain.minSupportedVersion)
                 .onStart {
-                    emit(Asset.createEmpty(
-                        chainAsset = chainAsset,
-                        metaId = metaAccount.id,
-                        minSupportedVersion = chain.minSupportedVersion
-                    ))
+                    emit(
+                        Asset.createEmpty(
+                            chainAsset = chainAsset,
+                            metaId = metaAccount.id,
+                            minSupportedVersion = chain.minSupportedVersion
+                        )
+                    )
                 }
         }
     }
@@ -324,5 +328,9 @@ class WalletInteractorImpl(
     override suspend fun enableCustomAssetSorting() {
         val metaId = accountRepository.getSelectedMetaAccount().id
         preferences.putBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", true)
+    }
+
+    override suspend fun getRemoteConfig(): AppConfig {
+        return walletRepository.getRemoteConfig().toDomain()
     }
 }

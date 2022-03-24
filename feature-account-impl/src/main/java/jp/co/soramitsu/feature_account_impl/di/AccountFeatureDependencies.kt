@@ -24,6 +24,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import java.util.Random
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.domain.GetAppVersion
 import jp.co.soramitsu.common.interfaces.FileProvider
 
 interface AccountFeatureDependencies {
@@ -78,4 +79,6 @@ interface AccountFeatureDependencies {
     fun fileProvider(): FileProvider
 
     fun networkCreator(): NetworkApiCreator
+
+    fun getAppVersion(): GetAppVersion
 }

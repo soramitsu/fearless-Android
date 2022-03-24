@@ -585,4 +585,10 @@ to your account to avoid remaining stake.</string>
 
     <string name="minimum_stake_alert_title">Inactive bond</string>
     <string name="minimum_stake_alert_message">The bonded amount is less than the current active minimum nominated amount of %1$s and depending on the network state, may not be selected to participate</string>
+
+    <string name="common_update_needed">Update Needed</string>
+    <string name="unsupported_chain_alert_message">This chain isn\'t available in the current version of the application. Please update it to the latest version.</string>
+
+    <string name="unsupported_app_version_alert_message">We no longer support this version of the application. Please update it.</string>
+    <string name="common_unsupported">Unsupported</string>
 </resources>

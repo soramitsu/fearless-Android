@@ -12,5 +12,6 @@ class AccountInChainUi(
     val accountIcon: Drawable,
     val enabled: Boolean = true,
     val accountName: String?,
-    val accountFrom: AccountInChain.From?
+    val accountFrom: AccountInChain.From?,
+    val isSupported: Boolean = true
 )

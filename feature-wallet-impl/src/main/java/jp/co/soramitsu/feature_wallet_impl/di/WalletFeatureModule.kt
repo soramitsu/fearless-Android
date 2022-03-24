@@ -2,9 +2,11 @@ package jp.co.soramitsu.feature_wallet_impl.di
 
 import dagger.Module
 import dagger.Provides
+import javax.inject.Named
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
+import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
@@ -50,7 +52,6 @@ import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import javax.inject.Named
 
 @Module
 class WalletFeatureModule {
@@ -65,6 +66,12 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideCoingeckoApi(networkApiCreator: NetworkApiCreator): CoingeckoApi {
         return networkApiCreator.create(CoingeckoApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideRemoteConfigFetcher(networkApiCreator: NetworkApiCreator): RemoteConfigFetcher {
+        return networkApiCreator.create(RemoteConfigFetcher::class.java)
     }
 
     @Provides
@@ -127,7 +134,8 @@ class WalletFeatureModule {
         cursorStorage: TransferCursorStorage,
         chainRegistry: ChainRegistry,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        remoteConfigFetcher: RemoteConfigFetcher
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -141,7 +149,8 @@ class WalletFeatureModule {
         coingeckoApi,
         chainRegistry,
         availableFiatCurrencies,
-        updatesMixin
+        updatesMixin,
+        remoteConfigFetcher
     )
 
     @Provides

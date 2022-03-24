@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import coil.load
+import java.math.BigDecimal
 import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.format
@@ -39,7 +40,6 @@ import kotlinx.android.synthetic.main.item_asset.view.testnetBadge
 import kotlinx.android.synthetic.main.item_asset_shimmer.view.itemAssetBalanceShimmer
 import kotlinx.android.synthetic.main.item_asset_shimmer.view.itemAssetFiatAmountShimmer
 import kotlinx.android.synthetic.main.item_asset_shimmer.view.itemAssetRateShimmer
-import java.math.BigDecimal
 
 val fiatRateExtractor = { item: AssetWithStateModel -> item.asset.token.fiatRate }
 val recentChangeExtractor = { item: AssetWithStateModel -> item.asset.token.recentRateChange }
@@ -99,7 +99,8 @@ class AssetViewHolder(
     fun bind(model: AssetWithStateModel, itemHandler: BalanceListAdapter.ItemAssetHandler) {
         val asset = model.asset
 
-        if (asset.isSupported.not()) { // update to get more from the app
+        if (asset.isSupported.not()) {
+            content.alpha = 0.4f
         }
 
         content.itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)

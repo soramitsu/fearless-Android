@@ -1,6 +1,8 @@
 package jp.co.soramitsu.app.root.presentation
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
@@ -25,6 +27,9 @@ import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
 import javax.inject.Inject
+import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
+import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
+import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 
 class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, LifecycleObserver {
 
@@ -111,6 +116,44 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
                 showToast(it)
             }
         )
+
+        viewModel.showUnsupportedAppVersionAlert.observe(
+            this,
+            EventObserver {
+                showUnsupportedAppVersionAlert()
+            }
+        )
+        viewModel.openPlayMarket.observe(
+            this,
+            EventObserver {
+                openPlayMarket()
+            }
+        )
+        viewModel.closeApp.observe(
+            this,
+            EventObserver {
+                finish()
+            }
+        )
+    }
+
+    private fun showUnsupportedAppVersionAlert() {
+        AlertBottomSheet.Builder(this)
+            .setTitle(jp.co.soramitsu.feature_wallet_impl.R.string.common_update_needed)
+            .setMessage(jp.co.soramitsu.feature_wallet_impl.R.string.unsupported_app_version_alert_message)
+            .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_update)
+            .setCancelable(false)
+            .callback { viewModel.updateAppClicked() }
+            .build()
+            .show()
+    }
+
+    private fun openPlayMarket() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
+        } catch (e: ActivityNotFoundException) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
+        }
     }
 
     private fun showBadConnectionView() {

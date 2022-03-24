@@ -9,6 +9,7 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.domain.GetAppVersion
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
@@ -28,7 +29,8 @@ class BalanceListModule {
         addressIconGenerator: AddressIconGenerator,
         getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
         selectedFiat: SelectedFiat,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        getAppVersion: GetAppVersion
     ): ViewModel {
         return BalanceListViewModel(
             interactor,
@@ -36,7 +38,8 @@ class BalanceListModule {
             router,
             getAvailableFiatCurrencies,
             selectedFiat,
-            updatesMixin
+            updatesMixin,
+            getAppVersion
         )
     }
 

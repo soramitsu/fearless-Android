@@ -7,6 +7,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.app.root.domain.RootInteractor
+import jp.co.soramitsu.app.root.navigation.Navigator
+import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.main.MainViewModel
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
@@ -25,9 +27,10 @@ class MainFragmentModule {
     @ViewModelKey(MainViewModel::class)
     fun provideViewModel(
         externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-        interactor: RootInteractor
+        interactor: RootInteractor,
+        rootRouter: RootRouter
     ): ViewModel {
-        return MainViewModel(interactor, externalRequirementsFlow)
+        return MainViewModel(interactor, externalRequirementsFlow, rootRouter)
     }
 
     @Provides
@@ -37,4 +40,7 @@ class MainFragmentModule {
     ): MainViewModel {
         return ViewModelProvider(activity, viewModelFactory).get(MainViewModel::class.java)
     }
+
+    @Provides
+    fun provideRootRouter(navigator: Navigator): RootRouter = navigator
 }

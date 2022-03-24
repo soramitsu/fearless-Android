@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -15,7 +16,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import java.math.BigInteger
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 

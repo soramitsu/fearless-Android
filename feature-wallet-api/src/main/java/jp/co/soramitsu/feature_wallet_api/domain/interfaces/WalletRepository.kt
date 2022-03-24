@@ -15,6 +15,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 
 interface WalletRepository {
 
@@ -89,4 +90,6 @@ interface WalletRepository {
     suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId): BigInteger
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
+
+    suspend fun getRemoteConfig(): AppConfigRemote
 }

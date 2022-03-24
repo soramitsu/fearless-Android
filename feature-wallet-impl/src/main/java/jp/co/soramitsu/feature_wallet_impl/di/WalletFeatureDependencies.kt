@@ -32,6 +32,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
+import jp.co.soramitsu.common.domain.GetAppVersion
 
 interface WalletFeatureDependencies {
 
@@ -96,4 +97,6 @@ interface WalletFeatureDependencies {
     fun imageLoader(): ImageLoader
 
     fun updatesMixin(): UpdatesMixin
+
+    fun getAppVersion(): GetAppVersion
 }

@@ -9,10 +9,13 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
+import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.domain.FiatCurrencies
+import jp.co.soramitsu.common.domain.GetAppVersion
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.get
+import jp.co.soramitsu.common.domain.isAppVersionSupported
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
@@ -43,7 +46,8 @@ class BalanceListViewModel(
     private val router: WalletRouter,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
-    private val updatesMixin: UpdatesMixin
+    private val updatesMixin: UpdatesMixin,
+    private val getAppVersion: GetAppVersion
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
@@ -52,6 +56,12 @@ class BalanceListViewModel(
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
 
+    private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
+    val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
+
+    private val _openPlayMarket = MutableLiveData<Event<Unit>>()
+    val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
+
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
     val fiatSymbolFlow = combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
@@ -59,6 +69,7 @@ class BalanceListViewModel(
     }
     private val fiatSymbolLiveData = fiatSymbolFlow.asLiveData()
     private val assetModelsLiveData = assetModelsFlow().asLiveData()
+    private val appVersion: AppVersion = getAppVersion()
 
     val balanceLiveData = mediateWith(
         assetModelsLiveData,
@@ -100,6 +111,11 @@ class BalanceListViewModel(
     }
 
     fun assetClicked(asset: AssetModel) {
+        if (asset.isSupported.not()) {
+            _showUnsupportedChainAlert.value = Event(Unit)
+            return
+        }
+
         val payload = AssetPayload(
             chainId = asset.token.configuration.chainId,
             chainAssetId = asset.token.configuration.id
@@ -123,7 +139,7 @@ class BalanceListViewModel(
 
     private fun assetModelsFlow(): Flow<List<AssetModel>> =
         interactor.assetsFlow()
-            .mapList(::mapAssetToAssetModel)
+            .mapList { mapAssetToAssetModel(it, isAppVersionSupported(it.minSupportedVersion, appVersion)) }
             .map { list -> list.filter { it.enabled } }
 
     fun manageAssetsClicked() {
@@ -144,5 +160,9 @@ class BalanceListViewModel(
         viewModelScope.launch {
             selectedFiat.set(item.id)
         }
+    }
+
+    fun updateAppClicked() {
+        _openPlayMarket.value = Event(Unit)
     }
 }

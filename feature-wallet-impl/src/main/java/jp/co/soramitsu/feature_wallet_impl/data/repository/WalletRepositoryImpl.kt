@@ -60,6 +60,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.config.AppConfigRemote
+import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -75,6 +77,7 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
+    private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
@@ -383,4 +386,8 @@ class WalletRepositoryImpl(
     }
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
+
+    override suspend fun getRemoteConfig(): AppConfigRemote {
+        return remoteConfigFetcher.getAppConfig()
+    }
 }

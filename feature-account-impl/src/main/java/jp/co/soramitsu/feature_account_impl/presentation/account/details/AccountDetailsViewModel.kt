@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
+import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.common.domain.GetAppVersion
+import jp.co.soramitsu.common.domain.isAppVersionSupported
 import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -24,6 +27,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -34,8 +39,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
@@ -46,7 +49,8 @@ class AccountDetailsViewModel(
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
     private val metaId: Long,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val getAppVersion: GetAppVersion
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
@@ -54,6 +58,12 @@ class AccountDetailsViewModel(
 
     private val _showImportChainAccountChooser = MutableLiveData<Event<ImportChainAccountsPayload>>()
     val showImportChainAccountChooser: LiveData<Event<ImportChainAccountsPayload>> = _showImportChainAccountChooser
+
+    private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
+    val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
+
+    private val _openPlayMarket = MutableLiveData<Event<Unit>>()
+    val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
     val accountNameFlow: MutableStateFlow<String> = MutableStateFlow("")
 
@@ -67,6 +77,8 @@ class AccountDetailsViewModel(
         }
         .inBackground()
         .share()
+
+    private val appVersion: AppVersion = getAppVersion()
 
     init {
         launch {
@@ -111,7 +123,8 @@ class AccountDetailsViewModel(
             address = address,
             accountIcon = accountIcon,
             accountName = accountInChain.name,
-            accountFrom = accountInChain.from
+            accountFrom = accountInChain.from,
+            isSupported = isAppVersionSupported(accountInChain.chain.minSupportedVersion, appVersion)
         )
     }
 
@@ -159,5 +172,15 @@ class AccountDetailsViewModel(
 
     fun switchNode(chainId: ChainId) {
         accountRouter.openNodes(chainId)
+    }
+
+    fun chainAccountClicked(item: AccountInChainUi) {
+        if (item.isSupported.not()) {
+            _showUnsupportedChainAlert.value = Event(Unit)
+        }
+    }
+
+    fun updateAppClicked() {
+        _openPlayMarket.value = Event(Unit)
     }
 }
