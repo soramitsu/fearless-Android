@@ -336,10 +336,6 @@ class WalletRepositoryImpl(
         assetCache.updateAsset(newItems)
     }
 
-    override suspend fun clearTokens() {
-        assetCache.clearTokens()
-    }
-
     private fun createOperation(
         hash: String,
         transfer: Transfer,

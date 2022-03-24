@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.dao.emptyAccountIdValue
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -76,6 +77,8 @@ class Asset(
     val unbonding = token.amountFromPlanks(unbondingInPlanks.orZero())
 
     val fiatAmount = total?.let { token.fiatRate?.multiply(total) }
+
+    val uniqueKey = AssetKey(metaId, token.configuration.chainId, accountId, token.configuration.symbol)
 }
 
 fun calculateTotalBalance(

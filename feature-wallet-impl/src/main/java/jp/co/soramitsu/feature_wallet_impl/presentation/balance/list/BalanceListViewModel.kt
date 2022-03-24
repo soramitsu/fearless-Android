@@ -71,9 +71,15 @@ class BalanceListViewModel(
             val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.symbol in it }
             val balanceUpdate = assetsUpdate?.let { asset.primaryKey in it }
             val chainUpdate = chainsUpdates?.let { asset.token.configuration.chainId in it }
+            val isTokenFiatChanged = when {
+                fiatSymbol == null -> false
+                asset.token.fiatSymbol == null -> false
+                else -> fiatSymbol != asset.token.fiatSymbol
+            }
+
             AssetWithStateModel(
                 asset = asset,
-                state = AssetUpdateState(rateUpdate, balanceUpdate, chainUpdate)
+                state = AssetUpdateState(rateUpdate, balanceUpdate, chainUpdate, isTokenFiatChanged)
             )
         }.orEmpty()
 
@@ -137,12 +143,6 @@ class BalanceListViewModel(
     fun onFiatSelected(item: FiatCurrency) {
         viewModelScope.launch {
             selectedFiat.set(item.id)
-        }
-    }
-
-    fun clearTokens() {
-        launch {
-            interactor.clearTokens()
         }
     }
 }

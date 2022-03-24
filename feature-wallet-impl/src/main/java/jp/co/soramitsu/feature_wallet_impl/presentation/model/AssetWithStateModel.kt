@@ -8,7 +8,8 @@ data class AssetWithStateModel(
 class AssetUpdateState(
     val rateUpdate: Boolean?,
     val balanceUpdate: Boolean?,
-    val chainUpdate: Boolean?
+    val chainUpdate: Boolean?,
+    val isTokenFiatChanged: Boolean?,
 ) {
     val isBalanceUpdating = chainUpdate != false || balanceUpdate != false
     val isRateUpdating = chainUpdate != false || rateUpdate != false
