@@ -4,4 +4,6 @@ interface RootRouter {
     fun returnToWallet()
 
     fun openPincodeCheck()
+
+    fun openNavGraph()
 }

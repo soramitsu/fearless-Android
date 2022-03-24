@@ -28,5 +28,10 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
+    <View
+        android:id="@+id/root_touch_interceptor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
 
 </FrameLayout>

@@ -1,9 +1,11 @@
 package jp.co.soramitsu.app.root.presentation
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import androidx.core.view.WindowInsetsCompat
@@ -18,28 +20,37 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.di.RootApi
 import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
+import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
+import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
+import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
+import java.util.Timer
+import java.util.TimerTask
 import javax.inject.Inject
-import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
-import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
-import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
+import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, LifecycleObserver {
 
     companion object {
         private const val ANIM_DURATION = 150L
         private const val ANIM_START_POSITION = 100f
+        private const val SESSION_TIMEOUT_MINUTES = 20
     }
 
     @Inject
     lateinit var navigator: Navigator
+
+    private var timer = Timer()
+    private var timerTask: TimerTask? = null
 
     override fun inject() {
         FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
@@ -89,7 +100,21 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
         processIntent(intent)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun initViews() {
+        findViewById<View>(R.id.root_touch_interceptor).setOnTouchListener { v, event ->
+            timerTask?.cancel()
+            timerTask = createTimerTask()
+            timer.schedule(timerTask, SESSION_TIMEOUT_MINUTES.toDuration(DurationUnit.MINUTES).inWholeMilliseconds)
+
+            false
+        }
+    }
+
+    private fun createTimerTask() = timerTask {
+        runOnUiThread {
+            viewModel.openNavGraph()
+        }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
