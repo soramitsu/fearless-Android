@@ -45,6 +45,9 @@ class RootViewModel(
     private val _closeApp = MutableLiveData<Event<Unit>>()
     val closeApp: LiveData<Event<Unit>> = _closeApp
 
+    private val _pinWasRequested = MutableLiveData<Event<Unit>>()
+    val pinWasRequested: LiveData<Event<Unit>> = _pinWasRequested
+
     init {
         checkAppVersion()
         interactor.runBalancesUpdate()
@@ -96,9 +99,14 @@ class RootViewModel(
         }
         timeInBackground?.let {
             if (idleTimePassedFrom(it)) {
+                _pinWasRequested.value = Event(Unit)
                 rootRouter.openPincodeCheck()
             }
         }
+        timeInBackground = null
+    }
+
+    fun pinRequested() {
         timeInBackground = null
     }
 

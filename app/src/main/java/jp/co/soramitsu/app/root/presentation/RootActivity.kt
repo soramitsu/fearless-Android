@@ -113,6 +113,7 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
 
     private fun createTimerTask() = timerTask {
         runOnUiThread {
+            viewModel.pinRequested()
             viewModel.openNavGraph()
         }
     }
@@ -158,6 +159,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
             this,
             EventObserver {
                 finish()
+            }
+        )
+        viewModel.pinWasRequested.observe(
+            this,
+            EventObserver {
+                timerTask?.cancel()
             }
         )
     }
