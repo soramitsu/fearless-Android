@@ -11,7 +11,7 @@ const val moonriverChainId = "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f6
 const val rococoChainId = "aaf2cd1b74b5f726895921259421b534124726263982522174147046b8827897"
 
 const val kitsugiChainId = "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b"
-const val interlayChainId = "ed86d448b84db333cdbe07362ddc79530343b907bd88712557c024d7a94296bb"
+const val interlayChainId = "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72"
 
 data class Chain(
     val id: ChainId,
