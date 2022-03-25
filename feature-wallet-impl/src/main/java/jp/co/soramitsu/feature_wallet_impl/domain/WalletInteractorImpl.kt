@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.domain.model.toDomain
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
-import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
@@ -61,7 +60,7 @@ class WalletInteractorImpl(
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(): Flow<List<Asset>> {
-        val previousSort = mutableMapOf<AssetKey, Int>()
+//        val previousSort = mutableMapOf<AssetKey, Int>()
         return updatesMixin.tokenRatesUpdate.map {
             it.isNotEmpty()
         }.asFlow()
@@ -76,26 +75,27 @@ class WalletInteractorImpl(
                     .map { assets ->
                         when {
                             customAssetSortingEnabled() -> assets.sortedBy { it.sortIndex }
-                            ratesUpdating && previousSort.isEmpty() -> {
-                                val sortedAssets = assets.sortedWith(defaultAssetListSort())
-                                previousSort.clear()
-                                previousSort.putAll(getSortInfo(sortedAssets))
-                                sortedAssets
-                            }
-                            ratesUpdating -> assets.sortedWith(createSortComparator(previousSort))
+                            // todo research this logic
+//                            ratesUpdating && previousSort.isEmpty() -> {
+//                                val sortedAssets = assets.sortedWith(defaultAssetListSort())
+//                                previousSort.clear()
+//                                previousSort.putAll(getSortInfo(sortedAssets))
+//                                sortedAssets
+//                            }
+//                            ratesUpdating -> assets.sortedWith(createSortComparator(previousSort))
                             else -> assets.sortedWith(defaultAssetListSort())
                         }
                     }
             }
     }
 
-    private fun getSortInfo(sortedAssets: List<Asset>) = sortedAssets.mapIndexed { index, asset ->
-        asset.uniqueKey to index
-    }
-
-    private fun createSortComparator(previousSort: Map<AssetKey, Int>) = compareBy<Asset> {
-        previousSort[it.uniqueKey]
-    }
+//    private fun getSortInfo(sortedAssets: List<Asset>) = sortedAssets.mapIndexed { index, asset ->
+//        asset.uniqueKey to index
+//    }
+//
+//    private fun createSortComparator(previousSort: Map<AssetKey, Int>) = compareBy<Asset> {
+//        previousSort[it.uniqueKey]
+//    }
 
     private fun defaultAssetListSort() = compareByDescending<Asset> { it.total.orZero() > BigDecimal.ZERO }
         .thenByDescending { it.fiatAmount.orZero() }
