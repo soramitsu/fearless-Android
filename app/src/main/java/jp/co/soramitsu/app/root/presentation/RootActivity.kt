@@ -16,6 +16,7 @@ import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.di.RootApi
 import jp.co.soramitsu.app.root.di.RootComponent
@@ -31,26 +32,16 @@ import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
 import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
-import java.util.Timer
-import java.util.TimerTask
-import javax.inject.Inject
-import kotlin.concurrent.timerTask
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, LifecycleObserver {
 
     companion object {
         private const val ANIM_DURATION = 150L
         private const val ANIM_START_POSITION = 100f
-        private const val SESSION_TIMEOUT_MINUTES = 20
     }
 
     @Inject
     lateinit var navigator: Navigator
-
-    private var timer = Timer()
-    private var timerTask: TimerTask? = null
 
     override fun inject() {
         FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
@@ -103,18 +94,8 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
     @SuppressLint("ClickableViewAccessibility")
     override fun initViews() {
         findViewById<View>(R.id.root_touch_interceptor).setOnTouchListener { v, event ->
-            timerTask?.cancel()
-            timerTask = createTimerTask()
-            timer.schedule(timerTask, SESSION_TIMEOUT_MINUTES.toDuration(DurationUnit.MINUTES).inWholeMilliseconds)
-
+            viewModel.onUserInteractedWithApp()
             false
-        }
-    }
-
-    private fun createTimerTask() = timerTask {
-        runOnUiThread {
-            viewModel.pinRequested()
-            viewModel.openNavGraph()
         }
     }
 
@@ -159,12 +140,6 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
             this,
             EventObserver {
                 finish()
-            }
-        )
-        viewModel.pinWasRequested.observe(
-            this,
-            EventObserver {
-                timerTask?.cancel()
             }
         )
     }

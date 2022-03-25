@@ -3,6 +3,9 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,13 +17,14 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection.ExternalRequirement
+import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.Date
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class RootViewModel(
     private val interactor: RootInteractor,
@@ -45,8 +49,8 @@ class RootViewModel(
     private val _closeApp = MutableLiveData<Event<Unit>>()
     val closeApp: LiveData<Event<Unit>> = _closeApp
 
-    private val _pinWasRequested = MutableLiveData<Event<Unit>>()
-    val pinWasRequested: LiveData<Event<Unit>> = _pinWasRequested
+    private var timer = Timer()
+    private var timerTask: TimerTask? = null
 
     init {
         checkAppVersion()
@@ -99,19 +103,11 @@ class RootViewModel(
         }
         timeInBackground?.let {
             if (idleTimePassedFrom(it)) {
-                _pinWasRequested.value = Event(Unit)
+                timerTask?.cancel()
                 rootRouter.openPincodeCheck()
             }
         }
         timeInBackground = null
-    }
-
-    fun pinRequested() {
-        timeInBackground = null
-    }
-
-    fun openNavGraph() {
-        rootRouter.openNavGraph()
     }
 
     private fun idleTimePassedFrom(timeInBackground: Date): Boolean {
@@ -139,5 +135,18 @@ class RootViewModel(
     fun updateAppClicked() {
         _openPlayMarket.value = Event(Unit)
         _closeApp.value = Event(Unit)
+    }
+
+    fun onUserInteractedWithApp() {
+        timerTask?.cancel()
+        timerTask = createTimerTask()
+        timer.schedule(timerTask, IDLE_MINUTES.toDuration(DurationUnit.MINUTES).inWholeMilliseconds)
+    }
+
+    private fun createTimerTask() = timerTask {
+        viewModelScope.launch(Dispatchers.Main) {
+            timeInBackground = null
+            rootRouter.openNavGraph()
+        }
     }
 }
