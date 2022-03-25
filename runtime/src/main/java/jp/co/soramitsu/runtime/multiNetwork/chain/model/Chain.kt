@@ -116,6 +116,68 @@ data class Chain(
             val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Chain
+
+        if (id != other.id) return false
+        if (name != other.name) return false
+        if (minSupportedVersion != other.minSupportedVersion) return false
+        if (assets != other.assets) return false
+        if (explorers != other.explorers) return false
+        if (externalApi != other.externalApi) return false
+        if (icon != other.icon) return false
+        if (addressPrefix != other.addressPrefix) return false
+        if (types != other.types) return false
+        if (isEthereumBased != other.isEthereumBased) return false
+        if (isTestNet != other.isTestNet) return false
+        if (hasCrowdloans != other.hasCrowdloans) return false
+        if (parentId != other.parentId) return false
+        if (assetsBySymbol != other.assetsBySymbol) return false
+        if (assetsById != other.assetsById) return false
+
+        //custom comparison logic
+        val defaultNodes = nodes.filter { it.isDefault }
+        val otherDefaultNodes = other.nodes.filter { it.isDefault }
+        if (defaultNodes.size != otherDefaultNodes.size) return false
+
+        val containsAll = defaultNodes.map { it.name to it.url }.containsAll(otherDefaultNodes.map { it.name to it.url })
+        val equals = defaultNodes.map { it.name to it.url } == otherDefaultNodes.map { it.name to it.url }
+        println("!!! containsAll $containsAll")
+        println("!!!      equals $equals")
+//        if (!nodes.any { it.isActive } || !other.nodes.any { it.isActive }) return false
+        if (!containsAll) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + (minSupportedVersion?.hashCode() ?: 0)
+        result = 31 * result + assets.hashCode()
+        result = 31 * result + explorers.hashCode()
+        result = 31 * result + nodes.map { it.name to it.url }.hashCode()
+        result = 31 * result + (externalApi?.hashCode() ?: 0)
+        result = 31 * result + icon.hashCode()
+        result = 31 * result + addressPrefix
+        result = 31 * result + (types?.hashCode() ?: 0)
+        result = 31 * result + isEthereumBased.hashCode()
+        result = 31 * result + isTestNet.hashCode()
+        result = 31 * result + hasCrowdloans.hashCode()
+        result = 31 * result + (parentId?.hashCode() ?: 0)
+        result = 31 * result + assetsBySymbol.hashCode()
+        result = 31 * result + assetsById.hashCode()
+        return result
+    }
+}
+
+fun Chain.updateNodesActive(localVersion: Chain): Chain = when (val activeNode = localVersion.nodes.firstOrNull { it.isActive }) {
+    null -> this
+    else -> copy(nodes = nodes.map { it.copy(isActive = it.url == activeNode.url && it.name == activeNode.name) })
 }
 
 fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) = mapNotNull {
