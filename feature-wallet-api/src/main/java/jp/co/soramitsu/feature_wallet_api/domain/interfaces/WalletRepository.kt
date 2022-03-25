@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -15,11 +16,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 
 interface WalletRepository {
 
-    fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount> = emptyList()): Flow<List<Asset>>
+    fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount> = emptyList()): Flow<List<Asset>>
 
     suspend fun getAssets(metaId: Long): List<Asset>
 

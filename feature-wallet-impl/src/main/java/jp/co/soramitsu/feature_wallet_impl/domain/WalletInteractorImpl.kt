@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.domain
 
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
-import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -46,6 +45,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -69,7 +69,7 @@ class WalletInteractorImpl(
                 accountRepository.selectedMetaAccountFlow()
                     .flatMapLatest {
                         val chainAccounts = it.chainAccounts.values.toList()
-                        walletRepository.assetsFlow(it.id, chainAccounts)
+                        walletRepository.assetsFlow(it, chainAccounts)
                     }
                     .filter { it.isNotEmpty() }
                     .map { assets ->

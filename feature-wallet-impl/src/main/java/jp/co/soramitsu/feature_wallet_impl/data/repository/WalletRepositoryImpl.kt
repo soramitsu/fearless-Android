@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_wallet_impl.data.repository
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
+import jp.co.soramitsu.common.data.network.config.AppConfigRemote
+import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
@@ -60,8 +62,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.common.data.network.config.AppConfigRemote
-import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -80,30 +80,31 @@ class WalletRepositoryImpl(
     private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
-    override fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
+    override fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
         return combine(
             chainRegistry.chainsById,
-            assetCache.observeAssets(metaId)
+            assetCache.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)
             }
 
             val assetsByChain: List<Asset> = chainRegistry.currentChains.firstOrNull().orEmpty()
+                .filter { !it.isEthereumBased || meta.ethereumPublicKey != null }
                 .filter { it.id !in chainAccounts.mapNotNull { it.chain?.id } }
                 .flatMap { chain ->
                     chain.assets.map {
                         createEmpty(
                             chainAsset = it,
-                            metaId = metaId,
+                            metaId = meta.id,
                             minSupportedVersion = chain.minSupportedVersion
                         )
                     }
                 }
 
-            val assetsByUniqueAccounts = chainAccounts.mapNotNull {
-                createEmpty(it)
-            }
+            val assetsByUniqueAccounts = chainAccounts
+                .filter { it.chain?.isEthereumBased != true || meta.ethereumPublicKey != null }
+                .mapNotNull { createEmpty(it) }
 
             val assetsMain = assetsByChain.plus(assetsByUniqueAccounts)
 
