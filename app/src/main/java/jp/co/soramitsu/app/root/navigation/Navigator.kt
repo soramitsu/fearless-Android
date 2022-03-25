@@ -579,6 +579,18 @@ class Navigator :
         navController?.navigate(R.id.open_pincode_check, extras)
     }
 
+    override fun openPincodeCheck() {
+        val action = PinCodeAction.Check(null, ToolbarConfiguration())
+        val bundle = PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.open_pincode_check, bundle)
+    }
+
+    override fun openNavGraph() {
+        val action = PinCodeAction.Check(null, ToolbarConfiguration())
+        val bundle = PincodeFragment.getPinCodeBundle(action)
+        navController?.navigate(R.id.root_nav_graph, bundle)
+    }
+
     private fun buildCreatePinBundle(): Bundle {
         val delayedNavigation = NavComponentDelayedNavigation(R.id.action_open_main)
         val action = PinCodeAction.Create(delayedNavigation)

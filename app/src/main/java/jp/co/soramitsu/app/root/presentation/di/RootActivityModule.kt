@@ -35,14 +35,14 @@ class RootActivityModule {
         rootRouter: RootRouter,
         resourceManager: ResourceManager,
         networkStateMixin: NetworkStateMixin,
-        externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>
+        externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     ): ViewModel {
         return RootViewModel(
             interactor,
             rootRouter,
             externalRequirementsFlow,
             resourceManager,
-            networkStateMixin
+            networkStateMixin,
         )
     }
 

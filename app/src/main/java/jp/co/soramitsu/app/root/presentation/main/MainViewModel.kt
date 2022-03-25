@@ -6,7 +6,7 @@ import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainViewModel(
-    interactor: RootInteractor,
+    private val interactor: RootInteractor,
     externalRequirements: MutableStateFlow<ChainConnection.ExternalRequirement>,
 ) : BaseViewModel() {
 

@@ -1,8 +1,14 @@
 package jp.co.soramitsu.feature_wallet_impl.domain
 
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.map
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -30,6 +36,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -37,9 +44,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
-import java.util.Calendar
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -49,39 +53,59 @@ class WalletInteractorImpl(
     private val chainRegistry: ChainRegistry,
     private val fileProvider: FileProvider,
     private val preferences: Preferences,
-) : WalletInteractor {
-    private var lastRatesSyncMillis = 0L
-    private val minRatesRefreshDuration = 30.toDuration(DurationUnit.SECONDS)
+    private val selectedFiat: SelectedFiat,
+    private val updatesMixin: UpdatesMixin,
+) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(): Flow<List<Asset>> {
-        return accountRepository.selectedMetaAccountFlow()
-            .flatMapLatest {
-                val chainAccounts = it.chainAccounts.values.toList()
-                walletRepository.assetsFlow(it.id, chainAccounts)
-            }
-            .filter { it.isNotEmpty() }
-            .map { assets ->
-                if (customAssetSortingEnabled())
-                    assets.sortedBy { it.sortIndex }
-                else
-                    assets.sortedWith(defaultAssetListSort())
+//        val previousSort = mutableMapOf<AssetKey, Int>()
+        return updatesMixin.tokenRatesUpdate.map {
+            it.isNotEmpty()
+        }.asFlow()
+            .distinctUntilChanged()
+            .flatMapLatest { ratesUpdating ->
+                accountRepository.selectedMetaAccountFlow()
+                    .flatMapLatest {
+                        val chainAccounts = it.chainAccounts.values.toList()
+                        walletRepository.assetsFlow(it, chainAccounts)
+                    }
+                    .filter { it.isNotEmpty() }
+                    .map { assets ->
+                        when {
+                            customAssetSortingEnabled() -> assets.sortedBy { it.sortIndex }
+                            // todo research this logic
+//                            ratesUpdating && previousSort.isEmpty() -> {
+//                                val sortedAssets = assets.sortedWith(defaultAssetListSort())
+//                                previousSort.clear()
+//                                previousSort.putAll(getSortInfo(sortedAssets))
+//                                sortedAssets
+//                            }
+//                            ratesUpdating -> assets.sortedWith(createSortComparator(previousSort))
+                            else -> assets.sortedWith(defaultAssetListSort())
+                        }
+                    }
             }
     }
 
-    private fun defaultAssetListSort() = compareByDescending<Asset> { it.total > BigDecimal.ZERO }
-        .thenByDescending { it.dollarAmount ?: BigDecimal.ZERO }
+//    private fun getSortInfo(sortedAssets: List<Asset>) = sortedAssets.mapIndexed { index, asset ->
+//        asset.uniqueKey to index
+//    }
+//
+//    private fun createSortComparator(previousSort: Map<AssetKey, Int>) = compareBy<Asset> {
+//        previousSort[it.uniqueKey]
+//    }
+
+    private fun defaultAssetListSort() = compareByDescending<Asset> { it.total.orZero() > BigDecimal.ZERO }
+        .thenByDescending { it.fiatAmount.orZero() }
         .thenBy { it.token.configuration.isTestNet }
         .thenByDescending { it.token.configuration.chainId.isPolkadotOrKusama() }
         .thenBy { it.token.configuration.chainName }
 
-    override suspend fun syncAssetsRates(): Result<Unit> {
-        return runCatching {
-            val shouldRefreshRates = Calendar.getInstance().timeInMillis - lastRatesSyncMillis > minRatesRefreshDuration.toInt(DurationUnit.MILLISECONDS)
-            if (shouldRefreshRates) {
-                walletRepository.syncAssetsRates()
-                lastRatesSyncMillis = Calendar.getInstance().timeInMillis
-            } else {
-                return Result.success(Unit)
+    override suspend fun syncAssetsRates(): Flow<Result<Unit>> {
+        return selectedFiat.flow().map {
+            runCatching {
+                walletRepository.syncAssetsRates(it)
+                return@map Result.success(Unit)
             }
         }
     }
@@ -91,9 +115,16 @@ class WalletInteractorImpl(
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
-            walletRepository.assetFlow(metaAccount.id, accountId, chainAsset)
-        }.onStart {
-            chainRegistry.getAsset(chainId, chainAssetId)?.let { emit(Asset.createEmpty(it)) }
+            walletRepository.assetFlow(metaAccount.id, accountId, chainAsset, chain.minSupportedVersion)
+                .onStart {
+                    emit(
+                        Asset.createEmpty(
+                            chainAsset = chainAsset,
+                            metaId = metaAccount.id,
+                            minSupportedVersion = chain.minSupportedVersion
+                        )
+                    )
+                }
         }
     }
 
@@ -101,7 +132,7 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
 
-        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset)!!
+        return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
     }
 
     override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {

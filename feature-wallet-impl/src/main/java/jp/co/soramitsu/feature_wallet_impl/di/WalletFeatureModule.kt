@@ -5,9 +5,14 @@ import dagger.Provides
 import javax.inject.Named
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
+import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.OperationDao
@@ -33,7 +38,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemo
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.BalancesUpdateSystem
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdaterFactory
-import jp.co.soramitsu.feature_wallet_impl.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
@@ -66,12 +70,19 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideRemoteConfigFetcher(networkApiCreator: NetworkApiCreator): RemoteConfigFetcher {
+        return networkApiCreator.create(RemoteConfigFetcher::class.java)
+    }
+
+    @Provides
+    @FeatureScope
     fun provideAssetCache(
         tokenDao: TokenDao,
         assetDao: AssetDao,
-        accountRepository: AccountRepository
+        accountRepository: AccountRepository,
+        updatesMixin: UpdatesMixin
     ): AssetCache {
-        return AssetCache(tokenDao, accountRepository, assetDao)
+        return AssetCache(tokenDao, accountRepository, assetDao, updatesMixin)
     }
 
     @Provides
@@ -122,6 +133,9 @@ class WalletFeatureModule {
         coingeckoApi: CoingeckoApi,
         cursorStorage: TransferCursorStorage,
         chainRegistry: ChainRegistry,
+        availableFiatCurrencies: GetAvailableFiatCurrencies,
+        updatesMixin: UpdatesMixin,
+        remoteConfigFetcher: RemoteConfigFetcher
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -133,7 +147,10 @@ class WalletFeatureModule {
         phishingAddressDao,
         cursorStorage,
         coingeckoApi,
-        chainRegistry
+        chainRegistry,
+        availableFiatCurrencies,
+        updatesMixin,
+        remoteConfigFetcher
     )
 
     @Provides
@@ -143,13 +160,17 @@ class WalletFeatureModule {
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
         fileProvider: FileProvider,
-        preferences: Preferences
+        preferences: Preferences,
+        selectedFiat: SelectedFiat,
+        updatesMixin: UpdatesMixin,
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
         accountRepository,
         chainRegistry,
         fileProvider,
-        preferences
+        preferences,
+        selectedFiat,
+        updatesMixin
     )
 
     @Provides
@@ -181,12 +202,14 @@ class WalletFeatureModule {
         operationDao: OperationDao,
         accountUpdateScope: AccountUpdateScope,
         chainRegistry: ChainRegistry,
+        updatesMixin: UpdatesMixin
     ) = PaymentUpdaterFactory(
         remoteSource,
         assetCache,
         operationDao,
         chainRegistry,
-        accountUpdateScope
+        accountUpdateScope,
+        updatesMixin
     )
 
     @Provides
@@ -212,4 +235,12 @@ class WalletFeatureModule {
     @FeatureScope
     fun provideAccountAddressUseCase(accountRepository: AccountRepository, chainRegistry: ChainRegistry) =
         CurrentAccountAddressUseCase(accountRepository, chainRegistry)
+
+    @Provides
+    @FeatureScope
+    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
+
+    @Provides
+    @FeatureScope
+    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
 }

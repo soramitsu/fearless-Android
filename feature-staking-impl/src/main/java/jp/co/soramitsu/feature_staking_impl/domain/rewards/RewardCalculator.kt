@@ -50,7 +50,12 @@ class RewardCalculator(
     private val expectedAPY = calculateExpectedAPY()
 
     private fun calculateExpectedAPY(): Double {
-        val medianCommission = validators.map { it.commission.toDouble() }.median()
+        val prices = validators.map { it.commission.toDouble() }
+
+        val medianCommission = when {
+            prices.isEmpty() -> 0.0
+            else -> prices.median()
+        }
 
         return averageValidatorRewardPercentage * (1 - medianCommission)
     }
@@ -113,7 +118,7 @@ class RewardCalculator(
             calculateCompoundReward(amount, days, dailyPercentage)
         } else {
             calculateSimpleReward(amount, days, dailyPercentage)
-        }.toBigDecimal()
+        }
 
         val gainPercentage = if (amount == 0.0) {
             BigDecimal.ZERO
@@ -127,11 +132,11 @@ class RewardCalculator(
         )
     }
 
-    private fun calculateSimpleReward(amount: Double, days: Int, dailyPercentage: Double): Double {
-        return amount * dailyPercentage * days
+    private fun calculateSimpleReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
+        return amount.toBigDecimal() * dailyPercentage.toBigDecimal() * days.toBigDecimal()
     }
 
-    private fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): Double {
-        return amount * ((1 + dailyPercentage).pow(days)) - amount
+    private fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
+        return amount.toBigDecimal() * ((1 + dailyPercentage).toBigDecimal().pow(days)) - amount.toBigDecimal()
     }
 }

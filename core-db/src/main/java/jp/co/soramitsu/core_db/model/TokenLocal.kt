@@ -8,10 +8,11 @@ import java.math.BigDecimal
 data class TokenLocal(
     @PrimaryKey
     val symbol: String,
-    val dollarRate: BigDecimal?,
+    val fiatRate: BigDecimal?,
+    val fiatSymbol: String?,
     val recentRateChange: BigDecimal?,
 ) {
     companion object {
-        fun createEmpty(symbol: String): TokenLocal = TokenLocal(symbol, null, null)
+        fun createEmpty(symbol: String): TokenLocal = TokenLocal(symbol, null, null, null)
     }
 }

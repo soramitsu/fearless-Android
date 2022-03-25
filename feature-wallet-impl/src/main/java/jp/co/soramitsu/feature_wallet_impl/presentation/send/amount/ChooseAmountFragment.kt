@@ -12,6 +12,7 @@ import coil.ImageLoader
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -125,7 +126,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
         viewModel.assetModelLiveData.observe {
             val transferableAmount =
-                resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.formatTokenAmount(it.token.configuration))
+                resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.orZero().formatTokenAmount(it.token.configuration))
             chooseAmountField.setAssetBalance(transferableAmount)
             chooseAmountField.setAssetName(it.token.configuration.symbol)
             chooseAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
@@ -134,7 +135,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         }
 
         viewModel.enteredFiatAmountLiveData.observe {
-            it?.let(chooseAmountField::setAssetBalanceDollarAmount)
+            it?.let(chooseAmountField::setAssetBalanceFiatAmount)
         }
 
         viewModel.amountRawLiveData.observe {

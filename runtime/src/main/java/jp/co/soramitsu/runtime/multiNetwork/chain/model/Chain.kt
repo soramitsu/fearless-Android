@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
+import jp.co.soramitsu.common.domain.AppVersion
 
 typealias ChainId = String
 
@@ -11,11 +12,12 @@ const val moonriverChainId = "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f6
 const val rococoChainId = "aaf2cd1b74b5f726895921259421b534124726263982522174147046b8827897"
 
 const val kitsugiChainId = "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b"
-const val interlayChainId = "ed86d448b84db333cdbe07362ddc79530343b907bd88712557c024d7a94296bb"
+const val interlayChainId = "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72"
 
 data class Chain(
     val id: ChainId,
     val name: String,
+    val minSupportedVersion: String?,
     val assets: List<Asset>,
     val nodes: List<Node>,
     val explorers: List<Explorer>,
@@ -31,6 +33,9 @@ data class Chain(
 
     val assetsBySymbol = assets.associateBy(Asset::symbol)
     val assetsById = assets.associateBy(Asset::id)
+
+    val isSupported: Boolean
+        get() = AppVersion.isSupported(minSupportedVersion)
 
     data class Types(
         val url: String,
@@ -111,6 +116,64 @@ data class Chain(
             val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
         }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Chain
+
+        if (id != other.id) return false
+        if (name != other.name) return false
+        if (minSupportedVersion != other.minSupportedVersion) return false
+        if (assets != other.assets) return false
+        if (explorers != other.explorers) return false
+        if (externalApi != other.externalApi) return false
+        if (icon != other.icon) return false
+        if (addressPrefix != other.addressPrefix) return false
+        if (types != other.types) return false
+        if (isEthereumBased != other.isEthereumBased) return false
+        if (isTestNet != other.isTestNet) return false
+        if (hasCrowdloans != other.hasCrowdloans) return false
+        if (parentId != other.parentId) return false
+        if (assetsBySymbol != other.assetsBySymbol) return false
+        if (assetsById != other.assetsById) return false
+
+        // custom comparison logic
+        val defaultNodes = nodes.filter { it.isDefault }
+        val otherDefaultNodes = other.nodes.filter { it.isDefault }
+        if (defaultNodes.size != otherDefaultNodes.size) return false
+
+        val equalsWithoutActive = defaultNodes.map { it.name to it.url } == otherDefaultNodes.map { it.name to it.url }
+        if (!equalsWithoutActive) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + (minSupportedVersion?.hashCode() ?: 0)
+        result = 31 * result + assets.hashCode()
+        result = 31 * result + explorers.hashCode()
+        result = 31 * result + nodes.map { it.name to it.url }.hashCode()
+        result = 31 * result + (externalApi?.hashCode() ?: 0)
+        result = 31 * result + icon.hashCode()
+        result = 31 * result + addressPrefix
+        result = 31 * result + (types?.hashCode() ?: 0)
+        result = 31 * result + isEthereumBased.hashCode()
+        result = 31 * result + isTestNet.hashCode()
+        result = 31 * result + hasCrowdloans.hashCode()
+        result = 31 * result + (parentId?.hashCode() ?: 0)
+        result = 31 * result + assetsBySymbol.hashCode()
+        result = 31 * result + assetsById.hashCode()
+        return result
+    }
+}
+
+fun Chain.updateNodesActive(localVersion: Chain): Chain = when (val activeNode = localVersion.nodes.firstOrNull { it.isActive }) {
+    null -> this
+    else -> copy(nodes = nodes.map { it.copy(isActive = it.url == activeNode.url && it.name == activeNode.name) })
 }
 
 fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) = mapNotNull {

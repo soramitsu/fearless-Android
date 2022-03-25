@@ -96,4 +96,5 @@ dependencies {
     implementation zXingEmbeddedDep
 
     implementation insetterDep
+    implementation shimmerDep
 }

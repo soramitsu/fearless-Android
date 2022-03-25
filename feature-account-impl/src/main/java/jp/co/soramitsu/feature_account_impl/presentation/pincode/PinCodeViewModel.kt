@@ -116,6 +116,9 @@ class PinCodeViewModel(
     }
 
     fun backPressed() {
+        if (!pinCodeAction.toolbarConfiguration.backVisible) {
+            return
+        }
         when (currentState) {
             is ScreenState.Creating -> authCancel()
             is ScreenState.Confirmation -> backToCreateFromConfirmation()
@@ -161,7 +164,12 @@ class PinCodeViewModel(
     private fun authSuccess() {
         when (pinCodeAction) {
             is PinCodeAction.Create -> router.openAfterPinCode(pinCodeAction.delayedNavigation)
-            is PinCodeAction.Check -> router.openAfterPinCode(pinCodeAction.delayedNavigation)
+            is PinCodeAction.Check -> {
+                when (pinCodeAction.delayedNavigation) {
+                    null -> router.back()
+                    else -> router.openAfterPinCode(pinCodeAction.delayedNavigation)
+                }
+            }
             is PinCodeAction.Change -> {
                 when (currentState) {
                     is ScreenState.Checking -> {

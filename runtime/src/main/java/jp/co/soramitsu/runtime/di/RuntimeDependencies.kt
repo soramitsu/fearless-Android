@@ -6,6 +6,8 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.StorageDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
@@ -29,4 +31,8 @@ interface RuntimeDependencies {
     fun bulkRetriever(): BulkRetriever
 
     fun chainDao(): ChainDao
+
+    fun updatesMixin(): UpdatesMixin
+
+    fun networkStateMixin(): NetworkStateMixin
 }

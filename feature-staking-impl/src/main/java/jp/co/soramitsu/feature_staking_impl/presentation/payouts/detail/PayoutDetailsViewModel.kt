@@ -79,7 +79,7 @@ class PayoutDetailsViewModel(
             createdAt = payout.createdAt,
             eraDisplay = resourceManager.getString(R.string.staking_era_index_no_prefix, payout.era.toLong()),
             reward = rewardAmount.formatTokenAmount(tokenType),
-            rewardFiat = asset.token.fiatAmount(rewardAmount)?.formatAsCurrency()
+            rewardFiat = asset.token.fiatAmount(rewardAmount)?.formatAsCurrency(asset.token.fiatSymbol)
         )
     }
 }

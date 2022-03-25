@@ -61,16 +61,16 @@ class EstimateEarningView @JvmOverloads constructor(
         estimateEarningAmount.setAssetBalance(balance)
     }
 
-    fun setAssetBalanceDollarAmount(dollarAmount: String?) {
-        estimateEarningAmount.setAssetBalanceDollarAmount(dollarAmount)
+    fun setAssetBalanceFiatAmount(fiatAmount: String?) {
+        estimateEarningAmount.setAssetBalanceFiatAmount(fiatAmount)
     }
 
-    fun hideAssetBalanceDollarAmount() {
-        estimateEarningAmount.hideAssetDollarAmount()
+    fun hideAssetBalanceFiatAmount() {
+        estimateEarningAmount.hideAssetFiatAmount()
     }
 
-    fun showAssetBalanceDollarAmount() {
-        estimateEarningAmount.showAssetDollarAmount()
+    fun showAssetBalanceFiatAmount() {
+        estimateEarningAmount.showAssetFiatAmount()
     }
 
     fun showReturnsLoading() {

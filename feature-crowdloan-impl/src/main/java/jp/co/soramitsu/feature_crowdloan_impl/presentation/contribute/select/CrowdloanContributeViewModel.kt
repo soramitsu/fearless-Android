@@ -187,7 +187,7 @@ class CrowdloanContributeViewModel(
         .share()
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
-        asset.token.fiatAmount(amount)?.formatAsCurrency()
+        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.TokenLocal
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -15,7 +16,8 @@ fun mapTokenLocalToToken(
     return with(tokenLocal) {
         Token(
             configuration = chainAsset,
-            dollarRate = dollarRate,
+            fiatRate = fiatRate,
+            fiatSymbol = fiatSymbol,
             recentRateChange = recentRateChange
         )
     }
@@ -25,7 +27,8 @@ fun mapTokenToTokenModel(token: Token): TokenModel {
     return with(token) {
         TokenModel(
             configuration = configuration,
-            dollarRate = dollarRate,
+            fiatRate = fiatRate,
+            fiatSymbol = fiatSymbol,
             recentRateChange = recentRateChange
         )
     }
@@ -33,22 +36,24 @@ fun mapTokenToTokenModel(token: Token): TokenModel {
 
 fun mapAssetLocalToAsset(
     assetLocal: AssetWithToken,
-    chainAsset: Chain.Asset
+    chainAsset: Chain.Asset,
+    minSupportedVersion: String?
 ): Asset {
     return with(assetLocal) {
         Asset(
             metaId = asset.metaId,
             token = mapTokenLocalToToken(token, chainAsset),
             accountId = asset.accountId,
-            freeInPlanks = asset.freeInPlanks,
-            reservedInPlanks = asset.reservedInPlanks,
-            feeFrozenInPlanks = asset.feeFrozenInPlanks,
-            miscFrozenInPlanks = asset.miscFrozenInPlanks,
-            bondedInPlanks = asset.bondedInPlanks,
-            unbondingInPlanks = asset.unbondingInPlanks,
-            redeemableInPlanks = asset.redeemableInPlanks,
+            freeInPlanks = asset.freeInPlanks.orZero(),
+            reservedInPlanks = asset.reservedInPlanks.orZero(),
+            feeFrozenInPlanks = asset.feeFrozenInPlanks.orZero(),
+            miscFrozenInPlanks = asset.miscFrozenInPlanks.orZero(),
+            bondedInPlanks = asset.bondedInPlanks.orZero(),
+            unbondingInPlanks = asset.unbondingInPlanks.orZero(),
+            redeemableInPlanks = asset.redeemableInPlanks.orZero(),
             sortIndex = asset.sortIndex,
             enabled = asset.enabled,
+            minSupportedVersion = minSupportedVersion,
             chainAccountName = asset.chainAccountName
         )
     }
@@ -67,10 +72,11 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             frozen = frozen,
             redeemable = redeemable,
             unbonding = unbonding,
-            dollarAmount = dollarAmount,
+            fiatAmount = fiatAmount,
             sortIndex = sortIndex,
-            enabed = enabled,
-            chainAccountName = chainAccountName
+            enabled = enabled,
+            minSupportedVersion = minSupportedVersion,
+            chainAccountName = chainAccountName,
         )
     }
 }

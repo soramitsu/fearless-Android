@@ -45,7 +45,7 @@ abstract class ChainDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     protected abstract suspend fun insertChains(chains: List<ChainLocal>)
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract suspend fun insertChainNodes(nodes: List<ChainNodeLocal>)
 
     @Insert(onConflict = OnConflictStrategy.ABORT)

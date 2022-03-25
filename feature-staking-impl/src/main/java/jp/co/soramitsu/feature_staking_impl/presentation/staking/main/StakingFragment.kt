@@ -54,7 +54,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             }
         }
 
-        stakingEstimate.hideAssetBalanceDollarAmount()
+        stakingEstimate.hideAssetBalanceFiatAmount()
 
         stakingAvatar.setOnClickListener {
             viewModel.avatarClicked()
@@ -134,8 +134,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             }
 
                             stakingState.amountFiat.observe { amountFiat ->
-                                stakingEstimate.showAssetBalanceDollarAmount()
-                                stakingEstimate.setAssetBalanceDollarAmount(amountFiat)
+                                stakingEstimate.showAssetBalanceFiatAmount()
+                                stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
                             }
 
                             stakingState.returns.observe { rewards ->

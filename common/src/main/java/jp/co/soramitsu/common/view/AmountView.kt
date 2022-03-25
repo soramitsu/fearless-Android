@@ -17,7 +17,7 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetBalance
-import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetDollarAmount
+import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetFiatAmount
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetImage
 import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetToken
 
@@ -104,15 +104,15 @@ class AmountView @JvmOverloads constructor(
         stakingAssetBalance.text = balance
     }
 
-    fun setAssetBalanceDollarAmount(dollarAmount: String?) {
-        stakingAssetDollarAmount.setTextOrHide(dollarAmount)
+    fun setAssetBalanceFiatAmount(fiatAmount: String?) {
+        stakingAssetFiatAmount.setTextOrHide(fiatAmount)
     }
 
-    fun hideAssetDollarAmount() {
-        stakingAssetDollarAmount.makeGone()
+    fun hideAssetFiatAmount() {
+        stakingAssetFiatAmount.makeGone()
     }
 
-    fun showAssetDollarAmount() {
-        stakingAssetDollarAmount.makeVisible()
+    fun showAssetFiatAmount() {
+        stakingAssetFiatAmount.makeVisible()
     }
 }
