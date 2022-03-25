@@ -92,5 +92,5 @@ interface WalletRepository {
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 
-    suspend fun getRemoteConfig(): AppConfigRemote
+    suspend fun getRemoteConfig(): Result<AppConfigRemote>
 }

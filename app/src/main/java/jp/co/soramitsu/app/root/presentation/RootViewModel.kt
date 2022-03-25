@@ -3,9 +3,6 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import java.util.Date
-import java.util.Timer
-import java.util.TimerTask
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -15,14 +12,17 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection.ExternalRequirement
-import kotlin.concurrent.timerTask
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.Timer
+import java.util.TimerTask
+import kotlin.concurrent.timerTask
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class RootViewModel(
     private val interactor: RootInteractor,
@@ -41,6 +41,9 @@ class RootViewModel(
     private val _showUnsupportedAppVersionAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedAppVersionAlert: LiveData<Event<Unit>> = _showUnsupportedAppVersionAlert
 
+    private val _showNoInternetConnectionAlert = MutableLiveData<Event<Unit>>()
+    val showNoInternetConnectionAlert: LiveData<Event<Unit>> = _showNoInternetConnectionAlert
+
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
@@ -52,18 +55,31 @@ class RootViewModel(
 
     init {
         checkAppVersion()
+    }
+
+    private fun checkAppVersion() {
+        viewModelScope.launch {
+            val appConfigResult = interactor.getRemoteConfig()
+            when {
+                appConfigResult.isFailure -> {
+                    _showNoInternetConnectionAlert.value = Event(Unit)
+                }
+                appConfigResult.getOrNull()?.isCurrentVersionSupported == false -> {
+                    _showUnsupportedAppVersionAlert.value = Event(Unit)
+                }
+                else -> {
+                    runBalancesUpdate()
+                }
+            }
+        }
+    }
+
+    private fun runBalancesUpdate() {
         interactor.runBalancesUpdate()
             .onEach { handleUpdatesSideEffect(it) }
             .launchIn(this)
 
         updatePhishingAddresses()
-    }
-
-    private fun checkAppVersion() = viewModelScope.launch {
-        val appConfig = interactor.getRemoteConfig()
-        if (appConfig.isCurrentVersionSupported.not()) {
-            _showUnsupportedAppVersionAlert.value = Event(Unit)
-        }
     }
 
     private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
@@ -76,8 +92,6 @@ class RootViewModel(
             interactor.updatePhishingAddresses()
         }
     }
-
-    fun jsonFileOpened(content: String?) {}
 
     override fun onCleared() {
         super.onCleared()
@@ -143,5 +157,9 @@ class RootViewModel(
             timeInBackground = null
             rootRouter.openNavGraph()
         }
+    }
+
+    fun retryLoadConfigClicked() {
+        checkAppVersion()
     }
 }

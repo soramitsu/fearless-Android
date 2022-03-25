@@ -414,7 +414,7 @@ class WalletRepositoryImpl(
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 
-    override suspend fun getRemoteConfig(): AppConfigRemote {
-        return remoteConfigFetcher.getAppConfig()
+    override suspend fun getRemoteConfig(): Result<AppConfigRemote> {
+        return kotlin.runCatching { remoteConfigFetcher.getAppConfig() }
     }
 }
