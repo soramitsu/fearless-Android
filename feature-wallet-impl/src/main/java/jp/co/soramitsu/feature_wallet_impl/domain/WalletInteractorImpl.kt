@@ -5,8 +5,6 @@ import androidx.lifecycle.map
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
-import jp.co.soramitsu.common.domain.model.AppConfig
-import jp.co.soramitsu.common.domain.model.toDomain
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
@@ -328,9 +326,5 @@ class WalletInteractorImpl(
     override suspend fun enableCustomAssetSorting() {
         val metaId = accountRepository.getSelectedMetaAccount().id
         preferences.putBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", true)
-    }
-
-    override suspend fun getRemoteConfig(): AppConfig {
-        return walletRepository.getRemoteConfig().toDomain()
     }
 }
