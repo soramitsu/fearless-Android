@@ -24,8 +24,8 @@ data class AppVersion(val major: Int, val minor: Int, val buildNum: Int) {
                 null -> true
                 else -> {
                     val appVersion = current()
-                    val thisVersion = fromString(versionText)
-                    !thisVersion.before(appVersion)
+                    val checkVersion = fromString(versionText)
+                    !appVersion.before(checkVersion)
                 }
             }
         }
