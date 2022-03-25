@@ -142,6 +142,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
                 finish()
             }
         )
+        viewModel.showNoInternetConnectionAlert.observe(
+            this,
+            EventObserver {
+                showNoInternetConnectionAlert()
+            }
+        )
     }
 
     private fun showUnsupportedAppVersionAlert() {
@@ -151,6 +157,17 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
             .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_update)
             .setCancelable(false)
             .callback { viewModel.updateAppClicked() }
+            .build()
+            .show()
+    }
+
+    private fun showNoInternetConnectionAlert() {
+        AlertBottomSheet.Builder(this)
+            .setTitle(jp.co.soramitsu.feature_wallet_impl.R.string.common_connection_problems)
+            .setMessage(jp.co.soramitsu.feature_wallet_impl.R.string.connection_problems_alert_message)
+            .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_retry)
+            .setCancelable(false)
+            .callback { viewModel.retryLoadConfigClicked() }
             .build()
             .show()
     }

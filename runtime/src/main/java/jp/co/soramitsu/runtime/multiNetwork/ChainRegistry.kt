@@ -87,9 +87,9 @@ class ChainRegistry(
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
     init {
-        launch { chainSyncService.syncUp() }
+        launch { runCatching { chainSyncService.syncUp() } }
 
-        baseTypeSynchronizer.sync()
+        runCatching { baseTypeSynchronizer.sync() }
     }
 
     fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
