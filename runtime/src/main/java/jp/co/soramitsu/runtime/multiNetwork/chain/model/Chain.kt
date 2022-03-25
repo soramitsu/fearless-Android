@@ -139,17 +139,13 @@ data class Chain(
         if (assetsBySymbol != other.assetsBySymbol) return false
         if (assetsById != other.assetsById) return false
 
-        //custom comparison logic
+        // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
         val otherDefaultNodes = other.nodes.filter { it.isDefault }
         if (defaultNodes.size != otherDefaultNodes.size) return false
 
-        val containsAll = defaultNodes.map { it.name to it.url }.containsAll(otherDefaultNodes.map { it.name to it.url })
-        val equals = defaultNodes.map { it.name to it.url } == otherDefaultNodes.map { it.name to it.url }
-        println("!!! containsAll $containsAll")
-        println("!!!      equals $equals")
-//        if (!nodes.any { it.isActive } || !other.nodes.any { it.isActive }) return false
-        if (!containsAll) return false
+        val equalsWithoutActive = defaultNodes.map { it.name to it.url } == otherDefaultNodes.map { it.name to it.url }
+        if (!equalsWithoutActive) return false
 
         return true
     }

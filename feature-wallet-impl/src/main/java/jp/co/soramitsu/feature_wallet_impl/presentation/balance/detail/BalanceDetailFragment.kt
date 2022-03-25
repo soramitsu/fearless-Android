@@ -102,14 +102,14 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = requireArguments()[KEY_ASSET_PAYLOAD] as AssetPayload
+        val payload = requireArguments()[KEY_ASSET_PAYLOAD] as AssetPayload
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .balanceDetailComponentFactory()
-            .create(this, token)
+            .create(this, payload)
             .inject(this)
     }
 
