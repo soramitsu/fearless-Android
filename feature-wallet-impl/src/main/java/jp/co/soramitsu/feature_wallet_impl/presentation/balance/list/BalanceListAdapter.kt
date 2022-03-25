@@ -99,6 +99,11 @@ class AssetViewHolder(
     fun bind(model: AssetWithStateModel, itemHandler: BalanceListAdapter.ItemAssetHandler) {
         val asset = model.asset
 
+        content.alpha = when {
+            asset.isSupported -> 1.0F
+            else -> 0.4f
+        }
+
         content.itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
         shimmer.itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
 

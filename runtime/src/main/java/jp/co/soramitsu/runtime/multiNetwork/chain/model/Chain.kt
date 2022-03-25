@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
+import jp.co.soramitsu.common.domain.AppVersion
 
 typealias ChainId = String
 
@@ -16,6 +17,7 @@ const val interlayChainId = "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7
 data class Chain(
     val id: ChainId,
     val name: String,
+    val minSupportedVersion: String?,
     val assets: List<Asset>,
     val nodes: List<Node>,
     val explorers: List<Explorer>,
@@ -31,6 +33,9 @@ data class Chain(
 
     val assetsBySymbol = assets.associateBy(Asset::symbol)
     val assetsById = assets.associateBy(Asset::id)
+
+    val isSupported: Boolean
+        get() = AppVersion.isSupported(minSupportedVersion)
 
     data class Types(
         val url: String,

@@ -55,6 +55,12 @@ class AccountDetailsViewModel(
     private val _showImportChainAccountChooser = MutableLiveData<Event<ImportChainAccountsPayload>>()
     val showImportChainAccountChooser: LiveData<Event<ImportChainAccountsPayload>> = _showImportChainAccountChooser
 
+    private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
+    val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
+
+    private val _openPlayMarket = MutableLiveData<Event<Unit>>()
+    val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
+
     val accountNameFlow: MutableStateFlow<String> = MutableStateFlow("")
 
     private val metaAccount = async(Dispatchers.Default) { interactor.getMetaAccount(metaId) }
@@ -111,7 +117,8 @@ class AccountDetailsViewModel(
             address = address,
             accountIcon = accountIcon,
             accountName = accountInChain.name,
-            accountFrom = accountInChain.from
+            accountFrom = accountInChain.from,
+            isSupported = accountInChain.chain.isSupported
         )
     }
 
@@ -159,5 +166,15 @@ class AccountDetailsViewModel(
 
     fun switchNode(chainId: ChainId) {
         accountRouter.openNodes(chainId)
+    }
+
+    fun chainAccountClicked(item: AccountInChainUi) {
+        if (item.isSupported.not()) {
+            _showUnsupportedChainAlert.value = Event(Unit)
+        }
+    }
+
+    fun updateAppClicked() {
+        _openPlayMarket.value = Event(Unit)
     }
 }

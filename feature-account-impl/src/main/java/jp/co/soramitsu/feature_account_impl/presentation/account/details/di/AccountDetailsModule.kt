@@ -31,7 +31,7 @@ class AccountDetailsModule {
         iconGenerator: AddressIconGenerator,
         chainRegistry: ChainRegistry,
         metaId: Long,
-        externalAccountActions: ExternalAccountActions.Presentation
+        externalAccountActions: ExternalAccountActions.Presentation,
     ): ViewModel {
         return AccountDetailsViewModel(
             interactor,
@@ -40,7 +40,7 @@ class AccountDetailsModule {
             resourceManager,
             chainRegistry,
             metaId,
-            externalAccountActions
+            externalAccountActions,
         )
     }
 

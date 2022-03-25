@@ -253,7 +253,8 @@ class StakingInteractor(
                 walletRepository.assetFlow(
                     metaId = meta.id,
                     accountId = chain.accountIdOf(accountAddress),
-                    chainAsset = chainAsset
+                    chainAsset = chainAsset,
+                    minSupportedVersion = chain.minSupportedVersion
                 )
             )
         }
@@ -342,13 +343,13 @@ class StakingInteractor(
         state: StakingState.Stash,
         statusResolver: suspend (StatusResolutionContext) -> S,
     ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
-        val chainAsset = stakingSharedState.chainAsset()
+        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
         val chainId = chainAsset.chainId
         val meta = accountRepository.getSelectedMetaAccount()
 
         combine(
             stakingRepository.observeActiveEraIndex(chainId),
-            walletRepository.assetFlow(meta.id, state.accountId, chainAsset),
+            walletRepository.assetFlow(meta.id, state.accountId, chainAsset, chain.minSupportedVersion),
             stakingRewardsRepository.totalRewardFlow(state.stashAddress)
         ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded

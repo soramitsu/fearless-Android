@@ -1,11 +1,17 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
+import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
+import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -13,6 +19,7 @@ import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialo
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -28,7 +35,6 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmou
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalTitle
 import kotlinx.android.synthetic.main.fragment_balance_list.manageAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
-import javax.inject.Inject
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
 
@@ -107,10 +113,31 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         }
 
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
+
+        viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
+        viewModel.openPlayMarket.observeEvent { openPlayMarket() }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
         FiatCurrenciesChooserBottomSheetDialog(requireContext(), imageLoader, payload, viewModel::onFiatSelected).show()
+    }
+
+    private fun showUnsupportedChainAlert() {
+        AlertBottomSheet.Builder(requireContext())
+            .setTitle(R.string.common_update_needed)
+            .setMessage(R.string.unsupported_chain_alert_message)
+            .setButtonText(R.string.common_update)
+            .callback { viewModel.updateAppClicked() }
+            .build()
+            .show()
+    }
+
+    private fun openPlayMarket() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
+        } catch (e: ActivityNotFoundException) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
+        }
     }
 
     override fun assetClicked(asset: AssetModel) {

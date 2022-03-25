@@ -33,6 +33,7 @@ import jp.co.soramitsu.core_db.migrations.AddTokenTable_9_10
 import jp.co.soramitsu.core_db.migrations.AddTotalRewardsTableToDb_21_22
 import jp.co.soramitsu.core_db.migrations.AssetsMigration_38_39
 import jp.co.soramitsu.core_db.migrations.AssetsOrderMigration
+import jp.co.soramitsu.core_db.migrations.ChainAssetsMigration_39_40
 import jp.co.soramitsu.core_db.migrations.ChangePrimaryKeyForRewards_16_17
 import jp.co.soramitsu.core_db.migrations.DifferentCurrenciesMigrations_37_38
 import jp.co.soramitsu.core_db.migrations.EthereumDerivationPathMigration
@@ -61,7 +62,7 @@ import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 
 @Database(
-    version = 39,
+    version = 40,
     entities = [
         AccountLocal::class,
         AssetLocal::class,
@@ -121,6 +122,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(FixAssetsMigration_36_37)
                     .addMigrations(DifferentCurrenciesMigrations_37_38)
                     .addMigrations(AssetsMigration_38_39)
+                    .addMigrations(ChainAssetsMigration_39_40)
                     .build()
             }
             return instance!!

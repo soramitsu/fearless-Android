@@ -15,6 +15,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 
 interface WalletRepository {
 
@@ -24,9 +25,9 @@ interface WalletRepository {
 
     suspend fun syncAssetsRates(currencyId: String)
 
-    fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset>
+    fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset>
 
-    suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Asset?
+    suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset?
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,
@@ -89,4 +90,6 @@ interface WalletRepository {
     suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId): BigInteger
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
+
+    suspend fun getRemoteConfig(): AppConfigRemote
 }

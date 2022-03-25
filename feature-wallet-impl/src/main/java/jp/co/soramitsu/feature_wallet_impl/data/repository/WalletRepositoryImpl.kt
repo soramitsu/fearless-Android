@@ -55,12 +55,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.config.AppConfigRemote
+import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -76,6 +77,7 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
+    private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(metaId: Long, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
@@ -89,7 +91,15 @@ class WalletRepositoryImpl(
 
             val assetsByChain: List<Asset> = chainRegistry.currentChains.firstOrNull().orEmpty()
                 .filter { it.id !in chainAccounts.mapNotNull { it.chain?.id } }
-                .flatMap { chain -> chain.assets.map { createEmpty(it, metaId) } }
+                .flatMap { chain ->
+                    chain.assets.map {
+                        createEmpty(
+                            chainAsset = it,
+                            metaId = metaId,
+                            minSupportedVersion = chain.minSupportedVersion
+                        )
+                    }
+                }
 
             val assetsByUniqueAccounts = chainAccounts.mapNotNull {
                 createEmpty(it)
@@ -116,15 +126,17 @@ class WalletRepositoryImpl(
 
     private fun mapAssetLocalToAsset(
         chainsById: Map<ChainId, Chain>,
-        assetLocal: AssetWithToken
+        assetLocal: AssetWithToken,
     ): Asset? {
-        val chainAsset = try {
-            chainsById.getValue(assetLocal.asset.chainId).assetsBySymbol.getValue(assetLocal.token.symbol)
+        val (chain, chainAsset) = try {
+            val chain = chainsById.getValue(assetLocal.asset.chainId)
+            val asset = chain.assetsBySymbol.getValue(assetLocal.token.symbol)
+            chain to asset
         } catch (e: Exception) {
             return null
         }
 
-        return mapAssetLocalToAsset(assetLocal, chainAsset)
+        return mapAssetLocalToAsset(assetLocal, chainAsset, chain.minSupportedVersion)
     }
 
     override suspend fun syncAssetsRates(currencyId: String) {
@@ -151,16 +163,16 @@ class WalletRepositoryImpl(
         updatesMixin.finishUpdateTokens(symbols)
     }
 
-    override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Flow<Asset> {
+    override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset> {
         return assetCache.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)
             .mapNotNull { it }
-            .map { mapAssetLocalToAsset(it, chainAsset) }
+            .mapNotNull { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
 
-    override suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset): Asset? {
+    override suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset? {
         val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)
 
-        return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset) }
+        return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
 
     override suspend fun syncOperationsFirstPage(
@@ -298,7 +310,7 @@ class WalletRepositoryImpl(
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
         val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)!!
-        val asset = mapAssetLocalToAsset(assetLocal, chainAsset)
+        val asset = mapAssetLocalToAsset(assetLocal, chainAsset, chain.minSupportedVersion)
 
         val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
@@ -374,4 +386,8 @@ class WalletRepositoryImpl(
     }
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
+
+    override suspend fun getRemoteConfig(): AppConfigRemote {
+        return remoteConfigFetcher.getAppConfig()
+    }
 }

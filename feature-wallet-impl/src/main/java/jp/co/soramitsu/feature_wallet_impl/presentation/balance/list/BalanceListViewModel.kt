@@ -43,7 +43,7 @@ class BalanceListViewModel(
     private val router: WalletRouter,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
-    private val updatesMixin: UpdatesMixin
+    private val updatesMixin: UpdatesMixin,
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
@@ -51,6 +51,12 @@ class BalanceListViewModel(
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
+
+    private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
+    val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
+
+    private val _openPlayMarket = MutableLiveData<Event<Unit>>()
+    val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
@@ -63,14 +69,14 @@ class BalanceListViewModel(
     val balanceLiveData = mediateWith(
         assetModelsLiveData,
         fiatSymbolLiveData,
-        tokenRates,
-        assets,
-        chains
-    ) { (assetModels: List<AssetModel>?, fiatSymbol: String?, tokenRatesUpdate: Set<String>?, assetsUpdate: Set<AssetKey>?, chainsUpdates: Set<String>?) ->
-        val assets = assetModels?.map { asset ->
+        tokenRatesUpdate,
+        assetsUpdate,
+        chainsUpdate
+    ) { (assetModels: List<AssetModel>?, fiatSymbol: String?, tokenRatesUpdate: Set<String>?, assetsUpdate: Set<AssetKey>?, chainsUpdate: Set<String>?) ->
+        val assetsWithState = assetModels?.map { asset ->
             val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.symbol in it }
             val balanceUpdate = assetsUpdate?.let { asset.primaryKey in it }
-            val chainUpdate = chainsUpdates?.let { asset.token.configuration.chainId in it }
+            val chainUpdate = chainsUpdate?.let { asset.token.configuration.chainId in it }
             val isTokenFiatChanged = when {
                 fiatSymbol == null -> false
                 asset.token.fiatSymbol == null -> false
@@ -83,7 +89,7 @@ class BalanceListViewModel(
             )
         }.orEmpty()
 
-        BalanceModel(assets, fiatSymbol.orEmpty())
+        BalanceModel(assetsWithState, fiatSymbol.orEmpty())
     }
 
     fun sync() {
@@ -100,6 +106,11 @@ class BalanceListViewModel(
     }
 
     fun assetClicked(asset: AssetModel) {
+        if (asset.isSupported.not()) {
+            _showUnsupportedChainAlert.value = Event(Unit)
+            return
+        }
+
         val payload = AssetPayload(
             chainId = asset.token.configuration.chainId,
             chainAssetId = asset.token.configuration.id
@@ -123,7 +134,7 @@ class BalanceListViewModel(
 
     private fun assetModelsFlow(): Flow<List<AssetModel>> =
         interactor.assetsFlow()
-            .mapList(::mapAssetToAssetModel)
+            .mapList { mapAssetToAssetModel(it) }
             .map { list -> list.filter { it.enabled } }
 
     fun manageAssetsClicked() {
@@ -144,5 +155,9 @@ class BalanceListViewModel(
         viewModelScope.launch {
             selectedFiat.set(item.id)
         }
+    }
+
+    fun updateAppClicked() {
+        _openPlayMarket.value = Event(Unit)
     }
 }

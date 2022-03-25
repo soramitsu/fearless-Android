@@ -7,11 +7,11 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 interface UpdatesMixin : UpdatesProviderUi
 
 interface UpdatesProviderUi {
-    val tokenRates: LiveData<Set<String>>
+    val tokenRatesUpdate: LiveData<Set<String>>
 
-    val assets: LiveData<Set<AssetKey>>
+    val assetsUpdate: LiveData<Set<AssetKey>>
 
-    val chains: LiveData<Set<String>>
+    val chainsUpdate: LiveData<Set<String>>
 
     suspend fun startUpdateToken(symbol: String)
 

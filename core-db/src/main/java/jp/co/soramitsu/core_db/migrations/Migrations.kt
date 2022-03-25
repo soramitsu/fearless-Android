@@ -3,7 +3,40 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-val AssetsMigration_38_39 = object : Migration(36, 37) {
+val ChainAssetsMigration_39_40 = object : Migration(39, 40) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DELETE FROM chain_explorers")
+        database.execSQL("DELETE FROM chain_assets")
+        database.execSQL("DELETE FROM chain_nodes")
+
+        database.execSQL("DROP TABLE IF EXISTS chains")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chains` (
+            `id` TEXT NOT NULL,
+            `parentId` TEXT,
+            `name` TEXT NOT NULL,
+            `minSupportedVersion` TEXT,
+            `icon` TEXT NOT NULL,
+            `prefix` INTEGER NOT NULL,
+            `isEthereumBased` INTEGER NOT NULL,
+            `isTestNet` INTEGER NOT NULL,
+            `hasCrowdloans` INTEGER NOT NULL,
+            `url` TEXT,
+            `overridesCommon` INTEGER,
+            `staking_url` TEXT,
+            `staking_type` TEXT,
+            `history_url` TEXT,
+            `history_type` TEXT,
+            `crowdloans_url` TEXT,
+            `crowdloans_type` TEXT,
+            PRIMARY KEY(`id`))
+            """.trimIndent()
+        )
+    }
+}
+
+val AssetsMigration_38_39 = object : Migration(38, 39) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.beginTransaction()
 

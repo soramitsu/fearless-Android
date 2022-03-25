@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import coil.ImageLoader
 import coil.load
@@ -57,14 +58,16 @@ class ChainAccountHolder(view: View) : GroupedListHolder(view) {
         handler: ChainAccountsAdapter.Handler,
         imageLoader: ImageLoader
     ) = with(containerView) {
+
+        val interactionAllowed = item.enabled && item.isSupported
+
         chainAccountChainIcon.load(item.chainIcon, imageLoader)
         chainAccountChainName.text = item.chainName
 
-        chainAccountAccountIcon.setImageDrawable(item.accountIcon)
-        chainAccountAccountAddress.text = item.address
+        chainAccountAccountAddress.text = if (item.isSupported) item.address else resources.getString(R.string.common_unsupported)
 
-        labeledTextAction.isVisible = item.enabled
-        if (item.enabled) {
+        labeledTextAction.isVisible = interactionAllowed
+        if (interactionAllowed) {
             labeledTextAction.setOnClickListener { handler.chainAccountOptionsClicked(item) }
 
             setOnClickListener { handler.chainAccountClicked(item) }
@@ -77,6 +80,16 @@ class ChainAccountHolder(view: View) : GroupedListHolder(view) {
             AccountInChain.From.META_ACCOUNT -> context.getCutLeftBottomCornerDrawableFromColors(context.getColor(R.color.white_50))
             else -> null
         }?.let(chainAccountNameBadge::setBackground)
+
+        if (item.isSupported) {
+            chainAccountAccountIcon.setImageDrawable(item.accountIcon)
+        } else {
+            (this as ViewGroup).children.forEach {
+                it.alpha = 0.4f
+            }
+            setOnClickListener { handler.chainAccountClicked(item) }
+            chainAccountAccountIcon.setImageResource(R.drawable.ic_warning_filled)
+        }
     }
 }
 

@@ -36,7 +36,8 @@ fun mapTokenToTokenModel(token: Token): TokenModel {
 
 fun mapAssetLocalToAsset(
     assetLocal: AssetWithToken,
-    chainAsset: Chain.Asset
+    chainAsset: Chain.Asset,
+    minSupportedVersion: String?
 ): Asset {
     return with(assetLocal) {
         Asset(
@@ -52,6 +53,7 @@ fun mapAssetLocalToAsset(
             redeemableInPlanks = asset.redeemableInPlanks.orZero(),
             sortIndex = asset.sortIndex,
             enabled = asset.enabled,
+            minSupportedVersion = minSupportedVersion,
             chainAccountName = asset.chainAccountName
         )
     }
@@ -73,7 +75,8 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             fiatAmount = fiatAmount,
             sortIndex = sortIndex,
             enabled = enabled,
-            chainAccountName = chainAccountName
+            minSupportedVersion = minSupportedVersion,
+            chainAccountName = chainAccountName,
         )
     }
 }

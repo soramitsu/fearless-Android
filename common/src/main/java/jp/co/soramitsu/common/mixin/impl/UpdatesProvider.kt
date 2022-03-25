@@ -11,13 +11,13 @@ import kotlinx.coroutines.sync.withLock
 
 class UpdatesProvider : UpdatesMixin {
     private val _assets = MutableLiveData<Set<AssetKey>>()
-    override val assets: LiveData<Set<AssetKey>> = _assets.distinctUntilChanged()
+    override val assetsUpdate: LiveData<Set<AssetKey>> = _assets.distinctUntilChanged()
 
     private val _tokenRates = MutableLiveData(emptySet<String>())
-    override val tokenRates: LiveData<Set<String>> = _tokenRates.distinctUntilChanged()
+    override val tokenRatesUpdate: LiveData<Set<String>> = _tokenRates.distinctUntilChanged()
 
     private val _chains = MutableLiveData<Set<String>>()
-    override val chains: LiveData<Set<String>> = _chains.distinctUntilChanged()
+    override val chainsUpdate: LiveData<Set<String>> = _chains.distinctUntilChanged()
 
     private val assetsCache = mutableSetOf<AssetKey>()
     private val tokensCache = mutableSetOf<String>()

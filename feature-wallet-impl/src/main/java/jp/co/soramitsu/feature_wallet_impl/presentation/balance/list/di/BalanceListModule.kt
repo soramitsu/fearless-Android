@@ -28,7 +28,7 @@ class BalanceListModule {
         addressIconGenerator: AddressIconGenerator,
         getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
         selectedFiat: SelectedFiat,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
     ): ViewModel {
         return BalanceListViewModel(
             interactor,
@@ -36,7 +36,7 @@ class BalanceListModule {
             router,
             getAvailableFiatCurrencies,
             selectedFiat,
-            updatesMixin
+            updatesMixin,
         )
     }
 

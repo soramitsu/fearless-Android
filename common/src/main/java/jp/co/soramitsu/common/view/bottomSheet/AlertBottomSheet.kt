@@ -15,6 +15,7 @@ class AlertBottomSheet(
     private val title: String,
     private val message: String,
     private val buttonText: String,
+    private val cancelable: Boolean,
     private val callback: () -> Unit
 ) : BottomSheetDialog(context) {
 
@@ -31,6 +32,8 @@ class AlertBottomSheet(
             callback()
             dismiss()
         }
+
+        setCancelable(cancelable)
     }
 
     class Builder(private val context: Context) {
@@ -38,6 +41,7 @@ class AlertBottomSheet(
         private var title: String = ""
         private var message: String = ""
         private var buttonText: String = ""
+        private var cancelable: Boolean = true
         private var callback: () -> Unit = {}
 
         fun setTitle(@StringRes titleRes: Int): Builder {
@@ -75,6 +79,11 @@ class AlertBottomSheet(
             return this
         }
 
-        fun build() = AlertBottomSheet(context, title, message, buttonText, callback)
+        fun setCancelable(cancelable: Boolean): Builder {
+            this.cancelable = cancelable
+            return this
+        }
+
+        fun build() = AlertBottomSheet(context, title, message, buttonText, cancelable, callback)
     }
 }

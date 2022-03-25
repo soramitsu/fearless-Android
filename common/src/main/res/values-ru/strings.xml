@@ -539,4 +539,10 @@
     <string name="json_export_type_file">Экспортировать в файл</string>
 
     <string name="fiat_chooser_title">Валюты</string>
+
+    <string name="common_update_needed">Требуется обновление</string>
+    <string name="unsupported_chain_alert_message">Эта сеть не поддерживается в текущей версии приложения. Пожалуйста, обновите приложение до последней версии.</string>
+
+    <string name="unsupported_app_version_alert_message">Данная версия приложения больше не поддерживается. Пожалуйста, обновите.</string>
+    <string name="common_unsupported">Не поддерживается</string>
 </resources>

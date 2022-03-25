@@ -15,7 +15,7 @@ sealed class PinCodeAction(open val toolbarConfiguration: ToolbarConfiguration) 
         PinCodeAction(ToolbarConfiguration(R.string.pincode_title_create, false))
 
     @Parcelize class Check(
-        val delayedNavigation: DelayedNavigation,
+        val delayedNavigation: DelayedNavigation?,
         override val toolbarConfiguration: ToolbarConfiguration
     ) : PinCodeAction(toolbarConfiguration)
 

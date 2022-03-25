@@ -27,7 +27,8 @@ class AssetUseCaseImpl(
         walletRepository.assetFlow(
             metaId = selectedMetaAccount.id,
             accountId = selectedMetaAccount.accountId(chain)!!,
-            chainAsset = chainAsset
+            chainAsset = chainAsset,
+            minSupportedVersion = chain.minSupportedVersion
         )
     }
 
