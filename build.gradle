@@ -69,7 +69,7 @@ buildscript {
 
         androidxCoreVersion = '1.7.0'
 
-        beaconVersion = "3.1.0-beta01"
+        beaconVersion = "3.1.0"
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
