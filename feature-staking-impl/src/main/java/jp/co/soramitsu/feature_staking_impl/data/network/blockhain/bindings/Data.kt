@@ -35,13 +35,13 @@ sealed class Data {
 fun bindData(dynamicInstance: Any?): Data {
     requireType<DictEnum.Entry<Any?>>(dynamicInstance)
 
-    return when (dynamicInstance.name) {
-        DataType.NONE -> Data.None
-        DataType.RAW -> Data.Raw(dynamicInstance.value.cast())
-        DataType.BLAKE_2B_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.BLAKE_2B_256)
-        DataType.SHA_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.SHA_256)
-        DataType.KECCAK_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.KECCAK_256)
-        DataType.SHA_3_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.SHA_3_256)
+    return when {
+        dynamicInstance.name == DataType.NONE -> Data.None
+        dynamicInstance.name.startsWith(DataType.RAW) -> Data.Raw(dynamicInstance.value.cast())
+        dynamicInstance.name == DataType.BLAKE_2B_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.BLAKE_2B_256)
+        dynamicInstance.name == DataType.SHA_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.SHA_256)
+        dynamicInstance.name == DataType.KECCAK_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.KECCAK_256)
+        dynamicInstance.name == DataType.SHA_3_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.SHA_3_256)
         else -> incompatible()
     }
 }
