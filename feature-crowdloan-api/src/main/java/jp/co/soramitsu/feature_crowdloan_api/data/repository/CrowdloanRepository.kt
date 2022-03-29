@@ -2,9 +2,9 @@ package jp.co.soramitsu.feature_crowdloan_api.data.repository
 
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundIndex
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
-import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.TrieIndex
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +22,7 @@ interface CrowdloanRepository {
 
     suspend fun getParachainMetadata(chain: Chain): Map<ParaId, ParachainMetadata>
 
-    suspend fun getContribution(chainId: ChainId, accountId: AccountId, paraId: ParaId, trieIndex: TrieIndex): Contribution?
+    suspend fun getContribution(chainId: ChainId, accountId: AccountId, paraId: ParaId, fundIndex: FundIndex): Contribution?
 
     suspend fun blocksPerLeasePeriod(chainId: ChainId): BigInteger
 
