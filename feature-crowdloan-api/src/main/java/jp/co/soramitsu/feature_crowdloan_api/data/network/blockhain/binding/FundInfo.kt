@@ -22,7 +22,7 @@ class FundInfo(
     val end: BigInteger,
     val cap: BigInteger,
     val verifier: Any?,
-    val trieIndex: TrieIndex,
+    val fundIndex: FundIndex,
     val paraId: ParaId,
     val bidderAccountId: AccountId
 )
@@ -42,7 +42,10 @@ fun bindFundInfo(scale: String, runtime: RuntimeSnapshot, paraId: ParaId): FundI
         firstSlot = bindNumber(dynamicInstance["firstPeriod"] ?: dynamicInstance["firstSlot"]),
         lastSlot = bindNumber(dynamicInstance["lastPeriod"] ?: dynamicInstance["lastSlot"]),
         verifier = dynamicInstance["verifier"],
-        trieIndex = bindTrieIndex(dynamicInstance["trieIndex"]),
+        fundIndex = when {
+            dynamicInstance.get<BigInteger>("fundIndex") != null -> bindNumber(dynamicInstance["fundIndex"])
+            else -> bindNumber(dynamicInstance["trieIndex"])
+        },
         bidderAccountId = createBidderAccountId(runtime, paraId),
         paraId = paraId
     )

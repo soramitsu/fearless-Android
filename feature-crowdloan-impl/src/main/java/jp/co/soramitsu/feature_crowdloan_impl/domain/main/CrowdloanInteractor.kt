@@ -81,7 +81,7 @@ class CrowdloanInteractor(
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(chainId).map { currentBlockNumber ->
                 val fundInfos = crowdloanRepository.allFundInfos(chainId)
 
-                val contributionKeys = fundInfos.mapValues { (_, fundInfo) -> fundInfo.trieIndex }
+                val contributionKeys = fundInfos.mapValues { (_, fundInfo) -> fundInfo.fundIndex }
 
                 val contributions = crowdloanRepository.getContributions(chainId, accountId, contributionKeys)
                 val winnerInfo = crowdloanRepository.getWinnerInfo(chainId, fundInfos)

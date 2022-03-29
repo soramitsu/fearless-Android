@@ -44,7 +44,7 @@ class MoonbeamContributeInteractor(
     suspend fun getContributionSignature(apiUrl: String, apiKey: String, contribution: BigInteger, paraId: ParaId, chainId: ChainId): String {
         val accountId = accountRepository.getSelectedAccount(chainId).accountId
         val fundInfo = crowdloanRepository.fundInfoFlow(chainId, paraId).first()
-        val prevContribution = crowdloanRepository.getContribution(chainId, accountId, paraId, fundInfo.trieIndex)
+        val prevContribution = crowdloanRepository.getContribution(chainId, accountId, paraId, fundInfo.fundIndex)
         val randomGuid = ByteArray(10) { (0..20).random().toByte() }.toHexString(false)
         val response = runCatching {
             moonbeamApi.makeSignature(
