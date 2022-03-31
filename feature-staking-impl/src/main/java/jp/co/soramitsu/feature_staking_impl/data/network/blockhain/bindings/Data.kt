@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
-
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Data as DataType
 
 sealed class Data {
@@ -37,7 +36,18 @@ fun bindData(dynamicInstance: Any?): Data {
 
     return when {
         dynamicInstance.name == DataType.NONE -> Data.None
-        dynamicInstance.name.startsWith(DataType.RAW) -> Data.Raw(dynamicInstance.value.cast())
+        dynamicInstance.name.startsWith(DataType.RAW) -> {
+            val value = dynamicInstance.value
+            val byteArray = when {
+                value is ArrayList<*> && value.getOrNull(0) is Number -> {
+                    value.map { (it as Number).toByte() }.toByteArray()
+                }
+                value is ArrayList<*> -> incompatible()
+                else -> value
+            }
+
+            Data.Raw(byteArray.cast())
+        }
         dynamicInstance.name == DataType.BLAKE_2B_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.BLAKE_2B_256)
         dynamicInstance.name == DataType.SHA_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.SHA_256)
         dynamicInstance.name == DataType.KECCAK_256 -> Data.Hash(dynamicInstance.value.cast(), Data.Hash.Type.KECCAK_256)
