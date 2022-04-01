@@ -538,4 +538,6 @@
 
     <string name="common_connect">Подключиться</string>
     <string name="beacon_connected_to">Подключено к</string>
+    <string name="common_are_you_sure">Вы уверены?</string>
+    <string name="beacon_exit_message">Вы хотите закрыть это подключение?</string>
 </resources>

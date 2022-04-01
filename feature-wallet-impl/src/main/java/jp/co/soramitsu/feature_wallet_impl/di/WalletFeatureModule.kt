@@ -258,6 +258,7 @@ class WalletFeatureModule {
         gson: Gson,
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
+        preferences: Preferences
 //        feeEstimator: FeeEstimator
-    ) = BeaconInteractor(gson, accountRepository, chainRegistry)
+    ) = BeaconInteractor(gson, accountRepository, chainRegistry, preferences)
 }

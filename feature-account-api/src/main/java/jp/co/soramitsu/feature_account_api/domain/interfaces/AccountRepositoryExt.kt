@@ -38,7 +38,6 @@ suspend fun AccountRepository.signWithMetaAccount(account: MetaAccount, message:
     Signer.sign(MultiChainEncryption.Substrate(encryptionType), message, keypair).signature
 }
 
-
 suspend fun AccountRepository.signWithCurrentMetaAccount(message: ByteArray) = withContext(Dispatchers.Default) {
     signWithMetaAccount(getSelectedMetaAccount(), message)
 }

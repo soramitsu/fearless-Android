@@ -596,4 +596,6 @@ to your account to avoid remaining stake.</string>
 
     <string name="common_connect">Connect</string>
     <string name="beacon_connected_to">Connected to</string>
+    <string name="common_are_you_sure">Are you sure?</string>
+    <string name="beacon_exit_message">Do you want to close this connection?</string>
 </resources>

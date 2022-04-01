@@ -46,7 +46,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
     }
 
     sealed class SideEffect {
-        class AskPermissionsApproval(val dAppName: String) : SideEffect()
+        class AskPermissionsApproval(val request: PermissionSubstrateRequest) : SideEffect()
 
         class AskSignApproval(val request: SignPayloadSubstrateRequest) : SideEffect()
 
@@ -70,7 +70,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
             is Event.ReceivedPermissionsRequest -> when (state) {
                 is State.Connected -> {
-                    sideEffect(SideEffect.AskPermissionsApproval(event.request.appMetadata.name))
+                    sideEffect(SideEffect.AskPermissionsApproval(event.request))
 
                     State.AwaitingPermissionsApproval(event.request, state.dAppMetadata)
                 }

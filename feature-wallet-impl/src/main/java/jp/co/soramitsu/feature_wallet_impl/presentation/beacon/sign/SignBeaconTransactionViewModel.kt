@@ -1,13 +1,12 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign
 
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -22,18 +21,24 @@ import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignableOperation
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.WithAmount
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
-class SignableOperationModel(
-    val module: String,
-    val call: String,
-    val amount: AmountModel?,
-    val rawData: String
-)
+sealed class SignableOperationModel {
+    data class Success(
+        val module: String,
+        val call: String,
+        val amount: AmountModel?,
+        val rawData: String
+    ) : SignableOperationModel()
+
+    object Failure : SignableOperationModel()
+}
 
 class SignBeaconTransactionViewModel(
     private val beaconInteractor: BeaconInteractor,
@@ -55,30 +60,29 @@ class SignBeaconTransactionViewModel(
         .share()
 
     private val decodedOperation = flow {
-        if (payloadToSign.isEmpty()) {
+        val result = if (payloadToSign.isEmpty()) {
             showMessage(resourceManager.getString(R.string.common_cannot_decode_transaction))
+            Result.failure(IllegalArgumentException())
+        } else beaconInteractor.decodeOperation(payloadToSign)
 
-            exit()
-            return@flow
-        }
-        val result = beaconInteractor.decodeOperation(payloadToSign)
-
-        if (result.isSuccess) {
-            emit(result.getOrThrow())
-        } else {
-            showMessage(resourceManager.getString(R.string.common_cannot_decode_transaction))
-
-            exit()
-        }
+        emit(result)
     }
 
     init {
         loadFee()
     }
 
+    private val currentAssetFlow: Flow<Asset?> = flowOf {
+        beaconInteractor.getBeaconRegisteredChain()
+    }.flatMapLatest {
+        it ?: flowOf { null }
+        val assetId = it!!.assets.first().symbol.lowercase()
+        interactor.assetFlow(it.id, assetId)
+    }
+
     val operationModel = combine(
         decodedOperation,
-        interactor.assetFlow(polkadotChainId, "dot"), //0 is polkadot asset id
+        currentAssetFlow,
         ::mapOperationToOperationModel
     )
 
@@ -89,7 +93,8 @@ class SignBeaconTransactionViewModel(
     }
 
     private fun loadFee() {
-        decodedOperation.onEach { operation ->
+        decodedOperation.onEach { result ->
+            val operation = result.getOrNull() ?: return@onEach
             feeLoaderProvider.loadFee(
                 viewModelScope,
                 feeConstructor = {
@@ -102,12 +107,14 @@ class SignBeaconTransactionViewModel(
         }.launchIn(viewModelScope)
     }
 
-    private fun mapOperationToOperationModel(operation: SignableOperation, asset: Asset): SignableOperationModel {
+    private fun mapOperationToOperationModel(operationResult: Result<SignableOperation>, asset: Asset?): SignableOperationModel {
+        val operation = operationResult.getOrNull() ?: return SignableOperationModel.Failure
+        asset ?: return SignableOperationModel.Failure
         val amountModel = (operation as? WithAmount)?.let {
             mapAmountToAmountModel(it.amount, asset)
         }
 
-        return SignableOperationModel(
+        return SignableOperationModel.Success(
             module = operation.module,
             call = operation.call,
             amount = amountModel,

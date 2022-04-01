@@ -3,11 +3,11 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.google.gson.Gson
 import dev.chrisbanes.insetter.applyInsetter
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.view.dialog.warningDialog
 import jp.co.soramitsu.common.view.setFromAddressModel
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -31,12 +31,8 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
 
         const val SIGN_RESULT_KEY = "SIGN_STATUS_KEY"
 
-//        fun getBundle(payload: String) = Bundle().apply {
-//            putString(SIGN_PAYLOAD_KEY, payload)
-//        }
-
         fun getBundle(payload: SubstrateSignerPayload) = Bundle().apply {
-            val result = when(payload) {
+            val result = when (payload) {
                 is SubstrateSignerPayload.Raw -> {
                     payload.data
                 }
@@ -70,7 +66,7 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
             requireContext(),
             onConfirm = { viewModel.exit() }
         ) {
-            setTitle("R.string.common_are_you_sure")
+            setTitle(R.string.common_are_you_sure)
             setMessage(R.string.beacon_decline_signing_message)
         }
     }
@@ -87,12 +83,23 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
 
     override fun subscribe(viewModel: SignBeaconTransactionViewModel) {
         viewModel.operationModel.observe {
-            signBeaconTransactionModule.showValue(it.module)
-            signBeaconTransactionCall.showValue(it.call)
+            when (it) {
+                is SignableOperationModel.Success -> {
+                    signBeaconTransactionModule.showValue(it.module)
+                    signBeaconTransactionCall.showValue(it.call)
 
-            signBeaconTransactionAmount.showValueOrHide(it.amount?.token, it.amount?.fiat)
+                    signBeaconTransactionAmount.showValueOrHide(it.amount?.token, it.amount?.fiat)
 
-            signBeaconTransactionRawData.setMessage(it.rawData)
+                    signBeaconTransactionRawData.setMessage(it.rawData)
+                }
+                is SignableOperationModel.Failure -> {
+                    signBeaconTransactionModule.makeGone()
+                    signBeaconTransactionCall.makeGone()
+                    signBeaconTransactionAmount.makeGone()
+                    signBeaconTransactionRawData.makeGone()
+                    signBeaconTransactionFee.makeGone()
+                }
+            }
         }
 
         viewModel.feeLiveData.observe(signBeaconTransactionFee::setFeeStatus)

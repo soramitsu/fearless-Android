@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     android:id="@+id/signBeaconTransactionContainer"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:background="@color/black">
@@ -39,48 +39,52 @@
                 app:drawableTint="@color/black2" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/signBeaconTransactionOrigin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:id="@+id/signBeaconTransactionOrigin"
                 android:layout_marginEnd="16dp"
                 app:actionIcon="@drawable/ic_more_vertical"
                 app:label="@string/transaction_details_from" />
 
             <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/signBeaconTransactionModule"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                tools:visibility="gone"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="24dp"
                 android:layout_marginEnd="16dp"
-                android:id="@+id/signBeaconTransactionModule"
                 app:title="@string/common_module" />
 
             <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/signBeaconTransactionCall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                tools:visibility="gone"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:id="@+id/signBeaconTransactionCall"
                 app:title="@string/common_call" />
 
             <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/signBeaconTransactionAmount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                tools:visibility="gone"
                 android:layout_marginStart="16dp"
-                android:id="@+id/signBeaconTransactionAmount"
                 android:layout_marginEnd="16dp"
                 app:title="@string/common_amount" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
+                android:id="@+id/signBeaconTransactionRawData"
                 android:layout_width="match_parent"
+                tools:visibility="gone"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:singleLine="false"
-                android:id="@+id/signBeaconTransactionRawData"
                 app:actionIcon="@null"
                 app:label="@string/common_transaction_raw_data" />
 
@@ -97,6 +101,7 @@
             android:id="@+id/signBeaconTransactionFee"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            tools:visibility="gone"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp" />
 

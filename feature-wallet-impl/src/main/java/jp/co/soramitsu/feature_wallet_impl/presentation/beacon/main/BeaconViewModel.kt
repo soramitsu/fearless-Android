@@ -83,7 +83,9 @@ class BeaconViewModel(
                 }
 
                 is SideEffect.AskPermissionsApproval -> {
-                    _showPermissionRequestSheet.value = Event(it.dAppName)
+                    // todo think about multiple networks
+                    beaconInteractor.registerNetwork(it.request.networks.first().genesisHash)
+                    _showPermissionRequestSheet.value = Event(it.request.appMetadata.name)
                 }
 
                 is SideEffect.AskSignApproval -> {

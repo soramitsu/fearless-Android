@@ -18,6 +18,7 @@ import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.isTransfer
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -28,6 +29,7 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentMetaAccount
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +49,7 @@ class BeaconInteractor(
     private val gson: Gson,
     private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
+    private val preferences: Preferences
 //    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
 //    private val feeEstimator: FeeEstimator
 ) {
@@ -85,9 +88,11 @@ class BeaconInteractor(
     }
 
     suspend fun decodeOperation(operation: String): Result<SignableOperation> = runCatching {
-        val runtime = chainRegistry.getRuntime(polkadotChainId) //todo stub
+        val currentRegisteredNetwork = getBeaconRegisteredNetwork()
+        requireNotNull(currentRegisteredNetwork)
+        val runtime = chainRegistry.getRuntime(currentRegisteredNetwork)
         val call = GenericCall.fromHex(runtime, operation)
-
+        hashCode()
         mapCallToSignableOperation(call)
     }
 
@@ -172,5 +177,16 @@ class BeaconInteractor(
 //                call(operation.module, operation.call, operation.args)
 //            }
 //        }
+    }
+
+    fun registerNetwork(chainId: String) {
+        preferences.putString("BEACON_REGISTERED_NETWORK_CHAIN_ID", chainId)
+    }
+
+    fun getBeaconRegisteredNetwork(): String? = preferences.getString("BEACON_REGISTERED_NETWORK_CHAIN_ID")
+
+    suspend fun getBeaconRegisteredChain() : Chain? {
+        val chainId = getBeaconRegisteredNetwork() ?: return null
+        return chainRegistry.getChain(chainId)
     }
 }

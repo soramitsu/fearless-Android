@@ -59,8 +59,8 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
             requireContext(),
             onConfirm = { viewModel.exit() }
         ) {
-            setTitle("common_are_you_sure")//(R.string.common_are_you_sure)
-            setMessage("beacon_exit_message")//(R.string.beacon_exit_message)
+            setTitle(R.string.common_are_you_sure)
+            setMessage(R.string.beacon_exit_message)
         }
     }
 
