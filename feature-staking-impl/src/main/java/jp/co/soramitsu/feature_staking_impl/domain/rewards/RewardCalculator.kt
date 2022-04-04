@@ -1,13 +1,13 @@
 package jp.co.soramitsu.feature_staking_impl.domain.rewards
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumByBigInteger
+import kotlin.math.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import kotlin.math.pow
 
 private const val PARACHAINS_ENABLED = false
 
@@ -27,10 +27,10 @@ class PeriodReturns(
     val gainPercentage: BigDecimal
 )
 
-class RewardCalculator(
+class ManualRewardCalculator(
     val validators: List<RewardCalculationTarget>,
     val totalIssuance: BigInteger
-) {
+) : RewardCalculator {
 
     private val totalStaked = validators.sumByBigInteger(RewardCalculationTarget::totalStake).toDouble()
 
@@ -76,17 +76,17 @@ class RewardCalculator(
 
     private val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
 
-    suspend fun calculateMaxAPY() = calculateReturns(amount = BigDecimal.ONE, DAYS_IN_YEAR, isCompound = true).gainPercentage
+    override suspend fun calculateMaxAPY() = calculateReturns(amount = BigDecimal.ONE, DAYS_IN_YEAR, isCompound = true).gainPercentage
 
-    fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
+    override fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
 
-    fun getApyFor(targetIdHex: String): BigDecimal {
+    override fun getApyFor(targetIdHex: String): BigDecimal {
         val apy = apyByValidator[targetIdHex] ?: expectedAPY
 
         return apy.toBigDecimal()
     }
 
-    suspend fun calculateReturns(
+    override suspend fun calculateReturns(
         amount: BigDecimal,
         days: Int,
         isCompound: Boolean
@@ -96,7 +96,7 @@ class RewardCalculator(
         calculateReward(amount.toDouble(), days, dailyPercentage, isCompound)
     }
 
-    suspend fun calculateReturns(
+    override suspend fun calculateReturns(
         amount: Double,
         days: Int,
         isCompound: Boolean,
@@ -138,5 +138,50 @@ class RewardCalculator(
 
     private fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
         return amount.toBigDecimal() * ((1 + dailyPercentage).toBigDecimal().pow(days)) - amount.toBigDecimal()
+    }
+}
+
+interface RewardCalculator {
+
+    suspend fun calculateMaxAPY(): BigDecimal
+
+    fun calculateAvgAPY(): BigDecimal
+
+    fun getApyFor(targetIdHex: String): BigDecimal
+
+    suspend fun calculateReturns(
+        amount: BigDecimal,
+        days: Int,
+        isCompound: Boolean
+    ): PeriodReturns
+
+    suspend fun calculateReturns(
+        amount: Double,
+        days: Int,
+        isCompound: Boolean,
+        targetIdHex: String
+    ): PeriodReturns
+}
+
+class SubqueryRewardCalculator : RewardCalculator {
+
+    override suspend fun calculateMaxAPY(): BigDecimal {
+        return BigDecimal.ZERO
+    }
+
+    override fun calculateAvgAPY(): BigDecimal {
+        return BigDecimal.ZERO
+    }
+
+    override fun getApyFor(targetIdHex: String): BigDecimal {
+        return BigDecimal.ZERO
+    }
+
+    override suspend fun calculateReturns(amount: BigDecimal, days: Int, isCompound: Boolean): PeriodReturns {
+        return PeriodReturns(BigDecimal.ZERO, BigDecimal.ZERO)
+    }
+
+    override suspend fun calculateReturns(amount: Double, days: Int, isCompound: Boolean, targetIdHex: String): PeriodReturns {
+        return PeriodReturns(BigDecimal.ZERO, BigDecimal.ZERO)
     }
 }

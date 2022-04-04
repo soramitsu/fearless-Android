@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
 
@@ -117,6 +118,11 @@ class AlertsInteractor(
 
     fun getAlertsFlow(stakingState: StakingState): Flow<List<Alert>> = flow {
         val (chain, chainAsset) = sharedState.chainAndAsset()
+
+        if (chainAsset.staking != Chain.Asset.StakingType.RELAYCHAIN) {
+            emit(emptyList())
+            return@flow
+        }
 
         val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id)
         val minimumNominatorBond = stakingRepository.minimumNominatorBond(chain.id)

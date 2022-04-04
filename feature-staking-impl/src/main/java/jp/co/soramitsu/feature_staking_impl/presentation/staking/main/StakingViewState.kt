@@ -34,6 +34,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -255,36 +256,69 @@ private fun getNominatorStatusTitleAndMessage(
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
-class WelcomeViewState(
-    private val setupStakingSharedState: SetupStakingSharedState,
-    private val rewardCalculatorFactory: RewardCalculatorFactory,
-    private val resourceManager: ResourceManager,
-    private val router: StakingRouter,
-    private val accountStakingState: StakingState.NonStash,
-    private val currentAssetFlow: Flow<Asset>,
-    private val scope: CoroutineScope,
-    private val errorDisplayer: (String) -> Unit,
-    private val validationSystem: WelcomeStakingValidationSystem,
-    private val validationExecutor: ValidationExecutor
+sealed class WelcomeViewState(
+    protected val setupStakingSharedState: SetupStakingSharedState,
+    protected val rewardCalculatorFactory: RewardCalculatorFactory,
+    protected val resourceManager: ResourceManager,
+    protected val router: StakingRouter,
+    currentAssetFlow: Flow<Asset>,
+    protected val scope: CoroutineScope,
+    protected val errorDisplayer: (String) -> Unit,
+    protected val validationSystem: WelcomeStakingValidationSystem,
+    protected val validationExecutor: ValidationExecutor
 ) : StakingViewState(), Validatable by validationExecutor {
 
-    private val currentSetupProgress = setupStakingSharedState.get<SetupStakingProcess.Initial>()
+    protected val currentSetupProgress = setupStakingSharedState.get<SetupStakingProcess.Initial>()
 
     val enteredAmountFlow = MutableStateFlow(currentSetupProgress.defaultAmount.toString())
 
-    private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
+    protected val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
+
+    protected abstract val rewardCalculator: Deferred<RewardCalculator>
+
+    abstract val returns: LiveData<ReturnsModel>
+
+    abstract fun infoActionClicked()
+    abstract fun nextClicked()
+
+    protected val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
+    val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
+
+    protected suspend fun rewardCalculator(): RewardCalculator {
+        return rewardCalculator.await()
+    }
 
     val assetLiveData = currentAssetFlow.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData(scope)
 
     val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol) }
         .asLiveData(scope)
+}
 
-    private val rewardCalculator = scope.async { rewardCalculatorFactory.create() }
+class RelaychainWelcomeViewState(
+    setupStakingSharedState: SetupStakingSharedState,
+    rewardCalculatorFactory: RewardCalculatorFactory,
+    resourceManager: ResourceManager,
+    router: StakingRouter,
+    currentAssetFlow: Flow<Asset>,
+    scope: CoroutineScope,
+    errorDisplayer: (String) -> Unit,
+    validationSystem: WelcomeStakingValidationSystem,
+    validationExecutor: ValidationExecutor
+) : WelcomeViewState(
+    setupStakingSharedState,
+    rewardCalculatorFactory,
+    resourceManager,
+    router,
+    currentAssetFlow,
+    scope,
+    errorDisplayer,
+    validationSystem,
+    validationExecutor
+) {
 
-    private val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
-    val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
+    override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual() }
 
-    val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+    override val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
 
@@ -294,7 +328,7 @@ class WelcomeViewState(
         ReturnsModel(monthlyEstimation, yearlyEstimation)
     }.asLiveData(scope)
 
-    fun infoActionClicked() {
+    override fun infoActionClicked() {
         scope.launch {
             val rewardCalculator = rewardCalculator()
 
@@ -310,7 +344,7 @@ class WelcomeViewState(
         }
     }
 
-    fun nextClicked() {
+    override fun nextClicked() {
         scope.launch {
             val payload = WelcomeStakingValidationPayload()
             val amount = parsedAmountFlow.first()
@@ -327,8 +361,66 @@ class WelcomeViewState(
             }
         }
     }
+}
 
-    private suspend fun rewardCalculator(): RewardCalculator {
-        return rewardCalculator.await()
+class ParachainWelcomeViewState(
+    setupStakingSharedState: SetupStakingSharedState,
+    rewardCalculatorFactory: RewardCalculatorFactory,
+    resourceManager: ResourceManager,
+    router: StakingRouter,
+    currentAssetFlow: Flow<Asset>,
+    scope: CoroutineScope,
+    errorDisplayer: (String) -> Unit,
+    validationSystem: WelcomeStakingValidationSystem,
+    validationExecutor: ValidationExecutor
+) : WelcomeViewState(
+    setupStakingSharedState,
+    rewardCalculatorFactory,
+    resourceManager,
+    router,
+    currentAssetFlow,
+    scope,
+    errorDisplayer,
+    validationSystem,
+    validationExecutor
+) {
+
+    override val rewardCalculator = scope.async { rewardCalculatorFactory.createSubquery() }
+
+    override val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
+        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
+
+        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
+        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
+
+        ReturnsModel(monthlyEstimation, yearlyEstimation)
+    }.asLiveData(scope)
+
+    override fun infoActionClicked() {
+        scope.launch {
+            val rewardCalculator = rewardCalculator()
+
+            val maxAPY = rewardCalculator.calculateMaxAPY()
+            val avgAPY = rewardCalculator.calculateAvgAPY()
+
+            val payload = StakingRewardEstimationBottomSheet.Payload(
+                maxAPY.formatAsPercentage(),
+                avgAPY.formatAsPercentage()
+            )
+
+            _showRewardEstimationEvent.value = Event(payload)
+        }
+    }
+
+    override fun nextClicked() {
+        scope.launch {
+            val amount = parsedAmountFlow.first()
+            setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
+            router.openSetupStaking()
+        }
     }
 }
+
+object DelegatorViewState : StakingViewState()
+object CollatorViewState : StakingViewState()

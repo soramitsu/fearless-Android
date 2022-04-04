@@ -15,10 +15,10 @@ class RewardCalculatorFactory(
     private val sharedState: StakingSharedState,
 ) {
 
-    suspend fun create(
+    suspend fun createManual(
         exposures: AccountIdMap<Exposure>,
         validatorsPrefs: AccountIdMap<ValidatorPrefs?>
-    ): RewardCalculator = withContext(Dispatchers.Default) {
+    ): ManualRewardCalculator = withContext(Dispatchers.Default) {
         val chainId = sharedState.chainId()
 
         val totalIssuance = stakingRepository.getTotalIssuance(chainId)
@@ -36,18 +36,22 @@ class RewardCalculatorFactory(
             )
         }
 
-        RewardCalculator(
+        ManualRewardCalculator(
             validators = validators,
             totalIssuance = totalIssuance
         )
     }
 
-    suspend fun create(): RewardCalculator = withContext(Dispatchers.Default) {
+    suspend fun createManual(): ManualRewardCalculator = withContext(Dispatchers.Default) {
         val chainId = sharedState.chainId()
 
         val exposures = stakingRepository.getActiveElectedValidatorsExposures(chainId)
         val validatorsPrefs = stakingRepository.getValidatorPrefs(chainId, exposures.keys.toList())
 
-        create(exposures, validatorsPrefs)
+        createManual(exposures, validatorsPrefs)
+    }
+
+    fun createSubquery(): SubqueryRewardCalculator {
+        return SubqueryRewardCalculator()
     }
 }
