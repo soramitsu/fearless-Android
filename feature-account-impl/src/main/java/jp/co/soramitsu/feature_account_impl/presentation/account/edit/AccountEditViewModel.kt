@@ -29,7 +29,6 @@ class AccountEditViewModel(
         launch {
             dragAndDropDelegate.unsyncedSwapLiveData.value?.let {
                 val idsInNewOrder = it.map(LightMetaAccountUi::id)
-                hashCode()
                 accountInteractor.updateAccountPositionsInNetwork(idsInNewOrder)
             }
 

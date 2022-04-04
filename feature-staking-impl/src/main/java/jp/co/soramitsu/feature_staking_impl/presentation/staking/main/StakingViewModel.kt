@@ -96,12 +96,15 @@ class StakingViewModel(
     private val selectedChain = interactor.selectedChainFlow()
         .share()
 
-    val networkInfoStateLiveData = selectedChain
+    val networkInfoStateLiveData = selectionState
         .distinctUntilChanged()
-        .withLoading { chain ->
-            interactor.observeNetworkInfoState(chain.id).combine(assetSelectorMixin.selectedAssetFlow) { networkInfo, asset ->
-                transformNetworkInfo(asset, networkInfo)
-            }
+        .withLoading {
+            val chain = it.second.chain
+            val stakingType = it.second.asset.staking
+            interactor.observeNetworkInfoState(chain.id, stakingType)
+                .combine(assetSelectorMixin.selectedAssetFlow) { networkInfo, asset ->
+                    transformNetworkInfo(asset, networkInfo)
+                }
         }
         .inBackground()
         .asLiveData()
@@ -240,13 +243,19 @@ class StakingViewModel(
 
         is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(
             assetSelectorMixin.selectedAssetFlow,
-            accountStakingState,
             stakingStateScope,
             ::showError
         )
 
         is StakingState.Stash.Validator -> stakingViewStateFactory.createValidatorViewState(
             accountStakingState,
+            assetSelectorMixin.selectedAssetFlow,
+            stakingStateScope,
+            ::showError
+        )
+        is StakingState.Parachain.Collator -> stakingViewStateFactory.createCollatorViewState()
+        is StakingState.Parachain.Delegator -> stakingViewStateFactory.createDelegatorViewState()
+        is StakingState.Parachain.None -> stakingViewStateFactory.createParachainWelcomeViewState(
             assetSelectorMixin.selectedAssetFlow,
             stakingStateScope,
             ::showError
@@ -259,11 +268,6 @@ class StakingViewModel(
     }
 
     private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {
-        val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-        val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
-
-        val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
-
         val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
         val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
 
@@ -272,15 +276,25 @@ class StakingViewModel(
         val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
             .format(networkInfo.lockupPeriodInDays)
 
-        return with(networkInfo) {
-            StakingNetworkInfoModel(
-                lockupPeriod,
-                minimumStakeFormatted,
-                minimumStakeFiat,
-                totalStakeFormatted,
-                totalStakeFiat,
-                nominatorsCount.format()
-            )
+        return when (networkInfo) {
+            is NetworkInfo.RelayChain -> {
+                val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
+                val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
+
+                val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
+
+                StakingNetworkInfoModel.RelayChain(
+                    lockupPeriod,
+                    minimumStakeFormatted,
+                    minimumStakeFiat,
+                    totalStakeFormatted,
+                    totalStakeFiat,
+                    networkInfo.nominatorsCount.format()
+                )
+            }
+            is NetworkInfo.Parachain -> {
+                StakingNetworkInfoModel.Parachain(lockupPeriod, minimumStakeFormatted, minimumStakeFiat)
+            }
         }
     }
 
