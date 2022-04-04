@@ -87,7 +87,7 @@ class SetupStakingViewModel(
         .flowOn(Dispatchers.Default)
         .asLiveData()
 
-    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
+    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.createManual() }
 
     init {
         loadFee()

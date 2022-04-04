@@ -90,6 +90,8 @@ fun Module.constantOrNull(name: String) = constants[name]
 
 fun RuntimeMetadata.staking() = module(Modules.STAKING)
 
+fun RuntimeMetadata.parachainStaking() = module(Modules.PARACHAIN_STAKING)
+
 fun RuntimeMetadata.system() = module(Modules.SYSTEM)
 
 fun RuntimeMetadata.tokens() = module(Modules.TOKENS)
@@ -142,6 +144,7 @@ private fun cropSeedTo32Bytes(seedResult: SeedFactory.Result): SeedFactory.Resul
 
 object Modules {
     const val STAKING = "Staking"
+    const val PARACHAIN_STAKING = "ParachainStaking"
     const val BALANCES = "Balances"
     const val SYSTEM = "System"
     const val CROWDLOAN = "Crowdloan"
