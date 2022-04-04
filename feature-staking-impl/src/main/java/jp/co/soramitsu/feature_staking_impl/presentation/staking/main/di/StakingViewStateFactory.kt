@@ -8,10 +8,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.CollatorViewState
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.DelegatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.NominatorViewState
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.ParachainWelcomeViewState
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StashNoneViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.ValidatorViewState
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.WelcomeViewState
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.RelaychainWelcomeViewState
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -58,15 +62,29 @@ class StakingViewStateFactory(
 
     fun createWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
-        accountStakingState: StakingState.NonStash,
         scope: CoroutineScope,
         errorDisplayer: (String) -> Unit
-    ) = WelcomeViewState(
+    ) = RelaychainWelcomeViewState(
         setupStakingSharedState,
         rewardCalculatorFactory,
         resourceManager,
         router,
-        accountStakingState,
+        currentAssetFlow,
+        scope,
+        errorDisplayer,
+        welcomeStakingValidationSystem,
+        validationExecutor
+    )
+
+    fun createParachainWelcomeViewState(
+        currentAssetFlow: Flow<Asset>,
+        scope: CoroutineScope,
+        errorDisplayer: (String) -> Unit
+    ) = ParachainWelcomeViewState(
+        setupStakingSharedState,
+        rewardCalculatorFactory,
+        resourceManager,
+        router,
         currentAssetFlow,
         scope,
         errorDisplayer,
@@ -88,4 +106,12 @@ class StakingViewStateFactory(
         errorDisplayer = errorDisplayer,
         resourceManager = resourceManager
     )
+
+    fun createCollatorViewState(): StakingViewState {
+        return CollatorViewState
+    }
+
+    fun createDelegatorViewState(): StakingViewState {
+        return DelegatorViewState
+    }
 }

@@ -36,6 +36,7 @@ private fun mapStakingStringToStakingType(stakingString: String?): Chain.Asset.S
     return when (stakingString) {
         null -> Chain.Asset.StakingType.UNSUPPORTED
         "relaychain" -> Chain.Asset.StakingType.RELAYCHAIN
+        "parachain" -> Chain.Asset.StakingType.PARACHAIN
         else -> Chain.Asset.StakingType.UNSUPPORTED
     }
 }

@@ -58,7 +58,7 @@ data class Chain(
     ) {
 
         enum class StakingType {
-            UNSUPPORTED, RELAYCHAIN
+            UNSUPPORTED, RELAYCHAIN, PARACHAIN
         }
 
         val symbol: String

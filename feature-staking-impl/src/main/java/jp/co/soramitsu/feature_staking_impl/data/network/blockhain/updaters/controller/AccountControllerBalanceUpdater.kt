@@ -38,7 +38,7 @@ class AccountControllerBalanceUpdater(
         val runtime = chainRegistry.getRuntime(chain.id)
 
         val accountStaking = scope.getAccountStaking()
-        val stakingAccessInfo = accountStaking.stakingAccessInfo ?: return emptyFlow()
+        val stakingAccessInfo = accountStaking?.stakingAccessInfo ?: return emptyFlow()
 
         val controllerId = stakingAccessInfo.controllerId
         val stashId = stakingAccessInfo.stashId

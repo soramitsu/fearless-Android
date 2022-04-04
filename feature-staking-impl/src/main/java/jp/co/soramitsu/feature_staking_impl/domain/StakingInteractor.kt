@@ -42,11 +42,13 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chain
-import jp.co.soramitsu.runtime.state.chainAsset
+import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
+import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -55,6 +57,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -176,21 +179,41 @@ class StakingInteractor(
         }
     }
 
-    suspend fun observeNetworkInfoState(chainId: ChainId): Flow<NetworkInfo> = withContext(Dispatchers.Default) {
+    suspend fun observeNetworkInfoState(chainId: ChainId, stakingType: Chain.Asset.StakingType): Flow<NetworkInfo> = withContext(Dispatchers.Default) {
+        when (stakingType) {
+            Chain.Asset.StakingType.UNSUPPORTED -> throw IllegalArgumentException("Staking is unsupported for this chain")
+            Chain.Asset.StakingType.RELAYCHAIN -> observeRelaychainNetworkInfoState(chainId)
+            Chain.Asset.StakingType.PARACHAIN -> observeParachainNetworkInfoState(chainId)
+        }
+    }
+
+    private suspend fun observeRelaychainNetworkInfoState(chainId: ChainId): Flow<NetworkInfo> {
         val lockupPeriod = getLockupPeriodInDays(chainId)
 
-        stakingRepository.electedExposuresInActiveEra(chainId).map { exposuresMap ->
+        return stakingRepository.electedExposuresInActiveEra(chainId).map { exposuresMap ->
             val exposures = exposuresMap.values
 
             val minimumNominatorBond = stakingRepository.minimumNominatorBond(chainId)
 
-            NetworkInfo(
+            NetworkInfo.RelayChain(
                 lockupPeriodInDays = lockupPeriod,
                 minimumStake = minimumStake(exposures, minimumNominatorBond),
                 totalStake = totalStake(exposures),
                 nominatorsCount = activeNominators(chainId, exposures),
             )
         }
+    }
+
+    private suspend fun observeParachainNetworkInfoState(chainId: ChainId): Flow<NetworkInfo> {
+        val lockupPeriod = getParachainLockupPeriodInDays(chainId)
+        val minimumStakeInPlanks = stakingConstantsRepository.parachainMinimumStaking(chainId)
+
+        return flowOf(
+            NetworkInfo.Parachain(
+                lockupPeriodInDays = lockupPeriod,
+                minimumStake = minimumStakeInPlanks
+            )
+        )
     }
 
     suspend fun getMinimumStake(chainId: ChainId): BigInteger {
@@ -204,6 +227,8 @@ class StakingInteractor(
     }
 
     fun selectedChainFlow() = stakingSharedState.assetWithChain.map { it.chain }
+
+    fun selectedChainAssetFlow() = stakingSharedState.assetWithChain
 
     suspend fun getEraHoursLength(): Int = withContext(Dispatchers.Default) {
         val chainId = stakingSharedState.chainId()
@@ -395,6 +420,13 @@ class StakingInteractor(
 
     private suspend fun getLockupPeriodInDays(chainId: ChainId): Int {
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() / stakingRepository.erasPerDay(chainId)
+    }
+
+    private suspend fun getParachainLockupPeriodInDays(chainId: ChainId): Int {
+        val hoursInRound = 6
+        val lockupPeriodInRounds = stakingConstantsRepository.parachainLockupPeriodInRounds(chainId).toInt()
+        val lockupPeriodInHours = lockupPeriodInRounds * hoursInRound
+        return lockupPeriodInHours.toDuration(DurationUnit.HOURS).toInt(DurationUnit.DAYS)
     }
 
     private class StatusResolutionContext(

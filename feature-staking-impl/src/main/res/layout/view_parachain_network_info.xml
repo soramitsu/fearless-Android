@@ -9,7 +9,7 @@
     tools:parentTag="android.widget.LinearLayout">
 
     <TextView
-        android:id="@+id/stakingNetworkInfoTitle"
+        android:id="@+id/parachainStakingNetworkInfoTitle"
         style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,7 +23,7 @@
         tools:textColor="@color/white" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/stakingNetworkCollapsibleView"
+        android:id="@+id/parachainStakingNetworkCollapsibleView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
@@ -31,7 +31,7 @@
         app:layout_constraintTop_toBottomOf="@id/stakingNetworkInfo">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/stakingStoriesList"
+            android:id="@+id/parachainStakingStoriesList"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
@@ -43,52 +43,29 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
-            android:id="@+id/totalStakeView"
+            android:id="@+id/parachainMinimumStakeView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="24dp"
-            app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toStartOf="@+id/parachainLockUpPeriodView"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-            app:startWithLoading="true"
-            app:titleText="@string/staking_total_staked" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
-            android:id="@+id/minimumStakeView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/totalStakeView"
-            app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
+            app:layout_constraintTop_toBottomOf="@id/parachainStakingStoriesList"
             app:startWithLoading="true"
             app:titleText="@string/staking_main_minimum_stake_title" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
-            android:id="@+id/activeNominatorsView"
+            android:id="@+id/parachainLockUpPeriodView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            app:includeExtraBlock="false"
-            app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-            app:startWithLoading="true"
-            app:titleText="@string/staking_main_active_nominators_title" />
-
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
-            android:id="@+id/lockUpPeriodView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="24dp"
             android:layout_marginEnd="16dp"
             app:includeExtraBlock="false"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/totalStakeView"
-            app:layout_constraintTop_toBottomOf="@id/totalStakeView"
+            app:layout_constraintStart_toEndOf="@id/parachainMinimumStakeView"
+            app:layout_constraintTop_toBottomOf="@id/parachainStakingStoriesList"
             app:startWithLoading="true"
             app:titleText="@string/staking_unbonding_period_v1_9_0" />
 

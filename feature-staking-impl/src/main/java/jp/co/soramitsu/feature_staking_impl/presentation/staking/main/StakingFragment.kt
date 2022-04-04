@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
@@ -27,6 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
+import kotlinx.android.synthetic.main.fragment_staking.parachainStakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingAlertsInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingAssetSelector
 import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
@@ -111,8 +113,10 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                 is LoadingState.Loaded -> {
                     val stakingState = loadingState.data
 
-                    startStakingBtn.setVisible(stakingState is WelcomeViewState)
-                    stakingEstimate.setVisible(stakingState is WelcomeViewState)
+                    val isEstimatesVisible = stakingState is RelaychainWelcomeViewState || stakingState is ParachainWelcomeViewState
+
+                    startStakingBtn.setVisible(isEstimatesVisible)
+                    stakingEstimate.setVisible(isEstimatesVisible)
                     stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)
 
                     when (stakingState) {
@@ -128,7 +132,37 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             stakingStakeSummary.bindStakeSummary(stakingState, ::mapStashNoneStatus)
                         }
 
-                        is WelcomeViewState -> {
+                        is RelaychainWelcomeViewState -> {
+                            observeValidations(stakingState)
+
+                            stakingState.assetLiveData.observe {
+                                stakingEstimate.setAssetImageUrl(it.imageUrl, imageLoader)
+                                stakingEstimate.setAssetName(it.tokenName)
+                                stakingEstimate.setAssetBalance(it.assetBalance)
+                            }
+
+                            stakingState.amountFiat.observe { amountFiat ->
+                                stakingEstimate.showAssetBalanceFiatAmount()
+                                stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
+                            }
+
+                            stakingState.returns.observe { rewards ->
+                                stakingEstimate.hideReturnsLoading()
+                                stakingEstimate.populateMonthEstimation(rewards.monthly)
+                                stakingEstimate.populateYearEstimation(rewards.yearly)
+                            }
+
+                            stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
+
+                            startStakingBtn.setOnClickListener { stakingState.nextClicked() }
+
+                            stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
+
+                            stakingState.showRewardEstimationEvent.observeEvent {
+                                StakingRewardEstimationBottomSheet(requireContext(), it).show()
+                            }
+                        }
+                        is ParachainWelcomeViewState -> {
                             observeValidations(stakingState)
 
                             stakingState.assetLiveData.observe {
@@ -165,39 +199,78 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         viewModel.networkInfoStateLiveData.observe { state ->
             when (state) {
-                is LoadingState.Loading<*> -> stakingNetworkInfo.showLoading()
+                is LoadingState.Loading<*> -> {
+                    parachainStakingNetworkInfo.showLoading()
+                    stakingNetworkInfo.showLoading()
+                }
 
                 is LoadingState.Loaded<StakingNetworkInfoModel> -> {
-                    with(state.data) {
-                        stakingNetworkInfo.hideLoading()
-                        stakingNetworkInfo.setTotalStake(totalStake)
-                        stakingNetworkInfo.setNominatorsCount(nominatorsCount)
-                        stakingNetworkInfo.setMinimumStake(minimumStake)
-                        stakingNetworkInfo.setLockupPeriod(lockupPeriod)
-                        if (totalStakeFiat == null) {
-                            stakingNetworkInfo.hideTotalStakeFiat()
-                        } else {
-                            stakingNetworkInfo.showTotalStakeFiat()
-                            stakingNetworkInfo.setTotalStakeFiat(totalStakeFiat)
+                    when (val model = state.data) {
+                        is StakingNetworkInfoModel.Parachain -> {
+                            setupNetworkInfo(model)
                         }
-
-                        if (minimumStakeFiat == null) {
-                            stakingNetworkInfo.hideMinimumStakeFiat()
-                        } else {
-                            stakingNetworkInfo.showMinimumStakeFiat()
-                            stakingNetworkInfo.setMinimumStakeFiat(minimumStakeFiat)
+                        is StakingNetworkInfoModel.RelayChain -> {
+                            setupNetworkInfo(model)
                         }
                     }
                 }
             }
         }
 
-        viewModel.stories.observe(stakingNetworkInfo::submitStories)
+        viewModel.stories.observe {
+            stakingNetworkInfo.submitStories(it)
+            parachainStakingNetworkInfo.submitStories(it)
+        }
 
-        viewModel.networkInfoTitle.observe(stakingNetworkInfo::setTitle)
+        viewModel.networkInfoTitle.observe {
+            stakingNetworkInfo.setTitle(it)
+            parachainStakingNetworkInfo.setTitle(it)
+        }
 
         viewModel.currentAddressModelLiveData.observe {
             stakingAvatar.setImageDrawable(it.image)
+        }
+    }
+
+    private fun setupNetworkInfo(model: StakingNetworkInfoModel.RelayChain) {
+        stakingNetworkInfo.isVisible = true
+        parachainStakingNetworkInfo.isVisible = false
+        with(stakingNetworkInfo) {
+            hideLoading()
+            setTotalStake(model.totalStake)
+            setNominatorsCount(model.nominatorsCount)
+            setMinimumStake(model.minimumStake)
+            setLockupPeriod(model.lockupPeriod)
+            if (model.totalStakeFiat == null) {
+                hideTotalStakeFiat()
+            } else {
+                showTotalStakeFiat()
+                setTotalStakeFiat(model.totalStakeFiat)
+            }
+
+            if (model.minimumStakeFiat == null) {
+                hideMinimumStakeFiat()
+            } else {
+                showMinimumStakeFiat()
+                setMinimumStakeFiat(model.minimumStakeFiat)
+            }
+        }
+    }
+
+    private fun setupNetworkInfo(model: StakingNetworkInfoModel.Parachain) {
+        stakingNetworkInfo.isVisible = false
+        parachainStakingNetworkInfo.isVisible = true
+        with(parachainStakingNetworkInfo) {
+            hideLoading()
+            setMinimumStake(model.minimumStake)
+            setLockupPeriod(model.lockupPeriod)
+
+            if (model.minimumStakeFiat == null) {
+                hideMinimumStakeFiat()
+            } else {
+                showMinimumStakeFiat()
+                setMinimumStakeFiat(model.minimumStakeFiat)
+            }
         }
     }
 
