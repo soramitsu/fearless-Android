@@ -53,7 +53,7 @@ class SelectRewardDestinationViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
+    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.createManual() }
 
     val rewardDestinationFlow = rewardDestinationMixin.rewardDestinationModelFlow
         .map { mapRewardDestinationModelToRewardDestination(it) }

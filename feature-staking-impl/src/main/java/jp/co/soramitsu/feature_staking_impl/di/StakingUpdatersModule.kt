@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.Acco
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CounterForNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.DelegatorStateUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.HistoryDepthUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MaxNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MinBondUpdater
@@ -249,6 +250,20 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideDelegatorStateUpdater(
+        scope: AccountStakingScope,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
+        storageCache: StorageCache,
+    ) = DelegatorStateUpdater(
+        scope,
+        storageCache,
+        sharedState,
+        chainRegistry
+    )
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaterSystem(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
@@ -264,6 +279,7 @@ class StakingUpdatersModule {
         minBondUpdater: MinBondUpdater,
         maxNominatorsUpdater: MaxNominatorsUpdater,
         counterForNominatorsUpdater: CounterForNominatorsUpdater,
+        delegatorStateUpdater: DelegatorStateUpdater,
 
         chainRegistry: ChainRegistry,
         stakingSharedState: StakingSharedState
@@ -283,6 +299,7 @@ class StakingUpdatersModule {
             minBondUpdater,
             maxNominatorsUpdater,
             counterForNominatorsUpdater,
+            delegatorStateUpdater,
         ),
         chainRegistry = chainRegistry,
         singleAssetSharedState = stakingSharedState

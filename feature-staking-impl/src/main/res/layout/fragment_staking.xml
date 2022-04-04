@@ -6,11 +6,11 @@
     android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/stakingContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/stakingContainer"
-        android:paddingBottom="24dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -41,19 +41,29 @@
         </FrameLayout>
 
         <jp.co.soramitsu.feature_wallet_api.presentation.view.AssetSelectorView
+            android:id="@+id/stakingAssetSelector"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:id="@+id/stakingAssetSelector"
             android:layout_marginEnd="16dp"
-            app:backgroundStyle="blurred"
-            android:layout_height="wrap_content" />
+            app:backgroundStyle="blurred" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.NetworkInfoView
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.RelayChainNetworkInfoView
             android:id="@+id/stakingNetworkInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:expanded="true" />
+
+        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.ParachainNetworkInfoView
+            android:id="@+id/parachainStakingNetworkInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            tools:visibility="gone"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             app:expanded="true" />

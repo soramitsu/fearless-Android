@@ -1,6 +1,9 @@
 package jp.co.soramitsu.feature_staking_api.domain.api
 
+import java.math.BigInteger
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorState
 import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -10,14 +13,12 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import java.math.BigInteger
-import jp.co.soramitsu.common.domain.model.StoryGroup
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 interface StakingRepository {
 
@@ -55,7 +56,7 @@ interface StakingRepository {
 
     suspend fun getSlashingSpan(chainId: ChainId, accountId: AccountId): SlashingSpans?
 
-    fun stakingStateFlow(
+    suspend fun stakingStateFlow(
         chain: Chain,
         chainAsset: Chain.Asset,
         accountId: AccountId
@@ -76,6 +77,8 @@ interface StakingRepository {
     suspend fun nominatorsCount(chainId: ChainId): BigInteger?
 
     fun electedExposuresInActiveEra(chainId: ChainId): Flow<Map<String, Exposure>>
+
+    suspend fun getDelegatorState(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?>
 }
 
 suspend fun StakingRepository.getActiveElectedValidatorsExposures(chainId: ChainId) = electedExposuresInActiveEra(chainId).first()

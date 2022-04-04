@@ -13,6 +13,7 @@ sealed class StakingState(
 
     class NonStash(chain: Chain, accountId: AccountId) : StakingState(chain, accountId)
 
+    // for substrate staking pallet
     sealed class Stash(
         chain: Chain,
         accountId: AccountId,
@@ -45,5 +46,27 @@ sealed class StakingState(
             stashId: AccountId,
             val nominations: Nominations,
         ) : Stash(chain, accountId, controllerId, stashId)
+    }
+
+    // for parachainStaking pallet Moonbeam
+    sealed class Parachain(
+        chain: Chain,
+        accountId: AccountId
+    ) : StakingState(chain, accountId) {
+
+        class Collator(
+            chain: Chain,
+            accountId: AccountId,
+        ) : Parachain(chain, accountId)
+
+        class None(
+            chain: Chain,
+            accountId: AccountId,
+        ) : Parachain(chain, accountId)
+
+        class Delegator(
+            chain: Chain,
+            accountId: AccountId,
+        ) : Parachain(chain, accountId)
     }
 }

@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.hasModule
 import jp.co.soramitsu.common.utils.numberConstant
+import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.storageKeys
@@ -24,6 +25,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorState
 import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
@@ -34,6 +36,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentIndex
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentSlot
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindDelegatorState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindErasStartSessionIndex
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindHistoryDepth
@@ -227,21 +230,20 @@ class StakingRepositoryImpl(
         )
     }
 
-    override fun stakingStateFlow(
+    override suspend fun stakingStateFlow(
         chain: Chain,
         chainAsset: Chain.Asset,
         accountId: AccountId
     ): Flow<StakingState> {
-        return accountStakingDao.observeDistinct(chain.id, chainAsset.id, accountId)
-            .flatMapLatest { accountStaking ->
-                val accessInfo = accountStaking.stakingAccessInfo
-
-                if (accessInfo == null) {
-                    flowOf(StakingState.NonStash(chain, accountStaking.accountId))
-                } else {
-                    observeStashState(chain, accessInfo, accountId)
-                }
+        return when (chainAsset.staking) {
+            Chain.Asset.StakingType.PARACHAIN -> {
+                observeParachainState(chain, accountId)
             }
+            Chain.Asset.StakingType.RELAYCHAIN -> {
+                observeRelayChainState(chain, chainAsset, accountId)
+            }
+            else -> throw IllegalArgumentException("Wrong staking type")
+        }
     }
 
     override suspend fun getRewardDestination(stakingState: StakingState.Stash) = localStorage.queryNonNull(
@@ -333,6 +335,27 @@ class StakingRepositoryImpl(
         }
     }
 
+    private suspend fun observeParachainState(
+        chain: Chain,
+        accountId: AccountId,
+    ): Flow<StakingState.Parachain> {
+        return getDelegatorState(chain.id, accountId).map {
+            when {
+                it != null -> StakingState.Parachain.Delegator(chain, accountId)
+                else -> StakingState.Parachain.None(chain, accountId)
+            }
+        }
+    }
+
+    private fun observeRelayChainState(chain: Chain, chainAsset: Chain.Asset, accountId: AccountId): Flow<StakingState> {
+        return accountStakingDao.observeDistinct(chain.id, chainAsset.id, accountId)
+            .flatMapLatest { accountStaking ->
+                accountStaking.stakingAccessInfo?.let { accessInfo ->
+                    observeStashState(chain, accessInfo, accountId)
+                } ?: flowOf(StakingState.NonStash(chain, accountStaking.accountId))
+            }
+    }
+
     private fun observeAccountValidatorPrefs(chainId: ChainId, stashId: AccountId): Flow<ValidatorPrefs?> {
         return localStorage.observe(
             chainId = chainId,
@@ -359,4 +382,16 @@ class StakingRepositoryImpl(
     ) = slashingSpans != null && activeEraIndex - slashingSpans.lastNonZeroSlash < slashDeferDuration
 
     private suspend fun runtimeFor(chainId: String) = chainRegistry.getRuntime(chainId)
+
+    override suspend fun getDelegatorState(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
+        return localStorage.observe(
+            chainId = chainId,
+            keyBuilder = {
+                it.metadata.parachainStaking().storage("DelegatorState").storageKey(it, accountId)
+            },
+            binder = { scale, runtime ->
+                scale?.let { bindDelegatorState(it, runtime) }
+            }
+        )
+    }
 }
