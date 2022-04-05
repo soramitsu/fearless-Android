@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
+import jp.co.soramitsu.core_db.dao.emptyAccountIdValue
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.core_db.model.OperationLocal
@@ -27,6 +28,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset.Companion.createEmpty
+import jp.co.soramitsu.feature_wallet_api.domain.model.AssetWithStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -80,39 +82,63 @@ class WalletRepositoryImpl(
     private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
-    override fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<Asset>> {
+    override fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<AssetWithStatus>> {
         return combine(
             chainRegistry.chainsById,
             assetCache.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
             val updatedAssets = assetsLocal.mapNotNull { asset ->
-                mapAssetLocalToAsset(chainsById, asset)
+                mapAssetLocalToAsset(chainsById, asset)?.let {
+                    val hasChainAccount = asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }
+                    AssetWithStatus(
+                        asset = it,
+                        enabled = it.enabled,
+                        hasAccount = !it.accountId.contentEquals(emptyAccountIdValue),
+                        hasChainAccount = hasChainAccount
+                    )
+                }
             }
 
-            val assetsByChain: List<Asset> = chainRegistry.currentChains.firstOrNull().orEmpty()
-                .filter { !it.isEthereumBased || meta.ethereumPublicKey != null }
-                .filter { it.id !in chainAccounts.mapNotNull { it.chain?.id } }
+            val assetsByChain: List<AssetWithStatus> = chainRegistry.currentChains.firstOrNull().orEmpty()
                 .flatMap { chain ->
                     chain.assets.map {
-                        createEmpty(
-                            chainAsset = it,
-                            metaId = meta.id,
-                            minSupportedVersion = chain.minSupportedVersion
+                        AssetWithStatus(
+                            asset = createEmpty(
+                                chainAsset = it,
+                                metaId = meta.id,
+                                minSupportedVersion = chain.minSupportedVersion,
+                            ),
+                            enabled = true,
+                            hasAccount = !chain.isEthereumBased || meta.ethereumPublicKey != null,
+                            hasChainAccount = chain.id in chainAccounts.mapNotNull { it.chain?.id }
                         )
                     }
                 }
 
             val assetsByUniqueAccounts = chainAccounts
-                .filter { it.chain?.isEthereumBased != true || meta.ethereumPublicKey != null }
-                .mapNotNull { createEmpty(it) }
+                .mapNotNull { chainAccount ->
+                    val token = assetsByChain.find { it.asset.token.configuration.symbol == chainAccount.chain?.utilityAsset?.symbol }?.asset?.token
+                    createEmpty(chainAccount)?.let { asset ->
+                        AssetWithStatus(
+                            asset = asset,
+                            enabled = true,
+                            hasAccount = true,
+                            hasChainAccount = false
+                        )
+                    }
+                }
 
-            val assetsMain = assetsByChain.plus(assetsByUniqueAccounts)
-
-            val notUpdatedAssets = assetsMain.filter {
-                it.token.configuration.chainToSymbol !in updatedAssets.map { it.token.configuration.chainToSymbol }
+            val notUpdatedAssetsByUniqueAccounts = assetsByUniqueAccounts.filter { unique ->
+                !updatedAssets.any {
+                    it.asset.token.configuration.chainToSymbol == unique.asset.token.configuration.chainToSymbol &&
+                        it.asset.accountId.contentEquals(unique.asset.accountId)
+                }
+            }
+            val notUpdatedAssets = assetsByChain.filter {
+                it.asset.token.configuration.chainToSymbol !in updatedAssets.map { it.asset.token.configuration.chainToSymbol }
             }
 
-            updatedAssets + notUpdatedAssets
+            updatedAssets + notUpdatedAssetsByUniqueAccounts + notUpdatedAssets
         }
     }
 

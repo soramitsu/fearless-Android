@@ -82,6 +82,7 @@ class ChainAccountHolder(view: View) : GroupedListHolder(view) {
         }?.let(chainAccountNameBadge::setBackground)
 
         if (item.isSupported) {
+            chainAccountAccountIcon.isVisible = item.accountIcon != null
             chainAccountAccountIcon.setImageDrawable(item.accountIcon)
         } else {
             (this as ViewGroup).children.forEach {
@@ -90,6 +91,12 @@ class ChainAccountHolder(view: View) : GroupedListHolder(view) {
             setOnClickListener { handler.chainAccountClicked(item) }
             chainAccountAccountIcon.setImageResource(R.drawable.ic_warning_filled)
         }
+
+        val chainNameColorId = when {
+            item.hasAccount -> R.color.white
+            else -> R.color.black2
+        }
+        chainAccountChainName.setTextColor(context.getColor(chainNameColorId))
     }
 }
 

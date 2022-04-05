@@ -18,6 +18,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class WalletExportViewModel(
@@ -44,8 +45,11 @@ class WalletExportViewModel(
             accountNameLiveData.postValue(metaAccount().name)
             val icon = iconGenerator.createAddressIcon(metaAccount().substrateAccountId, AddressIconGenerator.SIZE_MEDIUM)
             accountIconLiveData.postValue(icon)
+        }
 
-            val chainAccounts = interactor.getChainProjections(metaAccount())[AccountInChain.From.META_ACCOUNT]
+        interactor.getChainProjectionsFlow(metaId).map {
+            it[AccountInChain.From.META_ACCOUNT]?.filter { it.hasAccount }
+        }.onEach { chainAccounts ->
             chainAccounts?.size?.let {
                 amountsWithOneKeyAmountBadgeLiveData.postValue(resourceManager.getQuantityString(R.plurals.plus_others_template, it, it))
             }
@@ -53,7 +57,7 @@ class WalletExportViewModel(
                 amountsWithOneKeyChainNameLiveData.postValue(it.chain.name)
                 amountsWithOneKeyChainIconLiveData.postValue(it.chain.icon)
             }
-        }
+        }.share()
     }
 
     fun backClicked() {

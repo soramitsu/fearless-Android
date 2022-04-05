@@ -19,7 +19,6 @@ data class AssetModel(
     val unbonding: BigDecimal?,
     val available: BigDecimal?,
     val sortIndex: Int,
-    val enabled: Boolean,
     val minSupportedVersion: String?,
     val chainAccountName: String?,
 ) {

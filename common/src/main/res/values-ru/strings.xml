@@ -322,6 +322,7 @@
     <string name="staking_bonded_format">Застейкано: %s</string>
     <string name="staking_unbonding_hint">Ваши токены будут доступны после истечения периода вывода.</string>
     <string name="common_account">Счет</string>
+    <string name="account_template">%s аккаунт</string>
     <string name="staking_redeemable_format">Можно забрать: %s</string>
     <string name="staking_rebond">Вернуть в стейк</string>
     <string name="staking_unbonding_format">Время вывода: %s</string>
@@ -500,6 +501,8 @@
     <string name="onboarding_substrate_derivation_path_title">Substrate последовательность для вывода секрета</string>
     <string name="onboarding_ethereum_derivation_path_title">Ethereum последовательность для вывода секрета</string>
     <string name="ECDSA_crypto_type">ECDSA | BTC/ETH совместимый</string>
+    <string name="create_new_account">Создать новый аккаунт</string>
+    <string name="already_have_account">У меня уже есть аккаунт</string>
 
     <string name="wallet_asset_your_balance">Ваш баланс</string>
     <string name="wallet_asset_transferable_caption">Доступны к отправке</string>

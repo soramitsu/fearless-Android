@@ -6,6 +6,7 @@ import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.AssetWithStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.OperationsPageChange
@@ -24,7 +25,7 @@ class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
 
 interface WalletInteractor {
 
-    fun assetsFlow(): Flow<List<Asset>>
+    fun assetsFlow(): Flow<List<AssetWithStatus>>
 
     suspend fun syncAssetsRates(): Flow<Result<Unit>>
 

@@ -121,7 +121,7 @@ class CrowdloanViewModel(
         _learnMoreLiveData.value = BuildConfig.WIKI_CROWDLOANS_URL.removePrefix("https://")
     }
 
-    private fun mapCrowdloanStatusToUi(statusClass: KClass<out Crowdloan.State>, statusCount: Int): CrowdloanStatusModel {
+    private fun mapCrowdloanStatusToUi(statusClass: KClass<out Crowdloan.State>, statusCount: Int): CrowdloanStatusModel? {
         return when (statusClass) {
             Crowdloan.State.Finished::class -> CrowdloanStatusModel(
                 text = resourceManager.getString(R.string.common_completed_with_count, statusCount),

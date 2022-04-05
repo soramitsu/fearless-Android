@@ -99,6 +99,7 @@
         android:ellipsize="middle"
         android:includeFontPadding="false"
         android:singleLine="true"
+        android:text="@string/manage_assets_account_missing_text"
         android:textColor="@color/black2"
         app:drawableStartCompat="@drawable/ic_warning_filled"
         app:layout_constrainedWidth="true"
@@ -108,21 +109,21 @@
         app:layout_constraintStart_toEndOf="@+id/manageAssetsItemIcon"
         app:layout_constraintTop_toBottomOf="@id/manageAssetsItemName"
         app:layout_goneMarginEnd="16dp"
-        app:layout_goneMarginStart="16dp"
-        tools:text="Add an account..." />
+        app:layout_goneMarginStart="16dp" />
 
-    <Button
-        android:id="@+id/manageAssetsAddAccountButton"
-        style="@style/Widget.Fearless.Button.Text.Normal"
+
+    <TextView
+        android:id="@+id/manageAssetsAddAccount"
+        style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:textAllCaps="false"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:paddingHorizontal="16dp"
+        android:text="Add account"
         android:textColor="@color/colorAccent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Add account" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/manageAssetsItemDragView"
@@ -182,7 +183,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:constraint_referenced_ids="manageAssetsMissingAccountMessage,manageAssetsAddAccountButton"
-        tools:visibility="gone" />
+        app:constraint_referenced_ids="manageAssetsMissingAccountMessage,manageAssetsAddAccount"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

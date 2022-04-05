@@ -220,6 +220,7 @@ class AccountDataSourceImpl(
         val chainAccountIds = joinedMetaAccountInfo.chainAccounts.map(ChainAccountLocal::accountId)
 
         metaAccountDao.delete(metaId)
+        metaAccountDao.deleteChainAccounts(metaId)
         secretStoreV2.clearSecrets(metaId, chainAccountIds)
     }
 

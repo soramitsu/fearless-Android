@@ -134,8 +134,15 @@ class BalanceListViewModel(
 
     private fun assetModelsFlow(): Flow<List<AssetModel>> =
         interactor.assetsFlow()
+            .mapList {
+                when {
+                    !it.enabled -> null
+                    !it.hasAccount -> null
+                    else -> it.asset
+                }
+            }
+            .map { it.filterNotNull() }
             .mapList { mapAssetToAssetModel(it) }
-            .map { list -> list.filter { it.enabled } }
 
     fun manageAssetsClicked() {
         router.openManageAssets()

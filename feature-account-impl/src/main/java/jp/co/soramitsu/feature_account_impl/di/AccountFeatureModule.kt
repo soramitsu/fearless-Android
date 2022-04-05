@@ -18,12 +18,14 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
+import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
@@ -34,6 +36,7 @@ import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDa
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
+import jp.co.soramitsu.feature_account_impl.domain.AssetNotNeedAccountUseCaseImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
@@ -179,9 +182,11 @@ class AccountFeatureModule {
     fun provideAccountDetailsInteractor(
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
+        assetNotNeedAccountUseCase: AssetNotNeedAccountUseCase
     ) = AccountDetailsInteractor(
         accountRepository,
-        chainRegistry
+        chainRegistry,
+        assetNotNeedAccountUseCase
     )
 
     @Provides
@@ -197,4 +202,12 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
+
+    @Provides
+    @FeatureScope
+    fun provideAssetNotNeedAccountUseCase(
+        assetDao: AssetDao
+    ): AssetNotNeedAccountUseCase {
+        return AssetNotNeedAccountUseCaseImpl(assetDao)
+    }
 }

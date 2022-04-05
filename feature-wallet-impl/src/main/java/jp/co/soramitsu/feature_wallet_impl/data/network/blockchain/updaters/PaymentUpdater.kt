@@ -33,6 +33,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 
 class PaymentUpdaterFactory(
@@ -73,46 +74,52 @@ class PaymentUpdater(
         val chain = chainRegistry.getChain(chainId)
 
         val metaAccount = scope.getAccount()
+        val chainAccount = metaAccount.chainAccounts[chainId]
 
-        val accountId = scope.getAccount().accountId(chain) ?: return emptyFlow()
         val runtime = chainRegistry.getRuntime(chainId)
+        val accountIdsToCheck = listOfNotNull(
+            metaAccount.accountId(chain),
+            chainAccount?.accountId
+        )
 
-        updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, chain.utilityAsset.symbol)
+        if (accountIdsToCheck.isEmpty()) return emptyFlow()
 
-        val key = when {
-            chainId.isOrml() -> {
-                val symbol = chain.utilityAsset.symbol
-                runtime.metadata.tokens().storage("Accounts")
-                    .storageKey(runtime, accountId, DictEnum.Entry("Token", DictEnum.Entry(symbol, null)))
+        return accountIdsToCheck.map { accountId ->
+            updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, chain.utilityAsset.symbol)
+
+            val key = when {
+                chainId.isOrml() -> {
+                    val symbol = chain.utilityAsset.symbol
+                    runtime.metadata.tokens().storage("Accounts")
+                        .storageKey(runtime, accountId, DictEnum.Entry("Token", DictEnum.Entry(symbol, null)))
+                }
+                else -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
             }
-            else -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
-        }
 
-        return storageSubscriptionBuilder.subscribe(key)
-            .onEach { change ->
-                when {
-                    chainId.isOrml() -> {
-                        val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
+            storageSubscriptionBuilder.subscribe(key)
+                .onEach { change ->
+                    when {
+                        chainId.isOrml() -> {
+                            val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
 
-                        assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset) {
-                            it.copy(
-                                accountId = accountId,
-                                freeInPlanks = ormlTokensAccountData.free,
-                                miscFrozenInPlanks = ormlTokensAccountData.frozen,
-                                reservedInPlanks = ormlTokensAccountData.reserved
-                            )
+                            assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset) {
+                                it.copy(
+                                    accountId = accountId,
+                                    freeInPlanks = ormlTokensAccountData.free,
+                                    miscFrozenInPlanks = ormlTokensAccountData.frozen,
+                                    reservedInPlanks = ormlTokensAccountData.reserved
+                                )
+                            }
+                        }
+                        else -> {
+                            val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
+                            assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset, newAccountInfo)
                         }
                     }
-                    else -> {
-                        val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
 
-                        assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset, newAccountInfo)
-                    }
+                    fetchTransfers(change.block, chain, accountId)
                 }
-
-                fetchTransfers(change.block, chain, accountId)
-            }
-            .noSideAffects()
+        }.merge().noSideAffects()
     }
 
     private suspend fun fetchTransfers(blockHash: String, chain: Chain, accountId: AccountId) {

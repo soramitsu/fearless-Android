@@ -7,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.AssetWithStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
@@ -19,7 +20,7 @@ import java.math.BigInteger
 
 interface WalletRepository {
 
-    fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount> = emptyList()): Flow<List<Asset>>
+    fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount> = emptyList()): Flow<List<AssetWithStatus>>
 
     suspend fun getAssets(metaId: Long): List<Asset>
 
