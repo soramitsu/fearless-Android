@@ -10,9 +10,9 @@ import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.invoke
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AssetNotNeedAccountUseCase
+import jp.co.soramitsu.feature_account_api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
@@ -21,12 +21,11 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
@@ -46,8 +45,12 @@ class AccountDetailsViewModel(
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
     private val metaId: Long,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val assetNotNeedAccount: AssetNotNeedAccountUseCase
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+
+    private val _showAddAccountChooser = MutableLiveData<Event<AddAccountBottomSheet.Payload>>()
+    val showAddAccountChooser: LiveData<Event<AddAccountBottomSheet.Payload>> = _showAddAccountChooser
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
@@ -63,9 +66,7 @@ class AccountDetailsViewModel(
 
     val accountNameFlow: MutableStateFlow<String> = MutableStateFlow("")
 
-    private val metaAccount = async(Dispatchers.Default) { interactor.getMetaAccount(metaId) }
-
-    val chainAccountProjections = flowOf { interactor.getChainProjections(metaAccount()) }
+    val chainAccountProjections = interactor.getChainProjectionsFlow(metaId)
         .map { groupedList ->
             groupedList.mapKeys { (from, _) -> mapFromToTextHeader(from) }
                 .mapValues { (_, accounts) -> accounts.map { mapChainAccountProjectionToUi(it) } }
@@ -76,7 +77,7 @@ class AccountDetailsViewModel(
 
     init {
         launch {
-            accountNameFlow.emit(metaAccount().name)
+            accountNameFlow.emit(interactor.getMetaAccount(metaId).name)
         }
 
         syncNameChangesWithDb()
@@ -95,10 +96,11 @@ class AccountDetailsViewModel(
             .launchIn(viewModelScope)
     }
 
-    private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader {
+    private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader? {
         val resId = when (from) {
             AccountInChain.From.META_ACCOUNT -> R.string.default_account_shared_secret
             AccountInChain.From.CHAIN_ACCOUNT -> R.string.account_unique_secret
+            AccountInChain.From.ACCOUNT_WO_ADDRESS -> return null
         }
 
         return TextHeader(resourceManager.getString(resId))
@@ -106,9 +108,11 @@ class AccountDetailsViewModel(
 
     private suspend fun mapChainAccountProjectionToUi(accountInChain: AccountInChain) = with(accountInChain) {
         val address = projection?.address ?: resourceManager.getString(R.string.account_no_chain_projection)
-        val accountIcon = projection?.let {
-            iconGenerator.createAddressIcon(it.accountId, AddressIconGenerator.SIZE_SMALL, backgroundColorRes = R.color.account_icon_dark)
-        } ?: resourceManager.getDrawable(R.drawable.ic_warning_filled)
+        val accountIcon = when {
+            projection != null -> iconGenerator.createAddressIcon(projection.accountId, AddressIconGenerator.SIZE_SMALL, R.color.account_icon_dark)
+            accountInChain.markedAsNotNeed -> null
+            else -> resourceManager.getDrawable(R.drawable.ic_warning_filled)
+        }
 
         AccountInChainUi(
             chainId = chain.id,
@@ -118,7 +122,9 @@ class AccountDetailsViewModel(
             accountIcon = accountIcon,
             accountName = accountInChain.name,
             accountFrom = accountInChain.from,
-            isSupported = accountInChain.chain.isSupported
+            isSupported = accountInChain.chain.isSupported,
+            hasAccount = accountInChain.hasAccount,
+            markedAsNotNeed = accountInChain.markedAsNotNeed
         )
     }
 
@@ -160,8 +166,20 @@ class AccountDetailsViewModel(
     }
 
     fun chainAccountOptionsClicked(item: AccountInChainUi) = launch {
-        val supportedExplorers = chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
-        externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
+        if (item.hasAccount) {
+            val supportedExplorers = chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
+            externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
+        } else {
+            _showAddAccountChooser.value = Event(
+                AddAccountBottomSheet.Payload(
+                    metaId = metaId,
+                    chainId = item.chainId,
+                    chainName = item.chainName,
+                    symbol = chainRegistry.getChain(item.chainId).utilityAsset.symbol,
+                    markedAsNotNeed = item.markedAsNotNeed
+                )
+            )
+        }
     }
 
     fun switchNode(chainId: ChainId) {
@@ -176,5 +194,19 @@ class AccountDetailsViewModel(
 
     fun updateAppClicked() {
         _openPlayMarket.value = Event(Unit)
+    }
+
+    fun createAccount(chainId: ChainId, metaId: Long) {
+        accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = false)
+    }
+
+    fun importAccount(chainId: ChainId, metaId: Long) {
+        accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
+    }
+
+    fun noNeedAccount(chainId: ChainId, metaId: Long, symbol: String) {
+        launch {
+            assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, symbol = symbol)
+        }
     }
 }

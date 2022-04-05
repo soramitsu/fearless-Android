@@ -8,6 +8,9 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AssetNotNeedAccountUseCase
+import jp.co.soramitsu.feature_account_impl.domain.AssetNotNeedAccountUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets.ManageAssetsViewModel
@@ -16,15 +19,24 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets.Man
 class ManageAssetsModule {
 
     @Provides
+    fun provideAssetNotNeedAccountUseCase(
+        assetDao: AssetDao
+    ): AssetNotNeedAccountUseCase {
+        return AssetNotNeedAccountUseCaseImpl(assetDao)
+    }
+
+    @Provides
     @IntoMap
     @ViewModelKey(ManageAssetsViewModel::class)
     fun provideViewModel(
         interactor: WalletInteractor,
         router: WalletRouter,
+        assetNotNeedAccountUseCase: AssetNotNeedAccountUseCase
     ): ViewModel {
         return ManageAssetsViewModel(
             interactor,
-            router
+            router,
+            assetNotNeedAccountUseCase
         )
     }
 

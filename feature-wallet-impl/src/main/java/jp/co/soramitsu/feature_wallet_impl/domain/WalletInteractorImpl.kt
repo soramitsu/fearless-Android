@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.AssetWithStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.OperationsPageChange
@@ -57,7 +58,7 @@ class WalletInteractorImpl(
     private val updatesMixin: UpdatesMixin,
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
-    override fun assetsFlow(): Flow<List<Asset>> {
+    override fun assetsFlow(): Flow<List<AssetWithStatus>> {
 //        val previousSort = mutableMapOf<AssetKey, Int>()
         return updatesMixin.tokenRatesUpdate.map {
             it.isNotEmpty()
@@ -72,7 +73,7 @@ class WalletInteractorImpl(
                     .filter { it.isNotEmpty() }
                     .map { assets ->
                         when {
-                            customAssetSortingEnabled() -> assets.sortedBy { it.sortIndex }
+                            customAssetSortingEnabled() -> assets.sortedBy { it.asset.sortIndex }
                             // todo research this logic
 //                            ratesUpdating && previousSort.isEmpty() -> {
 //                                val sortedAssets = assets.sortedWith(defaultAssetListSort())
@@ -95,11 +96,11 @@ class WalletInteractorImpl(
 //        previousSort[it.uniqueKey]
 //    }
 
-    private fun defaultAssetListSort() = compareByDescending<Asset> { it.total.orZero() > BigDecimal.ZERO }
-        .thenByDescending { it.fiatAmount.orZero() }
-        .thenBy { it.token.configuration.isTestNet }
-        .thenByDescending { it.token.configuration.chainId.isPolkadotOrKusama() }
-        .thenBy { it.token.configuration.chainName }
+    private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
+        .thenByDescending { it.asset.fiatAmount.orZero() }
+        .thenBy { it.asset.token.configuration.isTestNet }
+        .thenByDescending { it.asset.token.configuration.chainId.isPolkadotOrKusama() }
+        .thenBy { it.asset.token.configuration.chainName }
 
     override suspend fun syncAssetsRates(): Flow<Result<Unit>> {
         return selectedFiat.flow().map {

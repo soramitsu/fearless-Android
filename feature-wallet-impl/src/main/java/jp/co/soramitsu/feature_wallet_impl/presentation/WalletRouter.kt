@@ -50,4 +50,6 @@ interface WalletRouter : SecureRouter {
     fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation
 
     fun openManageAssets()
+
+    fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
 }

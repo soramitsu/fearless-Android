@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 class ManageAssetsAdapter(
     private val handler: Handler,
@@ -16,7 +17,7 @@ class ManageAssetsAdapter(
 
     interface Handler {
         fun switch(item: ManageAssetModel)
-        fun addAccount()
+        fun addAccount(chainId: ChainId, chainName: String, symbol: String, markedAsNotNeed: Boolean)
         fun startDrag(viewHolder: RecyclerView.ViewHolder)
     }
 
@@ -36,7 +37,8 @@ class ManageAssetsAdapter(
         handler.switch(item)
     }
 
-    override fun addAccount() = handler.addAccount()
+    override fun addAccount(chainId: ChainId, chainName: String, symbol: String, markedAsNotNeed: Boolean) =
+        handler.addAccount(chainId, chainName, symbol, markedAsNotNeed)
 
     override fun startDrag(viewHolder: RecyclerView.ViewHolder) {
         handler.startDrag(viewHolder)

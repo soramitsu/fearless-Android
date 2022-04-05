@@ -9,9 +9,7 @@ import jp.co.soramitsu.common.list.headers.TextHeader
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_account_api.presentation.exporting.buildExportSourceTypes
@@ -22,8 +20,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.AccountInChainUi
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -38,9 +34,7 @@ class AccountsForExportViewModel(
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
 
-    private val metaAccount = async(Dispatchers.Default) { interactor.getMetaAccount(payload.metaId) }
-
-    val chainAccountProjections = flowOf { interactor.getChainProjections(metaAccount()) }
+    val chainAccountProjections = interactor.getChainProjectionsFlow(payload.metaId)
         .map {
             it.filter {
                 it.key == payload.from
@@ -48,7 +42,7 @@ class AccountsForExportViewModel(
         }
         .map { groupedList ->
             groupedList.mapKeys { (from, _) -> mapFromToTextHeader(from) }
-                .mapValues { (_, accounts) -> accounts.map { mapChainAccountProjectionToUi(it) } }
+                .mapValues { (_, accounts) -> accounts.filter { it.hasAccount }.map { mapChainAccountProjectionToUi(it) } }
                 .toListWithHeaders()
         }
         .inBackground()
@@ -58,10 +52,11 @@ class AccountsForExportViewModel(
         accountRouter.back()
     }
 
-    private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader {
+    private fun mapFromToTextHeader(from: AccountInChain.From): TextHeader? {
         val resId = when (from) {
             AccountInChain.From.META_ACCOUNT -> R.string.accounts_with_one_key
             AccountInChain.From.CHAIN_ACCOUNT -> R.string.accounts_with_changed_key
+            AccountInChain.From.ACCOUNT_WO_ADDRESS -> return null
         }
 
         return TextHeader(resourceManager.getString(resId))
@@ -81,7 +76,9 @@ class AccountsForExportViewModel(
             accountIcon = accountIcon,
             enabled = false,
             accountName = accountInChain.name,
-            accountFrom = accountInChain.from
+            accountFrom = accountInChain.from,
+            hasAccount = accountInChain.hasAccount,
+            markedAsNotNeed = accountInChain.markedAsNotNeed
         )
     }
 

@@ -44,7 +44,7 @@ class AssetCache(
                 cachedAsset == null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, symbol, chainId, metaId)))
                 cachedAsset.accountId.contentEquals(emptyAccountIdValue) -> {
                     assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, symbol)
-                    assetDao.insertAsset(builder.invoke(cachedAsset))
+                    assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId)))
                 }
                 else -> assetDao.updateAsset(builder.invoke(cachedAsset))
             }

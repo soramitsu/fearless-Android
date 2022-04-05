@@ -335,6 +335,7 @@ Derivation path: %s</string>
     <string name="staking_bonded_format">Bonded: %s</string>
     <string name="staking_unbonding_hint">Your tokens will be available to redeem after the unstaking period.</string>
     <string name="common_account">Account</string>
+    <string name="account_template">%s account</string>
     <string name="staking_redeemable_format">Redeemable: %s</string>
     <string name="staking_rebond">Return to stake</string>
     <string name="staking_unbonding_format">Unstaking: %s</string>
@@ -563,6 +564,8 @@ to your account to avoid remaining stake.</string>
     <string name="ECDSA_crypto_type">ECDSA | BTC/ETH compatible</string>
     <string name="create_new_account">Create a new account</string>
     <string name="already_have_account">I already have an account</string>
+    <string name="i_dont_need_account">I don’t need an account</string>
+    <string name="manage_assets_account_missing_text">Add an account...</string>
 
     <string name="create_new_wallet">Create a new wallet</string>
     <string name="create_account">Create account</string>

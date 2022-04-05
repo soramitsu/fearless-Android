@@ -33,6 +33,7 @@ data class AssetLocal(
     val unbondingInPlanks: BigInteger? = null,
     val sortIndex: Int = Int.MAX_VALUE,
     val enabled: Boolean = true,
+    val markedNotNeed: Boolean = false,
     val chainAccountName: String? = null
 ) {
     companion object {
