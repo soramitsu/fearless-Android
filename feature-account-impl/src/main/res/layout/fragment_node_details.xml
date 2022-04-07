@@ -22,7 +22,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
         app:enabled="false"
-        app:label="@string/network"
+        app:label="@string/common_network"
         tools:message="Kusama"
         tools:textIcon="@drawable/ic_plus_circle" />
 

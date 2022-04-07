@@ -1,6 +1,7 @@
 package jp.co.soramitsu.app.root.di
 
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -38,4 +39,6 @@ interface RootDependencies {
     fun stakingRepository(): StakingRepository
 
     fun chainRegistry(): ChainRegistry
+
+    fun preferences(): Preferences
 }

@@ -206,7 +206,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginStart="16dp"
                     android:gravity="center_vertical"
-                    android:text="@string/contribute_terms"
+                    android:text="@string/crowdloan_privacy_policy"
                     tools:textColor="@color/white" />
             </LinearLayout>
         </LinearLayout>

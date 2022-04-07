@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
@@ -52,4 +53,6 @@ interface WalletRouter : SecureRouter {
     fun openManageAssets()
 
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
+
+    fun openEducationalStories(stories: StoryGroupModel)
 }

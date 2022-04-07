@@ -41,3 +41,11 @@ interface Preferences {
         initialValueProducer: InitialValueProducer<String>? = null
     ): Flow<String?>
 }
+
+var Preferences.shouldShowEducationalStories: Boolean
+    get() {
+        return getBoolean("shouldShowEducationalStories", true)
+    }
+    set(value) {
+        putBoolean("shouldShowEducationalStories", value)
+    }

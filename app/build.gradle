@@ -137,6 +137,7 @@ dependencies {
     implementation liveDataKtxDep
 
     kaptAndroidTest daggerKapt
+    implementation storiesDep
 
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep

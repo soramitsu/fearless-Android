@@ -20,12 +20,15 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.math.BigDecimal
+import jp.co.soramitsu.common.domain.model.StoryGroup
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
 
 interface WalletInteractor {
 
     fun assetsFlow(): Flow<List<AssetWithStatus>>
+
+    var shouldShowEducationalStories: Boolean
 
     suspend fun syncAssetsRates(): Flow<Result<Unit>>
 
@@ -89,4 +92,6 @@ interface WalletInteractor {
     suspend fun enableCustomAssetSorting()
 
     suspend fun customAssetSortingEnabled(): Boolean
+
+    fun educationalStories(): StoryGroup.Onboarding
 }

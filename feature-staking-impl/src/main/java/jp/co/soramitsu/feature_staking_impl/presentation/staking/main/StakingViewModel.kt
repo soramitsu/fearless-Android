@@ -6,8 +6,12 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.StakingStoryModel
+import jp.co.soramitsu.common.presentation.StoryElement
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.presentation.flatMapLoading
 import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -20,7 +24,6 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
@@ -34,7 +37,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.manageS
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -114,9 +116,9 @@ class StakingViewModel(
         .map { it.name }
         .share()
 
-    fun storyClicked(story: StakingStoryModel) {
-        if (story.elements.isNotEmpty()) {
-            router.openStory(story)
+    fun storyClicked(group: StoryGroupModel) {
+        if (group.stories.isNotEmpty()) {
+            router.openStory(group)
         }
     }
 
@@ -251,8 +253,8 @@ class StakingViewModel(
         )
     }
 
-    private fun transformStories(story: StakingStory): StakingStoryModel = with(story) {
-        val elements = elements.map { StakingStoryModel.Element(it.titleRes, it.bodyRes, it.url) }
+    private fun transformStories(story: StoryGroup.Staking): StakingStoryModel = with(story) {
+        val elements = elements.map { StoryElement.Staking(it.titleRes, it.bodyRes, it.url) }
         StakingStoryModel(titleRes, iconSymbol, elements)
     }
 

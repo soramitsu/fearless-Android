@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -35,6 +37,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import jp.co.soramitsu.feature_wallet_impl.data.OnboardingStoriesDataSource
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodeToOperation
@@ -62,8 +65,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -79,7 +80,8 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher
+    private val remoteConfigFetcher: RemoteConfigFetcher,
+    private val storiesDataSource: OnboardingStoriesDataSource
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<AssetWithStatus>> {
@@ -417,4 +419,6 @@ class WalletRepositoryImpl(
     override suspend fun getRemoteConfig(): AppConfigRemote {
         return remoteConfigFetcher.getAppConfig()
     }
+
+    override fun educationalStories() = storiesDataSource.stories
 }

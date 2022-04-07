@@ -44,7 +44,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 app:enabled="false"
-                app:label="@string/recovery_json_substrate"
+                app:label="@string/import_substrate_recovery"
                 tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
@@ -55,7 +55,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 app:enabled="false"
-                app:label="@string/recovery_json_eth"
+                app:label="@string/import_ethereum_recovery"
                 tools:message="{“address”:”Gerfdad...DJWIdjawIdjWd”}" />
 
             <jp.co.soramitsu.common.view.LabeledTextView
@@ -67,7 +67,7 @@
                 android:layout_marginEnd="16dp"
                 app:actionIcon="@drawable/ic_pin_white_24"
                 app:enabled="false"
-                app:label="@string/network"
+                app:label="@string/common_network"
                 tools:message="Kusama"
                 tools:textIcon="@drawable/ic_plus_circle" />
 
@@ -86,7 +86,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
-        android:text="@string/account_export_substrate_action"
+        android:text="@string/export_substrate_title"
         android:visibility="gone" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
@@ -97,7 +97,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
-        android:text="@string/account_export_ethereum_action"
+        android:text="@string/export_ethereum_title"
         android:visibility="gone" />
 
     <jp.co.soramitsu.common.view.PrimaryButton

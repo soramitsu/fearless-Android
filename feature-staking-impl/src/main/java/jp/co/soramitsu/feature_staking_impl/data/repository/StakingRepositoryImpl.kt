@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.data.repository
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.babe
 import jp.co.soramitsu.common.utils.balances
@@ -28,7 +29,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
@@ -290,7 +290,7 @@ class StakingRepositoryImpl(
         }
     }
 
-    override fun stakingStoriesFlow(): Flow<List<StakingStory>> {
+    override fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>> {
         return stakingStoriesDataSource.getStoriesFlow()
     }
 

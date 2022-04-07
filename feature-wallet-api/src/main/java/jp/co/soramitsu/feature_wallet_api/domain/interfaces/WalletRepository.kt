@@ -17,6 +17,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.common.domain.model.StoryGroup
 
 interface WalletRepository {
 
@@ -93,4 +94,6 @@ interface WalletRepository {
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 
     suspend fun getRemoteConfig(): AppConfigRemote
+
+    fun educationalStories(): StoryGroup.Onboarding
 }

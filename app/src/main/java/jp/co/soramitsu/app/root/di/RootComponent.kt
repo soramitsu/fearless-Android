@@ -5,6 +5,7 @@ import dagger.Component
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.app.root.presentation.di.RootActivityComponent
 import jp.co.soramitsu.app.root.presentation.main.di.MainFragmentComponent
+import jp.co.soramitsu.app.root.presentation.stories.di.StoryComponent
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core_db.di.DbApi
@@ -49,4 +50,6 @@ interface RootComponent {
         ]
     )
     interface RootFeatureDependenciesComponent : RootDependencies
+
+    fun storyComponentFactory(): StoryComponent.Factory
 }

@@ -7,13 +7,13 @@ import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.math.BigInteger
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.time.DurationUnit
@@ -61,7 +61,7 @@ interface StakingRepository {
         accountId: AccountId
     ): Flow<StakingState>
 
-    fun stakingStoriesFlow(): Flow<List<StakingStory>>
+    fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>>
 
     suspend fun ledgerFlow(stakingState: StakingState.Stash): Flow<StakingLedger>
 

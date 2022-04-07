@@ -208,7 +208,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
         viewModel.healthFlow.observe { isHealth ->
             if (isHealth.not()) {
                 viewModel.showError(
-                    getString(R.string.moonbeam_ineligible_to_participate)
+                    getString(R.string.moonbeam_location_unsupported_error)
                 )
             }
         }
@@ -235,7 +235,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
     override fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
         val base = super.buildErrorDialog(title, errorMessage)
-        if (errorMessage == getString(R.string.moonbeam_ineligible_to_participate)) {
+        if (errorMessage == getString(R.string.moonbeam_location_unsupported_error)) {
             base.setCanceledOnTouchOutside(false)
             base.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.common_ok)) { _, _ ->
                 viewModel.backClicked()
