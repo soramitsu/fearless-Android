@@ -157,6 +157,7 @@ class AdvancedBlockView @JvmOverloads constructor(
             ImportAccountType.Ethereum -> {
                 configureSubstrate(FieldState.HIDDEN)
                 configureEthereum(FieldState.NORMAL)
+                configure(ethereumEncryptionTypeField, FieldState.DISABLED)
             }
         }
     }

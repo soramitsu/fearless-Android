@@ -568,21 +568,14 @@
     <string name="about_support">Обратиться за поддержкой</string>
     <string name="wallet_asset_receive_template">Получить %s</string>
     <string name="username_setup_hint_2_0">Пример: Сбережения, инвестиции, краудлоуны, стейкинг. Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
-    <string name="username_setup_title_2_0">Создать новый кошелек
-</string>
-    <string name="pincode_confirm_pin_code">Подтвердите пин-код
-</string>
-    <string name="substrate_crypto_type">Тип криптографической пары ключей substrate
-</string>
-    <string name="ethereum_crypto_type">Тип криптографической пары ключей Ethereum
-</string>
-    <string name="substrate_secret_derivation_path">Путь деривации секрета substrate
-</string>
+    <string name="username_setup_title_2_0">Создать новый кошелек</string>
+    <string name="pincode_confirm_pin_code">Подтвердите пин-код</string>
+    <string name="substrate_crypto_type">Тип криптографической пары ключей substrate</string>
+    <string name="ethereum_crypto_type">Тип криптографической пары ключей Ethereum</string>
+    <string name="substrate_secret_derivation_path">Путь деривации секрета substrate</string>
     <string name="ethereum_secret_derivation_path">Путь деривации секрета Ethereum</string>
-    <string name="example">Пример:
-</string>
-    <string name="pincode_setup_top_title">Установить пин-код
-</string>
+    <string name="example">Пример:</string>
+    <string name="pincode_setup_top_title">Установить пин-код</string>
     <string name="confirm_mnemonic_mismatch_error_message_2_0">Неверная мнемоническая фраза, пожалуйста, проверьте еще раз порядок слов</string>
     <string name="share_referral_code">Поделиться реферальным кодом</string>
     <string name="copy_referral_code">Копировать реферальный код</string>
