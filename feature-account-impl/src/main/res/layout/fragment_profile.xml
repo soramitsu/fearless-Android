@@ -197,4 +197,31 @@
         android:layout_marginBottom="@dimen/x1_5"
         android:background="@color/dividerGray" />
 
+    <TextView
+        android:id="@+id/walletConnect"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_primary_list_item"
+        android:clickable="true"
+        android:drawableStart="@drawable/ic_info_primary_24"
+        android:drawableEnd="@drawable/ic_arrow_right_24"
+        android:drawablePadding="@dimen/x1_5"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/x2"
+        android:paddingTop="@dimen/x1_5"
+        android:paddingEnd="@dimen/x2"
+        android:paddingBottom="@dimen/x1_5"
+        android:text="Wallet connect"
+        android:textColor="@color/white" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="@dimen/x2"
+        android:layout_marginEnd="@dimen/x2"
+        android:layout_marginBottom="@dimen/x1_5"
+        android:background="@color/dividerGray" />
+
 </LinearLayout>

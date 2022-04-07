@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
@@ -57,6 +58,9 @@ class ProfileViewModel(
 
     val selectedFiatLiveData: LiveData<String> = selectedFiat.flow().asLiveData().map { it.uppercase() }
 
+    private val _openScanQrCodeLiveData = MutableLiveData<Event<Unit>>()
+    val openScanQrCodeLiveData: LiveData<Event<Unit>> = _openScanQrCodeLiveData
+
     fun aboutClicked() {
         router.openAboutScreen()
     }
@@ -96,5 +100,9 @@ class ProfileViewModel(
         viewModelScope.launch {
             selectedFiat.set(item.id)
         }
+    }
+
+    fun walletConnect() {
+        _openScanQrCodeLiveData.value = Event(Unit)
     }
 }

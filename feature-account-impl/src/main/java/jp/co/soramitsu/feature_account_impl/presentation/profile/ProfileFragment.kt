@@ -25,6 +25,7 @@ import kotlinx.android.synthetic.main.fragment_profile.profileCurrency
 import kotlinx.android.synthetic.main.fragment_profile.profileWallets
 import kotlinx.android.synthetic.main.fragment_profile.selectedCurrencyTv
 import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
+import kotlinx.android.synthetic.main.fragment_profile.walletConnect
 
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
@@ -48,6 +49,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         languageWrapper.setOnClickListener { viewModel.languagesClicked() }
         changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
         profileCurrency.setOnClickListener { viewModel.currencyClicked() }
+        walletConnect.setOnClickListener { viewModel.walletConnect() }
     }
 
     override fun inject() {
@@ -84,6 +86,8 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
 
         viewModel.selectedFiatLiveData.observe(selectedCurrencyTv::setText)
+
+        viewModel.openScanQrCodeLiveData.observe { openQrCodeScanner() }
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
@@ -98,5 +102,9 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             viewModel::viewExternalClicked,
             viewModel::walletsClicked
         ).show()
+    }
+
+    private fun openQrCodeScanner(){
+
     }
 }

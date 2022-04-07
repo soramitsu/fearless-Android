@@ -76,5 +76,7 @@ dependencies {
     testImplementation jUnitDep
     testImplementation mockitoDep
 
+    implementation wsDep
+    implementation walletConnectDep
     implementation gsonDep
 }
