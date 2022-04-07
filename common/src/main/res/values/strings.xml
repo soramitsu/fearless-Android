@@ -624,8 +624,8 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="accounts_for_export">Accounts for export</string>
     <string name="what_accounts_for_export">What accounts in the wallet do you want to export?</string>
     <plurals name="plus_others_template">
-        <item quantity="one">+ %i other</item>
-        <item quantity="other">+ %i others</item>
+        <item quantity="one">+ %d other</item>
+        <item quantity="other">+ %d others</item>
     </plurals>
     <string name="replace_account">Replace account</string>
     <string name="wallet_manage_assets">Manage assets</string>
@@ -674,7 +674,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="export_substrate_title">Export Substrate</string>
     <string name="export_ethereum_title">Export Ethereum</string>
     <string name="i_dont_need_account">I don’t need an account</string>
-    <string name="export_wallet_chains_count">+%s OTHERS</string>
 
     <string name="wallet_send_quick_input_max" translatable="false">MAX</string>
     <string name="wallet_send_quick_input_75" translatable="false">75%</string>
