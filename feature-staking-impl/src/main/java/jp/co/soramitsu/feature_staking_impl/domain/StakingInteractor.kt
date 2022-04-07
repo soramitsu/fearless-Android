@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
@@ -20,7 +21,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
@@ -211,7 +211,7 @@ class StakingInteractor(
         HOURS_IN_DAY / stakingRepository.erasPerDay(chainId)
     }
 
-    fun stakingStoriesFlow(): Flow<List<StakingStory>> {
+    fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>> {
         return stakingRepository.stakingStoriesFlow()
     }
 

@@ -49,7 +49,7 @@
         app:layout_constraintEnd_toEndOf="@+id/referralReferralCodeInput"
         app:layout_constraintStart_toStartOf="@+id/referralReferralCodeInput"
         app:layout_constraintTop_toBottomOf="@+id/referralFearlessBonusApply"
-        app:title="@string/friend_bonus" />
+        app:title="@string/common_friend_bonus" />
 
     <jp.co.soramitsu.common.view.TableCellView
         android:id="@+id/referralBonus"
@@ -59,7 +59,7 @@
         app:layout_constraintEnd_toEndOf="@+id/referralReferralCodeInput"
         app:layout_constraintStart_toStartOf="@+id/referralReferralCodeInput"
         app:layout_constraintTop_toBottomOf="@+id/referralFriendBonus"
-        app:title="@string/your_bonus" />
+        app:title="@string/common_your_bonus" />
 
     <jp.co.soramitsu.common.view.GoNextView
         android:id="@+id/referralLearnMore"

@@ -55,7 +55,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.Sel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemFragment
@@ -64,7 +63,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
-import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
+import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
@@ -222,7 +222,7 @@ class Navigator :
         navController?.navigate(R.id.openStartChangeValidatorsFragment)
     }
 
-    override fun openStory(story: StakingStoryModel) {
+    override fun openStory(story: StoryGroupModel) {
         navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
     }
 
@@ -595,5 +595,9 @@ class Navigator :
         val delayedNavigation = NavComponentDelayedNavigation(R.id.action_open_main)
         val action = PinCodeAction.Create(delayedNavigation)
         return PincodeFragment.getPinCodeBundle(action)
+    }
+
+    override fun openEducationalStories(stories: StoryGroupModel) {
+        navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(stories))
     }
 }

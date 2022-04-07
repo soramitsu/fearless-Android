@@ -27,7 +27,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.select.di.SelectRewardDestinationComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.di.ConfirmUnbondComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.di.SelectUnbondComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.story.di.StoryComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.di.ReviewCustomValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.search.di.SearchCustomValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.di.SelectCustomValidatorsComponent
@@ -73,8 +72,6 @@ interface StakingFeatureComponent : StakingFeatureApi {
     fun confirmNominationsComponentFactory(): ConfirmNominationsComponent.Factory
 
     fun validatorDetailsComponentFactory(): ValidatorDetailsComponent.Factory
-
-    fun storyComponentFactory(): StoryComponent.Factory
 
     fun payoutsListFactory(): PayoutsListComponent.Factory
 

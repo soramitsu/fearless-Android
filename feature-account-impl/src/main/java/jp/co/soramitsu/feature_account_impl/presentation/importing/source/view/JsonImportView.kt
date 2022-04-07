@@ -43,8 +43,8 @@ class JsonImportView @JvmOverloads constructor(
 
     private fun setImportAccountType(type: ImportAccountType) {
         when (type) {
-            ImportAccountType.Substrate -> importJsonContent.setLabel(R.string.recovery_json_substrate)
-            ImportAccountType.Ethereum -> importJsonContent.setLabel(R.string.recovery_json_eth)
+            ImportAccountType.Substrate -> importJsonContent.setLabel(R.string.import_substrate_recovery)
+            ImportAccountType.Ethereum -> importJsonContent.setLabel(R.string.import_ethereum_recovery)
         }
     }
 

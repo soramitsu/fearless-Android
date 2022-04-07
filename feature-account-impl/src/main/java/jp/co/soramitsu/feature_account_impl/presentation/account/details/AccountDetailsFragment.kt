@@ -92,8 +92,8 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
 
     private fun showUnsupportedChainAlert() {
         AlertBottomSheet.Builder(requireContext())
-            .setTitle(R.string.common_update_needed)
-            .setMessage(R.string.unsupported_chain_alert_message)
+            .setTitle(R.string.update_needed_text)
+            .setMessage(R.string.chain_unsupported_text)
             .setButtonText(R.string.common_update)
             .callback { viewModel.updateAppClicked() }
             .build()
