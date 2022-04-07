@@ -104,6 +104,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
         viewModel.seedLiveData.observe { (substrateSeed: String?, ethereumSeed: String?) ->
             substrateSeed?.let { exportSeedSubstrateValue.setMessage(it) }
             ethereumSeed?.let { exportSeedEthereumValue.setMessage(it) }
+            exportSeedEthereumLayout.isVisible = ethereumSeed.isNullOrBlank().not()
         }
 
         viewModel.cryptoTypeLiveData.observe {
