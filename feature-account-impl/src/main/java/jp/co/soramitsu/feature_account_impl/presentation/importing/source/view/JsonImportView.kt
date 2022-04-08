@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsername
 
 class JsonImportView @JvmOverloads constructor(
     context: Context,
-    private val isChainAccount: Boolean,
+    private val isChainAccount: Boolean = false,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_json, context, attrs, defStyleAttr) {
