@@ -48,12 +48,12 @@ class ExportJsonPasswordViewModel(
             val ethereumJsonResult = interactor.generateRestoreJson(payload.metaId, moonriverChainId, password)
 
             val payload = when {
-                payload.isExportWallet && substrateJsonResult.isSuccess && ethereumJsonResult.isSuccess -> {
+                payload.isExportWallet && substrateJsonResult.isSuccess -> {
                     ExportJsonConfirmPayload(
                         payload.metaId,
                         payload.chainId,
                         substrateJsonResult.requireValue(),
-                        ethereumJsonResult.requireValue(),
+                        ethereumJsonResult.getOrNull(),
                         payload.isExportWallet
                     )
                 }

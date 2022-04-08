@@ -568,21 +568,14 @@
     <string name="about_support">Обратиться за поддержкой</string>
     <string name="wallet_asset_receive_template">Получить %s</string>
     <string name="username_setup_hint_2_0">Пример: Сбережения, инвестиции, краудлоуны, стейкинг. Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
-    <string name="username_setup_title_2_0">Создать новый кошелек
-</string>
-    <string name="pincode_confirm_pin_code">Подтвердите пин-код
-</string>
-    <string name="substrate_crypto_type">Тип криптографической пары ключей substrate
-</string>
-    <string name="ethereum_crypto_type">Тип криптографической пары ключей Ethereum
-</string>
-    <string name="substrate_secret_derivation_path">Путь деривации секрета substrate
-</string>
+    <string name="username_setup_title_2_0">Создать новый кошелек</string>
+    <string name="pincode_confirm_pin_code">Подтвердите пин-код</string>
+    <string name="substrate_crypto_type">Тип криптографической пары ключей substrate</string>
+    <string name="ethereum_crypto_type">Тип криптографической пары ключей Ethereum</string>
+    <string name="substrate_secret_derivation_path">Путь деривации секрета substrate</string>
     <string name="ethereum_secret_derivation_path">Путь деривации секрета Ethereum</string>
-    <string name="example">Пример:
-</string>
-    <string name="pincode_setup_top_title">Установить пин-код
-</string>
+    <string name="example">Пример:</string>
+    <string name="pincode_setup_top_title">Установить пин-код</string>
     <string name="confirm_mnemonic_mismatch_error_message_2_0">Неверная мнемоническая фраза, пожалуйста, проверьте еще раз порядок слов</string>
     <string name="share_referral_code">Поделиться реферальным кодом</string>
     <string name="copy_referral_code">Копировать реферальный код</string>
@@ -617,7 +610,6 @@
     <string name="view_in">Посмотреть в %s</string>
     <string name="wallet_transaction_history_unsupported_message">История транзакций для этой сети еще не поддерживается</string>
     <string name="wallet_transaction_history_empty_message">Здесь появится история транзакций</string>
-    <string name="account_option"></string>
     <string name="switch_node_autoselect_title">Автоматический выбор нод</string>
     <string name="add_node_button_title">Добавить ноду</string>
     <string name="profile_logout_title">Выйти</string>
@@ -645,12 +637,6 @@
     <string name="manage_assets_search_hint">Поиск по токену или сети</string>
     <string name="crowdloan_email_hint">Адрес электронной почты</string>
     <string name="crowdloan_referral_code_hint">Реферальный код</string>
-    <string name="crowdloan_astar_referral_code_hint"></string>
-    <string name="crowdloan_acala_referral_code_invalid"></string>
-    <string name="crowdloan_agreement_required"></string>
-    <string name="crowdloan_empty_email_title"></string>
-    <string name="contribution_type"></string>
-    <string name="crowdloan_enter_referral_address"></string>
     <string name="label_link">Ссылка</string>
     <string name="apply_fearless_referal_wallet">Нажмите, чтобы применить бонус кошелька Fearless</string>
     <string name="referral_email_acala">Я согласен получать электронную почту от Acala</string>
@@ -666,9 +652,6 @@
     <string name="update_needed_text">Требуется обновление</string>
     <string name="connection_problems_text">Проблемы с подключением</string>
     <string name="common_unsupported">Не поддерживается</string>
-    <string name="min_staking_warning_text"></string>
-    <string name="staking_inactive_bond"></string>
-    <string name="manage_assets_account_missing_text"></string>
     <string name="stories_version2_slide1_title">Больше сетей — больше токенов</string>
     <string name="stories_version2_slide2_title">Аккаунты улучшились до кошельков</string>
     <string name="stories_version2_slide3_title">Кошелёк стал мощнее</string>
@@ -682,11 +665,9 @@
 
 Не забудьте сделать резервную копию и хранить её в безопасном и приватном месте (например, на листе бумаге)</string>
     <string name="stories_bottom_close_button">Отличные новости!</string>
-    <string name="i_dont_need_account"></string>
-    <string name="export_wallet_chains_count"></string>
 
-    <string name="import_substrate_recovery">Восстановить JSON для Substrate аккаунтов</string>
-    <string name="import_ethereum_recovery">Восстановить JSON лдя ETH аккаунтов</string>
+    <string name="import_substrate_recovery">JSON для восстановления Substrate аккаунтов</string>
+    <string name="import_ethereum_recovery">JSON для восстановления ETH аккаунтов</string>
     <string name="common_network">Сеть</string>
 
     <string name="account_import_substrate_raw_seed_placeholder">Substrate сид</string>

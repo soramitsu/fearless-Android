@@ -165,6 +165,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
                 }
                 sourceType is MnemonicImportSource -> {
                     configure(FieldState.NORMAL)
+                    FieldState.DISABLED.applyTo(ethereumEncryptionTypeField)
                 }
                 sourceType is RawSeedImportSource -> {
                     configure(blockchainType)
