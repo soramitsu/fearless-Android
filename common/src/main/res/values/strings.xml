@@ -606,7 +606,7 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="switch_node_autoselect_title">Auto select nodes</string>
     <string name="add_node_button_title">Add node</string>
     <string name="profile_logout_title">Logout</string>
-    <string name="profile_logout_description">This action will result in deleting all accounts from this device. Make sure you have backed up your passphrase before preceeding.</string>
+    <string name="profile_logout_description">This action will result in deleting all accounts from this device. Make sure you have backed up your passphrase before proceeding.</string>
     <string name="delete_custom_node_title">Delete custom node?</string>
     <string name="network_url_address">URL address</string>
     <string name="error_message_enter_the_name">Enter the name…</string>

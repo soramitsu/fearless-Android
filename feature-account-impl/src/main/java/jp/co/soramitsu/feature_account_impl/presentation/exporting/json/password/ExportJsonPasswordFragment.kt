@@ -46,6 +46,7 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
             viewModel.back()
         }
 
+        exportJsonPasswordNext.prepareForProgress(viewLifecycleOwner)
         exportJsonPasswordNext.setOnClickListener { viewModel.nextClicked() }
 
         exportJsonPasswordMatchingError.setDrawableStart(R.drawable.ic_red_cross, 24)
@@ -67,7 +68,7 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
         exportJsonPasswordNewField.content.bindTo(viewModel.passwordLiveData)
         exportJsonPasswordConfirmField.content.bindTo(viewModel.passwordConfirmationLiveData)
 
-        viewModel.nextEnabled.observe(exportJsonPasswordNext::setEnabled)
+        viewModel.nextButtonState.observe(exportJsonPasswordNext::setState)
 
         viewModel.showDoNotMatchingErrorLiveData.observe {
             exportJsonPasswordMatchingError.setVisible(it, falseState = View.INVISIBLE)

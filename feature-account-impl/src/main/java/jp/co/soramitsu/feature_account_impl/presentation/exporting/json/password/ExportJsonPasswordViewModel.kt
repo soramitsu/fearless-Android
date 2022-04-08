@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
@@ -30,8 +31,17 @@ class ExportJsonPasswordViewModel(
         confirmation.isNotBlank() && confirmation != password
     }
 
-    val nextEnabled = passwordLiveData.combine(passwordConfirmationLiveData, initial = false) { password, confirmation ->
+    private val nextEnabled = passwordLiveData.combine(passwordConfirmationLiveData, initial = false) { password, confirmation ->
         password.isNotBlank() && confirmation.isNotBlank() && password == confirmation
+    }
+    private val nextProgress = MutableLiveData(false)
+
+    val nextButtonState = nextEnabled.combine(nextProgress) { enabled, inProgress ->
+        when {
+            inProgress -> ButtonState.PROGRESS
+            enabled -> ButtonState.NORMAL
+            else -> ButtonState.DISABLED
+        }
     }
 
     fun back() {
@@ -39,6 +49,7 @@ class ExportJsonPasswordViewModel(
     }
 
     fun nextClicked() {
+        nextProgress.value = true
         val password = passwordLiveData.value!!
 
         viewModelScope.launch {
@@ -77,7 +88,10 @@ class ExportJsonPasswordViewModel(
                 }
                 else -> null
             }
-            payload?.let { router.openExportJsonConfirm(it) }
+            when (payload) {
+                null -> nextProgress.value = false
+                else -> router.openExportJsonConfirm(payload)
+            }
         }
     }
 }
