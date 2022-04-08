@@ -7,9 +7,9 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import coil.ImageLoader
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
@@ -22,6 +22,7 @@ import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPa
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNewField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNext
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordToolbar
+import javax.inject.Inject
 
 class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
 
@@ -40,7 +41,10 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
     }
 
     override fun initViews() {
-        exportJsonPasswordToolbar.setHomeButtonListener { viewModel.back() }
+        exportJsonPasswordToolbar.setHomeButtonListener {
+            hideKeyboard()
+            viewModel.back()
+        }
 
         exportJsonPasswordNext.setOnClickListener { viewModel.nextClicked() }
 
