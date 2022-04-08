@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbarContainer"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
     android:background="@android:color/black"
     android:gravity="center_vertical"
-    android:id="@+id/toolbarContainer"
     android:orientation="horizontal"
     tools:layout_height="48dp">
 
@@ -16,30 +17,44 @@
         android:layout_gravity="center_vertical"
         android:background="@drawable/bg_primary_list_item"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:src="@drawable/ic_arrow_back_24dp" />
+        android:paddingEnd="8dp"
+        android:src="@drawable/ic_arrow_back_24dp"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/titleTv"
         style="@style/TextAppearance.Soramitsu.Header3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:ellipsize="end"
+        android:gravity="center"
         android:maxLines="1"
-        android:padding="@dimen/x1"
         android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.35"
+        app:layout_constraintStart_toEndOf="@id/backImg"
+        app:layout_constraintWidth_default="wrap"
+        app:layout_goneMarginStart="46dp"
         tools:text="Title" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/rightActionsBarrier"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:barrierDirection="start"
+        app:constraint_referenced_ids="rightImg,rightText,toolbarCustomActions" />
 
     <ImageView
         android:id="@+id/rightImg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="8dp"
         android:layout_marginEnd="9dp"
-        android:layout_gravity="center_vertical|end"
+        android:padding="8dp"
         android:src="@drawable/ic_info_white_24"
-        android:visibility="gone" />
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/rightText"
@@ -53,19 +68,21 @@
         android:paddingEnd="@dimen/x2"
         android:textColor="@color/actions_color"
         android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:text="Action" />
 
     <LinearLayout
         android:id="@+id/toolbarCustomActions"
-        android:layout_gravity="center_vertical|end"
-        android:orientation="horizontal"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <View
+        android:id="@+id/toolbarDivider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_gravity="bottom"
-        android:id="@+id/toolbarDivider"
-        android:background="@color/dividerGray" />
-</FrameLayout>
+        android:background="@color/dividerGray"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
