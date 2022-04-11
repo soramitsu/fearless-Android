@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.core.os.bundleOf
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -22,11 +23,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     companion object {
         private const val KEY_PINCODE_ACTION = "pincode_action"
 
-        fun getPinCodeBundle(pinCodeAction: PinCodeAction): Bundle {
-            return Bundle().apply {
-                putParcelable(KEY_PINCODE_ACTION, pinCodeAction)
-            }
-        }
+        fun getPinCodeBundle(pinCodeAction: PinCodeAction) = bundleOf(KEY_PINCODE_ACTION to pinCodeAction)
     }
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
