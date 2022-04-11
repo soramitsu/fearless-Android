@@ -55,6 +55,12 @@
             android:theme="@style/Theme.Soramitsu.Fearless"
             tools:replace="android:theme,screenOrientation" />
 
+        <activity
+            android:name="jp.co.soramitsu.common.presentation.QrScannerActivity"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.Soramitsu.Fearless"
+            tools:replace="android:theme,screenOrientation" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

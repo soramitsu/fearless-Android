@@ -9,6 +9,9 @@ import coil.ImageLoader
 import coil.decode.SvgDecoder
 import dagger.Module
 import dagger.Provides
+import java.security.SecureRandom
+import java.util.Random
+import javax.inject.Qualifier
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.CachingAddressIconGenerator
 import jp.co.soramitsu.common.address.StatelessAddressIconGenerator
@@ -39,9 +42,6 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
-import java.security.SecureRandom
-import java.util.Random
-import javax.inject.Qualifier
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 

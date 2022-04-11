@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_impl.domain.GetTotalBalanceUseCaseImpl
+import jp.co.soramitsu.feature_account_impl.domain.walletconnect.WalletConnectInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.profile.ProfileViewModel
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -34,7 +35,8 @@ class ProfileModule {
         externalAccountActions: ExternalAccountActions.Presentation,
         getTotalBalance: GetTotalBalanceUseCase,
         getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
-        selectedFiat: SelectedFiat
+        selectedFiat: SelectedFiat,
+        walletConnectInteractor: WalletConnectInteractor
     ): ViewModel {
         return ProfileViewModel(
             interactor,
@@ -43,7 +45,8 @@ class ProfileModule {
             externalAccountActions,
             getTotalBalance,
             getAvailableFiatCurrencies,
-            selectedFiat
+            selectedFiat,
+            walletConnectInteractor
         )
     }
 

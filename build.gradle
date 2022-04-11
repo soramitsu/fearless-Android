@@ -146,7 +146,7 @@ buildscript {
 
         roomTestsDep = "androidx.room:room-testing:$architectureComponentVersion"
 
-        walletConnectDep = "com.github.WalletConnect:kotlin-walletconnect-lib:0.9.6"
+        walletConnectDep = "com.github.WalletConnect:WalletConnectKotlinV2:1.0.0-beta03"
     }
 
     repositories {

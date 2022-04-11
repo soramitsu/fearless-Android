@@ -39,6 +39,7 @@ import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.feature_account_impl.domain.AssetNotNeedAccountUseCaseImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
+import jp.co.soramitsu.feature_account_impl.domain.walletconnect.WalletConnectInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.CryptoTypeChooser
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -209,5 +210,11 @@ class AccountFeatureModule {
         assetDao: AssetDao
     ): AssetNotNeedAccountUseCase {
         return AssetNotNeedAccountUseCaseImpl(assetDao)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideWalletConnectInteractor(): WalletConnectInteractor {
+        return WalletConnectInteractor()
     }
 }

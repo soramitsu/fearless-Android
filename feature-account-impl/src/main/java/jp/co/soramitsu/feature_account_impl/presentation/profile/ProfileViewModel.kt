@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -20,6 +21,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseC
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.TotalBalance
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_account_impl.domain.walletconnect.WalletConnectInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.format
@@ -36,7 +38,8 @@ class ProfileViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     getTotalBalance: GetTotalBalanceUseCase,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
-    private val selectedFiat: SelectedFiat
+    private val selectedFiat: SelectedFiat,
+    private val walletConnectInteractor: WalletConnectInteractor
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
     val totalBalanceLiveData = getTotalBalance().map(TotalBalance::format).asLiveData()
@@ -104,5 +107,9 @@ class ProfileViewModel(
 
     fun walletConnect() {
         _openScanQrCodeLiveData.value = Event(Unit)
+    }
+
+    fun walletConnectQrCodeScanned(init: WalletConnect.Params.Init) {
+        walletConnectInteractor.connect(init)
     }
 }

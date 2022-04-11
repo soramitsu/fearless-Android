@@ -1,16 +1,20 @@
 package jp.co.soramitsu.feature_account_impl.presentation.profile
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
+import com.google.zxing.integration.android.IntentIntegrator
+import com.walletconnect.walletconnectv2.client.WalletConnect
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
+import jp.co.soramitsu.common.presentation.QrScannerActivity
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
@@ -104,7 +108,38 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         ).show()
     }
 
-    private fun openQrCodeScanner(){
+    private fun openQrCodeScanner() {
+        val integrator = IntentIntegrator.forSupportFragment(this).apply {
+            setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
+            setPrompt("")
+            setBeepEnabled(false)
+            captureActivity = QrScannerActivity::class.java
+        }
 
+        integrator.initiateScan()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+        result?.contents?.let {
+            val appMetaData =
+                WalletConnect.Model.AppMetaData(
+                    name = "Wallet Name",
+                    description = "Wallet Description",
+                    url = "Wallet Url",
+                    icons = listOf()
+                )
+            val init =
+                WalletConnect.Params.Init(
+                    application = requireActivity().application,
+                    useTls = false,
+                    hostName = "host name",
+                    projectId = "project id",
+                    isController = false,
+                    metadata = appMetaData
+                )
+            viewModel.walletConnectQrCodeScanned(init)
+
+        }
     }
 }

@@ -138,6 +138,7 @@ dependencies {
 
     kaptAndroidTest daggerKapt
     implementation storiesDep
+    implementation walletConnectDep
 
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep
