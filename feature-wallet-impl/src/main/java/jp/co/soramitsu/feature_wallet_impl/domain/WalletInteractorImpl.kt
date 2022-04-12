@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.domain
 
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
+import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -44,8 +45,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import jp.co.soramitsu.common.data.storage.shouldShowEducationalStories
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -329,12 +328,4 @@ class WalletInteractorImpl(
         val metaId = accountRepository.getSelectedMetaAccount().id
         preferences.putBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", true)
     }
-
-    override var shouldShowEducationalStories: Boolean
-        get() = preferences.shouldShowEducationalStories
-        set(value) {
-            preferences.shouldShowEducationalStories = value
-        }
-
-    override fun educationalStories() = walletRepository.educationalStories()
 }

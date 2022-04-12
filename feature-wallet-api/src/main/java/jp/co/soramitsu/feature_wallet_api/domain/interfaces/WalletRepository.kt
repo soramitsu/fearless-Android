@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
@@ -15,9 +17,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
-import java.math.BigInteger
-import jp.co.soramitsu.common.domain.model.StoryGroup
 
 interface WalletRepository {
 
@@ -94,6 +93,4 @@ interface WalletRepository {
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 
     suspend fun getRemoteConfig(): AppConfigRemote
-
-    fun educationalStories(): StoryGroup.Onboarding
 }

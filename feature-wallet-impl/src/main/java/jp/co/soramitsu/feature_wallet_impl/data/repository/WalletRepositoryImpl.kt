@@ -37,7 +37,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
-import jp.co.soramitsu.feature_wallet_impl.data.OnboardingStoriesDataSource
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapNodeToOperation
@@ -80,8 +79,7 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher,
-    private val storiesDataSource: OnboardingStoriesDataSource
+    private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<AssetWithStatus>> {
@@ -419,6 +417,4 @@ class WalletRepositoryImpl(
     override suspend fun getRemoteConfig(): AppConfigRemote {
         return remoteConfigFetcher.getAppConfig()
     }
-
-    override fun educationalStories() = storiesDataSource.stories
 }

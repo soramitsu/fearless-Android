@@ -17,7 +17,7 @@ import jp.co.soramitsu.common.presentation.StoryGroupModel
 class StoryModule {
 
     @Provides
-    fun provideBackTransition(navigator: Navigator): NavigatorBackTransition = navigator::back
+    fun provideBackTransition(navigator: Navigator): NavigatorBackTransition = navigator::educationalStoriesCompleted
 
     @Provides
     @IntoMap

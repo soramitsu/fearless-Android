@@ -1,7 +1,7 @@
-package jp.co.soramitsu.feature_wallet_impl.data
+package jp.co.soramitsu.common.data
 
 import jp.co.soramitsu.common.domain.model.StoryGroup
-import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.common.R
 
 class OnboardingStoriesDataSource {
     val stories: StoryGroup.Onboarding
