@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.OnboardingStoriesDataSource
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -12,7 +13,9 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.GetEducationalStoriesUseCase
 import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.domain.ShouldShowEducationalStoriesUseCase
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -209,5 +212,25 @@ class AccountFeatureModule {
         assetDao: AssetDao
     ): AssetNotNeedAccountUseCase {
         return AssetNotNeedAccountUseCaseImpl(assetDao)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideStoriesDataSource() = OnboardingStoriesDataSource()
+
+    @Provides
+    @FeatureScope
+    fun provideShouldShowEducationalStories(
+        preferences: Preferences
+    ): ShouldShowEducationalStoriesUseCase {
+        return ShouldShowEducationalStoriesUseCase(preferences)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideGetEducationalStories(
+        onboardingStoriesDataSource: OnboardingStoriesDataSource
+    ): GetEducationalStoriesUseCase {
+        return GetEducationalStoriesUseCase(onboardingStoriesDataSource)
     }
 }

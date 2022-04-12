@@ -48,6 +48,14 @@
             app:popUpTo="@id/splashFragment"
             app:popUpToInclusive="true" />
 
+        <action
+            android:id="@+id/action_splash_to_stories"
+            app:destination="@id/onboardingStoriesFragment"
+            app:popEnterAnim="@anim/fragment_close_enter"
+            app:popExitAnim="@anim/fragment_close_exit"
+            app:popUpTo="@id/splashFragment"
+            app:popUpToInclusive="true" />
+
     </fragment>
 
     <fragment
@@ -55,5 +63,11 @@
         android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
         android:label="fragment_pincode"
         tools:layout="@layout/fragment_pincode" />
+
+    <fragment
+        android:id="@+id/onboardingStoriesFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.stories.StoryFragment"
+        android:label="StakingStoryFragment"
+        tools:layout="@layout/fragment_story" />
 
 </navigation>

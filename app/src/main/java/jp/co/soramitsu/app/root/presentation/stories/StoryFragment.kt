@@ -26,7 +26,7 @@ import kotlinx.android.synthetic.main.fragment_story.storyTitle
 class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.StoriesListener {
 
     companion object {
-        private const val KEY_STORY = "story"
+        const val KEY_STORY = "story"
         private const val STORY_DURATION = 6200L
         private const val STORY_CLICK_MAX_DURATION = 500L
 

@@ -32,7 +32,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecksProvider
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
-import jp.co.soramitsu.feature_wallet_impl.data.OnboardingStoriesDataSource
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.feature_wallet_impl.data.buyToken.RampProvider
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
@@ -122,10 +121,6 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideStoriesDataSource() = OnboardingStoriesDataSource()
-
-    @Provides
-    @FeatureScope
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
         operationsDao: OperationDao,
@@ -141,7 +136,6 @@ class WalletFeatureModule {
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
-        storiesDataSource: OnboardingStoriesDataSource
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -156,8 +150,7 @@ class WalletFeatureModule {
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher,
-        storiesDataSource
+        remoteConfigFetcher
     )
 
     @Provides

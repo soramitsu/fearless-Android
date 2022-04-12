@@ -3,12 +3,16 @@ package jp.co.soramitsu.common.view
 import android.os.CountDownTimer
 import android.widget.CompoundButton
 import android.widget.TextView
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.bindTo
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlinx.coroutines.flow.MutableStateFlow
 
 private val TIMER_TAG = R.string.common_time_left
 
@@ -69,4 +73,16 @@ fun <K> CompoundButton.bindFromMap(key: K, map: Map<out K, MutableStateFlow<Bool
     val source = map[key] ?: error("Cannot find $key source")
 
     bindTo(source, lifecycleScope)
+}
+
+fun Lifecycle.onResumeObserver(): LiveData<Boolean> {
+    val liveData = MutableLiveData(false)
+    addObserver(
+        LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                liveData.value = true
+            }
+        }
+    )
+    return liveData
 }

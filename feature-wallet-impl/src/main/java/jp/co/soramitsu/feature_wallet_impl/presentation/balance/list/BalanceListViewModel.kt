@@ -13,12 +13,9 @@ import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.get
-import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
-import jp.co.soramitsu.common.presentation.StoryElement
-import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.mediateWith
@@ -93,10 +90,6 @@ class BalanceListViewModel(
         }.orEmpty()
 
         BalanceModel(assetsWithState, fiatSymbol.orEmpty())
-    }
-
-    init {
-        checkStories()
     }
 
     fun sync() {
@@ -174,19 +167,4 @@ class BalanceListViewModel(
     fun updateAppClicked() {
         _openPlayMarket.value = Event(Unit)
     }
-
-    private fun checkStories() {
-        if (interactor.shouldShowEducationalStories) {
-            val stories = interactor.educationalStories().transform()
-            router.openEducationalStories(stories)
-            interactor.shouldShowEducationalStories = false
-        }
-    }
-
-    private fun StoryGroup.Onboarding.transform() =
-        StoryGroupModel(
-            this.elements.map {
-                StoryElement.Onboarding(it.titleRes, it.bodyRes, it.image, it.buttonCaptionRes)
-            }
-        )
 }

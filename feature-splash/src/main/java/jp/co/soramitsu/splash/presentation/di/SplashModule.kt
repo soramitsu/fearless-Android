@@ -8,6 +8,8 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.domain.ShouldShowEducationalStoriesUseCase
+import jp.co.soramitsu.common.domain.GetEducationalStoriesUseCase
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.splash.presentation.SplashViewModel
@@ -23,7 +25,12 @@ class SplashModule {
     @Provides
     @IntoMap
     @ViewModelKey(SplashViewModel::class)
-    fun provideSignInViewModel(accountRepository: AccountRepository, router: SplashRouter): ViewModel {
-        return SplashViewModel(router, accountRepository)
+    fun provideSignInViewModel(
+        accountRepository: AccountRepository,
+        router: SplashRouter,
+        shouldShowEducationalStoriesUseCase: ShouldShowEducationalStoriesUseCase,
+        educationalStoriesUseCase: GetEducationalStoriesUseCase
+    ): ViewModel {
+        return SplashViewModel(router, accountRepository, shouldShowEducationalStoriesUseCase, educationalStoriesUseCase)
     }
 }
