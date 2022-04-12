@@ -1,28 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:paddingStart="16dp"
-    android:paddingTop="15dp"
-    android:paddingEnd="16dp"
-    android:paddingBottom="15dp"
-    tools:background="@color/black">
+    android:layout_height="wrap_content">
 
-    <TextView
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:id="@+id/itemCurrencyLabel"
-        android:textColor="@color/gray1"
-        tools:text="Label" />
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        tools:background="@color/black">
 
-    <TextView
-        style="@style/TextAppearance.Soramitsu.Body1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/itemCurrencyValue"
-        tools:text="Value" />
-</LinearLayout>
+        <TextView
+            android:id="@+id/itemCurrencyLabel"
+            style="@style/TextAppearance.Soramitsu.Body1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingVertical="15dp"
+            android:textColor="@color/black1"
+            tools:text="Label" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/itemCurrencyValue"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white"
+                tools:text="Value" />
+
+            <TextView
+                android:id="@+id/itemFiatValue"
+                style="@style/TextAppearance.Soramitsu.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black2"
+                tools:text="2134$" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/bottomDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="16dp"
+        android:background="@color/black3" />
+
+</FrameLayout>
