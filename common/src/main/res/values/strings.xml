@@ -51,8 +51,12 @@ operations will appear here</string>
     <string name="common_info">Info</string>
     <string name="common_undefined_error_message">Please, try again with another input. If the error appears again, please, contact support.</string>
     <string name="recovery_source_type">Source type</string>
+    <string name="recovery_mnemonic">Mnemonic phrase</string>
+    <string name="recovery_mnemonic_hint">12-word phrase</string>
     <string name="recovery_raw_seed">Raw seed</string>
+    <string name="recovery_raw_seed_hint">Private key</string>
     <string name="recovery_json">Restore JSON</string>
+    <string name="recovery_json_hint">JSON file</string>
     <string name="account_import_password_placeholder">Password</string>
     <string name="common_error_general_message">We are working hard to fix the problem. Please, try again later.</string>
     <string name="recover_json_hint">Paste json or upload file…</string>
