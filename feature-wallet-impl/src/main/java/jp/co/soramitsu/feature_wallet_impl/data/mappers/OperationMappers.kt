@@ -1,9 +1,9 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import java.math.BigInteger
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -189,11 +190,6 @@ fun mapNodeToOperation(
     )
 }
 
-private val Chain.Asset.extrinsicIcon
-    get() = when (this) {
-        else -> R.drawable.ic_extrinsic_polkadot // TODO wallet - extrinsicIcon
-    }
-
 private fun Chain.Asset.formatPlanks(planks: BigInteger, negative: Boolean): String {
     val amount = amountFromPlanks(planks)
 
@@ -229,12 +225,17 @@ private fun mapStatusToStatusAppearance(status: Operation.Status): OperationStat
     }
 }
 
-private val CAMEL_CASE_REGEX = "(?<=[a-z])(?=[A-Z])".toRegex()
-
-private fun String.camelCaseToCapitalizedWords() = CAMEL_CASE_REGEX.split(this).joinToString(separator = " ") { it.capitalize() }
-
-private fun Operation.Type.Extrinsic.formattedCall() = call.camelCaseToCapitalizedWords()
-private fun Operation.Type.Extrinsic.formattedModule() = module.camelCaseToCapitalizedWords()
+private fun Operation.Type.Extrinsic.formatted() = listOf(module, call).associateWith { formatted(it) }
+private fun Operation.Type.Extrinsic.formattedAndReplaced() = listOf(module, call).associateWith {
+    when (it) {
+        call -> when {
+            module == Modules.BALANCES && formatted(call) == "Transfer" -> "Transfer fee"
+            module == Modules.CROWDLOAN && formatted(call) == "Contribute" -> "Contribute fee"
+            else -> formatted(call)
+        }
+        else -> formatted(it)
+    }
+}
 
 suspend fun mapOperationToOperationModel(
     operation: Operation,
@@ -289,10 +290,11 @@ suspend fun mapOperationToOperationModel(
                     time = time,
                     amount = formatFee(chainAsset, operationType),
                     amountColorRes = amountColor,
-                    header = operationType.formattedCall(),
+                    header = operationType.formattedAndReplaced()[operationType.call] ?: operationType.call,
                     statusAppearance = statusAppearance,
-                    operationIcon = resourceManager.getDrawable(chainAsset.extrinsicIcon),
-                    subHeader = operationType.formattedModule()
+                    operationIcon = null,
+                    subHeader = operationType.formattedAndReplaced()[operationType.module] ?: operationType.module,
+                    assetIconUrl = chainAsset.iconUrl
                 )
             }
         }
@@ -346,8 +348,8 @@ fun mapOperationToParcel(
                     time = time,
                     originAddress = address,
                     hash = operationType.hash,
-                    module = operationType.formattedModule(),
-                    call = operationType.formattedCall(),
+                    module = operationType.formattedAndReplaced()[operationType.module] ?: operationType.module,
+                    call = operationType.formattedAndReplaced()[operationType.call] ?: operationType.call,
                     fee = formatFee(chainAsset, operationType),
                     statusAppearance = mapStatusToStatusAppearance(operationType.operationStatus)
                 )

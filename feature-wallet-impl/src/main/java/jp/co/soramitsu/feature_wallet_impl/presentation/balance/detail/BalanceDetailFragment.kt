@@ -65,6 +65,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun initViews() {
         hideKeyboard()
 
+        transfersContainer.provideImageLoader(imageLoader)
+
         transfersContainer.initializeBehavior(anchorView = balanceDetailContent)
 
         transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
