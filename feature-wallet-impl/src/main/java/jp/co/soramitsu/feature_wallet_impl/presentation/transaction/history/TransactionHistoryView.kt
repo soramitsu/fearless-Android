@@ -75,6 +75,7 @@ class TransferHistorySheet @JvmOverloads constructor(
         adapter = TransactionHistoryAdapter(this, imageLoader)
         transactionHistoryList.adapter = adapter
         transactionHistoryList.setHasFixedSize(true)
+        adapterDataObserver = transactionHistoryList.enableShowingNewlyAddedTopElements()
     }
 
     fun showProgress() {
@@ -167,16 +168,10 @@ class TransferHistorySheet @JvmOverloads constructor(
         addLayoutListener()
     }
 
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-
-        adapterDataObserver = transactionHistoryList.enableShowingNewlyAddedTopElements()
-    }
-
     override fun onDetachedFromWindow() {
         removeLayoutListener()
 
-        adapter?.unregisterAdapterDataObserver(adapterDataObserver!!)
+        adapterDataObserver?.let { adapter?.unregisterAdapterDataObserver(it) }
 
         super.onDetachedFromWindow()
     }

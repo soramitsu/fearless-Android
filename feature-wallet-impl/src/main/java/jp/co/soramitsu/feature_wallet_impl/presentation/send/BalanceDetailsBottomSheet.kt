@@ -26,14 +26,26 @@ class BalanceDetailsBottomSheet(
         setTitle(R.string.wallet_balance_details_title)
 
         with(payload) {
-            currencyItem(R.string.choose_amount_available_balance, assetModel.available.orZero(), assetModel.getAsFiatWithCurrency(assetModel.available))
-            currencyItem(R.string.wallet_balance_details_total, assetModel.total.orZero(), assetModel.getAsFiatWithCurrency(assetModel.total))
+            currencyItem(
+                R.string.choose_amount_available_balance,
+                assetModel.formatTokenAmount(assetModel.available),
+                assetModel.getAsFiatWithCurrency(assetModel.available)
+            )
+            currencyItem(
+                R.string.wallet_balance_details_total,
+                assetModel.formatTokenAmount(assetModel.total),
+                assetModel.getAsFiatWithCurrency(assetModel.total)
+            )
             currencyItem(
                 R.string.wallet_balance_details_total_after,
-                transferDraft.totalAfterTransfer(assetModel.total.orZero()),
+                assetModel.formatTokenAmount(transferDraft.totalAfterTransfer(assetModel.total.orZero())),
                 assetModel.getAsFiatWithCurrency(transferDraft.totalAfterTransfer(assetModel.total.orZero()))
             )
-            currencyItem(R.string.wallet_send_balance_minimal, existentialDeposit, assetModel.getAsFiatWithCurrency(existentialDeposit))
+            currencyItem(
+                R.string.wallet_send_balance_minimal,
+                assetModel.formatTokenAmount(existentialDeposit),
+                assetModel.getAsFiatWithCurrency(existentialDeposit)
+            )
         }
     }
 }
