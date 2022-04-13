@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.ImageLoader
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.utils.enableShowingNewlyAddedTopElements
 import jp.co.soramitsu.common.utils.makeGone
@@ -48,7 +49,7 @@ class TransferHistorySheet @JvmOverloads constructor(
     private var slidingStateListener: SlidingStateListener? = null
     private var transactionClickListener: TransactionClickListener? = null
 
-    private val adapter = TransactionHistoryAdapter(this)
+    private var adapter: TransactionHistoryAdapter? = null
 
     private var lastOffset: Float = 0.0F
 
@@ -65,12 +66,15 @@ class TransferHistorySheet @JvmOverloads constructor(
 
         setBackgroundResource(R.drawable.bg_transfers)
 
-        transactionHistoryList.adapter = adapter
-        transactionHistoryList.setHasFixedSize(true)
-
         addScrollListener()
 
         updateBackgroundAlpha()
+    }
+
+    fun provideImageLoader(imageLoader: ImageLoader) {
+        adapter = TransactionHistoryAdapter(this, imageLoader)
+        transactionHistoryList.adapter = adapter
+        transactionHistoryList.setHasFixedSize(true)
     }
 
     fun showProgress() {
@@ -78,7 +82,7 @@ class TransferHistorySheet @JvmOverloads constructor(
         transactionHistoryProgress.makeVisible()
         transactionHistoryList.makeGone()
 
-        adapter.submitList(emptyList())
+        adapter?.submitList(emptyList())
 
         bottomSheetBehavior?.isDraggable = false
     }
@@ -90,7 +94,7 @@ class TransferHistorySheet @JvmOverloads constructor(
         transactionHistoryProgress.makeGone()
         transactionHistoryList.makeGone()
 
-        adapter.submitList(emptyList())
+        adapter?.submitList(emptyList())
 
         bottomSheetBehavior?.isDraggable = false
     }
@@ -102,7 +106,7 @@ class TransferHistorySheet @JvmOverloads constructor(
 
         bottomSheetBehavior?.isDraggable = true
 
-        adapter.submitList(transactions)
+        adapter?.submitList(transactions)
     }
 
     fun setScrollingListener(listener: ScrollingListener) {
@@ -172,7 +176,7 @@ class TransferHistorySheet @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         removeLayoutListener()
 
-        adapter.unregisterAdapterDataObserver(adapterDataObserver!!)
+        adapter?.unregisterAdapterDataObserver(adapterDataObserver!!)
 
         super.onDetachedFromWindow()
     }
