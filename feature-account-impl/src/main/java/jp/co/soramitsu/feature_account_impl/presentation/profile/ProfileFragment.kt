@@ -135,11 +135,11 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
                     useTls = false,
                     hostName = "host name",
                     projectId = "project id",
-                    isController = false,
+                    isController = true,
                     metadata = appMetaData
                 )
-            viewModel.walletConnectQrCodeScanned(init)
 
+            viewModel.walletConnectQrCodeScanned(init, it)
         }
     }
 }

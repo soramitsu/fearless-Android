@@ -109,7 +109,7 @@ class ProfileViewModel(
         _openScanQrCodeLiveData.value = Event(Unit)
     }
 
-    fun walletConnectQrCodeScanned(init: WalletConnect.Params.Init) {
-        walletConnectInteractor.connect(init)
+    fun walletConnectQrCodeScanned(init: WalletConnect.Params.Init, wcc: String) {
+        walletConnectInteractor.connect(init, wcc)
     }
 }
