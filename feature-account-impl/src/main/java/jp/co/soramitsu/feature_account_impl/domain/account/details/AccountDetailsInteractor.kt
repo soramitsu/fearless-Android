@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_account_impl.domain.account.details
 
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.model.AssetKey
@@ -16,6 +17,7 @@ import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChai
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -77,6 +79,10 @@ class AccountDetailsInteractor(
 
     suspend fun getMetaAccountSecrets(metaId: Long): EncodableStruct<MetaAccountSecrets>? {
         return accountRepository.getMetaAccountSecrets(metaId)
+    }
+
+    suspend fun getChainAccountSecret(metaId: Long, chainId: ChainId): EncodableStruct<ChainAccountSecrets>? {
+        return accountRepository.getChainAccountSecrets(metaId, chainId)
     }
 
     private fun chainSort() = compareByDescending<Chain> { it.id.isPolkadotOrKusama() }

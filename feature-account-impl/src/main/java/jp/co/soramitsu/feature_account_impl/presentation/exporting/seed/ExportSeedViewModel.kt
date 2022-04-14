@@ -45,7 +45,7 @@ class ExportSeedViewModel(
                 ComponentHolder(
                     listOf(
                         if (isEthereum.value == false) it?.get(ChainAccountSecrets.Seed) else null,
-                        if (isEthereum.value == true) it?.get(ChainAccountSecrets.Seed) else null
+                        if (isEthereum.value == true) it?.get(ChainAccountSecrets.Keypair)?.get(KeyPairSchema.PrivateKey) else null
                     ).map { seed -> seed?.toHexString(withPrefix = true) }
                 )
             }
