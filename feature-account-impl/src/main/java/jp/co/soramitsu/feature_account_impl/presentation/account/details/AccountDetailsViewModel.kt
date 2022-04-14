@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AssetNotNeedAccountUseCase
+import jp.co.soramitsu.feature_account_api.domain.model.hasChainAccount
 import jp.co.soramitsu.feature_account_api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
@@ -131,7 +132,12 @@ class AccountDetailsViewModel(
     fun exportClicked(chainId: ChainId) {
         viewModelScope.launch {
             val isEthereumBased = chainRegistry.getChain(chainId).isEthereumBased
-            val sources = interactor.getMetaAccountSecrets(metaId).buildExportSourceTypes(isEthereumBased)
+            val hasChainAccount = interactor.getMetaAccount(metaId).hasChainAccount(chainId)
+            val sources = when {
+                hasChainAccount -> interactor.getChainAccountSecret(metaId, chainId).buildExportSourceTypes(isEthereumBased)
+                else -> interactor.getMetaAccountSecrets(metaId).buildExportSourceTypes(isEthereumBased)
+            }
+
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
         }
     }
