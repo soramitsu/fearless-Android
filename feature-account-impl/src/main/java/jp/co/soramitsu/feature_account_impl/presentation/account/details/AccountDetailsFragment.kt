@@ -28,9 +28,6 @@ import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsCha
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsToolbar
 import javax.inject.Inject
-import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
-import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
-import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 
 private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
