@@ -92,14 +92,17 @@ class ExportJsonPasswordViewModel(
                 }
                 else -> null
             }
-            when (payload) {
-                null -> nextProgress.value = false
-                else -> router.openExportJsonConfirm(payload)
+            if (payload != null) {
+                router.openExportJsonConfirm(payload)
             }
         }
     }
 
     override fun securityWarningCancel() {
         back()
+    }
+
+    fun resetProgress() {
+        nextProgress.value = false
     }
 }
