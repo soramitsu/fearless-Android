@@ -7,18 +7,21 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.model.hasChainAccount
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class ExportJsonPasswordViewModel(
     private val router: AccountRouter,
     private val interactor: AccountInteractor,
-    chainRegistry: ChainRegistry,
+    private val chainRegistry: ChainRegistry,
     private val payload: ExportJsonPasswordPayload,
     resourceManager: ResourceManager
 ) : ExportViewModel(interactor, resourceManager, chainRegistry, payload.metaId, payload.chainId, payload.isExportWallet, ExportSource.Json) {
@@ -59,8 +62,27 @@ class ExportJsonPasswordViewModel(
         viewModelScope.launch {
             val isEthBased = chainLiveData.value?.isEthereumBased
 
-            val substrateJsonResult = interactor.generateRestoreJson(payload.metaId, payload.chainId, password)
-            val ethereumJsonResult = interactor.generateRestoreJson(payload.metaId, moonriverChainId, password)
+            val chainForSubstrateExport = when {
+                payload.isExportWallet -> polkadotChainId
+                else -> payload.chainId
+            }
+
+            val chainForEthereumExport = when {
+                payload.isExportWallet -> {
+                    val supportedEthChains = chainRegistry.currentChains.first().filter { chain ->
+                        chain.isSupported && chain.isEthereumBased && accountInteractor.getMetaAccount(payload.metaId).hasChainAccount(chain.id).not()
+                    }.sortedWith(compareBy<Chain> { it.isTestNet }.thenBy { it.name })
+
+                    supportedEthChains.getOrNull(0)?.id
+                }
+                else -> payload.chainId
+            }
+
+            val substrateJsonResult = interactor.generateRestoreJson(payload.metaId, chainForSubstrateExport, password)
+            val ethereumJsonResult = when (chainForEthereumExport) {
+                null -> Result.failure(IllegalArgumentException("No chain specified"))
+                else -> interactor.generateRestoreJson(payload.metaId, chainForEthereumExport, password)
+            }
 
             val payload = when {
                 payload.isExportWallet && substrateJsonResult.isSuccess -> {

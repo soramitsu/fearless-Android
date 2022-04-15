@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_account_impl.domain
 
-import java.io.File
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.core.model.Language
@@ -14,6 +13,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class AccountInteractorImpl(
     private val accountRepository: AccountRepository,
