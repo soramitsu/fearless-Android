@@ -108,4 +108,8 @@ class ExportMnemonicViewModel(
 
         router.openConfirmMnemonicOnExport(mnemonicSource.wordList)
     }
+
+    override fun securityWarningCancel() {
+        back()
+    }
 }
