@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history
 
 import android.view.View
 import android.view.ViewGroup
+import coil.ImageLoader
+import coil.load
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
@@ -24,7 +26,8 @@ import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionSubHe
 import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionTime
 
 class TransactionHistoryAdapter(
-    private val handler: Handler
+    private val handler: Handler,
+    private val imageLoader: ImageLoader
 ) : GroupedListAdapter<DayHeader, OperationModel>(TransactionHistoryDiffCallback) {
 
     interface Handler {
@@ -36,7 +39,7 @@ class TransactionHistoryAdapter(
     }
 
     override fun createChildViewHolder(parent: ViewGroup): GroupedListHolder {
-        return TransactionHolder(parent.inflateChild(R.layout.item_transaction))
+        return TransactionHolder(parent.inflateChild(R.layout.item_transaction), imageLoader)
     }
 
     override fun bindGroup(holder: GroupedListHolder, group: DayHeader) {
@@ -48,7 +51,7 @@ class TransactionHistoryAdapter(
     }
 }
 
-class TransactionHolder(view: View) : GroupedListHolder(view) {
+class TransactionHolder(view: View, private val imageLoader: ImageLoader) : GroupedListHolder(view) {
     fun bind(item: OperationModel, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
             with(item) {
@@ -71,7 +74,11 @@ class TransactionHolder(view: View) : GroupedListHolder(view) {
                 setOnClickListener { handler.transactionClicked(this) }
             }
 
-            itemTransactionIcon.setImageDrawable(item.operationIcon)
+            if (item.assetIconUrl != null) {
+                itemTransactionIcon.load(item.assetIconUrl, imageLoader)
+            } else {
+                itemTransactionIcon.setImageDrawable(item.operationIcon)
+            }
         }
     }
 }

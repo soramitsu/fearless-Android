@@ -45,7 +45,7 @@ class ExportSeedViewModel(
                 ComponentHolder(
                     listOf(
                         if (isEthereum.value == false) it?.get(ChainAccountSecrets.Seed) else null,
-                        if (isEthereum.value == true) it?.get(ChainAccountSecrets.Seed) else null
+                        if (isEthereum.value == true) it?.get(ChainAccountSecrets.Keypair)?.get(KeyPairSchema.PrivateKey) else null
                     ).map { seed -> seed?.toHexString(withPrefix = true) }
                 )
             }
@@ -78,6 +78,10 @@ class ExportSeedViewModel(
         }
     }
 
+    init {
+        showSecurityWarning()
+    }
+
     fun back() {
         router.back()
     }
@@ -86,11 +90,8 @@ class ExportSeedViewModel(
         showSecurityWarning()
     }
 
-    override fun securityWarningConfirmed() {
-        val seed = seedLiveData.value?.component1<String>() ?: return
-        val chainName = chainLiveData.value?.name ?: return
-
-        exportText(resourceManager.getString(R.string.export_seed_without_derivation, chainName, seed))
+    override fun securityWarningCancel() {
+        back()
     }
 
     fun substrateSeedClicked() {

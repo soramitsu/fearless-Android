@@ -51,7 +51,7 @@ abstract class ExportViewModel(
         _exportEvent.value = Event(text)
     }
 
-    open fun securityWarningConfirmed() {
+    open fun securityWarningCancel() {
         // optional override
     }
 

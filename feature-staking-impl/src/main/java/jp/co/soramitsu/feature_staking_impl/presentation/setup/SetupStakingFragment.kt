@@ -99,8 +99,8 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
 
         viewModel.showMinimumStakeAlert.observeEvent {
             AlertBottomSheet.Builder(requireContext())
-                .setTitle(R.string.minimum_stake_alert_title)
-                .setMessage(resources.getString(R.string.minimum_stake_alert_message, it))
+                .setTitle(R.string.staking_inactive_bond)
+                .setMessage(resources.getString(R.string.min_staking_warning_text, it))
                 .setButtonText(R.string.common_confirm)
                 .callback { viewModel.minimumStakeConfirmed() }
                 .build()

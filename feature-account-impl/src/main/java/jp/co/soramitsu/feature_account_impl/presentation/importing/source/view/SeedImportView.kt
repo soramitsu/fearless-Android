@@ -49,8 +49,8 @@ class SeedImportView @JvmOverloads constructor(
 
     private fun setImportAccountType(type: ImportAccountType) {
         when (type) {
-            ImportAccountType.Substrate -> importSeedTitle.setText(R.string.recovery_raw_seed_substrate)
-            ImportAccountType.Ethereum -> importSeedTitle.setText(R.string.recovery_raw_seed_eth)
+            ImportAccountType.Substrate -> importSeedTitle.setText(R.string.account_import_substrate_raw_seed_placeholder)
+            ImportAccountType.Ethereum -> importSeedTitle.setText(R.string.account_import_ethereum_raw_seed_placeholder)
         }
     }
 

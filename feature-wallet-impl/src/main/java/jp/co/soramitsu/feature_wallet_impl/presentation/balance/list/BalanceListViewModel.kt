@@ -65,6 +65,7 @@ class BalanceListViewModel(
     }
     private val fiatSymbolLiveData = fiatSymbolFlow.asLiveData()
     private val assetModelsLiveData = assetModelsFlow().asLiveData()
+    val assetsWarningLiveData = assetWarningFlow().asLiveData()
 
     val balanceLiveData = mediateWith(
         assetModelsLiveData,
@@ -134,8 +135,23 @@ class BalanceListViewModel(
 
     private fun assetModelsFlow(): Flow<List<AssetModel>> =
         interactor.assetsFlow()
+            .mapList {
+                when {
+                    !it.enabled -> null
+                    !it.hasAccount -> null
+                    else -> it.asset
+                }
+            }
+            .map { it.filterNotNull() }
             .mapList { mapAssetToAssetModel(it) }
-            .map { list -> list.filter { it.enabled } }
+
+    private fun assetWarningFlow(): Flow<Boolean> =
+        interactor.assetsFlow()
+            .map { list ->
+                list.any {
+                    !it.hasAccount && !it.asset.markedNotNeed
+                }
+            }
 
     fun manageAssetsClicked() {
         router.openManageAssets()

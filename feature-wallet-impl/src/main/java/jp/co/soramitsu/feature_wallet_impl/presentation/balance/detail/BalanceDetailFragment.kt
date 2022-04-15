@@ -65,6 +65,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun initViews() {
         hideKeyboard()
 
+        transfersContainer.provideImageLoader(imageLoader)
+
         transfersContainer.initializeBehavior(anchorView = balanceDetailContent)
 
         transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
@@ -180,6 +182,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
     private fun showExportSourceChooser(payload: ExportSourceChooserPayload) {
         SourceTypeChooserBottomSheetDialog(
+            titleRes = R.string.select_save_type,
             context = requireActivity(),
             payload = DynamicListBottomSheet.Payload(payload.sources),
             onClicked = { viewModel.exportTypeSelected(it, payload.chainId) }

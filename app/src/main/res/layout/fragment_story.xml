@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/drawable_background_image">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/storyContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blurColor"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical">
+
+        <jp.shts.android.storiesprogressview.StoriesProgressView
+            android:id="@+id/stories"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/storyCloseIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_primary_list_item"
+            android:padding="16dp"
+            android:src="@drawable/ic_close"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/stories" />
+
+        <TextView
+            android:id="@+id/storyTitle"
+            style="@style/TextAppearance.Soramitsu.Header1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:includeFontPadding="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/storyCloseIcon"
+            tools:text="Story title" />
+
+        <TextView
+            android:id="@+id/storyBody"
+            style="@style/TextAppearance.Soramitsu.Body0"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="24dp"
+            android:includeFontPadding="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/storyTitle"
+            tools:text="All your accounts remain in the app! Each wallet now contains many accounts on different networks. Each wallet has a new, colorful icon to help you differentiate between them." />
+
+        <ImageView
+            android:id="@+id/storyImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:layout_constrainedHeight="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/storyBody"
+            android:layout_marginBottom="16dp"
+            app:layout_goneMarginBottom="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/stakingStoryLearnMore"
+            app:layout_constraintVertical_bias="1"
+            tools:src="@drawable/background_story_networks" />
+
+        <jp.co.soramitsu.common.view.PrimaryButton
+            android:id="@+id/stakingStoryLearnMore"
+            style="@style/Widget.Fearless.Button.Primary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/common_learn_more"
+            android:theme="@style/PinkOverlay"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

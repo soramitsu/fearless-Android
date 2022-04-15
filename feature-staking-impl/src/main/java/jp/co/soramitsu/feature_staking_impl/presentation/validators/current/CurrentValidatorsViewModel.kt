@@ -140,6 +140,8 @@ class CurrentValidatorsViewModel(
             ),
             resourceManager.getString(R.string.staking_your_validators_changing_title)
         )
+
+        else -> null
     }
 
     fun changeClicked() {

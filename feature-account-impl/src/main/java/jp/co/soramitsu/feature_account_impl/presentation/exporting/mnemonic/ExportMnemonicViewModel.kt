@@ -14,7 +14,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
@@ -92,20 +91,16 @@ class ExportMnemonicViewModel(
             }
         }
 
+    init {
+        showSecurityWarning()
+    }
+
     fun back() {
         router.back()
     }
 
     fun exportClicked() {
         showSecurityWarning()
-    }
-
-    override fun securityWarningConfirmed() {
-        val mnemonic = mnemonicSourceLiveData.value ?: return
-
-        val chainName = chainLiveData.value?.name ?: return
-
-        exportText(resourceManager.getString(R.string.export_mnemonic_without_derivation, chainName, mnemonic))
     }
 
     fun openConfirmMnemonic() {

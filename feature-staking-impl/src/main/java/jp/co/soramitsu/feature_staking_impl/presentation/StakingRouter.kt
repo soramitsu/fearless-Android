@@ -1,12 +1,12 @@
 package jp.co.soramitsu.feature_staking_impl.presentation
 
 import androidx.lifecycle.Lifecycle
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
@@ -39,7 +39,7 @@ interface StakingRouter {
 
     fun openChangeAccountFromStaking()
 
-    fun openStory(story: StakingStoryModel)
+    fun openStory(story: StoryGroupModel)
 
     fun openPayouts()
 

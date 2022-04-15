@@ -46,6 +46,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
-        android:text="@string/wallets_add" />
+        android:text="@string/settings_add_wallet" />
 
 </FrameLayout>
