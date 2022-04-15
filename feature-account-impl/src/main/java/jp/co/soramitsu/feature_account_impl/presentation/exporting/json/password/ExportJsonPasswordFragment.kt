@@ -40,6 +40,11 @@ class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>()
         return inflater.inflate(R.layout.fragment_export_json_password, container, false)
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.resetProgress()
+    }
+
     override fun initViews() {
         exportJsonPasswordToolbar.setHomeButtonListener {
             hideKeyboard()
