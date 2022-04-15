@@ -1,38 +1,39 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.story
+package jp.co.soramitsu.app.root.presentation.stories
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
+import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
+
+typealias NavigatorBackTransition = () -> Unit
 
 class StoryViewModel(
-    private val router: StakingRouter,
-    private val story: StakingStoryModel
+    private val back: NavigatorBackTransition,
+    stories: List<StoryElement>
 ) : BaseViewModel(), Browserable {
 
-    private val _storyLiveData = MutableLiveData(story)
-    val storyLiveData: LiveData<StakingStoryModel> = _storyLiveData
+    private val _storyLiveData = MutableLiveData(stories)
+    val storyLiveData: LiveData<List<StoryElement>> = _storyLiveData
 
-    private val _currentStoryLiveData = MutableLiveData<StakingStoryModel.Element>()
-    val currentStoryLiveData: LiveData<StakingStoryModel.Element> = _currentStoryLiveData
+    private val _currentStoryLiveData = MutableLiveData<StoryElement>()
+    val currentStoryLiveData: LiveData<StoryElement> = _currentStoryLiveData
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     init {
-        story.elements.firstOrNull()?.let {
+        stories.firstOrNull()?.let {
             _currentStoryLiveData.value = it
         }
     }
 
     fun backClicked() {
-        router.back()
+        back()
     }
 
     fun nextStory() {
-        val stories = storyLiveData.value?.elements ?: return
+        val stories = storyLiveData.value ?: return
         val currentStory = currentStoryLiveData.value ?: return
 
         val nextStoryIndex = stories.indexOf(currentStory) + 1
@@ -42,7 +43,7 @@ class StoryViewModel(
     }
 
     fun previousStory() {
-        val stories = storyLiveData.value?.elements ?: return
+        val stories = storyLiveData.value ?: return
         val currentStory = currentStoryLiveData.value ?: return
 
         val previousStoryIndex = stories.indexOf(currentStory) - 1
@@ -52,11 +53,11 @@ class StoryViewModel(
     }
 
     fun complete() {
-        router.back()
+        back()
     }
 
     fun learnMoreClicked() {
-        currentStoryLiveData.value?.let {
+        (currentStoryLiveData.value as? StoryElement.Staking?)?.let {
             openBrowserEvent.value = Event(it.url)
         }
     }

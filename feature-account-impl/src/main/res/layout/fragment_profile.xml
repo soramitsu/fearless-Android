@@ -79,7 +79,7 @@
             android:drawableStart="@drawable/ic_dollar_circle"
             android:drawablePadding="@dimen/x1_5"
             android:gravity="center_vertical"
-            android:text="@string/profile_currency_title"
+            android:text="@string/common_currency"
             android:textColor="@color/white" />
 
         <TextView

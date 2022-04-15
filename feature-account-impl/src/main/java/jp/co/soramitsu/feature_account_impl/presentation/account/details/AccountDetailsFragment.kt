@@ -8,13 +8,17 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
+import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
+import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
+import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.feature_account_api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
@@ -24,9 +28,6 @@ import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsCha
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
 import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsToolbar
 import javax.inject.Inject
-import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
-import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
-import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 
 private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
@@ -85,12 +86,14 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
         viewModel.showImportChainAccountChooser.observeEvent(::showImportChainAccountChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
+
+        viewModel.showAddAccountChooser.observeEvent(::showAddAccountChooser)
     }
 
     private fun showUnsupportedChainAlert() {
         AlertBottomSheet.Builder(requireContext())
-            .setTitle(R.string.common_update_needed)
-            .setMessage(R.string.unsupported_chain_alert_message)
+            .setTitle(R.string.update_needed_text)
+            .setMessage(R.string.chain_unsupported_text)
             .setButtonText(R.string.common_update)
             .callback { viewModel.updateAppClicked() }
             .build()
@@ -127,6 +130,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
 
     private fun showExportSourceChooser(payload: ExportSourceChooserPayload) {
         SourceTypeChooserBottomSheetDialog(
+            titleRes = R.string.select_save_type,
             context = requireActivity(),
             payload = DynamicListBottomSheet.Payload(payload.sources),
             onClicked = { viewModel.exportTypeSelected(it, payload.chainId) }
@@ -139,6 +143,16 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
             payload = payload,
             onCreateAccount = viewModel::createChainAccount,
             onImportAccount = viewModel::importChainAccount,
+        ).show()
+    }
+
+    private fun showAddAccountChooser(payload: AddAccountBottomSheet.Payload) {
+        AddAccountBottomSheet(
+            requireContext(),
+            payload = payload,
+            onCreate = viewModel::createAccount,
+            onImport = viewModel::importAccount,
+            onNoNeed = viewModel::noNeedAccount
         ).show()
     }
 }

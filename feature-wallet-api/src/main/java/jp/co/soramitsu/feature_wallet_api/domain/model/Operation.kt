@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.model
 
+import jp.co.soramitsu.common.utils.camelCaseToCapitalizedWords
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigInteger
 
@@ -12,6 +13,7 @@ data class Operation(
 ) {
 
     sealed class Type {
+        fun formatted(value: String) = value.camelCaseToCapitalizedWords()
 
         data class Extrinsic(
             val hash: String,

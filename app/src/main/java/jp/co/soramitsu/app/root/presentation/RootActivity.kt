@@ -146,8 +146,8 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
 
     private fun showUnsupportedAppVersionAlert() {
         AlertBottomSheet.Builder(this)
-            .setTitle(jp.co.soramitsu.feature_wallet_impl.R.string.common_update_needed)
-            .setMessage(jp.co.soramitsu.feature_wallet_impl.R.string.unsupported_app_version_alert_message)
+            .setTitle(R.string.update_needed_text)
+            .setMessage(R.string.chain_unsupported_text)
             .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_update)
             .setCancelable(false)
             .callback { viewModel.updateAppClicked() }

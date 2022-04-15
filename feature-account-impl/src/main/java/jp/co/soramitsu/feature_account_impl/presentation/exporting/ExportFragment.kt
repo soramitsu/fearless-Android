@@ -36,9 +36,10 @@ abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
     private fun showSecurityWarning() {
         AlertDialog.Builder(requireActivity())
             .setTitle(R.string.account_export_warning_title)
+            .setCancelable(false)
             .setMessage(R.string.account_export_warning_message)
-            .setPositiveButton(R.string.common_ok) { _, _ -> viewModel.securityWarningConfirmed() }
-            .setNegativeButton(R.string.common_cancel, null)
+            .setPositiveButton(R.string.common_proceed, null)
+            .setNegativeButton(R.string.common_cancel) { _, _ -> viewModel.securityWarningCancel() }
             .show()
     }
 }

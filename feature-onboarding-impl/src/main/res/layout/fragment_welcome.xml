@@ -46,7 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/x1"
-            android:text="@string/create_new_wallet" />
+            android:text="@string/username_setup_title_2_0" />
 
         <jp.co.soramitsu.common.view.PrimaryButton
             android:id="@+id/importAccountBtn"
@@ -54,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/x1"
-            android:text="@string/onboarding_title" />
+            android:text="@string/onboarding_restore_wallet" />
 
     </LinearLayout>
 

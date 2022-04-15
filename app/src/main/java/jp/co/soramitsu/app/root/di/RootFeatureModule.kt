@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.di
 import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.app.root.domain.RootInteractor
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_wallet_api.di.Wallet
@@ -16,10 +17,12 @@ class RootFeatureModule {
     fun provideRootInteractor(
         walletRepository: WalletRepository,
         @Wallet walletUpdateSystem: UpdateSystem,
+        preferences: Preferences
     ): RootInteractor {
         return RootInteractor(
             walletUpdateSystem,
-            walletRepository
+            walletRepository,
+            preferences
         )
     }
 }

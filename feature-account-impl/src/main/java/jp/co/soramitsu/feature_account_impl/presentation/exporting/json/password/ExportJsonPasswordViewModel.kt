@@ -1,13 +1,15 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
@@ -16,22 +18,34 @@ import kotlinx.coroutines.launch
 class ExportJsonPasswordViewModel(
     private val router: AccountRouter,
     private val interactor: AccountInteractor,
-    private val chainRegistry: ChainRegistry,
-    private val payload: ExportJsonPasswordPayload
-) : BaseViewModel() {
+    chainRegistry: ChainRegistry,
+    private val payload: ExportJsonPasswordPayload,
+    resourceManager: ResourceManager
+) : ExportViewModel(interactor, resourceManager, chainRegistry, payload.metaId, payload.chainId, payload.isExportWallet, ExportSource.Json) {
 
     val isExportWallet = payload.isExportWallet
     val passwordLiveData = MutableLiveData<String>()
     val passwordConfirmationLiveData = MutableLiveData<String>()
 
-    val chainLiveData = liveData { emit(chainRegistry.getChain(payload.chainId)) }
-
     val showDoNotMatchingErrorLiveData = passwordLiveData.combine(passwordConfirmationLiveData) { password, confirmation ->
         confirmation.isNotBlank() && confirmation != password
     }
 
-    val nextEnabled = passwordLiveData.combine(passwordConfirmationLiveData, initial = false) { password, confirmation ->
+    private val nextEnabled = passwordLiveData.combine(passwordConfirmationLiveData, initial = false) { password, confirmation ->
         password.isNotBlank() && confirmation.isNotBlank() && password == confirmation
+    }
+    private val nextProgress = MutableLiveData(false)
+
+    val nextButtonState = nextEnabled.combine(nextProgress) { enabled, inProgress ->
+        when {
+            inProgress -> ButtonState.PROGRESS
+            enabled -> ButtonState.NORMAL
+            else -> ButtonState.DISABLED
+        }
+    }
+
+    init {
+        showSecurityWarning()
     }
 
     fun back() {
@@ -39,6 +53,7 @@ class ExportJsonPasswordViewModel(
     }
 
     fun nextClicked() {
+        nextProgress.value = true
         val password = passwordLiveData.value!!
 
         viewModelScope.launch {
@@ -48,12 +63,12 @@ class ExportJsonPasswordViewModel(
             val ethereumJsonResult = interactor.generateRestoreJson(payload.metaId, moonriverChainId, password)
 
             val payload = when {
-                payload.isExportWallet && substrateJsonResult.isSuccess && ethereumJsonResult.isSuccess -> {
+                payload.isExportWallet && substrateJsonResult.isSuccess -> {
                     ExportJsonConfirmPayload(
                         payload.metaId,
                         payload.chainId,
                         substrateJsonResult.requireValue(),
-                        ethereumJsonResult.requireValue(),
+                        ethereumJsonResult.getOrNull(),
                         payload.isExportWallet
                     )
                 }
@@ -77,7 +92,17 @@ class ExportJsonPasswordViewModel(
                 }
                 else -> null
             }
-            payload?.let { router.openExportJsonConfirm(it) }
+            if (payload != null) {
+                router.openExportJsonConfirm(payload)
+            }
         }
+    }
+
+    override fun securityWarningCancel() {
+        back()
+    }
+
+    fun resetProgress() {
+        nextProgress.value = false
     }
 }

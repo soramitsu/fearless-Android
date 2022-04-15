@@ -8,8 +8,12 @@ import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
+import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.postToUiThread
+import jp.co.soramitsu.common.view.onResumeObserver
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -55,7 +59,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.Sel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm.ConfirmSetControllerPayload
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemFragment
@@ -64,7 +67,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
-import jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
@@ -85,6 +87,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -222,7 +225,7 @@ class Navigator :
         navController?.navigate(R.id.openStartChangeValidatorsFragment)
     }
 
-    override fun openStory(story: StakingStoryModel) {
+    override fun openStory(story: StoryGroupModel) {
         navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
     }
 
@@ -596,4 +599,24 @@ class Navigator :
         val action = PinCodeAction.Create(delayedNavigation)
         return PincodeFragment.getPinCodeBundle(action)
     }
+
+    override fun openEducationalStories(stories: StoryGroupModel) {
+        navController?.navigate(R.id.onboardingStoriesFragment, StoryFragment.getBundle(stories))
+    }
+
+    fun educationalStoriesCompleted() {
+        navController?.previousBackStackEntry?.savedStateHandle?.set(StoryFragment.KEY_STORY, true)
+        navController?.navigateUp()
+    }
+
+    override val educationalStoriesCompleted: Flow<Boolean>
+        get() {
+            return combine(
+                navController?.currentBackStackEntry?.lifecycle?.onResumeObserver() ?: return flowOf(false),
+                navController?.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(StoryFragment.KEY_STORY) ?: return flowOf(false),
+                combiner = { (isResumed: Boolean, storiesCompleted: Boolean) ->
+                    isResumed && storiesCompleted
+                }
+            ).asFlow()
+        }
 }

@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_account_api.di
 
+import jp.co.soramitsu.common.domain.GetEducationalStoriesUseCase
+import jp.co.soramitsu.common.domain.ShouldShowEducationalStoriesUseCase
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
@@ -20,4 +22,8 @@ interface AccountFeatureApi {
     fun accountUseCase(): SelectedAccountUseCase
 
     fun extrinsicService(): ExtrinsicService
+
+    fun shouldShowEducationalStoriesUseCase(): ShouldShowEducationalStoriesUseCase
+
+    fun getEducationalStoriesUseCase(): GetEducationalStoriesUseCase
 }

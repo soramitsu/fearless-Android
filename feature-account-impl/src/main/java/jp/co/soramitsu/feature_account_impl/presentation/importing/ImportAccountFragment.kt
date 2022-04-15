@@ -165,6 +165,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
                 }
                 sourceType is MnemonicImportSource -> {
                     configure(FieldState.NORMAL)
+                    FieldState.DISABLED.applyTo(ethereumEncryptionTypeField)
                 }
                 sourceType is RawSeedImportSource -> {
                     configure(blockchainType)
@@ -217,8 +218,8 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     private fun showEthDialog() {
         AlertDialog.Builder(ContextThemeWrapper(context, jp.co.soramitsu.common.R.style.WhiteOverlay))
-            .setTitle(R.string.eth_import_title)
-            .setMessage(R.string.eth_import_message)
+            .setTitle(R.string.alert_add_ethereum_title)
+            .setMessage(R.string.alert_add_ethereum_message)
             .setPositiveButton(R.string.common_yes) { _, _ -> viewModel.onAddEthAccountConfirmed() }
             .setNegativeButton(R.string.common_no) { _, _ -> viewModel.onAddEthAccountDeclined() }
             .create()

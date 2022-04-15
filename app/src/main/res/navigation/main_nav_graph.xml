@@ -671,7 +671,7 @@
 
     <fragment
         android:id="@+id/stakingStoryFragment"
-        android:name="jp.co.soramitsu.feature_staking_impl.presentation.story.StoryFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.stories.StoryFragment"
         android:label="StakingStoryFragment"
         tools:layout="@layout/fragment_story" />
 

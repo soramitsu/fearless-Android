@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseFragment
@@ -35,6 +34,7 @@ import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmou
 import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalTitle
 import kotlinx.android.synthetic.main.fragment_balance_list.manageAssets
 import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
+import javax.inject.Inject
 
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
 
@@ -103,6 +103,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
             balanceListTotalAmount.setVisible(!it.isUpdating, View.INVISIBLE)
         }
 
+        viewModel.assetsWarningLiveData.observe(manageAssets.warning::setVisible)
+
         viewModel.currentAddressModelLiveData.observe {
             balanceListTotalTitle.text = it.nameOrAddress
             balanceListAvatar.setImageDrawable(it.image)
@@ -124,8 +126,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
     private fun showUnsupportedChainAlert() {
         AlertBottomSheet.Builder(requireContext())
-            .setTitle(R.string.common_update_needed)
-            .setMessage(R.string.unsupported_chain_alert_message)
+            .setTitle(R.string.update_needed_text)
+            .setMessage(R.string.chain_unsupported_text)
             .setButtonText(R.string.common_update)
             .callback { viewModel.updateAppClicked() }
             .build()

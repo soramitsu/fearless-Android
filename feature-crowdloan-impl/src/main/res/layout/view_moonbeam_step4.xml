@@ -80,7 +80,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="8dp"
-                android:hint="@string/moonbeam_ethereum_address"
+                android:hint="@string/moonbean_ethereum_address"
                 android:inputType="textMultiLine"/>
 
             <LinearLayout

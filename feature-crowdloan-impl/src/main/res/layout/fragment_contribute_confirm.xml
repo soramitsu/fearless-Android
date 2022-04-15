@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="18dp"
-                android:text="@string/moonbeam_ethereum_address"
+                android:text="@string/moonbean_ethereum_address"
                 android:textColor="@color/black1" />
 
             <TextView

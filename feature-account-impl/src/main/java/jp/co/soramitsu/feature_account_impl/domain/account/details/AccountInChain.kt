@@ -7,12 +7,14 @@ class AccountInChain(
     val chain: Chain,
     val projection: Projection?,
     val from: From,
-    val name: String?
+    val name: String?,
+    val hasAccount: Boolean,
+    val markedAsNotNeed: Boolean
 ) {
 
     class Projection(val address: String, val accountId: AccountId)
 
     enum class From {
-        META_ACCOUNT, CHAIN_ACCOUNT
+        ACCOUNT_WO_ADDRESS, META_ACCOUNT, CHAIN_ACCOUNT
     }
 }

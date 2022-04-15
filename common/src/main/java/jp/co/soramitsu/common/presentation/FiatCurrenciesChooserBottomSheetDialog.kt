@@ -29,7 +29,7 @@ class FiatCurrenciesChooserBottomSheetDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setTitle(R.string.fiat_chooser_title)
+        setTitle(R.string.common_currency)
     }
 
     override fun holderCreator(): HolderCreator<FiatCurrency> = { parent ->

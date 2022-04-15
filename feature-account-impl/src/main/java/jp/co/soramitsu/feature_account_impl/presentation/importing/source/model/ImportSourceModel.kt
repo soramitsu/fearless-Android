@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_account_impl.presentation.importing.source.model
 
 import android.net.Uri
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -29,7 +30,7 @@ class ImportError(
     @StringRes val messageRes: Int = R.string.common_undefined_error_message
 )
 
-sealed class ImportSource(@StringRes nameRes: Int) : AccountSource(nameRes) {
+sealed class ImportSource(@StringRes nameRes: Int, @StringRes hintRes: Int, @DrawableRes iconRes: Int) : AccountSource(nameRes, hintRes, iconRes, false) {
 
     private val _validationLiveData = MediatorLiveData<Boolean>()
     val validationLiveData: LiveData<Boolean> = _validationLiveData
@@ -59,7 +60,7 @@ class JsonImportSource(
     private val clipboardManager: ClipboardManager,
     private val fileReader: FileReader,
     private val scope: CoroutineScope
-) : ImportSource(R.string.recovery_json), FileRequester {
+) : ImportSource(R.string.recovery_json, R.string.recover_json_hint, R.drawable.ic_save_type_json), FileRequester {
 
     val jsonContentLiveData = MutableLiveData<String>()
     val passwordLiveData = MutableLiveData<String>()
@@ -133,7 +134,7 @@ class JsonImportSource(
     }
 }
 
-class MnemonicImportSource : ImportSource(R.string.recovery_passphrase) {
+class MnemonicImportSource : ImportSource(R.string.recovery_mnemonic, R.string.recovery_mnemonic_hint, R.drawable.ic_save_type_mnemonic) {
 
     val mnemonicContentLiveData = MutableLiveData<String>()
 
@@ -154,7 +155,7 @@ class MnemonicImportSource : ImportSource(R.string.recovery_passphrase) {
     }
 }
 
-class RawSeedImportSource : ImportSource(R.string.recovery_raw_seed) {
+class RawSeedImportSource : ImportSource(R.string.recovery_raw_seed, R.string.recovery_raw_seed_hint, R.drawable.ic_save_type_seed) {
 
     val rawSeedLiveData = MutableLiveData<String>()
 

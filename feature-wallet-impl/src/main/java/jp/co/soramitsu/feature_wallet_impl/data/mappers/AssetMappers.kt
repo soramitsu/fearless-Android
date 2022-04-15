@@ -54,7 +54,8 @@ fun mapAssetLocalToAsset(
             sortIndex = asset.sortIndex,
             enabled = asset.enabled,
             minSupportedVersion = minSupportedVersion,
-            chainAccountName = asset.chainAccountName
+            chainAccountName = asset.chainAccountName,
+            markedNotNeed = asset.markedNotNeed
         )
     }
 }
@@ -74,7 +75,6 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             unbonding = unbonding,
             fiatAmount = fiatAmount,
             sortIndex = sortIndex,
-            enabled = enabled,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = chainAccountName,
         )
