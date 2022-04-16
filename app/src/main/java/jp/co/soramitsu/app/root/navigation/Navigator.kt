@@ -601,7 +601,7 @@ class Navigator :
     }
 
     override fun openEducationalStories(stories: StoryGroupModel) {
-        navController?.navigate(R.id.onboardingStoriesFragment, StoryFragment.getBundle(stories))
+        navController?.navigate(R.id.action_splash_to_stories, StoryFragment.getBundle(stories))
     }
 
     fun educationalStoriesCompleted() {
