@@ -30,13 +30,17 @@ class SplashViewModel(
     }
 
     private fun checkStories() {
-        if (shouldShowEducationalStories) {
-            listenForStories()
-            val stories = getEducationalStories().transform()
-            router.openEducationalStories(stories)
-            shouldShowEducationalStories = false
-        } else {
-            openInitialDestination()
+        launch {
+            when {
+                repository.isAccountSelected() -> openInitialDestination()
+                shouldShowEducationalStories -> {
+                    listenForStories()
+                    val stories = getEducationalStories().transform()
+                    router.openEducationalStories(stories)
+                    shouldShowEducationalStories = false
+                }
+                else -> openInitialDestination()
+            }
         }
     }
 
