@@ -33,14 +33,6 @@
         tools:layout="@layout/fragment_splash">
 
         <action
-            android:id="@+id/action_splash_to_onboarding"
-            app:destination="@id/onboarding_nav_graph"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            app:popUpTo="@id/splashFragment"
-            app:popUpToInclusive="true" />
-
-        <action
             android:id="@+id/action_splash_to_pin"
             app:destination="@id/pincodeFragment"
             app:popEnterAnim="@anim/fragment_close_enter"
@@ -67,5 +59,15 @@
         android:name="jp.co.soramitsu.app.root.presentation.stories.StoryFragment"
         android:label="StakingStoryFragment"
         tools:layout="@layout/fragment_story" />
+
+    <action
+        android:id="@+id/action_to_onboarding"
+        app:destination="@id/onboarding_nav_graph"
+        app:popEnterAnim="@anim/fragment_close_enter"
+        app:popExitAnim="@anim/fragment_close_exit"
+        app:enterAnim="@anim/fragment_open_enter"
+        app:exitAnim="@anim/fragment_open_exit"
+        app:popUpTo="@id/splashFragment"
+        app:popUpToInclusive="true" />
 
 </navigation>
