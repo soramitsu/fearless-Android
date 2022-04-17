@@ -25,11 +25,7 @@ class SplashViewModel(
 
     private var shouldShowEducationalStories by shouldShowEducationalStoriesUseCase
 
-    init {
-        checkStories()
-    }
-
-    private fun checkStories() {
+    fun checkStories() {
         launch {
             when {
                 repository.isAccountSelected() -> openInitialDestination()
