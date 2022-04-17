@@ -115,7 +115,7 @@ class Navigator :
     }
 
     override fun openAddFirstAccount() {
-        navController?.navigate(R.id.action_splash_to_onboarding, WelcomeFragment.getBundle(false))
+        navController?.navigate(R.id.action_to_onboarding, WelcomeFragment.getBundle(false))
     }
 
     override fun openInitialCheckPincode() {
