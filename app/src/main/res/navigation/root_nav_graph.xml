@@ -52,9 +52,7 @@
             android:id="@+id/action_splash_to_stories"
             app:destination="@id/onboardingStoriesFragment"
             app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit"
-            app:popUpTo="@id/splashFragment"
-            app:popUpToInclusive="true" />
+            app:popExitAnim="@anim/fragment_close_exit" />
 
     </fragment>
 
