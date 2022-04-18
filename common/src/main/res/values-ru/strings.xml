@@ -588,12 +588,12 @@
     <string name="moonbeam_location_unsupported_error">К сожалению, вы не можете участвовать в кампании Moonbeam Crowdloan Campaign из-за вашего местоположения.</string>
     <string name="tabbar_crowdloan_attention">Пожалуйста, проверьте вкладку Краудлоны \n Требуется внимание</string>
     <string name="common_max">Все</string>
-    <string name="wallet_receive_navigation_title">Получить %@</string>
+    <string name="wallet_receive_navigation_title">Получить %s</string>
     <string name="assetdetails_balance_total">Всего</string>
     <string name="assetdetails_balance_transferable">Доступно</string>
     <string name="assetdetails_balance_locked">Заблокировано</string>
     <string name="assetdetails_balance_title">Баланс</string>
-    <string name="wallet_send_navigation_title">Перевести %@</string>
+    <string name="wallet_send_navigation_title">Перевести %s</string>
     <string name="profile_wallets_title">Кошельки</string>
     <string name="settings_add_wallet">Добавить кошелёк</string>
     <string name="onboarding_create_wallet">Создать кошелёк</string>
