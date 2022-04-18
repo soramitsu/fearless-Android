@@ -3,17 +3,19 @@ package jp.co.soramitsu.runtime.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.commonnetworking.fearless.FearlessChainsBuilder
+import jp.co.soramitsu.commonnetworking.networkclient.SoraNetworkClient
+import jp.co.soramitsu.commonnetworking.networkclient.SoraNetworkClientImpl
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.runtime.BuildConfig
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
-import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFactory
@@ -32,14 +34,20 @@ class ChainRegistryModule {
 
     @Provides
     @ApplicationScope
-    fun provideChainFetcher(apiCreator: NetworkApiCreator) = apiCreator.create(ChainFetcher::class.java)
+    fun provideSoraNetworkClient(): SoraNetworkClient = SoraNetworkClientImpl(logging = BuildConfig.DEBUG)
+
+    @Provides
+    @ApplicationScope
+    fun provideFearlessChainBuilder(client: SoraNetworkClient): FearlessChainsBuilder = FearlessChainsBuilder(client, BuildConfig.CHAINS_URL)
 
     @Provides
     @ApplicationScope
     fun provideChainSyncService(
         dao: ChainDao,
-        chainFetcher: ChainFetcher,
-    ) = ChainSyncService(dao, chainFetcher)
+        networkClient: SoraNetworkClient,
+        chainBuilder: FearlessChainsBuilder,
+        gson: Gson,
+    ) = ChainSyncService(dao, networkClient, chainBuilder, gson)
 
     @Provides
     @ApplicationScope
@@ -60,8 +68,8 @@ class ChainRegistryModule {
     @Provides
     @ApplicationScope
     fun provideTypesFetcher(
-        networkApiCreator: NetworkApiCreator,
-    ) = networkApiCreator.create(TypesFetcher::class.java)
+        networkClient: SoraNetworkClient,
+    ) = TypesFetcher(networkClient)
 
     @Provides
     @ApplicationScope

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import com.google.gson.Gson
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.utils.md5
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
@@ -55,6 +56,9 @@ class RuntimeSyncServiceTest {
     @Mock
     private lateinit var runtimeFilesCache: RuntimeFilesCache
 
+    @Mock
+    private lateinit var updatesMixin: UpdatesMixin
+
     private lateinit var service: RuntimeSyncService
 
     @Before
@@ -65,7 +69,7 @@ class RuntimeSyncServiceTest {
         socketAnswersRequest(GetMetadataRequest, "Stub")
 
 
-        service = RuntimeSyncService(typesFetcher, runtimeFilesCache, chainDao)
+        service = RuntimeSyncService(typesFetcher, runtimeFilesCache, chainDao, 8, updatesMixin)
     }
 
     @Test

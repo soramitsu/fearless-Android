@@ -1,5 +1,6 @@
 package jp.co.soramitsu.core_db.model.chain
 
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -18,7 +19,9 @@ class ChainLocal(
     val prefix: Int,
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
-    val hasCrowdloans: Boolean
+    val hasCrowdloans: Boolean,
+    @ColumnInfo(defaultValue = "")
+    val md5Hash: String,
 ) {
 
     class TypesConfig(

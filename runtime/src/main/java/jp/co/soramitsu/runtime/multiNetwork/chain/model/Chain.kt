@@ -29,6 +29,7 @@ data class Chain(
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
     val parentId: String?,
+    val md5Hash: String,
 ) {
 
     val assetsBySymbol = assets.associateBy(Asset::symbol)
@@ -138,6 +139,7 @@ data class Chain(
         if (parentId != other.parentId) return false
         if (assetsBySymbol != other.assetsBySymbol) return false
         if (assetsById != other.assetsById) return false
+        if (md5Hash != other.md5Hash) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -153,20 +155,21 @@ data class Chain(
     override fun hashCode(): Int {
         var result = id.hashCode()
         result = 31 * result + name.hashCode()
-        result = 31 * result + (minSupportedVersion?.hashCode() ?: 0)
+        result = 31 * result + (minSupportedVersion.hashCode())
         result = 31 * result + assets.hashCode()
         result = 31 * result + explorers.hashCode()
         result = 31 * result + nodes.map { it.name to it.url }.hashCode()
-        result = 31 * result + (externalApi?.hashCode() ?: 0)
+        result = 31 * result + (externalApi.hashCode())
         result = 31 * result + icon.hashCode()
         result = 31 * result + addressPrefix
-        result = 31 * result + (types?.hashCode() ?: 0)
+        result = 31 * result + (types.hashCode())
         result = 31 * result + isEthereumBased.hashCode()
         result = 31 * result + isTestNet.hashCode()
         result = 31 * result + hasCrowdloans.hashCode()
-        result = 31 * result + (parentId?.hashCode() ?: 0)
+        result = 31 * result + (parentId.hashCode())
         result = 31 * result + assetsBySymbol.hashCode()
         result = 31 * result + assetsById.hashCode()
+        result = 31 * result + md5Hash.hashCode()
         return result
     }
 }

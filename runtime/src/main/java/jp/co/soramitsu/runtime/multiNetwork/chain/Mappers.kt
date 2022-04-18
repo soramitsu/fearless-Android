@@ -73,12 +73,12 @@ private fun mapSectionToSectionLocal(sectionLocal: Chain.ExternalApi.Section?) =
 private const val DEFAULT_PRECISION = 10
 
 fun mapChainRemoteToChain(
-    chainsRemote: List<ChainRemote>,
+    chainsRemote: List<Pair<ChainRemote, String>>,
     assetsRemote: List<AssetRemote>
 ): List<Chain> {
     val assetsById = assetsRemote.filter { it.id != null }.associateBy { it.id }
     return chainsRemote.map { chainRemote ->
-        val nodes = chainRemote.nodes?.mapIndexed { index, node ->
+        val nodes = chainRemote.first.nodes?.mapIndexed { index, node ->
             Chain.Node(
                 url = node.url,
                 name = node.name,
@@ -87,19 +87,19 @@ fun mapChainRemoteToChain(
             )
         }
 
-        val assets = chainRemote.assets?.mapNotNull { chainAsset ->
+        val assets = chainRemote.first.assets?.mapNotNull { chainAsset ->
             chainAsset.assetId?.let {
                 val assetRemote = assetsById[chainAsset.assetId]
-                val assetNativeChain = chainsRemote.firstOrNull { it.chainId == assetRemote?.chainId }
+                val assetNativeChain = chainsRemote.firstOrNull { it.first.chainId == assetRemote?.chainId }
                 Chain.Asset(
                     id = chainAsset.assetId,
-                    name = assetNativeChain?.name.orEmpty(),
-                    iconUrl = assetRemote?.icon ?: assetNativeChain?.icon.orEmpty(),
-                    chainId = chainRemote.chainId,
-                    chainName = chainRemote.name,
-                    chainIcon = chainRemote.icon,
-                    nativeChainId = assetNativeChain?.chainId,
-                    isTestNet = TESTNET_OPTION in chainRemote.options.orEmpty(),
+                    name = assetNativeChain?.first?.name.orEmpty(),
+                    iconUrl = assetRemote?.icon ?: assetNativeChain?.first?.icon.orEmpty(),
+                    chainId = chainRemote.first.chainId,
+                    chainName = chainRemote.first.name,
+                    chainIcon = chainRemote.first.icon,
+                    nativeChainId = assetNativeChain?.first?.chainId,
+                    isTestNet = TESTNET_OPTION in chainRemote.first.options.orEmpty(),
                     priceId = assetRemote?.priceId,
                     precision = assetRemote?.precision ?: DEFAULT_PRECISION,
                     staking = mapStakingStringToStakingType(chainAsset.staking),
@@ -108,14 +108,14 @@ fun mapChainRemoteToChain(
             }
         }
 
-        val types = chainRemote.types?.let {
+        val types = chainRemote.first.types?.let {
             Chain.Types(
                 url = it.url,
                 overridesCommon = it.overridesCommon
             )
         }
 
-        val externalApi = chainRemote.externalApi?.let { externalApi ->
+        val externalApi = chainRemote.first.externalApi?.let { externalApi ->
             (externalApi.history ?: externalApi.staking ?: externalApi.crowdloans)?.let {
                 Chain.ExternalApi(
                     history = mapSectionRemoteToSection(externalApi.history),
@@ -125,25 +125,26 @@ fun mapChainRemoteToChain(
             }
         }
 
-        val explorers = chainRemote.externalApi?.explorers?.map { it.toExplorer() }
+        val explorers = chainRemote.first.externalApi?.explorers?.map { it.toExplorer() }
 
-        val optionsOrEmpty = chainRemote.options.orEmpty()
+        val optionsOrEmpty = chainRemote.first.options.orEmpty()
 
         Chain(
-            id = chainRemote.chainId,
-            parentId = chainRemote.parentId,
-            name = chainRemote.name,
-            minSupportedVersion = chainRemote.minSupportedVersion,
+            id = chainRemote.first.chainId,
+            parentId = chainRemote.first.parentId,
+            name = chainRemote.first.name,
+            minSupportedVersion = chainRemote.first.minSupportedVersion,
             assets = assets.orEmpty(),
             types = types,
             nodes = nodes.orEmpty(),
             explorers = explorers.orEmpty(),
-            icon = chainRemote.icon.orEmpty(),
+            icon = chainRemote.first.icon.orEmpty(),
             externalApi = externalApi,
-            addressPrefix = chainRemote.addressPrefix,
+            addressPrefix = chainRemote.first.addressPrefix,
             isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
             isTestNet = TESTNET_OPTION in optionsOrEmpty,
-            hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty
+            hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
+            md5Hash = chainRemote.second,
         )
     }
 }
@@ -213,7 +214,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             addressPrefix = prefix,
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
-            hasCrowdloans = hasCrowdloans
+            hasCrowdloans = hasCrowdloans,
+            md5Hash = md5Hash,
         )
     }
 }
@@ -279,7 +281,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             externalApi = externalApi,
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
-            hasCrowdloans = hasCrowdloans
+            hasCrowdloans = hasCrowdloans,
+            md5Hash = md5Hash,
         )
     }
 

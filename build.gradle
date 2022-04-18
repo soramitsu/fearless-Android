@@ -27,7 +27,7 @@ buildscript {
         javaxInjectVersion = '1'
 
         architectureComponentVersion = '2.2.0'
-        roomVersion = '2.4.0'
+        roomVersion = '2.4.2'
 
         retrofitVersion = '2.9.0'
         okhttpVersion = '3.8.0'
@@ -68,6 +68,8 @@ buildscript {
         coilVersion = '1.2.1'
 
         androidxCoreVersion = '1.7.0'
+
+        soraCommonNetworking = '0.0.6'
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -139,12 +141,14 @@ buildscript {
         archCoreTestDep = "androidx.arch.core:core-testing:$architectureComponentVersion"
 
         progressButtonDep = "com.github.razir.progressbutton:progressbutton:$progressButtonsVersion"
-
+        mockkDep = 'io.mockk:mockk:1.12.3'
         androidTestRunnerDep = 'androidx.test:runner:1.4.0'
         androidTestRulesDep = 'androidx.test:rules:1.4.0'
         androidJunitDep = 'androidx.test.ext:junit:1.1.3'
 
         roomTestsDep = "androidx.room:room-testing:$architectureComponentVersion"
+
+        soraCommonNetworkingDep = "jp.co.soramitsu:commonNetworking-android:$soraCommonNetworking"
     }
 
     repositories {
@@ -153,7 +157,7 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.android.tools.build:gradle:7.1.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath 'com.google.gms:google-services:4.3.10'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"

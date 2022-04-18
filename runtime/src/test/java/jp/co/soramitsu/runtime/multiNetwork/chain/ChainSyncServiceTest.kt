@@ -1,9 +1,18 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import com.google.gson.Gson
+import io.mockk.MockKAnnotations
+import io.mockk.MockKStaticScope
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.mockkStatic
+import jp.co.soramitsu.commonnetworking.fearless.FearlessChainsBuilder
+import jp.co.soramitsu.commonnetworking.fearless.ResultChainInfo
+import jp.co.soramitsu.commonnetworking.networkclient.SoraNetworkClient
+import jp.co.soramitsu.commonnetworking.networkclient.createJsonRequest
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
-import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
@@ -14,12 +23,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyList
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 
-@RunWith(MockitoJUnitRunner::class)
 class ChainSyncServiceTest {
 
     private val REMOTE_CHAIN = ChainRemote(
@@ -43,7 +54,8 @@ class ChainSyncServiceTest {
         types = null,
         options = emptyList(),
         parentId = null,
-        externalApi = null
+        externalApi = null,
+        minSupportedVersion = ""
     )
 
     private val REMOTE_ASSET = AssetRemote(
@@ -54,19 +66,32 @@ class ChainSyncServiceTest {
         icon = "test"
     )
 
-    private val LOCAL_CHAIN = mapChainToChainLocal(mapChainRemoteToChain(listOf(REMOTE_CHAIN), listOf(REMOTE_ASSET))[0])
+    private val LOCAL_CHAIN = mapChainToChainLocal(mapChainRemoteToChain(listOf(REMOTE_CHAIN to ""), listOf(REMOTE_ASSET))[0])
 
-    @Mock
+    @MockK
     lateinit var dao: ChainDao
 
-    @Mock
-    lateinit var chainFetcher: ChainFetcher
+    @MockK
+    lateinit var soraNetworkClient: SoraNetworkClient
+
+    @MockK
+    lateinit var fearlessChainsBuilder: FearlessChainsBuilder
+
+    @MockK
+    lateinit var gson: Gson
 
     lateinit var chainSyncService: ChainSyncService
 
     @Before
     fun setup() {
-        chainSyncService = ChainSyncService(dao, chainFetcher)
+        MockKAnnotations.init(this)
+        runBlocking {
+            mockkStatic(SoraNetworkClient::class) {
+
+            }
+            every { SoraNetworkClient.createJsonRequest<List<AssetRemote>>(any(), any(), any(), any()) } returns listOf(REMOTE_ASSET)
+            chainSyncService = ChainSyncService(dao, soraNetworkClient, fearlessChainsBuilder, gson)
+        }
     }
 
     @Test
@@ -97,8 +122,6 @@ class ChainSyncServiceTest {
     fun `should update chain`() {
         runBlocking {
             localReturns(listOf(LOCAL_CHAIN))
-
-
             remoteReturns(listOf(REMOTE_CHAIN.copy(name = "new name")))
 
             chainSyncService.syncUp()
@@ -126,7 +149,7 @@ class ChainSyncServiceTest {
     }
 
     private suspend fun remoteReturns(chains: List<ChainRemote>) {
-        `when`(chainFetcher.getChains()).thenReturn(chains)
+        `when`(fearlessChainsBuilder.getChains(anyString(), anyList())).thenReturn(ResultChainInfo(emptyList(), emptyList(), emptyList()))
     }
 
     private suspend fun localReturns(chains: List<JoinedChainInfo>) {

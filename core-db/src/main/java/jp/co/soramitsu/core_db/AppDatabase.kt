@@ -1,6 +1,7 @@
 package jp.co.soramitsu.core_db
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -63,7 +64,7 @@ import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 
 @Database(
-    version = 41,
+    version = 42,
     entities = [
         AccountLocal::class,
         AssetLocal::class,
@@ -81,7 +82,8 @@ import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
         MetaAccountLocal::class,
         ChainAccountLocal::class,
         ChainExplorerLocal::class
-    ]
+    ],
+    autoMigrations = [AutoMigration(from = 41, to = 42)]
 )
 @TypeConverters(
     LongMathConverters::class,
