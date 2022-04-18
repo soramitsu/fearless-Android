@@ -67,7 +67,6 @@
         app:popExitAnim="@anim/fragment_close_exit"
         app:enterAnim="@anim/fragment_open_enter"
         app:exitAnim="@anim/fragment_open_exit"
-        app:popUpTo="@id/splashFragment"
-        app:popUpToInclusive="true" />
+        app:popUpTo="@id/splashFragment" />
 
 </navigation>
