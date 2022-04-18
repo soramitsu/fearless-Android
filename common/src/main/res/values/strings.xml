@@ -570,7 +570,7 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="substrate_secret_derivation_path">Substrate secret derivation path
 </string>
     <string name="ethereum_secret_derivation_path">Ethereum secret derivation path</string>
-    <string name="example">Example: %@</string>
+    <string name="example">Example: %s</string>
     <string name="pincode_setup_top_title">Setup pin code</string>
     <string name="confirm_mnemonic_mismatch_error_message_2_0">Invalid mnemonic passphrase, please check one more time the words order</string>
     <string name="share_referral_code">Share referral code</string>
@@ -584,12 +584,12 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="moonbeam_location_unsupported_error">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
     <string name="tabbar_crowdloan_attention">Please check the Crowdloans tab\nAttention required</string>
     <string name="common_max">max</string>
-    <string name="wallet_receive_navigation_title">Receive %@</string>
+    <string name="wallet_receive_navigation_title">Receive %s</string>
     <string name="assetdetails_balance_total">Total</string>
     <string name="assetdetails_balance_transferable">Transferable</string>
     <string name="assetdetails_balance_locked">Locked</string>
     <string name="assetdetails_balance_title">Your balance</string>
-    <string name="wallet_send_navigation_title">Send %@</string>
+    <string name="wallet_send_navigation_title">Send %s</string>
     <string name="profile_wallets_title">Wallets</string>
     <string name="settings_add_wallet">Add wallet</string>
     <string name="onboarding_create_wallet">Create wallet</string>
