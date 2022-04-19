@@ -10,12 +10,12 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.commonnetworking.fearless.FearlessChainsBuilder
 import jp.co.soramitsu.commonnetworking.networkclient.SoraNetworkClient
-import jp.co.soramitsu.commonnetworking.networkclient.SoraNetworkClientImpl
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.BuildConfig
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFactory
@@ -34,7 +34,11 @@ class ChainRegistryModule {
 
     @Provides
     @ApplicationScope
-    fun provideSoraNetworkClient(): SoraNetworkClient = SoraNetworkClientImpl(logging = BuildConfig.DEBUG)
+    fun provideChainFetcher(client: SoraNetworkClient): ChainFetcher = ChainFetcher(client)
+
+    @Provides
+    @ApplicationScope
+    fun provideSoraNetworkClient(): SoraNetworkClient = SoraNetworkClient(logging = BuildConfig.DEBUG)
 
     @Provides
     @ApplicationScope
@@ -44,10 +48,10 @@ class ChainRegistryModule {
     @ApplicationScope
     fun provideChainSyncService(
         dao: ChainDao,
-        networkClient: SoraNetworkClient,
+        chainFetcher: ChainFetcher,
         chainBuilder: FearlessChainsBuilder,
         gson: Gson,
-    ) = ChainSyncService(dao, networkClient, chainBuilder, gson)
+    ) = ChainSyncService(dao, chainFetcher, chainBuilder, gson)
 
     @Provides
     @ApplicationScope

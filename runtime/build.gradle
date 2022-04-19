@@ -60,6 +60,7 @@ dependencies {
 
     testImplementation project(':test-shared')
     testImplementation mockkDep
+    testImplementation coroutinesTestDep
 
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep

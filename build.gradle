@@ -69,7 +69,7 @@ buildscript {
 
         androidxCoreVersion = '1.7.0'
 
-        soraCommonNetworking = '0.0.6'
+        soraCommonNetworking = '0.0.8'
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -93,6 +93,7 @@ buildscript {
 
         coroutinesDep = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
         coroutinesAndroidDep = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+        coroutinesTestDep = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
 
         // viewModelScope
         viewModelKtxDep = "androidx.lifecycle:lifecycle-viewmodel-ktx:$architectureComponentVersion"

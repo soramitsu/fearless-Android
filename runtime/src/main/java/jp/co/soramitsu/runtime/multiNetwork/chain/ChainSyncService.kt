@@ -2,21 +2,19 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
 import jp.co.soramitsu.commonnetworking.fearless.FearlessChainsBuilder
-import jp.co.soramitsu.commonnetworking.networkclient.SoraNetworkClient
-import jp.co.soramitsu.commonnetworking.networkclient.createJsonRequest
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.BuildConfig
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.updateNodesActive
-import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class ChainSyncService(
     private val dao: ChainDao,
-    private val networkClient: SoraNetworkClient,
+    private val chainFetcher: ChainFetcher,
     private val chainBuilder: FearlessChainsBuilder,
     private val gson: Gson,
 ) {
@@ -31,7 +29,7 @@ class ChainSyncService(
             }
         )
 
-        val assets = networkClient.createJsonRequest<List<AssetRemote>>(BuildConfig.ASSETS_URL)
+        val assets = chainFetcher.getAssets()
 
         val remoteNewChains = mapChainRemoteToChain(chains.newChains.map { mapToList(it.content) to it.hash }, assets)
         val remoteUpdatedChains = mapChainRemoteToChain(chains.updatedChains.map { mapToList(it.content) to it.hash }, assets)

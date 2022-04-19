@@ -2,34 +2,25 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
 import io.mockk.MockKAnnotations
-import io.mockk.MockKStaticScope
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockkStatic
+import jp.co.soramitsu.commonnetworking.fearless.ChainModel
 import jp.co.soramitsu.commonnetworking.fearless.FearlessChainsBuilder
 import jp.co.soramitsu.commonnetworking.fearless.ResultChainInfo
-import jp.co.soramitsu.commonnetworking.networkclient.SoraNetworkClient
-import jp.co.soramitsu.commonnetworking.networkclient.createJsonRequest
 import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainLocal
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
-import jp.co.soramitsu.test_shared.argThat
-import jp.co.soramitsu.test_shared.eq
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.anyList
-import org.mockito.Mockito.anyString
-import org.mockito.Mockito.verify
-import org.mockito.junit.MockitoJUnitRunner
 
 class ChainSyncServiceTest {
 
@@ -72,7 +63,7 @@ class ChainSyncServiceTest {
     lateinit var dao: ChainDao
 
     @MockK
-    lateinit var soraNetworkClient: SoraNetworkClient
+    lateinit var chainFetcher: ChainFetcher
 
     @MockK
     lateinit var fearlessChainsBuilder: FearlessChainsBuilder
@@ -84,13 +75,10 @@ class ChainSyncServiceTest {
 
     @Before
     fun setup() {
-        MockKAnnotations.init(this)
+        MockKAnnotations.init(this, relaxUnitFun = true)
         runBlocking {
-            mockkStatic(SoraNetworkClient::class) {
-
-            }
-            every { SoraNetworkClient.createJsonRequest<List<AssetRemote>>(any(), any(), any(), any()) } returns listOf(REMOTE_ASSET)
-            chainSyncService = ChainSyncService(dao, soraNetworkClient, fearlessChainsBuilder, gson)
+            coEvery { chainFetcher.getAssets() } returns listOf(REMOTE_ASSET)
+            chainSyncService = ChainSyncService(dao, chainFetcher, fearlessChainsBuilder, gson)
         }
     }
 
@@ -98,11 +86,11 @@ class ChainSyncServiceTest {
     fun `should insert new chain`() {
         runBlocking {
             localReturns(emptyList())
-            remoteReturns(listOf(REMOTE_CHAIN))
-
+            remoteReturnsNew(listOf(REMOTE_CHAIN))
+            every { gson.fromJson(ofType(String::class), ChainRemote::class.java) } returns REMOTE_CHAIN
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId))
+            coVerify { dao.update(removed = withArg { assertTrue(it.isEmpty()) }, newOrUpdated = withArg { assertTrue(it.size == 1 && it[0].chain.id == REMOTE_ASSET.chainId) }) }
         }
     }
 
@@ -110,11 +98,11 @@ class ChainSyncServiceTest {
     fun `should not insert the same chain`() {
         runBlocking {
             localReturns(listOf(LOCAL_CHAIN))
-            remoteReturns(listOf(REMOTE_CHAIN))
+            remoteReturnsEmpty()
 
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = eq(emptyList()))
+            coVerify { dao.update(removed = withArg { assertTrue(it.isEmpty()) }, newOrUpdated = withArg { assertTrue(it.isEmpty()) }) }
         }
     }
 
@@ -122,11 +110,11 @@ class ChainSyncServiceTest {
     fun `should update chain`() {
         runBlocking {
             localReturns(listOf(LOCAL_CHAIN))
-            remoteReturns(listOf(REMOTE_CHAIN.copy(name = "new name")))
-
+            remoteReturnsUpdated(listOf(REMOTE_CHAIN.copy(name = "new name")))
+            every { gson.fromJson(ofType(String::class), ChainRemote::class.java) } returns REMOTE_CHAIN
             chainSyncService.syncUp()
 
-            verify(dao).update(removed = eq(emptyList()), newOrUpdated = insertsChainWithId(REMOTE_CHAIN.chainId))
+            coVerify { dao.update(removed = withArg { assertTrue(it.isEmpty()) }, newOrUpdated = withArg { assertTrue(it.size == 1 && it[0].chain.id == REMOTE_ASSET.chainId) }) }
         }
     }
 
@@ -135,32 +123,48 @@ class ChainSyncServiceTest {
         runBlocking {
             localReturns(listOf(LOCAL_CHAIN))
 
-            val secondChain = REMOTE_CHAIN.copy(chainId = "0x001")
-
-            remoteReturns(listOf(secondChain))
+            coEvery { fearlessChainsBuilder.getChains(any(), any()) } returns ResultChainInfo(
+                emptyList(),
+                emptyList(),
+                listOf(REMOTE_CHAIN.chainId),
+            )
 
             chainSyncService.syncUp()
 
-            verify(dao).update(
-                removed = removesChainWithId(REMOTE_CHAIN.chainId),
-                newOrUpdated = insertsChainWithId(secondChain.chainId)
-            )
+            coVerify {
+                dao.update(
+                    removed = withArg { assertTrue(it.first().id == REMOTE_CHAIN.chainId) },
+                    newOrUpdated = withArg { assertEquals(0, it.size) }
+                )
+            }
         }
     }
 
-    private suspend fun remoteReturns(chains: List<ChainRemote>) {
-        `when`(fearlessChainsBuilder.getChains(anyString(), anyList())).thenReturn(ResultChainInfo(emptyList(), emptyList(), emptyList()))
+    private suspend fun remoteReturnsNew(chains: List<ChainRemote>) {
+        coEvery { fearlessChainsBuilder.getChains(any(), any()) } returns ResultChainInfo(
+            chains.map { ChainModel(it.chainId, it.hashCode().toString(), it.name) },
+            emptyList(),
+            emptyList(),
+        )
+    }
+
+    private suspend fun remoteReturnsUpdated(chains: List<ChainRemote>) {
+        coEvery { fearlessChainsBuilder.getChains(any(), any()) } returns ResultChainInfo(
+            emptyList(),
+            chains.map { ChainModel(it.chainId, it.hashCode().toString(), it.name) },
+            emptyList(),
+        )
+    }
+
+    private suspend fun remoteReturnsEmpty() {
+        coEvery { fearlessChainsBuilder.getChains(any(), any()) } returns ResultChainInfo(
+            emptyList(),
+            emptyList(),
+            emptyList()
+        )
     }
 
     private suspend fun localReturns(chains: List<JoinedChainInfo>) {
-        `when`(dao.getJoinChainInfo()).thenReturn(chains)
-    }
-
-    private fun removesChainWithId(id: String) = argThat<List<ChainLocal>> {
-        it.size == 1 && it.first().id == id
-    }
-
-    private fun insertsChainWithId(id: String) = argThat<List<JoinedChainInfo>> {
-        it.size == 1 && it.first().chain.id == id
+        coEvery { dao.getJoinChainInfo() } returns chains
     }
 }
