@@ -422,5 +422,7 @@ class ParachainWelcomeViewState(
     }
 }
 
-object DelegatorViewState : StakingViewState()
+object DelegatorViewState : StakingViewState(){
+
+}
 object CollatorViewState : StakingViewState()
