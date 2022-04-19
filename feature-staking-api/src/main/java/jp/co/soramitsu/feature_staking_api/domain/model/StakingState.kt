@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_staking_api.domain.model
 
+import java.math.BigDecimal
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -67,6 +69,26 @@ sealed class StakingState(
         class Delegator(
             chain: Chain,
             accountId: AccountId,
-        ) : Parachain(chain, accountId)
+            val delegations: List<CollatorDelegation>,
+            val totalDelegatedAmount: BigDecimal
+            ) : Parachain(chain, accountId)
+
+        data class CollatorDelegation(
+            val name: String,
+            val delegatedAmountInPlanks: BigDecimal,
+            val rewardedAmount: BigDecimal,
+            val status: DelegatorStateStatus
+        )
+    }
+}
+
+fun DelegatorState.toDelegations(): List<StakingState.Parachain.CollatorDelegation> {
+    return this.delegations.map {
+        StakingState.Parachain.CollatorDelegation(
+            it.owner.toHexString(true),
+            it.amount.toBigDecimal(),
+            BigDecimal.ZERO,
+            this.status
+        )
     }
 }

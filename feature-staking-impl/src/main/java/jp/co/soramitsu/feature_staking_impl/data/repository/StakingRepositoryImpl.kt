@@ -32,6 +32,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
+import jp.co.soramitsu.feature_staking_api.domain.model.toDelegations
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentIndex
@@ -341,7 +342,7 @@ class StakingRepositoryImpl(
     ): Flow<StakingState.Parachain> {
         return getDelegatorState(chain.id, accountId).map {
             when {
-                it != null -> StakingState.Parachain.Delegator(chain, accountId)
+                it != null -> StakingState.Parachain.Delegator(chain, accountId, it.toDelegations(), it.total.toBigDecimal())
                 else -> StakingState.Parachain.None(chain, accountId)
             }
         }
