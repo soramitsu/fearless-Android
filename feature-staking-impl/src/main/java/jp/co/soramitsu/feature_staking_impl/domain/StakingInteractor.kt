@@ -422,8 +422,14 @@ class StakingInteractor(
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() / stakingRepository.erasPerDay(chainId)
     }
 
+    private val hoursInRound = mapOf(
+        "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d" to 6, // moonbeam
+        "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b" to 2, // moonriver
+        "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527" to 2 // moonbase
+    )
+
     private suspend fun getParachainLockupPeriodInDays(chainId: ChainId): Int {
-        val hoursInRound = 6
+        val hoursInRound = hoursInRound[chainId] ?: return 0
         val lockupPeriodInRounds = stakingConstantsRepository.parachainLockupPeriodInRounds(chainId).toInt()
         val lockupPeriodInHours = lockupPeriodInRounds * hoursInRound
         return lockupPeriodInHours.toDuration(DurationUnit.HOURS).toInt(DurationUnit.DAYS)
