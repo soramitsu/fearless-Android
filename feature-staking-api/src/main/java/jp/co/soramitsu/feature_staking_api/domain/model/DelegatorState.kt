@@ -1,17 +1,18 @@
 package jp.co.soramitsu.feature_staking_api.domain.model
 
-import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 
 data class DelegatorState(
-    val id: String,
+    val id: AccountId,
     val delegations: List<Delegation>,
-    val total: BigDecimal,
+    val total: BigInteger,
     val status: DelegatorStateStatus
 )
 
 data class Delegation(
-    val owner: String,
-    val amount: BigDecimal
+    val owner: AccountId,
+    val amount: BigInteger
 )
 
 enum class DelegatorStateStatus {
