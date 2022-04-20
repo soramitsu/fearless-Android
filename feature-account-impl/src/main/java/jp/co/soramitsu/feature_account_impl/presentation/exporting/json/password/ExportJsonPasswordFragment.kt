@@ -7,14 +7,14 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import coil.ImageLoader
-import javax.inject.Inject
-import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordConfirmField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordMatchingError
@@ -22,8 +22,9 @@ import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPa
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNewField
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNext
 import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordToolbar
+import javax.inject.Inject
 
-class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
+class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>() {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
@@ -39,9 +40,18 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
         return inflater.inflate(R.layout.fragment_export_json_password, container, false)
     }
 
-    override fun initViews() {
-        exportJsonPasswordToolbar.setHomeButtonListener { viewModel.back() }
+    override fun onResume() {
+        super.onResume()
+        viewModel.resetProgress()
+    }
 
+    override fun initViews() {
+        exportJsonPasswordToolbar.setHomeButtonListener {
+            hideKeyboard()
+            viewModel.back()
+        }
+
+        exportJsonPasswordNext.prepareForProgress(viewLifecycleOwner)
         exportJsonPasswordNext.setOnClickListener { viewModel.nextClicked() }
 
         exportJsonPasswordMatchingError.setDrawableStart(R.drawable.ic_red_cross, 24)
@@ -60,10 +70,11 @@ class ExportJsonPasswordFragment : BaseFragment<ExportJsonPasswordViewModel>() {
     }
 
     override fun subscribe(viewModel: ExportJsonPasswordViewModel) {
+        super.subscribe(viewModel)
         exportJsonPasswordNewField.content.bindTo(viewModel.passwordLiveData)
         exportJsonPasswordConfirmField.content.bindTo(viewModel.passwordConfirmationLiveData)
 
-        viewModel.nextEnabled.observe(exportJsonPasswordNext::setEnabled)
+        viewModel.nextButtonState.observe(exportJsonPasswordNext::setState)
 
         viewModel.showDoNotMatchingErrorLiveData.observe {
             exportJsonPasswordMatchingError.setVisible(it, falseState = View.INVISIBLE)

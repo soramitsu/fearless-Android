@@ -1,8 +1,8 @@
 buildscript {
     ext {
         // App version
-        versionName = '2.0.2'
-        versionCode = 53
+        versionName = '2.0.5'
+        versionCode = 66
 
         // SDK and tools
         compileSdkVersion = 31
@@ -43,7 +43,7 @@ buildscript {
 
         bouncyCastleVersion = '1.60'
 
-        fearlessLibVersion = '1.0.101'
+        fearlessLibVersion = '1.0.104'
 
         gifVersion = '1.2.19'
 
@@ -192,7 +192,7 @@ dependencies {
 task ktlint(type: JavaExec, group: "verification") {
     description = "Check Kotlin code style."
     classpath = configurations.ktlint
-    main = "com.pinterest.ktlint.Main"
+    mainClass.set("com.pinterest.ktlint.Main")
     args "--reporter=plain"
     args "--android"
     args "--reporter=checkstyle,output=${project.buildDir}/reports/checkstyle/ktlint.xml"
@@ -202,7 +202,7 @@ task ktlint(type: JavaExec, group: "verification") {
 task ktlintFormat(type: JavaExec, group: "formatting") {
     description = "Fix Kotlin code style deviations."
     classpath = configurations.ktlint
-    main = "com.pinterest.ktlint.Main"
+    mainClass.set("com.pinterest.ktlint.Main")
     args "-F", "$project.rootDir/**/src/main/**/*.kt"
     args "--android"
 }

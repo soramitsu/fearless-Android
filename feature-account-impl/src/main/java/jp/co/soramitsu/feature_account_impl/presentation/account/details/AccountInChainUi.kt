@@ -9,8 +9,11 @@ class AccountInChainUi(
     val chainName: String,
     val chainIcon: String,
     val address: String,
-    val accountIcon: Drawable,
+    val accountIcon: Drawable?,
     val enabled: Boolean = true,
     val accountName: String?,
-    val accountFrom: AccountInChain.From?
+    val accountFrom: AccountInChain.From?,
+    val isSupported: Boolean = true,
+    val hasAccount: Boolean,
+    val markedAsNotNeed: Boolean
 )

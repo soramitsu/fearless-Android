@@ -3,6 +3,171 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val AssetsMigration_40_41 = object : Migration(40, 41) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE assets RENAME TO _assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `tokenSymbol` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `accountId` BLOB NOT NULL, 
+            `metaId` INTEGER NOT NULL, 
+            `freeInPlanks` TEXT, 
+            `reservedInPlanks` TEXT, 
+            `miscFrozenInPlanks` TEXT, 
+            `feeFrozenInPlanks` TEXT, 
+            `bondedInPlanks` TEXT, 
+            `redeemableInPlanks` TEXT, 
+            `unbondingInPlanks` TEXT, 
+            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
+            `enabled` INTEGER NOT NULL DEFAULT 1, 
+            `markedNotNeed` INTEGER NOT NULL DEFAULT 0, 
+            `chainAccountName` TEXT, 
+            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`, `metaId`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO assets SELECT 
+                a.tokenSymbol,
+                a.chainId,
+                a.accountId,
+                a.metaId,
+                a.freeInPlanks,
+                a.reservedInPlanks,
+                a.miscFrozenInPlanks,
+                a.feeFrozenInPlanks,
+                a.bondedInPlanks,
+                a.redeemableInPlanks,
+                a.unbondingInPlanks, 
+                0 as `sortIndex`, 
+                1 as `enabled`, 
+                0 as `markedNotNeed`,
+                null as `chainAccountName` 
+            FROM _assets a
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE _assets")
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+    }
+}
+
+val ChainAssetsMigration_39_40 = object : Migration(39, 40) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DELETE FROM chain_explorers")
+        database.execSQL("DELETE FROM chain_assets")
+        database.execSQL("DELETE FROM chain_nodes")
+
+        database.execSQL("DROP TABLE IF EXISTS chains")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chains` (
+            `id` TEXT NOT NULL,
+            `parentId` TEXT,
+            `name` TEXT NOT NULL,
+            `minSupportedVersion` TEXT,
+            `icon` TEXT NOT NULL,
+            `prefix` INTEGER NOT NULL,
+            `isEthereumBased` INTEGER NOT NULL,
+            `isTestNet` INTEGER NOT NULL,
+            `hasCrowdloans` INTEGER NOT NULL,
+            `url` TEXT,
+            `overridesCommon` INTEGER,
+            `staking_url` TEXT,
+            `staking_type` TEXT,
+            `history_url` TEXT,
+            `history_type` TEXT,
+            `crowdloans_url` TEXT,
+            `crowdloans_type` TEXT,
+            PRIMARY KEY(`id`))
+            """.trimIndent()
+        )
+    }
+}
+
+val AssetsMigration_38_39 = object : Migration(38, 39) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        database.execSQL("ALTER TABLE assets RENAME TO _assets")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `assets` (
+            `tokenSymbol` TEXT NOT NULL, 
+            `chainId` TEXT NOT NULL, 
+            `accountId` BLOB NOT NULL, 
+            `metaId` INTEGER NOT NULL, 
+            `freeInPlanks` TEXT, 
+            `reservedInPlanks` TEXT, 
+            `miscFrozenInPlanks` TEXT, 
+            `feeFrozenInPlanks` TEXT, 
+            `bondedInPlanks` TEXT, 
+            `redeemableInPlanks` TEXT, 
+            `unbondingInPlanks` TEXT, 
+            `sortIndex` INTEGER NOT NULL DEFAULT 0, 
+            `enabled` INTEGER NOT NULL DEFAULT 1, 
+            `chainAccountName` TEXT, 
+            PRIMARY KEY(`tokenSymbol`, `chainId`, `accountId`, `metaId`), 
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+
+        database.execSQL(
+            """
+            INSERT INTO assets SELECT 
+                a.tokenSymbol,
+                a.chainId,
+                a.accountId,
+                a.metaId,
+                a.freeInPlanks,
+                a.reservedInPlanks,
+                a.miscFrozenInPlanks,
+                a.feeFrozenInPlanks,
+                a.bondedInPlanks,
+                a.redeemableInPlanks,
+                a.unbondingInPlanks, 
+                0 as `sortIndex`, 
+                1 as `enabled`, 
+                null as `chainAccountName` 
+            FROM _assets a
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE _assets")
+
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_assets_metaId` ON `assets` (`metaId`)")
+
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
+
+val DifferentCurrenciesMigrations_37_38 = object : Migration(37, 38) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.beginTransaction()
+
+        database.execSQL("DROP TABLE tokens")
+        database.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `tokens` (
+                `symbol` TEXT NOT NULL,
+                `fiatRate` TEXT,
+                `fiatSymbol` TEXT,
+                `recentRateChange` TEXT,
+                PRIMARY KEY(`symbol`)
+                )
+            """.trimIndent()
+        )
+        database.setTransactionSuccessful()
+        database.endTransaction()
+    }
+}
+
 val FixAssetsMigration_36_37 = object : Migration(36, 37) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.beginTransaction()

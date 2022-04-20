@@ -2,9 +2,9 @@ package jp.co.soramitsu.feature_crowdloan_api.data.repository
 
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.Contribution
+import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundIndex
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
-import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.TrieIndex
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -14,10 +14,10 @@ import kotlinx.coroutines.withContext
 suspend fun CrowdloanRepository.getContributions(
     chainId: ChainId,
     accountId: AccountId,
-    keys: Map<ParaId, TrieIndex>
+    keys: Map<ParaId, FundIndex>
 ): Map<ParaId, Contribution?> = withContext(Dispatchers.Default) {
-    keys.map { (paraId, trieIndex) ->
-        async { paraId to getContribution(chainId, accountId, paraId, trieIndex) }
+    keys.map { (paraId, fundIndex) ->
+        async { paraId to getContribution(chainId, accountId, paraId, fundIndex) }
     }
         .awaitAll()
         .toMap()

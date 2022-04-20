@@ -9,6 +9,9 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.BalanceListViewModel
@@ -23,12 +26,17 @@ class BalanceListModule {
         interactor: WalletInteractor,
         router: WalletRouter,
         addressIconGenerator: AddressIconGenerator,
+        getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
+        selectedFiat: SelectedFiat,
+        updatesMixin: UpdatesMixin,
     ): ViewModel {
-
         return BalanceListViewModel(
             interactor,
             addressIconGenerator,
-            router
+            router,
+            getAvailableFiatCurrencies,
+            selectedFiat,
+            updatesMixin,
         )
     }
 

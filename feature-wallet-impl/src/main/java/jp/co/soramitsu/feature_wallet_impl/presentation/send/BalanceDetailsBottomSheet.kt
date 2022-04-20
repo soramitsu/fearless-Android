@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send
 
 import android.content.Context
 import android.os.Bundle
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.currencyItem
@@ -25,10 +26,26 @@ class BalanceDetailsBottomSheet(
         setTitle(R.string.wallet_balance_details_title)
 
         with(payload) {
-            currencyItem(R.string.choose_amount_available_balance, assetModel.available)
-            currencyItem(R.string.wallet_balance_details_total, assetModel.total)
-            currencyItem(R.string.wallet_balance_details_total_after, transferDraft.totalAfterTransfer(assetModel.total))
-            currencyItem(R.string.wallet_send_balance_minimal, existentialDeposit)
+            currencyItem(
+                R.string.choose_amount_available_balance,
+                assetModel.formatTokenAmount(assetModel.available),
+                assetModel.getAsFiatWithCurrency(assetModel.available)
+            )
+            currencyItem(
+                R.string.wallet_balance_details_total,
+                assetModel.formatTokenAmount(assetModel.total),
+                assetModel.getAsFiatWithCurrency(assetModel.total)
+            )
+            currencyItem(
+                R.string.wallet_balance_details_total_after,
+                assetModel.formatTokenAmount(transferDraft.totalAfterTransfer(assetModel.total.orZero())),
+                assetModel.getAsFiatWithCurrency(transferDraft.totalAfterTransfer(assetModel.total.orZero()))
+            )
+            currencyItem(
+                R.string.wallet_send_balance_minimal,
+                assetModel.formatTokenAmount(existentialDeposit),
+                assetModel.getAsFiatWithCurrency(existentialDeposit)
+            )
         }
     }
 }

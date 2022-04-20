@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_api.presentation.model
 
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -16,7 +17,7 @@ fun mapAmountToAmountModel(
     amountInPlanks: BigInteger,
     asset: Asset
 ): AmountModel = mapAmountToAmountModel(
-    amount = asset.token.amountFromPlanks(amountInPlanks),
+    amount = asset.token.amountFromPlanks(amountInPlanks).orZero(),
     asset = asset
 )
 
@@ -30,6 +31,6 @@ fun mapAmountToAmountModel(
 
     return AmountModel(
         token = amount.formatTokenAmount(token.configuration),
-        fiat = fiatAmount?.formatAsCurrency()
+        fiat = fiatAmount?.formatAsCurrency(token.fiatSymbol)
     )
 }

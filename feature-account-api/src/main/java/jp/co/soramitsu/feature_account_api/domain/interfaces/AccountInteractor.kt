@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_account_api.domain.interfaces
 
-import java.io.File
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.core.model.CryptoType
@@ -13,6 +12,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 interface AccountInteractor {
     suspend fun generateMnemonic(): List<String>

@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -24,6 +25,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingShar
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -37,6 +40,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class SetupStakingViewModel(
     private val router: StakingRouter,
@@ -60,6 +64,11 @@ class SetupStakingViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
+    private val _showMinimumStakeAlert = MutableLiveData<Event<String>>()
+    val showMinimumStakeAlert: LiveData<Event<String>> = _showMinimumStakeAlert
+
+    private var minimumStake = BigInteger.ZERO
+
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
@@ -73,7 +82,7 @@ class SetupStakingViewModel(
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
 
-        asset.token.fiatAmount(amount)?.formatAsCurrency()
+        asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
     }
         .flowOn(Dispatchers.Default)
         .asLiveData()
@@ -84,6 +93,11 @@ class SetupStakingViewModel(
         loadFee()
 
         startUpdatingReturns()
+
+        launch {
+            val chainId = assetFlow.first().token.configuration.chainId
+            minimumStake = interactor.getMinimumStake(chainId)
+        }
     }
 
     fun nextClicked() {
@@ -114,6 +128,16 @@ class SetupStakingViewModel(
         )
     }
 
+    fun minimumStakeConfirmed() {
+        launch {
+            val amount = parsedAmountFlow.first()
+            val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
+            val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
+            val currentAccountAddress = interactor.getSelectedAccountProjection().address
+            goToNextStep(amount, rewardDestination, currentAccountAddress)
+        }
+    }
+
     private fun maybeGoToNext() = requireFee { fee ->
         launch {
             val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
@@ -137,7 +161,12 @@ class SetupStakingViewModel(
             ) {
                 _showNextProgress.value = false
 
-                goToNextStep(amount, rewardDestination, currentAccountAddress)
+                val minimumStakeAmount = payload.asset.token.configuration.amountFromPlanks(minimumStake)
+                if (amount < minimumStakeAmount) {
+                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatTokenAmount(payload.asset.token.configuration.symbol))
+                } else {
+                    goToNextStep(amount, rewardDestination, currentAccountAddress)
+                }
             }
         }
     }

@@ -6,6 +6,7 @@ import android.view.View
 import androidx.annotation.StringRes
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.utils.inflateChild
+import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
@@ -13,7 +14,10 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_api.R
+import kotlinx.android.synthetic.main.item_source.view.rightArrow
 import kotlinx.android.synthetic.main.item_source.view.rightIcon
+import kotlinx.android.synthetic.main.item_source.view.sourceHintTv
+import kotlinx.android.synthetic.main.item_source.view.sourceIcon
 import kotlinx.android.synthetic.main.item_source.view.sourceTv
 
 class SourceTypeChooserBottomSheetDialog<T : AccountSource>(
@@ -40,13 +44,24 @@ class SourceTypeHolder<T : AccountSource>(itemView: View) : DynamicListSheetAdap
         super.bind(item, isSelected, handler)
 
         with(itemView) {
-            if (isSelected) {
-                rightIcon.makeVisible()
-            } else {
-                rightIcon.makeInvisible()
+            when {
+                item.isExport -> {
+                    rightIcon.makeGone()
+                    rightArrow.makeVisible()
+                }
+                isSelected -> {
+                    rightIcon.makeVisible()
+                    rightArrow.makeGone()
+                }
+                else -> {
+                    rightIcon.makeInvisible()
+                    rightArrow.makeGone()
+                }
             }
 
             sourceTv.setText(item.nameRes)
+            sourceHintTv.setText(item.hintRes)
+            sourceIcon.setImageResource(item.iconRes)
         }
     }
 }

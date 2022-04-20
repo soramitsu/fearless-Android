@@ -10,8 +10,6 @@ import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import coil.ImageLoader
-import java.io.File
-import javax.inject.Inject
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
@@ -26,6 +24,8 @@ import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonCon
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportJsonConfirmToolbar
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportSubstrateJsonConfirmExport
 import kotlinx.android.synthetic.main.fragment_export_json_confirm.exportSubstrateJsonConfirmValue
+import java.io.File
+import javax.inject.Inject
 
 class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
@@ -86,11 +86,12 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
             exportJsonConfirmAdvanced.isVisible = false
             when {
                 viewModel.isExportFromWallet -> {
+                    val hasEthereumAccount = viewModel.ethereumJson.isNullOrBlank().not()
                     exportSubstrateJsonConfirmValue.isVisible = true
-                    exportEthereumJsonConfirmValue.isVisible = true
+                    exportEthereumJsonConfirmValue.isVisible = hasEthereumAccount
                     exportJsonConfirmAdvanced.isVisible = false
                     exportSubstrateJsonConfirmExport.isVisible = true
-                    exportEthereumJsonConfirmExport.isVisible = true
+                    exportEthereumJsonConfirmExport.isVisible = hasEthereumAccount
                 }
                 !viewModel.isExportFromWallet && !isEthereum -> {
                     exportSubstrateJsonConfirmValue.isVisible = true

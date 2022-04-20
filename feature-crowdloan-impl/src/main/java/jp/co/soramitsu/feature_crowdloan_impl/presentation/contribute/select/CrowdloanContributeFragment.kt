@@ -89,8 +89,8 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
 
         contributePrivacyText?.movementMethod = LinkMovementMethod.getInstance()
         contributePrivacyText?.text = context?.let {
-            createSpannable(it.getString(R.string.contribute_terms)) {
-                clickable(it.getString(R.string.contribute_terms_clickable)) {
+            createSpannable(it.getString(R.string.crowdloan_privacy_policy)) {
+                clickable(it.getString(R.string.about_terms)) {
                     viewModel.termsClicked()
                 }
             }
@@ -141,7 +141,7 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>()
         crowdloanContributeAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
 
         viewModel.enteredFiatAmountFlow.observe {
-            it?.let(crowdloanContributeAmount::setAssetBalanceDollarAmount)
+            it?.let(crowdloanContributeAmount::setAssetBalanceFiatAmount)
         }
 
         viewModel.estimatedRewardFlow.observe { reward ->

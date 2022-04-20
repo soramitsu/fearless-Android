@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -64,6 +65,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     override fun initViews() {
         hideKeyboard()
 
+        transfersContainer.provideImageLoader(imageLoader)
+
         transfersContainer.initializeBehavior(anchorView = balanceDetailContent)
 
         transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
@@ -101,14 +104,14 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
     }
 
     override fun inject() {
-        val token = requireArguments()[KEY_ASSET_PAYLOAD] as AssetPayload
+        val payload = requireArguments()[KEY_ASSET_PAYLOAD] as AssetPayload
 
         FeatureUtils.getFeature<WalletFeatureComponent>(
             requireContext(),
             WalletFeatureApi::class.java
         )
             .balanceDetailComponentFactory()
-            .create(this, token)
+            .create(this, payload)
             .inject(this)
     }
 
@@ -126,8 +129,8 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
             balanceDetailTokenName.text = asset.token.configuration.symbol
             tokenBadge.setText(asset.token.configuration.chainName)
-            balanceDetailRate.text = asset.token.dollarRate?.formatAsCurrency() ?: ""
-            balanceDetailRate.isVisible = asset.token.dollarRate != null
+            balanceDetailRate.text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol) ?: ""
+            balanceDetailRate.isVisible = asset.token.fiatRate != null
 
             asset.token.recentRateChange?.let {
                 balanceDetailRateChange.setTextColorRes(asset.token.rateChangeColorRes)
@@ -135,14 +138,14 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
             }
             balanceDetailRateChange.isVisible = asset.token.recentRateChange != null
 
-            balanceDetailsInfo.total.text = asset.total.formatTokenAmount(asset.token.configuration)
-            balanceDetailsInfo.totalFiat.setTextOrHide(asset.totalFiat?.formatAsCurrency())
+            balanceDetailsInfo.total.text = asset.total.orZero().formatTokenAmount(asset.token.configuration)
+            balanceDetailsInfo.totalFiat.setTextOrHide(asset.totalFiat?.formatAsCurrency(asset.token.fiatSymbol))
 
-            balanceDetailsInfo.transferable.text = asset.available.formatTokenAmount(asset.token.configuration)
-            balanceDetailsInfo.transferableFiat.setTextOrHide(asset.availableFiat?.formatAsCurrency())
+            balanceDetailsInfo.transferable.text = asset.available?.formatTokenAmount(asset.token.configuration)
+            balanceDetailsInfo.transferableFiat.setTextOrHide(asset.availableFiat?.formatAsCurrency(asset.token.fiatSymbol))
 
-            balanceDetailsInfo.locked.text = asset.frozen.formatTokenAmount(asset.token.configuration)
-            balanceDetailsInfo.lockedFiat.setTextOrHide(asset.frozenFiat?.formatAsCurrency())
+            balanceDetailsInfo.locked.text = asset.frozen?.formatTokenAmount(asset.token.configuration)
+            balanceDetailsInfo.lockedFiat.setTextOrHide(asset.frozenFiat?.formatAsCurrency(asset.token.fiatSymbol))
         }
 
         viewModel.hideRefreshEvent.observeEvent {
@@ -179,6 +182,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>() {
 
     private fun showExportSourceChooser(payload: ExportSourceChooserPayload) {
         SourceTypeChooserBottomSheetDialog(
+            titleRes = R.string.select_save_type,
             context = requireActivity(),
             payload = DynamicListBottomSheet.Payload(payload.sources),
             onClicked = { viewModel.exportTypeSelected(it, payload.chainId) }

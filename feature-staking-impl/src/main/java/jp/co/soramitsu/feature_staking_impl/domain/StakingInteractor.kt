@@ -1,6 +1,9 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
+import java.math.BigInteger
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.combineToPair
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -18,7 +21,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
@@ -44,6 +46,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.chainAsset
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -54,8 +57,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
-import kotlin.time.ExperimentalTime
 
 const val HOURS_IN_DAY = 24
 
@@ -164,7 +165,7 @@ class StakingInteractor(
 
             else -> {
                 val inactiveReason = when {
-                    it.asset.bondedInPlanks < minimumStake(eraStakers, stakingRepository.minimumNominatorBond(chainId)) -> {
+                    it.asset.bondedInPlanks.orZero() < minimumStake(eraStakers, stakingRepository.minimumNominatorBond(chainId)) -> {
                         NominatorStatus.Inactive.Reason.MIN_STAKE
                     }
                     else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
@@ -192,6 +193,12 @@ class StakingInteractor(
         }
     }
 
+    suspend fun getMinimumStake(chainId: ChainId): BigInteger {
+        val exposures = stakingRepository.electedExposuresInActiveEra(chainId).first().values
+        val minimumNominatorBond = stakingRepository.minimumNominatorBond(chainId)
+        return minimumStake(exposures, minimumNominatorBond)
+    }
+
     suspend fun getLockupPeriodInDays() = withContext(Dispatchers.Default) {
         getLockupPeriodInDays(stakingSharedState.chainId())
     }
@@ -204,7 +211,7 @@ class StakingInteractor(
         HOURS_IN_DAY / stakingRepository.erasPerDay(chainId)
     }
 
-    fun stakingStoriesFlow(): Flow<List<StakingStory>> {
+    fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>> {
         return stakingRepository.stakingStoriesFlow()
     }
 
@@ -246,7 +253,8 @@ class StakingInteractor(
                 walletRepository.assetFlow(
                     metaId = meta.id,
                     accountId = chain.accountIdOf(accountAddress),
-                    chainAsset = chainAsset
+                    chainAsset = chainAsset,
+                    minSupportedVersion = chain.minSupportedVersion
                 )
             )
         }
@@ -335,13 +343,13 @@ class StakingInteractor(
         state: StakingState.Stash,
         statusResolver: suspend (StatusResolutionContext) -> S,
     ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
-        val chainAsset = stakingSharedState.chainAsset()
+        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
         val chainId = chainAsset.chainId
         val meta = accountRepository.getSelectedMetaAccount()
 
         combine(
             stakingRepository.observeActiveEraIndex(chainId),
-            walletRepository.assetFlow(meta.id, state.accountId, chainAsset),
+            walletRepository.assetFlow(meta.id, state.accountId, chainAsset, chain.minSupportedVersion),
             stakingRewardsRepository.totalRewardFlow(state.stashAddress)
         ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded

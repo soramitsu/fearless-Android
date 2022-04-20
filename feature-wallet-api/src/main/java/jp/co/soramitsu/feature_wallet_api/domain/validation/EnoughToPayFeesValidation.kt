@@ -41,7 +41,7 @@ fun <P> EnoughToPayFeesValidation.Companion.assetBalanceProducer(
     val accountId = chain.accountIdOf(originAddressExtractor(payload))
     val meta = accountRepository.getSelectedMetaAccount()
 
-    val asset = walletRepository.getAsset(meta.id, accountId, chainAssetExtractor(payload))!!
+    val asset = walletRepository.getAsset(meta.id, accountId, chainAssetExtractor(payload), chain.minSupportedVersion)!!
 
     asset.transferable
 }

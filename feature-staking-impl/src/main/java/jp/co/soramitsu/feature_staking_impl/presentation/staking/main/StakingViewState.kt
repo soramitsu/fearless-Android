@@ -149,9 +149,9 @@ sealed class StakeViewState<S>(
             StakeSummaryModel(
                 status = summary.status,
                 totalStaked = summary.totalStaked.formatTokenAmount(tokenType),
-                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(),
+                totalStakedFiat = token.fiatAmount(summary.totalStaked)?.formatAsCurrency(token.fiatSymbol),
                 totalRewards = summary.totalReward.formatTokenAmount(tokenType),
-                totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatAsCurrency(),
+                totalRewardsFiat = token.fiatAmount(summary.totalReward)?.formatAsCurrency(token.fiatSymbol),
                 currentEraDisplay = resourceManager.getString(R.string.staking_era_title, summary.currentEra)
             )
         }
@@ -276,7 +276,7 @@ class WelcomeViewState(
 
     val assetLiveData = currentAssetFlow.map { mapAssetToAssetModel(it, resourceManager) }.asLiveData(scope)
 
-    val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency() }
+    val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol) }
         .asLiveData(scope)
 
     private val rewardCalculator = scope.async { rewardCalculatorFactory.create() }

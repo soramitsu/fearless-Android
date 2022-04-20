@@ -3,23 +3,32 @@ package jp.co.soramitsu.feature_account_impl.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.OnboardingStoriesDataSource
 import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.data.network.NetworkApiCreator
+import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.GetEducationalStoriesUseCase
+import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.domain.ShouldShowEducationalStoriesUseCase
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
+import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.feature_account_api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
@@ -30,6 +39,7 @@ import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDa
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.feature_account_impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.feature_account_impl.domain.AccountInteractorImpl
+import jp.co.soramitsu.feature_account_impl.domain.AssetNotNeedAccountUseCaseImpl
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
@@ -175,8 +185,52 @@ class AccountFeatureModule {
     fun provideAccountDetailsInteractor(
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
+        assetNotNeedAccountUseCase: AssetNotNeedAccountUseCase
     ) = AccountDetailsInteractor(
         accountRepository,
-        chainRegistry
+        chainRegistry,
+        assetNotNeedAccountUseCase
     )
+
+    @Provides
+    @FeatureScope
+    fun provideCoingeckoApi(networkApiCreator: NetworkApiCreator): CoingeckoApi {
+        return networkApiCreator.create(CoingeckoApi::class.java)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
+
+    @Provides
+    @FeatureScope
+    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
+
+    @Provides
+    @FeatureScope
+    fun provideAssetNotNeedAccountUseCase(
+        assetDao: AssetDao
+    ): AssetNotNeedAccountUseCase {
+        return AssetNotNeedAccountUseCaseImpl(assetDao)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideStoriesDataSource() = OnboardingStoriesDataSource()
+
+    @Provides
+    @FeatureScope
+    fun provideShouldShowEducationalStories(
+        preferences: Preferences
+    ): ShouldShowEducationalStoriesUseCase {
+        return ShouldShowEducationalStoriesUseCase(preferences)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideGetEducationalStories(
+        onboardingStoriesDataSource: OnboardingStoriesDataSource
+    ): GetEducationalStoriesUseCase {
+        return GetEducationalStoriesUseCase(onboardingStoriesDataSource)
+    }
 }

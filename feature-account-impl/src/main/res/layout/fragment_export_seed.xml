@@ -50,7 +50,7 @@
                     android:layout_height="wrap_content"
                     android:singleLine="false"
                     app:enabled="false"
-                    app:label="@string/recovery_raw_seed_substrate"
+                    app:label="@string/account_import_substrate_raw_seed_placeholder"
                     tools:message="0x1aa03512d3bba4997b499521504d36b81dfa28628a3a0bc10a13f2eb0b3e910b" />
 
                 <ImageView
@@ -76,7 +76,7 @@
                     android:layout_height="wrap_content"
                     android:singleLine="false"
                     app:enabled="false"
-                    app:label="@string/recovery_raw_seed_eth"
+                    app:label="@string/account_import_ethereum_raw_seed_placeholder"
                     tools:message="0x1aa03512d3bba4997b499521504d36b81dfa28628a3a0bc10a13f2eb0b3e910b" />
 
                 <ImageView

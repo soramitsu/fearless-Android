@@ -60,6 +60,7 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
 
             recommendedValidatorsProgress.setVisible(false)
             recommendedValidatorsNext.setVisible(true)
+            recommendedValidatorsNext.isEnabled = it.isNotEmpty()
             recommendedValidatorsList.setVisible(true)
         }
 

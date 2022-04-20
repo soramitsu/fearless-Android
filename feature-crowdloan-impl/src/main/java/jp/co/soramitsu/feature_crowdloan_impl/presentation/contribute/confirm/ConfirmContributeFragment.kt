@@ -100,7 +100,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         confirmContributeAmount.amountInput.setText(viewModel.selectedAmount)
 
         viewModel.enteredFiatAmountFlow.observe {
-            it?.let(confirmContributeAmount::setAssetBalanceDollarAmount)
+            it?.let(confirmContributeAmount::setAssetBalanceFiatAmount)
         }
 
         viewModel.feeFlow.observe(confirmContributeFee::setFeeStatus)

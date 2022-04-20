@@ -25,7 +25,7 @@ class MainFragmentModule {
     @ViewModelKey(MainViewModel::class)
     fun provideViewModel(
         externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
-        interactor: RootInteractor
+        interactor: RootInteractor,
     ): ViewModel {
         return MainViewModel(interactor, externalRequirementsFlow)
     }

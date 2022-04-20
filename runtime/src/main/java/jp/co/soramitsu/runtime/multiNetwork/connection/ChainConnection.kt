@@ -9,11 +9,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 
 private const val NODE_SWITCHING_FREQUENCY = 5 // switch node every n attempt
+private const val ATTEMPT_THRESHOLD = 1
 
 class ChainConnection(
     val socketService: SocketService,
@@ -31,6 +34,18 @@ class ChainConnection(
 
     val state = socketService.networkStateFlow()
         .stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = State.Disconnected)
+
+    val isConnected = state.map {
+        it is State.Connected
+    }.distinctUntilChanged()
+
+    val isConnecting = state.map {
+        when (it) {
+            is State.Connecting -> it.attempt > ATTEMPT_THRESHOLD
+            is State.WaitingForReconnect -> it.attempt > ATTEMPT_THRESHOLD
+            else -> false
+        }
+    }.distinctUntilChanged()
 
     init {
         require(availableNodes.isNotEmpty()) {

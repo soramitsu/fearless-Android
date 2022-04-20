@@ -1,14 +1,18 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.StakingStoryModel
+import jp.co.soramitsu.common.presentation.StoryElement
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.presentation.flatMapLoading
-import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
@@ -20,7 +24,6 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingStory
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
@@ -34,7 +37,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.manageS
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -51,7 +53,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -115,9 +116,9 @@ class StakingViewModel(
         .map { it.name }
         .share()
 
-    fun storyClicked(story: StakingStoryModel) {
-        if (story.elements.isNotEmpty()) {
-            router.openStory(story)
+    fun storyClicked(group: StoryGroupModel) {
+        if (group.stories.isNotEmpty()) {
+            router.openStory(group)
         }
     }
 
@@ -182,7 +183,7 @@ class StakingViewModel(
     }
 
     private fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {
-        val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency()
+        val formattedFiat = token.fiatAmount(amount)?.formatAsCurrency(token.fiatSymbol)
         val formattedAmount = amount.formatTokenAmount(token.configuration)
 
         return buildString {
@@ -252,8 +253,8 @@ class StakingViewModel(
         )
     }
 
-    private fun transformStories(story: StakingStory): StakingStoryModel = with(story) {
-        val elements = elements.map { StakingStoryModel.Element(it.titleRes, it.bodyRes, it.url) }
+    private fun transformStories(story: StoryGroup.Staking): StakingStoryModel = with(story) {
+        val elements = elements.map { StoryElement.Staking(it.titleRes, it.bodyRes, it.url) }
         StakingStoryModel(titleRes, iconSymbol, elements)
     }
 
@@ -261,12 +262,12 @@ class StakingViewModel(
         val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
         val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
 
-        val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency()
+        val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
 
         val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
         val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
 
-        val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency()
+        val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
 
         val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
             .format(networkInfo.lockupPeriodInDays)

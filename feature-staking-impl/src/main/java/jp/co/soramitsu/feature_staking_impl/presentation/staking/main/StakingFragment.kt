@@ -7,10 +7,12 @@ import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -33,11 +35,11 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
-import javax.inject.Inject
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,13 +56,15 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             }
         }
 
-        stakingEstimate.hideAssetBalanceDollarAmount()
+        stakingEstimate.hideAssetBalanceFiatAmount()
 
         stakingAvatar.setOnClickListener {
             viewModel.avatarClicked()
         }
 
-        stakingNetworkInfo.storyItemHandler = viewModel::storyClicked
+        stakingNetworkInfo.storyItemHandler = {
+            viewModel.storyClicked(StoryGroupModel(it.elements))
+        }
     }
 
     override fun inject() {
@@ -134,8 +138,8 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             }
 
                             stakingState.amountFiat.observe { amountFiat ->
-                                stakingEstimate.showAssetBalanceDollarAmount()
-                                stakingEstimate.setAssetBalanceDollarAmount(amountFiat)
+                                stakingEstimate.showAssetBalanceFiatAmount()
+                                stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
                             }
 
                             stakingState.returns.observe { rewards ->

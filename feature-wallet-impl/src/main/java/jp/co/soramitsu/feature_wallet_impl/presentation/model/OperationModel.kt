@@ -10,6 +10,7 @@ class OperationModel(
     @ColorRes val amountColorRes: Int,
     val header: String,
     val statusAppearance: OperationStatusAppearance,
-    val operationIcon: Drawable,
-    val subHeader: String
+    val operationIcon: Drawable?,
+    val subHeader: String,
+    val assetIconUrl: String? = null
 )

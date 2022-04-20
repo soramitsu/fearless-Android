@@ -17,11 +17,11 @@ class JsonExportTypeSheet(
 
         setTitle(R.string.recovery_source_type)
 
-        textItem(titleRes = R.string.json_export_type_text) {
+        textItem(titleRes = R.string.json_export_text_title) {
             onExportByText()
         }
 
-        textItem(titleRes = R.string.json_export_type_file) {
+        textItem(titleRes = R.string.json_export_file_title) {
             onExportByFile()
         }
     }

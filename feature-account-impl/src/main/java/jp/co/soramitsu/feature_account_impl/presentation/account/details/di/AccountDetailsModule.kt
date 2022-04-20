@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.di.modules.Caching
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_account_api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
@@ -31,7 +32,8 @@ class AccountDetailsModule {
         iconGenerator: AddressIconGenerator,
         chainRegistry: ChainRegistry,
         metaId: Long,
-        externalAccountActions: ExternalAccountActions.Presentation
+        externalAccountActions: ExternalAccountActions.Presentation,
+        assetNotNeedAccountUseCase: AssetNotNeedAccountUseCase,
     ): ViewModel {
         return AccountDetailsViewModel(
             interactor,
@@ -40,7 +42,8 @@ class AccountDetailsModule {
             resourceManager,
             chainRegistry,
             metaId,
-            externalAccountActions
+            externalAccountActions,
+            assetNotNeedAccountUseCase
         )
     }
 

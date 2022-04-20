@@ -53,6 +53,7 @@ dependencies {
     implementation project(':common')
     implementation project(':feature-wallet-api')
     implementation project(':feature-account-api')
+    implementation project(':feature-account-impl')
     implementation project(':runtime')
 
     implementation kotlinDep
@@ -99,4 +100,6 @@ dependencies {
 
     implementation jnaDep
     implementation beaconDep, withoutJna
+
+    implementation shimmerDep
 }

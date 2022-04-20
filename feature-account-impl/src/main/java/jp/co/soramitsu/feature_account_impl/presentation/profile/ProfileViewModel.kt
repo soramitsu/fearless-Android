@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.profile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
+import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -10,15 +12,22 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.sendEvent
+import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
+import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.TotalBalance
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.format
 import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
+import kotlinx.coroutines.launch
 
 private const val AVATAR_SIZE_DP = 32
 
@@ -27,10 +36,12 @@ class ProfileViewModel(
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    getTotalBalance: GetTotalBalanceUseCase
+    getTotalBalance: GetTotalBalanceUseCase,
+    private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
+    private val selectedFiat: SelectedFiat
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
-    val totalBalanceLiveData = getTotalBalance().map(BigDecimal::formatAsCurrency).asLiveData()
+    val totalBalanceLiveData = getTotalBalance().map(TotalBalance::format).asLiveData()
 
     val selectedAccountLiveData: LiveData<MetaAccount> = interactor.selectedMetaAccountFlow().asLiveData()
 
@@ -46,6 +57,11 @@ class ProfileViewModel(
 
         emit(mapLanguageToLanguageModel(language))
     }
+
+    private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
+    val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
+
+    val selectedFiatLiveData: LiveData<String> = selectedFiat.flow().asLiveData().map { it.uppercase() }
 
     fun aboutClicked() {
         router.openAboutScreen()
@@ -78,5 +94,21 @@ class ProfileViewModel(
 
     fun beaconQrScanned(qrContent: String) {
         router.openBeacon(qrContent)
+    }
+
+    fun currencyClicked() {
+        viewModelScope.launch {
+            val currencies = getAvailableFiatCurrencies()
+            if (currencies.isEmpty()) return@launch
+            val selected = selectedFiat.get()
+            val selectedItem = currencies.first { it.id == selected }
+            _showFiatChooser.value = FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
+        }
+    }
+
+    fun onFiatSelected(item: FiatCurrency) {
+        viewModelScope.launch {
+            selectedFiat.set(item.id)
+        }
     }
 }

@@ -87,6 +87,7 @@ class MetaAccountDaoTest : DaoTest<MetaAccountDao>(AppDatabase::metaAccountDao) 
         chainId = CHAIN_ID,
         publicKey = byteArrayOf(),
         cryptoType = CryptoType.SR25519,
-        accountId = byteArrayOf()
+        accountId = byteArrayOf(),
+        name = ""
     )
 }

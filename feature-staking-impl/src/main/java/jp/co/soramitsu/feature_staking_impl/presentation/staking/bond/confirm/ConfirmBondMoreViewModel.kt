@@ -59,7 +59,7 @@ class ConfirmBondMoreViewModel(
         .asLiveData()
 
     val amountFiatFLow = assetFlow.map { asset ->
-        asset.token.fiatAmount(payload.amount)?.formatAsCurrency()
+        asset.token.fiatAmount(payload.amount)?.formatAsCurrency(asset.token.fiatSymbol)
     }
         .inBackground()
         .asLiveData()

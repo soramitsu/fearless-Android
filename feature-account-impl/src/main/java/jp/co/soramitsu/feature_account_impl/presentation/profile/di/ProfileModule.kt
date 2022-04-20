@@ -9,6 +9,8 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
+import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
+import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -30,14 +32,18 @@ class ProfileModule {
         router: AccountRouter,
         addressIconGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
-        getTotalBalance: GetTotalBalanceUseCase
+        getTotalBalance: GetTotalBalanceUseCase,
+        getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
+        selectedFiat: SelectedFiat
     ): ViewModel {
         return ProfileViewModel(
             interactor,
             router,
             addressIconGenerator,
             externalAccountActions,
-            getTotalBalance
+            getTotalBalance,
+            getAvailableFiatCurrencies,
+            selectedFiat
         )
     }
 

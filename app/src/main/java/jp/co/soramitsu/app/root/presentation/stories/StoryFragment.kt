@@ -1,35 +1,38 @@
-package jp.co.soramitsu.feature_staking_impl.presentation.story
+package jp.co.soramitsu.app.root.presentation.stories
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
+import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.di.RootApi
+import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
-import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingStoryModel
+import jp.co.soramitsu.common.presentation.StoryElement
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.shts.android.storiesprogressview.StoriesProgressView
 import kotlinx.android.synthetic.main.fragment_story.stakingStoryLearnMore
 import kotlinx.android.synthetic.main.fragment_story.stories
 import kotlinx.android.synthetic.main.fragment_story.storyBody
 import kotlinx.android.synthetic.main.fragment_story.storyCloseIcon
 import kotlinx.android.synthetic.main.fragment_story.storyContainer
+import kotlinx.android.synthetic.main.fragment_story.storyImage
 import kotlinx.android.synthetic.main.fragment_story.storyTitle
 
 class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.StoriesListener {
 
     companion object {
-        private const val KEY_STORY = "story"
+        const val KEY_STORY = "story"
         private const val STORY_DURATION = 6200L
         private const val STORY_CLICK_MAX_DURATION = 500L
 
-        fun getBundle(story: StakingStoryModel): Bundle {
+        fun getBundle(stories: StoryGroupModel): Bundle {
             return Bundle().apply {
-                putParcelable(KEY_STORY, story)
+                putParcelable(KEY_STORY, stories)
             }
         }
     }
@@ -45,32 +48,28 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
     }
 
     override fun initViews() {
+
         storyCloseIcon.setOnClickListener { viewModel.backClicked() }
 
         stories.setStoriesListener(this)
 
         storyContainer.setOnTouchListener(::handleStoryTouchEvent)
-
-        stakingStoryLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
     }
 
     override fun inject() {
-        val story = argument<StakingStoryModel>(KEY_STORY)
+        val stories = argument<StoryGroupModel>(KEY_STORY)
 
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
+        FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
             .storyComponentFactory()
-            .create(this, story)
+            .create(this, stories)
             .inject(this)
     }
 
     override fun subscribe(viewModel: StoryViewModel) {
         observeBrowserEvents(viewModel)
 
-        viewModel.storyLiveData.observe { story ->
-            stories.setStoriesCount(story.elements.size)
+        viewModel.storyLiveData.observe {
+            stories.setStoriesCount(it.size)
             stories.setStoryDuration(STORY_DURATION)
             stories.startStories()
         }
@@ -78,6 +77,21 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
         viewModel.currentStoryLiveData.observe {
             storyTitle.setText(it.titleRes)
             storyBody.setText(it.bodyRes)
+            storyImage.isVisible = it is StoryElement.Onboarding
+
+            if (it is StoryElement.Onboarding) {
+                storyImage.setImageResource(it.imageRes)
+                stakingStoryLearnMore.isVisible = false
+                it.buttonCaptionRes?.let { buttonText ->
+                    stakingStoryLearnMore.isVisible = true
+                    stakingStoryLearnMore.setText(buttonText)
+                    stakingStoryLearnMore.setOnClickListener { viewModel.complete() }
+                }
+            } else {
+                stakingStoryLearnMore.isVisible = true
+                stakingStoryLearnMore.setText(R.string.common_learn_more)
+                stakingStoryLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
+            }
         }
     }
 

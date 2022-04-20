@@ -104,7 +104,7 @@ class ChooseAmountViewModel(
     val feeLiveData = feeFlow().asLiveData()
     val feeFiatLiveData = combine(assetLiveData, feeLiveData) { (asset: Asset, fee: Fee?) ->
         fee?.feeAmount?.let {
-            asset.token.fiatAmount(it)?.formatAsCurrency()
+            asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol)
         }
     }
 
@@ -126,7 +126,7 @@ class ChooseAmountViewModel(
 
     val enteredFiatAmountLiveData = combine(assetLiveData, amountRawLiveData) { (asset: Asset, amount: String) ->
         amount.toBigDecimalOrNull()?.let {
-            asset.token.fiatAmount(it)?.formatAsCurrency()
+            asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol)
         }
     }
 
