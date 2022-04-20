@@ -618,7 +618,6 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="beacon_sign_review">Please review information below before confirming</string>
     <string name="beacon_decline_signing_message">Do you want to decline this transaction?</string>
     <string name="common_search_no_input">Search results will appear here</string>
-    <string name="common_search_no_results">No search results.\nBe sure you type full account address</string>
     <string name="search_results_header">Search results: %d</string>
 
     <string name="account_option">Account option</string>

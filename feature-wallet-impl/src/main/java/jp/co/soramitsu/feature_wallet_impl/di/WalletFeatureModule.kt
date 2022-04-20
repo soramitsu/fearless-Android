@@ -13,8 +13,8 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.OperationDao
@@ -26,9 +26,7 @@ import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.di.Wallet
 import jp.co.soramitsu.feature_wallet_api.domain.CurrentAccountAddressUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -61,7 +59,6 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.Histo
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
-import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 
 @Module
@@ -264,4 +261,31 @@ class WalletFeatureModule {
     @Provides
     @FeatureScope
     fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
+
+    @Provides
+    @FeatureScope
+    fun provideFeeLoaderMixin(
+        resourceManager: ResourceManager,
+        tokenUseCase: TokenUseCase,
+    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(
+        resourceManager,
+        tokenUseCase
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideTokenUseCase(
+        tokenRepository: TokenRepository,
+        sharedState: BeaconSharedState,
+    ): TokenUseCase = TokenUseCaseImpl(
+        tokenRepository,
+        sharedState
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideBeaconSharedState(
+        chainRegistry: ChainRegistry,
+        preferences: Preferences,
+    ): BeaconSharedState = BeaconSharedState(chainRegistry, preferences)
 }
