@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.domain.beacon
 import android.net.Uri
 import com.google.gson.Gson
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateNetwork
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
@@ -25,12 +24,11 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentMetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -53,6 +51,11 @@ class BeaconInteractor(
 //    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
 //    private val feeEstimator: FeeEstimator
 ) {
+
+    companion object {
+        private const val REGISTERED_CHAINS_KEY = "BEACON_REGISTERED_NETWORK_CHAIN_ID"
+        const val BEACON_CONNECTED_KEY = "IS_BEACON_CONNECTED"
+    }
 
     private val beaconClient by lazy {
         GlobalScope.async {
@@ -79,7 +82,9 @@ class BeaconInteractor(
 
             val requestsFlow = beaconClient.connect()
                 .map {
-                    hashCode()
+                    if(it.isSuccess) {
+                        preferences.putBoolean(BEACON_CONNECTED_KEY, true)
+                    }
                     it.getOrNull()
                 }
 
@@ -116,27 +121,23 @@ class BeaconInteractor(
         val signature = accountRepository.signWithCurrentMetaAccount(payload.fromHex())
         val signatureHex = signature.toHexString(withPrefix = true)
 
-        val response = SignPayloadSubstrateResponse.from(request, transactionHash = null, signature = signatureHex, payload = null)
+        val response = SignPayloadSubstrateResponse.from(request, transactionHash = null, signature = signatureHex, payload = payload)
+        SignPayloadSubstrateResponse
         beaconClient().respond(response)
     }
 
-    //todo add multi-assets support
     suspend fun allowPermissions(
         forRequest: PermissionSubstrateRequest
     ) {
-        val address = accountRepository.getSelectedAccount().address
-        val publicKey = address.toAccountId().toHexString()
-        //todo stub
-        val testAccount = SubstrateAccount(
-            network = SubstrateNetwork(//todo check
-                genesisHash = "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
-                name = "Polkadot",
-                rpcUrl = null
-            ),
-            address = address,
-            publicKey = publicKey
-        )
-        val response = PermissionSubstrateResponse.from(forRequest, listOf(testAccount))
+        val account = accountRepository.getSelectedMetaAccount()
+        val accounts = forRequest.networks.map {
+            val chain = chainRegistry.getChain(it.genesisHash)
+            val pubKey = (if (chain.isEthereumBased) account.ethereumPublicKey else account.substratePublicKey) ?: return@map null
+            val address = account.address(chain) ?: return@map null
+            return@map SubstrateAccount(network = it, publicKey = pubKey.toHexString(), address = address)
+        }.filterNotNull()
+
+        val response = PermissionSubstrateResponse.from(forRequest, accounts)
         beaconClient().respond(response)
     }
 
@@ -180,12 +181,12 @@ class BeaconInteractor(
     }
 
     fun registerNetwork(chainId: String) {
-        preferences.putString("BEACON_REGISTERED_NETWORK_CHAIN_ID", chainId)
+        preferences.putString(REGISTERED_CHAINS_KEY, chainId)
     }
 
-    fun getBeaconRegisteredNetwork(): String? = preferences.getString("BEACON_REGISTERED_NETWORK_CHAIN_ID")
+    private fun getBeaconRegisteredNetwork(): String? = preferences.getString(REGISTERED_CHAINS_KEY)
 
-    suspend fun getBeaconRegisteredChain() : Chain? {
+    suspend fun getBeaconRegisteredChain(): Chain? {
         val chainId = getBeaconRegisteredNetwork() ?: return null
         return chainRegistry.getChain(chainId)
     }

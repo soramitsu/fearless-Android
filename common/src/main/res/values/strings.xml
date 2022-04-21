@@ -607,6 +607,8 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="wallet_transaction_history_unsupported_message">Transaction history for this network is not supported yet</string>
     <string name="wallet_transaction_history_empty_message">Transaction history will appear here</string>
 
+    <string name="profile_experimets_title">Experimental features</string>
+    <string name="profile_experimets_subtitle">Dapps and more...</string>
     <string name="beacon_title">Beacon</string>
     <string name="beacon_declined">Declined</string>
     <string name="beacon_pairing_cancelled">Pairing cancelled</string>
@@ -614,6 +616,8 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="beacon_connected">Connected to %s</string>
     <string name="common_cannot_decode_transaction">Cannot decode transaction</string>
     <string name="common_transaction_raw_data">Transaction raw data</string>
+    <string name="experimental_title">Experimental Features</string>
+    <string name="experimental_beacon">Beacon DAPP</string>
 
     <string name="beacon_sign_review">Please review information below before confirming</string>
     <string name="beacon_decline_signing_message">Do you want to decline this transaction?</string>
@@ -725,7 +729,9 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_no">No</string>
 
     <string name="common_connect">Connect</string>
+    <string name="common_disconnect">Disconnect</string>
     <string name="beacon_connected_to">Connected to</string>
     <string name="common_are_you_sure">Are you sure?</string>
     <string name="beacon_exit_message">Do you want to close this connection?</string>
+    <string name="beacon_connect_warning">Warning: By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.</string>
 </resources>

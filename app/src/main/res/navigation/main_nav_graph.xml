@@ -944,4 +944,10 @@
         android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment"
         android:label="SignBeaconTransactionFragment" />
 
+    <fragment
+        tools:layout="@layout/fragment_experimental"
+        android:id="@+id/experimentalFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.experimental.ExperimentalFragment"
+        android:label="ExperimentalFragment"/>
+
 </navigation>

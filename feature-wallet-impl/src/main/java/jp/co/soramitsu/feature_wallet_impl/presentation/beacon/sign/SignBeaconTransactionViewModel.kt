@@ -60,6 +60,7 @@ class SignBeaconTransactionViewModel(
         .share()
 
     private val decodedOperation = flow {
+        hashCode()
         val result = if (payloadToSign.isEmpty()) {
             showMessage(resourceManager.getString(R.string.common_cannot_decode_transaction))
             Result.failure(IllegalArgumentException())
@@ -122,7 +123,7 @@ class SignBeaconTransactionViewModel(
         )
     }
 
-    fun confirmClicked() = requireFee {
+    fun confirmClicked() {// = requireFee {
         router.setBeaconSignStatus(SignStatus.APPROVED)
 
         router.back()

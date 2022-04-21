@@ -48,9 +48,6 @@ class ProfileViewModel(
     val accountIconLiveData: LiveData<AddressModel> = interactor.polkadotAddressForSelectedAccountFlow()
         .map { createIcon(it) }
         .asLiveData()
-    private val _scanBeaconQrEvent = MutableLiveData<Event<Unit>>()
-    val scanBeaconQrEvent: LiveData<Event<Unit>> = _scanBeaconQrEvent
-
 
     val selectedLanguageLiveData = liveData {
         val language = interactor.getSelectedLanguage()
@@ -88,10 +85,6 @@ class ProfileViewModel(
         return addressIconGenerator.createAddressModel(accountAddress, AVATAR_SIZE_DP)
     }
 
-    fun beaconClicked() {
-        _scanBeaconQrEvent.sendEvent()
-    }
-
     fun beaconQrScanned(qrContent: String) {
         router.openBeacon(qrContent)
     }
@@ -110,5 +103,9 @@ class ProfileViewModel(
         viewModelScope.launch {
             selectedFiat.set(item.id)
         }
+    }
+
+    fun onExperimentalClicked() {
+        router.openExperimentalFeatures()
     }
 }

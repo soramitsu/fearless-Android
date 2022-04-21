@@ -8,6 +8,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.setCompoundDrawableTint
+import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.dialog.warningDialog
 import jp.co.soramitsu.common.view.setFromAddressModel
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -18,6 +19,7 @@ import kotlinx.android.synthetic.main.fragment_beacon.beaconAppIcon
 import kotlinx.android.synthetic.main.fragment_beacon.beaconAppName
 import kotlinx.android.synthetic.main.fragment_beacon.beaconContainer
 import kotlinx.android.synthetic.main.fragment_beacon.beaconAppUrl
+import kotlinx.android.synthetic.main.fragment_beacon.beaconConnect
 import kotlinx.android.synthetic.main.fragment_beacon.beaconSelectedAccount
 import kotlinx.android.synthetic.main.fragment_beacon.beaconStatus
 import kotlinx.android.synthetic.main.fragment_beacon.beaconToolbar
@@ -50,8 +52,10 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
             }
         }
 
-        beaconToolbar.setHomeButtonListener { openExitDialog() }
-        onBackPressed { openExitDialog() }
+        beaconToolbar.setHomeButtonListener { viewModel.back() }
+        onBackPressed { viewModel.back() }
+        beaconConnect.prepareForProgress(viewLifecycleOwner)
+        beaconConnect.setOnClickListener { viewModel.connectClicked() }
     }
 
     private fun openExitDialog() {
@@ -92,11 +96,14 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
         }
 
         viewModel.currentAccountAddressModel.observe(beaconSelectedAccount::setFromAddressModel)
-
-        viewModel.showPermissionRequestSheet.observeEvent {
-            PermissionRequestBottomSheet(requireContext(), it, viewModel::permissionGranted, viewModel::permissionDenied)
-                .show()
+        viewModel.progress.observeEvent {
+            val state = if(it) ButtonState.PROGRESS else ButtonState.NORMAL
+            beaconConnect.setState(state)
         }
+//        viewModel.showPermissionRequestSheet.observeEvent {
+//            PermissionRequestBottomSheet(requireContext(), it, viewModel::permissionGranted, viewModel::permissionDenied)
+//                .show()
+//        }
     }
 
     private fun setStatus(active: Boolean) {

@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
+import javax.inject.Inject
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -18,11 +19,11 @@ import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.dp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
-import javax.inject.Inject
 
 abstract class BaseFragment<T : BaseViewModel> : Fragment() {
 
-    @Inject protected open lateinit var viewModel: T
+    @Inject
+    protected open lateinit var viewModel: T
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -91,6 +92,14 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
         observe(viewLifecycleOwner, observer)
     }
 
+    inline fun <reified T : ViewState> LiveData<ViewState>.observeState(crossinline observer: (T) -> Unit) {
+        observe(viewLifecycleOwner) {
+            if (it is T) {
+                observer(it)
+            }
+        }
+    }
+
     val Int.dp: Int
         get() = dp(requireContext())
 
@@ -103,4 +112,8 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
     abstract fun inject()
 
     abstract fun subscribe(viewModel: T)
+}
+
+interface ViewState {
+    object Empty : ViewState
 }

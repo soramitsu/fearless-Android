@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateM
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -65,9 +66,13 @@ class BeaconViewModel(
     private val _showPermissionRequestSheet = MutableLiveData<Event<String>>()
     val showPermissionRequestSheet: LiveData<Event<String>> = _showPermissionRequestSheet
 
+    private val _progress = MutableLiveData<Event<Boolean>>()
+    val progress: LiveData<Event<Boolean>> = _progress
+
     private var beaconRequestedNetworks = listOf<SubstrateNetwork>()
 
     init {
+        _progress.value = Event(true)
         listenSideEffects()
 
         listenForApprovals()
@@ -84,8 +89,11 @@ class BeaconViewModel(
 
                 is SideEffect.AskPermissionsApproval -> {
                     // todo think about multiple networks
-                    beaconInteractor.registerNetwork(it.request.networks.first().genesisHash)
-                    _showPermissionRequestSheet.value = Event(it.request.appMetadata.name)
+                    //todo hardcoded westend
+                    beaconInteractor.registerNetwork("e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e")//(it.request.networks.first().genesisHash)
+//                    _showPermissionRequestSheet.value = Event(it.request.appMetadata.name)
+                    _progress.value = Event(false)
+
                 }
 
                 is SideEffect.AskSignApproval -> {
@@ -182,5 +190,20 @@ class BeaconViewModel(
             icon = icon,
             name = name
         )
+    }
+
+    fun back() {
+        viewModelScope.launch {
+            if (stateMachine.currentState.first() is BeaconStateMachine.State.AwaitingPermissionsApproval) {
+                permissionDenied()
+            } else {
+                router.back()
+            }
+        }
+    }
+
+    fun connectClicked() {
+        if()//todo
+        permissionGranted()
     }
 }

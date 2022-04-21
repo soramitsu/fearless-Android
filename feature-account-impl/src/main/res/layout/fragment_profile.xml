@@ -170,25 +170,13 @@
         android:layout_marginEnd="@dimen/x2"
         android:background="@color/dividerGray" />
 
-
-    <TextView
-        android:id="@+id/profileBeacon"
-        style="@style/TextAppearance.Soramitsu.Body1"
+    <jp.co.soramitsu.common.view.ProfileOptionItemView
+        android:id="@+id/profileExperimentalFeatures"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_primary_list_item"
-        android:clickable="true"
-        android:drawableStart="@drawable/ic_fearless"
-        android:drawableEnd="@drawable/ic_arrow_right_24"
-        android:drawablePadding="@dimen/x1_5"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:paddingStart="@dimen/x2"
-        android:paddingTop="@dimen/x1_5"
-        android:paddingEnd="@dimen/x2"
-        android:paddingBottom="@dimen/x1_5"
-        android:text="@string/beacon_title"
-        android:textColor="@color/white" />
+        app:optionIcon="@drawable/ic_experiments"
+        app:optionTitle="@string/profile_experimets_title"
+        app:optionSubtitle="@string/profile_experimets_subtitle"
+        android:layout_height="wrap_content"/>
 
     <View
         android:layout_width="match_parent"

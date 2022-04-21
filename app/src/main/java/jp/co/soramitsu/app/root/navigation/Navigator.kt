@@ -640,4 +640,8 @@ class Navigator :
                 }
             ).asFlow()
         }
+
+    override fun openExperimentalFeatures() {
+        navController?.navigate(R.id.experimentalFragment)
+    }
 }
