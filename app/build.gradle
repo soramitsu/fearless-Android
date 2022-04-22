@@ -41,7 +41,7 @@ android {
             initWith debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-staging'
-            applicationIdSuffix '.stg'
+            applicationIdSuffix '.staging'
             //Init firebase
             def localReleaseNotes = releaseNotes()
             def localFirebaseGroup = firebaseGroup()
