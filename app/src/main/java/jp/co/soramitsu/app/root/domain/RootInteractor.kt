@@ -28,4 +28,6 @@ class RootInteractor(
     }
 
     suspend fun getRemoteConfig() = walletRepository.getRemoteConfig().map { it.toDomain() }
+
+    fun chainRegistrySyncUp() = walletRepository.chainRegistrySyncUp()
 }
