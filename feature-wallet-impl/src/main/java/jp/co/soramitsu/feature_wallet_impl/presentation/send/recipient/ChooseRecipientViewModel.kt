@@ -118,13 +118,9 @@ class ChooseRecipientViewModel(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val result = interactor.getRecipientFromQrCodeContent(content)
+            val result = interactor.getRecipientFromQrCodeContent(content).getOrDefault(content)
 
-            if (result.isSuccess) {
-                _decodeAddressResult.value = Event(result.requireValue())
-            } else {
-                showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
-            }
+            _decodeAddressResult.value = Event(result)
         }
     }
 
