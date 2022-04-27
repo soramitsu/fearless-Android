@@ -1,7 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -64,6 +62,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -416,5 +416,9 @@ class WalletRepositoryImpl(
 
     override suspend fun getRemoteConfig(): Result<AppConfigRemote> {
         return kotlin.runCatching { remoteConfigFetcher.getAppConfig() }
+    }
+
+    override fun chainRegistrySyncUp() {
+        chainRegistry.syncUp()
     }
 }

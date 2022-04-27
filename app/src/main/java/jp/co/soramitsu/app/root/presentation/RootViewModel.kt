@@ -53,6 +53,8 @@ class RootViewModel(
     private var timer = Timer()
     private var timerTask: TimerTask? = null
 
+    private var shouldHandleResumeInternetConnection = false
+
     init {
         checkAppVersion()
     }
@@ -62,6 +64,7 @@ class RootViewModel(
             val appConfigResult = interactor.getRemoteConfig()
             when {
                 appConfigResult.isFailure -> {
+                    shouldHandleResumeInternetConnection = true
                     _showNoInternetConnectionAlert.value = Event(Unit)
                 }
                 appConfigResult.getOrNull()?.isCurrentVersionSupported == false -> {
@@ -75,6 +78,10 @@ class RootViewModel(
     }
 
     private fun runBalancesUpdate() {
+        if (shouldHandleResumeInternetConnection) {
+            shouldHandleResumeInternetConnection = false
+            interactor.chainRegistrySyncUp()
+        }
         interactor.runBalancesUpdate()
             .onEach { handleUpdatesSideEffect(it) }
             .launchIn(this)
