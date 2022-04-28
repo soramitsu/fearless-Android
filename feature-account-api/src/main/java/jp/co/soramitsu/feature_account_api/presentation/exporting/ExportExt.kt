@@ -30,7 +30,7 @@ fun <T : Schema<T>> EncodableStruct<T>?.buildMainAccountOptions(
         options += ExportSource.Json
     }
 
-    return options
+    return options.toSortedSet(compareBy { it.sort })
 }
 
 fun <T : Schema<T>> EncodableStruct<T>?.buildChainAccountOptions(
@@ -50,5 +50,5 @@ fun <T : Schema<T>> EncodableStruct<T>?.buildChainAccountOptions(
         options += ExportSource.Json
     }
 
-    return options
+    return options.toSortedSet(compareBy { it.sort })
 }
