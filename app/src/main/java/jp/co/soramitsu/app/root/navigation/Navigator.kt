@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.navigation
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
@@ -23,6 +24,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.export.WalletEx
 import jp.co.soramitsu.feature_account_impl.presentation.account.exportaccounts.AccountsForExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListFragment
+import jp.co.soramitsu.feature_account_impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment
@@ -75,7 +77,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
@@ -471,8 +475,8 @@ class Navigator :
         navController?.navigate(R.id.action_open_receive, bundle)
     }
 
-    override fun openSignBeaconTransaction(payload: SubstrateSignerPayload) {//todo fix
-        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload))
+    override fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel) {
+        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload, dAppMetadata))
     }
 
     override val beaconSignStatus: Flow<SignStatus>
@@ -583,8 +587,10 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
     }
 
-    override fun openBeacon(qrContent: String) {
-        navController?.navigate(R.id.actionOpenBeaconFragment, BeaconFragment.getBundle(qrContent))
+    override fun openBeacon(qrContent: String?) {
+        qrContent?.let {
+            navController?.navigate(R.id.actionOpenBeaconFragment, BeaconFragment.getBundle(it))
+        } ?: navController?.navigate(R.id.actionOpenBeaconFragment)
     }
 
     override fun withPinCodeCheckRequired(
@@ -643,5 +649,15 @@ class Navigator :
 
     override fun openExperimentalFeatures() {
         navController?.navigate(R.id.experimentalFragment)
+    }
+
+    override fun openSuccessFragment(avatar: Drawable) {
+        SuccessfulFragment.avatar = avatar
+        navController?.navigate(R.id.successFragment)
+    }
+
+    override fun openTransactionRawData(rawData: String) {
+        val bundle = TransactionRawDataFragment.createBundle(rawData)
+        navController?.navigate(R.id.transactionRawDataFragment, bundle)
     }
 }

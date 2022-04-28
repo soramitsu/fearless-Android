@@ -19,7 +19,7 @@ interface BeaconComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance qrContent: String
+            @BindsInstance qrContent: String?
         ): BeaconComponent
     }
 

@@ -89,4 +89,8 @@ interface WalletInteractor {
     suspend fun enableCustomAssetSorting()
 
     suspend fun customAssetSortingEnabled(): Boolean
+
+    fun selectedMetaAccountFlow(): Flow<MetaAccount>
+
+    fun polkadotAddressForSelectedAccountFlow(): Flow<String>
 }

@@ -734,4 +734,11 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_are_you_sure">Are you sure?</string>
     <string name="beacon_exit_message">Do you want to close this connection?</string>
     <string name="beacon_connect_warning">Warning: By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.</string>
+    <string name="beacon_transaction_warning">Warning: Make sure you trust this site. By interacting with it, you allow this site access your funds.</string>
+    <string name="success_title">All done</string>
+    <string name="success_message">You can now back to your browser</string>
+    <string name="common_dapp" translatable="false">Dapp</string>
+    <string name="common_hash" translatable="false">Hash</string>
+    <string name="common_transaction">Transaction</string>
+
 </resources>

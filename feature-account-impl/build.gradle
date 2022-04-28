@@ -64,6 +64,9 @@ dependencies {
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
 
+    implementation navigationFragmentDep
+    implementation navigationUiDep
+
     implementation daggerDep
     kapt daggerKapt
 

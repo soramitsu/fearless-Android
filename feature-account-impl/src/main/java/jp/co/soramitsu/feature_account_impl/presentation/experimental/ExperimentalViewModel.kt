@@ -11,7 +11,10 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.BeaconConnectedUseCase
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 
-class ExperimentalViewModel(private val router: AccountRouter, isBeaconConnected: BeaconConnectedUseCase) : BaseViewModel() {
+class ExperimentalViewModel(
+    private val router: AccountRouter,
+    private val isBeaconConnected: BeaconConnectedUseCase
+) : BaseViewModel() {
 
     private val _state = MutableLiveData<ViewState>(ViewState.Empty)
     val state: LiveData<ViewState> = _state
@@ -25,7 +28,11 @@ class ExperimentalViewModel(private val router: AccountRouter, isBeaconConnected
     }
 
     fun onBeaconClicked() {
-        _scanBeaconQrEvent.sendEvent()
+        if(isBeaconConnected()) {
+            router.openBeacon()
+        } else {
+            _scanBeaconQrEvent.sendEvent()
+        }
     }
 
     fun backClicked() {

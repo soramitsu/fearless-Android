@@ -19,6 +19,7 @@ sealed class SignableOperation(
         call: String,
         args: Map<String, Any?>,
         rawData: String,
+        val destination: String,
         override val amount: BigInteger,
     ) : SignableOperation(module, call, args, rawData), WithAmount
 

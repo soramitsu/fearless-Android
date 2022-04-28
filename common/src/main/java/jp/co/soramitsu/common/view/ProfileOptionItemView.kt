@@ -3,16 +3,15 @@ package jp.co.soramitsu.common.view
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.shape.addRipple
-import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import kotlinx.android.synthetic.main.view_profile_option_item.view.optionAction
 import kotlinx.android.synthetic.main.view_profile_option_item.view.optionIcon
 import kotlinx.android.synthetic.main.view_profile_option_item.view.optionSubtitle
@@ -41,7 +40,7 @@ class ProfileOptionItemView @JvmOverloads constructor(
             val typedArray = context.obtainStyledAttributes(attrs, R.styleable.ProfileOptionItemView)
 
             val icon = typedArray.getDrawable(R.styleable.ProfileOptionItemView_optionIcon)
-            icon?.let(::setIcon)
+            icon.let(::setIcon)
 
             val title = typedArray.getString(R.styleable.ProfileOptionItemView_optionTitle)
             title?.let(::setTitle)
@@ -69,8 +68,9 @@ class ProfileOptionItemView @JvmOverloads constructor(
         optionAction.setImageDrawable(icon)
     }
 
-    fun setIcon(icon: Drawable) {
-        optionIcon.setImageDrawable(icon)
+    fun setIcon(icon: Drawable?) {
+        optionIcon.isVisible = icon != null
+        icon?.let { optionIcon.setImageDrawable(icon) }
     }
 
     fun setActionListener(clickListener: (View) -> Unit) {

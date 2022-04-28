@@ -916,38 +916,49 @@
     </fragment>
 
     <action
+        android:id="@+id/actionOpenBeaconFragment"
+        app:destination="@id/beaconFragment"
         app:enterAnim="@animator/fragment_open_enter"
         app:exitAnim="@animator/fragment_open_exit"
         app:popEnterAnim="@animator/fragment_close_enter"
-        app:popExitAnim="@animator/fragment_close_exit"
-        android:id="@+id/actionOpenBeaconFragment"
-        app:destination="@id/beaconFragment" />
+        app:popExitAnim="@animator/fragment_close_exit" />
 
     <fragment
-        tools:layout="@layout/fragment_beacon"
         android:id="@+id/beaconFragment"
         android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconFragment"
-        android:label="BeaconFragment">
+        android:label="BeaconFragment"
+        tools:layout="@layout/fragment_beacon">
 
         <action
+            android:id="@+id/action_beaconFragment_to_signBeaconTransactionFragment"
+            app:destination="@id/signBeaconTransactionFragment"
             app:enterAnim="@animator/fragment_open_enter"
             app:exitAnim="@animator/fragment_open_exit"
             app:popEnterAnim="@animator/fragment_close_enter"
-            app:popExitAnim="@animator/fragment_close_exit"
-            android:id="@+id/action_beaconFragment_to_signBeaconTransactionFragment"
-            app:destination="@id/signBeaconTransactionFragment" />
+            app:popExitAnim="@animator/fragment_close_exit" />
     </fragment>
 
     <fragment
-        tools:layout="@layout/fragment_beacon"
         android:id="@+id/signBeaconTransactionFragment"
         android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment"
-        android:label="SignBeaconTransactionFragment" />
+        android:label="SignBeaconTransactionFragment"
+        tools:layout="@layout/fragment_beacon" />
 
     <fragment
-        tools:layout="@layout/fragment_experimental"
         android:id="@+id/experimentalFragment"
         android:name="jp.co.soramitsu.feature_account_impl.presentation.experimental.ExperimentalFragment"
-        android:label="ExperimentalFragment"/>
+        android:label="ExperimentalFragment"
+        tools:layout="@layout/fragment_experimental" />
+
+    <fragment
+        android:id="@+id/successFragment"
+        android:name="jp.co.soramitsu.feature_account_impl.presentation.experimental.SuccessfulFragment"
+        android:label="SuccessfulFragment"
+        tools:layout="@layout/fragment_succesful" />
+
+    <fragment
+        android:id="@+id/transactionRawDataFragment"
+        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.TransactionRawDataFragment"
+        android:label="TransactionRawDataFragment"/>
 
 </navigation>

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.di
 import android.content.ContentResolver
 import coil.ImageLoader
 import com.google.gson.Gson
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
@@ -28,11 +29,10 @@ import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUs
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
+import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import javax.inject.Named
-import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 
 interface WalletFeatureDependencies {
 

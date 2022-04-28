@@ -74,7 +74,7 @@ interface AccountRouter : SecureRouter {
 
     fun openChangePinCode()
 
-    fun openBeacon(qrContent: String)
+    fun openBeacon(qrContent: String? = null)
 
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
 

@@ -16,7 +16,6 @@ import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import kotlinx.android.synthetic.main.fragment_experimental.experimentsBackButton
 import kotlinx.android.synthetic.main.fragment_experimental.experimentsBeaconDapp
 import kotlinx.android.synthetic.main.fragment_experimental.experimentsBeaconDappClickView
-import kotlinx.android.synthetic.main.fragment_experimental.experimentsBeaconDappStatus
 
 class ExperimentalFragment : BaseFragment<ExperimentalViewModel>() {
 
@@ -49,15 +48,6 @@ class ExperimentalFragment : BaseFragment<ExperimentalViewModel>() {
 
             state.beaconDapp?.let {
                 experimentsBeaconDapp.text = it.name
-
-                experimentsBeaconDappStatus.isVisible = it.status != null
-                it.status?.let { status ->
-                    val statusText = if (status == ExperimentalState.ExperimentStatus.Disconnected) R.string.common_connect else R.string.common_disconnect
-                    val colorRes = if (status == ExperimentalState.ExperimentStatus.Disconnected) R.color.white else R.color.error_red
-                    val color = requireContext().getColor(colorRes)
-                    experimentsBeaconDappStatus.setText(statusText)
-                    experimentsBeaconDappStatus.setTextColor(color)
-                }
             }
         }
 
@@ -75,7 +65,7 @@ class ExperimentalFragment : BaseFragment<ExperimentalViewModel>() {
 
     private fun setBeaconVisibility(isVisible: Boolean) {
         experimentsBeaconDapp.isVisible = isVisible
-        experimentsBeaconDappStatus.isVisible = isVisible
+//        experimentsBeaconDappStatus.isVisible = isVisible
         experimentsBeaconDappClickView.isVisible = isVisible
     }
 

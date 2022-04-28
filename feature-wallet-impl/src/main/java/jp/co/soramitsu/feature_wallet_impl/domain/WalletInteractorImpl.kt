@@ -328,4 +328,8 @@ class WalletInteractorImpl(
         val metaId = accountRepository.getSelectedMetaAccount().id
         preferences.putBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", true)
     }
+
+    override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
+
+    override fun polkadotAddressForSelectedAccountFlow() = accountRepository.polkadotAddressForSelectedAccountFlow()
 }

@@ -17,13 +17,17 @@ import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
+import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.isTransfer
+import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.address
@@ -47,7 +51,7 @@ class BeaconInteractor(
     private val gson: Gson,
     private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
-    private val preferences: Preferences
+    private val preferences: Preferences,
 //    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
 //    private val feeEstimator: FeeEstimator
 ) {
@@ -67,6 +71,10 @@ class BeaconInteractor(
         }
     }
 
+    fun isConnected(): Boolean {
+        return preferences.getBoolean(BEACON_CONNECTED_KEY, true)
+    }
+
     private suspend fun beaconClient() = beaconClient.await()
 
     suspend fun connectFromQR(qrCode: String): Result<Pair<P2pPeer, Flow<BeaconRequest?>>> = withContext(Dispatchers.Default) {
@@ -82,7 +90,7 @@ class BeaconInteractor(
 
             val requestsFlow = beaconClient.connect()
                 .map {
-                    if(it.isSuccess) {
+                    if (it.isSuccess) {
                         preferences.putBoolean(BEACON_CONNECTED_KEY, true)
                     }
                     it.getOrNull()
@@ -92,13 +100,43 @@ class BeaconInteractor(
         }
     }
 
+    suspend fun initWithoutQr(): Result<Pair<P2pPeer, Flow<BeaconRequest?>>> {
+        val peers = beaconClient().getPeers()
+        if (peers.isEmpty()) {
+            return Result.failure(BeaconConnectionHasNoPeerException())
+        }
+        val peer = peers.last() as P2pPeer
+        return kotlin.runCatching {
+            val beaconClient = beaconClient()
+            val requestsFlow = beaconClient.connect()
+                .map {
+                    if (it.isSuccess) {
+                        preferences.putBoolean(BEACON_CONNECTED_KEY, true)
+                    }
+                    it.getOrNull()
+                }
+            peer to requestsFlow
+        }
+    }
+
+    suspend fun hasPeers(): Boolean {
+        val client = beaconClient()
+        val peers = client.getPeers()
+        if (peers.isEmpty()) return false
+        if (peers.size > 1) {
+            val peersToRemove = peers.subList(0, peers.size - 2)
+            client.removePeers(peersToRemove)
+        }
+        return true
+    }
+
     suspend fun decodeOperation(operation: String): Result<SignableOperation> = runCatching {
         val currentRegisteredNetwork = getBeaconRegisteredNetwork()
         requireNotNull(currentRegisteredNetwork)
         val runtime = chainRegistry.getRuntime(currentRegisteredNetwork)
+        val chain = chainRegistry.getChain(currentRegisteredNetwork)
         val call = GenericCall.fromHex(runtime, operation)
-        hashCode()
-        mapCallToSignableOperation(call)
+        mapCallToSignableOperation(call, chain.addressPrefix)
     }
 
     suspend fun reportSignDeclined(
@@ -143,16 +181,19 @@ class BeaconInteractor(
 
     suspend fun disconnect() {
         beaconClient().removeAllPeers()
+        preferences.putBoolean(BEACON_CONNECTED_KEY, false)
     }
 
-    private fun mapCallToSignableOperation(call: GenericCall.Instance): SignableOperation {
+    private fun mapCallToSignableOperation(call: GenericCall.Instance, chainAddressPrefix: Int): SignableOperation {
         val moduleName = call.module.name
         val functionName = call.function.name
         val args = call.arguments
 
         val rawData = TransactionRawData(moduleName, functionName, args)
         val rawDataSerialized = gson.toJson(rawData, TransactionRawData::class.java)
-
+        val destinationPublicKey = (args["dest"].cast<DictEnum.Entry<ByteArray>>()).value
+        val destinationAccountId = destinationPublicKey.substrateAccountId()
+        val address = destinationAccountId.toAddress(chainAddressPrefix.toShort())
         return when {
             call.isTransfer() -> {
                 SignableOperation.Transfer(
@@ -160,6 +201,7 @@ class BeaconInteractor(
                     call = functionName,
                     rawData = rawDataSerialized,
                     amount = bindNumber(args["value"]),
+                    destination = address,
                     args = args
                 )
             }
@@ -172,7 +214,7 @@ class BeaconInteractor(
         //todo estimate fee for beacon
         return BigInteger.ZERO
 //        val accountAddress = accountRepository.getSelectedAccount().address
-
+//
 //        return withContext(Dispatchers.IO) {
 //            feeEstimator.estimateFee(accountAddress) {
 //                call(operation.module, operation.call, operation.args)
@@ -191,3 +233,5 @@ class BeaconInteractor(
         return chainRegistry.getChain(chainId)
     }
 }
+
+class BeaconConnectionHasNoPeerException : Exception("There are no peers matching the app name")

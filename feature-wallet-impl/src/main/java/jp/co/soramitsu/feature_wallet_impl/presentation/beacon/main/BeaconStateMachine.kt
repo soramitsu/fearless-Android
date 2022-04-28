@@ -25,6 +25,11 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
         ) : State()
 
         object Finished : State()
+
+        object Reconnecting : State()
+
+        class AwaitingInitialize(val dAppMetadata: DAppMetadataModel) : State()
+
     }
 
     sealed class Event {
@@ -42,13 +47,15 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
         object DeclinedSigning : Event()
 
-        object ExistRequested : Event()
+        object ExitRequested : Event()
+
+        object ConnectToExistingPeer : Event()
     }
 
     sealed class SideEffect {
         class AskPermissionsApproval(val request: PermissionSubstrateRequest) : SideEffect()
 
-        class AskSignApproval(val request: SignPayloadSubstrateRequest) : SideEffect()
+        class AskSignApproval(val request: SignPayloadSubstrateRequest, val dAppMetadata: DAppMetadataModel) : SideEffect()
 
         class RespondApprovedPermissions(val request: PermissionSubstrateRequest) : SideEffect()
 
@@ -64,12 +71,13 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
     override fun performTransition(state: State, event: Event): State {
         return when (event) {
             is Event.ReceivedMetadata -> when (state) {
-                is State.Initializing -> State.Connected(event.dAppMetadata)
+                is State.Reconnecting -> State.Connected(event.dAppMetadata)
+                is State.Initializing -> State.AwaitingInitialize(event.dAppMetadata)
                 else -> state
             }
 
             is Event.ReceivedPermissionsRequest -> when (state) {
-                is State.Connected -> {
+                is State.AwaitingInitialize -> {
                     sideEffect(SideEffect.AskPermissionsApproval(event.request))
 
                     State.AwaitingPermissionsApproval(event.request, state.dAppMetadata)
@@ -90,7 +98,7 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
             is Event.ReceivedSigningRequest -> when (state) {
                 is State.Connected -> {
-                    sideEffect(SideEffect.AskSignApproval(event.request))
+                    sideEffect(SideEffect.AskSignApproval(event.request, state.dAppMetadata))
 
                     State.AwaitingSigningApproval(event.request, state.dAppMetadata)
                 }
@@ -111,7 +119,6 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
             Event.DeclinedPermissions -> when (state) {
                 is State.AwaitingPermissionsApproval -> {
                     sideEffect(SideEffect.RespondDeclinedPermissions(state.request))
-                    sideEffect(SideEffect.Exit)
 
                     State.Finished
                 }
@@ -131,10 +138,14 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
                 }
             }
 
-            Event.ExistRequested -> {
+            Event.ExitRequested -> {
                 sideEffect(SideEffect.Exit)
 
                 State.Finished
+            }
+
+            Event.ConnectToExistingPeer -> {
+                State.Reconnecting
             }
         }
     }

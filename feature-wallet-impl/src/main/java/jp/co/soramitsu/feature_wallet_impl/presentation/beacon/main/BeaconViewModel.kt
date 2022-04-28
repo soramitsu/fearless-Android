@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
 
+import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -15,14 +16,19 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.TotalBalance
+import jp.co.soramitsu.feature_account_impl.presentation.account.model.format
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.SideEffect
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -30,49 +36,46 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+@Parcelize
 class DAppMetadataModel(
     val url: String?,
     val address: String,
     val icon: String?,
     val name: String
-)
+) : Parcelable
 
 class BeaconViewModel(
     private val beaconInteractor: BeaconInteractor,
     private val router: WalletRouter,
-    private val interactor: WalletInteractor,
+    walletInteractor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    qrContent: String
+    totalBalance: GetTotalBalanceUseCase,
+    qrContent: String?
 ) : BaseViewModel() {
-
-    init {
-        initializeFromQr(qrContent)
-    }
 
     private val stateMachine = BeaconStateMachine()
 
     val state = stateMachine.currentState
 
-    private val currentAccount = interactor.selectedAccountFlow(polkadotChainId)//todo stub
-        .inBackground()
+    val currentAccountAddressModel = combine(
+        walletInteractor.selectedMetaAccountFlow(),
+        walletInteractor.polkadotAddressForSelectedAccountFlow()
+    ) { metaAccount: MetaAccount, polkadotAddress: String ->
+        iconGenerator.createAddressModel(polkadotAddress, AddressIconGenerator.SIZE_SMALL, metaAccount.name)
+    }.inBackground()
         .share()
 
-    val currentAccountAddressModel = currentAccount
-        .map { iconGenerator.createAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name) }
-        .inBackground()
-        .share()
+    val totalBalanceLiveData = totalBalance().map(TotalBalance::format).asLiveData()
 
-    private val _showPermissionRequestSheet = MutableLiveData<Event<String>>()
-    val showPermissionRequestSheet: LiveData<Event<String>> = _showPermissionRequestSheet
-
-    private val _progress = MutableLiveData<Event<Boolean>>()
-    val progress: LiveData<Event<Boolean>> = _progress
+    private val _scanBeaconQrEvent = MutableLiveData<Event<Unit>>()
+    val scanBeaconQrEvent: LiveData<Event<Unit>> = _scanBeaconQrEvent
 
     private var beaconRequestedNetworks = listOf<SubstrateNetwork>()
 
     init {
-        _progress.value = Event(true)
+        qrContent?.let { initializeFromQr(qrContent) } ?: initialize()
+
         listenSideEffects()
 
         listenForApprovals()
@@ -92,18 +95,18 @@ class BeaconViewModel(
                     //todo hardcoded westend
                     beaconInteractor.registerNetwork("e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e")//(it.request.networks.first().genesisHash)
 //                    _showPermissionRequestSheet.value = Event(it.request.appMetadata.name)
-                    _progress.value = Event(false)
 
                 }
 
                 is SideEffect.AskSignApproval -> {
-                    router.openSignBeaconTransaction(it.request.payload)
+
+                    router.openSignBeaconTransaction(it.request.payload, it.dAppMetadata)
                 }
 
                 is SideEffect.RespondApprovedPermissions -> {
                     beaconInteractor.allowPermissions(it.request)
 
-                    showMessage(resourceManager.getString(R.string.beacon_connected, it.request.appMetadata.name))
+                    router.openSuccessFragment(currentAccountAddressModel.first().image)
                 }
 
                 SideEffect.Exit -> {
@@ -122,6 +125,7 @@ class BeaconViewModel(
                     beaconInteractor.reportPermissionsDeclined(it.request)
 
                     showMessage(resourceManager.getString(R.string.beacon_pairing_cancelled))
+                    exit()
                 }
             }
         }.launchIn(viewModelScope)
@@ -137,14 +141,14 @@ class BeaconViewModel(
     }
 
     fun exit() {
-        stateMachine.transition(BeaconStateMachine.Event.ExistRequested)
+        stateMachine.transition(BeaconStateMachine.Event.ExitRequested)
     }
 
-    fun permissionGranted() {
+    private fun permissionGranted() {
         stateMachine.transition(BeaconStateMachine.Event.ApprovedPermissions)
     }
 
-    fun permissionDenied() {
+    private fun permissionDenied() {
         stateMachine.transition(BeaconStateMachine.Event.DeclinedPermissions)
     }
 
@@ -161,6 +165,29 @@ class BeaconViewModel(
 
                 listenForRequests(requestsFlow)
             }
+    }
+
+    private fun initialize() {
+        stateMachine.transition(BeaconStateMachine.Event.ConnectToExistingPeer)
+        viewModelScope.launch {
+            if (beaconInteractor.hasPeers().not()) {
+                _scanBeaconQrEvent.value = Event(Unit)
+                return@launch
+            }
+            beaconInteractor.initWithoutQr()
+                .onFailure {
+                    val message = it.localizedMessage ?: it.message ?: "Failed connect to beacon qr code"
+                    Log.e(BeaconViewModel::class.java.name, message)
+                    showMessage(message)
+                    router.back()
+                }.onSuccess { (peer, requestsFlow) ->
+                    val dAppMetadata = mapP2pPeerToDAppMetadataModel(peer)
+
+                    stateMachine.transition(BeaconStateMachine.Event.ReceivedMetadata(dAppMetadata))
+
+                    listenForRequests(requestsFlow)
+                }
+        }
     }
 
     private fun listenForRequests(requestsFlow: Flow<BeaconRequest?>) {
@@ -182,11 +209,9 @@ class BeaconViewModel(
     }
 
     private suspend fun mapP2pPeerToDAppMetadataModel(p2pPeer: P2pPeer) = with(p2pPeer) {
-//        val networkType = currentAccount.first().network.type
-
         DAppMetadataModel(
-            url = appUrl,//todo address stub
-            address = "",//p2pPeer.publicKey.fromHex().toAddress(networkType),
+            url = appUrl ?: relayServer,//todo address stub
+            address = publicKey,//p2pPeer.publicKey.fromHex().toAddress(networkType),
             icon = icon,
             name = name
         )
@@ -203,7 +228,19 @@ class BeaconViewModel(
     }
 
     fun connectClicked() {
-        if()//todo
-        permissionGranted()
+        viewModelScope.launch {
+            when {
+                stateMachine.currentState.first() is BeaconStateMachine.State.AwaitingPermissionsApproval -> {
+                    permissionGranted()
+                }
+                beaconInteractor.isConnected() -> {
+                    exit()
+                }
+            }
+        }
+    }
+
+    fun beaconQrScanned(qrContent: String) {
+        initializeFromQr(qrContent)
     }
 }

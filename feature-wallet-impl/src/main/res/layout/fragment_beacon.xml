@@ -39,26 +39,15 @@
         app:layout_constraintTop_toBottomOf="@+id/beaconAppIcon"
         tools:text="Polkaswap" />
 
-    <jp.co.soramitsu.common.view.LabeledTextView
+    <jp.co.soramitsu.common.view.AccountInfoView
         android:id="@+id/beaconSelectedAccount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/wallet_info_title"
+        app:accountActionIcon="@drawable/ic_info_white_24"
         app:layout_constraintTop_toBottomOf="@+id/beaconAppName" />
-
-    <jp.co.soramitsu.common.view.TableCellView
-        android:id="@+id/beaconStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/beaconSelectedAccount"
-        app:title="@string/transaction_detail_status" />
 
     <jp.co.soramitsu.common.view.TableCellView
         android:id="@+id/beaconAppUrl"
@@ -66,17 +55,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/beaconStatus"
+        app:layout_constraintTop_toBottomOf="@+id/beaconSelectedAccount"
         app:title="@string/beacon_connected_to" />
-
-    <jp.co.soramitsu.common.view.TableCellView
-        android:id="@+id/beaconAppAddress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@+id/beaconAppUrl"
-        app:title="@string/common_address" />
 
     <ImageView
         android:id="@+id/beaconWarningIcon"
@@ -100,6 +80,12 @@
         app:layout_constraintBottom_toTopOf="@+id/beaconConnect"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/beaconWarningIcon" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/beaconWarningGroup"
+        android:layout_width="wrap_content"
+        app:constraint_referenced_ids="beaconWarningIcon,beaconWarningText"
+        android:layout_height="wrap_content"/>
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/beaconConnect"

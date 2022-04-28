@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment
 
 @Subcomponent(
@@ -19,7 +20,8 @@ interface SignBeaconTransactionComponent {
 
         fun create(
             @BindsInstance fragment: Fragment,
-            @BindsInstance payloadToSign: String
+            @BindsInstance payloadToSign: String,
+            @BindsInstance argument: DAppMetadataModel
         ): SignBeaconTransactionComponent
     }
 

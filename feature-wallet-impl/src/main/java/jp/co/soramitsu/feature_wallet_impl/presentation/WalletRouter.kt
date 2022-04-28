@@ -1,11 +1,13 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation
 
+import android.graphics.drawable.Drawable
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
 import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
@@ -42,7 +44,7 @@ interface WalletRouter : SecureRouter {
 
     fun openReceive(assetPayload: AssetPayload)
 
-    fun openSignBeaconTransaction(payload: SubstrateSignerPayload)
+    fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel)
 
     val beaconSignStatus: Flow<SignStatus>
 
@@ -64,4 +66,8 @@ interface WalletRouter : SecureRouter {
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
 
     fun openEducationalStories(stories: StoryGroupModel)
+
+    fun openSuccessFragment(avatar: Drawable)
+
+    fun openTransactionRawData(rawData: String)
 }

@@ -102,4 +102,7 @@ dependencies {
     implementation beaconDep, withoutJna
 
     implementation shimmerDep
+
+    implementation navigationFragmentDep
+    implementation navigationUiDep
 }

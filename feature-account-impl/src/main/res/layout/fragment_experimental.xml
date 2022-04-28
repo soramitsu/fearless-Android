@@ -70,6 +70,7 @@
         android:drawableEnd="@drawable/ic_arrow_right_24"
         android:gravity="center_vertical"
         android:paddingEnd="16dp"
+        android:visibility="gone"
         android:text="@string/common_connect"
         app:layout_constraintBaseline_toBaselineOf="@+id/experimentsBeaconDapp"
         app:layout_constraintEnd_toEndOf="parent" />
