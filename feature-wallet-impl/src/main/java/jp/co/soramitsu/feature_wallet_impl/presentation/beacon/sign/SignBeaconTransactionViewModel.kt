@@ -1,7 +1,8 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -11,10 +12,11 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.feature_account_api.domain.model.TotalBalance
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.format
+import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AmountModel
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -55,10 +57,9 @@ class SignBeaconTransactionViewModel(
     private val iconGenerator: AddressIconGenerator,
     private val payloadToSign: String,
     private val resourceManager: ResourceManager,
-    private val feeLoaderProvider: FeeLoaderMixin.Presentation,
     val dAppMetadataModel: DAppMetadataModel,
     totalBalance: GetTotalBalanceUseCase,
-) : BaseViewModel(), FeeLoaderMixin by feeLoaderProvider {
+) : BaseViewModel() {
 
     private val currentAccount = interactor.selectedAccountFlow(polkadotChainId)
         .inBackground()
@@ -85,8 +86,11 @@ class SignBeaconTransactionViewModel(
         iconGenerator.createAddressModel(destination, AddressIconGenerator.SIZE_SMALL, null)
     }
 
+    private val _feeLiveData = MutableLiveData<FeeStatus>(FeeStatus.Loading)
+    val feeLiveData: LiveData<FeeStatus> = _feeLiveData
+
     init {
-        loadFee()
+        loadTransactionFee()
     }
 
     private val currentAssetFlow: Flow<Asset?> = flowOf {
@@ -113,18 +117,22 @@ class SignBeaconTransactionViewModel(
         router.back()
     }
 
-    private fun loadFee() {
+    private fun loadTransactionFee() {
         decodedOperation.onEach { result ->
-            val operation = result.getOrNull() ?: return@onEach
-            feeLoaderProvider.loadFee(
-                viewModelScope,
-                feeConstructor = {
-                    val feeInPlanks = beaconInteractor.estimateFee(operation)
+            try {
+                val operation = result.getOrNull() ?: return@onEach
 
-                    it.amountFromPlanks(feeInPlanks).toBigInteger()
-                },
-                onRetryCancelled = ::exit
-            )
+                val feeInPlanks = beaconInteractor.estimateFee(operation)
+                val chain = beaconInteractor.getBeaconRegisteredChain() ?: return@onEach
+                val asset = chain.assets.firstOrNull() ?: return@onEach
+                val token = interactor.getCurrentAsset(chain.id, asset.id).token
+
+                val fee = asset.amountFromPlanks(feeInPlanks)
+
+                _feeLiveData.value = FeeStatus.Loaded(mapFeeToFeeModel(fee, token))
+            } catch (e: Exception) {
+                _feeLiveData.value = FeeStatus.Error
+            }
         }.launchIn(viewModelScope)
     }
 
@@ -145,7 +153,7 @@ class SignBeaconTransactionViewModel(
         )
     }
 
-    fun confirmClicked() {// = requireFee {
+    fun confirmClicked() {//= requireFee {
         viewModelScope.launch {
             router.setBeaconSignStatus(SignStatus.APPROVED)
 
@@ -154,10 +162,10 @@ class SignBeaconTransactionViewModel(
         }
     }
 
-    private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderProvider.requireFee(
-        block,
-        onError = { title, message -> showError(title, message) }
-    )
+//    private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderProvider.requireFee(
+//        block,
+//        onError = { title, message -> showError(title, message) }
+//    )
 
     fun rawDataClicked() {
         viewModelScope.launch {

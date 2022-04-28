@@ -126,13 +126,20 @@
         android:layout_height="wrap_content"
         app:constraint_referenced_ids="beaconWarningIcon,beaconWarningText" />
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/black4"
+        app:layout_constraintBottom_toBottomOf="@+id/signBeaconTransactionConfirm"
+        app:layout_constraintTop_toTopOf="@+id/signBeaconTransactionFee" />
+
     <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
         android:id="@+id/signBeaconTransactionFee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:visibility="gone"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toTopOf="@+id/signBeaconTransactionConfirm" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
@@ -144,10 +151,4 @@
         android:text="@string/common_confirm"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="@color/black4"
-        app:layout_constraintBottom_toBottomOf="@+id/signBeaconTransactionConfirm"
-        app:layout_constraintTop_toTopOf="@+id/signBeaconTransactionFee" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -250,9 +250,10 @@ class WalletFeatureModule {
         gson: Gson,
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
-        preferences: Preferences
-//        feeEstimator: FeeEstimator
-    ) = BeaconInteractor(gson, accountRepository, chainRegistry, preferences)
+        preferences: Preferences,
+        extrinsicService: ExtrinsicService,
+        beaconSharedState: BeaconSharedState
+    ) = BeaconInteractor(gson, accountRepository, chainRegistry, preferences, extrinsicService, beaconSharedState)
 
     @Provides
     @FeatureScope

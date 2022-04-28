@@ -28,6 +28,7 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEn
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
+import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.address
@@ -52,8 +53,8 @@ class BeaconInteractor(
     private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
     private val preferences: Preferences,
-//    private val runtimeProperty: SuspendableProperty<RuntimeSnapshot>,
-//    private val feeEstimator: FeeEstimator
+    private val extrinsicService: ExtrinsicService,
+    private val beaconSharedState: BeaconSharedState,
 ) {
 
     companion object {
@@ -211,19 +212,17 @@ class BeaconInteractor(
     }
 
     suspend fun estimateFee(operation: SignableOperation): BigInteger {
-        //todo estimate fee for beacon
-        return BigInteger.ZERO
-//        val accountAddress = accountRepository.getSelectedAccount().address
-//
-//        return withContext(Dispatchers.IO) {
-//            feeEstimator.estimateFee(accountAddress) {
-//                call(operation.module, operation.call, operation.args)
-//            }
-//        }
+        val chainId = getBeaconRegisteredNetwork() ?: return BigInteger.ZERO
+        val chain = chainRegistry.getChain(chainId)
+        return extrinsicService.estimateFee(chain, false) {
+            call(operation.module, operation.call, operation.args)
+        }
     }
 
-    fun registerNetwork(chainId: String) {
+    suspend fun registerNetwork(chainId: String) {
         preferences.putString(REGISTERED_CHAINS_KEY, chainId)
+        val chain = chainRegistry.getChain(chainId)
+        beaconSharedState.update(chainId, chain.assets.first().id)
     }
 
     private fun getBeaconRegisteredNetwork(): String? = preferences.getString(REGISTERED_CHAINS_KEY)

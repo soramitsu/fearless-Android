@@ -15,7 +15,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.feature_account_impl.domain.GetTotalBalanceUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.DAppMetadataModel
@@ -35,7 +34,6 @@ class SignBeaconTransactionModule {
         iconAddressIconGenerator: AddressIconGenerator,
         payloadToSign: String,
         resourceManager: ResourceManager,
-        feeLoaderProvider: FeeLoaderMixin.Presentation,
         dAppMetadataModel: DAppMetadataModel,
         totalBalanceUseCase: GetTotalBalanceUseCase
     ): ViewModel {
@@ -46,7 +44,6 @@ class SignBeaconTransactionModule {
             iconAddressIconGenerator,
             payloadToSign,
             resourceManager,
-            feeLoaderProvider,
             dAppMetadataModel,
             totalBalanceUseCase
         )

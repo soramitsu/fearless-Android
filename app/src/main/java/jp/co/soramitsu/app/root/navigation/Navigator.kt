@@ -476,7 +476,7 @@ class Navigator :
     }
 
     override fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel) {
-        navController?.navigate(R.id.action_beaconFragment_to_signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload, dAppMetadata))
+        navController?.navigate(R.id.signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload, dAppMetadata))
     }
 
     override val beaconSignStatus: Flow<SignStatus>
