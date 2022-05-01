@@ -56,7 +56,7 @@ interface AccountRouter : SecureRouter {
     fun openAddNode(chainId: ChainId)
 
     @PinRequired
-    fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation
+    fun openExportMnemonic(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation
 
     @PinRequired
     fun openExportSeed(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false): DelayedNavigation

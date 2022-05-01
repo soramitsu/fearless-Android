@@ -7,5 +7,6 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 class ExportMnemonicPayload(
     val metaId: Long,
-    val chainId: ChainId
+    val chainId: ChainId,
+    val isExportWallet: Boolean,
 ) : Parcelable
