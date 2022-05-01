@@ -518,10 +518,14 @@ class Navigator :
         navController?.navigate(R.id.action_nodesFragment_to_addNodeFragment, AddNodeFragment.getBundle(chainId))
     }
 
-    override fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation {
-        val extras = ExportMnemonicFragment.getBundle(metaId, chainId)
+    override fun openExportMnemonic(metaId: Long, chainId: ChainId, isExportWallet: Boolean): DelayedNavigation {
+        val extras = ExportMnemonicFragment.getBundle(metaId, chainId, isExportWallet)
 
         return NavComponentDelayedNavigation(R.id.action_export_mnemonic, extras)
+    }
+
+    override fun openExportMnemonic(metaId: Long, chainId: ChainId): DelayedNavigation {
+        return openExportMnemonic(metaId, chainId, isExportWallet = false)
     }
 
     override fun openExportSeed(metaId: Long, chainId: ChainId, isExportWallet: Boolean): DelayedNavigation {

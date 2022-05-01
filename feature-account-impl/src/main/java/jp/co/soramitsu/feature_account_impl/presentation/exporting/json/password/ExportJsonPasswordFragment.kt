@@ -51,6 +51,13 @@ class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>()
             viewModel.back()
         }
 
+        exportJsonPasswordToolbar.setTitle(
+            when {
+                viewModel.isExportWallet -> R.string.export_wallet
+                else -> R.string.account_export
+            }
+        )
+
         exportJsonPasswordNext.prepareForProgress(viewLifecycleOwner)
         exportJsonPasswordNext.setOnClickListener { viewModel.nextClicked() }
 
