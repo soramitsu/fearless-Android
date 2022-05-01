@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
@@ -77,6 +78,8 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
     }
 
     override fun subscribe(viewModel: AccountDetailsViewModel) {
+        observeBrowserEvents(viewModel)
+
         accountDetailsNameField.content.bindTo(viewModel.accountNameFlow, viewLifecycleOwner.lifecycleScope)
 
         viewModel.chainAccountProjections.observe { adapter.submitList(it) }
