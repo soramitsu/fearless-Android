@@ -91,8 +91,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     }
 
     override fun subscribe(viewModel: BalanceListViewModel) {
-        viewModel.sync()
-
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)
 

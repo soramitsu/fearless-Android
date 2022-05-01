@@ -1,7 +1,5 @@
 package jp.co.soramitsu.feature_wallet_api.domain.interfaces
 
-import java.io.File
-import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.core_db.model.AssetUpdateItem
@@ -20,6 +18,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.WalletAccount
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
+import java.io.File
+import java.math.BigDecimal
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
 
@@ -27,7 +27,7 @@ interface WalletInteractor {
 
     fun assetsFlow(): Flow<List<AssetWithStatus>>
 
-    suspend fun syncAssetsRates(): Flow<Result<Unit>>
+    suspend fun syncAssetsRates(): Result<Unit>
 
     fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset>
 

@@ -33,6 +33,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
@@ -62,7 +63,10 @@ class BalanceListViewModel(
 
     val fiatSymbolFlow = combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
         fiatCurrencies[selectedFiat]?.symbol
+    }.onEach {
+        sync()
     }
+
     private val fiatSymbolLiveData = fiatSymbolFlow.asLiveData()
     private val assetModelsLiveData = assetModelsFlow().asLiveData()
     val assetsWarningLiveData = assetWarningFlow().asLiveData()
@@ -99,10 +103,8 @@ class BalanceListViewModel(
 
             val result = interactor.syncAssetsRates()
 
-            result.collect {
-                it.exceptionOrNull()?.let(::showError)
-                _hideRefreshEvent.value = Event(Unit)
-            }
+            result.exceptionOrNull()?.let(::showError)
+            _hideRefreshEvent.value = Event(Unit)
         }
     }
 
