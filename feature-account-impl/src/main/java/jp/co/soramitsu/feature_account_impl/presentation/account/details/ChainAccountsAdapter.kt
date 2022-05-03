@@ -117,6 +117,7 @@ private object DiffCallback : BaseGroupedDiffCallback<TextHeader, AccountInChain
     override fun areChildContentsTheSame(oldItem: AccountInChainUi, newItem: AccountInChainUi): Boolean {
         return oldItem.chainName == newItem.chainName &&
             oldItem.chainIcon == newItem.chainIcon &&
-            oldItem.address == newItem.address
+            oldItem.address == newItem.address &&
+            oldItem.markedAsNotNeed == oldItem.markedAsNotNeed
     }
 }

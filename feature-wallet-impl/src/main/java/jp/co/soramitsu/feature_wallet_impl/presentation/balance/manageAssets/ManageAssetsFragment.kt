@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.dragAndDropItemTouchHelper
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -38,6 +39,7 @@ class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(), ManageAssets
 
     override fun initViews() {
         assetsList.adapter = adapter
+        assetsList.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
         dragHelper.attachToRecyclerView(assetsList)
         assetsSearchField.onTextChanged { viewModel.searchQueryChanged(it) }
         manageAssetsToolbar.setHomeButtonListener { viewModel.backClicked() }
