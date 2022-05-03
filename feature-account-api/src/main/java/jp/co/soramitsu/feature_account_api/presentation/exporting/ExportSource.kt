@@ -15,7 +15,7 @@ sealed class ExportSource(@StringRes nameRes: Int, @StringRes hintRes: Int, @Dra
     val sort: Int
         get() = when (this) {
             Mnemonic -> 1
-            Json -> 2
-            Seed -> 3
+            Seed -> 2
+            Json -> 3
         }
 }
