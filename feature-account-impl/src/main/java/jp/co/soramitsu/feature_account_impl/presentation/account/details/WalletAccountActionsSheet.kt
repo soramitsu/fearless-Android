@@ -43,6 +43,6 @@ class WalletAccountActionsSheet(
         }
 
         super.onCreate(savedInstanceState)
-        setTitle("${content.chainName}\n\n${content.value}")
+        setTitle(content.chainName)
     }
 }
