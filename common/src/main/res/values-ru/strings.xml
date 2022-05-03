@@ -668,6 +668,7 @@
 
     <string name="import_substrate_recovery">JSON для восстановления Substrate аккаунтов</string>
     <string name="import_ethereum_recovery">JSON для восстановления ETH аккаунтов</string>
+    <string name="i_dont_need_account">Мне не нужен аккаунт</string>
     <string name="common_network">Сеть</string>
 
     <string name="account_import_substrate_raw_seed_placeholder">Substrate сид</string>
@@ -679,8 +680,6 @@
     <string name="alert_add_ethereum_message">Добавить аккаунты Moonbeam и Moonriver?</string>
     <string name="common_yes">Да</string>
     <string name="common_no">Нет</string>
-
-    <string name="create_new_wallet">Создать новый кошелек</string>
 
     <string name="eth_import_title">ETH аккаунты</string>
     <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
