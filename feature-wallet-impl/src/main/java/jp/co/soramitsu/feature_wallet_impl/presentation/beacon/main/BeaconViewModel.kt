@@ -92,10 +92,9 @@ class BeaconViewModel(
 
                 is SideEffect.AskPermissionsApproval -> {
                     // todo think about multiple networks
-                    //todo hardcoded westend
-                    beaconInteractor.registerNetwork("e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e")//(it.request.networks.first().genesisHash)
-//                    _showPermissionRequestSheet.value = Event(it.request.appMetadata.name)
-
+                    // todo hardcoded westend
+                    beaconInteractor.registerNetwork("e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e")
+                    // (it.request.networks.first().genesisHash)
                 }
 
                 is SideEffect.AskSignApproval -> {
@@ -209,8 +208,8 @@ class BeaconViewModel(
 
     private suspend fun mapP2pPeerToDAppMetadataModel(p2pPeer: P2pPeer) = with(p2pPeer) {
         DAppMetadataModel(
-            url = appUrl ?: relayServer,//todo address stub
-            address = publicKey,//p2pPeer.publicKey.fromHex().toAddress(networkType),
+            url = appUrl ?: relayServer, // todo address stub
+            address = publicKey, // p2pPeer.publicKey.fromHex().toAddress(networkType),
             icon = icon,
             name = name
         )

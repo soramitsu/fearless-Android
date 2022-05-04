@@ -28,7 +28,7 @@ class ExperimentalViewModel(
     }
 
     fun onBeaconClicked() {
-        if(isBeaconConnected()) {
+        if (isBeaconConnected()) {
             router.openBeacon()
         } else {
             _scanBeaconQrEvent.sendEvent()

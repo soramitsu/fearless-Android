@@ -17,7 +17,6 @@ import kotlinx.android.synthetic.main.view_profile_option_item.view.optionIcon
 import kotlinx.android.synthetic.main.view_profile_option_item.view.optionSubtitle
 import kotlinx.android.synthetic.main.view_profile_option_item.view.optionTitle
 
-
 class ProfileOptionItemView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -103,4 +102,3 @@ class ProfileOptionItemView @JvmOverloads constructor(
         optionSubtitle.makeVisible()
     }
 }
-

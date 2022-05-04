@@ -153,7 +153,7 @@ class SignBeaconTransactionViewModel(
         )
     }
 
-    fun confirmClicked() {//= requireFee {
+    fun confirmClicked() {
         viewModelScope.launch {
             router.setBeaconSignStatus(SignStatus.APPROVED)
 
@@ -161,11 +161,6 @@ class SignBeaconTransactionViewModel(
             router.openSuccessFragment(currentAccountAddressModel.first().image)
         }
     }
-
-//    private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderProvider.requireFee(
-//        block,
-//        onError = { title, message -> showError(title, message) }
-//    )
 
     fun rawDataClicked() {
         viewModelScope.launch {

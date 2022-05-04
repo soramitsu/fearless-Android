@@ -29,7 +29,6 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
         object Reconnecting : State()
 
         class AwaitingInitialize(val dAppMetadata: DAppMetadataModel) : State()
-
     }
 
     sealed class Event {

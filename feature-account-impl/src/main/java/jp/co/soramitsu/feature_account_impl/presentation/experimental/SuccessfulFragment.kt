@@ -16,7 +16,8 @@ import kotlinx.android.synthetic.main.fragment_succesful.successRootView
 class SuccessfulFragment : Fragment() {
 
     companion object {
-        var avatar: Drawable? = null//todo shit
+        // todo shit
+        var avatar: Drawable? = null
     }
 
     override fun onCreateView(
