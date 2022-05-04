@@ -16,7 +16,6 @@ import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.di.RootApi
 import jp.co.soramitsu.app.root.di.RootComponent
@@ -29,11 +28,10 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
-import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
-import kotlinx.android.synthetic.main.activity_root.mainView
 import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
+import javax.inject.Inject
 
-class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, LifecycleObserver {
+class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
     companion object {
         private const val ANIM_DURATION = 150L
@@ -52,8 +50,6 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-
-        removeSplashBackground()
 
         viewModel.restoredAfterConfigChange()
     }
@@ -217,10 +213,6 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
             }
         })
         rootNetworkBar.startAnimation(animation)
-    }
-
-    override fun removeSplashBackground() {
-        mainView.setBackgroundResource(R.color.black)
     }
 
     override fun changeLanguage() {
