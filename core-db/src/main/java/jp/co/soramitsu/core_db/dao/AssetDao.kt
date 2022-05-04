@@ -25,6 +25,7 @@ private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
             INNER JOIN tokens AS t ON a.tokenSymbol = t.symbol 
             LEFT JOIN chain_accounts AS ca ON ca.metaId = a.metaId AND ca.chainId = a.chainId
             WHERE a.metaId = :metaId
+            AND (ca.accountId = a.accountId OR ca.accountId IS NULL)
             ORDER BY a.sortIndex
 """
 
