@@ -148,7 +148,7 @@ class AdvancedBlockView @JvmOverloads constructor(
         configureEthereum(fieldState)
     }
 
-    fun configure(blockchainType: ImportAccountType) {
+    fun configureForSeed(blockchainType: ImportAccountType) {
         when (blockchainType) {
             ImportAccountType.Substrate -> {
                 configureSubstrate(FieldState.NORMAL)
@@ -156,6 +156,20 @@ class AdvancedBlockView @JvmOverloads constructor(
             }
             ImportAccountType.Ethereum -> {
                 configure(FieldState.HIDDEN)
+                configure(ethereumEncryptionTypeField, FieldState.DISABLED)
+            }
+        }
+    }
+
+    fun configureForMnemonic(blockchainType: ImportAccountType) {
+        when (blockchainType) {
+            ImportAccountType.Substrate -> {
+                configureSubstrate(FieldState.NORMAL)
+                configureEthereum(FieldState.HIDDEN)
+            }
+            ImportAccountType.Ethereum -> {
+                configure(FieldState.HIDDEN)
+                configureEthereum(FieldState.NORMAL)
                 configure(ethereumEncryptionTypeField, FieldState.DISABLED)
             }
         }
