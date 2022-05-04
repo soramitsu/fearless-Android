@@ -35,7 +35,7 @@ suspend fun AccountRepository.signWithMetaAccount(account: MetaAccount, message:
     val keypair = Keypair(publicKey, privateKey, nonce)
     val encryptionType = mapCryptoTypeToEncryption(account.substrateCryptoType)
 
-    Signer.sign(MultiChainEncryption.Substrate(encryptionType), message, keypair).signature
+    Signer.sign(MultiChainEncryption.Substrate(encryptionType), message, keypair)
 }
 
 suspend fun AccountRepository.signWithCurrentMetaAccount(message: ByteArray) = withContext(Dispatchers.Default) {

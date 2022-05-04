@@ -16,13 +16,16 @@ import it.airgap.beaconsdk.core.message.BeaconRequest
 import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.Keypair
+import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
+import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
 import jp.co.soramitsu.common.utils.isTransfer
 import jp.co.soramitsu.common.utils.substrateAccountId
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
@@ -30,7 +33,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Generic
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.interfaces.signWithCurrentMetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -155,13 +157,25 @@ class BeaconInteractor(
     suspend fun signPayload(
         request: SignPayloadSubstrateRequest
     ) {
+        val chain = getBeaconRegisteredChain() ?: return
         val payload = (request.payload as? SubstrateSignerPayload.Raw)?.data ?: return
+        val currentMetaAccount = accountRepository.getSelectedMetaAccount()
+        val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
+        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
+        val publicKey = keypairSchema[KeyPairSchema.PublicKey]
+        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+        val nonce = keypairSchema[KeyPairSchema.Nonce]
+        val keypair = Keypair(publicKey, privateKey, nonce)
+        val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
+        val runtime = chainRegistry.getRuntime(chain.id)
 
-        val signature = accountRepository.signWithCurrentMetaAccount(payload.fromHex())
-        val signatureHex = signature.toHexString(withPrefix = true)
-
-        val response = SignPayloadSubstrateResponse.from(request, transactionHash = null, signature = signatureHex, payload = payload)
-        SignPayloadSubstrateResponse
+        val signature = extrinsicService.createSignature(
+            runtime,
+            encryption,
+            keypair,
+            payload,
+        )
+        val response = SignPayloadSubstrateResponse.from(request, transactionHash = null, signature = signature, payload = payload)
         beaconClient().respond(response)
     }
 

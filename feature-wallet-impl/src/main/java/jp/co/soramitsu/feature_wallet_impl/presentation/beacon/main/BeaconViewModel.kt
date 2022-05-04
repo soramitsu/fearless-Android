@@ -194,7 +194,6 @@ class BeaconViewModel(
         requestsFlow
             .distinctUntilChanged()
             .onEach {
-                Log.d("RX", it.toString())
                 when (it) {
                     is PermissionSubstrateRequest -> {
                         beaconRequestedNetworks = it.networks

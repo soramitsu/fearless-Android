@@ -1,13 +1,22 @@
 package jp.co.soramitsu.feature_account_api.data.extrinsic
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.ExtrinsicStatusResponse
 import jp.co.soramitsu.common.data.network.runtime.blake2b256String
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v2.getChainAccountKeypair
 import jp.co.soramitsu.common.data.secrets.v2.getMetaAccountKeypair
 import jp.co.soramitsu.common.utils.system
+import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
+import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
+import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.MultiSignature
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.prepareForEncoding
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.runtime.metadata.event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -21,7 +30,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformWhile
-import java.math.BigInteger
 
 data class BlockEvent(val module: Int, val event: Int, val number: Long?)
 
@@ -31,6 +39,18 @@ class ExtrinsicService(
     private val secretStoreV2: SecretStoreV2,
     private val extrinsicBuilderFactory: ExtrinsicBuilderFactory,
 ) {
+
+    fun createSignature(
+        runtime: RuntimeSnapshot,
+        encryption: EncryptionType,
+        keypair: Keypair,
+        message: String,
+    ): String {
+        val signatureWrapper = Signer.sign(MultiChainEncryption.Substrate(encryption), message.fromHex(), keypair)
+        val multiSignature = MultiSignature(encryption, signatureWrapper.signature).prepareForEncoding()
+        val bytes = runtime.typeRegistry["ExtrinsicSignature"]?.bytes(runtime, multiSignature) ?: error("createSignature error occurred")
+        return bytes.toHexString(true)
+    }
 
     suspend fun submitExtrinsic(
         chain: Chain,
