@@ -161,14 +161,14 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         advancedBlockView.apply {
             when {
                 sourceType is MnemonicImportSource && isChainAccount -> {
-                    configure(blockchainType)
+                    configureForMnemonic(blockchainType)
                 }
                 sourceType is MnemonicImportSource -> {
                     configure(FieldState.NORMAL)
                     FieldState.DISABLED.applyTo(ethereumEncryptionTypeField)
                 }
                 sourceType is RawSeedImportSource -> {
-                    configure(blockchainType)
+                    configureForSeed(blockchainType)
                 }
                 sourceType is JsonImportSource -> {
                     advancedBlockView.makeGone()
