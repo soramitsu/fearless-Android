@@ -24,16 +24,16 @@
     <TextView
         android:id="@+id/titleTv"
         style="@style/TextAppearance.Soramitsu.Header3"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="1"
         android:textColor="@color/white"
+        app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.35"
         app:layout_constraintStart_toEndOf="@id/backImg"
-        app:layout_constraintWidth_default="wrap"
         app:layout_goneMarginStart="46dp"
         tools:text="Title" />
 
