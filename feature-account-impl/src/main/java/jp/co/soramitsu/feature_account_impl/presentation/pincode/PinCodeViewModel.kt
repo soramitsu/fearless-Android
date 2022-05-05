@@ -116,14 +116,12 @@ class PinCodeViewModel(
     }
 
     fun backPressed() {
-        if (!pinCodeAction.toolbarConfiguration.backVisible) {
-            return
-        }
-        when (currentState) {
-            is ScreenState.Creating -> authCancel()
-            is ScreenState.Confirmation -> backToCreateFromConfirmation()
-            is ScreenState.Checking -> authCancel()
-            null -> Unit
+        when {
+            currentState is ScreenState.Confirmation -> backToCreateFromConfirmation()
+            !pinCodeAction.toolbarConfiguration.backVisible -> Unit
+            currentState is ScreenState.Creating -> authCancel()
+            currentState is ScreenState.Checking -> authCancel()
+            else -> Unit
         }
     }
 
