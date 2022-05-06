@@ -22,6 +22,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -101,17 +102,21 @@ class WalletRepositoryImpl(
 
             val assetsByChain: List<AssetWithStatus> = chainRegistry.currentChains.firstOrNull().orEmpty()
                 .flatMap { chain ->
-                    chain.assets.map {
-                        AssetWithStatus(
-                            asset = createEmpty(
-                                chainAsset = it,
-                                metaId = meta.id,
-                                minSupportedVersion = chain.minSupportedVersion,
-                            ),
-                            enabled = true,
-                            hasAccount = !chain.isEthereumBased || meta.ethereumPublicKey != null,
-                            hasChainAccount = chain.id in chainAccounts.mapNotNull { it.chain?.id }
-                        )
+                    chain.assets.mapNotNull {
+                        when (val accountId = meta.accountId(chain)) {
+                            null -> null
+                            else -> AssetWithStatus(
+                                asset = createEmpty(
+                                    chainAsset = it,
+                                    metaId = meta.id,
+                                    accountId = accountId,
+                                    minSupportedVersion = chain.minSupportedVersion,
+                                ),
+                                enabled = true,
+                                hasAccount = !chain.isEthereumBased || meta.ethereumPublicKey != null,
+                                hasChainAccount = chain.id in chainAccounts.mapNotNull { it.chain?.id }
+                            )
+                        }
                     }
                 }
 

@@ -10,6 +10,7 @@ import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 val emptyAccountIdValue: AccountId = ByteArray(0)
 
@@ -49,7 +50,9 @@ abstract class AssetDao : AssetReadOnlyCache {
     abstract override suspend fun getAssets(metaId: Long): List<AssetWithToken>
 
     override fun observeAsset(metaId: Long, accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken> =
-        observeAssetWithEmpty(metaId, accountId, chainId, symbol, emptyAccountIdValue)
+        observeAssetWithEmpty(metaId, accountId, chainId, symbol, emptyAccountIdValue).map {
+            AssetWithToken(it.asset.copy(accountId = accountId), it.token)
+        }
 
     @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
     protected abstract fun observeAssetWithEmpty(

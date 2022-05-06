@@ -119,6 +119,7 @@ class WalletInteractorImpl(
                         Asset.createEmpty(
                             chainAsset = chainAsset,
                             metaId = metaAccount.id,
+                            accountId = accountId,
                             minSupportedVersion = chain.minSupportedVersion
                         )
                     )
