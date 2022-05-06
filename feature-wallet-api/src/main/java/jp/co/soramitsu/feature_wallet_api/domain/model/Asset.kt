@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_api.domain.model
 
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.core_db.dao.emptyAccountIdValue
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.runtime.ext.utilityAsset
@@ -47,10 +46,16 @@ class Asset(
             )
         }
 
-        fun createEmpty(chainAsset: Chain.Asset, metaId: Long, chainAccountName: String? = null, minSupportedVersion: String?) = Asset(
+        fun createEmpty(
+            chainAsset: Chain.Asset,
+            metaId: Long,
+            accountId: AccountId,
+            chainAccountName: String? = null,
+            minSupportedVersion: String?
+        ) = Asset(
             metaId = metaId,
             Token(configuration = chainAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
-            accountId = emptyAccountIdValue,
+            accountId = accountId,
             freeInPlanks = null,
             reservedInPlanks = null,
             miscFrozenInPlanks = null,
