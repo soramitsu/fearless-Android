@@ -12,10 +12,10 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.CollatorVi
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.DelegatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.NominatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.ParachainWelcomeViewState
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.RelaychainWelcomeViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StashNoneViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.ValidatorViewState
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.RelaychainWelcomeViewState
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -111,7 +111,12 @@ class StakingViewStateFactory(
         return CollatorViewState
     }
 
-    fun createDelegatorViewState(): StakingViewState {
-        return DelegatorViewState
+    fun createDelegatorViewState(accountStakingState: StakingState.Parachain.Delegator): StakingViewState {
+        return DelegatorViewState(
+            accountStakingState.chain,
+            accountStakingState.accountId,
+            accountStakingState.delegations,
+            accountStakingState.totalDelegatedAmount
+        )
     }
 }

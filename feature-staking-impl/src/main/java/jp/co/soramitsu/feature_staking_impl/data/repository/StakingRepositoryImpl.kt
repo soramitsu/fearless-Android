@@ -336,7 +336,7 @@ class StakingRepositoryImpl(
         }
     }
 
-    private suspend fun observeParachainState(
+    override suspend fun observeParachainState(
         chain: Chain,
         accountId: AccountId,
     ): Flow<StakingState.Parachain> {
@@ -348,7 +348,7 @@ class StakingRepositoryImpl(
         }
     }
 
-    private fun observeRelayChainState(chain: Chain, chainAsset: Chain.Asset, accountId: AccountId): Flow<StakingState> {
+    override fun observeRelayChainState(chain: Chain, chainAsset: Chain.Asset, accountId: AccountId): Flow<StakingState> {
         return accountStakingDao.observeDistinct(chain.id, chainAsset.id, accountId)
             .flatMapLatest { accountStaking ->
                 accountStaking.stakingAccessInfo?.let { accessInfo ->
