@@ -102,27 +102,23 @@ class WalletRepositoryImpl(
 
             val assetsByChain: List<AssetWithStatus> = chainRegistry.currentChains.firstOrNull().orEmpty()
                 .flatMap { chain ->
-                    chain.assets.mapNotNull {
-                        when (val accountId = meta.accountId(chain)) {
-                            null -> null
-                            else -> AssetWithStatus(
-                                asset = createEmpty(
-                                    chainAsset = it,
-                                    metaId = meta.id,
-                                    accountId = accountId,
-                                    minSupportedVersion = chain.minSupportedVersion,
-                                ),
-                                enabled = true,
-                                hasAccount = !chain.isEthereumBased || meta.ethereumPublicKey != null,
-                                hasChainAccount = chain.id in chainAccounts.mapNotNull { it.chain?.id }
-                            )
-                        }
+                    chain.assets.map {
+                        AssetWithStatus(
+                            asset = createEmpty(
+                                chainAsset = it,
+                                metaId = meta.id,
+                                accountId = meta.accountId(chain) ?: emptyAccountIdValue,
+                                minSupportedVersion = chain.minSupportedVersion,
+                            ),
+                            enabled = true,
+                            hasAccount = !chain.isEthereumBased || meta.ethereumPublicKey != null,
+                            hasChainAccount = chain.id in chainAccounts.mapNotNull { it.chain?.id }
+                        )
                     }
                 }
 
             val assetsByUniqueAccounts = chainAccounts
                 .mapNotNull { chainAccount ->
-                    val token = assetsByChain.find { it.asset.token.configuration.symbol == chainAccount.chain?.utilityAsset?.symbol }?.asset?.token
                     createEmpty(chainAccount)?.let { asset ->
                         AssetWithStatus(
                             asset = asset,
