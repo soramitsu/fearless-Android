@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
 import dagger.Provides
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -9,6 +10,7 @@ import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
@@ -37,6 +39,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.ControllerInteractor
@@ -65,7 +69,6 @@ import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import javax.inject.Named
 
 @Module
 class StakingFeatureModule {
@@ -189,6 +192,41 @@ class StakingFeatureModule {
         assetUseCase,
         factory
     )
+
+    @Provides
+    @FeatureScope
+    fun provideParachainScenarioInteractor(
+        interactor: StakingInteractor,
+        accountRepository: AccountRepository,
+        stakingConstantsRepository: StakingConstantsRepository,
+        stakingRepository: StakingRepository,
+    ): StakingParachainScenarioInteractor {
+        return StakingParachainScenarioInteractor(interactor, accountRepository, stakingConstantsRepository, stakingRepository)
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideRelayChainScenarioInteractor(
+        interactor: StakingInteractor,
+        accountRepository: AccountRepository,
+        stakingConstantsRepository: StakingConstantsRepository,
+        stakingRepository: StakingRepository,
+        walletRepository: WalletRepository,
+        stakingRewardsRepository: StakingRewardsRepository,
+        factory: EraTimeCalculatorFactory,
+        stakingSharedState: StakingSharedState,
+    ): StakingRelayChainScenarioInteractor {
+        return StakingRelayChainScenarioInteractor(
+            interactor,
+            accountRepository,
+            walletRepository,
+            stakingConstantsRepository,
+            stakingRepository,
+            stakingRewardsRepository,
+            factory,
+            stakingSharedState
+        )
+    }
 
     @Provides
     @FeatureScope

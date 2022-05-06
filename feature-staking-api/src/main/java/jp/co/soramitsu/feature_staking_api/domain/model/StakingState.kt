@@ -73,18 +73,19 @@ sealed class StakingState(
             val totalDelegatedAmount: BigDecimal
             ) : Parachain(chain, accountId)
 
-        data class CollatorDelegation(
-            val name: String,
-            val delegatedAmountInPlanks: BigDecimal,
-            val rewardedAmount: BigDecimal,
-            val status: DelegatorStateStatus
-        )
     }
 }
 
-fun DelegatorState.toDelegations(): List<StakingState.Parachain.CollatorDelegation> {
+data class CollatorDelegation(
+    val name: String,
+    val delegatedAmountInPlanks: BigDecimal,
+    val rewardedAmount: BigDecimal,
+    val status: DelegatorStateStatus
+)
+
+fun DelegatorState.toDelegations(): List<CollatorDelegation> {
     return this.delegations.map {
-        StakingState.Parachain.CollatorDelegation(
+        CollatorDelegation(
             it.owner.toHexString(true),
             it.amount.toBigDecimal(),
             BigDecimal.ZERO,

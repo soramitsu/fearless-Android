@@ -79,6 +79,12 @@ interface StakingRepository {
     fun electedExposuresInActiveEra(chainId: ChainId): Flow<Map<String, Exposure>>
 
     suspend fun getDelegatorState(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?>
+    suspend fun observeParachainState(
+        chain: Chain,
+        accountId: AccountId,
+    ): Flow<StakingState.Parachain>
+
+    fun observeRelayChainState(chain: Chain, chainAsset: Chain.Asset, accountId: AccountId): Flow<StakingState>
 }
 
 suspend fun StakingRepository.getActiveElectedValidatorsExposures(chainId: ChainId) = electedExposuresInActiveEra(chainId).first()
