@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -13,6 +14,7 @@ import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -33,6 +35,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.Rewa
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -422,7 +425,14 @@ class ParachainWelcomeViewState(
     }
 }
 
-object DelegatorViewState : StakingViewState(){
+data class DelegatorViewState(
+    val chain: Chain,
+    val accountId: AccountId,
+    val delegations: List<StakingState.Parachain.CollatorDelegation>,
+    val totalDelegatedAmount: BigDecimal
+) : StakingViewState() {
 
+//    val stakedAmountLiveData: LiveData<String>
 }
+
 object CollatorViewState : StakingViewState()

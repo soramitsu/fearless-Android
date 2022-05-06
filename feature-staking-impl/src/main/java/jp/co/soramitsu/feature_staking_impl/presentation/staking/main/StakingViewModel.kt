@@ -1,22 +1,20 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
+import android.graphics.drawable.Drawable
 import androidx.lifecycle.viewModelScope
 import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StakingStoryModel
-import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.presentation.flatMapLoading
 import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
@@ -28,7 +26,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -36,19 +33,19 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.Al
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.manageStakingActionValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.StakingScenario
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
+import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -69,23 +66,47 @@ class StakingViewModel(
     private val redeemValidationSystem: ManageStakingValidationSystem,
     private val bondMoreValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
-    private val stakingUpdateSystem: UpdateSystem,
-    private val assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
+    private val stakingScenario: StakingScenario,
+    stakingUpdateSystem: UpdateSystem,
+    assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
 ) : BaseViewModel(),
     WithAssetSelector,
     Validatable by validationExecutor {
 
     override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
 
+    private val stakingInfoViewState = stakingScenario.viewModel.flatMapConcat {
+        it.stakingInfoViewStateFlow()
+    }
+
+    val state: Flow<StakingScreenState> = combine(
+        currentAddressModelFlow(),
+        assetSelectorMixin.selectedAssetModelFlow,
+        stakingInfoViewState
+    ) { addressModel, assetModel, stakingInfo ->
+        StakingScreenState(
+            addressModel.image,
+            assetModel,
+            stakingInfo,
+
+        )
+    }
+
     private val stakingStateScope = viewModelScope.childScope(supervised = true)
 
     private val selectionState = interactor.selectionStateFlow()
         .share()
 
-    private val loadingStakingState = selectionState
-        .withLoading { (account, assetWithToken) ->
-            interactor.selectedAccountStakingStateFlow(account, assetWithToken)
-        }.share()
+    private val loadingStakingState = stakingScenario.viewModel.flatMapConcat {
+        it.getLoadingStakingState()
+    }.share()
+
+//    val stakingViewStateFlow = stakingScenario.viewModel.flatMapConcat {
+//        it.getStakingViewStateFlow()
+//    }
+//        .onEach { stakingStateScope.coroutineContext.cancelChildren() }
+//        .inBackground()
+//        .share()
 
     val stakingViewStateFlow = loadingStakingState
         .onEach { stakingStateScope.coroutineContext.cancelChildren() }
@@ -103,7 +124,7 @@ class StakingViewModel(
             val stakingType = it.second.asset.staking
             interactor.observeNetworkInfoState(chain.id, stakingType)
                 .combine(assetSelectorMixin.selectedAssetFlow) { networkInfo, asset ->
-                    transformNetworkInfo(asset, networkInfo)
+                    transformNetworkInfo(resourceManager, asset, networkInfo)
                 }
         }
         .inBackground()
@@ -254,7 +275,7 @@ class StakingViewModel(
             ::showError
         )
         is StakingState.Parachain.Collator -> stakingViewStateFactory.createCollatorViewState()
-        is StakingState.Parachain.Delegator -> stakingViewStateFactory.createDelegatorViewState()
+        is StakingState.Parachain.Delegator -> stakingViewStateFactory.createDelegatorViewState(accountStakingState)
         is StakingState.Parachain.None -> stakingViewStateFactory.createParachainWelcomeViewState(
             assetSelectorMixin.selectedAssetFlow,
             stakingStateScope,
@@ -262,45 +283,91 @@ class StakingViewModel(
         )
     }
 
-    private fun transformStories(story: StoryGroup.Staking): StakingStoryModel = with(story) {
-        val elements = elements.map { StoryElement.Staking(it.titleRes, it.bodyRes, it.url) }
-        StakingStoryModel(titleRes, iconSymbol, elements)
-    }
-
-    private fun transformNetworkInfo(asset: Asset, networkInfo: NetworkInfo): StakingNetworkInfoModel {
-        val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-        val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
-
-        val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
-
-        val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
-            .format(networkInfo.lockupPeriodInDays)
-
-        return when (networkInfo) {
-            is NetworkInfo.RelayChain -> {
-                val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-                val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
-
-                val totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
-
-                StakingNetworkInfoModel.RelayChain(
-                    lockupPeriod,
-                    minimumStakeFormatted,
-                    minimumStakeFiat,
-                    totalStakeFormatted,
-                    totalStakeFiat,
-                    networkInfo.nominatorsCount.format()
-                )
-            }
-            is NetworkInfo.Parachain -> {
-                StakingNetworkInfoModel.Parachain(lockupPeriod, minimumStakeFormatted, minimumStakeFiat)
-            }
-        }
-    }
-
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedAccountProjectionFlow().map {
             addressIconGenerator.createAddressModel(it.address, CURRENT_ICON_SIZE, it.name)
         }
+    }
+}
+
+data class StakingScreenState(
+    val accountImage: Drawable,
+    val assetChooserViewState: AssetModel,
+    val stakingInfoViewState: StakingInfoViewState,
+    val stakingViewState: StakingViewState1
+)
+
+sealed class StakingInfoViewState(
+    open val assetName: String,
+    open val stories: List<StakingStoryModel>
+) {
+    abstract val isLoading: Boolean
+
+    data class RelayChain(
+        override val assetName: String,
+        override val stories: List<StakingStoryModel>,
+        val totalStaked: String?,
+        val totalStakedFiat: String?,
+        val minimumStake: String?,
+        val minimumStakeFiat: String?,
+        val activeNominators: String?,
+        val unstakingPeriod: String?
+    ) : StakingInfoViewState(assetName, stories) {
+        override val isLoading = totalStaked == null && minimumStake == null
+            && activeNominators == null && unstakingPeriod == null
+    }
+
+    data class Parachain(
+        override val assetName: String,
+        override val stories: List<StakingStoryModel>,
+        val minimumStake: String?,
+        val minimumStakeFiat: String?,
+        val unstakingPeriod: String?
+    ) : StakingInfoViewState(assetName, stories) {
+        override val isLoading = minimumStake == null && unstakingPeriod == null
+    }
+}
+
+sealed class StakingViewState1() {
+
+    sealed class RelayChain : StakingViewState1() {
+        class Nominator(
+            val staked: String,
+            val rewarded: String,
+            val status: StakeStatus,
+            val era: String
+        ) : RelayChain()
+
+        class NonStash : RelayChain()
+        class Validator : RelayChain()
+
+        enum class ManageActions {
+            PAYOUTS, BALANCE, CONTROLLER, VALIDATORS, REWARD_DESTINATION
+        }
+    }
+
+    sealed class Parachain : StakingViewState1() {
+        class Collator : Parachain()
+        class Delegator : Parachain()
+
+        enum class ManageActions {
+            BALANCE, COLLATOR_INFO, REVOKE
+        }
+    }
+
+    class StartStaking(
+       val earningsState: ReturnsModel,
+        val assetName: String,
+        val assetIcon: String,
+        val stakeAmount: String,
+        val stakeAmountFiat: String?,
+        val availableAmount: String,
+        val infoSheetState: EarningsInfoSheetState
+    ) : StakingViewState1()
+
+    data class EarningsInfoSheetState(val maximumAPY: String, val averageApy: String)
+
+    enum class StakeStatus {
+        Active, Inactive
     }
 }

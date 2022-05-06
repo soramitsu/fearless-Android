@@ -104,6 +104,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
 
         viewModel.stakingViewStateFlow.observe { loadingState ->
+            hashCode()
             when (loadingState) {
                 is LoadingState.Loading -> {
                     startStakingBtn.setVisible(false)
@@ -191,6 +192,9 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             stakingState.showRewardEstimationEvent.observeEvent {
                                 StakingRewardEstimationBottomSheet(requireContext(), it).show()
                             }
+                        }
+                        is DelegatorViewState -> {
+
                         }
                     }
                 }
