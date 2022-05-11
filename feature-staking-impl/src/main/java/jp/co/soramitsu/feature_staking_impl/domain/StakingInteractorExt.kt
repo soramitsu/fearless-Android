@@ -58,5 +58,7 @@ fun minimumStake(
             acc
         }
 
-    return stakeByNominator.values.minOrNull()!!.coerceAtLeast(minimumNominatorBond)
+    return stakeByNominator.values.minOrZero().coerceAtLeast(minimumNominatorBond)
 }
+
+private fun Iterable<BigInteger>.minOrZero(): BigInteger = this.minOrNull() ?: BigInteger.ZERO
