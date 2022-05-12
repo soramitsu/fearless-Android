@@ -655,7 +655,6 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="json_export_text_title">Export as text</string>
     <string name="app_version_unsupported_text">We no longer support this version of the application. Please update it.</string>
     <string name="chain_unsupported_text">This chain isn\'t available in the current version of the application. Please update it to the latest version.</string>
-    <string name="app_version_json_loading_failed">Failed to load necessary data to launching the application. Please, check your internet connection and try again.</string>
     <string name="update_needed_text">Update Needed</string>
     <string name="connection_problems_text">Connection Problems</string>
     <string name="common_unsupported">Unsupported</string>
@@ -730,6 +729,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="unsupported_app_version_alert_message">We no longer support this version of the application. Please update it.</string>
 
     <string name="common_connection_problems">Connection Problems</string>
-    <string name="connection_problems_alert_message">Failed to load necessary data to launching the application. Please, check your internet connection and try again.</string>
+    <string name="connection_problems_alert_message">Failed to load necessary data to launch the application. Please, check your internet connection and try again.</string>
 
 </resources>
