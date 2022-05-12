@@ -648,7 +648,6 @@
     <string name="json_export_text_title">Экспортировать как текст</string>
     <string name="app_version_unsupported_text">Текущая версия приложения больше не поддерживается. Требуется обновление</string>
     <string name="chain_unsupported_text">Эта сеть недоступна в текущей версии приложения. Пожалуйста, обновите приложение до последней версии</string>
-    <string name="app_version_json_loading_failed">Не удалось загрузить необходимые данные для запуска приложения. Проверьте подключение к Интернету и повторите попытку.</string>
     <string name="update_needed_text">Требуется обновление</string>
     <string name="connection_problems_text">Проблемы с подключением</string>
     <string name="common_unsupported">Не поддерживается</string>
