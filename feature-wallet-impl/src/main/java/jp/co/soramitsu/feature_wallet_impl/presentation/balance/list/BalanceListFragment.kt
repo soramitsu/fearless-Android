@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
+import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -62,6 +63,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
 
         adapter = BalanceListAdapter(imageLoader, this)
         balanceListAssets.adapter = adapter
+        balanceListAssets.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
 
         walletContainer.setOnRefreshListener {
             viewModel.sync()
@@ -91,8 +93,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
     }
 
     override fun subscribe(viewModel: BalanceListViewModel) {
-        viewModel.sync()
-
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)
 

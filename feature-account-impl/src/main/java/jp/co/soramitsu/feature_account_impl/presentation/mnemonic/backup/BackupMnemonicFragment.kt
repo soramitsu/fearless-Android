@@ -85,6 +85,8 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         viewModel.showInvalidSubstrateDerivationPathError.observe {
             showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
         }
+
+        viewModel.chainAccountImportType.observe(advancedBlockView::configureForMnemonic)
     }
 
     private fun showEncryptionChooser(payload: Payload<CryptoTypeModel>) {

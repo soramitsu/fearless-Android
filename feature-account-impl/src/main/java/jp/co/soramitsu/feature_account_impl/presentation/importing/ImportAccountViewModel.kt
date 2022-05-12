@@ -220,6 +220,7 @@ class ImportAccountViewModel(
     private fun provideSourceType(): List<ImportSource> {
         return listOf(
             MnemonicImportSource(),
+            RawSeedImportSource(),
             JsonImportSource(
                 nameLiveData,
                 cryptoTypeChooserMixin.selectedEncryptionTypeLiveData,
@@ -228,8 +229,7 @@ class ImportAccountViewModel(
                 clipboardManager,
                 fileReader,
                 viewModelScope
-            ),
-            RawSeedImportSource()
+            )
         )
     }
 

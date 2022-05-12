@@ -6,6 +6,7 @@ import androidx.lifecycle.liveData
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.presentation.importing.importAccountType
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
@@ -25,6 +26,12 @@ class BackupMnemonicViewModel(
 
     val mnemonicLiveData = liveData {
         emit(generateMnemonic())
+    }
+
+    val chainAccountImportType = liveData {
+        payload.chainAccountData?.chainId?.let {
+            emit(interactor.getChain(it).importAccountType)
+        }
     }
 
     private val substrateDerivationPathRegex = Regex("(//?[^/]+)*(///[^/]+)?")

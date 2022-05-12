@@ -13,6 +13,7 @@ fun mapParachainMetadataRemoteToParachainMetadata(parachainMetadata: ParachainMe
             rewardRate = rewardRate?.toBigDecimal(),
             website = website,
             token = token,
+            disabled = disabled,
             flow = flow?.let { mapParachainMetadataFlowRemoteToParachainMetadataFlow(it) }
         )
     }

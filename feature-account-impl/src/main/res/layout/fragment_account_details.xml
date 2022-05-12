@@ -27,11 +27,11 @@
         android:hint="@string/username_setup_choose_title" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="match_parent"
         android:id="@+id/accountDetailsChainAccounts"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layoutManager="jp.co.soramitsu.common.view.recyclerview.LinearLayoutManagerFixed"
         android:layout_marginTop="16dp"
+        app:layoutManager="jp.co.soramitsu.common.view.recyclerview.LinearLayoutManagerFixed"
         tools:listitem="@layout/item_chain_acount" />
 
 </LinearLayout>
