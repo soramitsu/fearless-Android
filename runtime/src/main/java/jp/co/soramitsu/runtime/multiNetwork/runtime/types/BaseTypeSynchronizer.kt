@@ -42,7 +42,7 @@ class BaseTypeSynchronizer(
     @Synchronized
     fun cacheNotFound() {
         if (syncJob == null) {
-            sync()
+            runCatching { sync() }
         }
     }
 }

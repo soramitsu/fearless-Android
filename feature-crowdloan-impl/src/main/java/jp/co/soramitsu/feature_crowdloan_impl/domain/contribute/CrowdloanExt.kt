@@ -22,12 +22,18 @@ fun mapFundInfoToCrowdloan(
 ): Crowdloan {
     val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
 
-    val state = if (isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod, hasWonAuction, minContribution)) {
-        val remainingTime = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis)
+    val state = when {
+        parachainMetadata?.disabled == true -> {
+            Crowdloan.State.Finished
+        }
+        isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod, hasWonAuction, minContribution) -> {
+            val remainingTime = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis)
 
-        Crowdloan.State.Active(remainingTime)
-    } else {
-        Crowdloan.State.Finished
+            Crowdloan.State.Active(remainingTime)
+        }
+        else -> {
+            Crowdloan.State.Finished
+        }
     }
 
     return Crowdloan(

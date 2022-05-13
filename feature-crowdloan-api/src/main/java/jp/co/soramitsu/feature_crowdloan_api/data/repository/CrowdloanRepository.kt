@@ -44,6 +44,7 @@ class ParachainMetadata(
     val rewardRate: BigDecimal?,
     val website: String,
     val token: String,
+    val disabled: Boolean = false,
     val flow: ParachainMetadataFlow?,
 ) {
     val isMoonbeam: Boolean

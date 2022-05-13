@@ -15,7 +15,7 @@ class FrozenTokensBottomSheet(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val title = context.getString(R.string.wallet_balance_frozen_template, payload.token.configuration.symbol)
+        val title = context.getString(R.string.wallet_balance_locked)
         setTitle(title)
 
         currencyItem(R.string.wallet_balance_locked, payload.formatTokenAmount(payload.locked), payload.getAsFiatWithCurrency(payload.locked))

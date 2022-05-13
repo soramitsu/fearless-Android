@@ -25,6 +25,7 @@ import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
 import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
+import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanRefresh
 import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreText
 import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreWrapper
 import javax.inject.Inject
@@ -56,6 +57,10 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
         crowdloanList.adapter = adapter
 
         learnMoreWrapper.setOnClickListener { viewModel.learnMoreClicked() }
+        crowdloanRefresh.setOnRefreshListener {
+            viewModel.refresh()
+            crowdloanRefresh.isRefreshing = false
+        }
     }
 
     override fun inject() {
@@ -72,7 +77,7 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
         setupAssetSelector(crowdloanAssetSelector, viewModel, imageLoader)
 
         viewModel.crowdloanModelsFlow.observe { loadingState ->
-            crowdloanList.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isNotEmpty())
+            crowdloanRefresh.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isNotEmpty())
             crowdloanPlaceholder.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isEmpty())
             crowdloanProgress.setVisible(loadingState is LoadingState.Loading)
 

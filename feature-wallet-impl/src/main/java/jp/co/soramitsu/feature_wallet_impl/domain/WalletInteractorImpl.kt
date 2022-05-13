@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.domain
 
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
-import java.math.BigDecimal
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -45,6 +44,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -102,12 +102,9 @@ class WalletInteractorImpl(
         .thenByDescending { it.asset.token.configuration.chainId.isPolkadotOrKusama() }
         .thenBy { it.asset.token.configuration.chainName }
 
-    override suspend fun syncAssetsRates(): Flow<Result<Unit>> {
-        return selectedFiat.flow().map {
-            runCatching {
-                walletRepository.syncAssetsRates(it)
-                return@map Result.success(Unit)
-            }
+    override suspend fun syncAssetsRates(): Result<Unit> {
+        return runCatching {
+            walletRepository.syncAssetsRates(selectedFiat.get())
         }
     }
 
@@ -122,6 +119,7 @@ class WalletInteractorImpl(
                         Asset.createEmpty(
                             chainAsset = chainAsset,
                             metaId = metaAccount.id,
+                            accountId = accountId,
                             minSupportedVersion = chain.minSupportedVersion
                         )
                     )

@@ -570,7 +570,7 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="substrate_secret_derivation_path">Substrate secret derivation path
 </string>
     <string name="ethereum_secret_derivation_path">Ethereum secret derivation path</string>
-    <string name="example">Example: %@</string>
+    <string name="example">Example: %s</string>
     <string name="pincode_setup_top_title">Setup pin code</string>
     <string name="confirm_mnemonic_mismatch_error_message_2_0">Invalid mnemonic passphrase, please check one more time the words order</string>
     <string name="share_referral_code">Share referral code</string>
@@ -584,12 +584,12 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="moonbeam_location_unsupported_error">Unfortunately it appears that you might be ineligible to participate in the Moonbeam Crowdloan Campaign due to your detected location.</string>
     <string name="tabbar_crowdloan_attention">Please check the Crowdloans tab\nAttention required</string>
     <string name="common_max">max</string>
-    <string name="wallet_receive_navigation_title">Receive %@</string>
+    <string name="wallet_receive_navigation_title">Receive %s</string>
     <string name="assetdetails_balance_total">Total</string>
     <string name="assetdetails_balance_transferable">Transferable</string>
     <string name="assetdetails_balance_locked">Locked</string>
     <string name="assetdetails_balance_title">Your balance</string>
-    <string name="wallet_send_navigation_title">Send %@</string>
+    <string name="wallet_send_navigation_title">Send %s</string>
     <string name="profile_wallets_title">Wallets</string>
     <string name="settings_add_wallet">Add wallet</string>
     <string name="onboarding_create_wallet">Create wallet</string>
@@ -655,7 +655,6 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="json_export_text_title">Export as text</string>
     <string name="app_version_unsupported_text">We no longer support this version of the application. Please update it.</string>
     <string name="chain_unsupported_text">This chain isn\'t available in the current version of the application. Please update it to the latest version.</string>
-    <string name="app_version_json_loading_failed">Failed to load necessary data to launching the application. Please, check your internet connection and try again.</string>
     <string name="update_needed_text">Update Needed</string>
     <string name="connection_problems_text">Connection Problems</string>
     <string name="common_unsupported">Unsupported</string>
@@ -709,4 +708,27 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="alert_add_ethereum_message">Add Moonbeam and Moonriver accounts?</string>
     <string name="common_yes">Yes</string>
     <string name="common_no">No</string>
+
+    <string name="eth_import_title">ETH accounts</string>
+    <string name="eth_import_message">Add Moonbeam and Moonriver accounts?</string>
+
+    <string name="account_export_substrate_action">Export substrate</string>
+    <string name="account_export_ethereum_action">Export ethereum</string>
+
+    <string name="json_export_type_text">Export as text</string>
+    <string name="json_export_type_file">Export to file</string>
+
+    <string name="fiat_chooser_title">Currency</string>
+
+    <string name="minimum_stake_alert_title">Inactive bond</string>
+    <string name="minimum_stake_alert_message">The bonded amount is less than the current active minimum nominated amount of %1$s and depending on the network state, may not be selected to participate</string>
+
+    <string name="common_update_needed">Update Needed</string>
+    <string name="unsupported_chain_alert_message">This chain isn\'t available in the current version of the application. Please update it to the latest version.</string>
+
+    <string name="unsupported_app_version_alert_message">We no longer support this version of the application. Please update it.</string>
+
+    <string name="common_connection_problems">Connection Problems</string>
+    <string name="connection_problems_alert_message">Failed to load necessary data to launch the application. Please, check your internet connection and try again.</string>
+
 </resources>

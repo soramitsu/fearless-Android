@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.domain
 
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.core_db.dao.AssetDao
+import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.core_db.dao.emptyAccountIdValue
 import jp.co.soramitsu.core_db.model.AssetLocal
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AssetNotNeedAccountUseCase
@@ -10,7 +11,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class AssetNotNeedAccountUseCaseImpl(
-    private val assetDao: AssetDao
+    private val assetDao: AssetDao,
+    private val tokenDao: TokenDao
 ) : AssetNotNeedAccountUseCase {
 
     override suspend fun markNotNeed(chainId: ChainId, metaId: Long, symbol: String) {
@@ -26,6 +28,7 @@ class AssetNotNeedAccountUseCaseImpl(
         if (cached == null) {
             val initial = AssetLocal.createEmpty(emptyAccountIdValue, symbol, chainId, metaId)
             val newAsset = initial.copy(markedNotNeed = true)
+            tokenDao.ensureToken(symbol)
             assetDao.insertAsset(newAsset)
         } else {
             val updatedAsset = cached.copy(markedNotNeed = true)

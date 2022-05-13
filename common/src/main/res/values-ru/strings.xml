@@ -588,12 +588,12 @@
     <string name="moonbeam_location_unsupported_error">К сожалению, вы не можете участвовать в кампании Moonbeam Crowdloan Campaign из-за вашего местоположения.</string>
     <string name="tabbar_crowdloan_attention">Пожалуйста, проверьте вкладку Краудлоны \n Требуется внимание</string>
     <string name="common_max">Все</string>
-    <string name="wallet_receive_navigation_title">Получить %@</string>
+    <string name="wallet_receive_navigation_title">Получить %s</string>
     <string name="assetdetails_balance_total">Всего</string>
     <string name="assetdetails_balance_transferable">Доступно</string>
     <string name="assetdetails_balance_locked">Заблокировано</string>
     <string name="assetdetails_balance_title">Баланс</string>
-    <string name="wallet_send_navigation_title">Перевести %@</string>
+    <string name="wallet_send_navigation_title">Перевести %s</string>
     <string name="profile_wallets_title">Кошельки</string>
     <string name="settings_add_wallet">Добавить кошелёк</string>
     <string name="onboarding_create_wallet">Создать кошелёк</string>
@@ -648,7 +648,6 @@
     <string name="json_export_text_title">Экспортировать как текст</string>
     <string name="app_version_unsupported_text">Текущая версия приложения больше не поддерживается. Требуется обновление</string>
     <string name="chain_unsupported_text">Эта сеть недоступна в текущей версии приложения. Пожалуйста, обновите приложение до последней версии</string>
-    <string name="app_version_json_loading_failed">Не удалось загрузить необходимые данные для запуска приложения. Проверьте подключение к Интернету и повторите попытку.</string>
     <string name="update_needed_text">Требуется обновление</string>
     <string name="connection_problems_text">Проблемы с подключением</string>
     <string name="common_unsupported">Не поддерживается</string>
@@ -668,6 +667,7 @@
 
     <string name="import_substrate_recovery">JSON для восстановления Substrate аккаунтов</string>
     <string name="import_ethereum_recovery">JSON для восстановления ETH аккаунтов</string>
+    <string name="i_dont_need_account">Мне не нужен аккаунт</string>
     <string name="common_network">Сеть</string>
 
     <string name="account_import_substrate_raw_seed_placeholder">Substrate сид</string>
@@ -675,9 +675,29 @@
     <string name="common_currency">Валюта</string>
     <string name="onboarding_substrate_derivation_path_hint">Пример: //hard/soft///password</string>
     <string name="ECDSA_crypto_type">ECDSA | BTC/ETH совместимый</string>
-    <string name="common_invalid_hard_soft_numeric_password_message">Пожалуйста, удостоверьтесь, что введенная строка это комбинация //\'hard\' и /\'soft\' где \'hard\' и \'soft\' могут быть любой последовательностью символов, не включая /.  Путь может оканчиваться ///\'password\'. Например, //0/1//0///mypass</string>
     <string name="alert_add_ethereum_title">ETH аккаунты</string>
     <string name="alert_add_ethereum_message">Добавить аккаунты Moonbeam и Moonriver?</string>
     <string name="common_yes">Да</string>
     <string name="common_no">Нет</string>
+
+    <string name="eth_import_title">ETH аккаунты</string>
+    <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
+
+    <string name="common_invalid_hard_soft_numeric_password_message">Пожалуйста, удостоверьтесь, что введенная строка это комбинация //\'hard\' и /\'soft\' где \'hard\' и \'soft\' могут быть любой последовательностью символов, не включая /.  Путь может оканчиваться ///\'password\'. Например, //0/1//0///mypass</string>
+
+    <string name="account_export_substrate_action">Экспорт substrate</string>
+    <string name="account_export_ethereum_action">Экспорт ethereum</string>
+
+    <string name="json_export_type_text">Экспортировать как текст</string>
+    <string name="json_export_type_file">Экспортировать в файл</string>
+
+    <string name="fiat_chooser_title">Валюты</string>
+
+    <string name="common_update_needed">Требуется обновление</string>
+    <string name="unsupported_chain_alert_message">Эта сеть не поддерживается в текущей версии приложения. Пожалуйста, обновите приложение до последней версии.</string>
+
+    <string name="unsupported_app_version_alert_message">Данная версия приложения больше не поддерживается. Пожалуйста, обновите.</string>
+
+    <string name="common_connection_problems">Проблема интернет-соединения</string>
+    <string name="connection_problems_alert_message">Не удается загрузить необходимые данные для запуска приложения. Пожалуйста, проверьте ваше интернет соединение и повторите снова.</string>
 </resources>

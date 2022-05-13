@@ -31,7 +31,7 @@ class ExportMnemonicViewModel(
     chainRegistry,
     payload.metaId,
     payload.chainId,
-    false,
+    payload.isExportWallet,
     ExportSource.Mnemonic
 ) {
 

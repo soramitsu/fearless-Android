@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
+import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -74,6 +75,8 @@ interface AccountFeatureDependencies {
     fun imageLoader(): ImageLoader
 
     fun assetDao(): AssetDao
+
+    fun tokenDao(): TokenDao
 
     fun fileProvider(): FileProvider
 
