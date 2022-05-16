@@ -15,8 +15,8 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
 import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
+import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmMnemonicSkip
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmationMnemonicView
-import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.conformMnemonicSkip
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.nextBtn
 import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
@@ -56,7 +56,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
             viewModel.nextButtonClicked()
         }
 
-        conformMnemonicSkip.setOnClickListener {
+        confirmMnemonicSkip.setOnClickListener {
             viewModel.skipClicked()
         }
     }
@@ -71,7 +71,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     }
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
-        conformMnemonicSkip.setVisible(viewModel.skipVisible)
+        confirmMnemonicSkip.setVisible(viewModel.skipVisible)
 
         wordsMnemonicView.doOnGlobalLayout {
             populateMnemonicContainer(viewModel.shuffledMnemonic)
@@ -89,6 +89,10 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
         viewModel.nextButtonEnableLiveData.observe {
             nextBtn.isEnabled = it
+        }
+
+        viewModel.skipButtonEnableLiveData.observe {
+            confirmMnemonicSkip.isEnabled = it
         }
 
         viewModel.matchingMnemonicErrorAnimationEvent.observeEvent {
