@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -71,6 +72,12 @@ class ChooseRecipientViewModel(
 
     private val _declinePhishingAddress = MutableLiveData<Event<Unit>>()
     val declinePhishingAddress: LiveData<Event<Unit>> = _declinePhishingAddress
+
+    val assetSymbolLiveData = liveData {
+        val asset = interactor.getCurrentAsset(payload.chainId, payload.chainAssetId)
+
+        emit(asset.token.configuration.symbol)
+    }
 
     fun backClicked() {
         router.back()
