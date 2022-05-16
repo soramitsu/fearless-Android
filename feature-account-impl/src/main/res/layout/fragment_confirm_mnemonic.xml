@@ -59,7 +59,7 @@
         tools:layout_height="144dp" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
-        android:id="@+id/conformMnemonicSkip"
+        android:id="@+id/confirmMnemonicSkip"
         style="@style/Widget.Fearless.Button.Outline"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.sendEvent
@@ -35,9 +36,13 @@ class ConfirmMnemonicViewModel(
     private val _removeLastWordFromConfirmationEvent = MutableLiveData<Event<Unit>>()
     val removeLastWordFromConfirmationEvent: LiveData<Event<Unit>> = _removeLastWordFromConfirmationEvent
 
-    val nextButtonEnableLiveData: LiveData<Boolean> = confirmationMnemonicWords.map {
-        originMnemonic.size == it.size
+    private val proceedInProgress = MutableLiveData(false)
+
+    val nextButtonEnableLiveData: LiveData<Boolean> = combine(confirmationMnemonicWords, proceedInProgress) { (words: List<String>, progress: Boolean) ->
+        originMnemonic.size == words.size && !progress
     }
+
+    val skipButtonEnableLiveData: LiveData<Boolean> = proceedInProgress.map { !it }
 
     val skipVisible = payload.createExtras != null
 
@@ -93,6 +98,8 @@ class ConfirmMnemonicViewModel(
     }
 
     private fun proceed() {
+        if (proceedInProgress.value == true) return
+        proceedInProgress.value = true
         when (val createExtras = payload.createExtras) {
             null -> finishConfirmGame()
             is ConfirmMnemonicPayload.CreateChainExtras -> createChainAccount(createExtras)
@@ -132,6 +139,7 @@ class ConfirmMnemonicViewModel(
                 if (result.isSuccess) {
                     continueBasedOnCodeStatus()
                 } else {
+                    proceedInProgress.value = false
                     showError(result.requireException())
                 }
             }
