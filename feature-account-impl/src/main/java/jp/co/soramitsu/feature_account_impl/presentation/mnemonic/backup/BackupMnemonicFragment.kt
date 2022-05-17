@@ -82,7 +82,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
             showMnemonicInfoDialog()
         }
 
-        viewModel.showInvalidSubstrateDerivationPathError.observe {
+        viewModel.showInvalidSubstrateDerivationPathError.observeEvent {
             showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
         }
 
