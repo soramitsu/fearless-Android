@@ -5,6 +5,7 @@ import android.text.InputType
 import android.util.AttributeSet
 import android.view.View
 import android.widget.EditText
+import androidx.core.content.res.getIntOrThrow
 import com.google.android.material.textfield.TextInputLayout
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
@@ -34,6 +35,11 @@ class InputField @JvmOverloads constructor(
 
         val text = typedArray.getString(R.styleable.InputField_android_text)
         content.setText(text)
+
+        runCatching {
+            val inputId = typedArray.getIntOrThrow(R.styleable.InputField_overrideInputFieldId)
+            findViewById<View>(R.id.inputField).id = inputId
+        }
 
         typedArray.recycle()
     }

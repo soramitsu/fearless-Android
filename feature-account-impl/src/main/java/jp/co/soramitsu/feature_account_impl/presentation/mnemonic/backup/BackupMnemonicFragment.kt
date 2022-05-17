@@ -49,9 +49,9 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
             viewModel.chooseEncryptionClicked()
         }
-        advancedBlockView.ethereumDerivationPathField.content.keyListener = DigitsKeyListener.getInstance("0123456789/")
+        advancedBlockView.ethereumDerivationPathEditText.keyListener = DigitsKeyListener.getInstance("0123456789/")
 
-        advancedBlockView.ethereumDerivationPathField.content.addTextChangedListener(EthereumDerivationPathTransformer)
+        advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
 
         nextBtn.setOnClickListener {
             viewModel.nextClicked(advancedBlockView.getSubstrateDerivationPath(), advancedBlockView.getEthereumDerivationPath())
