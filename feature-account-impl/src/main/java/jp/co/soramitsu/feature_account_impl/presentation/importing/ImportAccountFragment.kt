@@ -71,9 +71,9 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         nextBtn.prepareForProgress(viewLifecycleOwner)
 
-        advancedBlockView.ethereumDerivationPathField.content.keyListener = DigitsKeyListener.getInstance("0123456789/")
+        advancedBlockView.ethereumDerivationPathEditText.keyListener = DigitsKeyListener.getInstance("0123456789/")
 
-        advancedBlockView.ethereumDerivationPathField.content.addTextChangedListener(EthereumDerivationPathTransformer)
+        advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
     }
 
     override fun inject() {
