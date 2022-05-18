@@ -13,16 +13,16 @@ import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.TotalBalance
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountChosenNavDirection
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.format
 import jp.co.soramitsu.feature_account_impl.presentation.language.mapper.mapLanguageToLanguageModel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -38,7 +38,10 @@ class ProfileViewModel(
     private val selectedFiat: SelectedFiat
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
-    val totalBalanceLiveData = getTotalBalance().map(TotalBalance::format).asLiveData()
+    val totalBalanceLiveData = combine(getTotalBalance(), selectedFiat.flow()) { balance, fiat ->
+        val selectedFiatSymbol = getAvailableFiatCurrencies[fiat]?.symbol
+        balance.balance.formatAsCurrency(selectedFiatSymbol ?: balance.fiatSymbol)
+    }.asLiveData()
 
     val selectedAccountLiveData: LiveData<MetaAccount> = interactor.selectedMetaAccountFlow().asLiveData()
 
