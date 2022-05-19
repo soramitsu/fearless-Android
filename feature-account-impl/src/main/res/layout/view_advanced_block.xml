@@ -82,8 +82,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:hint="@string/ethereum_secret_derivation_path"
             android:inputType="text"
-            android:hint="@string/ethereum_secret_derivation_path" />
+            app:overrideInputFieldId="@+id/ethereumInputId" />
 
         <TextView
             android:id="@+id/ethereumDerivationPathHint"

@@ -12,11 +12,15 @@ object EthereumDerivationPathTransformer : TextWatcher {
     override fun afterTextChanged(s: Editable?) {
         s ?: return
         if (shouldValidate.not()) {
-            if (s.endsWith('/') && s.endsWith("//").not()) {
-                s.delete(s.length - 1, s.length)
+            listOf(DOUBLE_SLASH_SEPARATOR, SLASH_SEPARATOR).forEach {
+                if (s.endsWith(it)) {
+                    s.delete(s.length - it.length, s.length)
+                }
             }
             return
         }
+
+        if (s.isEmpty()) return
 
         val split = s.split(DOUBLE_SLASH_SEPARATOR).filter { it.isNotEmpty() }
         val others = split.getOrNull(2)?.split(SLASH_SEPARATOR)?.filter { it.isNotEmpty() }
@@ -32,14 +36,10 @@ object EthereumDerivationPathTransformer : TextWatcher {
         when {
             startsWithDoubleSlash.not() && s.startsWith(SLASH_SEPARATOR) -> s.insert(0, SLASH_SEPARATOR)
             startsWithDoubleSlash.not() -> s.insert(0, DOUBLE_SLASH_SEPARATOR)
-            purpose != null && purpose.length == 2 && coinType.isNullOrEmpty() && s.endsWith(DOUBLE_SLASH_SEPARATOR).not() -> s.append(DOUBLE_SLASH_SEPARATOR)
-            purpose != null && purpose.length > 2 -> s.insert(4, "//")
-            coinType != null && coinType.length == 2 && account.isNullOrEmpty() && s.endsWith(DOUBLE_SLASH_SEPARATOR).not() -> s.append(DOUBLE_SLASH_SEPARATOR)
-            coinType != null && coinType.length > 2 -> s.insert(8, "//")
-            account != null && account.length == 1 && change.isNullOrEmpty() && s.endsWith(SLASH_SEPARATOR).not() -> s.append(SLASH_SEPARATOR)
-            account != null && account.length > 1 -> s.insert(11, "/")
-            change != null && change.length == 1 && addressIndex.isNullOrEmpty() && s.endsWith(SLASH_SEPARATOR).not() -> s.append(SLASH_SEPARATOR)
-            change != null && change.length > 1 -> s.insert(13, "/")
+            purpose != null && purpose.length > 2 -> s.insert(4, DOUBLE_SLASH_SEPARATOR)
+            coinType != null && coinType.length > 2 -> s.insert(8, DOUBLE_SLASH_SEPARATOR)
+            account != null && account.length > 1 -> s.insert(11, SLASH_SEPARATOR)
+            change != null && change.length > 1 -> s.insert(13, SLASH_SEPARATOR)
             addressIndex != null && addressIndex.length > 1 -> s.delete(s.length - 1, s.length)
         }
     }
