@@ -44,6 +44,13 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
     override fun initViews() {
         exportSeedToolbar.setHomeButtonListener { viewModel.back() }
 
+        exportSeedToolbar.setTitle(
+            when {
+                viewModel.isExportFromWallet -> R.string.export_wallet
+                else -> R.string.account_export
+            }
+        )
+
         exportSeedAdvanced.configureSubstrate(FieldState.DISABLED)
         exportSeedAdvanced.configureEthereum(FieldState.HIDDEN)
 

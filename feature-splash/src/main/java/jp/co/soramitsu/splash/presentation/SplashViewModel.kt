@@ -1,6 +1,5 @@
 package jp.co.soramitsu.splash.presentation
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.domain.GetEducationalStoriesUseCase
@@ -8,7 +7,6 @@ import jp.co.soramitsu.common.domain.ShouldShowEducationalStoriesUseCase
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
-import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.coroutines.launch
@@ -19,9 +17,6 @@ class SplashViewModel(
     shouldShowEducationalStoriesUseCase: ShouldShowEducationalStoriesUseCase,
     private val getEducationalStories: GetEducationalStoriesUseCase
 ) : BaseViewModel() {
-
-    private val _removeSplashBackgroundLiveData = MutableLiveData<Event<Unit>>()
-    val removeSplashBackgroundLiveData = _removeSplashBackgroundLiveData
 
     private var shouldShowEducationalStories by shouldShowEducationalStoriesUseCase
 
@@ -58,8 +53,6 @@ class SplashViewModel(
             } else {
                 router.openAddFirstAccount()
             }
-
-            _removeSplashBackgroundLiveData.value = Event(Unit)
         }
     }
 

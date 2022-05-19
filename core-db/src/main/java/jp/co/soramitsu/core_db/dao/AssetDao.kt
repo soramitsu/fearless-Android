@@ -10,6 +10,8 @@ import jp.co.soramitsu.core_db.model.AssetUpdateItem
 import jp.co.soramitsu.core_db.model.AssetWithToken
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 
 val emptyAccountIdValue: AccountId = ByteArray(0)
 
@@ -25,6 +27,7 @@ private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
             INNER JOIN tokens AS t ON a.tokenSymbol = t.symbol 
             LEFT JOIN chain_accounts AS ca ON ca.metaId = a.metaId AND ca.chainId = a.chainId
             WHERE a.metaId = :metaId
+            AND (ca.accountId = a.accountId OR ca.accountId IS NULL)
             ORDER BY a.sortIndex
 """
 
@@ -49,6 +52,8 @@ abstract class AssetDao : AssetReadOnlyCache {
 
     override fun observeAsset(metaId: Long, accountId: AccountId, chainId: String, symbol: String): Flow<AssetWithToken> =
         observeAssetWithEmpty(metaId, accountId, chainId, symbol, emptyAccountIdValue)
+            .mapNotNull { it }
+            .map { AssetWithToken(it.asset.copy(accountId = accountId), it.token) }
 
     @Query(RETRIEVE_ASSET_SQL_ACCOUNT_ID)
     protected abstract fun observeAssetWithEmpty(

@@ -71,9 +71,9 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
         nextBtn.prepareForProgress(viewLifecycleOwner)
 
-        advancedBlockView.ethereumDerivationPathField.content.keyListener = DigitsKeyListener.getInstance("0123456789/")
+        advancedBlockView.ethereumDerivationPathEditText.keyListener = DigitsKeyListener.getInstance("0123456789/")
 
-        advancedBlockView.ethereumDerivationPathField.content.addTextChangedListener(EthereumDerivationPathTransformer)
+        advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
     }
 
     override fun inject() {
@@ -131,7 +131,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             }
         }.observe { }
 
-        viewModel.showInvalidSubstrateDerivationPathError.observe {
+        viewModel.showInvalidSubstrateDerivationPathError.observeEvent {
             showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
         }
     }
@@ -161,14 +161,14 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         advancedBlockView.apply {
             when {
                 sourceType is MnemonicImportSource && isChainAccount -> {
-                    configure(blockchainType)
+                    configureForMnemonic(blockchainType)
                 }
                 sourceType is MnemonicImportSource -> {
                     configure(FieldState.NORMAL)
                     FieldState.DISABLED.applyTo(ethereumEncryptionTypeField)
                 }
                 sourceType is RawSeedImportSource -> {
-                    configure(blockchainType)
+                    configureForSeed(blockchainType)
                 }
                 sourceType is JsonImportSource -> {
                     advancedBlockView.makeGone()

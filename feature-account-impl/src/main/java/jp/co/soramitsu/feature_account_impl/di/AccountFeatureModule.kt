@@ -23,6 +23,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
+import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
@@ -209,9 +210,10 @@ class AccountFeatureModule {
     @Provides
     @FeatureScope
     fun provideAssetNotNeedAccountUseCase(
-        assetDao: AssetDao
+        assetDao: AssetDao,
+        tokenDao: TokenDao
     ): AssetNotNeedAccountUseCase {
-        return AssetNotNeedAccountUseCaseImpl(assetDao)
+        return AssetNotNeedAccountUseCaseImpl(assetDao, tokenDao)
     }
 
     @Provides

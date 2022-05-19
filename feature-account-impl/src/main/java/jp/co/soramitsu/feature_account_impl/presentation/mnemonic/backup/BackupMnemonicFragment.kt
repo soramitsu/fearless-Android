@@ -49,9 +49,9 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
             viewModel.chooseEncryptionClicked()
         }
-        advancedBlockView.ethereumDerivationPathField.content.keyListener = DigitsKeyListener.getInstance("0123456789/")
+        advancedBlockView.ethereumDerivationPathEditText.keyListener = DigitsKeyListener.getInstance("0123456789/")
 
-        advancedBlockView.ethereumDerivationPathField.content.addTextChangedListener(EthereumDerivationPathTransformer)
+        advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
 
         nextBtn.setOnClickListener {
             viewModel.nextClicked(advancedBlockView.getSubstrateDerivationPath(), advancedBlockView.getEthereumDerivationPath())
@@ -82,9 +82,11 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
             showMnemonicInfoDialog()
         }
 
-        viewModel.showInvalidSubstrateDerivationPathError.observe {
+        viewModel.showInvalidSubstrateDerivationPathError.observeEvent {
             showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
         }
+
+        viewModel.chainAccountImportType.observe(advancedBlockView::configureForMnemonic)
     }
 
     private fun showEncryptionChooser(payload: Payload<CryptoTypeModel>) {

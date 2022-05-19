@@ -37,6 +37,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.ci
         }
+        staging {
+            initWith debug
+            matchingFallbacks = ['debug']
+            versionNameSuffix '-staging'
+            applicationIdSuffix '.staging'
+            //Init firebase
+            def localReleaseNotes = releaseNotes()
+            def localFirebaseGroup = firebaseGroup()
+            firebaseAppDistribution {
+                releaseNotes = localReleaseNotes
+                groups = localFirebaseGroup
+            }
+        }
         develop {
             signingConfig signingConfigs.ci
             matchingFallbacks = ['debug']

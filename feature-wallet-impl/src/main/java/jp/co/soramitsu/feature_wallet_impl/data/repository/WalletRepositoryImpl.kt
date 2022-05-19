@@ -1,7 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.data.repository
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -24,6 +22,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -64,6 +63,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class WalletRepositoryImpl(
     private val substrateSource: SubstrateRemoteSource,
@@ -106,6 +107,7 @@ class WalletRepositoryImpl(
                             asset = createEmpty(
                                 chainAsset = it,
                                 metaId = meta.id,
+                                accountId = meta.accountId(chain) ?: emptyAccountIdValue,
                                 minSupportedVersion = chain.minSupportedVersion,
                             ),
                             enabled = true,
@@ -117,7 +119,6 @@ class WalletRepositoryImpl(
 
             val assetsByUniqueAccounts = chainAccounts
                 .mapNotNull { chainAccount ->
-                    val token = assetsByChain.find { it.asset.token.configuration.symbol == chainAccount.chain?.utilityAsset?.symbol }?.asset?.token
                     createEmpty(chainAccount)?.let { asset ->
                         AssetWithStatus(
                             asset = asset,
@@ -414,7 +415,11 @@ class WalletRepositoryImpl(
 
     private suspend fun <T> apiCall(block: suspend () -> T): T = httpExceptionHandler.wrap(block)
 
-    override suspend fun getRemoteConfig(): AppConfigRemote {
-        return remoteConfigFetcher.getAppConfig()
+    override suspend fun getRemoteConfig(): Result<AppConfigRemote> {
+        return kotlin.runCatching { remoteConfigFetcher.getAppConfig() }
+    }
+
+    override fun chainRegistrySyncUp() {
+        chainRegistry.syncUp()
     }
 }

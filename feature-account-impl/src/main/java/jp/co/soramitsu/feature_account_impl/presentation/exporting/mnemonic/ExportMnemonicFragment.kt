@@ -25,7 +25,9 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(metaId: Long, chainId: ChainId) = bundleOf(PAYLOAD_KEY to ExportMnemonicPayload(metaId, chainId))
+        fun getBundle(metaId: Long, chainId: ChainId, isExportWallet: Boolean) = bundleOf(
+            PAYLOAD_KEY to ExportMnemonicPayload(metaId, chainId, isExportWallet)
+        )
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -34,6 +36,13 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
 
     override fun initViews() {
         exportMnemonicToolbar.setHomeButtonListener { viewModel.back() }
+
+        exportMnemonicToolbar.setTitle(
+            when {
+                viewModel.isExportFromWallet -> R.string.export_wallet
+                else -> R.string.account_export
+            }
+        )
 
         configureAdvancedBlock()
 

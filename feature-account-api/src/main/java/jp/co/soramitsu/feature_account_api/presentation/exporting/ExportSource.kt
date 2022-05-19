@@ -11,4 +11,11 @@ sealed class ExportSource(@StringRes nameRes: Int, @StringRes hintRes: Int, @Dra
     object Mnemonic : ExportSource(R.string.recovery_mnemonic, R.string.recovery_mnemonic_hint, R.drawable.ic_save_type_mnemonic)
 
     object Seed : ExportSource(R.string.recovery_raw_seed, R.string.recovery_raw_seed_hint, R.drawable.ic_save_type_seed)
+
+    val sort: Int
+        get() = when (this) {
+            Mnemonic -> 1
+            Seed -> 2
+            Json -> 3
+        }
 }
