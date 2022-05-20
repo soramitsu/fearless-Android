@@ -8,7 +8,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -37,6 +36,7 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
+import javax.inject.Inject
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
@@ -193,7 +193,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             }
                         }
                         is DelegatorViewState -> {
-
                         }
                     }
                 }
@@ -217,7 +216,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                     }
                 }
             }
-
         }
 
         viewModel.stories.observe {
