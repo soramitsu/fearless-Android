@@ -1,31 +1,30 @@
 package jp.co.soramitsu.feature_staking_impl.domain.scenarios
 
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
+import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.StakingScenarioRepository
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 
 class StakingParachainScenarioInteractor(
-    walletRepository: WalletRepository,
-    accountRepository: AccountRepository,
-    scenarioRepository: StakingScenarioRepository,
-    stakingSharedState: StakingSharedState,
+    private val stakingInteractor: StakingInteractor,
+    private val accountRepository: AccountRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val stakingRepository: StakingRepository
-) : StakingScenarioInteractor(walletRepository, accountRepository, scenarioRepository, stakingSharedState, stakingRepository) {
+) : StakingScenarioInteractor {
 
-    override suspend fun observeNetworkInfoState(chainId: ChainId): Flow<NetworkInfo> {
+    override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
+        val chainId = stakingInteractor.getSelectedChain().id
         val lockupPeriod = getParachainLockupPeriodInDays(chainId)
         val minimumStakeInPlanks = stakingConstantsRepository.parachainMinimumStaking(chainId)
 
@@ -50,7 +49,13 @@ class StakingParachainScenarioInteractor(
         "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527" to 2 // moonbase
     )
 
-    override suspend fun getStakingStateFlow(chain: Chain, chainAsset: Chain.Asset, accountId: AccountId): Flow<StakingState> {
-        return stakingRepository.observeParachainState(chain, accountId)
+    override suspend fun getStakingStateFlow(): Flow<StakingState> {
+        return combine(
+            stakingInteractor.selectedChainFlow(),
+            stakingInteractor.currentAssetFlow()
+        ) { chain, asset -> chain to asset }.flatMapConcat { (chain, asset) ->
+            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+            stakingRepository.observeParachainState(chain, accountId)
+        }
     }
 }

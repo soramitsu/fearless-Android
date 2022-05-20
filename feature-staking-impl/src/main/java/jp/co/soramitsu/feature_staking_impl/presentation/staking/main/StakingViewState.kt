@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_staking_api.domain.model.CollatorDelegation
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -32,6 +33,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProc
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.PERIOD_MONTH
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.PERIOD_YEAR
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -54,8 +57,8 @@ import kotlinx.coroutines.launch
 
 sealed class StakingViewState
 
-private const val PERIOD_MONTH = 30
-private const val PERIOD_YEAR = 365
+//private const val PERIOD_MONTH = 30
+//private const val PERIOD_YEAR = 365
 
 class ReturnsModel(
     val monthly: RewardEstimation,
@@ -428,7 +431,7 @@ class ParachainWelcomeViewState(
 data class DelegatorViewState(
     val chain: Chain,
     val accountId: AccountId,
-    val delegations: List<StakingState.Parachain.CollatorDelegation>,
+    val delegations: List<CollatorDelegation>,
     val totalDelegatedAmount: BigDecimal
 ) : StakingViewState() {
 

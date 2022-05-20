@@ -103,8 +103,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             }
         }
 
-        viewModel.stakingViewStateFlow.observe { loadingState ->
-            hashCode()
+        viewModel.stakingViewState.observe { loadingState ->
             when (loadingState) {
                 is LoadingState.Loading -> {
                     startStakingBtn.setVisible(false)
@@ -200,8 +199,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                 }
             }
         }
-
-        viewModel.networkInfoStateLiveData.observe { state ->
+        viewModel.networkInfo.observe { state ->
             when (state) {
                 is LoadingState.Loading<*> -> {
                     parachainStakingNetworkInfo.showLoading()
@@ -219,6 +217,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                     }
                 }
             }
+
         }
 
         viewModel.stories.observe {
@@ -336,14 +335,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         }
     }
 
-    private fun mapNominatorStatus(summary: NominatorSummaryModel): StakeSummaryView.Status {
-        return when (summary.status) {
-            is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
-            NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
-            is NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.status.timeLeft)
-        }
-    }
-
     private fun mapValidatorStatus(summary: ValidatorSummaryModel): StakeSummaryView.Status {
         return when (summary.status) {
             ValidatorStatus.INACTIVE -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
@@ -354,6 +345,15 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
     private fun mapStashNoneStatus(summary: StashNoneSummaryModel): StakeSummaryView.Status {
         return when (summary.status) {
             StashNoneStatus.INACTIVE -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
+        }
+    }
+
+    private fun mapNominatorStatus(summary: StakeSummaryModel<NominatorStatus>): StakeSummaryView.Status {
+        val currentEraDisplayer = getString(R.string.staking_era_title, summary.currentEraDisplay)
+        return when (summary.status) {
+            is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(currentEraDisplayer)
+            NominatorStatus.Active -> StakeSummaryView.Status.Active(currentEraDisplayer)
+            is NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.status.timeLeft)
         }
     }
 }
