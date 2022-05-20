@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.math.BigDecimal
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -54,11 +53,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 sealed class StakingViewState
 
-//private const val PERIOD_MONTH = 30
-//private const val PERIOD_YEAR = 365
+// private const val PERIOD_MONTH = 30
+// private const val PERIOD_YEAR = 365
 
 class ReturnsModel(
     val monthly: RewardEstimation,
