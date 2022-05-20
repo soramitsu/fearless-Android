@@ -53,7 +53,6 @@ class StakingParachainScenarioViewModel(
                         baseViewModel.stakingStateScope,
                         baseViewModel::showError
                     )
-
                 }
                 else -> error("Wrong state")
             }
@@ -82,5 +81,4 @@ class StakingParachainScenarioViewModel(
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
         return flowOf<List<AlertModel>> { emptyList() }.withLoading()
     }
-
 }
