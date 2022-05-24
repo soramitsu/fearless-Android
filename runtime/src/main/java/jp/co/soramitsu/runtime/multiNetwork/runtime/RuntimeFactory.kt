@@ -3,6 +3,7 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 import com.google.gson.Gson
 import jp.co.soramitsu.common.utils.md5
 import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.fearless_utils.runtime.OverriddenConstantsMap
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser.parseBaseDefinitions
@@ -86,8 +87,10 @@ class RuntimeFactory(
 
         val runtimeMetadata = VersionedRuntimeBuilder.buildMetadata(runtimeMetadataRaw, typeRegistry)
 
+        val overrides = createOverrides(chainId)
+
         ConstructedRuntime(
-            runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata),
+            runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata, overrides),
             metadataHash = metadataRaw.md5(),
             baseTypesHash = baseHash,
             ownTypesHash = ownHash,
@@ -104,6 +107,24 @@ class RuntimeFactory(
         val (chainPreset, ownHash) = constructOwnTypes(chainId, runtimeVersion, basePreset)
 
         return Triple(chainPreset, baseHash, ownHash)
+    }
+
+    private suspend fun createOverrides(
+        chainId: String,
+    ): OverriddenConstantsMap? {
+        val ownTypesRaw = runCatching { runtimeFilesCache.getChainTypes(chainId) }
+            .getOrElse { throw ChainInfoNotInCacheException }
+
+        val overrides = fromJson(ownTypesRaw).overrides
+        val result = overrides?.mapNotNull {
+            it.constants?.let { constants ->
+                it.module to constants.associate { constant ->
+                    constant.name to constant.value
+                }
+            }
+        }?.toMap()
+
+        return result
     }
 
     private suspend fun constructOwnTypes(

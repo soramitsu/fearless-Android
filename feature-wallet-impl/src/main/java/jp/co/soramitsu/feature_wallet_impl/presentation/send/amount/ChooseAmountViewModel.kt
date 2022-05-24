@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.map
+import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
@@ -27,6 +28,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Ok
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel.Warning
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
@@ -99,6 +101,24 @@ class ChooseAmountViewModel(
 
         emit(asset)
         updateExistentialDeposit(asset.token.configuration)
+    }
+
+    private val tipLiveData = liveData { walletConstants.tip(assetPayload.chainId)?.let { emit(it) } }
+    private val tipAmountLiveData = mediateWith(tipLiveData, assetLiveData) { (tip: BigInteger?, asset: Asset?) ->
+        tip?.let {
+            asset?.token?.amountFromPlanks(it)
+        }
+    }
+
+    val tipAmountTextLiveData = mediateWith(tipAmountLiveData, assetLiveData) { (tip: BigDecimal?, asset: Asset?) ->
+        asset?.token?.configuration?.symbol?.let {
+            tip?.formatTokenAmount(it)
+        }
+    }
+    val tipFiatAmountLiveData = mediateWith(tipAmountLiveData, assetLiveData) { (tip: BigDecimal?, asset: Asset?) ->
+        tip?.let {
+            asset?.token?.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol)
+        }
     }
 
     val feeLiveData = feeFlow().asLiveData()
@@ -265,8 +285,9 @@ class ChooseAmountViewModel(
 
     private fun buildTransferDraft(): TransferDraft? {
         val fee = feeLiveData.value ?: return null
+        val tip = tipAmountLiveData.value
 
-        return TransferDraft(fee.transferAmount, fee.feeAmount, assetPayload, recipientAddress)
+        return TransferDraft(fee.transferAmount, fee.feeAmount, assetPayload, recipientAddress, tip)
     }
 
     private fun retryLoadFee() {
@@ -276,15 +297,16 @@ class ChooseAmountViewModel(
     fun quickInputSelected(value: Double) {
         val amount = assetModelLiveData.value?.available ?: return
         val fee = feeLiveData.value?.feeAmount ?: return
+        val tip = tipAmountLiveData.value ?: BigDecimal.ZERO
 
         val quickAmountRaw = amount * value.toBigDecimal()
-        val quickAmountWithoutFee = quickAmountRaw - fee
+        val quickAmountWithoutExtraPays = quickAmountRaw - fee - tip
 
-        if (quickAmountWithoutFee < BigDecimal.ZERO) {
+        if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
             return
         }
 
-        val newAmount = quickAmountWithoutFee.format()
+        val newAmount = quickAmountWithoutExtraPays.format()
         amountChanged(newAmount)
     }
 }
