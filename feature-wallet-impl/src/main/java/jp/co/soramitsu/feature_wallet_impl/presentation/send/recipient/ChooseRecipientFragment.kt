@@ -107,6 +107,10 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
         observePhishingCheck(viewModel)
 
         searchRecipientField.onTextChanged(viewModel::queryChanged)
+
+        viewModel.assetSymbolLiveData.observe {
+            searchRecipientToolbar.setTitle(getString(R.string.wallet_send_navigation_title, it))
+        }
     }
 
     private fun requestCameraPermission() {
