@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -240,6 +241,7 @@ class WalletInteractorImpl(
         transfer: Transfer,
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel,
+        tipInPlanks: BigInteger?,
     ): Result<Unit> {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
@@ -252,7 +254,7 @@ class WalletInteractorImpl(
         }
 
         return runCatching {
-            walletRepository.performTransfer(accountId, chain, transfer, fee)
+            walletRepository.performTransfer(accountId, chain, transfer, fee, tipInPlanks)
         }
     }
 

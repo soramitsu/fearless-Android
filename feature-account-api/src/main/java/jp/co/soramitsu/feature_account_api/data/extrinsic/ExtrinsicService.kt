@@ -36,12 +36,13 @@ class ExtrinsicService(
         chain: Chain,
         accountId: ByteArray,
         useBatchAll: Boolean = false,
+        tip: BigInteger? = null,
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit,
     ): Result<String> = runCatching {
         val metaAccount = accountRepository.findMetaAccount(accountId) ?: error("No meta account found accessing ${accountId.toHexString()}")
         val keypair = secretStoreV2.getKeypairFor(metaAccount, chain, accountId)
 
-        val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, metaAccount.cryptoType(chain))
+        val extrinsicBuilder = extrinsicBuilderFactory.create(chain, keypair, metaAccount.cryptoType(chain), tip)
 
         extrinsicBuilder.formExtrinsic()
 

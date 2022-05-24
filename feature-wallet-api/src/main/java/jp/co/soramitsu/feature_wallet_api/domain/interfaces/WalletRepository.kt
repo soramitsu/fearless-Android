@@ -71,6 +71,7 @@ interface WalletRepository {
         chain: Chain,
         transfer: Transfer,
         fee: BigDecimal,
+        tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
         batchAll: Boolean = false
     )
