@@ -106,6 +106,8 @@ fun RuntimeMetadata.slots() = module(Modules.SLOTS)
 
 fun RuntimeMetadata.session() = module(Modules.SESSION)
 
+fun RuntimeMetadata.identity() = module(Modules.SESSION)
+
 fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapArguments: Collection<T>): Map<String, T> {
     return singleMapArguments.associateBy { storageKey(runtime, it) }
 }
@@ -152,4 +154,5 @@ object Modules {
     const val SLOTS = "Slots"
     const val SESSION = "Session"
     const val TOKENS = "Tokens"
+    const val IDENTITY = "Identity"
 }

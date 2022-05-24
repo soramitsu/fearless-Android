@@ -5,6 +5,8 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -27,7 +29,9 @@ class StakingViewStateFactory(
     private val router: StakingRouter,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
-    private val validationExecutor: ValidationExecutor
+    private val validationExecutor: ValidationExecutor,
+    private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+    private val parachainScenarioInteractor: StakingParachainScenarioInteractor
 ) {
 
     fun createValidatorViewState(
@@ -38,6 +42,7 @@ class StakingViewStateFactory(
     ) = ValidatorViewState(
         validatorState = stakingState,
         stakingInteractor = stakingInteractor,
+        relayChainScenarioInteractor = relayChainScenarioInteractor,
         currentAssetFlow = currentAssetFlow,
         scope = scope,
         router = router,
@@ -54,6 +59,7 @@ class StakingViewStateFactory(
         stashState = accountStakingState,
         currentAssetFlow = currentAssetFlow,
         stakingInteractor = stakingInteractor,
+        relayChainScenarioInteractor = relayChainScenarioInteractor,
         resourceManager = resourceManager,
         scope = scope,
         router = router,
@@ -100,6 +106,7 @@ class StakingViewStateFactory(
     ) = NominatorViewState(
         nominatorState = stakingState,
         stakingInteractor = stakingInteractor,
+        relayChainScenarioInteractor = relayChainScenarioInteractor,
         currentAssetFlow = currentAssetFlow,
         scope = scope,
         router = router,
@@ -111,12 +118,21 @@ class StakingViewStateFactory(
         return CollatorViewState
     }
 
-    fun createDelegatorViewState(accountStakingState: StakingState.Parachain.Delegator): StakingViewState {
+    fun createDelegatorViewState(
+        accountStakingState: StakingState.Parachain.Delegator,
+        currentAssetFlow: Flow<Asset>,
+        scope: CoroutineScope,
+        errorDisplayer: (Throwable) -> Unit
+    ): StakingViewState {
         return DelegatorViewState(
-            accountStakingState.chain,
-            accountStakingState.accountId,
-            accountStakingState.delegations,
-            accountStakingState.totalDelegatedAmount
+            delegatorState = accountStakingState,
+            currentAssetFlow = currentAssetFlow,
+            stakingInteractor = stakingInteractor,
+            parachainScenarioInteractor = parachainScenarioInteractor,
+            resourceManager = resourceManager,
+            scope = scope,
+            router = router,
+            errorDisplayer = errorDisplayer
         )
     }
 }

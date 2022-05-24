@@ -29,3 +29,16 @@ enum class StashNoneStatus {
 enum class ValidatorStatus {
     ACTIVE, INACTIVE
 }
+
+sealed class DelegatorStatus {
+    object Active : DelegatorStatus()
+
+    class Waiting(val timeLeft: Long) : DelegatorStatus()
+
+    class Inactive(val reason: Reason) : DelegatorStatus() {
+
+        enum class Reason {
+            MIN_STAKE, NO_ACTIVE_VALIDATOR
+        }
+    }
+}

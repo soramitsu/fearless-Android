@@ -17,8 +17,8 @@ import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.scenarios.StakingParachainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
