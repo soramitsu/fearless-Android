@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.domain.scenarios
+package jp.co.soramitsu.feature_staking_impl.scenarios
 
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
@@ -7,12 +7,15 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
+import jp.co.soramitsu.feature_staking_impl.domain.model.DelegatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
+import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 
@@ -57,5 +60,9 @@ class StakingParachainScenarioInteractor(
             val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
             stakingRepository.observeParachainState(chain, accountId)
         }
+    }
+
+    fun observeDelegatorSummary(delegatorState: StakingState.Parachain.Delegator): Flow<StakeSummary<DelegatorStatus>> {
+        return emptyFlow()
     }
 }

@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
@@ -77,35 +77,6 @@ class StakingRelaychainScenarioViewModel(
     }
 
     override suspend fun getRewardCalculator() = rewardCalculatorFactory.createManual()
-
-//    override suspend fun stakingInfoViewStateFlow(): Flow<StakingInfoViewState> {
-//        return combine(
-//            stakingInteractor.currentAssetFlow(),
-//            scenarioInteractor.observeNetworkInfoState().map { transformNetworkInfo(resourceManager,) },
-//            stakingInteractor.stakingStoriesFlow().map { it.map(::transformStories) }
-//        ) { asset, networkInfo, stories ->
-//            val name = asset.token.configuration.name
-//            val minimumStake = asset.token.amountFromPlanks(networkInfo.minimumStake)
-//            val minimumStakeFormatted = minimumStake.formatTokenAmount(asset.token.configuration)
-//            val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
-//            val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
-//                .format(networkInfo.lockupPeriodInDays)
-//            val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
-//            val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
-//            val totalStakedFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol)
-//
-//            StakingInfoViewState.RelayChain(
-//                name,
-//                stories,
-//                totalStakeFormatted,
-//                totalStakedFiat,
-//                minimumStakeFormatted,
-//                minimumStakeFiat,
-//                networkInfo.nominatorsCount.format(),
-//                lockupPeriod
-//            )
-//        }
-//    }
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
         return combine(
