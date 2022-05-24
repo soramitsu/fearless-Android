@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.domain.model.StoryGroup
@@ -25,6 +24,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorState
 import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
@@ -34,6 +34,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_api.domain.model.toDelegations
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindActiveEra
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCandidateInfo
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentEra
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentIndex
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCurrentSlot
@@ -70,6 +71,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 class StakingRepositoryImpl(
     private val accountStakingDao: AccountStakingDao,
@@ -391,6 +393,42 @@ class StakingRepositoryImpl(
                 it.metadata.parachainStaking().storage("DelegatorState").storageKey(it, accountId)
             },
             binder = { scale, runtime ->
+                scale?.let { bindDelegatorState(it, runtime) }
+            }
+        )
+    }
+
+    override suspend fun getCandidateInfos(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<CandidateInfo?> {
+        return remoteStorage.queryKeys(
+            chainId = chainId,
+            keysBuilder = { runtime ->
+                val storage = runtime.metadata.parachainStaking().storage("CandidateInfo")
+                storage.storageKeys(
+                    runtime = runtime,
+                    singleMapArguments = addresses20,
+                    argumentTransform = { it.toHexString() }
+                )
+            },
+            binding = { scale, runtime ->
+                scale?.let { bindCandidateInfo(it, runtime) }
+            }
+        )
+    }
+
+    override suspend fun getDelegatorStates(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<DelegatorState?> = withContext(Dispatchers.Default) {
+        val runtime = runtimeFor(chainId)
+        val storage = runtime.metadata.parachainStaking().storage("DelegatorState")
+
+        remoteStorage.queryKeys(
+            chainId = chainId,
+            keysBuilder = {
+                storage.storageKeys(
+                    runtime = runtime,
+                    singleMapArguments = addresses20,
+                    argumentTransform = { it.toHexString() }
+                )
+            },
+            binding = { scale, _ ->
                 scale?.let { bindDelegatorState(it, runtime) }
             }
         )
