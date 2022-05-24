@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.domain
 import java.math.BigInteger
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.combineToPair
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -15,7 +14,6 @@ import jp.co.soramitsu.feature_staking_api.domain.api.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.erasPerDay
-import jp.co.soramitsu.feature_staking_api.domain.api.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -28,27 +26,17 @@ import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
-import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
-import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayout
 import jp.co.soramitsu.feature_staking_impl.domain.model.PendingPayoutsStatistics
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
-import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
-import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chain
-import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
-import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -57,7 +45,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -84,7 +71,7 @@ class StakingInteractor(
     private val assetUseCase: AssetUseCase,
     private val factory: EraTimeCalculatorFactory,
 ) {
-    @OptIn(ExperimentalTime::class)
+
     suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
         runCatching {
             val currentStakingState = selectedAccountStakingStateFlow().first()
@@ -136,84 +123,6 @@ class StakingInteractor(
         runCatching {
             stakingRewardsRepository.sync(chainId, accountAddress)
         }
-    }
-
-    suspend fun observeStashSummary(
-        stashState: StakingState.Stash.None
-    ): Flow<StakeSummary<StashNoneStatus>> = observeStakeSummary(stashState) {
-        StashNoneStatus.INACTIVE
-    }
-
-    suspend fun observeValidatorSummary(
-        validatorState: StakingState.Stash.Validator,
-    ): Flow<StakeSummary<ValidatorStatus>> = observeStakeSummary(validatorState) {
-        when {
-            isValidatorActive(validatorState.stashId, it.eraStakers) -> ValidatorStatus.ACTIVE
-            else -> ValidatorStatus.INACTIVE
-        }
-    }
-
-    suspend fun observeNominatorSummary(
-        nominatorState: StakingState.Stash.Nominator,
-    ): Flow<StakeSummary<NominatorStatus>> = observeStakeSummary(nominatorState) {
-        val eraStakers = it.eraStakers.values
-        val chainId = nominatorState.chain.id
-
-        when {
-            isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
-
-            nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
-                timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
-            )
-
-            else -> {
-                val inactiveReason = when {
-                    it.asset.bondedInPlanks.orZero() < minimumStake(eraStakers, stakingRepository.minimumNominatorBond(chainId)) -> {
-                        NominatorStatus.Inactive.Reason.MIN_STAKE
-                    }
-                    else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
-                }
-
-                NominatorStatus.Inactive(inactiveReason)
-            }
-        }
-    }
-
-    suspend fun observeNetworkInfoState(chainId: ChainId, stakingType: Chain.Asset.StakingType): Flow<NetworkInfo> = withContext(Dispatchers.Default) {
-        when (stakingType) {
-            Chain.Asset.StakingType.UNSUPPORTED -> throw IllegalArgumentException("Staking is unsupported for this chain")
-            Chain.Asset.StakingType.RELAYCHAIN -> observeRelaychainNetworkInfoState(chainId)
-            Chain.Asset.StakingType.PARACHAIN -> observeParachainNetworkInfoState(chainId)
-        }
-    }
-
-    private suspend fun observeRelaychainNetworkInfoState(chainId: ChainId): Flow<NetworkInfo> {
-        val lockupPeriod = getLockupPeriodInDays(chainId)
-
-        return stakingRepository.electedExposuresInActiveEra(chainId).map { exposuresMap ->
-            val exposures = exposuresMap.values
-
-            val minimumNominatorBond = stakingRepository.minimumNominatorBond(chainId)
-
-            NetworkInfo.RelayChain(
-                lockupPeriodInDays = lockupPeriod,
-                minimumStake = minimumStake(exposures, minimumNominatorBond),
-                totalStake = totalStake(exposures),
-                nominatorsCount = activeNominators(chainId, exposures),
-            )
-        }
-    }
-
-    private suspend fun observeParachainNetworkInfoState(chainId: ChainId): Flow<NetworkInfo> {
-        val lockupPeriod = getParachainLockupPeriodInDays(chainId)
-        val minimumStakeInPlanks = stakingConstantsRepository.parachainMinimumStaking(chainId)
-
-        return flowOf(
-            NetworkInfo.Parachain(
-                lockupPeriodInDays = lockupPeriod,
-                minimumStake = minimumStakeInPlanks
-            )
-        )
     }
 
     suspend fun getMinimumStake(chainId: ChainId): BigInteger {
@@ -364,37 +273,6 @@ class StakingInteractor(
         return EraRelativeInfo(daysLeft, daysPast, erasLeft, erasPast)
     }
 
-    private suspend fun <S> observeStakeSummary(
-        state: StakingState.Stash,
-        statusResolver: suspend (StatusResolutionContext) -> S,
-    ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
-        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
-        val chainId = chainAsset.chainId
-        val meta = accountRepository.getSelectedMetaAccount()
-
-        combine(
-            stakingRepository.observeActiveEraIndex(chainId),
-            walletRepository.assetFlow(meta.id, state.accountId, chainAsset, chain.minSupportedVersion),
-            stakingRewardsRepository.totalRewardFlow(state.stashAddress)
-        ) { activeEraIndex, asset, totalReward ->
-            val totalStaked = asset.bonded
-
-            val eraStakers = stakingRepository.getActiveElectedValidatorsExposures(chainId)
-            val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
-
-            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, asset, rewardedNominatorsPerValidator)
-
-            val status = statusResolver(statusResolutionContext)
-
-            StakeSummary(
-                status = status,
-                totalStaked = totalStaked,
-                totalReward = asset.token.amountFromPlanks(totalReward),
-                currentEra = activeEraIndex.toInt(),
-            )
-        }
-    }
-
     private fun isValidatorActive(stashId: ByteArray, exposures: AccountIdMap<Exposure>): Boolean {
         val stashIdHex = stashId.toHexString()
 
@@ -421,24 +299,4 @@ class StakingInteractor(
     private suspend fun getLockupPeriodInDays(chainId: ChainId): Int {
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() / stakingRepository.erasPerDay(chainId)
     }
-
-    private val hoursInRound = mapOf(
-        "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d" to 6, // moonbeam
-        "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b" to 2, // moonriver
-        "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527" to 2 // moonbase
-    )
-
-    private suspend fun getParachainLockupPeriodInDays(chainId: ChainId): Int {
-        val hoursInRound = hoursInRound[chainId] ?: return 0
-        val lockupPeriodInRounds = stakingConstantsRepository.parachainLockupPeriodInRounds(chainId).toInt()
-        val lockupPeriodInHours = lockupPeriodInRounds * hoursInRound
-        return lockupPeriodInHours.toDuration(DurationUnit.HOURS).toInt(DurationUnit.DAYS)
-    }
-
-    private class StatusResolutionContext(
-        val eraStakers: AccountIdMap<Exposure>,
-        val activeEraIndex: BigInteger,
-        val asset: Asset,
-        val rewardedNominatorsPerValidator: Int
-    )
 }

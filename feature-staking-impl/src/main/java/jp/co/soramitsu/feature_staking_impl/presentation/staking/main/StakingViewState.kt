@@ -8,16 +8,16 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.feature_staking_api.domain.model.CollatorDelegation
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.model.DelegatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus.Inactive.Reason
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
@@ -25,6 +25,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -37,7 +39,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -83,14 +84,14 @@ enum class ManageStakeAction {
 }
 
 sealed class StakeViewState<S>(
-    private val stakeState: StakingState.Stash,
+    private val stakeState: StakingState,
     protected val currentAssetFlow: Flow<Asset>,
     protected val stakingInteractor: StakingInteractor,
     protected val resourceManager: ResourceManager,
     protected val scope: CoroutineScope,
     protected val router: StakingRouter,
     protected val errorDisplayer: (Throwable) -> Unit,
-    protected val summaryFlowProvider: suspend (StakingState.Stash) -> Flow<StakeSummary<S>>,
+    protected val summaryFlowProvider: suspend (StakingState) -> Flow<StakeSummary<S>>,
     protected val statusMessageProvider: (S) -> TitleAndMessage,
     private val availableManageActions: Set<ManageStakeAction>
 ) : StakingViewState() {
@@ -138,7 +139,7 @@ sealed class StakeViewState<S>(
 
     private fun syncStakingRewards() {
         scope.launch {
-            val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.stashAddress)
+            val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.rewardsAddress)
 
             syncResult.exceptionOrNull()?.let { errorDisplayer(it) }
         }
@@ -176,6 +177,7 @@ class ValidatorViewState(
     validatorState: StakingState.Stash.Validator,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
+    relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     resourceManager: ResourceManager,
     scope: CoroutineScope,
     router: StakingRouter,
@@ -183,7 +185,7 @@ class ValidatorViewState(
 ) : StakeViewState<ValidatorStatus>(
     validatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { stakingInteractor.observeValidatorSummary(validatorState) },
+    summaryFlowProvider = { relayChainScenarioInteractor.observeValidatorSummary(validatorState) },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
 )
@@ -205,6 +207,7 @@ class StashNoneViewState(
     stashState: StakingState.Stash.None,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
+    relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     resourceManager: ResourceManager,
     scope: CoroutineScope,
     router: StakingRouter,
@@ -212,7 +215,7 @@ class StashNoneViewState(
 ) : StakeViewState<StashNoneStatus>(
     stashState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { stakingInteractor.observeStashSummary(stashState) },
+    summaryFlowProvider = { relayChainScenarioInteractor.observeStashSummary(stashState) },
     statusMessageProvider = { getStashStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.PAYOUTS
 )
@@ -232,6 +235,7 @@ class NominatorViewState(
     nominatorState: StakingState.Stash.Nominator,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
+    relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     resourceManager: ResourceManager,
     scope: CoroutineScope,
     router: StakingRouter,
@@ -239,7 +243,7 @@ class NominatorViewState(
 ) : StakeViewState<NominatorStatus>(
     nominatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { stakingInteractor.observeNominatorSummary(nominatorState) },
+    summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState) },
     statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet()
 )
@@ -256,6 +260,24 @@ private fun getNominatorStatusTitleAndMessage(
         is NominatorStatus.Inactive -> when (status.reason) {
             Reason.MIN_STAKE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_low_stake
             Reason.NO_ACTIVE_VALIDATOR -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
+        }
+    }
+
+    return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
+}
+
+private fun getDelegatorStatusTitleAndMessage(
+    resourceManager: ResourceManager,
+    status: DelegatorStatus
+): Pair<String, String> {//todo fix
+    val (titleRes, messageRes) = when (status) {
+        is DelegatorStatus.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
+
+        is DelegatorStatus.Waiting -> R.string.staking_nominator_status_waiting to R.string.staking_nominator_status_alert_waiting_message
+
+        is DelegatorStatus.Inactive -> when (status.reason) {
+            DelegatorStatus.Inactive.Reason.MIN_STAKE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_low_stake
+            DelegatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
         }
     }
 
@@ -428,14 +450,31 @@ class ParachainWelcomeViewState(
     }
 }
 
-data class DelegatorViewState(
-    val chain: Chain,
-    val accountId: AccountId,
-    val delegations: List<CollatorDelegation>,
-    val totalDelegatedAmount: BigDecimal
-) : StakingViewState() {
+class DelegatorViewState(
+    private val delegatorState: StakingState.Parachain.Delegator,
+    currentAssetFlow: Flow<Asset>,
+    stakingInteractor: StakingInteractor,
+    parachainScenarioInteractor: StakingParachainScenarioInteractor,
+    resourceManager: ResourceManager,
+    scope: CoroutineScope,
+    router: StakingRouter,
+    errorDisplayer: (Throwable) -> Unit,
+) : StakeViewState<DelegatorStatus>(
+    delegatorState, currentAssetFlow, stakingInteractor,
+    resourceManager, scope, router, errorDisplayer,
+    summaryFlowProvider = { parachainScenarioInteractor.observeDelegatorSummary(delegatorState) },
+    statusMessageProvider = { getDelegatorStatusTitleAndMessage(resourceManager, it) },
+    availableManageActions = ManageStakeAction.values().toSet()
+) {
 
-//    val stakedAmountLiveData: LiveData<String>
+    val delegations = flowOf { delegatorState.delegations }
+
+    fun foo() {
+        delegatorState.delegations.map {
+            it.name
+        }
+    }
+
 }
 
 object CollatorViewState : StakingViewState()

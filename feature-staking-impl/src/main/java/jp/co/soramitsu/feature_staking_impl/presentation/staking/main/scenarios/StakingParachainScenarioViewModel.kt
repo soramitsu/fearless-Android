@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
@@ -34,21 +34,19 @@ class StakingParachainScenarioViewModel(
     override suspend fun stakingState(): Flow<LoadingState<StakingState>> =
         scenarioInteractor.getStakingStateFlow().withLoading()
 
-    //    override fun getLoadingStakingState(): Flow<LoadingState<StakingState>> = stakingInteractor.selectionStateFlow()
-//        .withLoading { (account, assetWithToken) ->
-//            scenarioInteractor.selectedAccountStakingStateFlow(account, assetWithToken)
-//        }
-//
-//    override fun getStakingViewStateFlow(): Flow<LoadingState<StakingViewState>> {
-//        return getLoadingStakingState().mapLoading { }
-//    }
-
     override suspend fun getStakingViewStateFlow(): Flow<LoadingState<StakingViewState>> {
         return stakingState().mapLoading { stakingState ->
-            hashCode()
             when (stakingState) {
                 is StakingState.Parachain.None -> {
                     stakingViewStateFactory.createParachainWelcomeViewState(
+                        stakingInteractor.currentAssetFlow(),
+                        baseViewModel.stakingStateScope,
+                        baseViewModel::showError
+                    )
+                }
+                is StakingState.Parachain.Delegator -> {
+                    stakingViewStateFactory.createDelegatorViewState(
+                        stakingState,
                         stakingInteractor.currentAssetFlow(),
                         baseViewModel.stakingStateScope,
                         baseViewModel::showError

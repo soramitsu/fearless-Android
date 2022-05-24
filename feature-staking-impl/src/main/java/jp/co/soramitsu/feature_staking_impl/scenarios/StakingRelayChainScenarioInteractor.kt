@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.domain.scenarios
+package jp.co.soramitsu.feature_staking_impl.scenarios
 
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
@@ -26,6 +26,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.minimumStake
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
+import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
+import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
@@ -97,35 +99,18 @@ class StakingRelayChainScenarioInteractor(
         }
     }
 
-    private suspend fun <S> observeStakeSummary(
-        state: StakingState.Stash,
-        statusResolver: suspend (StatusResolutionContext) -> S,
-    ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
+    suspend fun observeStashSummary(
+        stashState: StakingState.Stash.None
+    ): Flow<StakeSummary<StashNoneStatus>> = observeStakeSummary(stashState) {
+        StashNoneStatus.INACTIVE
+    }
 
-        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
-        val chainId = chainAsset.chainId
-        val meta = accountRepository.getSelectedMetaAccount()
-
-        combine(
-            stakingRepository.observeActiveEraIndex(chainId),
-            walletRepository.assetFlow(meta.id, state.accountId, chainAsset, chain.minSupportedVersion),
-            stakingRewardsRepository.totalRewardFlow(state.stashAddress)
-        ) { activeEraIndex, asset, totalReward ->
-            val totalStaked = asset.bonded
-
-            val eraStakers = stakingRepository.getActiveElectedValidatorsExposures(chainId)
-            val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
-
-            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, asset, rewardedNominatorsPerValidator)
-
-            val status = statusResolver(statusResolutionContext)
-
-            StakeSummary(
-                status = status,
-                totalStaked = totalStaked,
-                totalReward = asset.token.amountFromPlanks(totalReward),
-                currentEra = activeEraIndex.toInt(),
-            )
+    suspend fun observeValidatorSummary(
+        validatorState: StakingState.Stash.Validator,
+    ): Flow<StakeSummary<ValidatorStatus>> = observeStakeSummary(validatorState) {
+        when {
+            isValidatorActive(validatorState.stashId, it.eraStakers) -> ValidatorStatus.ACTIVE
+            else -> ValidatorStatus.INACTIVE
         }
     }
 
@@ -155,6 +140,43 @@ class StakingRelayChainScenarioInteractor(
         }
     }
 
+    private suspend fun <S> observeStakeSummary(
+        state: StakingState.Stash,
+        statusResolver: suspend (StatusResolutionContext) -> S,
+    ): Flow<StakeSummary<S>> = withContext(Dispatchers.Default) {
+        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+        val chainId = chainAsset.chainId
+        val meta = accountRepository.getSelectedMetaAccount()
+
+        combine(
+            stakingRepository.observeActiveEraIndex(chainId),
+            walletRepository.assetFlow(meta.id, state.accountId, chainAsset, chain.minSupportedVersion),
+            stakingRewardsRepository.totalRewardFlow(state.stashAddress)
+        ) { activeEraIndex, asset, totalReward ->
+            val totalStaked = asset.bonded
+
+            val eraStakers = stakingRepository.getActiveElectedValidatorsExposures(chainId)
+            val rewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
+
+            val statusResolutionContext = StatusResolutionContext(eraStakers, activeEraIndex, asset, rewardedNominatorsPerValidator)
+
+            val status = statusResolver(statusResolutionContext)
+
+            StakeSummary(
+                status = status,
+                totalStaked = totalStaked,
+                totalReward = asset.token.amountFromPlanks(totalReward),
+                currentEra = activeEraIndex.toInt(),
+            )
+        }
+    }
+
+    private fun isValidatorActive(stashId: ByteArray, exposures: AccountIdMap<Exposure>): Boolean {
+        val stashIdHex = stashId.toHexString()
+
+        return stashIdHex in exposures.keys
+    }
+
     private suspend fun getCalculator(): EraTimeCalculator {
         return factory.create(stakingSharedState.chainId())
     }
@@ -165,4 +187,5 @@ class StakingRelayChainScenarioInteractor(
         val asset: Asset,
         val rewardedNominatorsPerValidator: Int
     )
+
 }

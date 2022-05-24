@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.domain.scenarios
+package jp.co.soramitsu.feature_staking_impl.scenarios
 
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
