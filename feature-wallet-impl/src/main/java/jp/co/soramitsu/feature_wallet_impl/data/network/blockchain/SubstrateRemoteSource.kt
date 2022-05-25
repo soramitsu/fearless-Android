@@ -39,6 +39,7 @@ interface SubstrateRemoteSource {
         accountId: ByteArray,
         chain: Chain,
         transfer: Transfer,
+        tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String

@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityStatus
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -109,8 +110,9 @@ class ConfirmTransferViewModel(
         _transferSubmittingLiveData.value = true
 
         viewModelScope.launch {
+            val tipInPlanks = transferDraft.tip?.let { chainAsset.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(chainAsset), transferDraft.fee, maxAllowedStatusLevel)
+                interactor.performTransfer(createTransfer(chainAsset), transferDraft.fee, maxAllowedStatusLevel, tipInPlanks)
             }
             if (result.isSuccess) {
                 router.finishSendFlow()

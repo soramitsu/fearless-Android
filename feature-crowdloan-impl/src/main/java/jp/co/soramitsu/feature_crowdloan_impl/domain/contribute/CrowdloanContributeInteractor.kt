@@ -137,7 +137,7 @@ class CrowdloanContributeInteractor(
         }
 
         return runCatching {
-            walletRepository.performTransfer(accountId, chain, transfer, fee, additional, batchAll)
+            walletRepository.performTransfer(accountId, chain, transfer, fee, null, additional, batchAll)
         }
     }
 
