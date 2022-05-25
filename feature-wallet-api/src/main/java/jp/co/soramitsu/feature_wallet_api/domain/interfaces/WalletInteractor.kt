@@ -20,6 +20,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
 
@@ -63,7 +64,8 @@ interface WalletInteractor {
     suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,
-        maxAllowedLevel: TransferValidityLevel = TransferValidityLevel.Ok
+        maxAllowedLevel: TransferValidityLevel = TransferValidityLevel.Ok,
+        tipInPlanks: BigInteger?
     ): Result<Unit>
 
     suspend fun getSenderAddress(chainId: ChainId): String?

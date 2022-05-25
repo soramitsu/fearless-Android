@@ -294,10 +294,11 @@ class WalletRepositoryImpl(
         chain: Chain,
         transfer: Transfer,
         fee: BigDecimal,
+        tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ) {
-        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, additional, batchAll)
+        val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
         val accountAddress = chain.addressOf(accountId)
 
         val operation = createOperation(
@@ -343,7 +344,10 @@ class WalletRepositoryImpl(
         val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
-        return transfer.validityStatus(asset.transferable, asset.total.orZero(), feeResponse.feeAmount, totalRecipientBalance, existentialDeposit)
+        val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()
+        val tip = tipInPlanks?.let { chainAsset.amountFromPlanks(it) }
+
+        return transfer.validityStatus(asset.transferable, asset.total.orZero(), feeResponse.feeAmount, totalRecipientBalance, existentialDeposit, tip)
     }
 
     // TODO adapt for ethereum chains

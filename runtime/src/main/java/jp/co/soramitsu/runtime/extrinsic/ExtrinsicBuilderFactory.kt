@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.extrinsic
 
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
@@ -20,6 +21,7 @@ import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 private val FAKE_CRYPTO_TYPE = CryptoType.SR25519
 
@@ -44,6 +46,7 @@ class ExtrinsicBuilderFactory(
         chain: Chain,
         keypair: Keypair,
         cryptoType: CryptoType,
+        tip: BigInteger? = null
     ): ExtrinsicBuilder {
         val accountAddress = chain.addressFromPublicKey(keypair.publicKey)
 
@@ -75,7 +78,8 @@ class ExtrinsicBuilderFactory(
             blockHash = blockHash ?: genesisHash,
             era = mortality?.era ?: Era.Immortal,
             multiChainEncryption = multiChainEncryption,
-            accountIdentifier = accountIdentifierValue
+            accountIdentifier = accountIdentifierValue,
+            tip = tip.orZero()
         )
     }
 

@@ -11,6 +11,7 @@ import androidx.core.os.bundleOf
 import coil.ImageLoader
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
@@ -33,6 +34,9 @@ import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountField
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountMax
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountNext
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountRecipientView
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountTip
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountTipFiat
+import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountTipGroup
 import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToolbar
 import javax.inject.Inject
 
@@ -107,6 +111,13 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
         viewModel.feeLiveData.observe {
             chooseAmountFee.text = it?.feeAmount?.formatTokenAmount(it.type) ?: getString(R.string.common_error_general_title)
+        }
+        viewModel.tipAmountTextLiveData.observe {
+            chooseAmountTipGroup.makeVisible()
+            chooseAmountTip.text = it
+        }
+        viewModel.tipFiatAmountLiveData.observe {
+            chooseAmountTipFiat.text = it
         }
         viewModel.feeFiatLiveData.observe {
             chooseAmountFeeFiat.text = it ?: ""
