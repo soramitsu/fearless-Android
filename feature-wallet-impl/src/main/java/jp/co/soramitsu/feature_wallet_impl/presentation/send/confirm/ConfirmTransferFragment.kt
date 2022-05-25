@@ -8,6 +8,7 @@ import coil.ImageLoader
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
@@ -18,8 +19,11 @@ import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmAmountField
+import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmAmountTipGroup
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmFee
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmFeeFiat
+import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTip
+import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTipFiat
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferRecipientView
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferSenderView
 import kotlinx.android.synthetic.main.fragment_confirm_transfer.confirmTransferSubmit
@@ -96,6 +100,12 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>() {
 
                 confirmAmountField.amountInput.setText(totalTransaction.formatTokenAmount(chainAsset))
                 confirmAmountField.setAssetBalanceFiatAmount(it.token.fiatAmount(totalTransaction)?.formatAsCurrency(it.token.fiatSymbol))
+
+                tip?.let { tip ->
+                    confirmAmountTipGroup.makeVisible()
+                    confirmTip.text = tip.formatTokenAmount(chainAsset)
+                    confirmTipFiat.text = it.token.fiatAmount(tip)?.formatAsCurrency(it.token.fiatSymbol)
+                }
             }
         }
 

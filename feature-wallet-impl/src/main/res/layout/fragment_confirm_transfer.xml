@@ -64,12 +64,11 @@
         android:id="@+id/confirmTransferDivider4"
         android:layout_width="0dp"
         android:layout_height="1dp"
-        android:layout_marginBottom="22dp"
         android:background="@color/gray3"
-        app:layout_constraintBottom_toTopOf="@+id/confirmTransferSubmit"
+        app:layout_constraintBottom_toTopOf="@+id/confirmTipLabel"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_goneMarginBottom="22dp" />
 
     <TextView
         android:id="@+id/confirmFeeLabel"
@@ -102,6 +101,57 @@
         android:textColor="@color/gray2"
         app:layout_constraintEnd_toEndOf="@+id/confirmFee"
         app:layout_constraintTop_toBottomOf="@+id/confirmFee"
+        tools:text="$0.2" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/confirmAmountTipGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="confirmTransferDividerTip, confirmTipLabel, confirmTip, confirmTipFiat"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/confirmTransferDividerTip"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginBottom="22dp"
+        android:background="@color/gray3"
+        app:layout_constraintBottom_toTopOf="@+id/confirmTransferSubmit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/confirmTipLabel"
+        style="@style/TextAppearance.Soramitsu.Header5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="15dp"
+        android:paddingTop="15dp"
+        android:text="@string/choose_amount_tip"
+        app:layout_constraintBottom_toTopOf="@+id/confirmTransferDividerTip"
+        app:layout_constraintStart_toStartOf="@+id/confirmTransferDividerTip" />
+
+    <TextView
+        android:id="@+id/confirmTip"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/confirmTipLabel"
+        tools:text="0.001 KSM" />
+
+    <TextView
+        android:id="@+id/confirmTipFiat"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/gray2"
+        app:layout_constraintEnd_toEndOf="@+id/confirmTip"
+        app:layout_constraintTop_toBottomOf="@+id/confirmTip"
         tools:text="$0.2" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
