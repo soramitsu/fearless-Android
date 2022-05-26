@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
@@ -56,7 +57,12 @@ class StartChangeValidatorsFragment : BaseFragment<StartChangeValidatorsViewMode
             startChangeValidatorsCustom.setInProgress(it)
         }
 
-        viewModel.recommendedFeaturesText.observe(startChangeValidatorsRecommendedFeatures::setText)
+        viewModel.getRecommendedFeaturesIds().map { resId ->
+            (layoutInflater.inflate(R.layout.item_algorithm_criteria, startChangeValidatorsRecommendedFeatures, false) as? TextView)?.also {
+                it.text = getString(resId)
+                startChangeValidatorsRecommendedFeatures.addView(it)
+            }
+        }
 
         viewModel.customValidatorsTexts.observe {
             startChangeValidatorsCustom.title.text = it.title

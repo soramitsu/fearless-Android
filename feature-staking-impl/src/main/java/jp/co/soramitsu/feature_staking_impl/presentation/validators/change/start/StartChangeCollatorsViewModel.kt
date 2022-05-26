@@ -7,12 +7,11 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.retractValidators
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.transform
@@ -21,33 +20,33 @@ import kotlinx.coroutines.launch
 private val RECOMMENDED_FEATURES_IDS = listOf(
     R.string.staking_recommended_feature_1,
     R.string.staking_recommended_feature_2,
-    R.string.staking_recommended_feature_3,
-    R.string.staking_recommended_feature_4,
-    R.string.staking_recommended_feature_5,
+//    R.string.staking_recommended_feature_3,
+//    R.string.staking_recommended_feature_4,
+//    R.string.staking_recommended_feature_5,
 )
 
-class CustomValidatorsTexts(
+class CustomCollatorsTexts(
     val title: String,
     val badge: String?
 )
 
-class StartChangeValidatorsViewModel(
+class StartChangeCollatorsViewModel(
     private val router: StakingRouter,
-    private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
+    private val collatorRecommendatorFactory: CollatorRecommendatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val resourceManager: ResourceManager,
-    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
+    private val interactor: StakingInteractor,
 ) : BaseViewModel(), Browserable {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val maxValidatorsPerNominator = flowOf {
-        stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
+        interactor.maxValidatorsPerNominator()
     }.share()
 
-    val validatorsLoading = MutableStateFlow(true)
+    val collatorsLoading = MutableStateFlow(true)
 
-    val customValidatorsTexts = setupStakingSharedState.setupStakingProcess.transform {
+    val customCollatorsTexts = setupStakingSharedState.setupStakingProcess.transform {
         when {
             it is SetupStakingProcess.ReadyToSubmit && it.payload.validators.isNotEmpty() -> emit(
                 CustomValidatorsTexts(
@@ -72,22 +71,22 @@ class StartChangeValidatorsViewModel(
 
     init {
         launch {
-            validatorRecommendatorFactory.awaitValidatorLoading(router.currentStackEntryLifecycle)
+            collatorRecommendatorFactory.awaitCollatorLoading(router.currentStackEntryLifecycle)
 
-            validatorsLoading.value = false
+            collatorsLoading.value = false
         }
     }
 
     fun goToCustomClicked() {
-        router.openSelectCustomValidators()
+        router.openSelectCustomCollators()
     }
 
     fun goToRecommendedClicked() {
-        router.openRecommendedValidators()
+        router.openRecommendedCollators()
     }
 
     fun backClicked() {
-        setupStakingSharedState.retractValidators()
+//        setupStakingSharedState.retractValidators()
 
         router.back()
     }

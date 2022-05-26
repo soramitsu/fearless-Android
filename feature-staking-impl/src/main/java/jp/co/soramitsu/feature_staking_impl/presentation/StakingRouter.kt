@@ -17,6 +17,12 @@ interface StakingRouter {
 
     fun openSetupStaking()
 
+    fun openStartChangeCollators()
+
+    fun openRecommendedCollators()
+
+    fun openSelectCustomCollators()
+
     fun openStartChangeValidators()
 
     fun openRecommendedValidators()
@@ -30,6 +36,8 @@ interface StakingRouter {
     fun openReviewCustomValidators()
 
     fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel)
+
+//    fun openCollatorDetails(collatorDetails: ValidatorDetailsParcelModel)
 
     fun openConfirmStaking()
 
