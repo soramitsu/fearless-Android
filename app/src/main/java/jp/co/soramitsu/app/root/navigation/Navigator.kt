@@ -225,6 +225,10 @@ class Navigator :
         navController?.navigate(R.id.openStartChangeValidatorsFragment)
     }
 
+    override fun openStartChangeCollators() {
+        navController?.navigate(R.id.openStartChangeCollatorsFragment)
+    }
+
     override fun openStory(story: StoryGroupModel) {
         navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
     }
@@ -349,6 +353,14 @@ class Navigator :
             R.id.action_stakingSetControllerAccountFragment_to_confirmSetControllerAccountFragment,
             ConfirmSetControllerFragment.getBundle(payload)
         )
+    }
+
+    override fun openRecommendedCollators() {
+        navController?.navigate(R.id.action_startChangeCollatorsFragment_to_recommendedCollatorsFragment)
+    }
+
+    override fun openSelectCustomCollators() {
+        navController?.navigate(R.id.action_startChangeCollatorsFragment_to_selectCustomCollatorsFragment)
     }
 
     override fun openRecommendedValidators() {
