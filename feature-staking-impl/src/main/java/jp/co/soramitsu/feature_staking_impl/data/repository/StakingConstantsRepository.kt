@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.common.utils.staking
@@ -10,6 +9,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.westendChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import java.math.BigInteger
 
 class StakingConstantsRepository(
     private val chainRegistry: ChainRegistry,
@@ -33,6 +33,19 @@ class StakingConstantsRepository(
                 else -> throw e
             }
         }
+    }
+
+
+    suspend fun maxDelegationsPerDelegator(chainId: ChainId): Int {
+        return getParachainNumberConstant(chainId, "MaxDelegationsPerDelegator").toInt()
+    }
+
+    suspend fun maxTopDelegationsPerCandidate(chainId: ChainId): Int {
+        return getParachainNumberConstant(chainId, "MaxTopDelegationsPerCandidate").toInt()
+    }
+
+    suspend fun maxBottomDelegationsPerCandidate(chainId: ChainId): Int {
+        return getParachainNumberConstant(chainId, "MaxBottomDelegationsPerCandidate").toInt()
     }
 
     private suspend fun getNumberConstant(chainId: ChainId, constantName: String): BigInteger {

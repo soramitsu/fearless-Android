@@ -30,11 +30,13 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.d
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.di.ReviewCustomValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.search.di.SearchCustomValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.di.SelectCustomValidatorsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.di.CustomValidatorsSettingsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.di.RecommendedCollatorsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.di.RecommendedValidatorsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.di.StartChangeCollatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.di.StartChangeValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.di.CurrentValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.ValidatorDetailsComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.di.RecommendedValidatorsComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.di.CustomValidatorsSettingsComponent
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
 
@@ -61,7 +63,11 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun startChangeValidatorsComponentFactory(): StartChangeValidatorsComponent.Factory
 
+    fun startChangeCollatorsComponentFactory(): StartChangeCollatorsComponent.Factory
+
     fun recommendedValidatorsComponentFactory(): RecommendedValidatorsComponent.Factory
+
+    fun recommendedCollatorsComponentFactory(): RecommendedCollatorsComponent.Factory
 
     fun stakingComponentFactory(): StakingComponent.Factory
 
