@@ -1,10 +1,11 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common
 
 import android.util.Log
-import java.math.BigDecimal
+import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.math.BigDecimal
 
 sealed class SetupStakingProcess {
 
@@ -39,19 +40,22 @@ sealed class SetupStakingProcess {
             ) = Validators(Validators.Payload.Full(newAmount, rewardDestination, currentAccountAddress))
         }
 
-        class Parachain(override val amount: BigDecimal) : SetupStep() {
+    class Collators(
+        val payload: Validators.Payload
+    ) : SetupStakingProcess() {
+        fun next(validators: List<Validator>, collators: List<Collator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
+            val payload = with(payload) {
+                when (this) {
+                    is Validators.Payload.Full -> ReadyToSubmit.Payload.Full(amount, rewardDestination, controllerAddress, validators, collators, selectionMethod)
+                    is Validators.Payload.ExistingStash -> ReadyToSubmit.Payload.ExistingStash(validators, collators, selectionMethod)
+                    is Validators.Payload.Validators -> ReadyToSubmit.Payload.Validators(validators, collators, selectionMethod)
+                }
+            }
 
-            override fun previous() = Initial
-
-            override fun next(
-                newAmount: BigDecimal,
-                rewardDestination: RewardDestination,
-                currentAccountAddress: String
-            ) = Validators(Validators.Payload.Full(newAmount, rewardDestination, currentAccountAddress))
+            return ReadyToSubmit(payload)
         }
+
     }
-
-
 
     class Validators(
         val payload: Payload
@@ -75,12 +79,12 @@ sealed class SetupStakingProcess {
             else -> Initial
         }
 
-        fun next(validators: List<Validator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
+        fun next(validators: List<Validator>, collators: List<Collator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
             val payload = with(payload) {
                 when (this) {
-                    is Payload.Full -> ReadyToSubmit.Payload.Full(amount, rewardDestination, controllerAddress, validators, selectionMethod)
-                    is Payload.ExistingStash -> ReadyToSubmit.Payload.ExistingStash(validators, selectionMethod)
-                    is Payload.Validators -> ReadyToSubmit.Payload.Validators(validators, selectionMethod)
+                    is Payload.Full -> ReadyToSubmit.Payload.Full(amount, rewardDestination, controllerAddress, validators, collators, selectionMethod)
+                    is Payload.ExistingStash -> ReadyToSubmit.Payload.ExistingStash(validators, collators, selectionMethod)
+                    is Payload.Validators -> ReadyToSubmit.Payload.Validators(validators, collators, selectionMethod)
                 }
             }
 
@@ -98,6 +102,7 @@ sealed class SetupStakingProcess {
 
         sealed class Payload(
             val validators: List<Validator>,
+            val collators: List<Collator>,
             val selectionMethod: SelectionMethod
         ) {
 
@@ -106,44 +111,91 @@ sealed class SetupStakingProcess {
                 val rewardDestination: RewardDestination,
                 val currentAccountAddress: String,
                 validators: List<Validator>,
+                collators: List<Collator>,
                 selectionMethod: SelectionMethod
-            ) : Payload(validators, selectionMethod) {
+            ) : Payload(validators, collators, selectionMethod) {
 
                 override fun changeValidators(
                     newValidators: List<Validator>,
                     selectionMethod: SelectionMethod
                 ): Payload {
-                    return Full(amount, rewardDestination, currentAccountAddress, newValidators, selectionMethod)
+                    return Full(amount, rewardDestination, currentAccountAddress, newValidators, collators, selectionMethod)
                 }
+
+                override fun changeCollators(
+                    newCollators: List<Collator>,
+                    selectionMethod: SelectionMethod
+                ): Payload {
+                    return Full(amount, rewardDestination, currentAccountAddress, validators, newCollators, selectionMethod)
+                }
+
             }
 
             class ExistingStash(
                 validators: List<Validator>,
+                collators: List<Collator>,
                 selectionMethod: SelectionMethod
-            ) : Payload(validators, selectionMethod) {
+            ) : Payload(validators, collators, selectionMethod) {
 
                 override fun changeValidators(
                     newValidators: List<Validator>,
                     selectionMethod: SelectionMethod
                 ): Payload {
-                    return ExistingStash(newValidators, selectionMethod)
+                    return ExistingStash(newValidators, collators, selectionMethod)
+                }
+
+                override fun changeCollators(
+                    newCollators: List<Collator>,
+                    selectionMethod: SelectionMethod
+                ): Payload {
+                    return ExistingStash(validators, newCollators, selectionMethod)
                 }
             }
 
             class Validators(
                 validators: List<Validator>,
+                collators: List<Collator>,
                 selectionMethod: SelectionMethod
-            ) : Payload(validators, selectionMethod) {
+            ) : Payload(validators, collators, selectionMethod) {
 
                 override fun changeValidators(
                     newValidators: List<Validator>,
                     selectionMethod: SelectionMethod
                 ): Payload {
-                    return Validators(newValidators, selectionMethod)
+                    return Validators(newValidators, collators, selectionMethod)
+                }
+
+                override fun changeCollators(
+                    newCollators: List<Collator>,
+                    selectionMethod: SelectionMethod
+                ): Payload {
+                    return this
+                }
+            }
+
+            class Collators(
+                validators: List<Validator>,
+                collators: List<Collator>,
+                selectionMethod: SelectionMethod
+            ) : Payload(validators, collators, selectionMethod) {
+
+                override fun changeValidators(
+                    newValidators: List<Validator>,
+                    selectionMethod: SelectionMethod
+                ): Payload {
+                    return Collators(newValidators, collators, selectionMethod)
+                }
+
+                override fun changeCollators(
+                    newCollators: List<Collator>,
+                    selectionMethod: SelectionMethod
+                ): Payload {
+                    return Collators(validators, newCollators, selectionMethod)
                 }
             }
 
             abstract fun changeValidators(newValidators: List<Validator>, selectionMethod: SelectionMethod): Payload
+            abstract fun changeCollators(newCollators: List<Collator>, selectionMethod: SelectionMethod): Payload
         }
 
         fun changeValidators(
@@ -151,12 +203,19 @@ sealed class SetupStakingProcess {
             selectionMethod: SelectionMethod
         ) = ReadyToSubmit(payload.changeValidators(newValidators, selectionMethod))
 
+        fun changeCollators(
+            newCollators: List<Collator>,
+            selectionMethod: SelectionMethod
+        ) = ReadyToSubmit(payload.changeCollators(newCollators, selectionMethod))
+
         fun previous(): Validators {
             val payload = with(payload) {
                 when (this) {
                     is Payload.Full -> Validators.Payload.Full(amount, rewardDestination, currentAccountAddress)
                     is Payload.ExistingStash -> Validators.Payload.ExistingStash
                     is Payload.Validators -> Validators.Payload.Validators
+
+                    is Payload.Collators -> Validators.Payload.Validators
                 }
             }
 
