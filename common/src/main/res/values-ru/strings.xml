@@ -239,6 +239,7 @@
     <string name="staking_recommended_feature_3">Идентифицирован в сети</string>
     <string name="staking_recommended_feature_4">Не был заслешан</string>
     <string name="staking_validators">Валидаторы</string>
+    <string name="staking_collators">Коллаторы</string>
     <string name="staking_confirm_nominations" formatted="false">%s из %s</string>
     <string name="staking_recommended_custom_title">Выбрать других валидаторов</string>
     <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
@@ -417,6 +418,7 @@
     <string name="staking_add_controller">Чтобы выполнить это действие, добавьте контроллер аккаунт %s в приложение</string>
     <string name="crowdloan_empty_bonus_title">Получите специальный бонус</string>
     <string name="staking_start_change_validators_recommended_title">Стейкинг с рекоммендованными валидаторами</string>
+    <string name="staking_start_change_collators_suggested_title">Стейкинг с рекоммендованными коллаторами</string>
     <string name="staking_start_change_validators_custom_title">Стейкинг с выбранными валидаторами</string>
     <string name="common_applied">Применено</string>
     <string name="crowdloan_terms_action">Соглашаюсь с Условиями использования</string>

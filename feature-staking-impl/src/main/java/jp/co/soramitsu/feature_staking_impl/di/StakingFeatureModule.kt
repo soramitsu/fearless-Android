@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
@@ -45,6 +46,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteract
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rewardDestination.ChangeRewardDestinationInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validators.CollatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomValidatorsInteractor
@@ -290,6 +292,14 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
+    fun provideCollatorRecommendatorFactory(
+        collatorProvider: CollatorProvider,
+        computationalCache: ComputationalCache,
+        sharedState: StakingSharedState,
+    ) = CollatorRecommendatorFactory(collatorProvider, sharedState, computationalCache)
+
+    @Provides
+    @FeatureScope
     fun provideValidatorProvider(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         identityRepository: IdentityRepository,
@@ -297,6 +307,20 @@ class StakingFeatureModule {
         stakingConstantsRepository: StakingConstantsRepository,
     ) = ValidatorProvider(
         stakingRelayChainScenarioRepository,
+        identityRepository,
+        rewardCalculatorFactory,
+        stakingConstantsRepository
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideCollatorProvider(
+        stakingRepository: StakingRepository,
+        identityRepository: IdentityRepository,
+        rewardCalculatorFactory: RewardCalculatorFactory,
+        stakingConstantsRepository: StakingConstantsRepository,
+    ) = CollatorProvider(
+        stakingRepository,
         identityRepository,
         rewardCalculatorFactory,
         stakingConstantsRepository
