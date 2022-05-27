@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.data.repository
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
+import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.Modules
@@ -28,6 +30,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorState
 import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
+import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -47,6 +50,8 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominations
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindNominatorsCount
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRound
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRoundNumber
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashDeferDuration
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashingSpans
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
@@ -71,7 +76,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
 
 class StakingRepositoryImpl(
     private val accountStakingDao: AccountStakingDao,
@@ -415,22 +419,11 @@ class StakingRepositoryImpl(
         )
     }
 
-    override suspend fun getDelegatorStates(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<DelegatorState?> = withContext(Dispatchers.Default) {
-        val runtime = runtimeFor(chainId)
-        val storage = runtime.metadata.parachainStaking().storage("DelegatorState")
-
-        remoteStorage.queryKeys(
-            chainId = chainId,
-            keysBuilder = {
-                storage.storageKeys(
-                    runtime = runtime,
-                    singleMapArguments = addresses20,
-                    argumentTransform = { it.toHexString() }
-                )
-            },
-            binding = { scale, _ ->
-                scale?.let { bindDelegatorState(it, runtime) }
-            }
-        )
+    override suspend fun getCurrentRound(chainId: ChainId): Round {
+        return remoteStorage.query(chainId, keyBuilder = { runtime ->
+            runtime.metadata.parachainStaking().storage("Round").storageKey()
+        }, binding = { scale, runtime ->
+            scale?.let { bindRound(it, runtime) } ?: incompatible()
+        })
     }
 }

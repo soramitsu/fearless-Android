@@ -18,8 +18,6 @@ import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_BOND_MORE
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REDEEM
@@ -27,6 +25,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeSt
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 
 @Module(includes = [ViewModelModule::class])
@@ -41,7 +41,9 @@ class StakingModule {
         rewardCalculatorFactory: RewardCalculatorFactory,
         router: StakingRouter,
         welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
-        validationExecutor: ValidationExecutor
+        validationExecutor: ValidationExecutor,
+        relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+        parachainScenarioInteractor: StakingParachainScenarioInteractor
     ) = StakingViewStateFactory(
         interactor,
         setupStakingSharedState,
@@ -49,7 +51,9 @@ class StakingModule {
         router,
         rewardCalculatorFactory,
         welcomeStakingValidationSystem,
-        validationExecutor
+        validationExecutor,
+        relayChainScenarioInteractor,
+        parachainScenarioInteractor
     )
 
     @Provides

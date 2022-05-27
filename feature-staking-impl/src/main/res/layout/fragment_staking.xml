@@ -63,10 +63,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            tools:visibility="gone"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
-            app:expanded="true" />
+            app:expanded="true"
+            tools:visibility="gone" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.view.AlertsView
             android:id="@+id/stakingAlertsInfo"
@@ -86,6 +86,16 @@
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             tools:visibility="visible" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/collatorsList"
+            android:layout_width="match_parent"
+            android:visibility="gone"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            tools:itemCount="2"
+            tools:listitem="@layout/item_collator_delegation" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.EstimateEarningView
             android:id="@+id/stakingEstimate"
