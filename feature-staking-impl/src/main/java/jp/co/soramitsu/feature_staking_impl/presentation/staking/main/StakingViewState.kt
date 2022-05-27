@@ -2,18 +2,23 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorStateStatus
+import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -25,8 +30,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -36,8 +39,11 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturn
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.PERIOD_MONTH
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.PERIOD_YEAR
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -54,7 +60,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 sealed class StakingViewState
 
@@ -467,14 +472,70 @@ class DelegatorViewState(
     availableManageActions = ManageStakeAction.values().toSet()
 ) {
 
-    val delegations = flowOf { delegatorState.delegations }
+    val delegations = currentAssetFlow.map { asset ->
+        val chainId = asset.token.configuration.chainId
+        val collatorsIds = delegatorState.delegations.map { it.collatorId }
+        val collatorsNamesMap = parachainScenarioInteractor.getCollatorsNames(collatorsIds)
 
-    fun foo() {
-        delegatorState.delegations.map {
-            it.name
+        delegatorState.delegations.map { collator ->
+            val collatorIdHex = collator.collatorId.toHexString(true)
+            val identity = collatorsNamesMap[collatorIdHex]
+
+            val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
+            val rewarded = asset.token.amountFromPlanks(collator.rewardedAmountInPlanks)
+
+            val currentBlock = stakingInteractor.currentBlockNumber()
+            val currentRound = parachainScenarioInteractor.getCurrentRound(chainId)
+            val hoursInRound = parachainScenarioInteractor.hoursInRound[chainId] ?: 0
+            val millisecondsTillTheEndOfRound = calculateTimeTillTheEndOfRound(currentRound, currentBlock, hoursInRound)
+
+            CollatorDelegationModel(
+                collatorAddress = collator.collatorId.toHexString(true),
+                collatorName = identity?.display ?: collatorIdHex,
+                staked = staked.formatTokenAmount(asset.token.configuration),
+                stakedFiat = staked.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
+                rewarded = rewarded.formatTokenAmount(asset.token.configuration),
+                rewardedFiat = rewarded.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
+                status = CollatorDelegationModel.Status.from(collator.status),
+                nextRewardTimeLeft = millisecondsTillTheEndOfRound
+            )
         }
     }
+        .inBackground()
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
+    private fun calculateTimeTillTheEndOfRound(currentRound: Round, currentBlock: BigInteger, hoursInRound: Int): Long {
+        val currentRoundFinishAtBlock = currentRound.first + currentRound.length
+        val blocksTillTheEndOfRound = currentRoundFinishAtBlock - currentBlock
+        val secondsInRound = (hoursInRound * 60 * 60).toBigDecimal()
+        val secondsInBlock = secondsInRound / currentRound.length.toBigDecimal()
+        val secondsTillTheEndOfRound = blocksTillTheEndOfRound.toBigDecimal() * secondsInBlock
+        val millisecondsTillTheEndOfRound = secondsTillTheEndOfRound * BigDecimal(1000)
+        return millisecondsTillTheEndOfRound.toLong()
+    }
+
+    data class CollatorDelegationModel(
+        val collatorAddress: String,
+        val collatorName: String,
+        val staked: String,
+        val stakedFiat: String?,
+        val rewarded: String,
+        val rewardedFiat: String?,
+        val status: Status,
+        val nextRewardTimeLeft: Long
+
+    ) {
+        enum class Status {
+            ACTIVE, INACTIVE;
+
+            companion object {
+                fun from(status: DelegatorStateStatus) = when (status) {
+                    DelegatorStateStatus.ACTIVE -> ACTIVE
+                    DelegatorStateStatus.EMPTY -> INACTIVE
+                }
+            }
+        }
+    }
 }
 
 object CollatorViewState : StakingViewState()

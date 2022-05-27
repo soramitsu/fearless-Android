@@ -6,8 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -25,8 +27,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
+import jp.co.soramitsu.feature_staking_impl.presentation.view.DelegationRecyclerViewAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
+import kotlinx.android.synthetic.main.fragment_staking.collatorsList
 import kotlinx.android.synthetic.main.fragment_staking.parachainStakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingAlertsInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingAssetSelector
@@ -36,12 +40,12 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
-import javax.inject.Inject
 
 class StakingFragment : BaseFragment<StakingViewModel>() {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
+    private val delegationAdapter by lazy { DelegationRecyclerViewAdapter() }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -67,6 +71,11 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         stakingNetworkInfo.storyItemHandler = {
             viewModel.storyClicked(StoryGroupModel(it.elements))
         }
+
+        collatorsList.layoutManager = object : LinearLayoutManager(requireContext()) {
+            override fun canScrollVertically() = false
+        }
+        collatorsList.adapter = delegationAdapter
     }
 
     override fun inject() {
@@ -193,6 +202,13 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             }
                         }
                         is DelegatorViewState -> {
+                            stakingState.delegations.observe {
+                                collatorsList.isVisible = true
+                                stakingStakeSummary.isVisible = false
+                                stakingEstimate.isVisible = false
+                                startStakingBtn.isVisible = false
+                                delegationAdapter.submitList(it)
+                            }
                         }
                     }
                 }

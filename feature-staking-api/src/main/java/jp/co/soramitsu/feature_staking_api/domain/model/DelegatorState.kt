@@ -16,12 +16,12 @@ data class Delegation(
 )
 
 enum class DelegatorStateStatus {
-    Active, Empty;
+    ACTIVE, EMPTY;
 
     companion object {
         fun from(key: String?) = when (key) {
-            "Active" -> Active
-            else -> Empty
+            "Active" -> ACTIVE
+            else -> EMPTY
         }
     }
 }

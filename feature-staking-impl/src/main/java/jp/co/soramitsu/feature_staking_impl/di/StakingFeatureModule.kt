@@ -68,6 +68,7 @@ import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 
 @Module
 class StakingFeatureModule {
@@ -179,6 +180,7 @@ class StakingFeatureModule {
         stakingSharedState: StakingSharedState,
         assetUseCase: AssetUseCase,
         factory: EraTimeCalculatorFactory,
+        chainStateRepository: ChainStateRepository
     ) = StakingInteractor(
         walletRepository,
         accountRepository,
@@ -189,7 +191,8 @@ class StakingFeatureModule {
         stakingSharedState,
         payoutRepository,
         assetUseCase,
-        factory
+        factory,
+        chainStateRepository
     )
 
     @Provides
@@ -199,8 +202,9 @@ class StakingFeatureModule {
         accountRepository: AccountRepository,
         stakingConstantsRepository: StakingConstantsRepository,
         stakingRepository: StakingRepository,
+        identityRepository: IdentityRepository
     ): StakingParachainScenarioInteractor {
-        return StakingParachainScenarioInteractor(interactor, accountRepository, stakingConstantsRepository, stakingRepository)
+        return StakingParachainScenarioInteractor(interactor, accountRepository, stakingConstantsRepository, stakingRepository, identityRepository)
     }
 
     @Provides

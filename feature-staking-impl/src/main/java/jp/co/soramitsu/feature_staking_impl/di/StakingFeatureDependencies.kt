@@ -31,6 +31,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 
 interface StakingFeatureDependencies {
 
@@ -93,4 +94,6 @@ interface StakingFeatureDependencies {
     fun preferences(): Preferences
 
     fun updatesMixin(): UpdatesMixin
+
+    fun chainStateRepository(): ChainStateRepository
 }
