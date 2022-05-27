@@ -30,12 +30,14 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
@@ -94,6 +96,10 @@ class StakingViewModel(
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
+        //todo research
+        assetSelectorMixin.selectedAssetModelFlow.onEach {
+            stakingStateScope.coroutineContext.cancelChildren()
+        }
     }
 
     private val selectedChain = interactor.selectedChainFlow()

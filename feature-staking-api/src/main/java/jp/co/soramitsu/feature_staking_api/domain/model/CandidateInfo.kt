@@ -39,5 +39,16 @@ enum class CandidateCapacity {
 }
 
 
-
-
+data class CollatorIdentity(val info: Info) {
+    data class Info(
+        val display: Display,
+        val legal: String,
+        val web: String,
+        val riot: String,
+        val email: String,
+        val image: String,
+        val twitter: String,
+    ) {
+        data class Display(val raw: String)
+    }
+}

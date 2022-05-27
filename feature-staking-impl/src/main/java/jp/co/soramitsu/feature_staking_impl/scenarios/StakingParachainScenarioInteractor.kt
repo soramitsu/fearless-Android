@@ -1,8 +1,13 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
+import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.Identity
+import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -23,7 +28,8 @@ class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
     private val accountRepository: AccountRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
-    private val stakingRepository: StakingRepository
+    private val stakingRepository: StakingRepository,
+    private val identityRepositoryImpl: IdentityRepository
 ) : StakingScenarioInteractor {
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
@@ -46,7 +52,7 @@ class StakingParachainScenarioInteractor(
         return lockupPeriodInHours.toDuration(DurationUnit.HOURS).toInt(DurationUnit.DAYS)
     }
 
-    private val hoursInRound = mapOf(
+    val hoursInRound = mapOf(
         "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d" to 6, // moonbeam
         "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b" to 2, // moonriver
         "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527" to 2 // moonbase
@@ -64,5 +70,15 @@ class StakingParachainScenarioInteractor(
 
     fun observeDelegatorSummary(delegatorState: StakingState.Parachain.Delegator): Flow<StakeSummary<DelegatorStatus>> {
         return emptyFlow()
+    }
+
+    suspend fun getCollatorsNames(collatorsIds: List<AccountId>): Map<String, Identity?> {
+        if (collatorsIds.isEmpty()) return emptyMap()
+        val chainId = stakingInteractor.getSelectedChain().id
+        return identityRepositoryImpl.getIdentitiesFromIds(chainId, collatorsIds.map { it.toHexString(true) })
+    }
+
+    suspend fun getCurrentRound(chainId: ChainId): Round {
+        return stakingRepository.getCurrentRound(chainId)
     }
 }

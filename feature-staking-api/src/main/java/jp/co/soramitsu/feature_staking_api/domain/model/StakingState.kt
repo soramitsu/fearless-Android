@@ -5,6 +5,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigDecimal
+import java.math.BigInteger
 
 sealed class StakingState(
     val chain: Chain,
@@ -73,24 +74,24 @@ sealed class StakingState(
             chain: Chain,
             accountId: AccountId,
             val delegations: List<CollatorDelegation>,
-            val totalDelegatedAmount: BigDecimal
+            val totalDelegatedAmount: BigDecimal,
         ) : Parachain(chain, accountId)
     }
 }
 
 data class CollatorDelegation(
-    val name: String,
-    val delegatedAmountInPlanks: BigDecimal,
-    val rewardedAmount: BigDecimal,
+    val collatorId: AccountId,
+    val delegatedAmountInPlanks: BigInteger,
+    val rewardedAmountInPlanks: BigInteger,
     val status: DelegatorStateStatus
 )
 
 fun DelegatorState.toDelegations(): List<CollatorDelegation> {
     return this.delegations.map {
         CollatorDelegation(
-            it.owner.toHexString(true),
-            it.amount.toBigDecimal(),
-            BigDecimal.ZERO,
+            it.owner,
+            it.amount,
+            BigInteger.ZERO,
             this.status
         )
     }
