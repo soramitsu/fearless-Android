@@ -16,6 +16,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.math.BigInteger
+import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.time.DurationUnit
@@ -55,8 +56,6 @@ interface StakingRepository {
 
     suspend fun getSlashes(chainId: ChainId, accountIdsHex: List<String>): AccountIdMap<Boolean>
 
-    suspend fun getDelegatorStates(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<DelegatorState?>
-
     suspend fun getCandidateInfos(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<CandidateInfo?>
 
     suspend fun getSlashingSpan(chainId: ChainId, accountId: AccountId): SlashingSpans?
@@ -90,6 +89,7 @@ interface StakingRepository {
     ): Flow<StakingState.Parachain>
 
     fun observeRelayChainState(chain: Chain, chainAsset: Chain.Asset, accountId: AccountId): Flow<StakingState>
+    suspend fun getCurrentRound(chainId: ChainId): Round
 }
 
 suspend fun StakingRepository.getActiveElectedValidatorsExposures(chainId: ChainId) = electedExposuresInActiveEra(chainId).first()

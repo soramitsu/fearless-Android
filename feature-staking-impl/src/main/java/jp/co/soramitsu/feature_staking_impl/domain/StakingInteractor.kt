@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.sumByBigInteger
@@ -34,6 +35,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chain
 import kotlin.time.ExperimentalTime
@@ -70,6 +72,7 @@ class StakingInteractor(
     private val payoutRepository: PayoutRepository,
     private val assetUseCase: AssetUseCase,
     private val factory: EraTimeCalculatorFactory,
+    private val chainStateRepository: ChainStateRepository,
 ) {
 
     suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
@@ -298,5 +301,9 @@ class StakingInteractor(
 
     private suspend fun getLockupPeriodInDays(chainId: ChainId): Int {
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() / stakingRepository.erasPerDay(chainId)
+    }
+
+    suspend fun currentBlockNumber(): BlockNumber {
+        return chainStateRepository.currentBlock(getSelectedChain().id)
     }
 }
