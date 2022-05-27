@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -476,9 +477,9 @@ class DelegatorViewState(
         val chainId = asset.token.configuration.chainId
         val collatorsIds = delegatorState.delegations.map { it.collatorId }
         val collatorsNamesMap = parachainScenarioInteractor.getCollatorsNames(collatorsIds)
-
+// todo check what is wrong with collator id
         delegatorState.delegations.map { collator ->
-            val collatorIdHex = collator.collatorId.toHexString(true)
+            val collatorIdHex = collator.collatorId.toHexString(false).toHexAccountId()
             val identity = collatorsNamesMap[collatorIdHex]
 
             val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
