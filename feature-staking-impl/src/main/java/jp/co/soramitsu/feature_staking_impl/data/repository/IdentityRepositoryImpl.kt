@@ -91,3 +91,71 @@ class IdentityRepositoryImpl(
             }
     }
 }
+
+class IdentityRepositoryImplEthereum(
+    private val bulkRetriever: BulkRetriever,
+    private val chainRegistry: ChainRegistry,
+) : IdentityRepository {
+
+    override suspend fun getIdentitiesFromIds(
+        chainId: ChainId,
+        accountIdsHex: List<String>
+    ) = withContext(Dispatchers.Default) {
+        val socketService = chainRegistry.getSocket(chainId)
+        val runtime = chainRegistry.getRuntime(chainId)
+
+        val identityModule = runtime.metadata.module("Identity")
+
+        val identityOfStorage = identityModule.storage("IdentityOf")
+        val identityOfReturnType = identityOfStorage.type.value!!
+
+        val superOfStorage = identityModule.storage("SuperOf")
+        val superOfReturnType = superOfStorage.type.value!!
+//        val superOfKeys = superOfStorage.accountMapStorageKeys(runtime, accountIdsHex)
+
+        val superOfValues = bulkRetriever.queryKeys(socketService, accountIdsHex)
+            .mapKeys { (fullKey, _) -> fullKey.accountIdFromMapKey() }
+            .mapValuesNotNull { (_, value) ->
+                value?.let { bindSuperOf(it, runtime, superOfReturnType) }
+            }
+
+        val parentIdentityIds = superOfValues.values.map(SuperOf::parentIdHex).distinct()
+        val parentIdentityKeys = identityOfStorage.accountMapStorageKeys(runtime, parentIdentityIds)
+
+        val parentIdentities = fetchIdentities(socketService, parentIdentityKeys, runtime, identityOfReturnType)
+
+        val childIdentities = superOfValues.mapValues { (_, superOf) ->
+            val parentIdentity = parentIdentities[superOf.parentIdHex]
+
+            parentIdentity?.let { ChildIdentity(superOf.childName, it) }
+        }
+
+        val leftAccountIds = accountIdsHex.toSet() - childIdentities.keys - parentIdentities.keys
+        val leftIdentityKeys = identityOfStorage.accountMapStorageKeys(runtime, leftAccountIds.toList())
+
+        val rootIdentities = fetchIdentities(socketService, leftIdentityKeys, runtime, identityOfReturnType)
+
+        rootIdentities + childIdentities + parentIdentities
+    }
+
+    override suspend fun getIdentitiesFromAddresses(chain: Chain, accountAddresses: List<String>): AccountAddressMap<Identity?> {
+        val accountIds = accountAddresses.map(chain::hexAccountIdOf)
+
+        val identitiesByAccountId = getIdentitiesFromIds(chain.id, accountIds)
+
+        return accountAddresses.associateWith { identitiesByAccountId[it.toHexAccountId()] }
+    }
+
+    private suspend fun fetchIdentities(
+        socketService: SocketService,
+        keys: List<String>,
+        runtime: RuntimeSnapshot,
+        returnType: Type<*>
+    ): Map<String, Identity?> {
+        return bulkRetriever.queryKeys(socketService, keys)
+            .mapKeys { (fullKey, _) -> fullKey.accountIdFromMapKey() }
+            .mapValues { (_, value) ->
+                value?.let { bindIdentity(it, runtime, returnType) }
+            }
+    }
+}

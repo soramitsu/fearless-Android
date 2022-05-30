@@ -43,7 +43,6 @@ class StakingRelaychainScenarioViewModel(
 
     override suspend fun getStakingViewStateFlow(): Flow<LoadingState<StakingViewState>> {
         return stakingState().mapLoading { stakingState ->
-            hashCode()
             when (stakingState) {
                 is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
                     stakingState,
