@@ -14,7 +14,6 @@ import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -22,7 +21,10 @@ import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorStateStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.data.repository.accountIdFromMapKey
+import jp.co.soramitsu.feature_staking_impl.data.repository.ethereumAddressFromMapKey
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.model.DelegatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus.Inactive.Reason
@@ -46,6 +48,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,6 +58,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -458,6 +462,7 @@ class ParachainWelcomeViewState(
 
 class DelegatorViewState(
     private val delegatorState: StakingState.Parachain.Delegator,
+    val welcomeViewState: ParachainWelcomeViewState,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
     parachainScenarioInteractor: StakingParachainScenarioInteractor,
@@ -473,13 +478,21 @@ class DelegatorViewState(
     availableManageActions = ManageStakeAction.values().toSet()
 ) {
 
-    val delegations = currentAssetFlow.map { asset ->
+    val delegations = currentAssetFlow.filter { it.token.configuration.staking == Chain.Asset.StakingType.PARACHAIN }.map { asset ->
         val chainId = asset.token.configuration.chainId
         val collatorsIds = delegatorState.delegations.map { it.collatorId }
-        val collatorsNamesMap = parachainScenarioInteractor.getCollatorsNames(collatorsIds)
-// todo check what is wrong with collator id
-        delegatorState.delegations.map { collator ->
-            val collatorIdHex = collator.collatorId.toHexString(false).toHexAccountId()
+        val chain = stakingInteractor.getSelectedChain()
+        val collatorsNamesMap = parachainScenarioInteractor.getIdentities(collatorsIds).let { map ->
+            map.map {
+                if (chain.isEthereumBased) {
+                    it.key.ethereumAddressFromMapKey()
+                } else {
+                    it.key.accountIdFromMapKey()
+                } to it.value
+            }
+        }.toMap()
+        val delegations = delegatorState.delegations.map { collator ->
+            val collatorIdHex = collator.collatorId.toHexString(false)
             val identity = collatorsNamesMap[collatorIdHex]
 
             val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
@@ -501,9 +514,8 @@ class DelegatorViewState(
                 nextRewardTimeLeft = millisecondsTillTheEndOfRound
             )
         }
+        return@map delegations
     }
-        .inBackground()
-        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     private fun calculateTimeTillTheEndOfRound(currentRound: Round, currentBlock: BigInteger, hoursInRound: Int): Long {
         val currentRoundFinishAtBlock = currentRound.first + currentRound.length
