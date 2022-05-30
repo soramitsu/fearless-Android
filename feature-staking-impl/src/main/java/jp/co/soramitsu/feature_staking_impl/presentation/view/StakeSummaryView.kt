@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_stake_summary.view.stakeMoreActions
 import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatus
 import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatusHelper
+import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryTitle
 import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalRewardsView
 import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalStakedView
 import kotlinx.android.synthetic.main.view_stake_summary.view.statusTapZone
@@ -32,7 +33,16 @@ class StakeSummaryView @JvmOverloads constructor(
 
         class Inactive(eraDisplay: String) : Status(R.string.staking_nominator_status_inactive, R.color.red, eraDisplay)
 
-        class Waiting(val timeLeft: Long) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null)
+        class Waiting(override val timeLeft: Long) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null), WithTimer
+
+        class ActiveCollator(override val timeLeft: Long) : Status(R.string.staking_nominator_status_active, R.color.green, "Next reward"), WithTimer
+
+        class InactiveCollator : Status(R.string.staking_nominator_status_inactive, R.color.red, null)
+
+        interface WithTimer {
+            val timeLeft: Long
+            val extraMessage: String?
+        }
     }
 
     init {
@@ -52,8 +62,8 @@ class StakeSummaryView @JvmOverloads constructor(
             setText(status.textRes)
         }
 
-        if (status is Status.Waiting) {
-            stakeSummaryStatusHelper.startTimer(status.timeLeft)
+        if (status is Status.WithTimer) {
+            stakeSummaryStatusHelper.startTimer(millis = status.timeLeft, extraMessage = status.extraMessage)
         } else {
             stakeSummaryStatusHelper.stopTimer()
             stakeSummaryStatusHelper.text = status.extraMessage
@@ -103,6 +113,10 @@ class StakeSummaryView @JvmOverloads constructor(
 
     fun setStakeInfoClickListener(listener: OnClickListener) {
         setOnClickListener(listener)
+    }
+
+    fun setTitle(title: String) {
+        stakeSummaryTitle.text = title
     }
 
     val moreActions: View
