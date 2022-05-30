@@ -118,6 +118,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                     startStakingBtn.setVisible(false)
                     stakingEstimate.setVisible(false)
                     stakingStakeSummary.setVisible(false)
+                    collatorsList.setVisible(false)
                 }
                 is LoadingState.Loaded -> {
                     val stakingState = loadingState.data
@@ -127,6 +128,7 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                     startStakingBtn.setVisible(isEstimatesVisible)
                     stakingEstimate.setVisible(isEstimatesVisible)
                     stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)
+                    collatorsList.setVisible(stakingState is DelegatorViewState)
 
                     when (stakingState) {
                         is NominatorViewState -> {
@@ -141,74 +143,20 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             stakingStakeSummary.bindStakeSummary(stakingState, ::mapStashNoneStatus)
                         }
 
-                        is RelaychainWelcomeViewState -> {
-                            observeValidations(stakingState)
-
-                            stakingState.assetLiveData.observe {
-                                stakingEstimate.setAssetImageUrl(it.imageUrl, imageLoader)
-                                stakingEstimate.setAssetName(it.tokenName)
-                                stakingEstimate.setAssetBalance(it.assetBalance)
-                            }
-
-                            stakingState.amountFiat.observe { amountFiat ->
-                                stakingEstimate.showAssetBalanceFiatAmount()
-                                stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
-                            }
-
-                            stakingState.returns.observe { rewards ->
-                                stakingEstimate.hideReturnsLoading()
-                                stakingEstimate.populateMonthEstimation(rewards.monthly)
-                                stakingEstimate.populateYearEstimation(rewards.yearly)
-                            }
-
-                            stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
-
-                            startStakingBtn.setOnClickListener { stakingState.nextClicked() }
-
-                            stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
-
-                            stakingState.showRewardEstimationEvent.observeEvent {
-                                StakingRewardEstimationBottomSheet(requireContext(), it).show()
-                            }
-                        }
-                        is ParachainWelcomeViewState -> {
-                            observeValidations(stakingState)
-
-                            stakingState.assetLiveData.observe {
-                                stakingEstimate.setAssetImageUrl(it.imageUrl, imageLoader)
-                                stakingEstimate.setAssetName(it.tokenName)
-                                stakingEstimate.setAssetBalance(it.assetBalance)
-                            }
-
-                            stakingState.amountFiat.observe { amountFiat ->
-                                stakingEstimate.showAssetBalanceFiatAmount()
-                                stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
-                            }
-
-                            stakingState.returns.observe { rewards ->
-                                stakingEstimate.hideReturnsLoading()
-                                stakingEstimate.populateMonthEstimation(rewards.monthly)
-                                stakingEstimate.populateYearEstimation(rewards.yearly)
-                            }
-
-                            stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
-
-                            startStakingBtn.setOnClickListener { stakingState.nextClicked() }
-
-                            stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
-
-                            stakingState.showRewardEstimationEvent.observeEvent {
-                                StakingRewardEstimationBottomSheet(requireContext(), it).show()
-                            }
+                        is WelcomeViewState -> {
+                            observeWelcomeState(stakingState)
                         }
                         is DelegatorViewState -> {
                             stakingState.delegations.observe {
-                                collatorsList.isVisible = true
-                                stakingStakeSummary.isVisible = false
-                                stakingEstimate.isVisible = false
-                                startStakingBtn.isVisible = false
                                 delegationAdapter.submitList(it)
                             }
+                            observeWelcomeState(stakingState.welcomeViewState)
+
+                            stakingStakeSummary.isVisible = false
+                            stakingEstimate.isVisible = true
+                            startStakingBtn.isVisible = true
+
+
                         }
                     }
                 }
@@ -368,6 +316,37 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
             is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(currentEraDisplayer)
             NominatorStatus.Active -> StakeSummaryView.Status.Active(currentEraDisplayer)
             is NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.status.timeLeft)
+        }
+    }
+
+    private fun observeWelcomeState(stakingState: WelcomeViewState) {
+        observeValidations(stakingState)
+
+        stakingState.assetLiveData.observe {
+            stakingEstimate.setAssetImageUrl(it.imageUrl, imageLoader)
+            stakingEstimate.setAssetName(it.tokenName)
+            stakingEstimate.setAssetBalance(it.assetBalance)
+        }
+
+        stakingState.amountFiat.observe { amountFiat ->
+            stakingEstimate.showAssetBalanceFiatAmount()
+            stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
+        }
+
+        stakingState.returns.observe { rewards ->
+            stakingEstimate.hideReturnsLoading()
+            stakingEstimate.populateMonthEstimation(rewards.monthly)
+            stakingEstimate.populateYearEstimation(rewards.yearly)
+        }
+
+        stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
+
+        startStakingBtn.setOnClickListener { stakingState.nextClicked() }
+
+        stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
+
+        stakingState.showRewardEstimationEvent.observeEvent {
+            StakingRewardEstimationBottomSheet(requireContext(), it).show()
         }
     }
 }

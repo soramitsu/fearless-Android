@@ -72,10 +72,10 @@ class StakingParachainScenarioInteractor(
         return emptyFlow()
     }
 
-    suspend fun getCollatorsNames(collatorsIds: List<AccountId>): Map<String, Identity?> {
+    suspend fun getIdentities(collatorsIds: List<AccountId>): Map<String, Identity?> {
         if (collatorsIds.isEmpty()) return emptyMap()
         val chainId = stakingInteractor.getSelectedChain().id
-        return identityRepositoryImpl.getIdentitiesFromIds(chainId, collatorsIds.map { it.toHexString(true) })
+        return identityRepositoryImpl.getIdentitiesFromIds(chainId, collatorsIds.map { it.toHexString(false) })
     }
 
     suspend fun getCurrentRound(chainId: ChainId): Round {

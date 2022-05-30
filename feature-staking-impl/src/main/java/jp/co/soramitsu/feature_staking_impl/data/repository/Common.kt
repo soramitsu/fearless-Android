@@ -11,3 +11,4 @@ fun StorageEntry.accountMapStorageKeys(runtime: RuntimeSnapshot, accountIdsHex: 
 }
 
 fun String.accountIdFromMapKey() = fromHex().takeLast(32).toByteArray().toHexString()
+fun String.ethereumAddressFromMapKey() = fromHex().takeLast(20).toByteArray().toHexString()

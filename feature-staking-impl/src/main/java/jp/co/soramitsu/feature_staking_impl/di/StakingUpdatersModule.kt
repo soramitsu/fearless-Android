@@ -32,6 +32,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.hist
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
 import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
 
 @Module
@@ -264,6 +265,14 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideBlockNumberUpdater(
+        chainRegistry: ChainRegistry,
+        stakingSharedState: StakingSharedState,
+        storageCache: StorageCache,
+    ) = BlockNumberUpdater(chainRegistry, stakingSharedState, storageCache)
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaterSystem(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
@@ -280,6 +289,7 @@ class StakingUpdatersModule {
         maxNominatorsUpdater: MaxNominatorsUpdater,
         counterForNominatorsUpdater: CounterForNominatorsUpdater,
         delegatorStateUpdater: DelegatorStateUpdater,
+        blockNumberUpdater: BlockNumberUpdater,
 
         chainRegistry: ChainRegistry,
         stakingSharedState: StakingSharedState
@@ -300,6 +310,7 @@ class StakingUpdatersModule {
             maxNominatorsUpdater,
             counterForNominatorsUpdater,
             delegatorStateUpdater,
+            blockNumberUpdater
         ),
         chainRegistry = chainRegistry,
         singleAssetSharedState = stakingSharedState

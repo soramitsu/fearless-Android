@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.view
 
+import android.annotation.SuppressLint
 import android.os.CountDownTimer
 import android.widget.CompoundButton
 import android.widget.TextView
@@ -16,7 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 private val TIMER_TAG = R.string.common_time_left
 
-fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish: ((view: TextView) -> Unit)? = null) {
+fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, extraMessage: String? = null, onFinish: ((view: TextView) -> Unit)? = null) {
     val deltaTime = if (timeLeftTimestamp != null) System.currentTimeMillis() - timeLeftTimestamp else 0L
 
     val currentTimer = getTag(TIMER_TAG)
@@ -26,13 +27,14 @@ fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, onFinish:
     }
 
     val newTimer = object : CountDownTimer(millis - deltaTime, 1000) {
+        @SuppressLint("SetTextI18n")
         override fun onTick(millisUntilFinished: Long) {
             val days = millisUntilFinished.toDuration(DurationUnit.MILLISECONDS).toInt(DurationUnit.DAYS)
-
-            this@startTimer.text = if (days > 0)
+            val formattedTime = if (days > 0)
                 resources.getQuantityString(R.plurals.staking_payouts_days_left, days, days)
             else
                 millisUntilFinished.formatTime()
+            this@startTimer.text = "$extraMessage $formattedTime"
         }
 
         override fun onFinish() {
