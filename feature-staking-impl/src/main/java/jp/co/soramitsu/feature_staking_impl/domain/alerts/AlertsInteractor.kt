@@ -1,9 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.domain.alerts
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
@@ -11,22 +12,21 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepo
 import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
 import jp.co.soramitsu.feature_staking_impl.domain.isNominationActive
 import jp.co.soramitsu.feature_staking_impl.domain.minimumStake
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.state.chainAndAsset
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import java.math.BigDecimal
-import java.math.BigInteger
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 private const val NOMINATIONS_ACTIVE_MEMO = "NOMINATIONS_ACTIVE_MEMO"
 
 class AlertsInteractor(
-    private val stakingRepository: StakingRepository,
+    private val stakingRepository: StakingRelayChainScenarioRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
     private val sharedState: StakingSharedState,
     private val walletRepository: WalletRepository,
@@ -84,7 +84,7 @@ class AlertsInteractor(
             val minimalStakeInPlanks = minimumStake(exposures.values, minimumNominatorBond)
 
             if (
-                // do not show alert for validators
+            // do not show alert for validators
                 state !is StakingState.Stash.Validator &&
                 asset.bondedInPlanks.orZero() < minimalStakeInPlanks &&
                 // prevent alert for situation where all tokens are being unbounded

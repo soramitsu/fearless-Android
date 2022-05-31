@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -22,10 +23,13 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondPayloadAutoFix
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import kotlin.time.ExperimentalTime
+import kotlin.time.milliseconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -37,9 +41,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
@@ -47,6 +48,7 @@ private const val DEBOUNCE_DURATION_MILLIS = 500
 class SelectUnbondViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val unbondInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
@@ -59,7 +61,7 @@ class SelectUnbondViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val accountStakingFlow = interactor.selectedAccountStakingStateFlow()
+    private val accountStakingFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 
@@ -83,7 +85,7 @@ class SelectUnbondViewModel(
         .asLiveData()
 
     val lockupPeriodLiveData = liveData {
-        val lockupPeriod = interactor.getLockupPeriodInDays()
+        val lockupPeriod = stakingRelayChainScenarioInteractor.getLockupPeriodInDays()
 
         val formatted = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, lockupPeriod, lockupPeriod)
 

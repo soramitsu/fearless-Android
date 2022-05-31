@@ -9,11 +9,11 @@ import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.StartChangeValidatorsViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class StartChangeValidatorsModule {
@@ -26,14 +26,14 @@ class StartChangeValidatorsModule {
         router: StakingRouter,
         sharedState: SetupStakingSharedState,
         resourceManager: ResourceManager,
-        interactor: StakingInteractor
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
     ): ViewModel {
         return StartChangeValidatorsViewModel(
             router,
             validatorRecommendatorFactory,
             sharedState,
             resourceManager,
-            interactor
+            stakingRelayChainScenarioInteractor
         )
     }
 

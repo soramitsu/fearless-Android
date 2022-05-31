@@ -1,8 +1,9 @@
-package jp.co.soramitsu.feature_staking_api.domain.api
+package jp.co.soramitsu.feature_staking_impl.domain
 
-import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import java.math.BigInteger
+import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 /**
  * Estimating era completion time
@@ -68,7 +69,7 @@ class EraTimeCalculator(
     }
 }
 
-class EraTimeCalculatorFactory(val repository: StakingRepository) {
+class EraTimeCalculatorFactory(val repository: StakingRelayChainScenarioRepository) {
     suspend fun create(chainId: ChainId): EraTimeCalculator {
         val startRequestTime = System.currentTimeMillis().toBigInteger()
         val sessionLength = repository.sessionLength(chainId)

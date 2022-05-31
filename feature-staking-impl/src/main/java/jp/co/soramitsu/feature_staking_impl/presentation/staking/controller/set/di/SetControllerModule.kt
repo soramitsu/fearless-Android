@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.controller.Controller
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set.SetControllerViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
@@ -29,6 +30,7 @@ class SetControllerModule {
     @ViewModelKey(SetControllerViewModel::class)
     fun provideViewModel(
         interactor: ControllerInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         stackingInteractor: StakingInteractor,
         addressIconGenerator: AddressIconGenerator,
         router: StakingRouter,
@@ -44,6 +46,7 @@ class SetControllerModule {
         return SetControllerViewModel(
             interactor,
             stackingInteractor,
+            stakingRelayChainScenarioInteractor,
             addressIconGenerator,
             router,
             feeLoaderMixin,
