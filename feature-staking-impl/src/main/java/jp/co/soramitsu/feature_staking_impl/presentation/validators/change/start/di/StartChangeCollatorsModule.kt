@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecom
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.StartChangeCollatorsViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class StartChangeCollatorsModule {
@@ -26,14 +27,14 @@ class StartChangeCollatorsModule {
         router: StakingRouter,
         sharedState: SetupStakingSharedState,
         resourceManager: ResourceManager,
-        interactor: StakingInteractor,
+        stakingParachainScenarioInteractor: StakingParachainScenarioInteractor
     ): ViewModel {
         return StartChangeCollatorsViewModel(
             router,
             collatorRecommendatorFactory,
             sharedState,
             resourceManager,
-            interactor,
+            stakingParachainScenarioInteractor,
         )
     }
 
