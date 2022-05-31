@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecom
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.transform
@@ -35,13 +36,13 @@ class StartChangeCollatorsViewModel(
     private val collatorRecommendatorFactory: CollatorRecommendatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val resourceManager: ResourceManager,
-    private val interactor: StakingInteractor,
+    private val stakingParachainScenarioInteractor: StakingParachainScenarioInteractor
 ) : BaseViewModel(), Browserable {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val maxValidatorsPerNominator = flowOf {
-        interactor.maxValidatorsPerNominator()
+        stakingParachainScenarioInteractor.maxDelegationsPerDelegator()
     }.share()
 
     val collatorsLoading = MutableStateFlow(true)

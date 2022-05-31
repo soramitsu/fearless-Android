@@ -317,12 +317,12 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideCollatorProvider(
-        stakingRepository: StakingRepository,
+        stakingParachainScenarioRepository: StakingParachainScenarioRepository,
         identityRepository: IdentityRepository,
         rewardCalculatorFactory: RewardCalculatorFactory,
         stakingConstantsRepository: StakingConstantsRepository,
     ) = CollatorProvider(
-        stakingRepository,
+        stakingParachainScenarioRepository,
         identityRepository,
         rewardCalculatorFactory,
         stakingConstantsRepository
