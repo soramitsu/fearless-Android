@@ -16,9 +16,11 @@ import jp.co.soramitsu.feature_staking_api.domain.model.toDelegations
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCandidateInfo
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindDelegatorState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRound
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSelectedCandidates
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -75,4 +77,10 @@ class StakingParachainScenarioRepository(
             scale?.let { bindRound(it, runtime) } ?: incompatible()
         })
     }
+
+    fun observeSelectedCandidates(chainId: ChainId) = remoteStorage.observeNonNull(
+        chainId = chainId,
+        keyBuilder = { it.metadata.parachainStaking().storage("SelectedCandidates").storageKey() },
+        binding = { scale, runtime -> bindSelectedCandidates(scale, runtime) }
+    )
 }

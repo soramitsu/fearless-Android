@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.withContext
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -92,6 +93,10 @@ class StakingParachainScenarioInteractor(
 
     fun selectedAccountStakingStateFlow() = stakingInteractor.selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
         selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
+    }
+
+    suspend fun maxDelegationsPerDelegator(): Int {
+        return stakingConstantsRepository.maxDelegationsPerDelegator(stakingInteractor.getSelectedChain().id)
     }
 
     override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
