@@ -58,6 +58,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -473,7 +474,7 @@ class DelegatorViewState(
 ) : StakeViewState<DelegatorStatus>(
     delegatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { parachainScenarioInteractor.observeDelegatorSummary(delegatorState) },
+    summaryFlowProvider = { emptyFlow() },
     statusMessageProvider = { getDelegatorStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet()
 ) {

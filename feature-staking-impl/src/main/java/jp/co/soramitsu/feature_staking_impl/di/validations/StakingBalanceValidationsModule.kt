@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MA
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REDEEM
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_UNBOND
 import javax.inject.Named
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 
 @Module
 class StakingBalanceValidationsModule {
@@ -51,7 +52,7 @@ class StakingBalanceValidationsModule {
     @FeatureScope
     @Provides
     fun provideUnbondingLimitValidation(
-        stakingRepository: StakingRepository,
+        stakingRepository: StakingRelayChainScenarioRepository,
     ) = BalanceUnlockingLimitValidation(
         stakingRepository,
         stashStateProducer = { it.stashState },

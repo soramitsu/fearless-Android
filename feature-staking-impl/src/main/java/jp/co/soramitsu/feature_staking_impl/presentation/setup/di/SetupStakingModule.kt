@@ -18,9 +18,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakin
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.SetupStakingViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class SetupStakingModule {
@@ -30,6 +31,7 @@ class SetupStakingModule {
     @ViewModelKey(SetupStakingViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         router: StakingRouter,
         rewardCalculatorFactory: RewardCalculatorFactory,
         resourceManager: ResourceManager,
@@ -43,6 +45,7 @@ class SetupStakingModule {
         return SetupStakingViewModel(
             router,
             interactor,
+            relayChainScenarioInteractor,
             rewardCalculatorFactory,
             resourceManager,
             setupStakingInteractor,

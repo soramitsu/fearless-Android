@@ -30,6 +30,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayout
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.PayoutValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
@@ -42,6 +43,7 @@ import kotlinx.coroutines.launch
 
 class ConfirmPayoutViewModel(
     private val interactor: StakingInteractor,
+    private val relayChainInteractor: StakingRelayChainScenarioInteractor,
     private val payoutInteractor: PayoutInteractor,
     private val router: StakingRouter,
     private val payload: ConfirmPayoutPayload,
@@ -61,7 +63,7 @@ class ConfirmPayoutViewModel(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    private val stakingStateFlow = interactor.selectedAccountStakingStateFlow()
+    private val stakingStateFlow = relayChainInteractor.selectedAccountStakingStateFlow()
         .share()
 
     private val payouts = payload.payouts.map { Payout(it.validatorInfo.address, it.era, it.amountInPlanks) }
@@ -85,7 +87,7 @@ class ConfirmPayoutViewModel(
 
         val addressByte = stakingState.accountAddress.addressByte()
 
-        val destinationAddress = when (val rewardDestination = interactor.getRewardDestination(stakingState)) {
+        val destinationAddress = when (val rewardDestination = relayChainInteractor.getRewardDestination(stakingState)) {
             RewardDestination.Restake -> stakingState.accountAddress
             is RewardDestination.Payout -> rewardDestination.targetAccountId.toAddress(addressByte)
         }

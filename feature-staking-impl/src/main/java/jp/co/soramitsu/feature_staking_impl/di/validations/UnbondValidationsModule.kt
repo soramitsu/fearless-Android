@@ -12,6 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondFeeV
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 
 @Module
@@ -35,7 +36,7 @@ class UnbondValidationsModule {
     @FeatureScope
     @Provides
     fun provideUnbondLimitValidation(
-        stakingRepository: StakingRepository
+        stakingRepository: StakingRelayChainScenarioRepository
     ) = UnbondLimitValidation(
         stakingRepository = stakingRepository,
         stashStateProducer = { it.stash },

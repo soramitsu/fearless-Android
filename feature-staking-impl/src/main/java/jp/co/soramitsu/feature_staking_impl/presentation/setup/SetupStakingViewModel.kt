@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.setup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -24,6 +26,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProc
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -39,12 +42,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class SetupStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
+    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
     private val setupStakingInteractor: SetupStakingInteractor,
@@ -96,7 +98,7 @@ class SetupStakingViewModel(
 
         launch {
             val chainId = assetFlow.first().token.configuration.chainId
-            minimumStake = interactor.getMinimumStake(chainId)
+            minimumStake = stakingRelayChainScenarioInteractor.getMinimumStake(chainId)
         }
     }
 

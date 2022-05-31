@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 
 class LedgerWithController(
     val ledger: StakingLedger,
@@ -49,7 +50,7 @@ class LedgerWithController(
 )
 
 class StakingLedgerUpdater(
-    private val stakingRepository: StakingRepository,
+    private val stakingRepository: StakingRelayChainScenarioRepository,
     private val stakingSharedState: StakingSharedState,
     private val chainRegistry: ChainRegistry,
     private val accountStakingDao: AccountStakingDao,

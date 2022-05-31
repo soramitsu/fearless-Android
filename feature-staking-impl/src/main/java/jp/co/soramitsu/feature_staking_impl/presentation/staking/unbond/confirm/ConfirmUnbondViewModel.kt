@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondVali
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondPayloadAutoFix
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -40,6 +41,7 @@ import kotlinx.coroutines.launch
 class ConfirmUnbondViewModel(
     private val router: StakingRouter,
     interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val unbondInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
@@ -55,7 +57,7 @@ class ConfirmUnbondViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val accountStakingFlow = interactor.selectedAccountStakingStateFlow()
+    private val accountStakingFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 

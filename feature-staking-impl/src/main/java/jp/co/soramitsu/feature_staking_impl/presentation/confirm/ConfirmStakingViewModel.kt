@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -35,6 +36,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProc
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.runtime.ext.addressOf
@@ -51,11 +53,11 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class ConfirmStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
+    private val relayChainInteractor: StakingRelayChainScenarioInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val resourceManager: ResourceManager,
@@ -81,7 +83,7 @@ class ConfirmStakingViewModel(
         else -> null
     }
 
-    private val stashFlow = interactor.selectedAccountStakingStateFlow()
+    private val stashFlow = relayChainInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 
@@ -109,7 +111,7 @@ class ConfirmStakingViewModel(
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
         val selectedCount = payload.validators.size
-        val maxValidatorsPerNominator = interactor.maxValidatorsPerNominator()
+        val maxValidatorsPerNominator = relayChainInteractor.maxValidatorsPerNominator()
 
         emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
     }
@@ -125,7 +127,7 @@ class ConfirmStakingViewModel(
         .asLiveData()
 
     val unstakingTime = flow {
-        val lockupPeriod = interactor.getLockupPeriodInDays()
+        val lockupPeriod = relayChainInteractor.getLockupPeriodInDays()
         emit(
             resourceManager.getString(
                 R.string.staking_hint_unstake_format,
@@ -136,7 +138,7 @@ class ConfirmStakingViewModel(
         .share()
 
     val eraHoursLength = flow {
-        val hours = interactor.getEraHoursLength()
+        val hours = relayChainInteractor.getEraHoursLength()
         emit(resourceManager.getString(R.string.staking_hint_rewards_format, resourceManager.getQuantityString(R.plurals.common_hours_format, hours, hours)))
     }.inBackground()
         .share()
@@ -145,7 +147,7 @@ class ConfirmStakingViewModel(
         .map {
             val rewardDestination = when (payload) {
                 is Payload.Full -> payload.rewardDestination
-                is Payload.ExistingStash -> interactor.getRewardDestination(stashFlow.first())
+                is Payload.ExistingStash -> relayChainInteractor.getRewardDestination(stashFlow.first())
                 else -> null
             }
 

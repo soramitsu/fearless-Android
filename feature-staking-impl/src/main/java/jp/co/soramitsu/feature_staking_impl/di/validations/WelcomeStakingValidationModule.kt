@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingMaxNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 
 @Module
 class WelcomeStakingValidationModule {
@@ -17,7 +18,7 @@ class WelcomeStakingValidationModule {
     @FeatureScope
     fun provideMaxNominatorsReachedValidation(
         stakingSharedState: StakingSharedState,
-        stakingRepository: StakingRepository
+        stakingRepository: StakingRelayChainScenarioRepository
     ) = WelcomeStakingMaxNominatorsValidation(
         stakingRepository = stakingRepository,
         errorProducer = { WelcomeStakingValidationFailure.MAX_NOMINATORS_REACHED },
