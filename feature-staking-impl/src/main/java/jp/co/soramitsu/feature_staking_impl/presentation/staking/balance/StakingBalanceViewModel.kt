@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -22,14 +24,13 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class StakingBalanceViewModel(
     private val router: StakingRouter,
@@ -40,7 +41,8 @@ class StakingBalanceViewModel(
     private val validationExecutor: ValidationExecutor,
     private val unbondingInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
-    private val interactor: StakingInteractor,
+    interactor: StakingInteractor,
+    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
 ) : BaseViewModel(), Validatable by validationExecutor {
 
     private val assetFlow = interactor.currentAssetFlow()
@@ -60,7 +62,7 @@ class StakingBalanceViewModel(
         .map { it.redeemable > BigDecimal.ZERO }
         .asLiveData()
 
-    private val unbondingsFlow = interactor.currentUnbondingsFlow()
+    private val unbondingsFlow = stakingRelayChainScenarioInteractor.currentUnbondingsFlow()
         .share()
 
     val unbondingModelsLiveData = unbondingsFlow
@@ -129,7 +131,7 @@ class StakingBalanceViewModel(
         block: (ManageStakingValidationPayload) -> Unit,
     ) {
         launch {
-            val stakingState = interactor.selectedAccountStakingStateFlow().first()
+            val stakingState = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow().first()
             require(stakingState is StakingState.Stash)
 
             validationExecutor.requireValid(

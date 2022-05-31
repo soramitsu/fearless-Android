@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.IsNotC
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationSystem
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 
@@ -31,7 +32,7 @@ class SetControllerValidationsModule {
     @Provides
     fun provideControllerValidation(
         stakingSharedState: StakingSharedState,
-        stakingRepository: StakingRepository
+        stakingRepository: StakingRelayChainScenarioRepository
     ) = IsNotControllerAccountValidation(
         stakingRepository = stakingRepository,
         controllerAddressProducer = { it.controllerAddress },

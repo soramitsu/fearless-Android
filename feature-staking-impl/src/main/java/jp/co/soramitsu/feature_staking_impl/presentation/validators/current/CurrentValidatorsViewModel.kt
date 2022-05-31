@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel.TitleConfig
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -42,12 +43,13 @@ class CurrentValidatorsViewModel(
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val stakingInteractor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val currentValidatorsInteractor: CurrentValidatorsInteractor,
     private val setupStakingSharedState: SetupStakingSharedState,
 ) : BaseViewModel() {
 
-    private val groupedCurrentValidatorsFlow = stakingInteractor.selectedAccountStakingStateFlow()
+    private val groupedCurrentValidatorsFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .flatMapLatest(currentValidatorsInteractor::nominatedValidatorsFlow)
         .inBackground()

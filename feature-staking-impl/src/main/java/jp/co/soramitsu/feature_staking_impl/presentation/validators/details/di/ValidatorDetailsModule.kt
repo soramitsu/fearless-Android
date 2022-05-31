@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
@@ -26,6 +27,7 @@ class ValidatorDetailsModule {
     @ViewModelKey(ValidatorDetailsViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         router: StakingRouter,
         validator: ValidatorDetailsParcelModel,
         addressIconGenerator: AddressIconGenerator,
@@ -36,6 +38,7 @@ class ValidatorDetailsModule {
     ): ViewModel {
         return ValidatorDetailsViewModel(
             interactor,
+            stakingRelayChainScenarioInteractor,
             router,
             validator,
             addressIconGenerator,

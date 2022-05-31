@@ -5,12 +5,13 @@ import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 import kotlinx.coroutines.flow.first
 
 private const val UNLOCKING_LIMIT = 32
 
 class UnbondingRequestsLimitValidation<P, E>(
-    val stakingRepository: StakingRepository,
+    val stakingRepository: StakingRelayChainScenarioRepository,
     val stashStateProducer: (P) -> StakingState.Stash,
     val errorProducer: (limit: Int) -> E
 ) : Validation<P, E> {

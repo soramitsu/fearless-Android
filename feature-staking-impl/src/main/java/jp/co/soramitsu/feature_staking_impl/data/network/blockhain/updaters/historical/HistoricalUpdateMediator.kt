@@ -7,8 +7,6 @@ import jp.co.soramitsu.core.updater.GlobalScopeUpdater
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_api.domain.api.historicalEras
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.fetchValuesToCache
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.observeActiveEraIndex
@@ -20,6 +18,8 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.historicalEras
 
 interface HistoricalUpdater {
 
@@ -30,7 +30,7 @@ class HistoricalUpdateMediator(
     private val historicalUpdaters: List<HistoricalUpdater>,
     private val stakingSharedState: StakingSharedState,
     private val bulkRetriever: BulkRetriever,
-    private val stakingRepository: StakingRepository,
+    private val stakingRepository: StakingRelayChainScenarioRepository,
     private val storageCache: StorageCache,
     private val chainRegistry: ChainRegistry,
 ) : GlobalScopeUpdater {

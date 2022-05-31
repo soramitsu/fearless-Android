@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.PayoutsListViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class PayoutsListModule {
@@ -21,6 +22,7 @@ class PayoutsListModule {
     @ViewModelKey(PayoutsListViewModel::class)
     fun provideViewModel(
         stakingInteractor: StakingInteractor,
+        relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         resourceManager: ResourceManager,
         router: StakingRouter,
     ): ViewModel {
@@ -28,6 +30,7 @@ class PayoutsListModule {
             router,
             resourceManager,
             stakingInteractor,
+            relayChainScenarioInteractor
         )
     }
 

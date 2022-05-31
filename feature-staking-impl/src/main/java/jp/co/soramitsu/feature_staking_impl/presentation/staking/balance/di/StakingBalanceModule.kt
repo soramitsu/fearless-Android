@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MA
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.StakingBalanceViewModel
 import javax.inject.Named
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class StakingBalanceModule {
@@ -29,6 +30,7 @@ class StakingBalanceModule {
     @ViewModelKey(StakingBalanceViewModel::class)
     fun provideViewModel(
         stakingInteractor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         @Named(SYSTEM_MANAGE_STAKING_REDEEM) redeemValidationSystem: ManageStakingValidationSystem,
         @Named(SYSTEM_MANAGE_STAKING_UNBOND) unbondValidationSystem: ManageStakingValidationSystem,
         @Named(SYSTEM_MANAGE_STAKING_BOND_MORE) bondMoreValidationSystem: ManageStakingValidationSystem,
@@ -48,6 +50,7 @@ class StakingBalanceModule {
             unbondingInteractor,
             resourceManager,
             stakingInteractor,
+            stakingRelayChainScenarioInteractor
         )
     }
 

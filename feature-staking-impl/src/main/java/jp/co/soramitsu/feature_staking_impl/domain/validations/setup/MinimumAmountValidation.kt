@@ -4,10 +4,11 @@ import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 
 class MinimumAmountValidation(
-    private val stakingRepository: StakingRepository,
+    private val stakingRepository: StakingRelayChainScenarioRepository,
 ) : Validation<SetupStakingPayload, SetupStakingValidationFailure> {
 
     override suspend fun validate(value: SetupStakingPayload): ValidationStatus<SetupStakingValidationFailure> {

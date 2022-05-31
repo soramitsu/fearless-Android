@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondVali
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class SelectUnbondModule {
@@ -25,6 +26,7 @@ class SelectUnbondModule {
     @ViewModelKey(SelectUnbondViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         router: StakingRouter,
         unbondInteractor: UnbondInteractor,
         resourceManager: ResourceManager,
@@ -35,6 +37,7 @@ class SelectUnbondModule {
         return SelectUnbondViewModel(
             router,
             interactor,
+            stakingRelayChainScenarioInteractor,
             unbondInteractor,
             resourceManager,
             validationExecutor,

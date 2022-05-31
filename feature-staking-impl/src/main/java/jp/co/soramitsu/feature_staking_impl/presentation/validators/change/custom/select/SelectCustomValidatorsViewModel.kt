@@ -28,6 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -48,6 +49,7 @@ class SelectCustomValidatorsViewModel(
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val tokenUseCase: TokenUseCase,
@@ -76,7 +78,7 @@ class SelectCustomValidatorsViewModel(
     private val selectedValidators = MutableStateFlow(emptySet<Validator>())
 
     private val maxSelectedValidatorsFlow = flowOf {
-        interactor.maxValidatorsPerNominator()
+        stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
     }.share()
 
     private val iconsCache: MutableMap<String, AddressModel> = mutableMapOf()

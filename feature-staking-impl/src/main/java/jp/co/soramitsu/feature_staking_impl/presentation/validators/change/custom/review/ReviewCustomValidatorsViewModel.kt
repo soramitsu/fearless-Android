@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.model.ValidatorsSelectionState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -28,6 +29,7 @@ class ReviewCustomValidatorsViewModel(
     private val router: StakingRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
     tokenUseCase: TokenUseCase,
@@ -45,7 +47,7 @@ class ReviewCustomValidatorsViewModel(
         .share()
 
     private val maxValidatorsPerNominatorFlow = flowOf {
-        interactor.maxValidatorsPerNominator()
+        stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
     }.share()
 
     val selectionStateFlow = combine(
