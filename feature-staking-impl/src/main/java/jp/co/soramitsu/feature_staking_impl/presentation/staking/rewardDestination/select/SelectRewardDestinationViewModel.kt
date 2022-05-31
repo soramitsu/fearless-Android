@@ -33,10 +33,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 
 class SelectRewardDestinationViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
     private val changeRewardDestinationInteractor: ChangeRewardDestinationInteractor,
@@ -59,7 +61,7 @@ class SelectRewardDestinationViewModel(
         .map { mapRewardDestinationModelToRewardDestination(it) }
         .share()
 
-    private val stashStateFlow = interactor.selectedAccountStakingStateFlow()
+    private val stashStateFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 

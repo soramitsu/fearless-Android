@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondVali
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.rebondValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
@@ -39,6 +40,7 @@ import kotlinx.coroutines.launch
 class ConfirmRebondViewModel(
     private val router: StakingRouter,
     interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val rebondInteractor: RebondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
@@ -56,7 +58,7 @@ class ConfirmRebondViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val accountStakingFlow = interactor.selectedAccountStakingStateFlow()
+    private val accountStakingFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 

@@ -8,12 +8,12 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.retractValidators
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -38,13 +38,13 @@ class StartChangeValidatorsViewModel(
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val resourceManager: ResourceManager,
-    private val interactor: StakingInteractor,
+    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
 ) : BaseViewModel(), Browserable {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val maxValidatorsPerNominator = flowOf {
-        interactor.maxValidatorsPerNominator()
+        stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
     }.share()
 
     val validatorsLoading = MutableStateFlow(true)

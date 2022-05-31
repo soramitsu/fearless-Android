@@ -3,32 +3,33 @@ package jp.co.soramitsu.feature_staking_impl.scenarios
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
-import jp.co.soramitsu.feature_staking_impl.domain.model.DelegatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
-import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
     private val accountRepository: AccountRepository,
     private val stakingConstantsRepository: StakingConstantsRepository,
-    private val stakingRepository: StakingRepository,
+    private val stakingParachainScenarioRepository: StakingParachainScenarioRepository,
     private val identityRepositoryImpl: IdentityRepository
 ) : StakingScenarioInteractor {
 
@@ -64,12 +65,8 @@ class StakingParachainScenarioInteractor(
             stakingInteractor.currentAssetFlow()
         ) { chain, asset -> chain to asset }.flatMapConcat { (chain, asset) ->
             val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-            stakingRepository.observeParachainState(chain, accountId)
+            stakingParachainScenarioRepository.stakingStateFlow(chain, accountId)
         }
-    }
-
-    fun observeDelegatorSummary(delegatorState: StakingState.Parachain.Delegator): Flow<StakeSummary<DelegatorStatus>> {
-        return emptyFlow()
     }
 
     suspend fun getIdentities(collatorsIds: List<AccountId>): Map<String, Identity?> {
@@ -79,6 +76,20 @@ class StakingParachainScenarioInteractor(
     }
 
     suspend fun getCurrentRound(chainId: ChainId): Round {
-        return stakingRepository.getCurrentRound(chainId)
+        return stakingParachainScenarioRepository.getCurrentRound(chainId)
+    }
+
+    fun selectedAccountStakingStateFlow(
+        metaAccount: MetaAccount,
+        assetWithChain: SingleAssetSharedState.AssetWithChain
+    ) = flow {
+        val chain = assetWithChain.chain
+        val accountId = metaAccount.accountId(chain)!! // TODO may be null for ethereum chains
+
+        emitAll(stakingParachainScenarioRepository.stakingStateFlow(chain, accountId))
+    }
+
+    fun selectedAccountStakingStateFlow() = stakingInteractor.selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
+        selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
     }
 }

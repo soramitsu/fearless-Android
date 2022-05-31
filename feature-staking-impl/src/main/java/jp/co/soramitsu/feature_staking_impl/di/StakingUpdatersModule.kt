@@ -10,7 +10,6 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountNominationsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
@@ -30,6 +29,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.hist
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalUpdateMediator
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalValidatorRewardPointsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
@@ -103,7 +103,7 @@ class StakingUpdatersModule {
     @Provides
     @FeatureScope
     fun provideStakingLedgerUpdater(
-        stakingRepository: StakingRepository,
+        stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
         accountStakingDao: AccountStakingDao,
@@ -113,7 +113,7 @@ class StakingUpdatersModule {
         accountUpdateScope: AccountUpdateScope,
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
-            stakingRepository,
+            stakingRelayChainScenarioRepository,
             sharedState,
             chainRegistry,
             accountStakingDao,
@@ -183,7 +183,7 @@ class StakingUpdatersModule {
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
         bulkRetriever: BulkRetriever,
-        stakingRepository: StakingRepository,
+        stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         storageCache: StorageCache,
     ) = HistoricalUpdateMediator(
         historicalUpdaters = listOf(
@@ -193,7 +193,7 @@ class StakingUpdatersModule {
         stakingSharedState = sharedState,
         chainRegistry = chainRegistry,
         bulkRetriever = bulkRetriever,
-        stakingRepository = stakingRepository,
+        stakingRepository = stakingRelayChainScenarioRepository,
         storageCache = storageCache
     )
 

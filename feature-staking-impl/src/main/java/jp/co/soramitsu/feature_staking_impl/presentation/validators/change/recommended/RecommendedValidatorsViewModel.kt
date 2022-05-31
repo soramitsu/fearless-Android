@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setRecommendedValidators
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.flow.first
@@ -34,6 +35,7 @@ class RecommendedValidatorsViewModel(
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,
+    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
     private val tokenUseCase: TokenUseCase,
@@ -55,7 +57,7 @@ class RecommendedValidatorsViewModel(
     }.inBackground().share()
 
     val selectedTitle = recommendedValidators.map {
-        val maxValidators = interactor.maxValidatorsPerNominator()
+        val maxValidators = stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
 
         resourceManager.getString(R.string.staking_custom_header_validators_title, it.size, maxValidators)
     }.inBackground().share()

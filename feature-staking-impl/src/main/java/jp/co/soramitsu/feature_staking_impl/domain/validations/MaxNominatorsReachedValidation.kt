@@ -5,9 +5,10 @@ import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.common.validation.validOrError
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 
 class MaxNominatorsReachedValidation<P, E>(
-    private val stakingRepository: StakingRepository,
+    private val stakingRepository: StakingRelayChainScenarioRepository,
     private val isAlreadyNominating: (P) -> Boolean,
     private val sharedState: StakingSharedState,
     private val errorProducer: () -> E

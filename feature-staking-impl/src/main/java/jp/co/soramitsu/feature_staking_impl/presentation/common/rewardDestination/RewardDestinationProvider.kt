@@ -29,10 +29,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 
 class RewardDestinationProvider(
     private val resourceManager: ResourceManager,
     private val interactor: StakingInteractor,
+    private val relayChainInteractor: StakingRelayChainScenarioInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
     private val sharedState: StakingSharedState,
@@ -86,7 +88,7 @@ class RewardDestinationProvider(
     }
 
     override suspend fun loadActiveRewardDestination(stashState: StakingState.Stash) {
-        val rewardDestination = interactor.getRewardDestination(stashState)
+        val rewardDestination = relayChainInteractor.getRewardDestination(stashState)
         val rewardDestinationModel = mapRewardDestinationToRewardDestinationModel(rewardDestination)
 
         initialRewardDestination.emit(rewardDestinationModel)

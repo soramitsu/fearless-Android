@@ -1,20 +1,20 @@
 package jp.co.soramitsu.feature_staking_impl.domain.staking.unbond
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.chill
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.unbond
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
 
 class UnbondInteractor(
     private val extrinsicService: ExtrinsicService,
-    private val stakingRepository: StakingRepository
+    private val stakingRepository: StakingRelayChainScenarioRepository
 ) {
 
     suspend fun estimateFee(
@@ -48,7 +48,7 @@ class UnbondInteractor(
     ) {
         // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
         if (
-            // if account is nominating
+        // if account is nominating
             stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
             currentBondedBalance - unbondAmount < stakingRepository.minimumNominatorBond(stashState.chain.id)

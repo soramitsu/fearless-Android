@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.ReviewCustomValidatorsViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 
 @Module(includes = [ViewModelModule::class])
@@ -25,6 +26,7 @@ class ReviewCustomValidatorsModule {
     fun provideViewModel(
         addressIconGenerator: AddressIconGenerator,
         stakingInteractor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         resourceManager: ResourceManager,
         router: StakingRouter,
         setupStakingSharedState: SetupStakingSharedState,
@@ -34,6 +36,7 @@ class ReviewCustomValidatorsModule {
             router,
             addressIconGenerator,
             stakingInteractor,
+            stakingRelayChainScenarioInteractor,
             resourceManager,
             setupStakingSharedState,
             tokenUseCase

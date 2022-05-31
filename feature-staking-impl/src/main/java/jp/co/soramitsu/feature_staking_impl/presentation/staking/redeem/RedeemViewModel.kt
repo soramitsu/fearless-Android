@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
@@ -24,6 +25,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteract
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
@@ -34,10 +36,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class RedeemViewModel(
     private val router: StakingRouter,
+    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val interactor: StakingInteractor,
     private val redeemInteractor: RedeemInteractor,
     private val resourceManager: ResourceManager,
@@ -56,7 +58,7 @@ class RedeemViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val accountStakingFlow = interactor.selectedAccountStakingStateFlow()
+    private val accountStakingFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 
