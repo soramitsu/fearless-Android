@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
+import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 
 interface RewardDestinationMixin : Browserable {
 
@@ -37,7 +38,7 @@ interface RewardDestinationMixin : Browserable {
         suspend fun loadActiveRewardDestination(stashState: StakingState.Stash)
 
         suspend fun updateReturns(
-            rewardCalculator: ManualRewardCalculator,
+            rewardCalculator: RewardCalculator,
             asset: Asset,
             amount: BigDecimal,
         )

@@ -58,7 +58,7 @@ class StakingRelaychainScenarioViewModel(
                     baseViewModel::showError
                 )
 
-                is StakingState.NonStash -> stakingViewStateFactory.createWelcomeViewState(
+                is StakingState.NonStash -> stakingViewStateFactory.createRelayChainWelcomeViewState(
                     stakingInteractor.currentAssetFlow(),
                     baseViewModel.stakingStateScope,
                     baseViewModel::showError

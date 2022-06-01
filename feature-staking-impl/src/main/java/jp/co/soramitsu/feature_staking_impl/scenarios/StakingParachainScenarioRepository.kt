@@ -24,9 +24,10 @@ import kotlinx.coroutines.flow.map
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
-    private val localStorage: StorageDataSource,) {
+    private val localStorage: StorageDataSource,
+) {
 
-    suspend fun stakingStateFlow(
+    fun stakingStateFlow(
         chain: Chain,
         accountId: AccountId
     ): Flow<StakingState> {
@@ -38,7 +39,7 @@ class StakingParachainScenarioRepository(
         }
     }
 
-    suspend fun getDelegatorState(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
+    fun getDelegatorState(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
         return localStorage.observe(
             chainId = chainId,
             keyBuilder = {

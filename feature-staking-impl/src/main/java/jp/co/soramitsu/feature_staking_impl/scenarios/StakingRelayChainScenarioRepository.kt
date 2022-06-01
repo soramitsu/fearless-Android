@@ -136,11 +136,14 @@ class StakingRelayChainScenarioRepository(
         chainId = chainId
     )
 
-    fun observeActiveEraIndex(chainId: String) = localStorage.observeNonNull(
-        chainId = chainId,
-        keyBuilder = { it.metadata.activeEraStorageKey() },
-        binding = { scale, runtime -> bindActiveEra(scale, runtime) }
-    )
+    fun observeActiveEraIndex(chainId: String): Flow<BigInteger> {
+        hashCode()
+        return localStorage.observeNonNull(
+            chainId = chainId,
+            keyBuilder = { it.metadata.activeEraStorageKey() },
+            binding = { scale, runtime -> bindActiveEra(scale, runtime) }
+        )
+    }
 
     fun electedExposuresInActiveEra(chainId: ChainId) = observeActiveEraIndex(chainId).mapLatest {
         getElectedValidatorsExposure(chainId, it)
