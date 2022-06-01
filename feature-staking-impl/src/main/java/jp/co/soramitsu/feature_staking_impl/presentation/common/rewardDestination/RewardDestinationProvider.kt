@@ -15,7 +15,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.DAYS_IN_YEAR
-import jp.co.soramitsu.feature_staking_impl.domain.rewards.ManualRewardCalculator
+import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -95,7 +95,7 @@ class RewardDestinationProvider(
         rewardDestinationModelFlow.emit(rewardDestinationModel)
     }
 
-    override suspend fun updateReturns(rewardCalculator: ManualRewardCalculator, asset: Asset, amount: BigDecimal) {
+    override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {
         val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true)
         val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false)
 

@@ -12,23 +12,46 @@ sealed class SetupStakingProcess {
 
         val defaultAmount = 10.toBigDecimal()
 
-        fun fullFlow(amount: BigDecimal) = Stash(amount)
+        fun fullFlow(flow: SetupStakingProcess) = flow
 
         fun existingStashFlow() = Validators(Validators.Payload.ExistingStash)
 
         fun changeValidatorsFlow() = Validators(Validators.Payload.Validators)
     }
 
-    class Stash(val amount: BigDecimal) : SetupStakingProcess() {
-
-        fun previous() = Initial
-
-        fun next(
+    sealed class SetupStep : SetupStakingProcess() {
+        abstract val amount: BigDecimal
+        abstract fun previous(): SetupStakingProcess
+        abstract fun next(
             newAmount: BigDecimal,
             rewardDestination: RewardDestination,
             currentAccountAddress: String
-        ) = Validators(Validators.Payload.Full(newAmount, rewardDestination, currentAccountAddress))
+        ): SetupStakingProcess
+
+        class Stash(override val amount: BigDecimal) : SetupStep() {
+
+            override fun previous() = Initial
+
+            override fun next(
+                newAmount: BigDecimal,
+                rewardDestination: RewardDestination,
+                currentAccountAddress: String
+            ) = Validators(Validators.Payload.Full(newAmount, rewardDestination, currentAccountAddress))
+        }
+
+        class Parachain(override val amount: BigDecimal) : SetupStep() {
+
+            override fun previous() = Initial
+
+            override fun next(
+                newAmount: BigDecimal,
+                rewardDestination: RewardDestination,
+                currentAccountAddress: String
+            ) = Validators(Validators.Payload.Full(newAmount, rewardDestination, currentAccountAddress))
+        }
     }
+
+
 
     class Validators(
         val payload: Payload
@@ -48,7 +71,7 @@ sealed class SetupStakingProcess {
         }
 
         fun previous() = when (payload) {
-            is Payload.Full -> Stash(payload.amount)
+            is Payload.Full -> SetupStep.Stash(payload.amount)
             else -> Initial
         }
 
