@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
+import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -36,7 +37,7 @@ class StakingParachainScenarioInteractor(
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
         val chainId = stakingInteractor.getSelectedChain().id
         val lockupPeriod = getParachainLockupPeriodInDays(chainId)
-        val minimumStakeInPlanks = stakingConstantsRepository.parachainMinimumStaking(chainId)
+        val minimumStakeInPlanks = getMinimumStake(chainId)
 
         return flowOf(
             NetworkInfo.Parachain(
@@ -91,5 +92,9 @@ class StakingParachainScenarioInteractor(
 
     fun selectedAccountStakingStateFlow() = stakingInteractor.selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
         selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
+    }
+
+    override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
+        return stakingConstantsRepository.parachainMinimumStaking(chainId)
     }
 }

@@ -26,7 +26,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProc
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
 class SetupStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
-    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
     private val setupStakingInteractor: SetupStakingInteractor,
@@ -61,7 +61,7 @@ class SetupStakingViewModel(
     FeeLoaderMixin by feeLoaderMixin,
     RewardDestinationMixin by rewardDestinationMixin {
 
-    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.Stash>()
+    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.SetupStep>()
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -89,7 +89,10 @@ class SetupStakingViewModel(
         .flowOn(Dispatchers.Default)
         .asLiveData()
 
-    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.createManual() }
+    private val rewardCalculator = viewModelScope.async {
+        val asset = interactor.getCurrentAsset()
+        rewardCalculatorFactory.create(asset.staking)
+    }
 
     init {
         loadFee()
@@ -98,7 +101,7 @@ class SetupStakingViewModel(
 
         launch {
             val chainId = assetFlow.first().token.configuration.chainId
-            minimumStake = stakingRelayChainScenarioInteractor.getMinimumStake(chainId)
+            minimumStake = stakingScenarioInteractor.getMinimumStake(chainId)
         }
     }
 
