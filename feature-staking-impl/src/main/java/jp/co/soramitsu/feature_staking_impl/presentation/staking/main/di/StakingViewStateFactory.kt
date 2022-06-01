@@ -66,7 +66,7 @@ class StakingViewStateFactory(
         errorDisplayer = errorDisplayer
     )
 
-    fun createWelcomeViewState(
+    fun createRelayChainWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
         scope: CoroutineScope,
         errorDisplayer: (String) -> Unit

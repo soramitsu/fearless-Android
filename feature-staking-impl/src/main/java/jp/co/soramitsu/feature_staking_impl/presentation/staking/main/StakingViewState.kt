@@ -394,7 +394,7 @@ class RelaychainWelcomeViewState(
                 errorDisplayer = { it.message?.let(errorDisplayer) },
                 validationFailureTransformer = { welcomeStakingValidationFailure(it, resourceManager) },
             ) {
-                setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
+                setupStakingSharedState.set(currentSetupProgress.fullFlow(SetupStakingProcess.SetupStep.Stash(amount)))
 
                 router.openSetupStaking()
             }
@@ -455,7 +455,7 @@ class ParachainWelcomeViewState(
     override fun nextClicked() {
         scope.launch {
             val amount = parsedAmountFlow.first()
-            setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
+            setupStakingSharedState.set(currentSetupProgress.fullFlow(SetupStakingProcess.SetupStep.Parachain(amount)))
             router.openSetupStaking()
         }
     }

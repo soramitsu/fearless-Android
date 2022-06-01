@@ -13,9 +13,11 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.state.chain
+import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -61,6 +63,10 @@ class StakingInteractor(
     }
 
     fun currentAssetFlow() = assetUseCase.currentAssetFlow()
+
+    suspend fun getCurrentAsset(): Chain.Asset {
+        return stakingSharedState.chainAsset()
+    }
 
     fun assetFlow(accountAddress: String): Flow<Asset> {
         return flow {
