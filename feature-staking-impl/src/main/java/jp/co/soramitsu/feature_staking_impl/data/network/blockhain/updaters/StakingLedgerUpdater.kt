@@ -20,7 +20,6 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChang
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.isRedeemableIn
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn

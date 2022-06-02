@@ -5,12 +5,12 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
+import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSorting
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-
 
 private const val ICON_SIZE_DP = 24
 
@@ -24,7 +24,7 @@ suspend fun mapCollatorToCollatorModel(
 ) = mapCollatorToCollatorModel(
     chain,
     collator,
-    { iconGenerator.createAddressModel(it, ICON_SIZE_DP) },
+    { iconGenerator.createAddressModel(it, ICON_SIZE_DP, collator.identity?.display) },
     token,
     isChecked,
     sorting
@@ -56,7 +56,7 @@ suspend fun mapCollatorToCollatorModel(
     }
 }
 
-fun CandidateInfo.toCollator(address: String) = Collator(
+fun CandidateInfo.toCollator(address: String, identity: Identity?) = Collator(
     address = address,
     bond = bond,
     delegationCount = delegationCount,
@@ -67,5 +67,6 @@ fun CandidateInfo.toCollator(address: String) = Collator(
     topCapacity = topCapacity,
     bottomCapacity = bottomCapacity,
     request = request,
-    status = status
+    status = status,
+    identity = identity,
 )

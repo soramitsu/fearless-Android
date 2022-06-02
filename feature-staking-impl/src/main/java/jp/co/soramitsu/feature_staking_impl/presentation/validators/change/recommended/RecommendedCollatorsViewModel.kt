@@ -20,6 +20,9 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingShar
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapCollatorToCollatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setRecommendedCollators
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.IdentityParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
@@ -27,6 +30,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class RecommendedCollatorsViewModel(
     private val router: StakingRouter,
@@ -71,7 +76,32 @@ class RecommendedCollatorsViewModel(
     }
 
     fun collatorInfoClicked(collatorModel: CollatorModel) {
-//        router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(collatorModel.collator))
+        router.openCollatorDetails(
+            CollatorDetailsParcelModel(
+                collatorModel.accountIdHex,
+                "Elected",
+                R.color.green,
+                ValidatorStakeParcelModel.Active(
+                    BigInteger.ONE,
+                    BigInteger.ONE,
+                    emptyList(),
+                    BigDecimal.TEN,
+                    false,
+                    false,
+                    null
+                ),
+                IdentityParcelModel(
+                    display = collatorModel.collator.identity?.display,
+                    legal = collatorModel.collator.identity?.legal,
+                    web = collatorModel.collator.identity?.web,
+                    riot = collatorModel.collator.identity?.riot,
+                    email = collatorModel.collator.identity?.email,
+                    pgpFingerprint = collatorModel.collator.identity?.pgpFingerprint,
+                    image = collatorModel.collator.identity?.image,
+                    twitter = collatorModel.collator.identity?.twitter,
+                )
+            )
+        )
     }
 
     fun nextClicked() {

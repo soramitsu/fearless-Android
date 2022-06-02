@@ -14,5 +14,5 @@ class Collator(
     val bottomCapacity: CandidateCapacity,
     val request: String?,
     val status: CandidateInfoStatus,
+    val identity: Identity?,
 )
-

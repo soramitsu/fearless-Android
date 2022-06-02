@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.scenarios
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
+import jp.co.soramitsu.common.utils.accountIdFromMapKey
 import jp.co.soramitsu.common.utils.babe
 import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.numberConstant
@@ -42,7 +43,6 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKey
-import jp.co.soramitsu.feature_staking_impl.data.repository.accountIdFromMapKey
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain

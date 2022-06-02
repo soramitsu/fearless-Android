@@ -35,7 +35,6 @@ class StakingConstantsRepository(
         }
     }
 
-
     suspend fun maxDelegationsPerDelegator(chainId: ChainId): Int {
         return getParachainNumberConstant(chainId, "MaxDelegationsPerDelegator").toInt()
     }
