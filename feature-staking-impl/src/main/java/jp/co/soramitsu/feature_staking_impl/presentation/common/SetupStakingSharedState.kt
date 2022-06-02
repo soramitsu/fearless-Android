@@ -46,15 +46,17 @@ sealed class SetupStakingProcess {
         fun next(validators: List<Validator>, collators: List<Collator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
             val payload = with(payload) {
                 when (this) {
-                    is Validators.Payload.Full -> ReadyToSubmit.Payload.Full(amount, rewardDestination, controllerAddress, validators, collators, selectionMethod)
-                    is Validators.Payload.ExistingStash -> ReadyToSubmit.Payload.ExistingStash(validators, collators, selectionMethod)
-                    is Validators.Payload.Validators -> ReadyToSubmit.Payload.Validators(validators, collators, selectionMethod)
+                    is Validators.Payload.Full ->
+                        ReadyToSubmit.Payload.Full(amount, rewardDestination, controllerAddress, validators, collators, selectionMethod)
+                    is Validators.Payload.ExistingStash ->
+                        ReadyToSubmit.Payload.ExistingStash(validators, collators, selectionMethod)
+                    is Validators.Payload.Validators ->
+                        ReadyToSubmit.Payload.Validators(validators, collators, selectionMethod)
                 }
             }
 
             return ReadyToSubmit(payload)
         }
-
     }
 
     class Validators(
@@ -128,7 +130,6 @@ sealed class SetupStakingProcess {
                 ): Payload {
                     return Full(amount, rewardDestination, currentAccountAddress, validators, newCollators, selectionMethod)
                 }
-
             }
 
             class ExistingStash(

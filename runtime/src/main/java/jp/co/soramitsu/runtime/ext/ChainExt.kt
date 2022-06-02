@@ -1,6 +1,8 @@
 package jp.co.soramitsu.runtime.ext
 
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
+import jp.co.soramitsu.common.utils.accountIdFromMapKey
+import jp.co.soramitsu.common.utils.ethereumAddressFromMapKey
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.ethereumAddressToHex
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -43,6 +45,13 @@ fun Chain.accountIdOf(address: String): ByteArray {
 fun Chain.hexAccountIdOf(address: String): String {
     return accountIdOf(address).toHexString()
 }
+
+fun Chain.accountFromMapKey(account: String): String =
+    if (isEthereumBased) {
+        account.ethereumAddressFromMapKey()
+    } else {
+        account.accountIdFromMapKey()
+    }
 
 fun Chain.multiAddressOf(accountId: ByteArray): MultiAddress {
     return if (isEthereumBased) {

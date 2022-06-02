@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
-import jp.co.soramitsu.common.utils.identity
 import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
@@ -15,7 +14,6 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateCapacity
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfoStatus
-import jp.co.soramitsu.feature_staking_api.domain.model.CollatorIdentity
 
 @UseCaseBinding
 fun bindCandidateInfo(scale: String, runtime: RuntimeSnapshot): CandidateInfo {

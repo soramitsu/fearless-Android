@@ -38,7 +38,6 @@ enum class CandidateCapacity {
     }
 }
 
-
 data class CollatorIdentity(val info: Info) {
     data class Info(
         val display: Display,
