@@ -8,3 +8,12 @@ class ValidatorDetailsModel(
     val addressImage: PictureDrawable,
     val identity: IdentityModel?,
 )
+
+class CollatorDetailsModel(
+    val stake: ValidatorStakeModel,
+    val address: String,
+    val addressImage: PictureDrawable,
+    val identity: IdentityModel?,
+    val statusText: String,
+    val statusColor: Int,
+)

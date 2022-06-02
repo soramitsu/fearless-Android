@@ -12,7 +12,6 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioR
 import jp.co.soramitsu.feature_staking_impl.scenarios.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 sealed class ValidatorSource {
 
@@ -46,7 +45,7 @@ class ValidatorProvider(
 
         val validatorPrefs = stakingRepository.getValidatorPrefs(chainId, validatorIdsToQueryPrefs.toList())
 
-        val identities = identityRepository.getIdentitiesFromIds(chainId, requestedValidatorIds)
+        val identities = identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds)
         val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
 
         val rewardCalculator = rewardCalculatorFactory.createManual(electedValidatorExposures, validatorPrefs)
@@ -76,15 +75,15 @@ class ValidatorProvider(
         }
     }
 
-    suspend fun getValidatorWithoutElectedInfo(chainId: ChainId, address: String): Validator {
+    suspend fun getValidatorWithoutElectedInfo(chain: Chain, address: String): Validator {
         val accountId = address.toHexAccountId()
 
         val accountIdBridged = listOf(accountId)
 
-        val prefs = stakingRepository.getValidatorPrefs(chainId, accountIdBridged)[accountId]
-        val identity = identityRepository.getIdentitiesFromIds(chainId, accountIdBridged)[accountId]
+        val prefs = stakingRepository.getValidatorPrefs(chain.id, accountIdBridged)[accountId]
+        val identity = identityRepository.getIdentitiesFromIds(chain, accountIdBridged)[accountId]
 
-        val slashes = stakingRepository.getSlashes(chainId, accountIdBridged)
+        val slashes = stakingRepository.getSlashes(chain.id, accountIdBridged)
 
         return Validator(
             slashed = slashes.getOrDefault(accountId, false),

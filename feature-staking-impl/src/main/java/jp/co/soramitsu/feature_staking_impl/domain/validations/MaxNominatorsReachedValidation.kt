@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.domain.validations
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.common.validation.validOrError
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 

@@ -2,8 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -21,8 +19,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorStateStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.data.repository.accountIdFromMapKey
-import jp.co.soramitsu.feature_staking_impl.data.repository.ethereumAddressFromMapKey
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.model.DelegatorStatus
@@ -48,6 +44,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -67,6 +64,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 
 sealed class StakingViewState
 
@@ -281,15 +280,17 @@ private fun getNominatorStatusTitleAndMessage(
 private fun getDelegatorStatusTitleAndMessage(
     resourceManager: ResourceManager,
     status: DelegatorStatus
-): Pair<String, String> {//todo fix
+): Pair<String, String> { // todo fix
     val (titleRes, messageRes) = when (status) {
         is DelegatorStatus.Active -> R.string.staking_nominator_status_alert_active_title to R.string.staking_nominator_status_alert_active_message
 
         is DelegatorStatus.Waiting -> R.string.staking_nominator_status_waiting to R.string.staking_nominator_status_alert_waiting_message
 
         is DelegatorStatus.Inactive -> when (status.reason) {
-            DelegatorStatus.Inactive.Reason.MIN_STAKE -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_low_stake
-            DelegatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR -> R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
+            DelegatorStatus.Inactive.Reason.MIN_STAKE ->
+                R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_low_stake
+            DelegatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR ->
+                R.string.staking_nominator_status_alert_inactive_title to R.string.staking_nominator_status_alert_no_validators
         }
     }
 
@@ -493,11 +494,7 @@ class DelegatorViewState(
         val chain = stakingInteractor.getSelectedChain()
         val collatorsNamesMap = parachainScenarioInteractor.getIdentities(collatorsIds).let { map ->
             map.map {
-                if (chain.isEthereumBased) {
-                    it.key.ethereumAddressFromMapKey()
-                } else {
-                    it.key.accountIdFromMapKey()
-                } to it.value
+                chain.accountFromMapKey(it.key) to it.value
             }
         }.toMap()
         val delegations = delegatorState.delegations.map { collator ->

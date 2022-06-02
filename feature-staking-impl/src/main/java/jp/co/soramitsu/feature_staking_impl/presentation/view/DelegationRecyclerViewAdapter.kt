@@ -20,7 +20,6 @@ class DelegationRecyclerViewAdapter : ListAdapter<DelegatorViewState.CollatorDel
         val item = getItem(position)
         holder.bind(item)
     }
-
 }
 
 class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

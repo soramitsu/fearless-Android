@@ -4,7 +4,6 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.CrossExistentialValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.EnoughToUnbondValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.NotZeroUnbondValidation

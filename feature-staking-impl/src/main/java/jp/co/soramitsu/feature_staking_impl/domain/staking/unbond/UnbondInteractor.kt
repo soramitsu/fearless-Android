@@ -48,7 +48,7 @@ class UnbondInteractor(
     ) {
         // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
         if (
-        // if account is nominating
+            // if account is nominating
             stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
             currentBondedBalance - unbondAmount < stakingRepository.minimumNominatorBond(stashState.chain.id)
