@@ -155,8 +155,6 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
                             stakingStakeSummary.isVisible = false
                             stakingEstimate.isVisible = true
                             startStakingBtn.isVisible = true
-
-
                         }
                     }
                 }

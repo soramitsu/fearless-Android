@@ -9,3 +9,12 @@ class ValidatorDetailsParcelModel(
     val stake: ValidatorStakeParcelModel,
     val identity: IdentityParcelModel?,
 ) : Parcelable
+
+@Parcelize
+class CollatorDetailsParcelModel(
+    val accountIdHex: String,
+    val statusText: String,
+    val statusColor: Int,
+    val stake: ValidatorStakeParcelModel,
+    val identity: IdentityParcelModel?,
+) : Parcelable

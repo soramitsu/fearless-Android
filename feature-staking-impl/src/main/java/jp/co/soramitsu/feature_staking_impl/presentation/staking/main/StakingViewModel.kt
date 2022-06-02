@@ -96,7 +96,7 @@ class StakingViewModel(
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
-        //todo research
+        // todo research
         assetSelectorMixin.selectedAssetModelFlow.onEach {
             stakingStateScope.coroutineContext.cancelChildren()
         }
