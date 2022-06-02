@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change
 
-import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
@@ -48,4 +47,3 @@ private fun SetupStakingSharedState.setCollators(
         else -> throw IllegalArgumentException("Cannot set collators from $it state")
     }
 }
-

@@ -76,6 +76,9 @@ fun String.extrinsicHash(): String {
 
 fun String.toHexAccountId(): String = toAccountId().toHexString()
 
+fun String.accountIdFromMapKey() = fromHex().takeLast(32).toByteArray().toHexString()
+fun String.ethereumAddressFromMapKey() = fromHex().takeLast(20).toByteArray().toHexString()
+
 fun preBinder() = pojo<String>().nonNull()
 
 val GenericEvent.Instance.index

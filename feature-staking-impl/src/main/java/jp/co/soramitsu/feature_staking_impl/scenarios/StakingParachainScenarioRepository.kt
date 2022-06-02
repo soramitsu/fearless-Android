@@ -71,11 +71,15 @@ class StakingParachainScenarioRepository(
     }
 
     suspend fun getCurrentRound(chainId: ChainId): Round {
-        return remoteStorage.query(chainId, keyBuilder = { runtime ->
-            runtime.metadata.parachainStaking().storage("Round").storageKey()
-        }, binding = { scale, runtime ->
-            scale?.let { bindRound(it, runtime) } ?: incompatible()
-        })
+        return remoteStorage.query(
+            chainId,
+            keyBuilder = { runtime ->
+                runtime.metadata.parachainStaking().storage("Round").storageKey()
+            },
+            binding = { scale, runtime ->
+                scale?.let { bindRound(it, runtime) } ?: incompatible()
+            }
+        )
     }
 
     fun observeSelectedCandidates(chainId: ChainId) = remoteStorage.observeNonNull(

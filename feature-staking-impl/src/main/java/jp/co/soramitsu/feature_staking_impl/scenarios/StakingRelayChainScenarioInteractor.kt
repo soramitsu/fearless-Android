@@ -51,7 +51,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-
 val ERA_OFFSET = 1.toBigInteger()
 const val HOURS_IN_DAY = 24
 
@@ -333,7 +332,6 @@ class StakingRelayChainScenarioInteractor(
         val asset: Asset,
         val rewardedNominatorsPerValidator: Int
     )
-
 }
 
 class EraRelativeInfo(

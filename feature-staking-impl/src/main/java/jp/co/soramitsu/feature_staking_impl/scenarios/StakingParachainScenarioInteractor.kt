@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.withContext
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -73,8 +72,8 @@ class StakingParachainScenarioInteractor(
 
     suspend fun getIdentities(collatorsIds: List<AccountId>): Map<String, Identity?> {
         if (collatorsIds.isEmpty()) return emptyMap()
-        val chainId = stakingInteractor.getSelectedChain().id
-        return identityRepositoryImpl.getIdentitiesFromIds(chainId, collatorsIds.map { it.toHexString(false) })
+        val chain = stakingInteractor.getSelectedChain()
+        return identityRepositoryImpl.getIdentitiesFromIds(chain, collatorsIds.map { it.toHexString(false) })
     }
 
     suspend fun getCurrentRound(chainId: ChainId): Round {

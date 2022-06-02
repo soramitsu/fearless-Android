@@ -6,7 +6,6 @@ import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH

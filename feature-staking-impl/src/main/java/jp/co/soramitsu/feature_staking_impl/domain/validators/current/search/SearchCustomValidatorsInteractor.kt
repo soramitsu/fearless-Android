@@ -31,7 +31,7 @@ class SearchCustomValidatorsInteractor(
         val chain = sharedState.chain()
 
         if (chain.isValidAddress(query)) {
-            val validator = validatorProvider.getValidatorWithoutElectedInfo(chain.id, query)
+            val validator = validatorProvider.getValidatorWithoutElectedInfo(chain, query)
 
             if (validator.prefs != null) {
                 listOf(validator)
