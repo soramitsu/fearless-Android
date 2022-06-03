@@ -32,7 +32,7 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigInteger
 
-private val PERCENT_MULTIPLIER = 100.toBigDecimal()
+val PERCENT_MULTIPLIER = 100.toBigDecimal()
 
 private const val ICON_SIZE_DP = 24
 private const val ICON_DETAILS_SIZE_DP = 32

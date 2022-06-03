@@ -10,10 +10,16 @@ class ValidatorDetailsModel(
 )
 
 class CollatorDetailsModel(
-    val stake: ValidatorStakeModel,
     val address: String,
     val addressImage: PictureDrawable,
     val identity: IdentityModel?,
     val statusText: String,
     val statusColor: Int,
+    val delegations: String,
+    val estimatedRewardsApr: String,
+    val totalStake: String,
+    val totalStakeFiat: String?,
+    val minBond: String,
+    val selfBonded: String,
+    val effectiveAmountBonded: String,
 )
