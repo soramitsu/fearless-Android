@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
