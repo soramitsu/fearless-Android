@@ -108,6 +108,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <jp.co.soramitsu.feature_staking_impl.presentation.view.PayoutViewerView
+                android:id="@+id/setupStakingPayoutViewer"
+                android:layout_width="match_parent"
+                android:visibility="gone"
+                android:layout_height="wrap_content"/>
+
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="0dp"

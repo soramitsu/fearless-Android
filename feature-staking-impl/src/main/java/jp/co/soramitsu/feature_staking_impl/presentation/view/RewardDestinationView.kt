@@ -7,15 +7,18 @@ import android.util.StateSet
 import android.view.View
 import android.widget.Checkable
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
 import jp.co.soramitsu.common.utils.getPrimaryColor
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawableFromColors
+import jp.co.soramitsu.common.view.shape.getDisabledDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountFiat
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountGain
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountToken
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetCheck
+import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetCheckedDisabled
 import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetName
 import jp.co.soramitsu.common.R as RCommon
 
@@ -46,6 +49,9 @@ class RewardDestinationView @JvmOverloads constructor(
         val targetName = typedArray.getString(R.styleable.RewardDestinationView_targetName)
         targetName?.let(::setName)
 
+        val enabled = typedArray.getBoolean(R.styleable.RewardDestinationView_enabled, true)
+        isEnabled = enabled
+
         typedArray.recycle()
     }
 
@@ -63,6 +69,13 @@ class RewardDestinationView @JvmOverloads constructor(
 
     fun setFiatAmount(amount: String?) {
         payoutTargetAmountFiat.setTextOrHide(amount)
+    }
+
+    override fun setEnabled(enabled: Boolean){
+        super.setEnabled(enabled)
+
+        payoutTargetCheck.isVisible = enabled
+        payoutTargetCheckedDisabled.isVisible = !enabled
     }
 
     override fun setChecked(checked: Boolean) {
@@ -90,6 +103,7 @@ class RewardDestinationView @JvmOverloads constructor(
 
     private fun stateDrawable() = StateListDrawable().apply {
         addState(CheckedStateSet, context.getCutCornerDrawableFromColors(strokeColor = context.getPrimaryColor()))
+        addState(intArrayOf(-android.R.attr.state_enabled), context.getDisabledDrawable())
         addState(StateSet.WILD_CARD, context.getCutCornerDrawable(strokeColorRes = RCommon.color.gray2))
     }
 }

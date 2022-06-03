@@ -1,12 +1,12 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
-import java.math.BigInteger
 
 fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBuilder {
     return call(
@@ -37,6 +37,23 @@ fun ExtrinsicBuilder.nominate(targets: List<MultiAddress>): ExtrinsicBuilder {
         "Staking", "nominate",
         mapOf(
             "targets" to targets.map(::bindMultiAddress)
+        )
+    )
+}
+
+fun ExtrinsicBuilder.delegate(
+    candidateId: AccountId,
+    amountInPlanks: BigInteger,
+    candidateDelegationCount: BigInteger,
+    delegationCount: BigInteger
+): ExtrinsicBuilder {
+    return call(
+        "ParachainStaking", "delegate",
+        mapOf(
+            "candidate" to candidateId,
+            "amount" to amountInPlanks,
+            "candidate_delegation_count" to candidateDelegationCount,
+            "delegation_count" to delegationCount
         )
     )
 }
