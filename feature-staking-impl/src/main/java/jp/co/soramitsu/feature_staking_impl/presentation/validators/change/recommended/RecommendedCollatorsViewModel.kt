@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapCollatorToCo
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setRecommendedCollators
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorStakeParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.IdentityParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
@@ -79,16 +80,12 @@ class RecommendedCollatorsViewModel(
         router.openCollatorDetails(
             CollatorDetailsParcelModel(
                 collatorModel.accountIdHex,
-                "Elected",
-                R.color.green,
-                ValidatorStakeParcelModel.Active(
-                    BigInteger.ONE,
-                    BigInteger.ONE,
-                    emptyList(),
-                    BigDecimal.TEN,
-                    false,
-                    false,
-                    null
+                CollatorStakeParcelModel(
+                    elected = true,
+                    minBond = collatorModel.collator.bond,
+                    delegations = collatorModel.collator.delegationCount.toInt(),
+                    totalStake = collatorModel.collator.totalCounted,
+                    estimatedRewards = 123.123,
                 ),
                 IdentityParcelModel(
                     display = collatorModel.collator.identity?.display,
@@ -99,7 +96,8 @@ class RecommendedCollatorsViewModel(
                     pgpFingerprint = collatorModel.collator.identity?.pgpFingerprint,
                     image = collatorModel.collator.identity?.image,
                     twitter = collatorModel.collator.identity?.twitter,
-                )
+                ),
+                collatorModel.collator.request.orEmpty(),
             )
         )
     }

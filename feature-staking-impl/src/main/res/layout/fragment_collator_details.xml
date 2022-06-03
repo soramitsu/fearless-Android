@@ -17,7 +17,8 @@
             android:id="@+id/collatorDetailsToolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:titleText="@string/staking_validator_info_title" />
+            app:homeButtonIcon="@drawable/ic_close"
+            app:titleText="@string/staking_collator_info" />
 
         <jp.co.soramitsu.common.view.AccountInfoView
             android:id="@+id/collatorAccountInfo"

@@ -12,8 +12,11 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
+import kotlinx.android.synthetic.main.view_collator_info.view.collatorDelegations
+import kotlinx.android.synthetic.main.view_collator_info.view.collatorEffectiveAmountBonded
 import kotlinx.android.synthetic.main.view_collator_info.view.collatorEstimatedReward
-import kotlinx.android.synthetic.main.view_collator_info.view.collatorNominatorsView
+import kotlinx.android.synthetic.main.view_collator_info.view.collatorMinBond
+import kotlinx.android.synthetic.main.view_collator_info.view.collatorSelfBonded
 import kotlinx.android.synthetic.main.view_collator_info.view.collatorStatusView
 import kotlinx.android.synthetic.main.view_collator_info.view.collatorTotalStakeView
 
@@ -29,7 +32,19 @@ class CollatorInfoView @JvmOverloads constructor(
         orientation = VERTICAL
     }
 
-    private val totalStakeFields = listOf(collatorTotalStakeView, collatorNominatorsView, collatorNominatorsView, collatorEstimatedReward)
+    private val totalStakeFields = listOf(collatorTotalStakeView, collatorEstimatedReward)
+
+    fun setMinBond(value: String) {
+        collatorMinBond.setBody(value)
+    }
+
+    fun setSelfBonded(value: String) {
+        collatorSelfBonded.setBody(value)
+    }
+
+    fun setEffectiveAmountBonded(value: String) {
+        collatorEffectiveAmountBonded.setBody(value)
+    }
 
     fun setTotalStakeValue(value: String) {
         collatorTotalStakeView.setBody(value)
@@ -39,18 +54,11 @@ class CollatorInfoView @JvmOverloads constructor(
         collatorTotalStakeView.setExtraOrHide(fiat)
     }
 
-    fun setNominatorsCount(count: String, maxNominations: String?) {
-        collatorNominatorsView.setBody(
-            if (maxNominations == null)
-                count.format()
-            else
-                context.getString(
-                    R.string.staking_max_format, count.format(), maxNominations.format()
-                )
-        )
+    fun setDelegationsCount(count: String) {
+        collatorDelegations.setBody(count)
     }
 
-    fun setEstimatedRewardApy(reward: String) {
+    fun setEstimatedRewardApr(reward: String) {
         collatorEstimatedReward.setBody(reward)
     }
 
@@ -69,15 +77,5 @@ class CollatorInfoView @JvmOverloads constructor(
     fun setStatus(statusText: String, @ColorRes statusColorRes: Int) {
         collatorStatusView.setBodyOrHide(statusText)
         collatorStatusView.setBodyIconResource(R.drawable.ic_status_indicator, statusColorRes)
-    }
-
-    fun setErrors(error: List<Error>) {
-        for (err in error) {
-            when (err) {
-                is Error.OversubscribedUnpaid -> collatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
-                is Error.OversubscribedPaid -> collatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
-                is Error.Slashed -> collatorNominatorsView.setDescription(context.getString(err.errorDescription), err.errorIcon)
-            }
-        }
     }
 }
