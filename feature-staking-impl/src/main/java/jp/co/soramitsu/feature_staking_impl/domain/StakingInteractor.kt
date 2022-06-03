@@ -103,9 +103,10 @@ class StakingInteractor(
     }
 
     suspend fun getSelectedAccountProjection(): StakingAccount = withContext(Dispatchers.Default) {
-        val account = accountRepository.getSelectedAccount(stakingSharedState.chainId())
+        val chain = stakingSharedState.chain()
+        val metaAccount = accountRepository.getSelectedMetaAccount()
 
-        mapAccountToStakingAccount(account)
+        mapAccountToStakingAccount(chain, metaAccount)
     }
 
     suspend fun currentBlockNumber(): BlockNumber {

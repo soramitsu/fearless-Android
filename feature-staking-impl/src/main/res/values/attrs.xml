@@ -12,6 +12,7 @@
     <declare-styleable name="RewardDestinationView">
         <attr name="android:checked" />
         <attr name="targetName" format="string" />
+        <attr name="enabled" format="boolean" />
     </declare-styleable>
     <declare-styleable name="ValidatorInfoBlockView">
         <attr name="validatorInfoTitle" format="string" />
