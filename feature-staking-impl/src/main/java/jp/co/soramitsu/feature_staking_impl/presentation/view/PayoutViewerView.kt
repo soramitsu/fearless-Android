@@ -21,7 +21,6 @@ class PayoutViewerView @JvmOverloads constructor(
         orientation = VERTICAL
 
         View.inflate(context, R.layout.view_payout_viewer, this)
-
     }
 
     fun setRewardEstimation(estimation: RewardEstimation) {
