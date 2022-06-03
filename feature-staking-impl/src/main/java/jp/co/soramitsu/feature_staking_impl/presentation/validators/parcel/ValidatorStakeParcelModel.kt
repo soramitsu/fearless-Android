@@ -25,3 +25,12 @@ sealed class ValidatorStakeParcelModel : Parcelable {
         class NominatorInfo(val willBeRewarded: Boolean) : Parcelable
     }
 }
+
+@Parcelize
+class CollatorStakeParcelModel(
+    val elected: Boolean,
+    val minBond: BigInteger,
+    val delegations: Int,
+    val totalStake: BigInteger,
+    val estimatedRewards: Double,
+) : Parcelable

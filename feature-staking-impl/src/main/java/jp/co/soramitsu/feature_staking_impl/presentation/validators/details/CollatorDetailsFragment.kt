@@ -14,7 +14,10 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
-import kotlinx.android.synthetic.main.fragment_collator_details.*
+import kotlinx.android.synthetic.main.fragment_collator_details.collatorAccountInfo
+import kotlinx.android.synthetic.main.fragment_collator_details.collatorDetailsToolbar
+import kotlinx.android.synthetic.main.fragment_collator_details.collatorIdentity
+import kotlinx.android.synthetic.main.fragment_collator_details.collatorInfo
 
 class CollatorDetailsFragment : BaseFragment<CollatorDetailsViewModel>() {
 
@@ -74,20 +77,16 @@ class CollatorDetailsFragment : BaseFragment<CollatorDetailsViewModel>() {
         setupExternalActions(viewModel)
 
         viewModel.collatorDetails.observe { collator ->
-            with(collator.stake) {
-                collatorInfo.setStatus(collator.statusText, collator.statusColor)
+            collatorInfo.setStatus(collator.statusText, collator.statusColor)
 
-                if (activeStakeModel != null) {
-                    collatorInfo.showActiveStakeFields()
-
-                    collatorInfo.setNominatorsCount(activeStakeModel.nominatorsCount, activeStakeModel.maxNominations)
-                    collatorInfo.setEstimatedRewardApy(activeStakeModel.apy)
-                    collatorInfo.setTotalStakeValue(activeStakeModel.totalStake)
-                    collatorInfo.setTotalStakeValueFiat(activeStakeModel.totalStakeFiat)
-                } else {
-                    collatorInfo.hideActiveStakeFields()
-                }
-            }
+            collatorInfo.showActiveStakeFields()
+            collatorInfo.setDelegationsCount(collator.delegations)
+            collatorInfo.setEstimatedRewardApr(collator.estimatedRewardsApr)
+            collatorInfo.setTotalStakeValue(collator.totalStake)
+            collatorInfo.setTotalStakeValueFiat(collator.totalStakeFiat)
+            collatorInfo.setMinBond(collator.minBond)
+            collatorInfo.setSelfBonded(collator.selfBonded)
+            collatorInfo.setEffectiveAmountBonded(collator.effectiveAmountBonded)
 
             if (collator.identity == null) {
                 collatorIdentity.makeGone()
