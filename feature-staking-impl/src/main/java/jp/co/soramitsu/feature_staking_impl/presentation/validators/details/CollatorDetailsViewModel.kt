@@ -58,11 +58,10 @@ class CollatorDetailsViewModel(
     private val maxDelegations = flowOf { stakingParachainScenarioInteractor.maxDelegationsPerDelegator() }
         .inBackground()
 
-
     val collatorDetails = maxDelegations.combine(assetFlow) { maxDelegations, asset ->
         val chain = interactor.getSelectedChain()
 
-        //mapValidatorDetailsParcelToValidatorDetailsModel(chain, collator, asset, maxDelegations, iconGenerator, resourceManager)
+        // mapValidatorDetailsParcelToValidatorDetailsModel(chain, collator, asset, maxDelegations, iconGenerator, resourceManager)
         val totalStake = asset.token.amountFromPlanks(collator.stake.totalStake)
         CollatorDetailsModel(
             "0x${collator.accountIdHex}",
@@ -109,8 +108,8 @@ class CollatorDetailsViewModel(
         val validatorStake = collator.stake
         viewModelScope.launch {
             val asset = assetFlow.first()
-            //val payload = calculatePayload(asset, validatorStake)
-            //_totalStakeEvent.value = Event(payload)
+            // val payload = calculatePayload(asset, validatorStake)
+            // _totalStakeEvent.value = Event(payload)
         }
     }
 
