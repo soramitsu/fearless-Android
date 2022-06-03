@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
@@ -22,12 +23,14 @@ import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.observeRewardDestinationChooser
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.displayFeeStatus
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingAmountField
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingContainer
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeFiat
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeProgress
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeToken
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingNext
+import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingPayoutViewer
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingRewardDestinationChooser
 import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingToolbar
 
@@ -58,6 +61,7 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
 
         setupStakingNext.prepareForProgress(viewLifecycleOwner)
         setupStakingNext.setOnClickListener { viewModel.nextClicked() }
+        setupStakingPayoutViewer.setOnViewMoreClickListener { viewModel.learnMoreClicked(viewModel) }
     }
 
     override fun inject() {
@@ -105,6 +109,19 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
                 .callback { viewModel.minimumStakeConfirmed() }
                 .build()
                 .show()
+        }
+
+        viewModel.currentAccountAddressModel.observe {
+            setupStakingPayoutViewer.setAccountInfo(it)
+        }
+
+        viewModel.rewardReturnsLiveData.observe {
+            setupStakingPayoutViewer.setRewardEstimation(it.payout)
+        }
+
+        viewModel.currentStakingType.observe {
+            setupStakingRewardDestinationChooser.isVisible = it == Chain.Asset.StakingType.RELAYCHAIN
+            setupStakingPayoutViewer.isVisible = it == Chain.Asset.StakingType.PARACHAIN
         }
     }
 }

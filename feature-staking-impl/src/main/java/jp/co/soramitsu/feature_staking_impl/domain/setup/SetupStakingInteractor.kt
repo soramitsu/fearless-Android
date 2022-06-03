@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain.setup
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -7,6 +9,7 @@ import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.delegate
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.nominate
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -15,8 +18,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class BondPayload(
     val amount: BigDecimal,
@@ -34,6 +35,16 @@ class SetupStakingInteractor(
             fakeNominations(),
             fakeBondPayload()
         )
+    }
+
+    suspend fun estimateParachainFee(): BigInteger {
+        val (chain, asset) = stakingSharedState.assetWithChain.first()
+        return extrinsicService.estimateFee(chain) {
+            val eth = fakeEthereumAddress()
+            val fakeAmountInPlanks = asset.planksFromAmount(fakeAmount())
+
+            delegate(eth, fakeAmountInPlanks, BigInteger.ZERO, BigInteger.ZERO)
+        }
     }
 
     suspend fun calculateSetupStakingFee(
@@ -91,4 +102,6 @@ class SetupStakingInteractor(
     private fun fakeAmount() = 1_000_000_000.toBigDecimal()
 
     private fun fakeAccountId() = ByteArray(32)
+
+    private fun fakeEthereumAddress() = ByteArray(20)
 }

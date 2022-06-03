@@ -47,5 +47,5 @@ fun <V> BaseFragment<V>.observeRewardDestinationChooser(
     chooser.destinationPayout.setOnClickListener { viewModel.payoutClicked(viewModel) }
     chooser.destinationRestake.setOnClickListener { viewModel.restakeClicked(viewModel) }
     chooser.payoutTarget.setWholeClickListener { viewModel.payoutTargetClicked(viewModel) }
-    chooser.learnMore.setOnClickListener { viewModel.learnMoreClicked() }
+    chooser.learnMore.setOnClickListener { viewModel.learnMoreClicked(viewModel) }
 }
