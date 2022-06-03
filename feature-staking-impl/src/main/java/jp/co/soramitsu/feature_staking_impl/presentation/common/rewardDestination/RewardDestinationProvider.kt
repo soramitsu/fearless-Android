@@ -15,7 +15,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.DAYS_IN_YEAR
-import jp.co.soramitsu.feature_staking_impl.domain.rewards.ManualRewardCalculator
+import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 class RewardDestinationProvider(
     private val resourceManager: ResourceManager,
@@ -77,8 +78,15 @@ class RewardDestinationProvider(
         scope.launch { rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(newDestination)) }
     }
 
-    override fun learnMoreClicked() {
-        openBrowserEvent.value = Event(appLinksProvider.payoutsLearnMore)
+    override fun learnMoreClicked(scope: CoroutineScope) {
+        scope.launch {
+            val link = when (interactor.getCurrentAsset().staking) {
+                Chain.Asset.StakingType.PARACHAIN -> appLinksProvider.moonbeamStakingLearnMore
+                Chain.Asset.StakingType.RELAYCHAIN -> appLinksProvider.payoutsLearnMore
+                Chain.Asset.StakingType.UNSUPPORTED -> ""
+            }
+            openBrowserEvent.value = Event(link)
+        }
     }
 
     override fun restakeClicked(scope: CoroutineScope) {
@@ -95,7 +103,7 @@ class RewardDestinationProvider(
         rewardDestinationModelFlow.emit(rewardDestinationModel)
     }
 
-    override suspend fun updateReturns(rewardCalculator: ManualRewardCalculator, asset: Asset, amount: BigDecimal) {
+    override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {
         val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true)
         val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false)
 

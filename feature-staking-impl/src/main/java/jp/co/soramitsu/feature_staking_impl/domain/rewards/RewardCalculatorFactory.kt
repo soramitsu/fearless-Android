@@ -8,6 +8,7 @@ import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.error.accountIdNotFound
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_staking_impl.scenarios.getActiveElectedValidatorsExposures
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -55,5 +56,13 @@ class RewardCalculatorFactory(
 
     fun createSubquery(): SubqueryRewardCalculator {
         return SubqueryRewardCalculator()
+    }
+
+    suspend fun create(stakingType: Chain.Asset.StakingType): RewardCalculator {
+        return when (stakingType) {
+            Chain.Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
+            Chain.Asset.StakingType.RELAYCHAIN -> createManual()
+            Chain.Asset.StakingType.PARACHAIN -> createSubquery()
+        }
     }
 }

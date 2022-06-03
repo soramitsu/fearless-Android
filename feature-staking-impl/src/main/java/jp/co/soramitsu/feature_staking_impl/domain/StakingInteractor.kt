@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.state.chain
@@ -63,6 +64,10 @@ class StakingInteractor(
 
     fun currentAssetFlow() = assetUseCase.currentAssetFlow()
 
+    suspend fun getCurrentAsset(): Chain.Asset {
+        return stakingSharedState.chainAsset()
+    }
+
     fun assetFlow(accountAddress: String): Flow<Asset> {
         return flow {
             val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
@@ -98,9 +103,10 @@ class StakingInteractor(
     }
 
     suspend fun getSelectedAccountProjection(): StakingAccount = withContext(Dispatchers.Default) {
-        val account = accountRepository.getSelectedAccount(stakingSharedState.chainId())
+        val chain = stakingSharedState.chain()
+        val metaAccount = accountRepository.getSelectedMetaAccount()
 
-        mapAccountToStakingAccount(account)
+        mapAccountToStakingAccount(chain, metaAccount)
     }
 
     suspend fun currentBlockNumber(): BlockNumber {

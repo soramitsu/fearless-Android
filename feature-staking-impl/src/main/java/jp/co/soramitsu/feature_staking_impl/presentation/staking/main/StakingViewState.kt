@@ -57,6 +57,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -308,9 +309,9 @@ sealed class WelcomeViewState(
     protected val validationExecutor: ValidationExecutor
 ) : StakingViewState(), Validatable by validationExecutor {
 
-    protected val currentSetupProgress = setupStakingSharedState.get<SetupStakingProcess.Initial>()
+    protected val currentSetupProgress by lazy { setupStakingSharedState.get<SetupStakingProcess.Initial>() }
 
-    val enteredAmountFlow = MutableStateFlow(currentSetupProgress.defaultAmount.toString())
+    val enteredAmountFlow = MutableStateFlow("")
 
     protected val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
@@ -332,6 +333,14 @@ sealed class WelcomeViewState(
 
     val amountFiat = parsedAmountFlow.combine(currentAssetFlow) { amount, asset -> asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol) }
         .asLiveData(scope)
+
+    init {
+        scope.launch {
+            setupStakingSharedState.setupStakingProcess.filterIsInstance<SetupStakingProcess.Initial>().collect {
+                enteredAmountFlow.value = it.defaultAmount.toString()
+            }
+        }
+    }
 }
 
 class RelaychainWelcomeViewState(
@@ -355,7 +364,6 @@ class RelaychainWelcomeViewState(
     validationSystem,
     validationExecutor
 ) {
-
     override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual() }
 
     override val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
@@ -395,7 +403,7 @@ class RelaychainWelcomeViewState(
                 errorDisplayer = { it.message?.let(errorDisplayer) },
                 validationFailureTransformer = { welcomeStakingValidationFailure(it, resourceManager) },
             ) {
-                setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
+                setupStakingSharedState.set(currentSetupProgress.fullFlow(SetupStakingProcess.SetupStep.Stash(amount)))
 
                 router.openSetupStaking()
             }
@@ -456,7 +464,7 @@ class ParachainWelcomeViewState(
     override fun nextClicked() {
         scope.launch {
             val amount = parsedAmountFlow.first()
-            setupStakingSharedState.set(currentSetupProgress.fullFlow(amount))
+            setupStakingSharedState.set(currentSetupProgress.fullFlow(SetupStakingProcess.SetupStep.Parachain(amount)))
             router.openSetupStaking()
         }
     }

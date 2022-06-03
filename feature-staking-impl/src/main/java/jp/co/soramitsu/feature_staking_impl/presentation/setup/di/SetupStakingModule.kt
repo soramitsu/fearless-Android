@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -17,21 +18,36 @@ import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.SetupStakingViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class SetupStakingModule {
 
     @Provides
+    fun provideScenarioInteractor(
+        setupStakingSharedState: SetupStakingSharedState,
+        stakingParachainScenarioInteractor: StakingParachainScenarioInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
+    ): StakingScenarioInteractor {
+        return when (setupStakingSharedState.get<SetupStakingProcess.SetupStep>()) {
+            is SetupStakingProcess.SetupStep.Stash -> stakingRelayChainScenarioInteractor
+            is SetupStakingProcess.SetupStep.Parachain -> stakingParachainScenarioInteractor
+        }
+    }
+
+    @Provides
     @IntoMap
     @ViewModelKey(SetupStakingViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
-        relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+        stakingScenarioInteractor: StakingScenarioInteractor,
         router: StakingRouter,
         rewardCalculatorFactory: RewardCalculatorFactory,
         resourceManager: ResourceManager,
@@ -40,12 +56,13 @@ class SetupStakingModule {
         validationExecutor: ValidationExecutor,
         setupStakingSharedState: SetupStakingSharedState,
         rewardDestinationMixin: RewardDestinationMixin.Presentation,
-        feeLoaderMixin: FeeLoaderMixin.Presentation
+        feeLoaderMixin: FeeLoaderMixin.Presentation,
+        addressIconGenerator: AddressIconGenerator
     ): ViewModel {
         return SetupStakingViewModel(
             router,
             interactor,
-            relayChainScenarioInteractor,
+            stakingScenarioInteractor,
             rewardCalculatorFactory,
             resourceManager,
             setupStakingInteractor,
@@ -53,7 +70,8 @@ class SetupStakingModule {
             setupStakingSharedState,
             validationExecutor,
             feeLoaderMixin,
-            rewardDestinationMixin
+            rewardDestinationMixin,
+            addressIconGenerator
         )
     }
 

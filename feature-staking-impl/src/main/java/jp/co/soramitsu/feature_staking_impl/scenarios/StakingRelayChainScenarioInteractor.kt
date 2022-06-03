@@ -280,7 +280,7 @@ class StakingRelayChainScenarioInteractor(
         HOURS_IN_DAY / stakingRelayChainScenarioRepository.erasPerDay(chainId)
     }
 
-    suspend fun getMinimumStake(chainId: ChainId): BigInteger {
+    override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
         val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainId).first().values
         val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainId)
         return minimumStake(exposures, minimumNominatorBond)

@@ -38,7 +38,8 @@ class NetworkModule {
             privacyUrl = BuildConfig.PRIVACY_URL,
             payoutsLearnMore = BuildConfig.PAYOUTS_LEARN_MORE,
             twitterAccountTemplate = BuildConfig.TWITTER_ACCOUNT_TEMPLATE,
-            setControllerLearnMore = BuildConfig.SET_CONTROLLER_LEARN_MORE
+            setControllerLearnMore = BuildConfig.SET_CONTROLLER_LEARN_MORE,
+            moonbeamStakingLearnMore = BuildConfig.MOONBEAM_STAKING_LEARN_MORE
         )
     }
 
