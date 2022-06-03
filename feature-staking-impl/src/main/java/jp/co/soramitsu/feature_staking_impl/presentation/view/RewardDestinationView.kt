@@ -71,7 +71,7 @@ class RewardDestinationView @JvmOverloads constructor(
         payoutTargetAmountFiat.setTextOrHide(amount)
     }
 
-    override fun setEnabled(enabled: Boolean){
+    override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
         payoutTargetCheck.isVisible = enabled

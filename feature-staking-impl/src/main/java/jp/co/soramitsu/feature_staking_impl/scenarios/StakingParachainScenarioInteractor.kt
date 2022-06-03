@@ -97,7 +97,7 @@ class StakingParachainScenarioInteractor(
     suspend fun maxDelegationsPerDelegator(): Int {
         return stakingConstantsRepository.maxDelegationsPerDelegator(stakingInteractor.getSelectedChain().id)
     }
-    
+
     override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
         return stakingConstantsRepository.parachainMinimumStaking(chainId)
     }
