@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 class RewardDestinationProvider(
     private val resourceManager: ResourceManager,
@@ -77,8 +78,15 @@ class RewardDestinationProvider(
         scope.launch { rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(newDestination)) }
     }
 
-    override fun learnMoreClicked() {
-        openBrowserEvent.value = Event(appLinksProvider.payoutsLearnMore)
+    override fun learnMoreClicked(scope: CoroutineScope) {
+        scope.launch {
+            val link = when (interactor.getCurrentAsset().staking) {
+                Chain.Asset.StakingType.PARACHAIN -> appLinksProvider.moonbeamStakingLearnMore
+                Chain.Asset.StakingType.RELAYCHAIN -> appLinksProvider.payoutsLearnMore
+                Chain.Asset.StakingType.UNSUPPORTED -> ""
+            }
+            openBrowserEvent.value = Event(link)
+        }
     }
 
     override fun restakeClicked(scope: CoroutineScope) {

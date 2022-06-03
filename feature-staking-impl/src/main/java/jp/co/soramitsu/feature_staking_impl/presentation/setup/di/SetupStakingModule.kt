@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.di.scope.FeatureScope
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -36,7 +36,7 @@ class SetupStakingModule {
         stakingParachainScenarioInteractor: StakingParachainScenarioInteractor,
         stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
     ): StakingScenarioInteractor {
-        return when(setupStakingSharedState.get<SetupStakingProcess.SetupStep>()) {
+        return when (setupStakingSharedState.get<SetupStakingProcess.SetupStep>()) {
             is SetupStakingProcess.SetupStep.Stash -> stakingRelayChainScenarioInteractor
             is SetupStakingProcess.SetupStep.Parachain -> stakingParachainScenarioInteractor
         }
@@ -56,7 +56,8 @@ class SetupStakingModule {
         validationExecutor: ValidationExecutor,
         setupStakingSharedState: SetupStakingSharedState,
         rewardDestinationMixin: RewardDestinationMixin.Presentation,
-        feeLoaderMixin: FeeLoaderMixin.Presentation
+        feeLoaderMixin: FeeLoaderMixin.Presentation,
+        addressIconGenerator: AddressIconGenerator
     ): ViewModel {
         return SetupStakingViewModel(
             router,
@@ -69,7 +70,8 @@ class SetupStakingModule {
             setupStakingSharedState,
             validationExecutor,
             feeLoaderMixin,
-            rewardDestinationMixin
+            rewardDestinationMixin,
+            addressIconGenerator
         )
     }
 

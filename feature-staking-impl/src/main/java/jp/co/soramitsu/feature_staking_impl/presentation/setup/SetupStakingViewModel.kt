@@ -2,9 +2,13 @@ package jp.co.soramitsu.feature_staking_impl.presentation.setup
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -17,6 +21,7 @@ import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
@@ -35,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -54,7 +60,8 @@ class SetupStakingViewModel(
     private val setupStakingSharedState: SetupStakingSharedState,
     private val validationExecutor: ValidationExecutor,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
-    private val rewardDestinationMixin: RewardDestinationMixin.Presentation
+    private val rewardDestinationMixin: RewardDestinationMixin.Presentation,
+    private val addressIconGenerator: AddressIconGenerator,
 ) : BaseViewModel(),
     Retriable,
     Validatable by validationExecutor,
@@ -78,7 +85,9 @@ class SetupStakingViewModel(
         .map { mapAssetToAssetModel(it, resourceManager) }
         .flowOn(Dispatchers.Default)
 
-    val enteredAmountFlow = MutableStateFlow(currentProcessState.amount.toString())
+    val currentStakingType = assetFlow.map { it.token.configuration.staking }
+
+    val enteredAmountFlow: MutableStateFlow<String> = MutableStateFlow("")
 
     private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
 
@@ -94,6 +103,12 @@ class SetupStakingViewModel(
         rewardCalculatorFactory.create(asset.staking)
     }
 
+    val currentAccountAddressModel = liveData {
+        val projection = interactor.getSelectedAccountProjection()
+        val addressModel = addressIconGenerator.createAddressModel(projection.address, AddressIconGenerator.SIZE_MEDIUM, projection.name)
+        this.emit(addressModel)
+    }
+
     init {
         loadFee()
 
@@ -102,6 +117,11 @@ class SetupStakingViewModel(
         launch {
             val chainId = assetFlow.first().token.configuration.chainId
             minimumStake = stakingScenarioInteractor.getMinimumStake(chainId)
+
+            setupStakingSharedState.setupStakingProcess.filterIsInstance<SetupStakingProcess.SetupStep>()
+                .collect {
+                    enteredAmountFlow.value = it.amount.toString()
+                }
         }
     }
 
@@ -110,9 +130,11 @@ class SetupStakingViewModel(
     }
 
     fun backClicked() {
-        setupStakingSharedState.set(currentProcessState.previous())
+        viewModelScope.launch {
+            setupStakingSharedState.set(currentProcessState.previous())
 
-        router.back()
+            router.back()
+        }
     }
 
     private fun startUpdatingReturns() {
@@ -127,7 +149,12 @@ class SetupStakingViewModel(
             feeConstructor = {
                 val address = interactor.getSelectedAccountProjection().address
 
-                setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                val isEthereumBased = interactor.getSelectedChain().isEthereumBased
+                if (isEthereumBased) {
+                    setupStakingInteractor.estimateParachainFee()
+                } else {
+                    setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                }
             },
             onRetryCancelled = ::backClicked
         )
@@ -181,9 +208,11 @@ class SetupStakingViewModel(
         rewardDestination: RewardDestination,
         currentAccountAddress: String
     ) {
-        setupStakingSharedState.set(currentProcessState.next(newAmount, rewardDestination, currentAccountAddress))
+        viewModelScope.launch {
+            setupStakingSharedState.set(currentProcessState.next(newAmount, rewardDestination, currentAccountAddress))
 
-        router.openStartChangeValidators()
+            router.openStartChangeValidators()
+        }
     }
 
     private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(
