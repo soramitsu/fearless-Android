@@ -17,12 +17,14 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindDelegatorState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRound
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSelectedCandidates
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTopDelegationsOfCollator
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.math.BigInteger
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -49,6 +51,23 @@ class StakingParachainScenarioRepository(
             },
             binder = { scale, runtime ->
                 scale?.let { bindDelegatorState(it, runtime) }
+            }
+        )
+    }
+
+    suspend fun getTopDelegationsOfCollator(chainId: ChainId, addresses: List<ByteArray>): AccountIdMap<List<BigInteger>?> {
+        return remoteStorage.queryKeys(
+            chainId = chainId,
+            keysBuilder = { runtime ->
+                val storage = runtime.metadata.parachainStaking().storage("TopDelegations")
+                storage.storageKeys(
+                    runtime = runtime,
+                    singleMapArguments = addresses,
+                    argumentTransform = { it.toHexString() }
+                )
+            },
+            binding = { scale, runtime ->
+                scale?.let { bindTopDelegationsOfCollator(it, runtime) }
             }
         )
     }

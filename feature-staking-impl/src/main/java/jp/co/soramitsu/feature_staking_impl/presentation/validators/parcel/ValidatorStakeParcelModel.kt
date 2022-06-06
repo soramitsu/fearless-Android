@@ -29,7 +29,7 @@ sealed class ValidatorStakeParcelModel : Parcelable {
 @Parcelize
 class CollatorStakeParcelModel(
     val elected: Boolean,
-    val minBond: BigInteger,
+    val selfBonded: BigInteger,
     val delegations: Int,
     val totalStake: BigInteger,
     val estimatedRewards: Double,
