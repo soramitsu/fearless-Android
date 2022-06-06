@@ -15,4 +15,5 @@ class Collator(
     val request: String?,
     val status: CandidateInfoStatus,
     val identity: Identity?,
+    val minFromTopDelegations: BigInteger,
 )

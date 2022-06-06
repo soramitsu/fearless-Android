@@ -82,8 +82,8 @@ class CollatorDetailsViewModel(
             estimatedRewardsApr = (PERCENT_MULTIPLIER * BigDecimal.ONE).formatAsPercentage(),
             totalStake = totalStake.formatTokenAmount(asset.token.configuration),
             totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol),
-            minBond = asset.token.amountFromPlanks(collator.stake.minBond).formatTokenAmount(asset.token.configuration),
-            selfBonded = "self",
+            minBond = asset.token.amountFromPlanks(stakingParachainScenarioInteractor.getMinimumStake(asset.token.configuration.chainId)).formatTokenAmount(asset.token.configuration),
+            selfBonded = asset.token.amountFromPlanks(collator.stake.selfBonded).formatTokenAmount(asset.token.configuration),
             effectiveAmountBonded = "effective",
         )
     }

@@ -32,6 +32,7 @@
             android:textColor="@color/gray1" />
 
         <TextView
+            android:id="@+id/recommendedValidatorsRewards"
             style="@style/TextAppearance.Soramitsu.CapsTitle2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

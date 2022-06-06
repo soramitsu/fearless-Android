@@ -49,6 +49,7 @@
     <string name="ecdsa_selection_title">ECDSA</string>
     <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
     <string name="common_info">Информация</string>
+    <string name="common_selected">Выбрано</string>
     <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
     <string name="recovery_source_type">Тип источника</string>
     <string name="recovery_raw_seed">Сид</string>
@@ -460,6 +461,7 @@
     <string name="staking_your_not_elected_format">Не избраны (%s)</string>
     <string name="staking_your_elected_format">Избраны (%s)</string>
     <string name="staking_rewards_apy">Вознаграждение (APY)</string>
+    <string name="staking_rewards_apr">Вознаграждение (APR)</string>
     <string name="staking_validator_slashed_desc">Валидатор наказан за неправильные действия в сети (например, был оффлайн, атаковал сеть, работал с модифицированным ПО).</string>
     <string name="staking_payout_expired">Срок выплаты истёк</string>
     <string name="wallet_balance_unbonding_v1_9_0">В процессе вывода</string>
