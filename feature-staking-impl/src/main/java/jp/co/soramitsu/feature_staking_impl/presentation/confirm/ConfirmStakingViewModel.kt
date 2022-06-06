@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountA
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
+import jp.co.soramitsu.feature_staking_api.domain.model.WithAddress
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
@@ -74,12 +75,12 @@ class ConfirmStakingViewModel(
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
-    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.ReadyToSubmit>()
+    private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.ReadyToSubmit<*>>()
 
     private val payload = currentProcessState.payload
 
     private val bondPayload = when (payload) {
-        is Payload.Full -> BondPayload(payload.amount, payload.rewardDestination)
+        is Payload.Full<*> -> BondPayload(payload.amount, payload.rewardDestination)
         else -> null
     }
 
@@ -110,7 +111,7 @@ class ConfirmStakingViewModel(
     }.asLiveData()
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
-        val selectedCount = payload.validators.size
+        val selectedCount = payload.blockProducers.size
         val maxValidatorsPerNominator = relayChainInteractor.maxValidatorsPerNominator()
 
         emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
@@ -240,7 +241,7 @@ class ConfirmStakingViewModel(
         }
     }
 
-    private fun prepareNominations() = payload.validators.map(Validator::accountIdHex)
+    private fun prepareNominations() = payload.blockProducers.map(WithAddress::address)
 
     private fun sendTransactionIfValid() = requireFee { fee ->
         launch {

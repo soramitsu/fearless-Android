@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.common.utils.withLoadingSingle
+import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
@@ -55,11 +56,11 @@ class SearchCustomValidatorsViewModel(
 ) : BaseViewModel() {
 
     private val confirmSetupState = sharedStateSetup.setupStakingProcess
-        .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
+        .filterIsInstance<SetupStakingProcess.ReadyToSubmit<Validator>>()
         .share()
 
     private val selectedValidators = confirmSetupState
-        .map { it.payload.validators.toSet() }
+        .map { it.payload.blockProducers.toSet() }
         .inBackground()
         .share()
 

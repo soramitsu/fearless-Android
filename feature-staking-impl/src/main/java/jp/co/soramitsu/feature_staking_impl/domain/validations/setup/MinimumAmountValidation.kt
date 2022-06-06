@@ -19,6 +19,8 @@ class MinimumAmountValidation(
         // either first time bond or already existing bonded balance
         val amountToCheckAgainstMinimum = value.bondAmount ?: value.asset.bonded
 
+        hashCode()
+
         return if (amountToCheckAgainstMinimum >= minimumBond) {
             ValidationStatus.Valid()
         } else {

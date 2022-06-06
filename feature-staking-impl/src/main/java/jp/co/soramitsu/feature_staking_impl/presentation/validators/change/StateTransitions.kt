@@ -8,8 +8,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingShar
 
 fun SetupStakingSharedState.retractValidators() = mutate {
     when (it) {
-        is SetupStakingProcess.ReadyToSubmit -> it.previous().previous()
-        is SetupStakingProcess.Validators -> it.previous()
+        is SetupStakingProcess.ReadyToSubmit<*> -> it.previous()
+        is SetupStakingProcess.SelectBlockProducersStep.Validators -> it.previous()
         else -> throw IllegalArgumentException("Cannot retract validators from $it state")
     }
 }
@@ -27,8 +27,8 @@ private fun SetupStakingSharedState.setValidators(
     selectionMethod: SelectionMethod
 ) = mutate {
     when (it) {
-        is SetupStakingProcess.Validators -> it.next(validators, collators = emptyList(), selectionMethod)
-        is SetupStakingProcess.ReadyToSubmit -> it.changeValidators(validators, selectionMethod)
+        is SetupStakingProcess.SelectBlockProducersStep.Validators -> it.next(validators, selectionMethod)
+        is SetupStakingProcess.ReadyToSubmit.Stash -> it.changeBlockProducers(validators, selectionMethod)
         else -> throw IllegalArgumentException("Cannot set validators from $it state")
     }
 }
@@ -42,8 +42,8 @@ private fun SetupStakingSharedState.setCollators(
     selectionMethod: SelectionMethod
 ) = mutate {
     when (it) {
-        is SetupStakingProcess.Collators -> it.next(validators = emptyList(), collators, selectionMethod)
-        is SetupStakingProcess.ReadyToSubmit -> it.changeCollators(collators, selectionMethod)
+        is SetupStakingProcess.SelectBlockProducersStep.Collators -> it.next(collators, selectionMethod)
+        is SetupStakingProcess.ReadyToSubmit.Parachain -> it.changeBlockProducers(collators, selectionMethod)
         else -> throw IllegalArgumentException("Cannot set collators from $it state")
     }
 }
