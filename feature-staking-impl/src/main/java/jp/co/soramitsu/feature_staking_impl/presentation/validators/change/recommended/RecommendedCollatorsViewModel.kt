@@ -4,8 +4,8 @@ import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_impl.R
@@ -14,6 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.SelectionMethod
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -26,10 +27,13 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Ident
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class RecommendedCollatorsViewModel(
     private val router: StakingRouter,
@@ -47,17 +51,20 @@ class RecommendedCollatorsViewModel(
         recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle).defaultSettings()
     }
 
-    private val recommendedCollators = flow {
-        val collatorRecommendator = collatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
-        val collators = collatorRecommendator.recommendations(recommendedSettings())
+    private val selectedCollator = MutableStateFlow<String?>(null)
 
-        emit(collators)
+    private val recommendedCollators = sharedStateSetup.setupStakingProcess.map {
+        val userInputAmount =
+            it.castOrNull<SetupStakingProcess.Validators>()?.payload?.castOrNull<SetupStakingProcess.Validators.Payload.Full>()?.amount ?: BigDecimal.ZERO
+        val collatorRecommendator = collatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
+        val token = interactor.currentAssetFlow().first().token
+        val collators = collatorRecommendator.suggestedCollators(token.planksFromAmount(userInputAmount))
+        collators
     }.inBackground().share()
 
-    val recommendedCollatorModels = recommendedCollators
-        .map {
-            convertToModels(it, tokenUseCase.currentToken())
-        }.inBackground().share()
+    val recommendedCollatorModels = combine(recommendedCollators, selectedCollator) { collators, selected ->
+        convertToModels(collators, tokenUseCase.currentToken(), selected)
+    }.inBackground().share()
 
     val selectedTitle = recommendedCollators.map {
         val maxValidators = stakingParachainScenarioInteractor.maxDelegationsPerDelegator()
@@ -79,7 +86,7 @@ class RecommendedCollatorsViewModel(
                 collatorModel.accountIdHex,
                 CollatorStakeParcelModel(
                     elected = true,
-                    minBond = collatorModel.collator.bond,
+                    selfBonded = collatorModel.collator.bond,
                     delegations = collatorModel.collator.delegationCount.toInt(),
                     totalStake = collatorModel.collator.totalCounted,
                     estimatedRewards = 123.123,
@@ -99,6 +106,10 @@ class RecommendedCollatorsViewModel(
         )
     }
 
+    fun collatorClicked(collator: CollatorModel) {
+        selectedCollator.value = collator.address
+    }
+
     fun nextClicked() {
         viewModelScope.launch {
             sharedStateSetup.setRecommendedCollators(recommendedCollators.first())
@@ -109,12 +120,19 @@ class RecommendedCollatorsViewModel(
 
     private suspend fun convertToModels(
         collators: List<Collator>,
-        token: Token
+        token: Token,
+        selectedCollator: String?,
     ): List<CollatorModel> {
         val chain = interactor.getSelectedChain()
 
         return collators.map {
-            mapCollatorToCollatorModel(chain, it, addressIconGenerator, token)
+            mapCollatorToCollatorModel(
+                chain = chain,
+                collator = it,
+                iconGenerator = addressIconGenerator,
+                token = token,
+                selectedCollatorAddress = selectedCollator
+            )
         }
     }
 

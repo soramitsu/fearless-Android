@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sort
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import java.math.BigInteger
 
 private const val ICON_SIZE_DP = 24
 
@@ -21,21 +22,22 @@ suspend fun mapCollatorToCollatorModel(
     token: Token,
     isChecked: Boolean? = null,
     sorting: RecommendationSorting = APYSorting,
+    selectedCollatorAddress: String?,
 ) = mapCollatorToCollatorModel(
     chain,
     collator,
+    selectedCollatorAddress,
     { iconGenerator.createAddressModel(it, ICON_SIZE_DP, collator.identity?.display) },
     token,
-    isChecked,
-    sorting
+    sorting,
 )
 
 suspend fun mapCollatorToCollatorModel(
     chain: Chain,
     collator: Collator,
+    selectedCollatorAddress: String?,
     createIcon: suspend (address: String) -> AddressModel,
     token: Token,
-    isChecked: Boolean? = null,
     sorting: RecommendationSorting = APYSorting,
 ): CollatorModel {
     val addressModel = createIcon(collator.address)
@@ -50,13 +52,13 @@ suspend fun mapCollatorToCollatorModel(
             address = addressModel.address,
             scoring = scoring,
             title = addressModel.nameOrAddress,
-            isChecked = isChecked,
+            isChecked = selectedCollatorAddress?.let { it == address },
             collator = collator
         )
     }
 }
 
-fun CandidateInfo.toCollator(address: String, identity: Identity?) = Collator(
+fun CandidateInfo.toCollator(address: String, identity: Identity?, minDelegation: BigInteger) = Collator(
     address = address,
     bond = bond,
     delegationCount = delegationCount,
@@ -69,4 +71,5 @@ fun CandidateInfo.toCollator(address: String, identity: Identity?) = Collator(
     request = request,
     status = status,
     identity = identity,
+    minFromTopDelegations = minDelegation,
 )
