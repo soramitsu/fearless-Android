@@ -93,7 +93,6 @@
             android:visibility="gone"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
             tools:itemCount="2"
             tools:listitem="@layout/item_collator_delegation" />
 

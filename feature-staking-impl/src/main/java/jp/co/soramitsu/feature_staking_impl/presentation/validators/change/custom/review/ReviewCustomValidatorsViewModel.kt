@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
@@ -36,11 +37,11 @@ class ReviewCustomValidatorsViewModel(
 ) : BaseViewModel() {
 
     private val confirmSetupState = sharedStateSetup.setupStakingProcess
-        .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
+        .filterIsInstance<SetupStakingProcess.ReadyToSubmit<Validator>>()
         .share()
 
     private val selectedValidators = confirmSetupState
-        .map { it.payload.validators }
+        .map { it.payload.blockProducers }
         .share()
 
     private val currentTokenFlow = tokenUseCase.currentTokenFlow()
