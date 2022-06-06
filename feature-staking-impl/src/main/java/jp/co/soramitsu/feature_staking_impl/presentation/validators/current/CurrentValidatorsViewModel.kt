@@ -153,7 +153,7 @@ class CurrentValidatorsViewModel(
             val currentValidators = flattenCurrentValidators.first().map(NominatedValidator::validator)
 
             val newState = currentState.changeValidatorsFlow()
-                .next(currentValidators, collators = emptyList(), SelectionMethod.CUSTOM)
+                .next(currentValidators, SelectionMethod.CUSTOM)
 
             setupStakingSharedState.set(newState)
 

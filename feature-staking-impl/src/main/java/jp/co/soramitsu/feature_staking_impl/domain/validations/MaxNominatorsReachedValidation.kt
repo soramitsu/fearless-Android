@@ -18,7 +18,7 @@ class MaxNominatorsReachedValidation<P, E>(
 
         val nominatorCount = stakingRepository.nominatorsCount(chainId) ?: return ValidationStatus.Valid()
         val maxNominatorsAllowed = stakingRepository.maxNominators(chainId) ?: return ValidationStatus.Valid()
-
+        hashCode()
         if (isAlreadyNominating(value)) {
             return ValidationStatus.Valid()
         }
