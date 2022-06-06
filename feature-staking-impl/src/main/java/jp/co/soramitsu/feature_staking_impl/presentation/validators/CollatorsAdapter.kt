@@ -13,7 +13,6 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorActionIcon
 import kotlinx.android.synthetic.main.item_validator.view.itemValidatorIcon
@@ -33,9 +32,7 @@ class CollatorsAdapter(
 
         fun collatorInfoClicked(collatorModel: CollatorModel)
 
-        fun collatorClicked(collatorModel: CollatorModel) {
-            // default empty
-        }
+        fun collatorClicked(collatorModel: CollatorModel)
 
         fun removeClicked(collatorModel: CollatorModel) {
             // default empty
@@ -72,8 +69,8 @@ class CollatorsAdapter(
             onUnknownPayload = { holder.bindIcon(mode, item, itemHandler) },
             onDiffCheck = {
                 when (it) {
-                    ValidatorModel::isChecked -> holder.bindIcon(mode, item, itemHandler)
-                    ValidatorModel::scoring -> holder.bindScoring(item)
+                    CollatorModel::isChecked -> holder.bindIcon(mode, item, itemHandler)
+                    CollatorModel::scoring -> holder.bindScoring(item)
                 }
             }
         )
