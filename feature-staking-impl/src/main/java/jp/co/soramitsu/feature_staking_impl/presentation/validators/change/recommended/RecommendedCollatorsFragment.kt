@@ -16,6 +16,7 @@ import kotlinx.android.synthetic.main.fragment_recommended_validators.recommende
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsList
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsNext
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsProgress
+import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsRewards
 import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsToolbar
 
 class RecommendedCollatorsFragment : BaseFragment<RecommendedCollatorsViewModel>(), CollatorsAdapter.ItemHandler {
@@ -42,6 +43,9 @@ class RecommendedCollatorsFragment : BaseFragment<RecommendedCollatorsViewModel>
         recommendedValidatorsNext.setOnClickListener {
             viewModel.nextClicked()
         }
+        recommendedValidatorsToolbar.setTitle(viewModel.toolbarTitle)
+        recommendedValidatorsRewards.text = getString(R.string.staking_rewards_apr)
+        recommendedValidatorsNext.text = getString(R.string.staking_select_collator_title)
     }
 
     override fun inject() {
@@ -58,17 +62,23 @@ class RecommendedCollatorsFragment : BaseFragment<RecommendedCollatorsViewModel>
         viewModel.recommendedCollatorModels.observe {
             adapter.submitList(it)
 
+            val selectedAny = it.any { collator -> collator.isChecked == true }
+            val selectedText = "${getString(R.string.common_selected)}: ${if (selectedAny) 1 else ""}"
             recommendedValidatorsProgress.setVisible(false)
             recommendedValidatorsNext.setVisible(true)
-            recommendedValidatorsNext.isEnabled = it.isNotEmpty()
+            recommendedValidatorsNext.isEnabled = it.isNotEmpty() && selectedAny
             recommendedValidatorsList.setVisible(true)
+            recommendedValidatorsAccounts.text = selectedText
         }
 
-        recommendedValidatorsToolbar.setTitle(viewModel.toolbarTitle)
         viewModel.selectedTitle.observe(recommendedValidatorsAccounts::setText)
     }
 
     override fun collatorInfoClicked(collatorModel: CollatorModel) {
         viewModel.collatorInfoClicked(collatorModel)
+    }
+
+    override fun collatorClicked(collatorModel: CollatorModel) {
+        viewModel.collatorClicked(collatorModel)
     }
 }
