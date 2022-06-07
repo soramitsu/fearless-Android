@@ -8,16 +8,17 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
+import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorState
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.toDelegations
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindAtStakeOfCollator
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCandidateInfo
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindDelegatorState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRound
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSelectedCandidates
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindTopDelegationsOfCollator
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
@@ -55,19 +56,15 @@ class StakingParachainScenarioRepository(
         )
     }
 
-    suspend fun getTopDelegationsOfCollator(chainId: ChainId, addresses: List<ByteArray>): AccountIdMap<List<BigInteger>?> {
-        return remoteStorage.queryKeys(
+    suspend fun getAtStakeOfCollator(chainId: ChainId, collatorId: AccountId, currentRound: BigInteger): AtStake {
+        return remoteStorage.query(
             chainId = chainId,
-            keysBuilder = { runtime ->
-                val storage = runtime.metadata.parachainStaking().storage("TopDelegations")
-                storage.storageKeys(
-                    runtime = runtime,
-                    singleMapArguments = addresses,
-                    argumentTransform = { it.toHexString() }
-                )
+            keyBuilder = { runtime ->
+                val storage = runtime.metadata.parachainStaking().storage("AtStake")
+                storage.storageKey(runtime, currentRound, collatorId)
             },
             binding = { scale, runtime ->
-                scale?.let { bindTopDelegationsOfCollator(it, runtime) }
+                scale?.let { bindAtStakeOfCollator(it, runtime) } ?: incompatible()
             }
         )
     }

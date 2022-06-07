@@ -23,7 +23,7 @@ class CollatorRecommendator(val availableCollators: List<Collator>) {
 
     suspend fun suggestedCollators(userInputAmount: BigInteger): List<Collator> = withContext(Dispatchers.Default) {
         availableCollators.filter {
-            userInputAmount > it.minFromTopDelegations
+            userInputAmount > it.lowestTopDelegationAmount
         }
     }
 }
