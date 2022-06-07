@@ -32,5 +32,6 @@ class CollatorStakeParcelModel(
     val selfBonded: BigInteger,
     val delegations: Int,
     val totalStake: BigInteger,
+    val minBond: BigInteger,
     val estimatedRewards: Double,
 ) : Parcelable
