@@ -16,6 +16,8 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.sumByBigInteger
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
@@ -39,6 +41,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class CollatorDetailsViewModel(
     private val interactor: StakingInteractor,
@@ -60,9 +63,10 @@ class CollatorDetailsViewModel(
 
     val collatorDetails = maxDelegations.combine(assetFlow) { maxDelegations, asset ->
         val chain = interactor.getSelectedChain()
-
-        // mapValidatorDetailsParcelToValidatorDetailsModel(chain, collator, asset, maxDelegations, iconGenerator, resourceManager)
-        val totalStake = asset.token.amountFromPlanks(collator.stake.totalStake)
+        val address = interactor.getSelectedAccountProjection().address
+        val atStake = stakingParachainScenarioInteractor.getAtStake(chain.id, collator.accountIdHex.fromHex())
+        val myTotalStake = atStake.delegations.find { it.first.toHexString(true) == address }?.second ?: BigInteger.ZERO
+        val totalStake = asset.token.amountFromPlanks(myTotalStake)
         CollatorDetailsModel(
             "0x${collator.accountIdHex}",
             iconGenerator.createAddressModel(collator.accountIdHex, 24).image,
@@ -82,9 +86,9 @@ class CollatorDetailsViewModel(
             estimatedRewardsApr = (PERCENT_MULTIPLIER * BigDecimal.ONE).formatAsPercentage(),
             totalStake = totalStake.formatTokenAmount(asset.token.configuration),
             totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol),
-            minBond = asset.token.amountFromPlanks(stakingParachainScenarioInteractor.getMinimumStake(asset.token.configuration.chainId)).formatTokenAmount(asset.token.configuration),
+            minBond = asset.token.amountFromPlanks(collator.stake.minBond).formatTokenAmount(asset.token.configuration),
             selfBonded = asset.token.amountFromPlanks(collator.stake.selfBonded).formatTokenAmount(asset.token.configuration),
-            effectiveAmountBonded = "effective",
+            effectiveAmountBonded = asset.token.amountFromPlanks(collator.stake.totalStake).formatTokenAmount(asset.token.configuration),
         )
     }
         .inBackground()
