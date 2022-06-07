@@ -89,6 +89,7 @@ class RecommendedCollatorsViewModel(
                     selfBonded = collatorModel.collator.bond,
                     delegations = collatorModel.collator.delegationCount.toInt(),
                     totalStake = collatorModel.collator.totalCounted,
+                    minBond = collatorModel.collator.lowestTopDelegationAmount,
                     estimatedRewards = 123.123,
                 ),
                 IdentityParcelModel(

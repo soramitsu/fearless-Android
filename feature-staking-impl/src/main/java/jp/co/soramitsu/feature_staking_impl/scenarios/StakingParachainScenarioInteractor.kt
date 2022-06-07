@@ -7,6 +7,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -78,6 +79,10 @@ class StakingParachainScenarioInteractor(
 
     suspend fun getCurrentRound(chainId: ChainId): Round {
         return stakingParachainScenarioRepository.getCurrentRound(chainId)
+    }
+
+    suspend fun getAtStake(chainId: ChainId, collatorId: AccountId): AtStake {
+        return stakingParachainScenarioRepository.getAtStakeOfCollator(chainId, collatorId, getCurrentRound(chainId).current)
     }
 
     fun selectedAccountStakingStateFlow(
