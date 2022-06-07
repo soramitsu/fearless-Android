@@ -11,7 +11,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sort
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import java.math.BigInteger
 
 private const val ICON_SIZE_DP = 24
 
@@ -58,7 +57,7 @@ suspend fun mapCollatorToCollatorModel(
     }
 }
 
-fun CandidateInfo.toCollator(address: String, identity: Identity?, minDelegation: BigInteger) = Collator(
+fun CandidateInfo.toCollator(address: String, identity: Identity?) = Collator(
     address = address,
     bond = bond,
     delegationCount = delegationCount,
@@ -71,5 +70,4 @@ fun CandidateInfo.toCollator(address: String, identity: Identity?, minDelegation
     request = request,
     status = status,
     identity = identity,
-    minFromTopDelegations = minDelegation,
 )
