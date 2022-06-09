@@ -106,4 +106,13 @@ class StakingParachainScenarioInteractor(
     override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
         return stakingConstantsRepository.parachainMinimumStaking(chainId)
     }
+
+    override suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean {
+        val chain = stakingInteractor.getChain(chainId)
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        val maxDelegations = maxDelegationsPerDelegator()
+        val delegatorState = stakingParachainScenarioRepository.getDelegatorState(chainId, accountId)
+        val currentDelegationsCount = delegatorState?.delegations?.size ?: return false
+        return currentDelegationsCount >= maxDelegations
+    }
 }

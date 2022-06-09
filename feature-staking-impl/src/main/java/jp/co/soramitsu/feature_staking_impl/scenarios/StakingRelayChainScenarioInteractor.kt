@@ -8,8 +8,6 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
-import jp.co.soramitsu.feature_staking_impl.domain.EraTimeCalculator
-import jp.co.soramitsu.feature_staking_impl.domain.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
@@ -21,6 +19,8 @@ import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
+import jp.co.soramitsu.feature_staking_impl.domain.EraTimeCalculator
+import jp.co.soramitsu.feature_staking_impl.domain.EraTimeCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
@@ -318,8 +318,11 @@ class StakingRelayChainScenarioInteractor(
             }
     }
 
-    suspend fun maxValidatorsPerNominator(): Int = withContext(Dispatchers.Default) {
-        stakingConstantsRepository.maxValidatorsPerNominator(stakingSharedState.chainId())
+    suspend fun maxValidatorsPerNominator(): Int {
+        hashCode()
+        return withContext(Dispatchers.Default) {
+            stakingConstantsRepository.maxValidatorsPerNominator(stakingSharedState.chainId())
+        }
     }
 
     suspend fun maxRewardedNominators(): Int = withContext(Dispatchers.Default) {
@@ -332,6 +335,12 @@ class StakingRelayChainScenarioInteractor(
         val asset: Asset,
         val rewardedNominatorsPerValidator: Int
     )
+
+    override suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean {
+        val nominatorCount = stakingRelayChainScenarioRepository.nominatorsCount(chainId) ?: return false
+        val maxNominatorsAllowed = stakingRelayChainScenarioRepository.maxNominators(chainId) ?: return false
+        return nominatorCount >= maxNominatorsAllowed
+    }
 }
 
 class EraRelativeInfo(

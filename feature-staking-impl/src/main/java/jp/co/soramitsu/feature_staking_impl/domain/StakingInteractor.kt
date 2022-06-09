@@ -13,6 +13,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
@@ -35,6 +36,7 @@ class StakingInteractor(
     private val stakingSharedState: StakingSharedState,
     private val assetUseCase: AssetUseCase,
     private val chainStateRepository: ChainStateRepository,
+    private val chainRegistry: ChainRegistry
 ) {
 
     suspend fun syncStakingRewards(chainId: ChainId, accountAddress: String) = withContext(Dispatchers.IO) {
@@ -111,5 +113,9 @@ class StakingInteractor(
 
     suspend fun currentBlockNumber(): BlockNumber {
         return chainStateRepository.currentBlock(getSelectedChain().id)
+    }
+
+    suspend fun getChain(chainId: ChainId): Chain {
+        return chainRegistry.getChain(chainId)
     }
 }
