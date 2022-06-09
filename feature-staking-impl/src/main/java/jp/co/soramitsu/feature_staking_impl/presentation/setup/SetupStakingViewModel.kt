@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -161,11 +162,12 @@ class SetupStakingViewModel(
 
     fun minimumStakeConfirmed() {
         launch {
+            val asset = assetFlow.first()
             val amount = parsedAmountFlow.first()
             val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
             val currentAccountAddress = interactor.getSelectedAccountProjection().address
-            goToNextStep(amount, rewardDestination, currentAccountAddress)
+            goToNextStep(amount, rewardDestination, currentAccountAddress, asset.token.configuration.staking)
         }
     }
 
@@ -175,12 +177,12 @@ class SetupStakingViewModel(
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
             val amount = parsedAmountFlow.first()
             val currentAccountAddress = interactor.getSelectedAccountProjection().address
-
+            val asset = assetFlow.first()
             val payload = SetupStakingPayload(
                 bondAmount = amount,
                 controllerAddress = currentAccountAddress,
                 maxFee = fee,
-                asset = assetFlow.first(),
+                asset = asset,
                 isAlreadyNominating = false // on setup staking screen => not nominator
             )
 
@@ -196,7 +198,8 @@ class SetupStakingViewModel(
                 if (amount < minimumStakeAmount) {
                     _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatTokenAmount(payload.asset.token.configuration.symbol))
                 } else {
-                    goToNextStep(amount, rewardDestination, currentAccountAddress)
+
+                    goToNextStep(amount, rewardDestination, currentAccountAddress, asset.token.configuration.staking)
                 }
             }
         }
@@ -205,12 +208,17 @@ class SetupStakingViewModel(
     private fun goToNextStep(
         newAmount: BigDecimal,
         rewardDestination: RewardDestination,
-        currentAccountAddress: String
+        currentAccountAddress: String,
+        stakingType: Chain.Asset.StakingType
     ) {
         viewModelScope.launch {
             setupStakingSharedState.set(currentProcessState.next(newAmount, rewardDestination, currentAccountAddress))
 
-            router.openStartChangeValidators()
+            when (stakingType) {
+                Chain.Asset.StakingType.PARACHAIN -> router.openStartChangeCollators()
+                Chain.Asset.StakingType.RELAYCHAIN -> router.openStartChangeValidators()
+                else -> Unit
+            }
         }
     }
 

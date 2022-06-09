@@ -1,19 +1,25 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 
+import javax.inject.Named
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.CompositeValidation
+import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
 
 class StakingScenario(
-    state: StakingSharedState,
+    private val state: StakingSharedState,
     private val baseViewModel: BaseStakingViewModel,
     private val stakingInteractor: StakingInteractor,
     private val parachainInteractor: StakingParachainScenarioInteractor,
@@ -21,7 +27,11 @@ class StakingScenario(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
     private val alertsInteractor: AlertsInteractor,
-    private val stakingViewStateFactory: StakingViewStateFactory
+    private val stakingViewStateFactory: StakingViewStateFactory,
+    @Named(BALANCE_REQUIRED_CONTROLLER)
+    controllerRequiredValidation: BalanceAccountRequiredValidation,
+    @Named(BALANCE_REQUIRED_STASH)
+    stashRequiredValidation: BalanceAccountRequiredValidation,
 ) {
     private val parachainViewModel by lazy {
         StakingParachainScenarioViewModel(
@@ -67,6 +77,44 @@ class StakingScenario(
             }
             else -> error("")
         }
+    }
+
+    val redeemValidationSystem = state.assetWithChain.map {
+        val validations = when (it.asset.staking) {
+            Chain.Asset.StakingType.PARACHAIN -> {
+                listOf()
+            }
+            Chain.Asset.StakingType.RELAYCHAIN -> {
+                listOf(controllerRequiredValidation)
+
+            }
+            else -> listOf()
+        }
+
+        ValidationSystem(
+            CompositeValidation(
+                validations = validations
+            )
+        )
+    }
+
+    val bondMoreValidationSystem = state.assetWithChain.map {
+        val validations = when (it.asset.staking) {
+            Chain.Asset.StakingType.PARACHAIN -> {
+                listOf()
+            }
+            Chain.Asset.StakingType.RELAYCHAIN -> {
+                listOf(stashRequiredValidation)
+
+            }
+            else -> listOf()
+        }
+
+        ValidationSystem(
+            CompositeValidation(
+                validations = validations
+            )
+        )
     }
 }
 
