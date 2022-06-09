@@ -55,7 +55,7 @@ class RecommendedCollatorsViewModel(
 
     private val recommendedCollators = sharedStateSetup.setupStakingProcess.map {
         val userInputAmount =
-            it.castOrNull<SetupStakingProcess.Validators>()?.payload?.castOrNull<SetupStakingProcess.Validators.Payload.Full>()?.amount ?: BigDecimal.ZERO
+            it.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Collators>()?.payload?.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Payload.Full>()?.amount ?: BigDecimal.ZERO
         val collatorRecommendator = collatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
         val token = interactor.currentAssetFlow().first().token
         val collators = collatorRecommendator.suggestedCollators(token.planksFromAmount(userInputAmount))

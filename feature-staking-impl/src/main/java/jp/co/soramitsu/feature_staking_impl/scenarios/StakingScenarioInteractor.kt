@@ -12,4 +12,5 @@ interface StakingScenarioInteractor {
 
     suspend fun getStakingStateFlow(): Flow<StakingState>
     suspend fun getMinimumStake(chainId: ChainId): BigInteger
+    suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean
 }
