@@ -6,11 +6,12 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_api.domain.model.WithAddress
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
 
 sealed class SetupStakingProcess {
 
-    object Initial : SetupStakingProcess() {
+    class Initial(val stakingType: Chain.Asset.StakingType) : SetupStakingProcess() {
 
         val defaultAmount = 10.toBigDecimal()
 
@@ -32,7 +33,7 @@ sealed class SetupStakingProcess {
 
         class Stash(override val amount: BigDecimal) : SetupStep() {
 
-            override fun previous() = Initial
+            override fun previous() = Initial(Chain.Asset.StakingType.RELAYCHAIN)
 
             override fun next(
                 newAmount: BigDecimal,
@@ -43,7 +44,7 @@ sealed class SetupStakingProcess {
 
         class Parachain(override val amount: BigDecimal) : SetupStep() {
 
-            override fun previous() = Initial
+            override fun previous() = Initial(Chain.Asset.StakingType.PARACHAIN)
 
             override fun next(
                 newAmount: BigDecimal,
@@ -75,10 +76,9 @@ sealed class SetupStakingProcess {
             val payload: Payload
         ) : SelectBlockProducersStep() {
 
-
             fun previous() = when (payload) {
                 is Payload.Full -> SetupStep.Stash(payload.amount)
-                else -> Initial
+                else -> Initial(Chain.Asset.StakingType.RELAYCHAIN)
             }
 
             fun next(validators: List<Validator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
@@ -173,28 +173,17 @@ sealed class SetupStakingProcess {
             override fun changeBlockProducers(newBlockProducers: List<Validator>, selectionMethod: SelectionMethod): ReadyToSubmit<Validator> {
                 return Stash(payload.changeBlockProducers(newBlockProducers, selectionMethod))
             }
-
         }
 
         class Parachain(payload: Payload<Collator>) : ReadyToSubmit<Collator>(payload) {
             override fun changeBlockProducers(newBlockProducers: List<Collator>, selectionMethod: SelectionMethod): ReadyToSubmit<Collator> {
                 return Parachain(payload.changeBlockProducers(newBlockProducers, selectionMethod))
             }
-
         }
 
         abstract fun changeBlockProducers(newBlockProducers: List<T>, selectionMethod: SelectionMethod): ReadyToSubmit<T>
 
         fun previous(): SelectBlockProducersStep {
-//            val payload = with(payload) {
-//                when (this) {
-//                    is Payload.Full -> SelectBlockProducersStep.Payload.Full(amount, rewardDestination, currentAccountAddress)
-//                    is Payload.ExistingStash -> SelectBlockProducersStep.Payload.ExistingStash
-//                    is Payload.Validators -> SelectBlockProducersStep.Payload.Validators
-//
-//                    is Payload.Collators -> SelectBlockProducersStep.Payload.Validators
-//                }
-//            }
 
             return when (this) {
                 is Stash -> {
@@ -218,13 +207,16 @@ sealed class SetupStakingProcess {
             }
         }
 
-        fun finish() = Initial
+        fun finish() = when (this) {
+                is Parachain -> Initial(Chain.Asset.StakingType.PARACHAIN)
+                is Stash -> Initial(Chain.Asset.StakingType.RELAYCHAIN)
+            }
     }
 }
 
 class SetupStakingSharedState {
 
-    val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial)
+    val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial(Chain.Asset.StakingType.PARACHAIN))
 
     fun set(newState: SetupStakingProcess) {
         Log.d("RX", "${setupStakingProcess.value.javaClass.simpleName} -> ${newState.javaClass.simpleName}")
