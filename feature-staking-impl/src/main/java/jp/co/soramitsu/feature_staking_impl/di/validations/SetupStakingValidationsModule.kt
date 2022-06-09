@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
+import java.math.BigDecimal
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -12,12 +13,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakin
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
-import java.math.BigDecimal
-import jp.co.soramitsu.common.validation.Validation
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
 
 @Module
 class SetupStakingValidationsModule {
@@ -46,16 +45,16 @@ class SetupStakingValidationsModule {
     @Provides
     @FeatureScope
     fun provideMinimumAmountValidation(
-        stakingRepository: StakingRelayChainScenarioRepository
-    ) = MinimumAmountValidation(stakingRepository)
+        stakingScenarioInteractor: StakingScenarioInteractor
+    ) = MinimumAmountValidation(stakingScenarioInteractor)
 
     @Provides
     @FeatureScope
     fun provideMaxNominatorsReachedValidation(
         stakingSharedState: StakingSharedState,
-        stakingRepository: StakingRelayChainScenarioRepository
+        stakingScenarioInteractor: StakingScenarioInteractor
     ) = SetupStakingMaximumNominatorsValidation(
-        stakingRepository = stakingRepository,
+        stakingScenarioInteractor = stakingScenarioInteractor,
         errorProducer = { SetupStakingValidationFailure.MaxNominatorsReached },
         isAlreadyNominating = SetupStakingPayload::isAlreadyNominating,
         sharedState = stakingSharedState
@@ -76,4 +75,20 @@ class SetupStakingValidationsModule {
             )
         )
     )
+
+//    @Provides
+//    fun provideScenarioInteractor(
+//        setupStakingSharedState: SetupStakingSharedState,
+//        stakingParachainScenarioInteractor: StakingParachainScenarioInteractor,
+//        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
+//    ): StakingScenarioInteractor = when (setupStakingSharedState.setupStakingProcess.value) {
+//        is SetupStakingProcess.ReadyToSubmit.Stash,
+//        is SetupStakingProcess.SelectBlockProducersStep.Validators,
+//        is SetupStakingProcess.SetupStep.Stash -> stakingRelayChainScenarioInteractor
+//
+//        is SetupStakingProcess.ReadyToSubmit.Parachain,
+//        is SetupStakingProcess.SelectBlockProducersStep.Collators,
+//        is SetupStakingProcess.SetupStep.Parachain -> stakingParachainScenarioInteractor
+//        else -> error("Wrong setup staking state")
+//    }
 }

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -17,8 +18,9 @@ import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -28,6 +30,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.Staking
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.BaseStakingViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.StakingScenario
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
 import kotlinx.coroutines.cancelChildren
@@ -35,6 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -49,8 +54,10 @@ class StakingViewModel(
     stakingViewStateFactory: StakingViewStateFactory,
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
-    private val redeemValidationSystem: ManageStakingValidationSystem,
-    private val bondMoreValidationSystem: ManageStakingValidationSystem,
+    @Named(BALANCE_REQUIRED_CONTROLLER)
+    controllerRequiredValidation: BalanceAccountRequiredValidation,
+    @Named(BALANCE_REQUIRED_STASH)
+    stashRequiredValidation: BalanceAccountRequiredValidation,
     private val validationExecutor: ValidationExecutor,
     stakingUpdateSystem: UpdateSystem,
     assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
@@ -72,7 +79,9 @@ class StakingViewModel(
         rewardCalculatorFactory,
         resourceManager,
         alertsInteractor,
-        stakingViewStateFactory
+        stakingViewStateFactory,
+        controllerRequiredValidation,
+        stashRequiredValidation
     )
 
     override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
@@ -130,18 +139,24 @@ class StakingViewModel(
     }
 
     override fun bondMoreAlertClicked() {
-        requireValidManageStakingAction(bondMoreValidationSystem) {
-            val bondMorePayload = SelectBondMorePayload(overrideFinishAction = StakingRouter::returnToMain)
+        viewModelScope.launch {
+            val validation = stakingScenario.bondMoreValidationSystem.last()
+            requireValidManageStakingAction(validation) {
+                val bondMorePayload = SelectBondMorePayload(overrideFinishAction = StakingRouter::returnToMain)
 
-            router.openBondMore(bondMorePayload)
+                router.openBondMore(bondMorePayload)
+            }
         }
     }
 
     override fun redeemAlertClicked() {
-        requireValidManageStakingAction(redeemValidationSystem) {
-            val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back)
+        viewModelScope.launch {
+            val validation = stakingScenario.redeemValidationSystem.last()
+            requireValidManageStakingAction(validation) {
+                val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back)
 
-            router.openRedeem(redeemPayload)
+                router.openRedeem(redeemPayload)
+            }
         }
     }
 

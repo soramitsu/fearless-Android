@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.common.utils.storageKeys
@@ -25,7 +26,6 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -36,7 +36,7 @@ class StakingParachainScenarioRepository(
         chain: Chain,
         accountId: AccountId
     ): Flow<StakingState> {
-        return getDelegatorState(chain.id, accountId).map {
+        return getDelegatorStateFlow(chain.id, accountId).map {
             when {
                 it != null -> StakingState.Parachain.Delegator(chain, accountId, it.toDelegations(), it.total.toBigDecimal())
                 else -> StakingState.Parachain.None(chain, accountId)
@@ -44,7 +44,7 @@ class StakingParachainScenarioRepository(
         }
     }
 
-    fun getDelegatorState(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
+    fun getDelegatorStateFlow(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
         return localStorage.observe(
             chainId = chainId,
             keyBuilder = {
@@ -55,6 +55,13 @@ class StakingParachainScenarioRepository(
             }
         )
     }
+
+    suspend fun getDelegatorState(chainId: ChainId, accountId: AccountId) = localStorage.query(chainId = chainId,
+        keyBuilder = {
+            it.metadata.parachainStaking().storage("DelegatorState").storageKey(it, accountId)
+        }, binding = { scale, runtime ->
+            scale?.let { bindDelegatorState(it, runtime) }
+        })
 
     suspend fun getAtStakeOfCollator(chainId: ChainId, collatorId: AccountId, currentRound: BigInteger): AtStake {
         return remoteStorage.query(

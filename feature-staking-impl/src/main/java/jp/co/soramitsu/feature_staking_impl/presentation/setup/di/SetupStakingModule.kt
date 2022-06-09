@@ -18,29 +18,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.setup.SetupStakingViewModel
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 
 @Module(includes = [ViewModelModule::class])
 class SetupStakingModule {
-
-    @Provides
-    fun provideScenarioInteractor(
-        setupStakingSharedState: SetupStakingSharedState,
-        stakingParachainScenarioInteractor: StakingParachainScenarioInteractor,
-        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
-    ): StakingScenarioInteractor {
-        return when (setupStakingSharedState.get<SetupStakingProcess.SetupStep>()) {
-            is SetupStakingProcess.SetupStep.Stash -> stakingRelayChainScenarioInteractor
-            is SetupStakingProcess.SetupStep.Parachain -> stakingParachainScenarioInteractor
-        }
-    }
 
     @Provides
     @IntoMap
