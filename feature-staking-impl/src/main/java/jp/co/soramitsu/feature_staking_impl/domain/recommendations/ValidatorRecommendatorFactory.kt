@@ -16,19 +16,19 @@ class ValidatorRecommendatorFactory(
     private val validatorProvider: ValidatorProvider,
     private val sharedState: StakingSharedState,
     private val computationalCache: ComputationalCache
-) {
-
-    suspend fun awaitValidatorLoading(lifecycle: Lifecycle) {
-        loadValidators(lifecycle)
-    }
+): BlockCreatorsRecommendatorFactory<Validator> {
 
     private suspend fun loadValidators(lifecycle: Lifecycle) = computationalCache.useCache(ELECTED_VALIDATORS_CACHE, lifecycle) {
         validatorProvider.getValidators(sharedState.chain(), ValidatorSource.Elected)
     }
 
-    suspend fun create(lifecycle: Lifecycle): ValidatorRecommendator = withContext(Dispatchers.IO) {
+    override suspend fun create(lifecycle: Lifecycle): ValidatorRecommendator = withContext(Dispatchers.IO) {
         val validators: List<Validator> = loadValidators(lifecycle)
 
         ValidatorRecommendator(validators)
+    }
+
+    override suspend fun awaitBlockCreatorsLoading(lifecycle: Lifecycle) {
+        loadValidators(lifecycle)
     }
 }

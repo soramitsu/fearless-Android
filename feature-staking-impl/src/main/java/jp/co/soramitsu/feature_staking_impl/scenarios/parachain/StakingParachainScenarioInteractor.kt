@@ -1,5 +1,6 @@
-package jp.co.soramitsu.feature_staking_impl.scenarios
+package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -18,6 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepo
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
@@ -33,7 +35,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 

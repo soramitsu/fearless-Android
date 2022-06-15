@@ -15,19 +15,18 @@ class CollatorRecommendatorFactory(
     private val collatorProvider: CollatorProvider,
     private val sharedState: StakingSharedState,
     private val computationalCache: ComputationalCache
-) {
-
-    suspend fun awaitCollatorLoading(lifecycle: Lifecycle) {
-        loadCollators(lifecycle)
-    }
+): BlockCreatorsRecommendatorFactory<Collator> {
 
     private suspend fun loadCollators(lifecycle: Lifecycle) = computationalCache.useCache(ELECTED_COLLATORS_CACHE, lifecycle) {
         collatorProvider.getCollators(sharedState.chain())
     }
 
-    suspend fun create(lifecycle: Lifecycle): CollatorRecommendator = withContext(Dispatchers.IO) {
+    override suspend fun create(lifecycle: Lifecycle): CollatorRecommendator = withContext(Dispatchers.IO) {
         val collators: List<Collator> = loadCollators(lifecycle).values.toList()
-
         CollatorRecommendator(collators)
+    }
+
+    override suspend fun awaitBlockCreatorsLoading(lifecycle: Lifecycle) {
+        loadCollators(lifecycle)
     }
 }

@@ -29,6 +29,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.Valid
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -45,6 +46,7 @@ import kotlinx.coroutines.launch
 
 class SelectCustomValidatorsViewModel(
     private val router: StakingRouter,
+    private val scenarioInteractor: StakingScenarioInteractor,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val addressIconGenerator: AddressIconGenerator,
