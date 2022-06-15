@@ -89,5 +89,5 @@ class MainFragment : BaseFragment<MainViewModel>() {
     }
 
     private fun isAtHomeTab(destination: NavDestination) =
-        destination.id == navController!!.graph.startDestination
+        destination.id == navController!!.graph.startDestinationId
 }

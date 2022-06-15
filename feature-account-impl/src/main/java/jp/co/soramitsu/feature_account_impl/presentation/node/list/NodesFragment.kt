@@ -105,7 +105,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     }
 
     private fun showDeleteNodeDialog(nodeModel: NodeModel) {
-        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+        MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
             .setTitle(R.string.delete_custom_node_title)
             .setMessage(nodeModel.name)
             .setPositiveButton(R.string.connection_delete_confirm) { dialog, _ ->

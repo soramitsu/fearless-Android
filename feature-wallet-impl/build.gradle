@@ -46,6 +46,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.feature_wallet_impl'
 }
 
 dependencies {
@@ -78,7 +79,6 @@ dependencies {
     implementation roomDep
     kapt roomKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
 
     implementation bouncyCastleDep

@@ -81,6 +81,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.app'
 }
 
 play {
@@ -129,7 +130,7 @@ dependencies {
     implementation daggerDep
     kapt daggerKapt
 
-    implementation lifecycleDep
+    implementation lifecycleProcessDep
     kapt lifecycleKapt
 
     implementation lifeCycleKtxDep
