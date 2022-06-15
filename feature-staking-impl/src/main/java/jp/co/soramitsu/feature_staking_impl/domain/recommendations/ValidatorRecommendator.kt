@@ -6,9 +6,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ValidatorRecommendator(val availableValidators: List<Validator>) {
+class ValidatorRecommendator(val availableValidators: List<Validator>): BlockCreatorRecommendator<Validator> {
 
-    suspend fun recommendations(settings: RecommendationSettings) = withContext(Dispatchers.Default) {
+    override suspend fun recommendations(settings: RecommendationSettings) = withContext(Dispatchers.Default) {
         val all = availableValidators.applyFilters(settings.allFilters)
             .sortedWith(settings.sorting)
 

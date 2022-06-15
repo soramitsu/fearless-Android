@@ -29,7 +29,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.Staking
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.BaseStakingViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.StakingScenario
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector

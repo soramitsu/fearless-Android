@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -57,7 +58,7 @@ suspend fun mapCollatorToCollatorModel(
     }
 }
 
-fun CandidateInfo.toCollator(address: String, identity: Identity?) = Collator(
+fun CandidateInfo.toCollator(address: String, identity: Identity?, apy: BigDecimal?) = Collator(
     address = address,
     bond = bond,
     delegationCount = delegationCount,
@@ -70,4 +71,5 @@ fun CandidateInfo.toCollator(address: String, identity: Identity?) = Collator(
     request = request,
     status = status,
     identity = identity,
+    apy
 )

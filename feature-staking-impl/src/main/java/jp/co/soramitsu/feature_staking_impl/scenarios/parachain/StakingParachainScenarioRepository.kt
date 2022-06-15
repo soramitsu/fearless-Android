@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.scenarios
+package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.utils.parachainStaking

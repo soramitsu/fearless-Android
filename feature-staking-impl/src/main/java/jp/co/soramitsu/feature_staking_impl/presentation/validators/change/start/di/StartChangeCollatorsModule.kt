@@ -13,7 +13,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecom
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.StartChangeCollatorsViewModel
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class StartChangeCollatorsModule {
