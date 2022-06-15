@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_R
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope

@@ -11,7 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecom
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.transform

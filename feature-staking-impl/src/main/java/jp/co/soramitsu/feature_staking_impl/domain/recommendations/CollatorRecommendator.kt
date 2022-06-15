@@ -6,9 +6,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigInteger
 
-class CollatorRecommendator(val availableCollators: List<Collator>) {
+class CollatorRecommendator(val availableCollators: List<Collator>): BlockCreatorRecommendator<Collator> {
 
-    suspend fun recommendations(settings: RecommendationSettings) = withContext(Dispatchers.Default) {
+    override suspend fun recommendations(settings: RecommendationSettings) = withContext(Dispatchers.Default) {
         val all = availableCollators
 //            .applyFilters(settings.allFilters)
 //            .sortedWith(settings.sorting)
@@ -23,7 +23,7 @@ class CollatorRecommendator(val availableCollators: List<Collator>) {
 
     suspend fun suggestedCollators(userInputAmount: BigInteger): List<Collator> = withContext(Dispatchers.Default) {
         availableCollators.filter {
-            userInputAmount > it.lowestTopDelegationAmount
+            it.lowestTopDelegationAmount < userInputAmount
         }
     }
 }
