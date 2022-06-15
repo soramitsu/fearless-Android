@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
+import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -8,7 +9,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
-import java.math.BigInteger
 
 interface StakingScenarioInteractor {
 
@@ -26,4 +26,19 @@ interface StakingScenarioInteractor {
     suspend fun accountIsNotController(controllerAddress: String): Boolean
     suspend fun ledger(): StakingLedger?
     suspend fun checkAccountRequiredValidation(accountAddress: String?): Boolean
+}
+
+data class BlockProducer(
+    val accountIdHex: String,
+    val slashed: Boolean,
+    val address: String,
+    val scoring: Scoring?,
+    val title: String,
+    val isChecked: Boolean,
+) {
+    sealed class Scoring {
+        class OneField(val field: String) : Scoring()
+
+        class TwoFields(val primary: String, val secondary: String?) : Scoring()
+    }
 }

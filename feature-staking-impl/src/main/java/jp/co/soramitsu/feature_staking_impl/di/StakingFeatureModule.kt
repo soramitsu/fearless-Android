@@ -53,10 +53,11 @@ import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.Sea
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationProvider
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioRepository
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImpl
@@ -215,14 +216,16 @@ class StakingFeatureModule {
         accountRepository: AccountRepository,
         stakingConstantsRepository: StakingConstantsRepository,
         stakingParachainScenarioRepository: StakingParachainScenarioRepository,
-        identityRepository: IdentityRepository
+        identityRepository: IdentityRepository,
+        validatorProvider: ValidatorProvider
     ): StakingParachainScenarioInteractor {
         return StakingParachainScenarioInteractor(
             interactor,
             accountRepository,
             stakingConstantsRepository,
             stakingParachainScenarioRepository,
-            identityRepository
+            identityRepository,
+            validatorProvider
         )
     }
 

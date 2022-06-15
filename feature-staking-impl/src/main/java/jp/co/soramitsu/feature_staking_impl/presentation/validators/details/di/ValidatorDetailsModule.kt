@@ -18,7 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.Coll
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingParachainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
