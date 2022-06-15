@@ -1,5 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
+import androidx.lifecycle.Lifecycle
+import java.math.BigInteger
+import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -36,6 +39,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
+import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
+import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorSource
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.erasPerDay
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.getActiveElectedValidatorsExposures
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.toBlockProducer
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -364,7 +375,6 @@ class StakingRelayChainScenarioInteractor(
     }
 
     suspend fun maxValidatorsPerNominator(): Int {
-        hashCode()
         return withContext(Dispatchers.Default) {
             stakingConstantsRepository.maxValidatorsPerNominator(stakingSharedState.chainId())
         }

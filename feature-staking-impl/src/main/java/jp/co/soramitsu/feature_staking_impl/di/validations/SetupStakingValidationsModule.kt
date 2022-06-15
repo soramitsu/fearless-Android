@@ -75,20 +75,4 @@ class SetupStakingValidationsModule {
             )
         )
     )
-
-//    @Provides
-//    fun provideScenarioInteractor(
-//        setupStakingSharedState: SetupStakingSharedState,
-//        stakingParachainScenarioInteractor: StakingParachainScenarioInteractor,
-//        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
-//    ): StakingScenarioInteractor = when (setupStakingSharedState.setupStakingProcess.value) {
-//        is SetupStakingProcess.ReadyToSubmit.Stash,
-//        is SetupStakingProcess.SelectBlockProducersStep.Validators,
-//        is SetupStakingProcess.SetupStep.Stash -> stakingRelayChainScenarioInteractor
-//
-//        is SetupStakingProcess.ReadyToSubmit.Parachain,
-//        is SetupStakingProcess.SelectBlockProducersStep.Collators,
-//        is SetupStakingProcess.SetupStep.Parachain -> stakingParachainScenarioInteractor
-//        else -> error("Wrong setup staking state")
-//    }
 }

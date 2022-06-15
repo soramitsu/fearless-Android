@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.scenarios
+package jp.co.soramitsu.feature_staking_impl.scenarios.relaychain
 
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
