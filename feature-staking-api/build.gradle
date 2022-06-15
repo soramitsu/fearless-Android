@@ -22,6 +22,7 @@ android {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
+    namespace 'jp.co.soramitsu.feature_staking_api'
 }
 
 dependencies {

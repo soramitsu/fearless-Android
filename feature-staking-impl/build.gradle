@@ -32,6 +32,7 @@ android {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
+    namespace 'jp.co.soramitsu.feature_staking_impl'
 }
 
 dependencies {
@@ -66,7 +67,6 @@ dependencies {
     implementation roomDep
     kapt roomKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
 
     testImplementation jUnitDep

@@ -68,7 +68,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
     }
 
     private fun showScreenshotWarningDialog() {
-        MaterialAlertDialogBuilder(context, R.style.AlertDialogTheme)
+        MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
             .setTitle(R.string.common_no_screenshot_title)
             .setMessage(R.string.common_no_screenshot_message)
             .setPositiveButton(R.string.common_ok) { dialog, _ ->
