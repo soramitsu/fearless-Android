@@ -29,7 +29,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestinatio
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.RewardDestinationParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.select.rewardDestinationValidationFailure
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry

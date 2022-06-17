@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepo
 import jp.co.soramitsu.feature_staking_impl.domain.common.isWaiting
 import jp.co.soramitsu.feature_staking_impl.domain.isNominationActive
 import jp.co.soramitsu.feature_staking_impl.domain.minimumStake
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks

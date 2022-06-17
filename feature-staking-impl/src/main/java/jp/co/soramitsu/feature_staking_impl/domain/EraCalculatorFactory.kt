@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.domain
 
 import java.math.BigInteger
 import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 /**
