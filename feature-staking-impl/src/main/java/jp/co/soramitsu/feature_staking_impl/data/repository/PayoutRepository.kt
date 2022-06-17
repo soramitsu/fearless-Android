@@ -33,8 +33,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getService
 import java.math.BigInteger
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
-import jp.co.soramitsu.feature_staking_impl.scenarios.historicalEras
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.historicalEras
 
 typealias HistoricalMapping<T> = Map<BigInteger, T> // EraIndex -> T
 

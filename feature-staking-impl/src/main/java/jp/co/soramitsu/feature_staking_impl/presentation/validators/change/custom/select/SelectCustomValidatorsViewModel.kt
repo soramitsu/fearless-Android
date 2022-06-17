@@ -17,9 +17,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -28,8 +27,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -46,7 +44,6 @@ import kotlinx.coroutines.launch
 
 class SelectCustomValidatorsViewModel(
     private val router: StakingRouter,
-    private val scenarioInteractor: StakingScenarioInteractor,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val addressIconGenerator: AddressIconGenerator,
@@ -55,6 +52,7 @@ class SelectCustomValidatorsViewModel(
     private val resourceManager: ResourceManager,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val tokenUseCase: TokenUseCase,
+    private val settingsStorage: SettingsStorage
 ) : BaseViewModel() {
 
     private val validatorRecommendator by lazyAsync {
@@ -62,7 +60,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     private val recommendationSettingsProvider by lazyAsync {
-        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle)
+        recommendationSettingsProviderFactory.createRelayChain(router.currentStackEntryLifecycle)
     }
 
     private val recommendationSettingsFlow = flow {
@@ -119,9 +117,9 @@ class SelectCustomValidatorsViewModel(
 
     val scoringHeader = recommendationSettingsFlow.map {
         when (it.sorting) {
-            APYSorting -> resourceManager.getString(R.string.staking_rewards_apy)
-            TotalStakeSorting -> resourceManager.getString(R.string.staking_validator_total_stake)
-            ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)
+            BlockProducersSorting.ValidatorSorting.APYSorting -> resourceManager.getString(R.string.staking_rewards_apy)
+            BlockProducersSorting.ValidatorSorting.TotalStakeSorting -> resourceManager.getString(R.string.staking_validator_total_stake)
+            BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)
             else -> throw IllegalArgumentException("Unknown sorting: ${it.sorting}")
         }
     }.inBackground().share()
@@ -137,6 +135,12 @@ class SelectCustomValidatorsViewModel(
 
     init {
         observeExternalSelectionChanges()
+
+        launch {
+            settingsStorage.schema.collect {
+                recommendationSettingsProvider().settingsChanged(it)
+            }
+        }
     }
 
     fun backClicked() {
@@ -162,7 +166,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun settingsClicked() {
-        router.openCustomValidatorsSettings()
+        router.openCustomValidatorsSettingsFromValidator()
     }
 
     fun searchClicked() {
@@ -176,14 +180,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun clearFilters() {
-        launch {
-            val settings = recommendationSettingsProvider().createModifiedCustomValidatorsSettings(
-                filterIncluder = { false },
-                postProcessorIncluder = { false }
-            )
-
-            recommendationSettingsProvider().setCustomValidatorsSettings(settings)
-        }
+        settingsStorage.resetFilters()
     }
 
     fun deselectAll() {

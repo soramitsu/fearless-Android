@@ -38,6 +38,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.payout.PayoutInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
@@ -55,8 +56,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestinatio
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationProvider
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioRepository
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
@@ -216,16 +216,14 @@ class StakingFeatureModule {
         accountRepository: AccountRepository,
         stakingConstantsRepository: StakingConstantsRepository,
         stakingParachainScenarioRepository: StakingParachainScenarioRepository,
-        identityRepository: IdentityRepository,
-        validatorProvider: ValidatorProvider
+        identityRepository: IdentityRepository
     ): StakingParachainScenarioInteractor {
         return StakingParachainScenarioInteractor(
             interactor,
             accountRepository,
             stakingConstantsRepository,
             stakingParachainScenarioRepository,
-            identityRepository,
-            validatorProvider
+            identityRepository
         )
     }
 
@@ -253,7 +251,7 @@ class StakingFeatureModule {
             factory,
             stakingSharedState,
             identityRepository,
-            payoutRepository
+            payoutRepository,
         )
     }
 
@@ -477,4 +475,8 @@ class StakingFeatureModule {
         validatorProvider: ValidatorProvider,
         sharedState: StakingSharedState
     ) = SearchCustomValidatorsInteractor(validatorProvider, sharedState)
+
+    @Provides
+    @FeatureScope
+    fun provideSettingsStorage() = SettingsStorage()
 }

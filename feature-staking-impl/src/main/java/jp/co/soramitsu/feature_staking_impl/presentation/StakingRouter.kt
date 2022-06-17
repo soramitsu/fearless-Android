@@ -30,7 +30,9 @@ interface StakingRouter {
 
     fun openSelectCustomValidators()
 
-    fun openCustomValidatorsSettings()
+    fun openCustomValidatorsSettingsFromValidator()
+
+    fun openCustomValidatorsSettingsFromCollator()
 
     fun openSearchCustomValidators()
 

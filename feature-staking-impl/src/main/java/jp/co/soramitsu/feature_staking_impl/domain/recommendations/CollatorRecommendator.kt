@@ -1,24 +1,20 @@
 package jp.co.soramitsu.feature_staking_impl.domain.recommendations
 
+import java.math.BigInteger
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.applyFilters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.math.BigInteger
 
-class CollatorRecommendator(val availableCollators: List<Collator>): BlockCreatorRecommendator<Collator> {
+class CollatorRecommendator(val availableCollators: List<Collator>) : BlockCreatorRecommendator<Collator> {
 
-    override suspend fun recommendations(settings: RecommendationSettings) = withContext(Dispatchers.Default) {
+    override suspend fun recommendations(settings: RecommendationSettings<Collator>) = withContext(Dispatchers.Default) {
         val all = availableCollators
-//            .applyFilters(settings.allFilters)
-//            .sortedWith(settings.sorting)
+            .applyFilters(settings.allFilters)
+            .sortedWith(settings.sorting.comparator)
 
-//        val postprocessed = settings.postProcessors.fold(all) { acc, postProcessor ->
-//            postProcessor(acc)
-//        }
-        val postprocessed = all
-
-        settings.limit?.let(postprocessed::take) ?: postprocessed
+        settings.limit?.let(all::take) ?: all
     }
 
     suspend fun suggestedCollators(userInputAmount: BigInteger): List<Collator> = withContext(Dispatchers.Default) {

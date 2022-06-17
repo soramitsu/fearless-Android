@@ -68,6 +68,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.CollatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
@@ -86,6 +87,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extri
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.android.parcel.Parcelize
@@ -375,8 +377,14 @@ class Navigator :
         navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment)
     }
 
-    override fun openCustomValidatorsSettings() {
-        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_settingsCustomValidatorsFragment)
+    override fun openCustomValidatorsSettingsFromValidator() {
+        val bundle = CustomValidatorsSettingsFragment.getBundle(Chain.Asset.StakingType.RELAYCHAIN)
+        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_settingsCustomValidatorsFragment, bundle)
+    }
+
+    override fun openCustomValidatorsSettingsFromCollator() {
+        val bundle = CustomValidatorsSettingsFragment.getBundle(Chain.Asset.StakingType.PARACHAIN)
+        navController?.navigate(R.id.action_selectCustomCollatorsFragment_to_settingsCustomValidatorsFragment, bundle)
     }
 
     override fun openSearchCustomValidators() {

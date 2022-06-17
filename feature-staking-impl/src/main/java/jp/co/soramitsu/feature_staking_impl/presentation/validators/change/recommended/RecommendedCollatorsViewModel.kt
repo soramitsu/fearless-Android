@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended
 
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -13,6 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit
@@ -33,7 +35,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class RecommendedCollatorsViewModel(
     private val router: StakingRouter,
@@ -48,14 +49,16 @@ class RecommendedCollatorsViewModel(
 ) : BaseViewModel() {
 
     private val recommendedSettings by lazyAsync {
-        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle).defaultSettings()
+        recommendationSettingsProviderFactory.createParachain(router.currentStackEntryLifecycle).defaultSettings()
     }
 
     private val selectedCollator = MutableStateFlow<String?>(null)
 
     private val recommendedCollators = sharedStateSetup.setupStakingProcess.map {
         val userInputAmount = it.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Collators>()
-            ?.payload?.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Payload.Full>()?.amount ?: BigDecimal.ZERO
+            ?.payload
+            ?.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Payload.Full>()?.amount
+            ?: BigDecimal.ZERO
         val collatorRecommendator = collatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
         val token = interactor.currentAssetFlow().first().token
         val collators = collatorRecommendator.suggestedCollators(token.planksFromAmount(userInputAmount))
@@ -90,7 +93,7 @@ class RecommendedCollatorsViewModel(
                     delegations = collatorModel.collator.delegationCount.toInt(),
                     totalStake = collatorModel.collator.totalCounted,
                     minBond = collatorModel.collator.lowestTopDelegationAmount,
-                    estimatedRewards = 123.123,//todo
+                    estimatedRewards = 123.123, // todo
                 ),
                 IdentityParcelModel(
                     display = collatorModel.collator.identity?.display,
@@ -132,7 +135,8 @@ class RecommendedCollatorsViewModel(
                 collator = it,
                 iconGenerator = addressIconGenerator,
                 token = token,
-                selectedCollatorAddress = selectedCollator
+                selectedCollatorAddress = selectedCollator,
+                sorting = BlockProducersSorting.CollatorSorting.APYSorting
             )
         }
     }
