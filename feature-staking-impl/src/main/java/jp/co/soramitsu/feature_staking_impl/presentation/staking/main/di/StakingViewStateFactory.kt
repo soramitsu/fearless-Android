@@ -17,7 +17,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingVie
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StashNoneViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.ValidatorViewState
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow

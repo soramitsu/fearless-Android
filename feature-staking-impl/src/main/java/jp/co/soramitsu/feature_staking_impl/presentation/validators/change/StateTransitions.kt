@@ -37,6 +37,10 @@ fun SetupStakingSharedState.setRecommendedCollators(
     collators: List<Collator>
 ) = setCollators(collators, SelectionMethod.RECOMMENDED)
 
+fun SetupStakingSharedState.setCustomCollators(
+    collators: List<Collator>
+) = setCollators(collators, SelectionMethod.CUSTOM)
+
 private fun SetupStakingSharedState.setCollators(
     collators: List<Collator>,
     selectionMethod: SelectionMethod

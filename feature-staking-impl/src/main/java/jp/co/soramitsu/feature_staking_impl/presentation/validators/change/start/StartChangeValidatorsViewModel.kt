@@ -12,7 +12,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.retractValidators
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.transform
@@ -72,7 +72,7 @@ class StartChangeValidatorsViewModel(
 
     init {
         launch {
-            validatorRecommendatorFactory.awaitValidatorLoading(router.currentStackEntryLifecycle)
+            validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
 
             validatorsLoading.value = false
         }

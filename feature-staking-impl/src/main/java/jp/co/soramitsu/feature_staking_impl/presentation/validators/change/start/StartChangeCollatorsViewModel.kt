@@ -71,7 +71,7 @@ class StartChangeCollatorsViewModel(
 
     init {
         launch {
-            collatorRecommendatorFactory.awaitCollatorLoading(router.currentStackEntryLifecycle)
+            collatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
 
             collatorsLoading.value = false
         }
