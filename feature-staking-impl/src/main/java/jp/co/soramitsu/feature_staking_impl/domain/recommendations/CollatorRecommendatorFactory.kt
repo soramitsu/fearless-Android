@@ -15,7 +15,7 @@ class CollatorRecommendatorFactory(
     private val collatorProvider: CollatorProvider,
     private val sharedState: StakingSharedState,
     private val computationalCache: ComputationalCache
-): BlockCreatorsRecommendatorFactory<Collator> {
+) : BlockCreatorsRecommendatorFactory<Collator> {
 
     private suspend fun loadCollators(lifecycle: Lifecycle) = computationalCache.useCache(ELECTED_COLLATORS_CACHE, lifecycle) {
         collatorProvider.getCollators(sharedState.chain())

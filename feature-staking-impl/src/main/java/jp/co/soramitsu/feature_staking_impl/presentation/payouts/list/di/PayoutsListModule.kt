@@ -12,7 +12,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.PayoutsListViewModel
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class PayoutsListModule {

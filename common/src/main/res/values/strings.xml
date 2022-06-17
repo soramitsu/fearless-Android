@@ -50,6 +50,7 @@ operations will appear here</string>
     <string name="account_creation_info">Mnemonic is used to recover access to account. Write it down, we will not be able to recover your account without it!</string>
     <string name="common_info">Info</string>
     <string name="common_selected">Selected</string>
+    <string name="common_select">Select</string>
     <string name="common_undefined_error_message">Please, try again with another input. If the error appears again, please, contact support.</string>
     <string name="recovery_source_type">Source type</string>
     <string name="recovery_mnemonic">Mnemonic phrase</string>
@@ -752,4 +753,11 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_connection_problems">Connection Problems</string>
     <string name="connection_problems_alert_message">Failed to load necessary data to launch the application. Please, check your internet connection and try again.</string>
 
+    <string name="staking_custom_header_collators_title" formatted="false">Collators: %d of %d</string>
+    <string name="staking_custom_collators_default_button_state_text">You should select a collator</string>
+
+    <string name="collator_staking_sorting_effective_amount_bonded">Effective amount bonded</string>
+    <string name="collator_staking_sorting_own_stake">Collator\'s own stake</string>
+    <string name="collator_staking_sorting_delegations">Delegations</string>
+    <string name="collator_staking_sorting_minimum_bond">Minimum bond</string>
 </resources>

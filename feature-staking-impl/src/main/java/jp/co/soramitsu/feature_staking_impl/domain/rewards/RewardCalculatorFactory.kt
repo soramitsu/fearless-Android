@@ -6,8 +6,8 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.error.accountIdNotFound
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
-import jp.co.soramitsu.feature_staking_impl.scenarios.getActiveElectedValidatorsExposures
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

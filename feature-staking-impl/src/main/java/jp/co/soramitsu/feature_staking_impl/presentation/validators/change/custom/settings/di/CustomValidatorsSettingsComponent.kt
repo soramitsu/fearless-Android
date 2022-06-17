@@ -5,6 +5,7 @@ import dagger.BindsInstance
 import dagger.Subcomponent
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 @Subcomponent(
     modules = [
@@ -17,7 +18,7 @@ interface CustomValidatorsSettingsComponent {
     @Subcomponent.Factory
     interface Factory {
 
-        fun create(@BindsInstance fragment: Fragment): CustomValidatorsSettingsComponent
+        fun create(@BindsInstance fragment: Fragment, @BindsInstance type: Chain.Asset.StakingType): CustomValidatorsSettingsComponent
     }
 
     fun inject(fragment: CustomValidatorsSettingsFragment)

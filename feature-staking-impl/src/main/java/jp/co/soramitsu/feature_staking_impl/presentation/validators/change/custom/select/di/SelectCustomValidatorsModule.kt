@@ -13,11 +13,11 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.SelectCustomValidatorsViewModel
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 
 @Module(includes = [ViewModelModule::class])
@@ -28,7 +28,6 @@ class SelectCustomValidatorsModule {
     @ViewModelKey(SelectCustomValidatorsViewModel::class)
     fun provideViewModel(
         validatorRecommendatorFactory: ValidatorRecommendatorFactory,
-        scenarioInteractor: StakingScenarioInteractor,
         recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
         addressIconGenerator: AddressIconGenerator,
         stakingInteractor: StakingInteractor,
@@ -36,11 +35,11 @@ class SelectCustomValidatorsModule {
         resourceManager: ResourceManager,
         setupStakingSharedState: SetupStakingSharedState,
         router: StakingRouter,
-        tokenUseCase: TokenUseCase
+        tokenUseCase: TokenUseCase,
+        settingsStorage: SettingsStorage
     ): ViewModel {
         return SelectCustomValidatorsViewModel(
             router,
-            scenarioInteractor,
             validatorRecommendatorFactory,
             recommendationSettingsProviderFactory,
             addressIconGenerator,
@@ -48,7 +47,8 @@ class SelectCustomValidatorsModule {
             stakingRelayChainScenarioInteractor,
             resourceManager,
             setupStakingSharedState,
-            tokenUseCase
+            tokenUseCase,
+            settingsStorage
         )
     }
 

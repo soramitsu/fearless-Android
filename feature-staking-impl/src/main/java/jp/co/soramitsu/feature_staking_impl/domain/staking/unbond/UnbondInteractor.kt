@@ -8,7 +8,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.chill
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.unbond
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
