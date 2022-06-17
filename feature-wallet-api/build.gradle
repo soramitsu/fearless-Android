@@ -22,6 +22,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'jp.co.soramitsu.feature_wallet_api'
 }
 
 dependencies {

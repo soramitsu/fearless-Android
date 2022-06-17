@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 import android.view.View
 import android.view.ViewGroup
 import coil.ImageLoader
-import coil.clear
+import coil.dispose
 import coil.load
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
@@ -164,7 +164,7 @@ private class CrowdloanChildHolder(
 
     fun unbind() {
         with(containerView) {
-            itemCrowdloanIcon.clear()
+            itemCrowdloanIcon.dispose()
         }
     }
 

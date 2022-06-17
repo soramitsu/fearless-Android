@@ -23,6 +23,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.feature_account_api'
 }
 
 dependencies {

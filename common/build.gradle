@@ -59,6 +59,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.common'
 }
 
 dependencies {
@@ -88,8 +89,8 @@ dependencies {
     implementation daggerDep
     kapt daggerKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
+    implementation lifecycleProcessDep
 
     implementation retrofitDep
     implementation gsonConvertedDep

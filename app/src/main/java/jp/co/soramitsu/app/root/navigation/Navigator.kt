@@ -163,10 +163,10 @@ class Navigator :
 
         val navOptions = NavOptions.Builder()
             .setPopUpTo(R.id.pincodeFragment, true)
-            .setEnterAnim(R.anim.fragment_open_enter)
-            .setExitAnim(R.anim.fragment_open_exit)
-            .setPopEnterAnim(R.anim.fragment_close_enter)
-            .setPopExitAnim(R.anim.fragment_close_exit)
+            .setEnterAnim(R.animator.fragment_open_enter)
+            .setExitAnim(R.animator.fragment_open_exit)
+            .setPopEnterAnim(R.animator.fragment_close_enter)
+            .setPopExitAnim(R.animator.fragment_close_exit)
             .build()
 
         navController?.navigate(delayedNavigation.globalActionId, delayedNavigation.extras, navOptions)
