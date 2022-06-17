@@ -4,13 +4,17 @@ import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 private const val ICON_SIZE_DP = 24
@@ -21,7 +25,7 @@ suspend fun mapCollatorToCollatorModel(
     iconGenerator: AddressIconGenerator,
     token: Token,
     isChecked: Boolean? = null,
-    sorting: RecommendationSorting = APYSorting,
+    sorting: BlockProducersSorting<Collator>,
     selectedCollatorAddress: String?,
 ) = mapCollatorToCollatorModel(
     chain,
@@ -38,12 +42,12 @@ suspend fun mapCollatorToCollatorModel(
     selectedCollatorAddress: String?,
     createIcon: suspend (address: String) -> AddressModel,
     token: Token,
-    sorting: RecommendationSorting = APYSorting,
+    sorting: BlockProducersSorting<Collator>,
 ): CollatorModel {
     val addressModel = createIcon(collator.address)
 
     return with(collator) {
-        val scoring = CollatorModel.Scoring.OneField("stub")
+        val scoring = sorting.toScoring(this, token)
 
         CollatorModel(
             accountIdHex = address,
@@ -73,3 +77,37 @@ fun CandidateInfo.toCollator(address: String, identity: Identity?, apy: BigDecim
     identity = identity,
     apy
 )
+
+fun BlockProducersSorting<Collator>.toScoring(collator: Collator, token: Token): CollatorModel.Scoring {
+    return when (this) {
+        BlockProducersSorting.CollatorSorting.APYSorting -> {
+            val apy = collator.apy ?: BigDecimal.ZERO
+            CollatorModel.Scoring.OneField(apy.fractionToPercentage().formatAsPercentage())
+        }
+        BlockProducersSorting.CollatorSorting.CollatorsOwnStakeSorting -> {
+            val ownStakeFormatted = token.amountFromPlanks(collator.bond)
+            CollatorModel.Scoring.TwoFields(
+                ownStakeFormatted.formatTokenAmount(token.configuration),
+                token.fiatAmount(ownStakeFormatted)?.formatAsCurrency(token.fiatSymbol)
+            )
+        }
+        BlockProducersSorting.CollatorSorting.DelegationsSorting -> {
+            CollatorModel.Scoring.OneField(collator.delegationCount.toString())
+        }
+        BlockProducersSorting.CollatorSorting.EffectiveAmountBondedSorting -> {
+            val totalCountedFormatted = token.amountFromPlanks(collator.totalCounted)
+            CollatorModel.Scoring.TwoFields(
+                totalCountedFormatted.formatTokenAmount(token.configuration),
+                token.fiatAmount(totalCountedFormatted)?.formatAsCurrency(token.fiatSymbol)
+            )
+        }
+        BlockProducersSorting.CollatorSorting.MinimumBondSorting -> {
+            val totalCountedFormatted = token.amountFromPlanks(collator.lowestTopDelegationAmount)
+            CollatorModel.Scoring.TwoFields(
+                totalCountedFormatted.formatTokenAmount(token.configuration),
+                token.fiatAmount(totalCountedFormatted)?.formatAsCurrency(token.fiatSymbol)
+            )
+        }
+        else -> error("Wrong sorting type")
+    }
+}

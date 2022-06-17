@@ -16,7 +16,7 @@ class ValidatorRecommendatorFactory(
     private val validatorProvider: ValidatorProvider,
     private val sharedState: StakingSharedState,
     private val computationalCache: ComputationalCache
-): BlockCreatorsRecommendatorFactory<Validator> {
+) : BlockCreatorsRecommendatorFactory<Validator> {
 
     private suspend fun loadValidators(lifecycle: Lifecycle) = computationalCache.useCache(ELECTED_VALIDATORS_CACHE, lifecycle) {
         validatorProvider.getValidators(sharedState.chain(), ValidatorSource.Elected)

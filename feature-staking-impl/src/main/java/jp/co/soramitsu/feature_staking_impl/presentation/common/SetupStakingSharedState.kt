@@ -5,6 +5,8 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_api.domain.model.WithAddress
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.Filters
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.Sorting
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.math.BigDecimal
@@ -56,9 +58,17 @@ sealed class SetupStakingProcess {
 
     sealed class SelectBlockProducersStep : SetupStakingProcess() {
 
+        abstract val filtersSet: Set<Filters>
+        abstract val sortingSet: Set<Sorting>
+
         class Collators(
             val payload: Payload.Full
         ) : SelectBlockProducersStep() {
+
+            override val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.NotOverSubscribed)
+            override val sortingSet =
+                setOf(Sorting.EstimatedRewards, Sorting.EffectiveAmountBonded, Sorting.CollatorsOwnStake, Sorting.Delegations, Sorting.MinimumBond)
+
             fun next(collators: List<Collator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
                 return ReadyToSubmit.Parachain(
                     ReadyToSubmit.Payload.Full(
@@ -75,6 +85,10 @@ sealed class SetupStakingProcess {
         class Validators(
             val payload: Payload
         ) : SelectBlockProducersStep() {
+
+            override val filtersSet =
+                setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
+            override val sortingSet = setOf(Sorting.EstimatedRewards, Sorting.TotalStake, Sorting.ValidatorsOwnStake)
 
             fun previous() = when (payload) {
                 is Payload.Full -> SetupStep.Stash(payload.amount)

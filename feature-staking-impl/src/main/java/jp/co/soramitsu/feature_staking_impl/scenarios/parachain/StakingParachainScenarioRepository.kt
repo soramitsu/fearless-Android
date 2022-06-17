@@ -23,7 +23,6 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigInteger
@@ -109,10 +108,10 @@ class StakingParachainScenarioRepository(
         )
     }
 
-    fun observeSelectedCandidates(chainId: ChainId) = remoteStorage.observeNonNull(
+    suspend fun getSelectedCandidates(chainId: ChainId) = remoteStorage.query(
         chainId = chainId,
         keyBuilder = { it.metadata.parachainStaking().storage("SelectedCandidates").storageKey() },
-        binding = { scale, runtime -> bindSelectedCandidates(scale, runtime) }
+        binding = { scale, runtime -> scale?.let { bindSelectedCandidates(it, runtime) } }
     )
 
     suspend fun getDelegationScheduledRequests(chainId: ChainId, accountId: AccountId) = remoteStorage.query(
