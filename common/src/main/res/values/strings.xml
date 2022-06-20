@@ -147,7 +147,6 @@ from the right network</string>
     <string name="wallet_balance_locked">Locked</string>
     <string name="wallet_balance_reserved">Reserved</string>
     <string name="wallet_balance_redeemable">Redeemable</string>
-    <string name="wallet_balance_unbonding">Unstaking</string>
     <string name="transaction_details_hash_title">Extrinsic Hash</string>
     <string name="transaction_details_copy_hash">Copy hash</string>
     <string name="transaction_details_view_polkascan">View in Polkascan</string>
@@ -343,7 +342,10 @@ Derivation path: %s</string>
     <string name="staking_bond_more">Stake more</string>
     <string name="staking_unbond">Unstake</string>
     <string name="staking_redeem">Redeem</string>
+    <string name="parachain_staking_unlock">Unlock</string>
+    <string name="staking_balance_ready_for_unlocking">Ready for unlocking</string>
     <string name="common_balance">Balance</string>
+    <string name="your_collator">Your collator</string>
     <string name="staking_balance_title">Staking balance</string>
     <string name="make_payout_transaction_sent">Payout transaction sent</string>
     <string name="staking_zero_bond_error">Amount must be positive</string>
@@ -484,6 +486,7 @@ Derivation path: %s</string>
     <string name="staking_total_rewards_v1.9.0">Rewarded</string>
     <string name="staking_setup_reward_destination_section_title">How to use your rewards?</string>
     <string name="staking_bond_more_v1_9_0">Stake more</string>
+    <string name="stake_less">Stake less</string>
     <string name="staking_unbond_v1_9_0">Unstake</string>
     <string name="staking_unbonding_empty_list_v1_9_0">Unstaking transactions will appear here</string>
     <string name="staking_validator_my_oversubscribed_message">Oversubscribed. You will not receive rewards from the validator in this era.</string>

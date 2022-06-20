@@ -56,7 +56,7 @@ interface StakingRouter {
 
     fun openConfirmPayout(payload: ConfirmPayoutPayload)
 
-    fun openStakingBalance()
+    fun openStakingBalance(collatorAddress: String? = null)
 
     fun openBondMore(payload: SelectBondMorePayload)
 

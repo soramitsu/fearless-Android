@@ -17,7 +17,10 @@ interface StakingBalanceComponent {
     @Subcomponent.Factory
     interface Factory {
 
-        fun create(@BindsInstance fragment: Fragment): StakingBalanceComponent
+        fun create(
+            @BindsInstance fragment: Fragment,
+            @BindsInstance collatorAddress: String?
+        ): StakingBalanceComponent
     }
 
     fun inject(fragment: StakingBalanceFragment)

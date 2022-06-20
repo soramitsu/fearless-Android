@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.feature_staking_impl.R
@@ -29,6 +30,14 @@ class StakingBalanceItemView @JvmOverloads constructor(
         title?.let { stakingBalanceItemKind.text = title }
 
         typedArray.recycle()
+    }
+
+    fun setTitle(title: String) {
+        stakingBalanceItemKind.text = title
+    }
+
+    fun setTitle(@StringRes titleResId: Int) {
+        stakingBalanceItemKind.text = context.getText(titleResId)
     }
 
     fun setTokenAmount(amount: String) {

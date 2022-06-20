@@ -10,7 +10,14 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.DelegatorViewState
 import kotlinx.android.synthetic.main.item_collator_delegation.view.summaryView
 
-class DelegationRecyclerViewAdapter : ListAdapter<DelegatorViewState.CollatorDelegationModel, DelegationViewHolder>(DelegationDiffCallback) {
+class DelegationRecyclerViewAdapter(
+    private val itemHandler: DelegationHandler
+) : ListAdapter<DelegatorViewState.CollatorDelegationModel, DelegationViewHolder>(DelegationDiffCallback) {
+
+    interface DelegationHandler {
+        fun moreClicked(model: DelegatorViewState.CollatorDelegationModel)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DelegationViewHolder {
         val view = parent.inflateChild(R.layout.item_collator_delegation)
         return DelegationViewHolder(view)
@@ -18,12 +25,12 @@ class DelegationRecyclerViewAdapter : ListAdapter<DelegatorViewState.CollatorDel
 
     override fun onBindViewHolder(holder: DelegationViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item)
+        holder.bind(item, itemHandler)
     }
 }
 
 class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    fun bind(item: DelegatorViewState.CollatorDelegationModel) {
+    fun bind(item: DelegatorViewState.CollatorDelegationModel, itemHandler: DelegationRecyclerViewAdapter.DelegationHandler) {
         itemView.summaryView.apply {
             hideLoading()
             setTitle(item.collatorName)
@@ -37,6 +44,9 @@ class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             }
 
             setElectionStatus(status)
+            moreActions.setOnClickListener {
+                itemHandler.moreClicked(item)
+            }
         }
     }
 }
