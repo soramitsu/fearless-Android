@@ -22,7 +22,7 @@ class EnoughToPayFeesValidation<P, E>(
 
     override suspend fun validate(value: P): ValidationStatus<E> {
 
-        val result =  if (extraAmountExtractor(value) + feeExtractor(value) < availableBalanceProducer(value)) {
+        val result = if (extraAmountExtractor(value) + feeExtractor(value) < availableBalanceProducer(value)) {
             ValidationStatus.Valid()
         } else {
             ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer())

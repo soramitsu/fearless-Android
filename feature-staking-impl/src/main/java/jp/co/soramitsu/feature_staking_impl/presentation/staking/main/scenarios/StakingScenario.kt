@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 
-import javax.inject.Named
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -17,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioI
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
+import javax.inject.Named
 
 class StakingScenario(
     private val state: StakingSharedState,
@@ -86,7 +86,6 @@ class StakingScenario(
             }
             Chain.Asset.StakingType.RELAYCHAIN -> {
                 listOf(controllerRequiredValidation)
-
             }
             else -> listOf()
         }
@@ -105,7 +104,6 @@ class StakingScenario(
             }
             Chain.Asset.StakingType.RELAYCHAIN -> {
                 listOf(stashRequiredValidation)
-
             }
             else -> listOf()
         }
