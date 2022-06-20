@@ -9,7 +9,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -27,6 +26,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
+import jp.co.soramitsu.feature_staking_impl.presentation.view.DelegationOptionsBottomSheet
 import jp.co.soramitsu.feature_staking_impl.presentation.view.DelegationRecyclerViewAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
@@ -40,12 +40,13 @@ import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
 import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
 import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
 import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
+import javax.inject.Inject
 
-class StakingFragment : BaseFragment<StakingViewModel>() {
+class StakingFragment : BaseFragment<StakingViewModel>(), DelegationRecyclerViewAdapter.DelegationHandler {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
-    private val delegationAdapter by lazy { DelegationRecyclerViewAdapter() }
+    private val delegationAdapter by lazy { DelegationRecyclerViewAdapter(this) }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -346,5 +347,18 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         stakingState.showRewardEstimationEvent.observeEvent {
             StakingRewardEstimationBottomSheet(requireContext(), it).show()
         }
+    }
+
+    override fun moreClicked(model: DelegatorViewState.CollatorDelegationModel) {
+        showDelegatorOptions(model)
+    }
+
+    private fun showDelegatorOptions(model: DelegatorViewState.CollatorDelegationModel) {
+        DelegationOptionsBottomSheet(
+            context = requireContext(),
+            model = model,
+            onStakingBalance = viewModel::onStakingBalance,
+            onYourCollator = viewModel::openCollatorInfo
+        ).show()
     }
 }

@@ -49,7 +49,7 @@ class Validator(
     val prefs: ValidatorPrefs?,
     val electedInfo: ElectedInfo?,
     val identity: Identity?,
-): WithAddress {
+) : WithAddress {
 
     class ElectedInfo(
         val totalStake: BigInteger,
@@ -60,6 +60,6 @@ class Validator(
     )
 }
 
-interface WithAddress{
+interface WithAddress {
     val address: String
 }

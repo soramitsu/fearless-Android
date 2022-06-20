@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -44,6 +43,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Named
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -180,5 +180,12 @@ class StakingViewModel(
         return interactor.selectedAccountProjectionFlow().map {
             addressIconGenerator.createAddressModel(it.address, CURRENT_ICON_SIZE, it.name)
         }
+    }
+
+    fun onStakingBalance(model: DelegatorViewState.CollatorDelegationModel) {
+        router.openStakingBalance(model.collatorAddress)
+    }
+
+    fun openCollatorInfo(model: DelegatorViewState.CollatorDelegationModel) {
     }
 }
