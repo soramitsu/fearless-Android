@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.common.utils.storageKeys
@@ -17,6 +16,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.toDelegations
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindAtStakeOfCollator
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindCandidateInfo
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindDelegationScheduledRequests
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindDelegatorState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRound
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSelectedCandidates
@@ -26,6 +26,7 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.observeNonNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.math.BigInteger
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -56,12 +57,15 @@ class StakingParachainScenarioRepository(
         )
     }
 
-    suspend fun getDelegatorState(chainId: ChainId, accountId: AccountId) = localStorage.query(chainId = chainId,
+    suspend fun getDelegatorState(chainId: ChainId, accountId: AccountId) = localStorage.query(
+        chainId = chainId,
         keyBuilder = {
             it.metadata.parachainStaking().storage("DelegatorState").storageKey(it, accountId)
-        }, binding = { scale, runtime ->
+        },
+        binding = { scale, runtime ->
             scale?.let { bindDelegatorState(it, runtime) }
-        })
+        }
+    )
 
     suspend fun getAtStakeOfCollator(chainId: ChainId, collatorId: AccountId, currentRound: BigInteger): AtStake {
         return remoteStorage.query(
@@ -109,5 +113,15 @@ class StakingParachainScenarioRepository(
         chainId = chainId,
         keyBuilder = { it.metadata.parachainStaking().storage("SelectedCandidates").storageKey() },
         binding = { scale, runtime -> bindSelectedCandidates(scale, runtime) }
+    )
+
+    suspend fun getDelegationScheduledRequests(chainId: ChainId, accountId: AccountId) = remoteStorage.query(
+        chainId,
+        keyBuilder = { runtime ->
+            runtime.metadata.parachainStaking().storage("DelegationScheduledRequests").storageKey(runtime, accountId)
+        },
+        binding = { scale, runtime ->
+            scale?.let { bindDelegationScheduledRequests(it, runtime) }
+        }
     )
 }

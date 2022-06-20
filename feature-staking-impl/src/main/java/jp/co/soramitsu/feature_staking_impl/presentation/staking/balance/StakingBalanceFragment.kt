@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.core.view.doOnNextLayout
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
@@ -21,6 +22,12 @@ import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceToo
 import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceUnbondings
 
 class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
+
+    companion object {
+        private const val KEY_COLLATOR_ADDRESS = "collator_address"
+
+        fun getBundle(address: String) = bundleOf(KEY_COLLATOR_ADDRESS to address)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,26 +61,33 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
     }
 
     override fun inject() {
+        val collatorAddress = arguments?.getString(KEY_COLLATOR_ADDRESS)
+
         FeatureUtils.getFeature<StakingFeatureComponent>(
             requireContext(),
             StakingFeatureApi::class.java
         )
             .stakingBalanceFactory()
-            .create(this)
+            .create(this, collatorAddress)
             .inject(this)
     }
 
     override fun subscribe(viewModel: StakingBalanceViewModel) {
         observeValidations(viewModel)
 
+        viewModel.redeemTitle?.let { stakingBalanceActions.redeem.setText(it) }
+
         viewModel.stakingBalanceModelLiveData.observe {
             with(stakingBalanceInfo) {
-                bonded.setTokenAmount(it.bonded.token)
-                bonded.setFiatAmount(it.bonded.fiat)
+                it.staked.titleResId?.let { bonded.setTitle(it) }
+                bonded.setTokenAmount(it.staked.token)
+                bonded.setFiatAmount(it.staked.fiat)
 
-                unbonding.setTokenAmount(it.unbonding.token)
-                unbonding.setFiatAmount(it.unbonding.fiat)
+                it.unstaking.titleResId?.let { unbonding.setTitle(it) }
+                unbonding.setTokenAmount(it.unstaking.token)
+                unbonding.setFiatAmount(it.unstaking.fiat)
 
+                it.redeemable.titleResId?.let { redeemable.setTitle(it) }
                 redeemable.setTokenAmount(it.redeemable.token)
                 redeemable.setFiatAmount(it.redeemable.fiat)
             }
