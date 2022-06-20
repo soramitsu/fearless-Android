@@ -710,7 +710,7 @@
         android:id="@+id/collatorDetailsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.details.CollatorDetailsFragment"
         android:label="collatorDetailsFragment"
-        tools:layout="@layout/fragment_validator_details" />
+        tools:layout="@layout/fragment_collator_details" />
 
     <action
         android:id="@+id/open_staking_story"
