@@ -53,6 +53,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.Confirm
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.StakingBalanceFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreFragment
@@ -247,8 +248,9 @@ class Navigator :
         navController?.navigate(R.id.action_open_confirm_payout, ConfirmPayoutFragment.getBundle(payload))
     }
 
-    override fun openStakingBalance() {
-        navController?.navigate(R.id.action_mainFragment_to_stakingBalanceFragment)
+    override fun openStakingBalance(collatorAddress: String?) {
+        val bundle = collatorAddress?.let { StakingBalanceFragment.getBundle(it) }
+        navController?.navigate(R.id.action_mainFragment_to_stakingBalanceFragment, bundle)
     }
 
     override fun openBondMore(payload: SelectBondMorePayload) {

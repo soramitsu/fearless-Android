@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.presentation.model
 
+import androidx.annotation.StringRes
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -10,20 +11,24 @@ import java.math.BigInteger
 
 data class AmountModel(
     val token: String,
-    val fiat: String?
+    val fiat: String?,
+    @StringRes val titleResId: Int? = null,
 )
 
 fun mapAmountToAmountModel(
     amountInPlanks: BigInteger,
-    asset: Asset
+    asset: Asset,
+    @StringRes titleResId: Int? = null,
 ): AmountModel = mapAmountToAmountModel(
     amount = asset.token.amountFromPlanks(amountInPlanks).orZero(),
-    asset = asset
+    asset = asset,
+    titleResId = titleResId
 )
 
 fun mapAmountToAmountModel(
     amount: BigDecimal,
-    asset: Asset
+    asset: Asset,
+    @StringRes titleResId: Int? = null,
 ): AmountModel {
     val token = asset.token
 
@@ -31,6 +36,7 @@ fun mapAmountToAmountModel(
 
     return AmountModel(
         token = amount.formatTokenAmount(token.configuration),
-        fiat = fiatAmount?.formatAsCurrency(token.fiatSymbol)
+        fiat = fiatAmount?.formatAsCurrency(token.fiatSymbol),
+        titleResId = titleResId
     )
 }

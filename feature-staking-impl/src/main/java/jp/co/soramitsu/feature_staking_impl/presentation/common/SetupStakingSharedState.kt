@@ -1,13 +1,13 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common
 
 import android.util.Log
-import java.math.BigDecimal
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_api.domain.model.WithAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.math.BigDecimal
 
 sealed class SetupStakingProcess {
 
@@ -208,9 +208,9 @@ sealed class SetupStakingProcess {
         }
 
         fun finish() = when (this) {
-                is Parachain -> Initial(Chain.Asset.StakingType.PARACHAIN)
-                is Stash -> Initial(Chain.Asset.StakingType.RELAYCHAIN)
-            }
+            is Parachain -> Initial(Chain.Asset.StakingType.PARACHAIN)
+            is Stash -> Initial(Chain.Asset.StakingType.RELAYCHAIN)
+        }
     }
 }
 

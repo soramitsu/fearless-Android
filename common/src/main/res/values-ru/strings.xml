@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="common_next">Далее</string>
     <string name="common_cancel">Отмена</string>
     <string name="common_skip">Пропустить</string>
@@ -112,6 +112,7 @@
     <string name="choose_amount_asset">Токен</string>
     <string name="choose_amount_to">Кому</string>
     <string name="choose_amount_fee">Комиссия</string>
+    <string name="choose_amount_tip">Чаевые</string>
     <string name="common_continue">Продолжить</string>
     <string name="common_amount">Сумма</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
@@ -142,7 +143,6 @@
     <string name="wallet_balance_locked">Заблокировано</string>
     <string name="wallet_balance_reserved">Зарезервировано</string>
     <string name="wallet_balance_redeemable">Можно забрать</string>
-    <string name="wallet_balance_unbonding">В процессе вывода</string>
     <string name="transaction_details_hash_title">Хеш транзакции</string>
     <string name="transaction_details_copy_hash">Копировать хеш</string>
     <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
@@ -335,6 +335,7 @@
     <string name="staking_unbond">Вывод из стейка</string>
     <string name="staking_redeem">Забрать</string>
     <string name="common_balance">Баланс</string>
+    <string name="your_collator">Ваш коллатор</string>
     <string name="staking_balance_title">Баланс стейкинга</string>
     <string name="make_payout_transaction_sent">Транзакция на выплату отправлена</string>
     <string name="staking_zero_bond_error">Сумма должна быть больше нуля</string>
@@ -470,6 +471,7 @@
     <string name="staking_total_rewards_v1.9.0">Заработано</string>
     <string name="staking_setup_reward_destination_section_title">Использовать вознаграждения для</string>
     <string name="staking_bond_more_v1_9_0">Застейкать ещё</string>
+    <string name="stake_less">Вывод из стейка</string>
     <string name="staking_unbond_v1_9_0">Вывод из стейка</string>
     <string name="staking_unbonding_empty_list_v1_9_0">Операции по выводу из стейка появятся здесь</string>
     <string name="staking_validator_my_oversubscribed_message">Превышен лимит номинаторов для валидатора. В этой эре вы не получите награду от этого валидатора.</string>
