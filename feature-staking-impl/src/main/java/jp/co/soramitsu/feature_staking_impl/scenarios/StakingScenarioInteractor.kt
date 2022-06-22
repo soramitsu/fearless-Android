@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
@@ -17,8 +18,12 @@ interface StakingScenarioInteractor {
     suspend fun getMinimumStake(chainId: ChainId): BigInteger
     suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean
 
-    fun currentUnbondingsFlow(): Flow<List<Unbonding>>
+    suspend fun currentUnbondingsFlow(): Flow<List<Unbonding>>
     suspend fun getSelectedAccountStakingState(): StakingState
+
     suspend fun getStakingBalanceFlow(collatorId: AccountId? = null): Flow<StakingBalanceModel>
     fun overrideRedeemActionTitle(): Int?
+    suspend fun accountIsNotController(controllerAddress: String): Boolean
+    suspend fun ledger(): StakingLedger?
+    suspend fun checkAccountRequiredValidation(accountAddress: String?): Boolean
 }

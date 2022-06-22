@@ -11,6 +11,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
@@ -20,12 +21,12 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
@@ -125,18 +126,16 @@ class StakingParachainScenarioInteractor(
         return currentDelegationsCount >= maxDelegations
     }
 
-    override fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
-        return selectedAccountStakingStateFlow()
-            .filterIsInstance<StakingState.Stash>()
-            .flatMapLatest { stash ->
-                stakingParachainScenarioRepository.stakingStateFlow(stash.chain, stash.accountId).map { stakingState: StakingState ->
-                    val round = stakingParachainScenarioRepository.getCurrentRound(stash.chain.id)
-                    (stakingState as? StakingState.Parachain.Delegator)?.delegations?.map {
-                        it.collatorId // todo SubQuery
-                    }
-                    emptyList()
-                }
+    override suspend fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
+        val chain = stakingInteractor.getSelectedChain()
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        return stakingParachainScenarioRepository.stakingStateFlow(chain, accountId).map { stakingState: StakingState ->
+            val round = stakingParachainScenarioRepository.getCurrentRound(chain.id)
+            (stakingState as? StakingState.Parachain.Delegator)?.delegations?.map {
+                it.collatorId // todo SubQuery
             }
+            emptyList()
+        }
     }
 
     override suspend fun getSelectedAccountStakingState() = selectedAccountStakingStateFlow().first()
@@ -175,4 +174,20 @@ class StakingParachainScenarioInteractor(
     }
 
     override fun overrideRedeemActionTitle(): Int = R.string.parachain_staking_unlock
+
+    override suspend fun accountIsNotController(controllerAddress: String): Boolean {
+        return true
+    }
+
+    override suspend fun ledger(): StakingLedger? {
+        return null
+    }
+
+    override suspend fun checkAccountRequiredValidation(accountAddress: String?): Boolean {
+        accountAddress ?: return true
+        val currentStakingState = selectedAccountStakingStateFlow().first()
+        val chain = currentStakingState.chain
+
+        return accountRepository.isAccountExists(chain.accountIdOf(accountAddress))
+    }
 }
