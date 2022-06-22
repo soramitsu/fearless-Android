@@ -63,6 +63,19 @@ android {
               groups = localFirebaseGroup
             }
         }
+        pr {
+            signingConfig signingConfigs.ci
+            matchingFallbacks = ['debug']
+            versionNameSuffix '-pr'
+            applicationIdSuffix '.dev'
+            //Init firebase
+            def localReleaseNotes = releaseNotes()
+            def localFirebaseGroup = firebaseGroup()
+            firebaseAppDistribution {
+              releaseNotes = localReleaseNotes
+              groups = localFirebaseGroup
+            }
+        }
     }
 
     bundle {
