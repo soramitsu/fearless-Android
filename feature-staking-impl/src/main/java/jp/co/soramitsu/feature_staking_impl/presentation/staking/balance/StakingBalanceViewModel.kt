@@ -26,6 +26,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPa
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -53,6 +54,8 @@ class StakingBalanceViewModel(
 
     val stakingBalanceModelLiveData = MutableLiveData<StakingBalanceModel>()
 
+    private val unbondingsFlow = MutableSharedFlow<List<Unbonding>>()
+
     init {
         launch {
             stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex()).onEach {
@@ -60,6 +63,10 @@ class StakingBalanceViewModel(
             }
                 .inBackground()
                 .share()
+
+            stakingScenarioInteractor.currentUnbondingsFlow().onEach {
+                unbondingsFlow.emit(it)
+            }.share()
         }
     }
 
@@ -68,9 +75,6 @@ class StakingBalanceViewModel(
     val redeemEnabledLiveData = assetFlow
         .map { it.redeemable > BigDecimal.ZERO }
         .asLiveData()
-
-    private val unbondingsFlow = stakingScenarioInteractor.currentUnbondingsFlow()
-        .share()
 
     val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
@@ -139,11 +143,10 @@ class StakingBalanceViewModel(
     ) {
         launch {
             val stakingState = stakingScenarioInteractor.getSelectedAccountStakingState()
-            require(stakingState is StakingState.Stash)
 
             validationExecutor.requireValid(
                 validationSystem,
-                ManageStakingValidationPayload(stakingState),
+                ManageStakingValidationPayload(stakingState as? StakingState.Stash),
                 validationFailureTransformer = { manageStakingActionValidationFailure(it, resourceManager) },
                 block = block
             )
