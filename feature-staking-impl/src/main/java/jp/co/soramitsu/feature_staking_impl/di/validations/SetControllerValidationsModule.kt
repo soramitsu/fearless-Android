@@ -10,7 +10,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.IsNotC
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerValidationSystem
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 
@@ -30,13 +30,11 @@ class SetControllerValidationsModule {
     @FeatureScope
     @Provides
     fun provideControllerValidation(
-        stakingSharedState: StakingSharedState,
-        stakingRepository: StakingRelayChainScenarioRepository
+        stakingScenarioInteractor: StakingScenarioInteractor
     ) = IsNotControllerAccountValidation(
-        stakingRepository = stakingRepository,
         controllerAddressProducer = { it.controllerAddress },
         errorProducer = { SetControllerValidationFailure.ALREADY_CONTROLLER },
-        sharedState = stakingSharedState
+        stakingScenarioInteractor = stakingScenarioInteractor
     )
 
     @FeatureScope

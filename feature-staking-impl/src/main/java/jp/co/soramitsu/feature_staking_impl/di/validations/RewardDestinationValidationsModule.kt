@@ -4,12 +4,11 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationControllerRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationSystem
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 
 @Module
 class RewardDestinationValidationsModule {
@@ -25,13 +24,11 @@ class RewardDestinationValidationsModule {
     @Provides
     @FeatureScope
     fun controllerRequiredValidation(
-        stakingSharedState: StakingSharedState,
-        accountRepository: AccountRepository,
+        stakingScenarioInteractor: StakingScenarioInteractor
     ) = RewardDestinationControllerRequiredValidation(
-        accountRepository = accountRepository,
+        stakingScenarioInteractor = stakingScenarioInteractor,
         accountAddressExtractor = { it.stashState.controllerAddress },
         errorProducer = RewardDestinationValidationFailure::MissingController,
-        sharedState = stakingSharedState
     )
 
     @FeatureScope
