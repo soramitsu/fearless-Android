@@ -2,8 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -11,6 +9,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
@@ -24,13 +23,17 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
-import jp.co.soramitsu.feature_staking_impl.scenarios.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class StakingBalanceViewModel(
     private val router: StakingRouter,
@@ -42,28 +45,36 @@ class StakingBalanceViewModel(
     private val unbondingInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
     interactor: StakingInteractor,
-    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
+    private val collatorAddress: String?
 ) : BaseViewModel(), Validatable by validationExecutor {
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    val stakingBalanceModelLiveData = assetFlow.map { asset ->
-        StakingBalanceModel(
-            bonded = mapAmountToAmountModel(asset.bonded, asset),
-            unbonding = mapAmountToAmountModel(asset.unbonding, asset),
-            redeemable = mapAmountToAmountModel(asset.redeemable, asset)
-        )
+    val stakingBalanceModelLiveData = MutableLiveData<StakingBalanceModel>()
+
+    private val unbondingsFlow = MutableSharedFlow<List<Unbonding>>()
+
+    init {
+        launch {
+            stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex()).onEach {
+                stakingBalanceModelLiveData.postValue(it)
+            }
+                .inBackground()
+                .share()
+
+            stakingScenarioInteractor.currentUnbondingsFlow().onEach {
+                unbondingsFlow.emit(it)
+            }.share()
+        }
     }
-        .inBackground()
-        .asLiveData()
+
+    val redeemTitle = stakingScenarioInteractor.overrideRedeemActionTitle()
 
     val redeemEnabledLiveData = assetFlow
         .map { it.redeemable > BigDecimal.ZERO }
         .asLiveData()
-
-    private val unbondingsFlow = stakingRelayChainScenarioInteractor.currentUnbondingsFlow()
-        .share()
 
     val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
@@ -131,12 +142,11 @@ class StakingBalanceViewModel(
         block: (ManageStakingValidationPayload) -> Unit,
     ) {
         launch {
-            val stakingState = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow().first()
-            require(stakingState is StakingState.Stash)
+            val stakingState = stakingScenarioInteractor.getSelectedAccountStakingState()
 
             validationExecutor.requireValid(
                 validationSystem,
-                ManageStakingValidationPayload(stakingState),
+                ManageStakingValidationPayload(stakingState as? StakingState.Stash),
                 validationFailureTransformer = { manageStakingActionValidationFailure(it, resourceManager) },
                 block = block
             )

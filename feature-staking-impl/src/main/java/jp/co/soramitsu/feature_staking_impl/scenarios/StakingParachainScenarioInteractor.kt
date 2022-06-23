@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
-import java.math.BigInteger
+import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -10,22 +11,31 @@ import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
+import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
+import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import java.math.BigInteger
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -114,5 +124,70 @@ class StakingParachainScenarioInteractor(
         val delegatorState = stakingParachainScenarioRepository.getDelegatorState(chainId, accountId)
         val currentDelegationsCount = delegatorState?.delegations?.size ?: return false
         return currentDelegationsCount >= maxDelegations
+    }
+
+    override suspend fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
+        val chain = stakingInteractor.getSelectedChain()
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        return stakingParachainScenarioRepository.stakingStateFlow(chain, accountId).map { stakingState: StakingState ->
+            val round = stakingParachainScenarioRepository.getCurrentRound(chain.id)
+            (stakingState as? StakingState.Parachain.Delegator)?.delegations?.map {
+                it.collatorId // todo SubQuery
+            }
+            emptyList()
+        }
+    }
+
+    override suspend fun getSelectedAccountStakingState() = selectedAccountStakingStateFlow().first()
+
+    override suspend fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
+        collatorId ?: error("cannot find collatorId")
+        val chain = stakingInteractor.getSelectedChain()
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        val delegatorState = stakingParachainScenarioRepository.getDelegatorState(chain.id, accountId)
+
+        val staked = delegatorState?.delegations?.firstOrNull {
+            it.owner.contentEquals(collatorId)
+        }?.amount.orZero()
+
+        val currentRound = getCurrentRound(chain.id)
+
+        val delegationScheduledRequests = stakingParachainScenarioRepository.getDelegationScheduledRequests(chain.id, collatorId)
+        val userRequests = delegationScheduledRequests?.filter {
+            it.delegator.contentEquals(accountId)
+        }.orEmpty()
+        val unstaking = userRequests.filter {
+            it.whenExecutable >= currentRound.current
+        }.sumByBigInteger { it.actionValue }
+
+        val readyForUnlocking = userRequests.filter {
+            it.whenExecutable < currentRound.current
+        }.sumByBigInteger { it.actionValue }
+
+        return stakingInteractor.currentAssetFlow().map { asset ->
+            StakingBalanceModel(
+                staked = mapAmountToAmountModel(staked, asset, R.string.staking_main_stake_balance_staked),
+                unstaking = mapAmountToAmountModel(unstaking, asset, R.string.wallet_balance_unbonding_v1_9_0),
+                redeemable = mapAmountToAmountModel(readyForUnlocking, asset, R.string.staking_balance_ready_for_unlocking)
+            )
+        }
+    }
+
+    override fun overrideRedeemActionTitle(): Int = R.string.parachain_staking_unlock
+
+    override suspend fun accountIsNotController(controllerAddress: String): Boolean {
+        return true
+    }
+
+    override suspend fun ledger(): StakingLedger? {
+        return null
+    }
+
+    override suspend fun checkAccountRequiredValidation(accountAddress: String?): Boolean {
+        accountAddress ?: return true
+        val currentStakingState = selectedAccountStakingStateFlow().first()
+        val chain = currentStakingState.chain
+
+        return accountRepository.isAccountExists(chain.accountIdOf(accountAddress))
     }
 }

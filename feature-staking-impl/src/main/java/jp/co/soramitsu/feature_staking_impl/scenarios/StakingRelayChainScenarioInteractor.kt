@@ -1,9 +1,9 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
@@ -12,8 +12,10 @@ import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
@@ -34,9 +36,12 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +55,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 
 val ERA_OFFSET = 1.toBigInteger()
 const val HOURS_IN_DAY = 24
@@ -211,6 +217,45 @@ class StakingRelayChainScenarioInteractor(
         selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
     }
 
+    override suspend fun getSelectedAccountStakingState() = selectedAccountStakingStateFlow().first()
+
+    override suspend fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
+        return stakingInteractor.currentAssetFlow().map { asset ->
+            StakingBalanceModel(
+                staked = mapAmountToAmountModel(asset.bonded, asset, R.string.wallet_balance_bonded),
+                unstaking = mapAmountToAmountModel(asset.unbonding, asset, R.string.wallet_balance_unbonding_v1_9_0),
+                redeemable = mapAmountToAmountModel(asset.redeemable, asset, R.string.wallet_balance_redeemable)
+            )
+        }
+    }
+
+    override fun overrideRedeemActionTitle(): Int? = null
+
+    override suspend fun accountIsNotController(controllerAddress: String): Boolean {
+        val currentStakingState = selectedAccountStakingStateFlow().first()
+        val chainId = currentStakingState.chain.id
+
+        val ledger = stakingRelayChainScenarioRepository.ledger(chainId, controllerAddress)
+        return ledger == null
+    }
+
+    override suspend fun ledger(): StakingLedger? {
+        val currentStakingState = selectedAccountStakingStateFlow().first()
+        require(currentStakingState is StakingState.Stash)
+        val chainId = currentStakingState.chain.id
+        val controllerAddress = currentStakingState.controllerAddress
+
+        return stakingRelayChainScenarioRepository.ledger(chainId, controllerAddress)
+    }
+
+    override suspend fun checkAccountRequiredValidation(accountAddress: String?): Boolean {
+        accountAddress ?: return false
+        val currentStakingState = selectedAccountStakingStateFlow().first()
+        val chain = currentStakingState.chain
+
+        return accountRepository.isAccountExists(chain.accountIdOf(accountAddress))
+    }
+
     suspend fun calculatePendingPayouts(): Result<PendingPayoutsStatistics> = withContext(Dispatchers.Default) {
         runCatching {
             val currentStakingState = selectedAccountStakingStateFlow().first()
@@ -294,7 +339,7 @@ class StakingRelayChainScenarioInteractor(
         stakingRelayChainScenarioRepository.getRewardDestination(accountStakingState)
     }
 
-    fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
+    override suspend fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
         return selectedAccountStakingStateFlow()
             .filterIsInstance<StakingState.Stash>()
             .flatMapLatest { stash ->
