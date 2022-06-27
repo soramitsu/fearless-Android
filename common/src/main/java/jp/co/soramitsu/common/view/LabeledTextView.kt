@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.view
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.PictureDrawable
 import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.DrawableRes
@@ -97,6 +98,11 @@ class LabeledTextView @JvmOverloads constructor(
     fun loadIcon(imageUrl: String, imageLoader: ImageLoader) {
         labeledTextIcon.makeVisible()
         labeledTextIcon.load(imageUrl, imageLoader)
+    }
+
+    fun loadIcon(pictureDrawable: PictureDrawable) {
+        labeledTextIcon.makeVisible()
+        labeledTextIcon.setImageDrawable(pictureDrawable)
     }
 
     fun setActionClickListener(listener: (View) -> Unit) {
