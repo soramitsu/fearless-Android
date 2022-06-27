@@ -149,11 +149,12 @@ class ConfirmStakingViewModel(
     }.inBackground()
         .share()
 
-    val rewardDestinationLiveData = flowOf(payload)
+    val rewardDestinationLiveData = flowOf(currentProcessState)
         .map {
-            val rewardDestination = when (payload) {
-                is Payload.Full -> payload.rewardDestination
-                is Payload.ExistingStash -> scenarioInteractor.getRewardDestination(stateFlow.first())
+            val rewardDestination = when {
+                it is SetupStakingProcess.ReadyToSubmit.Parachain -> null
+                it.payload is Payload.Full -> it.payload.rewardDestination
+                it.payload is Payload.ExistingStash -> scenarioInteractor.getRewardDestination(stateFlow.first())
                 else -> null
             }
 
@@ -165,6 +166,13 @@ class ConfirmStakingViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
+    val selectedCollatorLiveData: LiveData<AddressModel?> = liveData {
+        val collators = (currentProcessState as? SetupStakingProcess.ReadyToSubmit.Parachain)?.payload?.blockProducers ?: return@liveData emit(null)
+        require(collators.size <= 1)
+        val collator = collators.first()
+        val addressModel = generateDestinationModel(collator.address, collator.identity?.display)
+        emit(addressModel)
+    }
 
     fun confirmClicked() {
         sendTransactionIfValid()
@@ -214,7 +222,6 @@ class ConfirmStakingViewModel(
         feeLoaderMixin.loadFee(
             viewModelScope,
             feeConstructor = {
-                val token = controllerAssetFlow.first().token
                 when (currentProcessState) {
                     is SetupStakingProcess.ReadyToSubmit.Stash -> {
                         setupStakingInteractor.calculateSetupStakingFee(
@@ -227,7 +234,7 @@ class ConfirmStakingViewModel(
                         val collator = currentProcessState.payload.blockProducers.first()
                         val amount = bondPayload?.amount ?: error("Amount cant be null")
                         val delegationCount = (scenarioInteractor.getStakingStateFlow().first() as StakingState.Parachain.Delegator).delegations.size
-                        setupStakingInteractor.estimateFinalParachainFee(collator, token.planksFromAmount(amount), delegationCount)
+                        setupStakingInteractor.estimateFinalParachainFee(collator, it.planksFromAmount(amount), delegationCount)
                     }
                 }
             },
