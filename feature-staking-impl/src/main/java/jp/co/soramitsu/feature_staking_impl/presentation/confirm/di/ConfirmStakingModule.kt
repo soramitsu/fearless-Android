@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakin
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.confirm.ConfirmStakingViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -33,7 +34,7 @@ class ConfirmStakingModule {
     @ViewModelKey(ConfirmStakingViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
-        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+        scenarioInteractor: StakingScenarioInteractor,
         router: StakingRouter,
         addressIconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
@@ -49,7 +50,7 @@ class ConfirmStakingModule {
         return ConfirmStakingViewModel(
             router,
             interactor,
-            stakingRelayChainScenarioInteractor,
+            scenarioInteractor,
             addressIconGenerator,
             addressDisplayUseCase,
             resourceManager,
