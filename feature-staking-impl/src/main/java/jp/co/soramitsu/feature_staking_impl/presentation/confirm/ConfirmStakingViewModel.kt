@@ -118,7 +118,6 @@ class ConfirmStakingViewModel(
         val selectedCount = payload.blockProducers.size
         val maxStakersPerBlockProducer = scenarioInteractor.maxStakersPerBlockProducer()
 
-
         emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxStakersPerBlockProducer))
     }
 
