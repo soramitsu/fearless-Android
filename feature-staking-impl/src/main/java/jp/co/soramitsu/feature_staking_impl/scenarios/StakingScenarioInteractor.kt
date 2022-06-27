@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.scenarios
 
 import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
@@ -14,7 +15,7 @@ interface StakingScenarioInteractor {
 
     suspend fun observeNetworkInfoState(): Flow<NetworkInfo>
 
-    suspend fun getStakingStateFlow(): Flow<StakingState>
+    fun getStakingStateFlow(): Flow<StakingState>
     suspend fun getMinimumStake(chainId: ChainId): BigInteger
     suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean
 
@@ -26,19 +27,10 @@ interface StakingScenarioInteractor {
     suspend fun accountIsNotController(controllerAddress: String): Boolean
     suspend fun ledger(): StakingLedger?
     suspend fun checkAccountRequiredValidation(accountAddress: String?): Boolean
-}
-
-data class BlockProducer(
-    val accountIdHex: String,
-    val slashed: Boolean,
-    val address: String,
-    val scoring: Scoring?,
-    val title: String,
-    val isChecked: Boolean,
-) {
-    sealed class Scoring {
-        class OneField(val field: String) : Scoring()
-
-        class TwoFields(val primary: String, val secondary: String?) : Scoring()
-    }
+    suspend fun maxStakersPerBlockProducer(): Int
+    suspend fun unstakingPeriod(): Int
+    // era for relaychain
+    // round for parachain
+    suspend fun stakePeriodInHours(): Int
+    suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination
 }
