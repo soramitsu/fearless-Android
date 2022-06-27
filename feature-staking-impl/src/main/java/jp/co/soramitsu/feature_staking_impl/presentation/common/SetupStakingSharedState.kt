@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.common
 
 import android.util.Log
+import java.math.BigDecimal
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
@@ -9,7 +11,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filt
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.Sorting
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.math.BigDecimal
 
 sealed class SetupStakingProcess {
 
@@ -52,7 +53,10 @@ sealed class SetupStakingProcess {
                 newAmount: BigDecimal,
                 rewardDestination: RewardDestination,
                 currentAccountAddress: String
-            ) = SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Full(newAmount, rewardDestination, currentAccountAddress))
+            ): SelectBlockProducersStep.Collators {
+                val payout = RewardDestination.Payout(currentAccountAddress.fromHex())
+                return SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Full(newAmount, payout, currentAccountAddress))
+            }
         }
     }
 
