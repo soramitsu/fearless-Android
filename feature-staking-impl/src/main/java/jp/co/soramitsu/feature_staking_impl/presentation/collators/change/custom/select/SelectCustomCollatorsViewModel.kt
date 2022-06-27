@@ -149,7 +149,7 @@ class SelectCustomCollatorsViewModel(
     fun nextClicked() {
         updateSetupStakingState()
 
-        router.openReviewCustomValidators()
+        router.openConfirmStaking()
     }
 
     fun collatorInfoClicked(collatorModel: CollatorModel) {

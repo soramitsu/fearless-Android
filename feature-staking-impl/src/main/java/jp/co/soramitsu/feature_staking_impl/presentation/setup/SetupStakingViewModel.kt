@@ -20,7 +20,6 @@ import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
@@ -148,12 +147,13 @@ class SetupStakingViewModel(
             coroutineScope = viewModelScope,
             feeConstructor = {
                 val address = interactor.getSelectedAccountProjection().address
-
-                val isEthereumBased = interactor.getSelectedChain().isEthereumBased
-                if (isEthereumBased) {
-                    setupStakingInteractor.estimateParachainFee()
-                } else {
-                    setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                when (currentProcessState) {
+                    is SetupStakingProcess.SetupStep.Stash -> {
+                        setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                    }
+                    is SetupStakingProcess.SetupStep.Parachain -> {
+                        setupStakingInteractor.estimateParachainFee()
+                    }
                 }
             },
             onRetryCancelled = ::backClicked
