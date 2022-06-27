@@ -36,28 +36,29 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProc
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.common.validation.stakingValidationFailure
-import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 
 class ConfirmStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
-    private val relayChainInteractor: StakingRelayChainScenarioInteractor,
+    private val scenarioInteractor: StakingScenarioInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val resourceManager: ResourceManager,
@@ -74,6 +75,10 @@ class ConfirmStakingViewModel(
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
+    init {
+        loadFee()
+    }
+
     private val currentProcessState = setupStakingSharedState.get<SetupStakingProcess.ReadyToSubmit<*>>()
 
     private val payload = currentProcessState.payload
@@ -82,16 +87,16 @@ class ConfirmStakingViewModel(
         is Payload.Full<*> -> BondPayload(payload.amount, payload.rewardDestination)
         else -> null
     }
-
-    private val stashFlow = relayChainInteractor.selectedAccountStakingStateFlow()
-        .filterIsInstance<StakingState.Stash>()
+    private val stateFlow = scenarioInteractor.getStakingStateFlow()
         .share()
 
     private val controllerAddressFlow = flowOf(payload)
-        .map {
+        .mapNotNull {
             when (it) {
                 is Payload.Full -> it.currentAccountAddress
-                else -> stashFlow.first().controllerAddress
+                else -> {
+                    (stateFlow.first() as? StakingState.Stash)?.controllerAddress
+                }
             }
         }
         .share()
@@ -111,9 +116,10 @@ class ConfirmStakingViewModel(
 
     val nominationsLiveData = liveData(Dispatchers.Default) {
         val selectedCount = payload.blockProducers.size
-        val maxValidatorsPerNominator = relayChainInteractor.maxValidatorsPerNominator()
+        val maxStakersPerBlockProducer = scenarioInteractor.maxStakersPerBlockProducer()
 
-        emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxValidatorsPerNominator))
+
+        emit(resourceManager.getString(R.string.staking_confirm_nominations, selectedCount, maxStakersPerBlockProducer))
     }
 
     val displayAmountLiveData = flowOf(payload)
@@ -127,7 +133,7 @@ class ConfirmStakingViewModel(
         .asLiveData()
 
     val unstakingTime = flow {
-        val lockupPeriod = relayChainInteractor.getLockupPeriodInDays()
+        val lockupPeriod = scenarioInteractor.unstakingPeriod()
         emit(
             resourceManager.getString(
                 R.string.staking_hint_unstake_format,
@@ -138,7 +144,7 @@ class ConfirmStakingViewModel(
         .share()
 
     val eraHoursLength = flow {
-        val hours = relayChainInteractor.getEraHoursLength()
+        val hours = scenarioInteractor.stakePeriodInHours()
         emit(resourceManager.getString(R.string.staking_hint_rewards_format, resourceManager.getQuantityString(R.plurals.common_hours_format, hours, hours)))
     }.inBackground()
         .share()
@@ -147,7 +153,7 @@ class ConfirmStakingViewModel(
         .map {
             val rewardDestination = when (payload) {
                 is Payload.Full -> payload.rewardDestination
-                is Payload.ExistingStash -> relayChainInteractor.getRewardDestination(stashFlow.first())
+                is Payload.ExistingStash -> scenarioInteractor.getRewardDestination(stateFlow.first())
                 else -> null
             }
 
@@ -159,9 +165,6 @@ class ConfirmStakingViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    init {
-        loadFee()
-    }
 
     fun confirmClicked() {
         sendTransactionIfValid()
@@ -212,12 +215,21 @@ class ConfirmStakingViewModel(
             viewModelScope,
             feeConstructor = {
                 val token = controllerAssetFlow.first().token
-
-                setupStakingInteractor.calculateSetupStakingFee(
-                    controllerAddress = controllerAddressFlow.first(),
-                    validatorAccountIds = prepareNominations(),
-                    bondPayload = bondPayload
-                )
+                when (currentProcessState) {
+                    is SetupStakingProcess.ReadyToSubmit.Stash -> {
+                        setupStakingInteractor.calculateSetupStakingFee(
+                            controllerAddress = controllerAddressFlow.first(),
+                            validatorAccountIds = prepareNominations(),
+                            bondPayload = bondPayload
+                        )
+                    }
+                    is SetupStakingProcess.ReadyToSubmit.Parachain -> {
+                        val collator = currentProcessState.payload.blockProducers.first()
+                        val amount = bondPayload?.amount ?: error("Amount cant be null")
+                        val delegationCount = (scenarioInteractor.getStakingStateFlow().first() as StakingState.Parachain.Delegator).delegations.size
+                        setupStakingInteractor.estimateFinalParachainFee(collator, token.planksFromAmount(amount), delegationCount)
+                    }
+                }
             },
             onRetryCancelled = ::backClicked
         )
@@ -264,11 +276,23 @@ class ConfirmStakingViewModel(
     }
 
     private fun sendTransaction(setupStakingPayload: SetupStakingPayload) = launch {
-        val setupResult = setupStakingInteractor.setupStaking(
-            controllerAddress = setupStakingPayload.controllerAddress,
-            validatorAccountIds = prepareNominations(),
-            bondPayload = bondPayload
-        )
+        val setupResult = when (currentProcessState) {
+            is SetupStakingProcess.ReadyToSubmit.Stash -> {
+                setupStakingInteractor.setupStaking(
+                    controllerAddress = setupStakingPayload.controllerAddress,
+                    validatorAccountIds = prepareNominations(),
+                    bondPayload = bondPayload
+                )
+            }
+            is SetupStakingProcess.ReadyToSubmit.Parachain -> {
+                val token = controllerAssetFlow.first().token
+                val collator = currentProcessState.payload.blockProducers.first()
+                val amount = bondPayload?.amount ?: error("Amount cant be null")
+                val delegationCount = (scenarioInteractor.getStakingStateFlow().first() as StakingState.Parachain.Delegator).delegations.size
+                val accountAddress = (scenarioInteractor.getStakingStateFlow().first() as StakingState.Parachain).accountAddress
+                setupStakingInteractor.setupStaking(collator, token.planksFromAmount(amount), delegationCount, accountAddress)
+            }
+        }
 
         _showNextProgress.value = false
 

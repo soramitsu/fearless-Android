@@ -6,6 +6,7 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
+import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bond
@@ -47,6 +48,14 @@ class SetupStakingInteractor(
         }
     }
 
+    suspend fun estimateFinalParachainFee(selectedCollator: Collator, amountInPlanks: BigInteger, delegationCount: Int): BigInteger {
+        val (chain, asset) = stakingSharedState.assetWithChain.first()
+
+        return extrinsicService.estimateFee(chain) {
+            delegate(selectedCollator.address.fromHex(), amountInPlanks, selectedCollator.delegationCount, delegationCount.toBigInteger())
+        }
+    }
+
     suspend fun calculateSetupStakingFee(
         controllerAddress: String,
         validatorAccountIds: List<String>,
@@ -56,6 +65,23 @@ class SetupStakingInteractor(
 
         return extrinsicService.estimateFee(chain) {
             formExtrinsic(chain, chainAsset, controllerAddress, validatorAccountIds, bondPayload)
+        }
+    }
+
+    suspend fun setupStaking(
+        selectedCollator: Collator,
+        amountInPlanks: BigInteger,
+        delegationCount: Int,
+        accountAddress: String
+    ) = withContext(Dispatchers.Default) {
+        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+
+        val accountId = chain.accountIdOf(accountAddress)
+
+        runCatching {
+            extrinsicService.submitExtrinsic(chain, accountId) {
+                delegate(selectedCollator.address.fromHex(), amountInPlanks, selectedCollator.delegationCount, delegationCount.toBigInteger())
+            }
         }
     }
 

@@ -37,6 +37,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -111,7 +112,7 @@ class StakingRelayChainScenarioInteractor(
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() / stakingRelayChainScenarioRepository.erasPerDay(chainId)
     }
 
-    override suspend fun getStakingStateFlow(): Flow<StakingState> {
+    override fun getStakingStateFlow(): Flow<StakingState> {
         return combine(
             stakingInteractor.selectedChainFlow(),
             stakingInteractor.currentAssetFlow()
@@ -335,7 +336,8 @@ class StakingRelayChainScenarioInteractor(
         getLockupPeriodInDays(stakingSharedState.chainId())
     }
 
-    suspend fun getRewardDestination(accountStakingState: StakingState.Stash): RewardDestination = withContext(Dispatchers.Default) {
+    override suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination = withContext(Dispatchers.Default) {
+        require(accountStakingState is StakingState.Stash)
         stakingRelayChainScenarioRepository.getRewardDestination(accountStakingState)
     }
 
@@ -384,6 +386,18 @@ class StakingRelayChainScenarioInteractor(
         val nominatorCount = stakingRelayChainScenarioRepository.nominatorsCount(chainId) ?: return false
         val maxNominatorsAllowed = stakingRelayChainScenarioRepository.maxNominators(chainId) ?: return false
         return nominatorCount >= maxNominatorsAllowed
+    }
+
+    override suspend fun maxStakersPerBlockProducer(): Int {
+        return maxValidatorsPerNominator()
+    }
+
+    override suspend fun unstakingPeriod(): Int {
+        return getLockupPeriodInDays()
+    }
+
+    override suspend fun stakePeriodInHours(): Int {
+        return getEraHoursLength()
     }
 }
 
