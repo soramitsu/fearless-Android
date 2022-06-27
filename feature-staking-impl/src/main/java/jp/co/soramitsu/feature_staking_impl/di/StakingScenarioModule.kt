@@ -28,11 +28,15 @@ class StakingScenarioModule {
 
             is SetupStakingProcess.ReadyToSubmit.Stash,
             is SetupStakingProcess.SelectBlockProducersStep.Validators,
-            is SetupStakingProcess.SetupStep.Stash -> stakingRelayChainScenarioInteractor
+            is SetupStakingProcess.SetupStep.Stash -> {
+                stakingRelayChainScenarioInteractor
+            }
 
             is SetupStakingProcess.ReadyToSubmit.Parachain,
             is SetupStakingProcess.SelectBlockProducersStep.Collators,
-            is SetupStakingProcess.SetupStep.Parachain -> stakingParachainScenarioInteractor
+            is SetupStakingProcess.SetupStep.Parachain -> {
+                stakingParachainScenarioInteractor
+            }
         }
     }
 }
