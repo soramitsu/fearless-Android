@@ -162,7 +162,7 @@ class SelectCustomCollatorsViewModel(
                     delegations = collatorModel.collator.delegationCount.toInt(),
                     totalStake = collatorModel.collator.totalCounted,
                     minBond = collatorModel.collator.lowestTopDelegationAmount,
-                    estimatedRewards = 123.123, // todo
+                    estimatedRewards = collatorModel.collator.apy,
                 ),
                 IdentityParcelModel(
                     display = collatorModel.collator.identity?.display,
