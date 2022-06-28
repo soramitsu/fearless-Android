@@ -136,7 +136,8 @@ class StakingViewStateFactory(
             resourceManager = resourceManager,
             scope = scope,
             router = router,
-            errorDisplayer = errorDisplayer
+            errorDisplayer = errorDisplayer,
+            rewardCalculatorFactory = rewardCalculatorFactory
         )
     }
 }

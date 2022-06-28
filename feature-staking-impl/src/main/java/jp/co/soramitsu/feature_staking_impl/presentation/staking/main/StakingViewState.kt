@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -15,6 +17,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorStateStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -38,6 +41,9 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturn
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.PERIOD_MONTH
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.PERIOD_YEAR
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorStakeParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.IdentityParcelModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
@@ -64,8 +70,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 
 sealed class StakingViewState
 
@@ -475,7 +479,8 @@ class DelegatorViewState(
     val welcomeViewState: ParachainWelcomeViewState,
     currentAssetFlow: Flow<Asset>,
     stakingInteractor: StakingInteractor,
-    parachainScenarioInteractor: StakingParachainScenarioInteractor,
+    private val parachainScenarioInteractor: StakingParachainScenarioInteractor,
+    private val rewardCalculatorFactory: RewardCalculatorFactory,
     resourceManager: ResourceManager,
     scope: CoroutineScope,
     router: StakingRouter,
@@ -510,6 +515,7 @@ class DelegatorViewState(
             val millisecondsTillTheEndOfRound = calculateTimeTillTheEndOfRound(currentRound, currentBlock, hoursInRound)
 
             CollatorDelegationModel(
+                collatorId = collator.collatorId,
                 collatorAddress = collator.collatorId.toHexString(true),
                 collatorName = identity?.display ?: collatorIdHex,
                 staked = staked.formatTokenAmount(asset.token.configuration),
@@ -533,7 +539,41 @@ class DelegatorViewState(
         return millisecondsTillTheEndOfRound.toLong()
     }
 
+    fun openCollatorInfo(model: CollatorDelegationModel) {
+        scope.launch {
+            val candidateInfo = parachainScenarioInteractor.getCollator(model.collatorId)
+            val identity = parachainScenarioInteractor.getIdentity(model.collatorId)
+            val apy = rewardCalculatorFactory.createSubquery().getApyFor(model.collatorId.toHexString(true))
+            router.openCollatorDetails(
+                CollatorDetailsParcelModel(
+                    model.collatorId.toHexString(true),
+                    CollatorStakeParcelModel(
+                        elected = true,
+                        selfBonded = candidateInfo.bond,
+                        delegations = candidateInfo.delegationCount.toInt(),
+                        totalStake = candidateInfo.totalCounted,
+                        minBond = candidateInfo.lowestTopDelegationAmount,
+                        estimatedRewards = apy,
+                    ),
+                    IdentityParcelModel(
+                        display = identity?.display,
+                        legal = identity?.legal,
+                        web = identity?.web,
+                        riot = identity?.riot,
+                        email = identity?.email,
+                        pgpFingerprint = identity?.pgpFingerprint,
+                        image = identity?.image,
+                        twitter = identity?.twitter,
+                    ),
+                    candidateInfo.request.orEmpty(),
+                )
+            )
+        }
+    }
+
+    @Suppress("ArrayInDataClass")
     data class CollatorDelegationModel(
+        val collatorId: AccountId,
         val collatorAddress: String,
         val collatorName: String,
         val staked: String,
