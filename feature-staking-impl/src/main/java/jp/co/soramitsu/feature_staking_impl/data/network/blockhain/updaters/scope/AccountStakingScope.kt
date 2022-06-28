@@ -34,7 +34,7 @@ class AccountStakingScope(
         }
     }
 
-    suspend fun getAccountStaking(): AccountStakingLocal {
+    suspend fun getAccountStaking(): AccountStakingLocal? {
         val (chain, chainAsset) = sharedStakingState.chainAndAsset()
         val account = accountRepository.getSelectedMetaAccount()
 

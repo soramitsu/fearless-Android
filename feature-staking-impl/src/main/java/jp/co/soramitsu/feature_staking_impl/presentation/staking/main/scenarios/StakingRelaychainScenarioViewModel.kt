@@ -7,20 +7,25 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
+import jp.co.soramitsu.common.validation.CompositeValidation
+import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingMaxNominatorsValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.StakingScenarioViewModel.Companion.WAITING_ICON
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.StakingScenarioViewModel.Companion.WARNING_ICON
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.Flow
@@ -35,8 +40,22 @@ class StakingRelaychainScenarioViewModel(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val baseViewModel: BaseStakingViewModel,
     private val alertsInteractor: AlertsInteractor,
-    private val stakingViewStateFactory: StakingViewStateFactory
+    private val stakingViewStateFactory: StakingViewStateFactory,
+    stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
+
+    private val welcomeStakingValidationSystem = ValidationSystem(
+        CompositeValidation(
+            validations = listOf(
+                WelcomeStakingMaxNominatorsValidation(
+                    stakingScenarioInteractor = scenarioInteractor,
+                    errorProducer = { WelcomeStakingValidationFailure.MAX_NOMINATORS_REACHED },
+                    isAlreadyNominating = { false },
+                    sharedState = stakingSharedState
+                )
+            )
+        )
+    )
 
     override suspend fun stakingState(): Flow<LoadingState<StakingState>> =
         scenarioInteractor.getStakingStateFlow().withLoading()
@@ -61,6 +80,7 @@ class StakingRelaychainScenarioViewModel(
                 is StakingState.NonStash -> stakingViewStateFactory.createRelayChainWelcomeViewState(
                     stakingInteractor.currentAssetFlow(),
                     baseViewModel.stakingStateScope,
+                    welcomeStakingValidationSystem = welcomeStakingValidationSystem,
                     baseViewModel::showError
                 )
 

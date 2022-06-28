@@ -18,7 +18,7 @@ private const val SELECT_QUERY = """
 abstract class AccountStakingDao {
 
     @Query(SELECT_QUERY)
-    abstract suspend fun get(chainId: String, chainAssetId: String, accountId: ByteArray): AccountStakingLocal
+    abstract suspend fun get(chainId: String, chainAssetId: String, accountId: ByteArray): AccountStakingLocal?
 
     @Query(SELECT_QUERY)
     protected abstract fun observeInternal(chainId: String, chainAssetId: String, accountId: ByteArray): Flow<AccountStakingLocal>
