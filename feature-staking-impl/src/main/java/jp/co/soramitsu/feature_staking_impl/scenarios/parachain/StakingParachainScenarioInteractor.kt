@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
+import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
@@ -210,5 +211,16 @@ class StakingParachainScenarioInteractor(
     override suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination {
         require(accountStakingState is StakingState.Parachain)
         return RewardDestination.Payout(accountStakingState.accountId)
+    }
+
+    suspend fun getCollator(collatorId: AccountId): CandidateInfo {
+        val chainId = stakingInteractor.getSelectedChain().id
+        return stakingParachainScenarioRepository.getCandidateInfo(chainId, collatorId)
+    }
+
+    suspend fun getIdentity(collatorId: AccountId): Identity? {
+        val chain = stakingInteractor.getSelectedChain()
+        val identities = identityRepositoryImpl.getIdentitiesFromIdsBytes(chain, listOf(collatorId))
+        return identities[collatorId.toHexString()]
     }
 }
