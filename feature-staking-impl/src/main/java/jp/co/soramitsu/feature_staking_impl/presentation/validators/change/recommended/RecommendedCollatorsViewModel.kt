@@ -52,7 +52,7 @@ class RecommendedCollatorsViewModel(
         recommendationSettingsProviderFactory.createParachain(router.currentStackEntryLifecycle).defaultSettings()
     }
 
-    private val selectedCollator = MutableStateFlow<String?>(null)
+    private val selectedCollator = MutableStateFlow<Collator?>(null)
 
     private val recommendedCollators = sharedStateSetup.setupStakingProcess.map {
         val userInputAmount = it.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Collators>()
@@ -66,7 +66,7 @@ class RecommendedCollatorsViewModel(
     }.inBackground().share()
 
     val recommendedCollatorModels = combine(recommendedCollators, selectedCollator) { collators, selected ->
-        convertToModels(collators, tokenUseCase.currentToken(), selected)
+        convertToModels(collators, tokenUseCase.currentToken(), selected?.address)
     }.inBackground().share()
 
     val selectedTitle = recommendedCollators.map {
@@ -111,12 +111,12 @@ class RecommendedCollatorsViewModel(
     }
 
     fun collatorClicked(collator: CollatorModel) {
-        selectedCollator.value = collator.address
+        selectedCollator.value = collator.collator
     }
 
     fun nextClicked() {
         viewModelScope.launch {
-            sharedStateSetup.setRecommendedCollators(recommendedCollators.first())
+            sharedStateSetup.setRecommendedCollators(selectedCollator.value?.let { listOf(it) } ?: emptyList())
 
             router.openConfirmStaking()
         }
