@@ -21,7 +21,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewModel
@@ -40,7 +39,6 @@ class StakingModule {
         resourceManager: ResourceManager,
         rewardCalculatorFactory: RewardCalculatorFactory,
         router: StakingRouter,
-        welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
         validationExecutor: ValidationExecutor,
         relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         parachainScenarioInteractor: StakingParachainScenarioInteractor
@@ -50,7 +48,6 @@ class StakingModule {
         resourceManager,
         router,
         rewardCalculatorFactory,
-        welcomeStakingValidationSystem,
         validationExecutor,
         relayChainScenarioInteractor,
         parachainScenarioInteractor
@@ -77,6 +74,7 @@ class StakingModule {
         parachainInteractor: StakingParachainScenarioInteractor,
         relayChainInteractor: StakingRelayChainScenarioInteractor,
         rewardCalculatorFactory: RewardCalculatorFactory,
+        setupStakingSharedState: SetupStakingSharedState,
     ): ViewModel {
         return StakingViewModel(
             interactor,
@@ -93,7 +91,8 @@ class StakingModule {
             stakingSharedState,
             parachainInteractor,
             relayChainInteractor,
-            rewardCalculatorFactory
+            rewardCalculatorFactory,
+            setupStakingSharedState
         )
     }
 

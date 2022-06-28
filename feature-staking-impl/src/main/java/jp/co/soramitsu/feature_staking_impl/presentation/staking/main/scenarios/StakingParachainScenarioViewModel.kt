@@ -11,11 +11,11 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.Flow

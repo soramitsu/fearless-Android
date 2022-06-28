@@ -1,7 +1,9 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di
 
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
+import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
@@ -28,7 +30,6 @@ class StakingViewStateFactory(
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
-    private val welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
     private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val parachainScenarioInteractor: StakingParachainScenarioInteractor
@@ -69,6 +70,7 @@ class StakingViewStateFactory(
     fun createRelayChainWelcomeViewState(
         currentAssetFlow: Flow<Asset>,
         scope: CoroutineScope,
+        welcomeStakingValidationSystem: WelcomeStakingValidationSystem,
         errorDisplayer: (String) -> Unit
     ) = RelaychainWelcomeViewState(
         setupStakingSharedState,
@@ -94,7 +96,7 @@ class StakingViewStateFactory(
         currentAssetFlow,
         scope,
         errorDisplayer,
-        welcomeStakingValidationSystem,
+        ValidationSystem(CompositeValidation(validations = listOf())),
         validationExecutor
     )
 

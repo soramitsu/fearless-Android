@@ -19,7 +19,7 @@ class AccountRewardDestinationUpdater(
 ) : SingleStorageKeyUpdater<AccountStakingScope>(scope, stakingSharedState, chainRegistry, storageCache), StakingUpdater {
 
     override suspend fun storageKey(runtime: RuntimeSnapshot): String? {
-        val stakingAccessInfo = scope.getAccountStaking().stakingAccessInfo ?: return null
+        val stakingAccessInfo = scope.getAccountStaking()?.stakingAccessInfo ?: return null
         val stashId = stakingAccessInfo.stashId
 
         return runtime.metadata.staking().storage("Payee").storageKey(runtime, stashId)
