@@ -194,7 +194,6 @@ class SelectCustomCollatorsViewModel(
     }
 
     private fun updateSetupStakingState() {
-        state.filtersSet
         setupStakingSharedState.setCustomCollators(selectedCollator.value?.let { listOf(it) } ?: emptyList())
     }
 
