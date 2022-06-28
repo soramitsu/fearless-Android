@@ -96,6 +96,21 @@ class StakingParachainScenarioRepository(
         )
     }
 
+    suspend fun getCandidateInfo(chainId: ChainId, collatorId: ByteArray): CandidateInfo {
+        return remoteStorage.query(
+            chainId = chainId,
+            keyBuilder = { runtime ->
+                val storage = runtime.metadata.parachainStaking().storage("CandidateInfo")
+                storage.storageKey(
+                    runtime = runtime, collatorId
+                )
+            },
+            binding = { scale, runtime ->
+                scale?.let { bindCandidateInfo(it, runtime) } ?: incompatible()
+            }
+        )
+    }
+
     suspend fun getCurrentRound(chainId: ChainId): Round {
         return remoteStorage.query(
             chainId,
