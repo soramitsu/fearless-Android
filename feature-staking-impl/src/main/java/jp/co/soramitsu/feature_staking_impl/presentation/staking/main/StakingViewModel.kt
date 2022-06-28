@@ -24,6 +24,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAc
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.manageStakingActionValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
@@ -65,6 +67,7 @@ class StakingViewModel(
     parachainScenarioInteractor: StakingParachainScenarioInteractor,
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     rewardCalculatorFactory: RewardCalculatorFactory,
+    private val setupStakingSharedState: SetupStakingSharedState
 ) : BaseViewModel(),
     WithAssetSelector,
     BaseStakingViewModel,
@@ -108,6 +111,11 @@ class StakingViewModel(
         // todo research
         assetSelectorMixin.selectedAssetModelFlow.onEach {
             stakingStateScope.coroutineContext.cancelChildren()
+        }
+        viewModelScope.launch {
+            stakingSharedState.assetWithChain.collect {
+                setupStakingSharedState.set(SetupStakingProcess.Initial(it.asset.staking))
+            }
         }
     }
 

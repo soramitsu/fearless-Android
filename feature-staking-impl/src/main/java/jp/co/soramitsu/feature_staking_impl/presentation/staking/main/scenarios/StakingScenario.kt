@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 
+import javax.inject.Named
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -16,7 +17,6 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayCha
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
-import javax.inject.Named
 
 class StakingScenario(
     private val state: StakingSharedState,
@@ -33,6 +33,7 @@ class StakingScenario(
     @Named(BALANCE_REQUIRED_STASH)
     stashRequiredValidation: BalanceAccountRequiredValidation,
 ) {
+
     private val parachainViewModel by lazy {
         StakingParachainScenarioViewModel(
             stakingInteractor,
@@ -51,7 +52,8 @@ class StakingScenario(
             rewardCalculatorFactory,
             baseViewModel,
             alertsInteractor,
-            stakingViewStateFactory
+            stakingViewStateFactory,
+            state
         )
     }
 
