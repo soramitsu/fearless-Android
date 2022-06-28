@@ -178,6 +178,7 @@ class ConfirmStakingViewModel(
     }
 
     fun backClicked() {
+        setupStakingSharedState.set(currentProcessState.previous())
         router.back()
     }
 
