@@ -22,7 +22,7 @@ fun mapAssetToAssetModel(
             chainId = asset.token.configuration.chainId,
             chainAssetId = asset.token.configuration.id,
             imageUrl = token.configuration.iconUrl,
-            tokenName = token.configuration.symbol,
+            tokenName = token.configuration.name,
             assetBalance = formattedAmount
         )
     }
