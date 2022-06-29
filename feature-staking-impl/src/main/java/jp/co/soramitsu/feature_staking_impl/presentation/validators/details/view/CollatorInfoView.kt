@@ -42,8 +42,8 @@ class CollatorInfoView @JvmOverloads constructor(
         collatorEffectiveAmountBonded.setBody(value)
     }
 
-    fun setTotalStakeValue(value: String) {
-        collatorTotalStakeView.setBody(value)
+    fun setTotalStakeValue(value: String?) {
+        collatorTotalStakeView.setBodyOrHide(value)
     }
 
     fun setTotalStakeValueFiat(fiat: String?) {
