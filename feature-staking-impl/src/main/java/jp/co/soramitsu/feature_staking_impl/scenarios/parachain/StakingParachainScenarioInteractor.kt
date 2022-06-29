@@ -94,8 +94,8 @@ class StakingParachainScenarioInteractor(
         return stakingParachainScenarioRepository.getCurrentRound(chainId)
     }
 
-    suspend fun getAtStake(chainId: ChainId, collatorId: AccountId): AtStake {
-        return stakingParachainScenarioRepository.getAtStakeOfCollator(chainId, collatorId, getCurrentRound(chainId).current)
+    suspend fun getAtStake(chainId: ChainId, collatorId: AccountId): Result<AtStake> {
+        return runCatching { stakingParachainScenarioRepository.getAtStakeOfCollator(chainId, collatorId, getCurrentRound(chainId).current) }
     }
 
     fun selectedAccountStakingStateFlow(

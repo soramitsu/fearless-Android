@@ -17,7 +17,7 @@ class CollatorDetailsModel(
     val statusColor: Int,
     val delegations: String,
     val estimatedRewardsApr: String,
-    val totalStake: String,
+    val totalStake: String?,
     val totalStakeFiat: String?,
     val minBond: String,
     val selfBonded: String,

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -40,8 +41,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class CollatorDetailsViewModel(
     private val interactor: StakingInteractor,
@@ -64,28 +63,30 @@ class CollatorDetailsViewModel(
     val collatorDetails = maxDelegations.combine(assetFlow) { maxDelegations, asset ->
         val chain = interactor.getSelectedChain()
         val address = interactor.getSelectedAccountProjection().address
-        val atStake = stakingParachainScenarioInteractor.getAtStake(chain.id, collator.accountIdHex.fromHex())
-        val myTotalStake = atStake.delegations.find { it.first.toHexString(true) == address }?.second ?: BigInteger.ZERO
-        val totalStake = asset.token.amountFromPlanks(myTotalStake)
+        val atStake = stakingParachainScenarioInteractor.getAtStake(chain.id, collator.accountIdHex.fromHex()).getOrNull()
+        val myTotalStake = atStake?.delegations?.find { it.first.toHexString(true) == address }?.second
+        val totalStake = myTotalStake?.let { asset.token.amountFromPlanks(it) }
         CollatorDetailsModel(
             "0x${collator.accountIdHex}",
             iconGenerator.createAddressModel(collator.accountIdHex, 24).image,
-            IdentityModel(
-                display = collator.identity?.display,
-                legal = collator.identity?.legal,
-                web = collator.identity?.web,
-                riot = collator.identity?.riot,
-                email = collator.identity?.email,
-                pgpFingerprint = collator.identity?.pgpFingerprint,
-                image = collator.identity?.image,
-                twitter = collator.identity?.twitter,
-            ),
+            collator.identity?.let { identity ->
+                IdentityModel(
+                    display = identity.display,
+                    legal = identity.legal,
+                    web = identity.web,
+                    riot = identity.riot,
+                    email = identity.email,
+                    pgpFingerprint = identity.pgpFingerprint,
+                    image = identity.image,
+                    twitter = identity.twitter,
+                )
+            },
             statusText = if (collator.stake.elected) resourceManager.getString(R.string.staking_your_elected) else collator.request,
             statusColor = if (collator.stake.elected) R.color.green else R.color.red,
             delegations = collator.stake.delegations.format(),
             estimatedRewardsApr = (PERCENT_MULTIPLIER * BigDecimal.ONE).formatAsPercentage(),
-            totalStake = totalStake.formatTokenAmount(asset.token.configuration),
-            totalStakeFiat = asset.token.fiatAmount(totalStake)?.formatAsCurrency(asset.token.fiatSymbol),
+            totalStake = totalStake?.formatTokenAmount(asset.token.configuration),
+            totalStakeFiat = totalStake?.let { asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol) },
             minBond = asset.token.amountFromPlanks(collator.stake.minBond).formatTokenAmount(asset.token.configuration),
             selfBonded = asset.token.amountFromPlanks(collator.stake.selfBonded).formatTokenAmount(asset.token.configuration),
             effectiveAmountBonded = asset.token.amountFromPlanks(collator.stake.totalStake).formatTokenAmount(asset.token.configuration),
