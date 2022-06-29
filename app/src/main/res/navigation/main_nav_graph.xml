@@ -527,10 +527,10 @@
     <action
         android:id="@+id/openStartChangeCollatorsFragment"
         app:destination="@id/startChangeCollatorsFragment"
-        app:enterAnim="@anim/fragment_open_enter"
-        app:exitAnim="@anim/fragment_open_exit"
-        app:popEnterAnim="@anim/fragment_close_enter"
-        app:popExitAnim="@anim/fragment_close_exit" />
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <fragment
         android:id="@+id/startChangeValidatorsFragment"
@@ -564,18 +564,18 @@
         <action
             android:id="@+id/action_startChangeCollatorsFragment_to_recommendedCollatorsFragment"
             app:destination="@id/recommendedCollatorsFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
         <action
             android:id="@+id/action_startChangeCollatorsFragment_to_selectCustomCollatorsFragment"
             app:destination="@id/selectCustomCollatorsFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
     </fragment>
 
     <fragment
@@ -586,10 +586,10 @@
         <action
             android:id="@+id/action_selectCustomCollatorsFragment_to_settingsCustomValidatorsFragment"
             app:destination="@id/settingsCustomValidatorsFragment"
-            app:enterAnim="@anim/fragment_open_enter"
-            app:exitAnim="@anim/fragment_open_exit"
-            app:popEnterAnim="@anim/fragment_close_enter"
-            app:popExitAnim="@anim/fragment_close_exit" />
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
     </fragment>
 
     <fragment
@@ -709,10 +709,10 @@
     <action
         android:id="@+id/open_collator_details"
         app:destination="@id/collatorDetailsFragment"
-        app:enterAnim="@anim/fragment_open_enter"
-        app:exitAnim="@anim/fragment_open_exit"
-        app:popEnterAnim="@anim/fragment_close_enter"
-        app:popExitAnim="@anim/fragment_close_exit" />
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <fragment
         android:id="@+id/validatorDetailsFragment"

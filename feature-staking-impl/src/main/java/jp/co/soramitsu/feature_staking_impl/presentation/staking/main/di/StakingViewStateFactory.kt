@@ -10,7 +10,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFacto
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.CollatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.DelegatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.NominatorViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.ParachainWelcomeViewState
@@ -115,10 +114,6 @@ class StakingViewStateFactory(
         errorDisplayer = errorDisplayer,
         resourceManager = resourceManager
     )
-
-    fun createCollatorViewState(): StakingViewState {
-        return CollatorViewState
-    }
 
     fun createDelegatorViewState(
         accountStakingState: StakingState.Parachain.Delegator,
