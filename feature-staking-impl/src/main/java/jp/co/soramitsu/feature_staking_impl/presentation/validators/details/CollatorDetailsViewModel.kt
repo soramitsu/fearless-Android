@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
@@ -66,6 +67,7 @@ class CollatorDetailsViewModel(
         val atStake = stakingParachainScenarioInteractor.getAtStake(chain.id, collator.accountIdHex.fromHex()).getOrNull()
         val myTotalStake = atStake?.delegations?.find { it.first.toHexString(true) == address }?.second
         val totalStake = myTotalStake?.let { asset.token.amountFromPlanks(it) }
+        val (statusText, statusColor) = mapStatus(collator.stake.status)
         CollatorDetailsModel(
             "0x${collator.accountIdHex}",
             iconGenerator.createAddressModel(collator.accountIdHex, 24).image,
@@ -81,8 +83,8 @@ class CollatorDetailsViewModel(
                     twitter = identity.twitter,
                 )
             },
-            statusText = if (collator.stake.elected) resourceManager.getString(R.string.staking_your_elected) else collator.request,
-            statusColor = if (collator.stake.elected) R.color.green else R.color.red,
+            statusText = resourceManager.getString(statusText),
+            statusColor = statusColor,
             delegations = collator.stake.delegations.format(),
             estimatedRewardsApr = (PERCENT_MULTIPLIER * BigDecimal.ONE).formatAsPercentage(),
             totalStake = totalStake?.formatTokenAmount(asset.token.configuration),
@@ -94,6 +96,15 @@ class CollatorDetailsViewModel(
     }
         .inBackground()
         .asLiveData()
+
+    private fun mapStatus(status: CandidateInfoStatus) =
+        when (status) {
+            CandidateInfoStatus.ACTIVE -> R.string.staking_nominator_status_active to R.color.green
+            CandidateInfoStatus.LEAVING -> R.string.staking_collator_status_leaving to R.color.colorGreyText
+            CandidateInfoStatus.EMPTY,
+            CandidateInfoStatus.IDLE -> R.string.staking_collator_status_idle to R.color.colorGreyText
+        }
+
 
 //    val errorFlow = flowOf { mapValidatorDetailsToErrors(validator) }
 //        .inBackground()

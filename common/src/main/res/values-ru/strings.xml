@@ -707,4 +707,7 @@
 
     <string name="common_connection_problems">Проблема интернет-соединения</string>
     <string name="connection_problems_alert_message">Не удается загрузить необходимые данные для запуска приложения. Пожалуйста, проверьте ваше интернет соединение и повторите снова.</string>
+
+    <string name="staking_collator_status_leaving">Выходящий</string>
+    <string name="staking_collator_status_idle">Неактивный</string>
 </resources>

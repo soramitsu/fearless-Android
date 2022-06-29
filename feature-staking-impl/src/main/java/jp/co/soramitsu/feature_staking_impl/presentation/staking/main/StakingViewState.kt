@@ -18,6 +18,8 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
+import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorStateStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -497,6 +499,7 @@ class DelegatorViewState(
         val chainId = asset.token.configuration.chainId
         val collatorsIds = delegatorState.delegations.map { it.collatorId }
         val chain = stakingInteractor.getSelectedChain()
+
         val collatorsNamesMap = parachainScenarioInteractor.getIdentities(collatorsIds).let { map ->
             map.map {
                 chain.accountFromMapKey(it.key) to it.value
@@ -505,6 +508,7 @@ class DelegatorViewState(
         val delegations = delegatorState.delegations.map { collator ->
             val collatorIdHex = collator.collatorId.toHexString(false)
             val identity = collatorsNamesMap[collatorIdHex]
+            val candidateInfo = parachainScenarioInteractor.getCollator(collator.collatorId)
 
             val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
             val rewarded = asset.token.amountFromPlanks(collator.rewardedAmountInPlanks)
@@ -522,8 +526,9 @@ class DelegatorViewState(
                 stakedFiat = staked.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
                 rewarded = rewarded.formatTokenAmount(asset.token.configuration),
                 rewardedFiat = rewarded.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
-                status = CollatorDelegationModel.Status.from(collator.status),
-                nextRewardTimeLeft = millisecondsTillTheEndOfRound
+                status = candidateInfo.status.toModelStatus(),
+                nextRewardTimeLeft = millisecondsTillTheEndOfRound,
+                candidateInfo
             )
         }
         return@map delegations
@@ -541,18 +546,17 @@ class DelegatorViewState(
 
     fun openCollatorInfo(model: CollatorDelegationModel) {
         scope.launch {
-            val candidateInfo = parachainScenarioInteractor.getCollator(model.collatorId)
             val identity = parachainScenarioInteractor.getIdentity(model.collatorId)
             val apy = rewardCalculatorFactory.createSubquery().getApyFor(model.collatorId.toHexString(true))
             router.openCollatorDetails(
                 CollatorDetailsParcelModel(
                     model.collatorId.toHexString(true),
                     CollatorStakeParcelModel(
-                        elected = true,
-                        selfBonded = candidateInfo.bond,
-                        delegations = candidateInfo.delegationCount.toInt(),
-                        totalStake = candidateInfo.totalCounted,
-                        minBond = candidateInfo.lowestTopDelegationAmount,
+                        status = model.collator.status,
+                        selfBonded = model.collator.bond,
+                        delegations = model.collator.delegationCount.toInt(),
+                        totalStake = model.collator.totalCounted,
+                        minBond = model.collator.lowestTopDelegationAmount,
                         estimatedRewards = apy,
                     ),
                     identity?.let {
@@ -567,7 +571,7 @@ class DelegatorViewState(
                             twitter = it.twitter,
                         )
                     },
-                    candidateInfo.request.orEmpty(),
+                    model.collator.request.orEmpty(),
                 )
             )
         }
@@ -583,8 +587,8 @@ class DelegatorViewState(
         val rewarded: String,
         val rewardedFiat: String?,
         val status: Status,
-        val nextRewardTimeLeft: Long
-
+        val nextRewardTimeLeft: Long,
+        val collator: CandidateInfo
     ) {
         enum class Status {
             ACTIVE, INACTIVE, LEAVING, IDLE;
@@ -599,4 +603,11 @@ class DelegatorViewState(
             }
         }
     }
+}
+
+fun CandidateInfoStatus.toModelStatus() = when (this) {
+    CandidateInfoStatus.ACTIVE -> DelegatorViewState.CollatorDelegationModel.Status.ACTIVE
+    CandidateInfoStatus.EMPTY -> DelegatorViewState.CollatorDelegationModel.Status.INACTIVE
+    CandidateInfoStatus.LEAVING -> DelegatorViewState.CollatorDelegationModel.Status.LEAVING
+    CandidateInfoStatus.IDLE -> DelegatorViewState.CollatorDelegationModel.Status.IDLE
 }

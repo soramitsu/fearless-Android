@@ -16,12 +16,14 @@ class CandidateInfo(
 )
 
 enum class CandidateInfoStatus {
-    Active, Empty;
+    ACTIVE, EMPTY, LEAVING, IDLE;
 
     companion object {
         fun from(key: String?) = when (key) {
-            "Active" -> Active
-            else -> Empty
+            "Active" -> ACTIVE
+            "Leaving" -> LEAVING
+            "Idle" -> IDLE
+            else -> EMPTY
         }
     }
 }

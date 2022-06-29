@@ -37,8 +37,6 @@ class StakeSummaryView @JvmOverloads constructor(
 
         class ActiveCollator(override val timeLeft: Long) : Status(R.string.staking_nominator_status_active, R.color.green, "Next reward"), WithTimer
 
-        class InactiveCollator : Status(R.string.staking_nominator_status_inactive, R.color.red, null)
-
         class IdleCollator : Status(R.string.staking_collator_status_idle, R.color.colorGreyText, null)
 
         class LeavingCollator : Status(R.string.staking_collator_status_leaving, R.color.colorGreyText, null)
