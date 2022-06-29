@@ -44,7 +44,7 @@ class StakingParachainScenarioRepository(
         }
     }
 
-    fun getDelegatorStateFlow(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
+    private fun getDelegatorStateFlow(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
         return localStorage.observe(
             chainId = chainId,
             keyBuilder = {

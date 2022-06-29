@@ -587,16 +587,16 @@ class DelegatorViewState(
 
     ) {
         enum class Status {
-            ACTIVE, INACTIVE;
+            ACTIVE, INACTIVE, LEAVING, IDLE;
 
             companion object {
                 fun from(status: DelegatorStateStatus) = when (status) {
                     DelegatorStateStatus.ACTIVE -> ACTIVE
                     DelegatorStateStatus.EMPTY -> INACTIVE
+                    DelegatorStateStatus.LEAVING -> LEAVING
+                    DelegatorStateStatus.IDLE -> IDLE
                 }
             }
         }
     }
 }
-
-object CollatorViewState : StakingViewState()

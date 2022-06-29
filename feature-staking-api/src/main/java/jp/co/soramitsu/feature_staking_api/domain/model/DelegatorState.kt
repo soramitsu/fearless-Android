@@ -16,11 +16,13 @@ data class Delegation(
 )
 
 enum class DelegatorStateStatus {
-    ACTIVE, EMPTY;
+    ACTIVE, EMPTY, LEAVING, IDLE;
 
     companion object {
         fun from(key: String?) = when (key) {
             "Active" -> ACTIVE
+            "Leaving" -> LEAVING
+            "Idle" -> IDLE
             else -> EMPTY
         }
     }

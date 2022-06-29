@@ -760,4 +760,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="collator_staking_sorting_own_stake">Collator\'s own stake</string>
     <string name="collator_staking_sorting_delegations">Delegations</string>
     <string name="collator_staking_sorting_minimum_bond">Minimum bond</string>
+
+    <string name="staking_collator_status_leaving">Leaving</string>
+    <string name="staking_collator_status_idle">Idle</string>
 </resources>
