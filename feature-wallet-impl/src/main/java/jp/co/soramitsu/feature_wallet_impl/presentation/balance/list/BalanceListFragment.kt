@@ -3,10 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
@@ -21,39 +18,25 @@ import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentBalanceListBinding
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAssets
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListAvatar
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListContent
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmount
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmountEmptyShimmer
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmountShimmer
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalAmountShimmerInner
-import kotlinx.android.synthetic.main.fragment_balance_list.balanceListTotalTitle
-import kotlinx.android.synthetic.main.fragment_balance_list.manageAssets
-import kotlinx.android.synthetic.main.fragment_balance_list.walletContainer
 import javax.inject.Inject
 
-class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAdapter.ItemAssetHandler {
+class BalanceListFragment : BaseFragment<BalanceListViewModel>(R.layout.fragment_balance_list), BalanceListAdapter.ItemAssetHandler {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
 
     private lateinit var adapter: BalanceListAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_balance_list, container, false)
-    }
+    private val binding by viewBinding(FragmentBalanceListBinding::bind)
 
     override fun initViews() {
-        balanceListContent.applyInsetter {
+        binding.balanceListContent.applyInsetter {
             type(statusBars = true) {
                 padding()
             }
@@ -62,24 +45,26 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         hideKeyboard()
 
         adapter = BalanceListAdapter(imageLoader, this)
-        balanceListAssets.adapter = adapter
-        balanceListAssets.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
+        binding.balanceListAssets.adapter = adapter
+        binding.balanceListAssets.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
 
-        walletContainer.setOnRefreshListener {
-            viewModel.sync()
+        with(binding) {
+            walletContainer.setOnRefreshListener {
+                viewModel.sync()
+            }
+
+            balanceListAvatar.setOnClickListener {
+                viewModel.avatarClicked()
+            }
+
+            manageAssets.setWholeClickListener {
+                viewModel.manageAssetsClicked()
+            }
+
+            balanceListTotalAmount.setOnClickListener { viewModel.onBalanceClicked() }
+            balanceListTotalAmountShimmer.setOnClickListener { viewModel.onBalanceClicked() }
+            balanceListTotalAmountEmptyShimmer.setOnClickListener { viewModel.onBalanceClicked() }
         }
-
-        balanceListAvatar.setOnClickListener {
-            viewModel.avatarClicked()
-        }
-
-        manageAssets.setWholeClickListener {
-            viewModel.manageAssetsClicked()
-        }
-
-        balanceListTotalAmount.setOnClickListener { viewModel.onBalanceClicked() }
-        balanceListTotalAmountShimmer.setOnClickListener { viewModel.onBalanceClicked() }
-        balanceListTotalAmountEmptyShimmer.setOnClickListener { viewModel.onBalanceClicked() }
     }
 
     override fun inject() {
@@ -96,22 +81,24 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(), BalanceListAda
         viewModel.balanceLiveData.observe {
             adapter.submitList(it.assetModels)
 
-            balanceListTotalAmount.text = it.totalBalance?.formatAsCurrency(it.fiatSymbol)
-            balanceListTotalAmountShimmerInner.text = it.totalBalance?.formatAsCurrency(it.fiatSymbol)
-            balanceListTotalAmountShimmer.setVisible(it.isUpdating && it.totalBalance != null && it.isTokensUpdated, View.INVISIBLE)
-            balanceListTotalAmountEmptyShimmer.setVisible(it.isUpdating && (it.totalBalance == null || !it.isTokensUpdated))
-            balanceListTotalAmount.setVisible(!it.isUpdating, View.INVISIBLE)
+            with(binding) {
+                balanceListTotalAmount.text = it.totalBalance?.formatAsCurrency(it.fiatSymbol)
+                balanceListTotalAmountShimmerInner.text = it.totalBalance?.formatAsCurrency(it.fiatSymbol)
+                balanceListTotalAmountShimmer.setVisible(it.isUpdating && it.totalBalance != null && it.isTokensUpdated, View.INVISIBLE)
+                balanceListTotalAmountEmptyShimmer.setVisible(it.isUpdating && (it.totalBalance == null || !it.isTokensUpdated))
+                balanceListTotalAmount.setVisible(!it.isUpdating, View.INVISIBLE)
+            }
         }
 
-        viewModel.assetsWarningLiveData.observe(manageAssets.warning::setVisible)
+        viewModel.assetsWarningLiveData.observe(binding.manageAssets.warning::setVisible)
 
         viewModel.currentAddressModelLiveData.observe {
-            balanceListTotalTitle.text = it.nameOrAddress
-            balanceListAvatar.setImageDrawable(it.image)
+            binding.balanceListTotalTitle.text = it.nameOrAddress
+            binding.balanceListAvatar.setImageDrawable(it.image)
         }
 
         viewModel.hideRefreshEvent.observeEvent {
-            walletContainer.isRefreshing = false
+            binding.walletContainer.isRefreshing = false
         }
 
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)

@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details.vie
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -13,7 +12,7 @@ import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_validator_info_item.view.*
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewValidatorInfoItemBinding
 
 class ValidatorInfoItemView @JvmOverloads constructor(
     context: Context,
@@ -21,8 +20,11 @@ class ValidatorInfoItemView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
 
+    private val binding: ViewValidatorInfoItemBinding
+
     init {
-        View.inflate(context, R.layout.view_validator_info_item, this)
+        inflate(context, R.layout.view_validator_info_item, this)
+        binding = ViewValidatorInfoItemBinding.bind(this)
 
         updatePadding(start = 16.dp(context), end = 16.dp(context))
 
@@ -45,49 +47,49 @@ class ValidatorInfoItemView @JvmOverloads constructor(
     }
 
     fun setDescription(description: String, @DrawableRes icon: Int) {
-        validatorsIdentityDescription.makeVisible()
-        validatorsIdentityDescription.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
-        validatorsIdentityDescription.text = description
+        binding.validatorsIdentityDescription.makeVisible()
+        binding.validatorsIdentityDescription.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0)
+        binding.validatorsIdentityDescription.text = description
     }
 
     fun setTitle(title: String) {
-        validatorIdentityTitle.text = title
+        binding.validatorIdentityTitle.text = title
     }
 
     fun setBody(body: String) {
-        validatorIdentityBody.text = body
+        binding.validatorIdentityBody.text = body
     }
 
     fun setBodyIconResource(resource: Int, @ColorRes tintRes: Int? = null) {
-        validatorIdentityBody.setCompoundDrawablesWithIntrinsicBounds(0, 0, resource, 0)
+        binding.validatorIdentityBody.setCompoundDrawablesWithIntrinsicBounds(0, 0, resource, 0)
 
         tintRes?.let {
-            validatorIdentityBody.setCompoundDrawableTint(tintRes)
+            binding.validatorIdentityBody.setCompoundDrawableTint(tintRes)
         }
     }
 
     fun setTitleIconResource(resource: Int) {
-        validatorIdentityTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, resource, 0)
+        binding.validatorIdentityTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, resource, 0)
     }
 
     fun showExtra() {
-        validatorIdentityExtra.makeVisible()
+        binding.validatorIdentityExtra.makeVisible()
     }
 
     fun hideExtra() {
-        validatorIdentityExtra.makeGone()
+        binding.validatorIdentityExtra.makeGone()
     }
 
     fun setExtraOrHide(extra: String?) {
-        validatorIdentityExtra.setTextOrHide(extra)
+        binding.validatorIdentityExtra.setTextOrHide(extra)
     }
 
     fun showDescription() {
-        validatorsIdentityDescription.makeVisible()
+        binding.validatorsIdentityDescription.makeVisible()
     }
 
     fun hideDescription() {
-        validatorsIdentityDescription.makeGone()
+        binding.validatorsIdentityDescription.makeGone()
     }
 }
 

@@ -5,11 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.extensions.LayoutContainer
 
 typealias HolderCreator<T> = (parentView: ViewGroup) -> DynamicListSheetAdapter.Holder<T>
 
-class DynamicListSheetAdapter<T>(
+class DynamicListSheetAdapter<T : Any>(
     private val selected: T?,
     private val handler: DynamicListBottomSheet<T>,
     private val diffCallback: DiffUtil.ItemCallback<T>,
@@ -31,7 +30,7 @@ class DynamicListSheetAdapter<T>(
         holder.bind(item, isSelected, handler)
     }
 
-    abstract class Holder<T>(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+    abstract class Holder<T>(val containerView: View) : RecyclerView.ViewHolder(containerView) {
 
         open fun bind(item: T, isSelected: Boolean, handler: Handler<T>) {
             itemView.setOnClickListener { handler.itemClicked(item) }

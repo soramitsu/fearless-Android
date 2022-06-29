@@ -3,7 +3,7 @@ package jp.co.soramitsu.common.presentation
 import android.os.Parcelable
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class StakingStoryModel(

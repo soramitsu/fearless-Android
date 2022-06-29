@@ -90,9 +90,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.trans
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
-import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation

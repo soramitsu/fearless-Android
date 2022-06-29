@@ -1,12 +1,11 @@
 package jp.co.soramitsu.app.root.presentation.stories
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.view.isVisible
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.databinding.FragmentStoryBinding
 import jp.co.soramitsu.app.root.di.RootApi
 import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.common.base.BaseFragment
@@ -14,16 +13,10 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.common.view.viewBinding
 import jp.shts.android.storiesprogressview.StoriesProgressView
-import kotlinx.android.synthetic.main.fragment_story.stakingStoryLearnMore
-import kotlinx.android.synthetic.main.fragment_story.stories
-import kotlinx.android.synthetic.main.fragment_story.storyBody
-import kotlinx.android.synthetic.main.fragment_story.storyCloseIcon
-import kotlinx.android.synthetic.main.fragment_story.storyContainer
-import kotlinx.android.synthetic.main.fragment_story.storyImage
-import kotlinx.android.synthetic.main.fragment_story.storyTitle
 
-class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.StoriesListener {
+class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), StoriesProgressView.StoriesListener {
 
     companion object {
         const val KEY_STORY = "story"
@@ -37,23 +30,17 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
         }
     }
 
-    private var lastActionDown = 0L
+    private val binding by viewBinding(FragmentStoryBinding::bind)
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_story, container, false)
-    }
+    private var lastActionDown = 0L
 
     override fun initViews() {
 
-        storyCloseIcon.setOnClickListener { viewModel.backClicked() }
+        binding.storyCloseIcon.setOnClickListener { viewModel.backClicked() }
 
-        stories.setStoriesListener(this)
+        binding.stories.setStoriesListener(this)
 
-        storyContainer.setOnTouchListener(::handleStoryTouchEvent)
+        binding.storyContainer.setOnTouchListener(::handleStoryTouchEvent)
     }
 
     override fun inject() {
@@ -69,28 +56,28 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
         observeBrowserEvents(viewModel)
 
         viewModel.storyLiveData.observe {
-            stories.setStoriesCount(it.size)
-            stories.setStoryDuration(STORY_DURATION)
-            stories.startStories()
+            binding.stories.setStoriesCount(it.size)
+            binding.stories.setStoryDuration(STORY_DURATION)
+            binding.stories.startStories()
         }
 
         viewModel.currentStoryLiveData.observe {
-            storyTitle.setText(it.titleRes)
-            storyBody.setText(it.bodyRes)
-            storyImage.isVisible = it is StoryElement.Onboarding
+            binding.storyTitle.setText(it.titleRes)
+            binding.storyBody.setText(it.bodyRes)
+            binding.storyImage.isVisible = it is StoryElement.Onboarding
 
             if (it is StoryElement.Onboarding) {
-                storyImage.setImageResource(it.imageRes)
-                stakingStoryLearnMore.isVisible = false
+                binding.storyImage.setImageResource(it.imageRes)
+                binding.stakingStoryLearnMore.isVisible = false
                 it.buttonCaptionRes?.let { buttonText ->
-                    stakingStoryLearnMore.isVisible = true
-                    stakingStoryLearnMore.setText(buttonText)
-                    stakingStoryLearnMore.setOnClickListener { viewModel.complete() }
+                    binding.stakingStoryLearnMore.isVisible = true
+                    binding.stakingStoryLearnMore.setText(buttonText)
+                    binding.stakingStoryLearnMore.setOnClickListener { viewModel.complete() }
                 }
             } else {
-                stakingStoryLearnMore.isVisible = true
-                stakingStoryLearnMore.setText(R.string.common_learn_more)
-                stakingStoryLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
+                binding.stakingStoryLearnMore.isVisible = true
+                binding.stakingStoryLearnMore.setText(R.string.common_learn_more)
+                binding.stakingStoryLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
             }
         }
     }
@@ -109,23 +96,23 @@ class StoryFragment : BaseFragment<StoryViewModel>(), StoriesProgressView.Storie
 
     override fun onDestroyView() {
         super.onDestroyView()
-        stories.destroy()
+        binding.stories.destroy()
     }
 
     private fun handleStoryTouchEvent(view: View, event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 lastActionDown = System.currentTimeMillis()
-                stories.pause()
+                binding.stories.pause()
             }
             MotionEvent.ACTION_UP -> {
-                stories.resume()
+                binding.stories.resume()
                 val eventTime = System.currentTimeMillis()
                 if (eventTime - lastActionDown < STORY_CLICK_MAX_DURATION) {
                     if (view.width / 2 < event.x) {
-                        stories.skip()
+                        binding.stories.skip()
                     } else {
-                        stories.reverse()
+                        binding.stories.reverse()
                     }
                 } else {
                     view.performClick()

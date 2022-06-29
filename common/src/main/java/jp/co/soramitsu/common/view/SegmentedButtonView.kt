@@ -6,18 +6,20 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.databinding.ViewSegmentedButtonBinding
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.view_segmented_button.view.optionOne
-import kotlinx.android.synthetic.main.view_segmented_button.view.optionTwo
-import kotlinx.android.synthetic.main.view_segmented_button.view.selectedBackground
 
 class SegmentedButtonView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+
+    private val binding: ViewSegmentedButtonBinding
+
     init {
-        View.inflate(context, R.layout.view_segmented_button, this)
+        inflate(context, R.layout.view_segmented_button, this)
+        binding = ViewSegmentedButtonBinding.bind(this)
 
         applyAttributes(attrs)
     }
@@ -37,8 +39,8 @@ class SegmentedButtonView @JvmOverloads constructor(
             labelTwo?.let(::setLabelTwo)
 
             singleLine = typedArray.getBoolean(R.styleable.SegmentedButtonView_android_singleLine, true)
-            optionOne.isSingleLine = singleLine
-            optionTwo.isSingleLine = singleLine
+            binding.optionOne.isSingleLine = singleLine
+            binding.optionTwo.isSingleLine = singleLine
 
             putSelectionBackground()
 
@@ -49,11 +51,11 @@ class SegmentedButtonView @JvmOverloads constructor(
     fun getSelectedIndex() = selectedIndex
 
     fun setLabelOne(label: String) {
-        optionOne.text = label
+        binding.optionOne.text = label
     }
 
     fun setLabelTwo(label: String) {
-        optionTwo.text = label
+        binding.optionTwo.text = label
     }
 
     fun toggle() {
@@ -68,12 +70,12 @@ class SegmentedButtonView @JvmOverloads constructor(
             else -> R.id.optionTwo
         }
 
-        val layoutParams = selectedBackground.layoutParams as? LayoutParams
+        val layoutParams = binding.selectedBackground.layoutParams as? LayoutParams
         layoutParams?.startToStart = selectedRes
         layoutParams?.endToEnd = selectedRes
         layoutParams?.topToTop = selectedRes
         layoutParams?.bottomToBottom = selectedRes
-        selectedBackground.layoutParams = layoutParams
+        binding.selectedBackground.layoutParams = layoutParams
     }
 
     override fun onSaveInstanceState(): Parcelable {

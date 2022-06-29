@@ -2,16 +2,13 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import jp.co.soramitsu.common.utils.dp
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_staking_balance_actions.view.stakingBalanceActionsBondMore
-import kotlinx.android.synthetic.main.view_staking_balance_actions.view.stakingBalanceActionsRedeem
-import kotlinx.android.synthetic.main.view_staking_balance_actions.view.stakingBalanceActionsUnbond
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewStakingBalanceActionsBinding
 
 class StakingBalanceActions
 @JvmOverloads constructor(
@@ -20,10 +17,13 @@ class StakingBalanceActions
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewStakingBalanceActionsBinding
+
     init {
         orientation = HORIZONTAL
 
-        View.inflate(context, R.layout.view_staking_balance_actions, this)
+        inflate(context, R.layout.view_staking_balance_actions, this)
+        binding = ViewStakingBalanceActionsBinding.bind(this)
 
         background = context.getCutCornerDrawable(R.color.blurColor)
 
@@ -31,11 +31,11 @@ class StakingBalanceActions
     }
 
     val bondMore: TextView
-        get() = stakingBalanceActionsBondMore
+        get() = binding.stakingBalanceActionsBondMore
 
     val unbond: TextView
-        get() = stakingBalanceActionsUnbond
+        get() = binding.stakingBalanceActionsUnbond
 
     val redeem: TextView
-        get() = stakingBalanceActionsRedeem
+        get() = binding.stakingBalanceActionsRedeem
 }

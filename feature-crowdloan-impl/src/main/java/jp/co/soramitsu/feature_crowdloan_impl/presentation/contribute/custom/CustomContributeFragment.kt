@@ -25,6 +25,7 @@ import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.common.view.TableCellView
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentCustomContributeBinding
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
@@ -34,10 +35,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moo
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM_SUCCESS
 import jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
-import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeApply
-import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeContainer
-import kotlinx.android.synthetic.main.fragment_custom_contribute.customContributeToolbar
-import kotlinx.android.synthetic.main.fragment_custom_contribute.customFlowContainer
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -51,6 +48,8 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
     @Inject
     protected lateinit var contributionManager: CustomContributeManager
 
+    private lateinit var binding: FragmentCustomContributeBinding
+
     private val payload by lazy { argument<CustomContributePayload>(KEY_PAYLOAD) }
 
     companion object {
@@ -61,22 +60,25 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_custom_contribute, container, false)
+        binding = FragmentCustomContributeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun initViews() {
-        customContributeContainer.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            customContributeContainer.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
+
+                consume(true)
             }
 
-            consume(true)
+            customContributeToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+            customContributeApply.prepareForProgress(viewLifecycleOwner)
+            customContributeApply.setOnClickListener { viewModel.applyClicked() }
         }
-
-        customContributeToolbar.setHomeButtonListener { viewModel.backClicked() }
-
-        customContributeApply.prepareForProgress(viewLifecycleOwner)
-        customContributeApply.setOnClickListener { viewModel.applyClicked() }
 
         if (payload.parachainMetadata.isMoonbeam) {
             val title = when (payload.step) {
@@ -87,7 +89,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
                 else -> getString(R.string.common_bonus)
             }
 
-            customContributeToolbar.setTitle(title)
+            binding.customContributeToolbar.setTitle(title)
         }
     }
 
@@ -119,24 +121,24 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
         lifecycleScope.launchWhenResumed {
             viewModel.applyButtonState.observe(viewLifecycleOwner) { (state, inProgress) ->
                 when {
-                    inProgress -> customContributeApply.setState(ButtonState.PROGRESS)
+                    inProgress -> binding.customContributeApply.setState(ButtonState.PROGRESS)
                     state is ApplyActionState.Unavailable -> {
-                        customContributeApply.setState(ButtonState.DISABLED)
-                        customContributeApply.text = state.reason
+                        binding.customContributeApply.setState(ButtonState.DISABLED)
+                        binding.customContributeApply.text = state.reason
                     }
                     state is ApplyActionState.Available -> {
-                        customContributeApply.setState(ButtonState.NORMAL)
+                        binding.customContributeApply.setState(ButtonState.NORMAL)
 
                         if (payload.parachainMetadata.isMoonbeam) {
                             when (payload.step) {
-                                TERMS -> customContributeApply.setText(R.string.common_continue)
-                                TERMS_CONFIRM -> customContributeApply.setText(R.string.common_confirm)
-                                TERMS_CONFIRM_SUCCESS -> customContributeApply.setText(R.string.common_continue)
-                                CONTRIBUTE -> customContributeApply.setText(R.string.common_continue)
-                                else -> customContributeApply.setText(R.string.common_apply)
+                                TERMS -> binding.customContributeApply.setText(R.string.common_continue)
+                                TERMS_CONFIRM -> binding.customContributeApply.setText(R.string.common_confirm)
+                                TERMS_CONFIRM_SUCCESS -> binding.customContributeApply.setText(R.string.common_continue)
+                                CONTRIBUTE -> binding.customContributeApply.setText(R.string.common_continue)
+                                else -> binding.customContributeApply.setText(R.string.common_apply)
                             }
                         } else {
-                            customContributeApply.setText(R.string.common_apply)
+                            binding.customContributeApply.setText(R.string.common_apply)
                         }
                     }
                 }
@@ -151,12 +153,12 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
         }
 
         viewModel.viewStateFlow.observe { viewState ->
-            customFlowContainer.removeAllViews()
+            binding.customFlowContainer.removeAllViews()
 
             val step = (viewState as? MoonbeamContributeViewState)?.customContributePayload?.step ?: TERMS
             val newView = contributionManager.createView(viewModel.customFlowType, requireContext(), step)
 
-            customFlowContainer.addView(newView)
+            binding.customFlowContainer.addView(newView)
 
             newView.bind(viewState, lifecycleScope)
 

@@ -2,13 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.presentation.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_reward_destination_chooser.view.rewardDestinationChooserLearnMore
-import kotlinx.android.synthetic.main.view_reward_destination_chooser.view.rewardDestinationChooserPayout
-import kotlinx.android.synthetic.main.view_reward_destination_chooser.view.rewardDestinationChooserPayoutTarget
-import kotlinx.android.synthetic.main.view_reward_destination_chooser.view.rewardDestinationChooserRestake
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewRewardDestinationChooserBinding
 
 class RewardDestinationChooserView @JvmOverloads constructor(
     context: Context,
@@ -16,21 +12,24 @@ class RewardDestinationChooserView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewRewardDestinationChooserBinding
+
     init {
         orientation = VERTICAL
 
-        View.inflate(context, R.layout.view_reward_destination_chooser, this)
+        inflate(context, R.layout.view_reward_destination_chooser, this)
+        binding = ViewRewardDestinationChooserBinding.bind(this)
     }
 
     val learnMore
-        get() = rewardDestinationChooserLearnMore
+        get() = binding.rewardDestinationChooserLearnMore
 
     val destinationRestake
-        get() = rewardDestinationChooserRestake
+        get() = binding.rewardDestinationChooserRestake
 
     val destinationPayout
-        get() = rewardDestinationChooserPayout
+        get() = binding.rewardDestinationChooserPayout
 
     val payoutTarget
-        get() = rewardDestinationChooserPayoutTarget
+        get() = binding.rewardDestinationChooserPayoutTarget
 }

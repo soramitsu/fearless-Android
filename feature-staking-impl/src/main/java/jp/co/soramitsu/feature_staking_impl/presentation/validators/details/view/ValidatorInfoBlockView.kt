@@ -2,14 +2,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details.vie
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_validator_info_block.view.validatorInfoBlockBody
-import kotlinx.android.synthetic.main.view_validator_info_block.view.validatorInfoBlockExtra
-import kotlinx.android.synthetic.main.view_validator_info_block.view.validatorInfoBlockTitle
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewValidatorInfoBlockBinding
 
 class ValidatorInfoBlockView @JvmOverloads constructor(
     context: Context,
@@ -17,8 +14,11 @@ class ValidatorInfoBlockView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewValidatorInfoBlockBinding
+
     init {
-        View.inflate(context, R.layout.view_validator_info_block, this)
+        inflate(context, R.layout.view_validator_info_block, this)
+        binding = ViewValidatorInfoBlockBinding.bind(this)
 
         orientation = VERTICAL
 
@@ -41,30 +41,30 @@ class ValidatorInfoBlockView @JvmOverloads constructor(
     }
 
     fun setTitle(title: String) {
-        validatorInfoBlockTitle.text = title
+        binding.validatorInfoBlockTitle.text = title
     }
 
     fun changeExtraVisibility(visible: Boolean) {
         if (visible) {
-            validatorInfoBlockExtra.makeVisible()
+            binding.validatorInfoBlockExtra.makeVisible()
         } else {
-            validatorInfoBlockExtra.makeGone()
+            binding.validatorInfoBlockExtra.makeGone()
         }
     }
 
     fun setBody(text: String) {
-        validatorInfoBlockBody.text = text
+        binding.validatorInfoBlockBody.text = text
     }
 
     fun setExtra(text: String) {
-        validatorInfoBlockExtra.text = text
+        binding.validatorInfoBlockExtra.text = text
     }
 
     fun changeInfoIconVisibility(visible: Boolean) {
         if (visible) {
-            validatorInfoBlockTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_info_16, 0)
+            binding.validatorInfoBlockTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_info_16, 0)
         } else {
-            validatorInfoBlockTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
+            binding.validatorInfoBlockTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
         }
     }
 }

@@ -1,11 +1,11 @@
 package jp.co.soramitsu.common.list.headers
 
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
-import kotlinx.android.synthetic.main.item_text_header.view.textHeader
 
 class TextHeader(val content: String) {
 
@@ -27,6 +27,6 @@ class TextHeader(val content: String) {
 class TextHeaderHolder(parentView: ViewGroup) : GroupedListHolder(parentView.inflateChild(R.layout.item_text_header)) {
 
     fun bind(item: TextHeader) {
-        containerView.textHeader.text = item.content
+        containerView.findViewById<TextView>(R.id.textHeader).text = item.content
     }
 }

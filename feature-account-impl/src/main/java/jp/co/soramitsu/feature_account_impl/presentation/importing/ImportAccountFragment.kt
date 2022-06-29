@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAcco
 import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentImportAccountBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
@@ -35,11 +36,6 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.S
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.EthereumDerivationPathTransformer
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
-import kotlinx.android.synthetic.main.fragment_import_account.advancedBlockView
-import kotlinx.android.synthetic.main.fragment_import_account.nextBtn
-import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeContainer
-import kotlinx.android.synthetic.main.fragment_import_account.sourceTypeInput
-import kotlinx.android.synthetic.main.fragment_import_account.toolbar
 
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     companion object {
@@ -50,30 +46,35 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         fun getBundle(chainAccountData: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to chainAccountData)
     }
 
+    private lateinit var binding: FragmentImportAccountBinding
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_import_account, container, false)
+    ): View {
+        binding = FragmentImportAccountBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun initViews() {
-        toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
+        with(binding) {
+            toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
 
-        sourceTypeInput.setWholeClickListener { viewModel.openSourceChooserClicked() }
+            sourceTypeInput.setWholeClickListener { viewModel.openSourceChooserClicked() }
 
-        advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
-            viewModel.chooseEncryptionClicked()
+            advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
+                viewModel.chooseEncryptionClicked()
+            }
+
+            nextBtn.setOnClickListener { viewModel.nextClicked() }
+
+            nextBtn.prepareForProgress(viewLifecycleOwner)
+
+            advancedBlockView.ethereumDerivationPathEditText.keyListener = DigitsKeyListener.getInstance("0123456789/")
+
+            advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
         }
-
-        nextBtn.setOnClickListener { viewModel.nextClicked() }
-
-        nextBtn.prepareForProgress(viewLifecycleOwner)
-
-        advancedBlockView.ethereumDerivationPathEditText.keyListener = DigitsKeyListener.getInstance("0123456789/")
-
-        advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
     }
 
     override fun inject() {
@@ -105,18 +106,18 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         }
 
         viewModel.selectedEncryptionTypeLiveData.observe {
-            advancedBlockView.setSubstrateEncryption(it.name)
+            binding.advancedBlockView.setSubstrateEncryption(it.name)
         }
 
-        viewModel.nextButtonState.observe(nextBtn::setState)
+        viewModel.nextButtonState.observe(binding.nextBtn::setState)
 
-        advancedBlockView.substrateDerivationPathEditText.bindTo(viewModel.substrateDerivationPathLiveData, viewLifecycleOwner)
-        advancedBlockView.ethereumDerivationPathEditText.bindTo(viewModel.ethereumDerivationPathLiveData, viewLifecycleOwner)
+        binding.advancedBlockView.substrateDerivationPathEditText.bindTo(viewModel.substrateDerivationPathLiveData, viewLifecycleOwner)
+        binding.advancedBlockView.ethereumDerivationPathEditText.bindTo(viewModel.ethereumDerivationPathLiveData, viewLifecycleOwner)
 
         viewModel.showEthAccountsDialog.observeEvent { showEthDialog() }
 
         if (viewModel.isChainAccount) {
-            toolbar.setTitle(R.string.onboarding_restore_account)
+            binding.toolbar.setTitle(R.string.onboarding_restore_account)
         }
 
         mediateWith(
@@ -150,15 +151,17 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     private fun setupSourceTypes(sourceType: ImportSource, sourceViews: List<ImportSourceView>) {
         val index = viewModel.sourceTypes.indexOf(sourceType)
 
-        sourceTypeContainer.removeAllViews()
-        sourceTypeContainer.addView(sourceViews[index])
+        with(binding) {
+            sourceTypeContainer.removeAllViews()
+            sourceTypeContainer.addView(sourceViews[index])
 
-        sourceTypeInput.setMessage(sourceType.nameRes)
+            sourceTypeInput.setMessage(sourceType.nameRes)
+        }
     }
 
     private fun setupAdvancedBlock(blockchainType: ImportAccountType, sourceType: ImportSource, isChainAccount: Boolean) {
-        advancedBlockView.makeVisible()
-        advancedBlockView.apply {
+        binding.advancedBlockView.makeVisible()
+        binding.advancedBlockView.apply {
             when {
                 sourceType is MnemonicImportSource && isChainAccount -> {
                     configureForMnemonic(blockchainType)
@@ -171,7 +174,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
                     configureForSeed(blockchainType)
                 }
                 sourceType is JsonImportSource -> {
-                    advancedBlockView.makeGone()
+                    binding.advancedBlockView.makeGone()
                 }
             }
         }

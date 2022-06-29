@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.current
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
@@ -13,9 +15,6 @@ import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.model.NominatedValidatorStatusModel
-import kotlinx.android.synthetic.main.item_current_validator.view.*
-import kotlinx.android.synthetic.main.item_current_validator_group.view.itemCurrentValidatorGroupDescription
-import kotlinx.android.synthetic.main.item_current_validator_group.view.itemCurrentValidatorGroupStatus
 
 class CurrentValidatorsAdapter(
     private val handler: Handler,
@@ -46,29 +45,29 @@ class CurrentValidatorsAdapter(
 private class CurrentValidatorsGroupHolder(view: View) : GroupedListHolder(view) {
 
     fun bind(group: NominatedValidatorStatusModel) = with(containerView) {
-        itemCurrentValidatorGroupStatus.setTextOrHide(group.titleConfig?.text)
+        findViewById<TextView>(R.id.itemCurrentValidatorGroupStatus).setTextOrHide(group.titleConfig?.text)
 
         group.titleConfig?.let {
-            itemCurrentValidatorGroupStatus.setTextColorRes(it.colorRes)
+            findViewById<TextView>(R.id.itemCurrentValidatorGroupStatus).setTextColorRes(it.colorRes)
 
-            itemCurrentValidatorGroupStatus.setCompoundDrawableTint(it.colorRes)
+            findViewById<TextView>(R.id.itemCurrentValidatorGroupStatus).setCompoundDrawableTint(it.colorRes)
         }
 
-        itemCurrentValidatorGroupDescription.text = group.description
+        findViewById<TextView>(R.id.itemCurrentValidatorGroupDescription).text = group.description
     }
 }
 
 private class CurrentValidatorsChildHolder(view: View) : GroupedListHolder(view) {
 
     fun bind(child: NominatedValidatorModel, handler: CurrentValidatorsAdapter.Handler) = with(containerView) {
-        itemCurrentValidatorIcon.setImageDrawable(child.addressModel.image)
-        itemCurrentValidatorName.text = child.addressModel.nameOrAddress
-        itemCurrentValidatorNominated.setTextOrHide(child.nominated)
+        findViewById<ImageView>(R.id.itemCurrentValidatorIcon).setImageDrawable(child.addressModel.image)
+        findViewById<TextView>(R.id.itemCurrentValidatorName).text = child.addressModel.nameOrAddress
+        findViewById<TextView>(R.id.itemCurrentValidatorNominated).setTextOrHide(child.nominated)
 
-        itemCurrentValidatorInfo.setOnClickListener { handler.infoClicked(child) }
+        findViewById<ImageView>(R.id.itemCurrentValidatorInfo).setOnClickListener { handler.infoClicked(child) }
 
-        itemCurrentValidatorBadge.setVisible(child.isOversubscribed)
-        currentValidatorSlashedIcon.setVisible(child.isSlashed)
+        findViewById<ImageView>(R.id.itemCurrentValidatorBadge).setVisible(child.isOversubscribed)
+        findViewById<ImageView>(R.id.currentValidatorSlashedIcon).setVisible(child.isSlashed)
     }
 }
 
