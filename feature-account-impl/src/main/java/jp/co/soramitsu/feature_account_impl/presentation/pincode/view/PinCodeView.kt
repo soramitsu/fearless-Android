@@ -8,26 +8,15 @@ import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatButton
 import jp.co.soramitsu.feature_account_impl.R
-import kotlinx.android.synthetic.main.pincode_view.view.btn0
-import kotlinx.android.synthetic.main.pincode_view.view.btn1
-import kotlinx.android.synthetic.main.pincode_view.view.btn2
-import kotlinx.android.synthetic.main.pincode_view.view.btn3
-import kotlinx.android.synthetic.main.pincode_view.view.btn4
-import kotlinx.android.synthetic.main.pincode_view.view.btn5
-import kotlinx.android.synthetic.main.pincode_view.view.btn6
-import kotlinx.android.synthetic.main.pincode_view.view.btn7
-import kotlinx.android.synthetic.main.pincode_view.view.btn8
-import kotlinx.android.synthetic.main.pincode_view.view.btn9
-import kotlinx.android.synthetic.main.pincode_view.view.btnDelete
-import kotlinx.android.synthetic.main.pincode_view.view.dotsProgressView
-import kotlinx.android.synthetic.main.pincode_view.view.fingerprintBtn
-import kotlinx.android.synthetic.main.pincode_view.view.pinCodeTitleTv
+import jp.co.soramitsu.feature_account_impl.databinding.PincodeViewBinding
 
 class PinCodeView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
+
+    private val binding: PincodeViewBinding
 
     var pinCodeEnteredListener: (String) -> Unit = {}
     var fingerprintClickListener: () -> Unit = {}
@@ -47,34 +36,35 @@ class PinCodeView @JvmOverloads constructor(
     private var inputCode: String = ""
 
     init {
-        View.inflate(context, R.layout.pincode_view, this)
+        inflate(context, R.layout.pincode_view, this)
+        binding = PincodeViewBinding.bind(this)
 
-        btn1.setOnClickListener(pinCodeNumberClickListener)
-        btn2.setOnClickListener(pinCodeNumberClickListener)
-        btn3.setOnClickListener(pinCodeNumberClickListener)
-        btn4.setOnClickListener(pinCodeNumberClickListener)
-        btn5.setOnClickListener(pinCodeNumberClickListener)
-        btn6.setOnClickListener(pinCodeNumberClickListener)
-        btn7.setOnClickListener(pinCodeNumberClickListener)
-        btn8.setOnClickListener(pinCodeNumberClickListener)
-        btn9.setOnClickListener(pinCodeNumberClickListener)
-        btn0.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn1.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn2.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn3.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn4.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn5.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn6.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn7.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn8.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn9.setOnClickListener(pinCodeNumberClickListener)
+        binding.btn0.setOnClickListener(pinCodeNumberClickListener)
 
-        btnDelete.setOnClickListener(pinCodeDeleteClickListener)
+        binding.btnDelete.setOnClickListener(pinCodeDeleteClickListener)
 
-        fingerprintBtn.setOnClickListener(pinCodeFingerprintClickListener)
+        binding.fingerprintBtn.setOnClickListener(pinCodeFingerprintClickListener)
     }
 
     fun changeFingerPrintButtonVisibility(isVisible: Boolean) {
         if (isVisible) {
-            fingerprintBtn.visibility = View.VISIBLE
+            binding.fingerprintBtn.visibility = View.VISIBLE
         } else {
-            fingerprintBtn.visibility = View.INVISIBLE
+            binding.fingerprintBtn.visibility = View.INVISIBLE
         }
     }
 
     fun setTitle(title: String) {
-        pinCodeTitleTv.text = title
+        binding.pinCodeTitleTv.text = title
     }
 
     fun resetInput() {
@@ -109,11 +99,11 @@ class PinCodeView @JvmOverloads constructor(
 
     private fun updateProgress() {
         val currentProgress = inputCode.length
-        dotsProgressView.setProgress(currentProgress)
+        binding.dotsProgressView.setProgress(currentProgress)
     }
 
     private fun shakeDotsAnimation() {
         val animation = AnimationUtils.loadAnimation(context, R.anim.shake)
-        dotsProgressView.startAnimation(animation)
+        binding.dotsProgressView.startAnimation(animation)
     }
 }

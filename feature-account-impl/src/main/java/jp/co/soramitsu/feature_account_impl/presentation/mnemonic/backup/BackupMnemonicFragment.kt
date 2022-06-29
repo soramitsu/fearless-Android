@@ -1,27 +1,21 @@
 package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 
-import android.os.Bundle
 import android.text.method.DigitsKeyListener
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentBackupMnemonicBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import kotlinx.android.synthetic.main.fragment_backup_mnemonic.advancedBlockView
-import kotlinx.android.synthetic.main.fragment_backup_mnemonic.backupMnemonicViewer
-import kotlinx.android.synthetic.main.fragment_backup_mnemonic.nextBtn
-import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
 
-class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
+class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fragment_backup_mnemonic) {
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -29,32 +23,28 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
         fun getBundle(accountName: String, payload: ChainAccountCreatePayload?) = bundleOf(PAYLOAD_KEY to BackupMnemonicPayload(accountName, payload))
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_backup_mnemonic, container, false)
-    }
+    private val binding by viewBinding(FragmentBackupMnemonicBinding::bind)
 
     override fun initViews() {
-        toolbar.setHomeButtonListener {
-            viewModel.homeButtonClicked()
-        }
+        with(binding) {
+            toolbar.setHomeButtonListener {
+                viewModel.homeButtonClicked()
+            }
 
-        toolbar.setRightActionClickListener {
-            viewModel.infoClicked()
-        }
+            toolbar.setRightActionClickListener {
+                viewModel.infoClicked()
+            }
 
-        advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
-            viewModel.chooseEncryptionClicked()
-        }
-        advancedBlockView.ethereumDerivationPathEditText.keyListener = DigitsKeyListener.getInstance("0123456789/")
+            advancedBlockView.setOnSubstrateEncryptionTypeClickListener {
+                viewModel.chooseEncryptionClicked()
+            }
+            advancedBlockView.ethereumDerivationPathEditText.keyListener = DigitsKeyListener.getInstance("0123456789/")
 
-        advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
+            advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
 
-        nextBtn.setOnClickListener {
-            viewModel.nextClicked(advancedBlockView.getSubstrateDerivationPath(), advancedBlockView.getEthereumDerivationPath())
+            nextBtn.setOnClickListener {
+                viewModel.nextClicked(advancedBlockView.getSubstrateDerivationPath(), advancedBlockView.getEthereumDerivationPath())
+            }
         }
     }
 
@@ -69,13 +59,13 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {
         viewModel.mnemonicLiveData.observe {
-            backupMnemonicViewer.submitList(it)
+            binding.backupMnemonicViewer.submitList(it)
         }
 
         viewModel.encryptionTypeChooserEvent.observeEvent(::showEncryptionChooser)
 
         viewModel.selectedEncryptionTypeLiveData.observe {
-            advancedBlockView.setSubstrateEncryption(it.name)
+            binding.advancedBlockView.setSubstrateEncryption(it.name)
         }
 
         viewModel.showInfoEvent.observeEvent {
@@ -86,7 +76,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>() {
             showError(resources.getString(R.string.common_invalid_hard_soft_numeric_password_message))
         }
 
-        viewModel.chainAccountImportType.observe(advancedBlockView::configureForMnemonic)
+        viewModel.chainAccountImportType.observe(binding.advancedBlockView::configureForMnemonic)
     }
 
     private fun showEncryptionChooser(payload: Payload<CryptoTypeModel>) {

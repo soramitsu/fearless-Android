@@ -13,12 +13,7 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.startTimer
 import jp.co.soramitsu.common.view.stopTimer
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeMoreActions
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatus
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeSummaryStatusHelper
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalRewardsView
-import kotlinx.android.synthetic.main.view_stake_summary.view.stakeTotalStakedView
-import kotlinx.android.synthetic.main.view_stake_summary.view.statusTapZone
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewStakeSummaryBinding
 
 class StakeSummaryView @JvmOverloads constructor(
     context: Context,
@@ -35,8 +30,11 @@ class StakeSummaryView @JvmOverloads constructor(
         class Waiting(val timeLeft: Long) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null)
     }
 
+    private val binding: ViewStakeSummaryBinding
+
     init {
-        View.inflate(context, R.layout.view_stake_summary, this)
+        inflate(context, R.layout.view_stake_summary, this)
+        binding = ViewStakeSummaryBinding.bind(this)
 
         orientation = VERTICAL
 
@@ -46,59 +44,59 @@ class StakeSummaryView @JvmOverloads constructor(
     }
 
     fun setElectionStatus(status: Status) {
-        with(stakeSummaryStatus) {
+        with(binding.stakeSummaryStatus) {
             setCompoundDrawableTint(status.tintRes)
             setTextColorRes(status.tintRes)
             setText(status.textRes)
         }
 
         if (status is Status.Waiting) {
-            stakeSummaryStatusHelper.startTimer(status.timeLeft)
+            binding.stakeSummaryStatusHelper.startTimer(status.timeLeft)
         } else {
-            stakeSummaryStatusHelper.stopTimer()
-            stakeSummaryStatusHelper.text = status.extraMessage
+            binding.stakeSummaryStatusHelper.stopTimer()
+            binding.stakeSummaryStatusHelper.text = status.extraMessage
         }
     }
 
     fun hideLoading() {
-        stakeTotalStakedView.hideLoading()
-        stakeTotalRewardsView.hideLoading()
+        binding.stakeTotalStakedView.hideLoading()
+        binding.stakeTotalRewardsView.hideLoading()
     }
 
     fun setTotalStaked(inTokens: String) {
-        stakeTotalStakedView.setBody(inTokens)
+        binding.stakeTotalStakedView.setBody(inTokens)
     }
 
     fun showTotalStakedFiat() {
-        stakeTotalStakedView.showWholeExtraBlock()
+        binding.stakeTotalStakedView.showWholeExtraBlock()
     }
 
     fun hideTotalStakeFiat() {
-        stakeTotalStakedView.makeExtraBlockInvisible()
+        binding.stakeTotalStakedView.makeExtraBlockInvisible()
     }
 
     fun setTotalStakedFiat(totalStake: String) {
-        stakeTotalStakedView.setExtraBlockValueText(totalStake)
+        binding.stakeTotalStakedView.setExtraBlockValueText(totalStake)
     }
 
     fun setTotalRewards(inTokens: String) {
-        stakeTotalRewardsView.setBody(inTokens)
+        binding.stakeTotalRewardsView.setBody(inTokens)
     }
 
     fun showTotalRewardsFiat() {
-        stakeTotalRewardsView.showWholeExtraBlock()
+        binding.stakeTotalRewardsView.showWholeExtraBlock()
     }
 
     fun hideTotalRewardsFiat() {
-        stakeTotalRewardsView.makeExtraBlockInvisible()
+        binding.stakeTotalRewardsView.makeExtraBlockInvisible()
     }
 
     fun setTotalRewardsFiat(totalRewards: String) {
-        stakeTotalRewardsView.setExtraBlockValueText(totalRewards)
+        binding.stakeTotalRewardsView.setExtraBlockValueText(totalRewards)
     }
 
     fun setStatusClickListener(listener: OnClickListener) {
-        statusTapZone.setOnClickListener(listener)
+        binding.statusTapZone.setOnClickListener(listener)
     }
 
     fun setStakeInfoClickListener(listener: OnClickListener) {
@@ -106,5 +104,5 @@ class StakeSummaryView @JvmOverloads constructor(
     }
 
     val moreActions: View
-        get() = stakeMoreActions
+        get() = binding.stakeMoreActions
 }

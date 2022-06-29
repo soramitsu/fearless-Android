@@ -1,9 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
@@ -18,8 +14,10 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.dialog.infoDialog
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
@@ -27,43 +25,31 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
-import kotlinx.android.synthetic.main.fragment_staking.stakingAlertsInfo
-import kotlinx.android.synthetic.main.fragment_staking.stakingAssetSelector
-import kotlinx.android.synthetic.main.fragment_staking.stakingAvatar
-import kotlinx.android.synthetic.main.fragment_staking.stakingContainer
-import kotlinx.android.synthetic.main.fragment_staking.stakingEstimate
-import kotlinx.android.synthetic.main.fragment_staking.stakingNetworkInfo
-import kotlinx.android.synthetic.main.fragment_staking.stakingStakeSummary
-import kotlinx.android.synthetic.main.fragment_staking.startStakingBtn
 
-class StakingFragment : BaseFragment<StakingViewModel>() {
+class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking) {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_staking, container, false)
-    }
+    private val binding by viewBinding(FragmentStakingBinding::bind)
 
     override fun initViews() {
-        stakingContainer.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            stakingContainer.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
             }
-        }
 
-        stakingEstimate.hideAssetBalanceFiatAmount()
+            stakingEstimate.hideAssetBalanceFiatAmount()
 
-        stakingAvatar.setOnClickListener {
-            viewModel.avatarClicked()
-        }
+            stakingAvatar.setOnClickListener {
+                viewModel.avatarClicked()
+            }
 
-        stakingNetworkInfo.storyItemHandler = {
-            viewModel.storyClicked(StoryGroupModel(it.elements))
+            stakingNetworkInfo.storyItemHandler = {
+                viewModel.storyClicked(StoryGroupModel(it.elements))
+            }
         }
     }
 
@@ -79,24 +65,24 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
-        setupAssetSelector(stakingAssetSelector, viewModel, imageLoader)
+        setupAssetSelector(binding.stakingAssetSelector, viewModel, imageLoader)
 
         viewModel.alertsFlow.observe { loadingState ->
             when (loadingState) {
                 is LoadingState.Loaded -> {
-                    stakingAlertsInfo.hideLoading()
+                    binding.stakingAlertsInfo.hideLoading()
 
                     if (loadingState.data.isEmpty()) {
-                        stakingAlertsInfo.makeGone()
+                        binding.stakingAlertsInfo.makeGone()
                     } else {
-                        stakingAlertsInfo.makeVisible()
-                        stakingAlertsInfo.setStatus(loadingState.data)
+                        binding.stakingAlertsInfo.makeVisible()
+                        binding.stakingAlertsInfo.setStatus(loadingState.data)
                     }
                 }
 
                 is LoadingState.Loading -> {
-                    stakingAlertsInfo.makeVisible()
-                    stakingAlertsInfo.showLoading()
+                    binding.stakingAlertsInfo.makeVisible()
+                    binding.stakingAlertsInfo.showLoading()
                 }
             }
         }
@@ -104,55 +90,55 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
         viewModel.stakingViewStateFlow.observe { loadingState ->
             when (loadingState) {
                 is LoadingState.Loading -> {
-                    startStakingBtn.setVisible(false)
-                    stakingEstimate.setVisible(false)
-                    stakingStakeSummary.setVisible(false)
+                    binding.startStakingBtn.setVisible(false)
+                    binding.stakingEstimate.setVisible(false)
+                    binding.stakingStakeSummary.setVisible(false)
                 }
                 is LoadingState.Loaded -> {
                     val stakingState = loadingState.data
 
-                    startStakingBtn.setVisible(stakingState is WelcomeViewState)
-                    stakingEstimate.setVisible(stakingState is WelcomeViewState)
-                    stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)
+                    binding.startStakingBtn.setVisible(stakingState is WelcomeViewState)
+                    binding.stakingEstimate.setVisible(stakingState is WelcomeViewState)
+                    binding.stakingStakeSummary.setVisible(stakingState is StakeViewState<*>)
 
                     when (stakingState) {
                         is NominatorViewState -> {
-                            stakingStakeSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
+                            binding.stakingStakeSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
                         }
 
                         is ValidatorViewState -> {
-                            stakingStakeSummary.bindStakeSummary(stakingState, ::mapValidatorStatus)
+                            binding.stakingStakeSummary.bindStakeSummary(stakingState, ::mapValidatorStatus)
                         }
 
                         is StashNoneViewState -> {
-                            stakingStakeSummary.bindStakeSummary(stakingState, ::mapStashNoneStatus)
+                            binding.stakingStakeSummary.bindStakeSummary(stakingState, ::mapStashNoneStatus)
                         }
 
                         is WelcomeViewState -> {
                             observeValidations(stakingState)
 
                             stakingState.assetLiveData.observe {
-                                stakingEstimate.setAssetImageUrl(it.imageUrl, imageLoader)
-                                stakingEstimate.setAssetName(it.tokenName)
-                                stakingEstimate.setAssetBalance(it.assetBalance)
+                                binding.stakingEstimate.setAssetImageUrl(it.imageUrl, imageLoader)
+                                binding.stakingEstimate.setAssetName(it.tokenName)
+                                binding.stakingEstimate.setAssetBalance(it.assetBalance)
                             }
 
                             stakingState.amountFiat.observe { amountFiat ->
-                                stakingEstimate.showAssetBalanceFiatAmount()
-                                stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
+                                binding.stakingEstimate.showAssetBalanceFiatAmount()
+                                binding.stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
                             }
 
                             stakingState.returns.observe { rewards ->
-                                stakingEstimate.hideReturnsLoading()
-                                stakingEstimate.populateMonthEstimation(rewards.monthly)
-                                stakingEstimate.populateYearEstimation(rewards.yearly)
+                                binding.stakingEstimate.hideReturnsLoading()
+                                binding.stakingEstimate.populateMonthEstimation(rewards.monthly)
+                                binding.stakingEstimate.populateYearEstimation(rewards.yearly)
                             }
 
-                            stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
+                            binding.stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
 
-                            startStakingBtn.setOnClickListener { stakingState.nextClicked() }
+                            binding.startStakingBtn.setOnClickListener { stakingState.nextClicked() }
 
-                            stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
+                            binding.stakingEstimate.infoActions.setOnClickListener { stakingState.infoActionClicked() }
 
                             stakingState.showRewardEstimationEvent.observeEvent {
                                 StakingRewardEstimationBottomSheet(requireContext(), it).show()
@@ -165,39 +151,41 @@ class StakingFragment : BaseFragment<StakingViewModel>() {
 
         viewModel.networkInfoStateLiveData.observe { state ->
             when (state) {
-                is LoadingState.Loading<*> -> stakingNetworkInfo.showLoading()
+                is LoadingState.Loading<*> -> binding.stakingNetworkInfo.showLoading()
 
                 is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     with(state.data) {
-                        stakingNetworkInfo.hideLoading()
-                        stakingNetworkInfo.setTotalStake(totalStake)
-                        stakingNetworkInfo.setNominatorsCount(nominatorsCount)
-                        stakingNetworkInfo.setMinimumStake(minimumStake)
-                        stakingNetworkInfo.setLockupPeriod(lockupPeriod)
+                        with(binding) {
+                            stakingNetworkInfo.hideLoading()
+                            stakingNetworkInfo.setTotalStake(totalStake)
+                            stakingNetworkInfo.setNominatorsCount(nominatorsCount)
+                            stakingNetworkInfo.setMinimumStake(minimumStake)
+                            stakingNetworkInfo.setLockupPeriod(lockupPeriod)
+                        }
                         if (totalStakeFiat == null) {
-                            stakingNetworkInfo.hideTotalStakeFiat()
+                            binding.stakingNetworkInfo.hideTotalStakeFiat()
                         } else {
-                            stakingNetworkInfo.showTotalStakeFiat()
-                            stakingNetworkInfo.setTotalStakeFiat(totalStakeFiat)
+                            binding.stakingNetworkInfo.showTotalStakeFiat()
+                            binding.stakingNetworkInfo.setTotalStakeFiat(totalStakeFiat)
                         }
 
                         if (minimumStakeFiat == null) {
-                            stakingNetworkInfo.hideMinimumStakeFiat()
+                            binding.stakingNetworkInfo.hideMinimumStakeFiat()
                         } else {
-                            stakingNetworkInfo.showMinimumStakeFiat()
-                            stakingNetworkInfo.setMinimumStakeFiat(minimumStakeFiat)
+                            binding.stakingNetworkInfo.showMinimumStakeFiat()
+                            binding.stakingNetworkInfo.setMinimumStakeFiat(minimumStakeFiat)
                         }
                     }
                 }
             }
         }
 
-        viewModel.stories.observe(stakingNetworkInfo::submitStories)
+        viewModel.stories.observe(binding.stakingNetworkInfo::submitStories)
 
-        viewModel.networkInfoTitle.observe(stakingNetworkInfo::setTitle)
+        viewModel.networkInfoTitle.observe(binding.stakingNetworkInfo::setTitle)
 
         viewModel.currentAddressModelLiveData.observe {
-            stakingAvatar.setImageDrawable(it.image)
+            binding.stakingAvatar.setImageDrawable(it.image)
         }
     }
 

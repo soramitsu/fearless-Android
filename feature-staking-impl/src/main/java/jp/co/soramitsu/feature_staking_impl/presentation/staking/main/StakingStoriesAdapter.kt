@@ -2,14 +2,13 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.presentation.StakingStoryModel
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.item_staking_story.view.stakingStoryItemIcon
-import kotlinx.android.synthetic.main.item_staking_story.view.stakingStoryItemTitle
 
 class StakingStoriesAdapter(
     private val itemHandler: StoryItemHandler
@@ -33,8 +32,8 @@ class StakingStoriesAdapter(
 class StakingStoryHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     fun bind(story: StakingStoryModel, itemHandler: StakingStoriesAdapter.StoryItemHandler) = with(itemView) {
-        stakingStoryItemIcon.text = story.iconSymbol
-        stakingStoryItemTitle.setText(story.titleRes)
+        findViewById<TextView>(R.id.stakingStoryItemIcon).text = story.iconSymbol
+        findViewById<TextView>(R.id.stakingStoryItemTitle).setText(story.titleRes)
         setOnClickListener { itemHandler.storyClicked(story) }
     }
 }

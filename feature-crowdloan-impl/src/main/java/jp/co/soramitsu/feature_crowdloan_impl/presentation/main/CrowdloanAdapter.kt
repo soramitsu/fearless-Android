@@ -2,6 +2,9 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import coil.ImageLoader
 import coil.dispose
 import coil.load
@@ -20,15 +23,6 @@ import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.main.model.CrowdloanStatusModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanArrow
-import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanIcon
-import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanMyContribution
-import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaDescription
-import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaName
-import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanParaRaised
-import kotlinx.android.synthetic.main.item_crowdloan.view.itemCrowdloanTimeRemaining
-import kotlinx.android.synthetic.main.item_crowdloan.view.itemReferralCode
-import kotlinx.android.synthetic.main.item_crowdloan_group.view.itemCrowdloanGroupStatus
 
 class CrowdloanAdapter(
     private val imageLoader: ImageLoader,
@@ -104,8 +98,8 @@ private object CrowdloanPayloadGenerator : PayloadGenerator<CrowdloanModel>(
 private class CrowdloanGroupHolder(containerView: View) : GroupedListHolder(containerView) {
 
     fun bind(item: CrowdloanStatusModel) = with(containerView) {
-        itemCrowdloanGroupStatus.text = item.text
-        itemCrowdloanGroupStatus.setTextColorRes(item.textColorRes)
+        findViewById<TextView>(R.id.itemCrowdloanGroupStatus).text = item.text
+        findViewById<TextView>(R.id.itemCrowdloanGroupStatus).setTextColorRes(item.textColorRes)
     }
 }
 
@@ -118,18 +112,18 @@ private class CrowdloanChildHolder(
         item: CrowdloanModel,
         handler: CrowdloanAdapter.Handler,
     ) = with(containerView) {
-        itemCrowdloanParaDescription.text = item.description
-        itemCrowdloanParaName.text = item.title
+        findViewById<TextView>(R.id.itemCrowdloanParaDescription).text = item.description
+        findViewById<TextView>(R.id.itemCrowdloanParaName).text = item.title
 
         bindRaised(item)
         bindMyContribution(item)
 
         when (val icon = item.icon) {
             is CrowdloanModel.Icon.FromDrawable -> {
-                itemCrowdloanIcon.setImageDrawable(icon.data)
+                findViewById<ImageView>(R.id.itemCrowdloanIcon).setImageDrawable(icon.data)
             }
             is CrowdloanModel.Icon.FromLink -> {
-                itemCrowdloanIcon.load(icon.data, imageLoader)
+                findViewById<ImageView>(R.id.itemCrowdloanIcon).load(icon.data, imageLoader)
             }
         }
 
@@ -138,25 +132,25 @@ private class CrowdloanChildHolder(
 
     fun bindState(item: CrowdloanModel, handler: CrowdloanAdapter.Handler) = with(containerView) {
         if (item.state is CrowdloanModel.State.Active) {
-            itemCrowdloanTimeRemaining.makeVisible()
-            itemCrowdloanTimeRemaining.text = item.state.timeRemaining
+            findViewById<TextView>(R.id.itemCrowdloanTimeRemaining).makeVisible()
+            findViewById<TextView>(R.id.itemCrowdloanTimeRemaining).text = item.state.timeRemaining
 
-            itemCrowdloanParaName.setTextColorRes(R.color.white)
-            itemCrowdloanParaDescription.setTextColorRes(R.color.black1)
-            itemCrowdloanParaRaised.setTextColorRes(R.color.white)
+            findViewById<TextView>(R.id.itemCrowdloanParaName).setTextColorRes(R.color.white)
+            findViewById<TextView>(R.id.itemCrowdloanParaDescription).setTextColorRes(R.color.black1)
+            findViewById<TextView>(R.id.itemCrowdloanParaRaised).setTextColorRes(R.color.white)
 
-            itemCrowdloanArrow.makeVisible()
+            findViewById<ImageView>(R.id.itemCrowdloanArrow).makeVisible()
 
             setOnClickListener { handler.crowdloanClicked(item.relaychainId, item.parachainId) }
 
-            itemReferralCode.setOnClickListener { item.referral?.let(handler::copyReferralClicked) }
+            findViewById<LinearLayout>(R.id.itemReferralCode).setOnClickListener { item.referral?.let(handler::copyReferralClicked) }
         } else {
-            itemCrowdloanTimeRemaining.makeGone()
-            itemCrowdloanArrow.makeGone()
+            findViewById<TextView>(R.id.itemCrowdloanTimeRemaining).makeGone()
+            findViewById<ImageView>(R.id.itemCrowdloanArrow).makeGone()
 
-            itemCrowdloanParaName.setTextColorRes(R.color.black2)
-            itemCrowdloanParaDescription.setTextColorRes(R.color.black2)
-            itemCrowdloanParaRaised.setTextColorRes(R.color.black2)
+            findViewById<TextView>(R.id.itemCrowdloanParaName).setTextColorRes(R.color.black2)
+            findViewById<TextView>(R.id.itemCrowdloanParaDescription).setTextColorRes(R.color.black2)
+            findViewById<TextView>(R.id.itemCrowdloanParaRaised).setTextColorRes(R.color.black2)
 
             setOnClickListener(null)
         }
@@ -164,19 +158,19 @@ private class CrowdloanChildHolder(
 
     fun unbind() {
         with(containerView) {
-            itemCrowdloanIcon.dispose()
+            findViewById<ImageView>(R.id.itemCrowdloanIcon).dispose()
         }
     }
 
     fun bindRaised(item: CrowdloanModel) {
-        containerView.itemCrowdloanParaRaised.text = item.raised
+        containerView.findViewById<TextView>(R.id.itemCrowdloanParaRaised).text = item.raised
     }
 
     fun bindMyContribution(item: CrowdloanModel) {
-        containerView.itemCrowdloanMyContribution.setVisible(item.myContribution != null)
-        containerView.itemCrowdloanMyContribution.setTextColorRes(R.color.colorAccent)
-        containerView.itemCrowdloanMyContribution.text = item.myContribution
+        containerView.findViewById<TextView>(R.id.itemCrowdloanMyContribution).setVisible(item.myContribution != null)
+        containerView.findViewById<TextView>(R.id.itemCrowdloanMyContribution).setTextColorRes(R.color.colorAccent)
+        containerView.findViewById<TextView>(R.id.itemCrowdloanMyContribution).text = item.myContribution
 
-        containerView.itemReferralCode.setVisible(item.myContribution != null && item.referral != null)
+        containerView.findViewById<LinearLayout>(R.id.itemReferralCode).setVisible(item.myContribution != null && item.referral != null)
     }
 }

@@ -2,16 +2,13 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import jp.co.soramitsu.common.utils.dp
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
-import kotlinx.android.synthetic.main.view_asset_actions.view.assetActionsBuy
-import kotlinx.android.synthetic.main.view_asset_actions.view.assetActionsReceive
-import kotlinx.android.synthetic.main.view_asset_actions.view.assetActionsSend
+import jp.co.soramitsu.feature_wallet_impl.databinding.ViewAssetActionsBinding
 
 class AssetActionsView @JvmOverloads constructor(
     context: Context,
@@ -19,10 +16,13 @@ class AssetActionsView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewAssetActionsBinding
+
     init {
         orientation = HORIZONTAL
 
-        View.inflate(context, R.layout.view_asset_actions, this)
+        inflate(context, R.layout.view_asset_actions, this)
+        binding = ViewAssetActionsBinding.bind(this)
 
         background = context.getCutCornerDrawable(R.color.blurColor)
 
@@ -30,11 +30,11 @@ class AssetActionsView @JvmOverloads constructor(
     }
 
     val send: TextView
-        get() = assetActionsSend
+        get() = binding.assetActionsSend
 
     val receive: TextView
-        get() = assetActionsReceive
+        get() = binding.assetActionsReceive
 
     val buy: TextView
-        get() = assetActionsBuy
+        get() = binding.assetActionsBuy
 }

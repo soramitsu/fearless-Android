@@ -3,12 +3,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.feature_account_impl.R
-import kotlinx.android.synthetic.main.item_mnemonic_word.view.numberTv
-import kotlinx.android.synthetic.main.item_mnemonic_word.view.wordTv
 
 class MnemonicWordsAdapter : ListAdapter<MnemonicWordModel, MnemonicWordViewHolder>(DiffCallback) {
 
@@ -37,8 +36,8 @@ class MnemonicWordViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     fun bind(mnemonicWord: MnemonicWordModel) {
         with(itemView) {
-            numberTv.text = mnemonicWord.numberToShow
-            wordTv.text = mnemonicWord.word
+            findViewById<TextView>(R.id.numberTv).text = mnemonicWord.numberToShow
+            findViewById<TextView>(R.id.wordTv).text = mnemonicWord.word
         }
     }
 }

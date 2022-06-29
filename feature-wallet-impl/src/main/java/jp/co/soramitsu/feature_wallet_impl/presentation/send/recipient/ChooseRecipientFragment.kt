@@ -3,9 +3,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
 import com.google.zxing.integration.android.IntentIntegrator
@@ -13,16 +10,14 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onDoneClicked
 import jp.co.soramitsu.common.utils.onTextChanged
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentChooseRecipientBinding
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.askPermissionsSafely
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
-import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientField
-import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientFlipper
-import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientList
-import kotlinx.android.synthetic.main.fragment_choose_recipient.searchRecipientToolbar
 import kotlinx.coroutines.launch
 
 private const val INDEX_WELCOME = 0
@@ -30,7 +25,7 @@ private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
 private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
-class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), ChooseRecipientAdapter.RecipientItemHandler {
+class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(R.layout.fragment_choose_recipient), ChooseRecipientAdapter.RecipientItemHandler {
 
     companion object {
         private const val PICK_IMAGE_REQUEST = 101
@@ -41,27 +36,23 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
 
     private lateinit var adapter: ChooseRecipientAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_choose_recipient, container, false)
+    private val binding by viewBinding(FragmentChooseRecipientBinding::bind)
 
     override fun initViews() {
         adapter = ChooseRecipientAdapter(this)
 
-        searchRecipientList.setHasFixedSize(true)
-        searchRecipientList.adapter = adapter
+        binding.searchRecipientList.setHasFixedSize(true)
+        binding.searchRecipientList.adapter = adapter
 
-        searchRecipientToolbar.setHomeButtonListener {
+        binding.searchRecipientToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
 
-        searchRecipientToolbar.setRightActionClickListener {
+        binding.searchRecipientToolbar.setRightActionClickListener {
             viewModel.scanClicked()
         }
 
-        searchRecipientField.onDoneClicked {
+        binding.searchRecipientField.onDoneClicked {
             viewModel.enterClicked()
         }
     }
@@ -86,7 +77,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
                 State.EMPTY -> INDEX_EMPTY
             }
 
-            searchRecipientFlipper.displayedChild = index
+            binding.searchRecipientFlipper.displayedChild = index
         }
 
         viewModel.searchResultLiveData.observe(adapter::submitList)
@@ -97,19 +88,19 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(), Choose
         }
 
         viewModel.decodeAddressResult.observeEvent {
-            searchRecipientField.setText(it)
+            binding.searchRecipientField.setText(it)
         }
 
         viewModel.declinePhishingAddress.observeEvent {
-            searchRecipientField.setText("")
+            binding.searchRecipientField.setText("")
         }
 
         observePhishingCheck(viewModel)
 
-        searchRecipientField.onTextChanged(viewModel::queryChanged)
+        binding.searchRecipientField.onTextChanged(viewModel::queryChanged)
 
         viewModel.assetSymbolLiveData.observe {
-            searchRecipientToolbar.setTitle(getString(R.string.wallet_send_navigation_title, it))
+            binding.searchRecipientToolbar.setTitle(getString(R.string.wallet_send_navigation_title, it))
         }
     }
 

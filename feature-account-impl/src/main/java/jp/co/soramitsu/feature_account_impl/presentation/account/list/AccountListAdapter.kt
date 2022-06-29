@@ -2,16 +2,14 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.ListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.account.LightMetaAccountDiffCallback
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
-import kotlinx.android.synthetic.main.item_account.view.accountCheck
-import kotlinx.android.synthetic.main.item_account.view.accountIcon
-import kotlinx.android.synthetic.main.item_account.view.accountInfo
-import kotlinx.android.synthetic.main.item_account.view.accountTitle
 
 class AccountsAdapter(
     private val accountItemHandler: AccountItemHandler
@@ -40,15 +38,15 @@ class AccountHolder(view: View) : GroupedListHolder(view) {
         handler: AccountsAdapter.AccountItemHandler,
     ) {
         with(containerView) {
-            accountTitle.text = accountModel.name
+            findViewById<TextView>(R.id.accountTitle).text = accountModel.name
 
-            accountIcon.setImageDrawable(accountModel.picture.value)
+            findViewById<ImageView>(R.id.accountIcon).setImageDrawable(accountModel.picture.value)
 
-            accountCheck.visibility = if (accountModel.isSelected) View.VISIBLE else View.INVISIBLE
+            findViewById<ImageView>(R.id.accountCheck).visibility = if (accountModel.isSelected) View.VISIBLE else View.INVISIBLE
 
             setOnClickListener { handler.checkClicked(accountModel) }
 
-            accountInfo.setOnClickListener { handler.optionsClicked(accountModel) }
+            findViewById<ImageView>(R.id.accountInfo).setOnClickListener { handler.optionsClicked(accountModel) }
         }
     }
 }

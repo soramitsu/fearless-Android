@@ -12,54 +12,40 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_crowdloan_api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentCrowdloansBinding
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.synthetic.main.fragment_crowdloans.blockingProgress
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanAssetSelector
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanContainer
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanList
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanMainDescription
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanPlaceholder
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanProgress
-import kotlinx.android.synthetic.main.fragment_crowdloans.crowdloanRefresh
-import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreText
-import kotlinx.android.synthetic.main.fragment_crowdloans.learnMoreWrapper
 import javax.inject.Inject
 
-class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.Handler {
+class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(R.layout.fragment_crowdloans), CrowdloanAdapter.Handler {
 
     @Inject protected lateinit var imageLoader: ImageLoader
+
+    private val binding by viewBinding(FragmentCrowdloansBinding::bind)
 
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
         CrowdloanAdapter(imageLoader, this)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_crowdloans, container, false)
-    }
-
     override fun initViews() {
-        crowdloanContainer.applyInsetter {
+        binding.crowdloanContainer.applyInsetter {
             type(statusBars = true) {
                 padding()
             }
         }
 
-        crowdloanList.setHasFixedSize(true)
-        crowdloanList.adapter = adapter
+        binding.crowdloanList.setHasFixedSize(true)
+        binding.crowdloanList.adapter = adapter
 
-        learnMoreWrapper.setOnClickListener { viewModel.learnMoreClicked() }
-        crowdloanRefresh.setOnRefreshListener {
+        binding.learnMoreWrapper.setOnClickListener { viewModel.learnMoreClicked() }
+        binding.crowdloanRefresh.setOnRefreshListener {
             viewModel.refresh()
-            crowdloanRefresh.isRefreshing = false
+            binding.crowdloanRefresh.isRefreshing = false
         }
     }
 
@@ -74,28 +60,28 @@ class CrowdloanFragment : BaseFragment<CrowdloanViewModel>(), CrowdloanAdapter.H
     }
 
     override fun subscribe(viewModel: CrowdloanViewModel) {
-        setupAssetSelector(crowdloanAssetSelector, viewModel, imageLoader)
+        setupAssetSelector(binding.crowdloanAssetSelector, viewModel, imageLoader)
 
         viewModel.crowdloanModelsFlow.observe { loadingState ->
-            crowdloanRefresh.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isNotEmpty())
-            crowdloanPlaceholder.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isEmpty())
-            crowdloanProgress.setVisible(loadingState is LoadingState.Loading)
+            binding.crowdloanRefresh.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isNotEmpty())
+            binding.crowdloanPlaceholder.setVisible(loadingState is LoadingState.Loaded && loadingState.data.isEmpty())
+            binding.crowdloanProgress.setVisible(loadingState is LoadingState.Loading)
 
             if (loadingState is LoadingState.Loaded) {
                 adapter.submitList(loadingState.data)
             }
         }
 
-        viewModel.mainDescription.observe(crowdloanMainDescription::setText)
+        viewModel.mainDescription.observe(binding.crowdloanMainDescription::setText)
 
         viewModel.learnMoreLiveData.observe {
-            learnMoreText.text = it
+            binding.learnMoreText.text = it
         }
 
         observeBrowserEvents(viewModel)
 
         viewModel.blockingProgress.observe {
-            blockingProgress.setVisible(it)
+            binding.blockingProgress.setVisible(it)
         }
     }
 

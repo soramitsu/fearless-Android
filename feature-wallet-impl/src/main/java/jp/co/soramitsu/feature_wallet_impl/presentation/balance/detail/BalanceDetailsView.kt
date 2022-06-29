@@ -9,13 +9,7 @@ import jp.co.soramitsu.common.utils.dp
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
-import kotlinx.android.synthetic.main.view_balance_details.view.balanceDetailsLocked
-import kotlinx.android.synthetic.main.view_balance_details.view.balanceDetailsLockedCaption
-import kotlinx.android.synthetic.main.view_balance_details.view.balanceDetailsLockedFiat
-import kotlinx.android.synthetic.main.view_balance_details.view.balanceDetailsTotal
-import kotlinx.android.synthetic.main.view_balance_details.view.balanceDetailsTotalFiat
-import kotlinx.android.synthetic.main.view_balance_details.view.balanceDetailsTransferable
-import kotlinx.android.synthetic.main.view_balance_details.view.balanceDetailsTransferableFiat
+import jp.co.soramitsu.feature_wallet_impl.databinding.ViewBalanceDetailsBinding
 
 class BalanceDetailsView @JvmOverloads constructor(
     context: Context,
@@ -23,31 +17,34 @@ class BalanceDetailsView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
 
+    private val binding: ViewBalanceDetailsBinding
+
     init {
-        View.inflate(context, R.layout.view_balance_details, this)
+        inflate(context, R.layout.view_balance_details, this)
+        binding = ViewBalanceDetailsBinding.bind(this)
 
         background = context.getCutCornerDrawable(R.color.blurColor)
         updatePadding(start = 16.dp(context), end = 16.dp(context))
     }
 
     val total: TextView
-        get() = balanceDetailsTotal
+        get() = binding.balanceDetailsTotal
 
     val totalFiat: TextView
-        get() = balanceDetailsTotalFiat
+        get() = binding.balanceDetailsTotalFiat
 
     val transferable: TextView
-        get() = balanceDetailsTransferable
+        get() = binding.balanceDetailsTransferable
 
     val transferableFiat: TextView
-        get() = balanceDetailsTransferableFiat
+        get() = binding.balanceDetailsTransferableFiat
 
     val locked: TextView
-        get() = balanceDetailsLocked
+        get() = binding.balanceDetailsLocked
 
     val lockedFiat: TextView
-        get() = balanceDetailsLockedFiat
+        get() = binding.balanceDetailsLockedFiat
 
     val lockedTitle: TextView
-        get() = balanceDetailsLockedCaption
+        get() = binding.balanceDetailsLockedCaption
 }

@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.payouts.list
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -10,11 +11,6 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.startTimer
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
-import kotlinx.android.extensions.LayoutContainer
-import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionLeft
-import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionRight
-import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleLeft
-import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleRight
 
 class PayoutAdapter(
     private val itemHandler: ItemHandler,
@@ -37,19 +33,19 @@ class PayoutAdapter(
     }
 }
 
-class PayoutViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+class PayoutViewHolder(private val containerView: View) : RecyclerView.ViewHolder(containerView) {
 
     fun bind(payout: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
         with(payout) {
-            itemListElementDescriptionLeft.startTimer(timeLeft, createdAt) {
+            findViewById<TextView>(R.id.itemListElementDescriptionLeft).startTimer(timeLeft, createdAt) {
                 it.text = context.getText(R.string.staking_payout_expired)
                 it.setTextColor(context.getColor(R.color.red))
             }
 
-            itemListElementTitleLeft.text = validatorTitle
-            itemListElementTitleRight.text = amount
-            itemListElementDescriptionRight.text = amountFiat
-            itemListElementDescriptionLeft.setTextColorRes(daysLeftColor)
+            findViewById<TextView>(R.id.itemListElementTitleLeft).text = validatorTitle
+            findViewById<TextView>(R.id.itemListElementTitleRight).text = amount
+            findViewById<TextView>(R.id.itemListElementDescriptionRight).text = amountFiat
+            findViewById<TextView>(R.id.itemListElementDescriptionLeft).setTextColorRes(daysLeftColor)
         }
 
         setOnClickListener { itemHandler.payoutClicked(adapterPosition) }

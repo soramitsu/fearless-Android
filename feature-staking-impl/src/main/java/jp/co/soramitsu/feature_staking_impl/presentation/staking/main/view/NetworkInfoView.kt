@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import jp.co.soramitsu.common.presentation.StakingStoryModel
@@ -10,14 +9,8 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewNetworkInfoBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingStoriesAdapter
-import kotlinx.android.synthetic.main.view_network_info.view.activeNominatorsView
-import kotlinx.android.synthetic.main.view_network_info.view.lockUpPeriodView
-import kotlinx.android.synthetic.main.view_network_info.view.minimumStakeView
-import kotlinx.android.synthetic.main.view_network_info.view.stakingNetworkCollapsibleView
-import kotlinx.android.synthetic.main.view_network_info.view.stakingNetworkInfoTitle
-import kotlinx.android.synthetic.main.view_network_info.view.stakingStoriesList
-import kotlinx.android.synthetic.main.view_network_info.view.totalStakeView
 
 class NetworkInfoView @JvmOverloads constructor(
     context: Context,
@@ -34,6 +27,8 @@ class NetworkInfoView @JvmOverloads constructor(
         COLLAPSED
     }
 
+    private val binding: ViewNetworkInfoBinding
+
     var storyItemHandler: (StakingStoryModel) -> Unit = {}
 
     private val storiesAdapter = StakingStoriesAdapter(this)
@@ -41,7 +36,8 @@ class NetworkInfoView @JvmOverloads constructor(
     private var currentState = State.EXPANDED
 
     init {
-        View.inflate(context, R.layout.view_network_info, this)
+        inflate(context, R.layout.view_network_info, this)
+        binding = ViewNetworkInfoBinding.bind(this)
 
         with(context) {
             background = getCutCornerDrawable(R.color.blurColor)
@@ -51,10 +47,10 @@ class NetworkInfoView @JvmOverloads constructor(
 
         applyAttributes(attrs)
 
-        stakingStoriesList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        stakingStoriesList.adapter = storiesAdapter
+        binding.stakingStoriesList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        binding.stakingStoriesList.adapter = storiesAdapter
 
-        stakingNetworkInfoTitle.setOnClickListener { changeExpandableState() }
+        binding.stakingNetworkInfoTitle.setOnClickListener { changeExpandableState() }
     }
 
     private fun applyAttributes(attrs: AttributeSet?) {
@@ -69,7 +65,7 @@ class NetworkInfoView @JvmOverloads constructor(
     }
 
     fun setTitle(title: String) {
-        stakingNetworkInfoTitle.text = title
+        binding.stakingNetworkInfoTitle.text = title
     }
 
     fun submitStories(stories: List<StakingStoryModel>) {
@@ -77,57 +73,57 @@ class NetworkInfoView @JvmOverloads constructor(
     }
 
     fun showLoading() {
-        totalStakeView.showLoading()
-        minimumStakeView.showLoading()
-        activeNominatorsView.showLoading()
-        lockUpPeriodView.showLoading()
+        binding.totalStakeView.showLoading()
+        binding.minimumStakeView.showLoading()
+        binding.activeNominatorsView.showLoading()
+        binding.lockUpPeriodView.showLoading()
     }
 
     fun hideLoading() {
-        totalStakeView.hideLoading()
-        minimumStakeView.hideLoading()
-        activeNominatorsView.hideLoading()
-        lockUpPeriodView.hideLoading()
+        binding.totalStakeView.hideLoading()
+        binding.minimumStakeView.hideLoading()
+        binding.activeNominatorsView.hideLoading()
+        binding.lockUpPeriodView.hideLoading()
     }
 
     fun setTotalStake(totalStake: String) {
-        totalStakeView.setBody(totalStake)
+        binding.totalStakeView.setBody(totalStake)
     }
 
     fun setNominatorsCount(nominatorsCount: String) {
-        activeNominatorsView.setBody(nominatorsCount)
+        binding.activeNominatorsView.setBody(nominatorsCount)
     }
 
     fun setMinimumStake(minimumStake: String) {
-        minimumStakeView.setBody(minimumStake)
+        binding.minimumStakeView.setBody(minimumStake)
     }
 
     fun setLockupPeriod(period: String) {
-        lockUpPeriodView.setBody(period)
+        binding.lockUpPeriodView.setBody(period)
     }
 
     fun setTotalStakeFiat(totalStake: String) {
-        totalStakeView.setExtraBlockValueText(totalStake)
+        binding.totalStakeView.setExtraBlockValueText(totalStake)
     }
 
     fun showTotalStakeFiat() {
-        totalStakeView.showWholeExtraBlock()
+        binding.totalStakeView.showWholeExtraBlock()
     }
 
     fun hideTotalStakeFiat() {
-        totalStakeView.makeExtraBlockInvisible()
+        binding.totalStakeView.makeExtraBlockInvisible()
     }
 
     fun setMinimumStakeFiat(minimumStake: String) {
-        minimumStakeView.setExtraBlockValueText(minimumStake)
+        binding.minimumStakeView.setExtraBlockValueText(minimumStake)
     }
 
     fun showMinimumStakeFiat() {
-        minimumStakeView.showWholeExtraBlock()
+        binding.minimumStakeView.showWholeExtraBlock()
     }
 
     fun hideMinimumStakeFiat() {
-        minimumStakeView.makeExtraBlockInvisible()
+        binding.minimumStakeView.makeExtraBlockInvisible()
     }
 
     override fun storyClicked(story: StakingStoryModel) {
@@ -143,19 +139,19 @@ class NetworkInfoView @JvmOverloads constructor(
     }
 
     private fun collapse() {
-        stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
+        binding.stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
         currentState = State.COLLAPSED
-        stakingNetworkCollapsibleView.animate()
+        binding.stakingNetworkCollapsibleView.animate()
             .setDuration(ANIMATION_DURATION)
             .alpha(0f)
-            .withEndAction { stakingNetworkCollapsibleView.makeGone() }
+            .withEndAction { binding.stakingNetworkCollapsibleView.makeGone() }
     }
 
     private fun expand() {
-        stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
-        stakingNetworkCollapsibleView.makeVisible()
+        binding.stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
+        binding.stakingNetworkCollapsibleView.makeVisible()
         currentState = State.EXPANDED
-        stakingNetworkCollapsibleView.animate()
+        binding.stakingNetworkCollapsibleView.animate()
             .setDuration(ANIMATION_DURATION)
             .alpha(1f)
     }

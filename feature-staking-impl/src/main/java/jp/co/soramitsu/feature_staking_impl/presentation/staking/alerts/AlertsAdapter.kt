@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,11 +14,6 @@ import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import kotlinx.android.extensions.LayoutContainer
-import kotlinx.android.synthetic.main.item_alert.view.alertItemDivider
-import kotlinx.android.synthetic.main.item_alert.view.alertItemGoToFlowIcon
-import kotlinx.android.synthetic.main.item_alert.view.alertItemMessage
-import kotlinx.android.synthetic.main.item_alert.view.alertItemTitle
-import kotlinx.android.synthetic.main.item_alert.view.imageView
 
 class AlertsAdapter : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(AlertDiffCallback()) {
 
@@ -36,21 +33,21 @@ class AlertsAdapter : ListAdapter<AlertModel, AlertsAdapter.AlertViewHolder>(Ale
 
     class AlertViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
         fun bind(alert: AlertModel, isLast: Boolean) = with(containerView) {
-            imageView.setImageResource(alert.icon)
-            alertItemTitle.text = alert.title
-            alertItemMessage.text = alert.extraMessage
+            findViewById<ImageView>(R.id.imageView).setImageResource(alert.icon)
+            findViewById<TextView>(R.id.alertItemTitle).text = alert.title
+            findViewById<TextView>(R.id.alertItemMessage).text = alert.extraMessage
 
             if (alert.type is AlertModel.Type.CallToAction) {
-                alertItemGoToFlowIcon.makeVisible()
+                findViewById<ImageView>(R.id.alertItemGoToFlowIcon).makeVisible()
 
                 setOnClickListener {
                     alert.type.action()
                 }
             } else {
-                alertItemGoToFlowIcon.makeGone()
+                findViewById<ImageView>(R.id.alertItemGoToFlowIcon).makeGone()
             }
 
-            alertItemDivider.setVisible(isLast.not())
+            findViewById<View>(R.id.alertItemDivider).setVisible(isLast.not())
         }
     }
 }

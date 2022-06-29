@@ -4,8 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
@@ -17,6 +15,7 @@ import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_api.presentation.actions.AddAccountBottomSheet
@@ -24,17 +23,17 @@ import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountA
 import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentAccountDetailsBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsChainAccounts
-import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsNameField
-import kotlinx.android.synthetic.main.fragment_account_details.accountDetailsToolbar
 import javax.inject.Inject
 
 private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
-class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAccountsAdapter.Handler {
+class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(R.layout.fragment_account_details), ChainAccountsAdapter.Handler {
 
     @Inject lateinit var imageLoader: ImageLoader
+
+    private val binding by viewBinding(FragmentAccountDetailsBinding::bind)
 
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
         ChainAccountsAdapter(this, imageLoader)
@@ -49,20 +48,16 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_account_details, container, false)
-
     override fun initViews() {
-        accountDetailsToolbar.setHomeButtonListener {
-            viewModel.backClicked()
-        }
+        with(binding) {
+            accountDetailsToolbar.setHomeButtonListener {
+                viewModel.backClicked()
+            }
 
-        accountDetailsNameField.content.filters = nameInputFilters()
-        accountDetailsChainAccounts.setHasFixedSize(true)
-        accountDetailsChainAccounts.adapter = adapter
+            accountDetailsNameField.content.filters = nameInputFilters()
+            accountDetailsChainAccounts.setHasFixedSize(true)
+            accountDetailsChainAccounts.adapter = adapter
+        }
     }
 
     override fun inject() {
@@ -80,7 +75,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(), ChainAcc
     override fun subscribe(viewModel: AccountDetailsViewModel) {
         observeBrowserEvents(viewModel)
 
-        accountDetailsNameField.content.bindTo(viewModel.accountNameFlow, viewLifecycleOwner.lifecycleScope)
+        binding.accountDetailsNameField.content.bindTo(viewModel.accountNameFlow, viewLifecycleOwner.lifecycleScope)
 
         viewModel.chainAccountProjections.observe { adapter.submitList(it) }
 
