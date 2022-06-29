@@ -39,6 +39,10 @@ class StakeSummaryView @JvmOverloads constructor(
 
         class InactiveCollator : Status(R.string.staking_nominator_status_inactive, R.color.red, null)
 
+        class IdleCollator : Status(R.string.staking_collator_status_idle, R.color.colorGreyText, null)
+
+        class LeavingCollator : Status(R.string.staking_collator_status_leaving, R.color.colorGreyText, null)
+
         interface WithTimer {
             val timeLeft: Long
             val extraMessage: String?
