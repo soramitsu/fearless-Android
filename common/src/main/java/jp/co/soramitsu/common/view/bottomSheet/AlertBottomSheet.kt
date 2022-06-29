@@ -2,13 +2,12 @@ package jp.co.soramitsu.common.view.bottomSheet
 
 import android.content.Context
 import android.os.Bundle
+import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.R
-import kotlinx.android.synthetic.main.bottom_sheet_alert.alertConfirmButton
-import kotlinx.android.synthetic.main.bottom_sheet_alert.alertMessage
-import kotlinx.android.synthetic.main.bottom_sheet_alert.alertTitle
+import jp.co.soramitsu.common.view.PrimaryButton
 
 class AlertBottomSheet(
     context: Context,
@@ -24,11 +23,11 @@ class AlertBottomSheet(
         setContentView(R.layout.bottom_sheet_alert)
         super.onCreate(savedInstanceState)
 
-        alertTitle.text = title
-        alertMessage.text = message
-        alertConfirmButton.text = buttonText
+        findViewById<TextView>(R.id.alertTitle)?.text = title
+        findViewById<TextView>(R.id.alertMessage)?.text = message
+        findViewById<PrimaryButton>(R.id.alertConfirmButton)?.text = buttonText
 
-        alertConfirmButton.setOnClickListener {
+        findViewById<PrimaryButton>(R.id.alertConfirmButton)?.setOnClickListener {
             callback()
             dismiss()
         }

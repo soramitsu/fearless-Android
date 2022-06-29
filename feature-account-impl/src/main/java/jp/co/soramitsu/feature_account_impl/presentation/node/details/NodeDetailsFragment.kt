@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.details
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import coil.ImageLoader
@@ -10,14 +11,8 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
-import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentNodeDetailsBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_node_details.fearlessToolbar
-import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsHostField
-import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNameField
-import kotlinx.android.synthetic.main.fragment_node_details.nodeDetailsNetworkType
-import kotlinx.android.synthetic.main.fragment_node_details.nodeHostCopy
-import kotlinx.android.synthetic.main.fragment_node_details.updateBtn
 import javax.inject.Inject
 
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
@@ -31,21 +26,28 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
     @Inject
     lateinit var imageLoader: ImageLoader
 
+    private lateinit var binding: FragmentNodeDetailsBinding
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_node_details, container, false)
+    ) : View {
+        binding = FragmentNodeDetailsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun initViews() {
-        fearlessToolbar.setHomeButtonListener { viewModel.backClicked() }
+        with(binding) {
+            fearlessToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        nodeHostCopy.setOnClickListener {
-            viewModel.copyNodeHostClicked()
-        }
+            nodeHostCopy.setOnClickListener {
+                viewModel.copyNodeHostClicked()
+            }
 
-        updateBtn.setOnClickListener {
-            viewModel.updateClicked(nodeDetailsNameField.content.text.toString(), nodeDetailsHostField.content.text.toString())
+            updateBtn.setOnClickListener {
+                viewModel.updateClicked(nodeDetailsNameField.content.text.toString(), nodeDetailsHostField.content.text.toString())
+            }
         }
     }
 
@@ -63,35 +65,37 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     override fun subscribe(viewModel: NodeDetailsViewModel) {
         viewModel.nodeModelLiveData.observe { node ->
-            nodeDetailsNameField.content.setText(node.name)
-            nodeDetailsHostField.content.setText(node.url)
+            binding.nodeDetailsNameField.content.setText(node.name)
+            binding.nodeDetailsHostField.content.setText(node.url)
         }
 
         viewModel.chainInfoLiveData.observe {
-            nodeDetailsNetworkType.setMessage(it.name)
-            nodeDetailsNetworkType.loadIcon(it.icon, imageLoader)
+            binding.nodeDetailsNetworkType.setMessage(it.name)
+            binding.nodeDetailsNetworkType.loadIcon(it.icon, imageLoader)
         }
 
         viewModel.nameEditEnabled.observe { editEnabled ->
-            updateBtn.setVisible(editEnabled)
+            with(binding) {
+                updateBtn.setVisible(editEnabled)
 
-            nodeDetailsNameField.content.isEnabled = editEnabled
+                nodeDetailsNameField.content.isEnabled = editEnabled
 
-            nodeDetailsNameField.content.onTextChanged {
-                viewModel.nodeDetailsEdited()
+                nodeDetailsNameField.content.onTextChanged {
+                    viewModel.nodeDetailsEdited()
+                }
             }
         }
 
         viewModel.hostEditEnabled.observe { editEnabled ->
-            nodeDetailsHostField.content.isEnabled = editEnabled
+            binding.nodeDetailsHostField.content.isEnabled = editEnabled
 
-            nodeDetailsHostField.content.onTextChanged {
+            binding.nodeDetailsHostField.content.onTextChanged {
                 viewModel.nodeDetailsEdited()
             }
         }
 
         viewModel.updateButtonEnabled.observe {
-            updateBtn.isEnabled = it
+            binding.updateBtn.isEnabled = it
         }
     }
 }

@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encrypti
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.makeInvisible
@@ -13,8 +15,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdap
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import kotlinx.android.synthetic.main.item_encryption_type.view.encryptionTv
-import kotlinx.android.synthetic.main.item_encryption_type.view.rightIcon
 
 class EncryptionTypeChooserBottomSheetDialog(
     context: Context,
@@ -42,12 +42,12 @@ class EncryptionTypeViewHolder(
 
         with(itemView) {
             if (isSelected) {
-                rightIcon.makeVisible()
+                findViewById<ImageView>(R.id.rightIcon).makeVisible()
             } else {
-                rightIcon.makeInvisible()
+                findViewById<ImageView>(R.id.rightIcon).makeInvisible()
             }
 
-            encryptionTv.text = item.name
+            findViewById<TextView>(R.id.encryptionTv).text = item.name
         }
     }
 }

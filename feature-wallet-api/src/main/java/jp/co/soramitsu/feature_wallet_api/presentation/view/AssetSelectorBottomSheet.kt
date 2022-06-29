@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_wallet_api.presentation.view
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.utils.inflateChild
@@ -13,10 +15,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdap
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_wallet_api.R
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
-import kotlinx.android.synthetic.main.item_asset_selector.view.itemAssetSelectorBalance
-import kotlinx.android.synthetic.main.item_asset_selector.view.itemAssetSelectorCheckmark
-import kotlinx.android.synthetic.main.item_asset_selector.view.itemAssetSelectorIcon
-import kotlinx.android.synthetic.main.item_asset_selector.view.itemAssetSelectorTokenName
 
 class AssetSelectorBottomSheet(
     private val imageLoader: ImageLoader,
@@ -54,10 +52,10 @@ private class AssetSelectorHolder(
         super.bind(item, isSelected, handler)
 
         with(itemView) {
-            itemAssetSelectorBalance.text = item.assetBalance
-            itemAssetSelectorTokenName.text = item.tokenName
-            itemAssetSelectorIcon.load(item.imageUrl, imageLoader)
-            itemAssetSelectorCheckmark.setVisible(isSelected, falseState = View.INVISIBLE)
+            findViewById<TextView>(R.id.itemAssetSelectorBalance).text = item.assetBalance
+            findViewById<TextView>(R.id.itemAssetSelectorTokenName).text = item.tokenName
+            findViewById<ImageView>(R.id.itemAssetSelectorIcon).load(item.imageUrl, imageLoader)
+            findViewById<ImageView>(R.id.itemAssetSelectorCheckmark).setVisible(isSelected, falseState = View.INVISIBLE)
         }
     }
 }

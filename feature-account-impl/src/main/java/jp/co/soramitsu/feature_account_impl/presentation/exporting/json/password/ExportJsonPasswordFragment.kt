@@ -13,21 +13,18 @@ import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportJsonPasswordBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordConfirmField
-import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordMatchingError
-import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNetworkInput
-import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNewField
-import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordNext
-import kotlinx.android.synthetic.main.fragment_export_json_password.exportJsonPasswordToolbar
 import javax.inject.Inject
 
 class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>() {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
+
+    private lateinit var binding: FragmentExportJsonPasswordBinding
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -36,8 +33,9 @@ class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>()
             bundleOf(PAYLOAD_KEY to ExportJsonPasswordPayload(metaId, chainId, isExportWallet))
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_export_json_password, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = FragmentExportJsonPasswordBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onResume() {
@@ -46,25 +44,27 @@ class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>()
     }
 
     override fun initViews() {
-        exportJsonPasswordToolbar.setHomeButtonListener {
-            hideKeyboard()
-            viewModel.back()
-        }
-
-        exportJsonPasswordToolbar.setTitle(
-            when {
-                viewModel.isExportWallet -> R.string.export_wallet
-                else -> R.string.account_export
+        with(binding) {
+            exportJsonPasswordToolbar.setHomeButtonListener {
+                hideKeyboard()
+                viewModel.back()
             }
-        )
 
-        exportJsonPasswordNext.prepareForProgress(viewLifecycleOwner)
-        exportJsonPasswordNext.setOnClickListener { viewModel.nextClicked() }
+            exportJsonPasswordToolbar.setTitle(
+                when {
+                    viewModel.isExportWallet -> R.string.export_wallet
+                    else -> R.string.account_export
+                }
+            )
 
-        exportJsonPasswordMatchingError.setDrawableStart(R.drawable.ic_red_cross, 24)
+            exportJsonPasswordNext.prepareForProgress(viewLifecycleOwner)
+            exportJsonPasswordNext.setOnClickListener { viewModel.nextClicked() }
 
-        exportJsonPasswordNetworkInput.isEnabled = false
-        exportJsonPasswordNetworkInput.isVisible = viewModel.isExportWallet.not()
+            exportJsonPasswordMatchingError.setDrawableStart(R.drawable.ic_red_cross, 24)
+
+            exportJsonPasswordNetworkInput.isEnabled = false
+            exportJsonPasswordNetworkInput.isVisible = viewModel.isExportWallet.not()
+        }
     }
 
     override fun inject() {
@@ -78,18 +78,18 @@ class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>()
 
     override fun subscribe(viewModel: ExportJsonPasswordViewModel) {
         super.subscribe(viewModel)
-        exportJsonPasswordNewField.content.bindTo(viewModel.passwordLiveData)
-        exportJsonPasswordConfirmField.content.bindTo(viewModel.passwordConfirmationLiveData)
+        binding.exportJsonPasswordNewField.content.bindTo(viewModel.passwordLiveData)
+        binding.exportJsonPasswordConfirmField.content.bindTo(viewModel.passwordConfirmationLiveData)
 
-        viewModel.nextButtonState.observe(exportJsonPasswordNext::setState)
+        viewModel.nextButtonState.observe(binding.exportJsonPasswordNext::setState)
 
         viewModel.showDoNotMatchingErrorLiveData.observe {
-            exportJsonPasswordMatchingError.setVisible(it, falseState = View.INVISIBLE)
+            binding.exportJsonPasswordMatchingError.setVisible(it, falseState = View.INVISIBLE)
         }
 
         viewModel.chainLiveData.observe {
-            exportJsonPasswordNetworkInput.loadIcon(it.icon, imageLoader)
-            exportJsonPasswordNetworkInput.setMessage(it.name)
+            binding.exportJsonPasswordNetworkInput.loadIcon(it.icon, imageLoader)
+            binding.exportJsonPasswordNetworkInput.setMessage(it.name)
         }
     }
 }

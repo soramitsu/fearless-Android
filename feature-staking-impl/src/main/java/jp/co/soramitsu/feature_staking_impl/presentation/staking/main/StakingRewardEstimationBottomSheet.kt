@@ -2,10 +2,10 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import android.content.Context
 import android.os.Bundle
+import android.widget.TextView
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.item_sheet_staking_reward_estimation.view.*
 
 class StakingRewardEstimationBottomSheet(
     context: Context,
@@ -27,8 +27,8 @@ class StakingRewardEstimationBottomSheet(
         @StringRes titleRes: Int,
     ) {
         item(R.layout.item_sheet_staking_reward_estimation) {
-            it.itemSheetStakingEstimateTitle.setText(titleRes)
-            it.itemSheetStakingEstimateValue.text = percentage
+            it.findViewById<TextView>(R.id.itemSheetStakingEstimateTitle).setText(titleRes)
+            it.findViewById<TextView>(R.id.itemSheetStakingEstimateValue).text = percentage
         }
     }
 }

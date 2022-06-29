@@ -8,22 +8,20 @@ import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.LifecycleCoroutineScope
 import coil.ImageLoader
+import com.google.android.material.switchmaterial.SwitchMaterial
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.utils.observe
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.utils.showBrowser
+import jp.co.soramitsu.common.view.InputField
+import jp.co.soramitsu.common.view.TableCellView
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
-import kotlinx.android.synthetic.main.view_referral_flow.view.referralBonus
-import kotlinx.android.synthetic.main.view_referral_flow.view.referralFearlessBonusApply
-import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacySwitch
-import kotlinx.android.synthetic.main.view_referral_flow.view.referralPrivacyText
-import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
 import java.math.BigDecimal
 import javax.inject.Inject
 
@@ -54,11 +52,17 @@ open class ReferralContributeView @JvmOverloads constructor(
     ) {
         require(viewState is ReferralContributeViewState)
 
-        referralReferralCodeInput?.content?.bindTo(viewState.enteredReferralCodeFlow, scope)
-        referralPrivacySwitch?.bindTo(viewState.privacyAcceptedFlow, scope)
+        val referralReferralCodeInput: InputField = findViewById(R.id.referralReferralCodeInput)
+        val referralPrivacySwitch: SwitchMaterial = findViewById(R.id.referralPrivacySwitch)
+        val referralFearlessBonusApply: TextView = findViewById(R.id.referralFearlessBonusApply)
+        val referralBonus: TableCellView = findViewById(R.id.referralBonus)
+        val referralPrivacyText: TextView = findViewById(R.id.referralPrivacyText)
+
+        referralReferralCodeInput.content.bindTo(viewState.enteredReferralCodeFlow, scope)
+        referralPrivacySwitch.bindTo(viewState.privacyAcceptedFlow, scope)
 
         viewState.applyFearlessCodeEnabledFlow.observe(scope) { enabled ->
-            referralFearlessBonusApply?.isEnabled = enabled
+            referralFearlessBonusApply.isEnabled = enabled
             val applyBonusButtonText = when {
                 viewState.isAstar || viewState.isAcala -> R.string.apply_fearless_referal_wallet
                 else -> when {
@@ -66,22 +70,22 @@ open class ReferralContributeView @JvmOverloads constructor(
                     else -> R.string.applied_fearless_wallet_bonus
                 }
             }
-            referralFearlessBonusApply?.setText(applyBonusButtonText)
+            referralFearlessBonusApply.setText(applyBonusButtonText)
         }
 
         viewState.bonusFlow.observe(scope) { bonus ->
-            referralBonus?.setVisible(bonus != null)
+            referralBonus.setVisible(bonus != null)
 
-            bonus?.let { referralBonus?.showValue(bonus) }
+            bonus?.let { referralBonus.showValue(bonus) }
         }
 
         viewState.bonusNumberFlow.observe(scope) { bonus ->
-            referralBonus?.setValueColorRes(getColor(bonus))
+            referralBonus.setValueColorRes(getColor(bonus))
         }
 
-        referralFearlessBonusApply?.setOnClickListener { viewState.applyFearlessCode() }
+        referralFearlessBonusApply.setOnClickListener { viewState.applyFearlessCode() }
 
-        referralPrivacyText?.text = createSpannable(context.getString(R.string.onboarding_terms_and_conditions_1)) {
+        referralPrivacyText.text = createSpannable(context.getString(R.string.onboarding_terms_and_conditions_1)) {
             clickable(context.getString(R.string.onboarding_terms_and_conditions_2)) {
                 viewState.termsClicked()
             }

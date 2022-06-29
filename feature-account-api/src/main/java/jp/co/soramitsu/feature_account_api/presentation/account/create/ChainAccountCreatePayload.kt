@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_account_api.presentation.account.create
 
 import android.os.Parcelable
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class ChainAccountCreatePayload(

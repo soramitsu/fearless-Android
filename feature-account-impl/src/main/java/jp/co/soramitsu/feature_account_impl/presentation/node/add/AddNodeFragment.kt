@@ -1,42 +1,35 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.add
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentNodeAddBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_node_add.addBtn
-import kotlinx.android.synthetic.main.fragment_node_add.fearlessToolbar
-import kotlinx.android.synthetic.main.fragment_node_add.nodeHostField
-import kotlinx.android.synthetic.main.fragment_node_add.nodeNameField
 
-class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
+class AddNodeFragment : BaseFragment<AddNodeViewModel>(R.layout.fragment_node_add) {
 
     companion object {
         private const val CHAIN_ID_KEY = "chainIdKey"
         fun getBundle(chainId: String) = bundleOf(CHAIN_ID_KEY to chainId)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_node_add, container, false)
+    private val binding by viewBinding(FragmentNodeAddBinding::bind)
 
     override fun initViews() {
-        fearlessToolbar.setHomeButtonListener { viewModel.backClicked() }
+        with(binding) {
+            fearlessToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        nodeNameField.content.bindTo(viewModel.nodeNameInputLiveData)
+            nodeNameField.content.bindTo(viewModel.nodeNameInputLiveData)
 
-        nodeHostField.content.bindTo(viewModel.nodeHostInputLiveData)
+            nodeHostField.content.bindTo(viewModel.nodeHostInputLiveData)
 
-        addBtn.setOnClickListener { viewModel.addNodeClicked() }
+            addBtn.setOnClickListener { viewModel.addNodeClicked() }
 
-        addBtn.prepareForProgress(viewLifecycleOwner)
+            addBtn.prepareForProgress(viewLifecycleOwner)
+        }
     }
 
     override fun inject() {
@@ -53,8 +46,8 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>() {
 
     override fun subscribe(viewModel: AddNodeViewModel) {
         viewModel.addButtonState.observe {
-            addBtn.setState(it.state)
-            addBtn.text = it.label
+            binding.addBtn.setState(it.state)
+            binding.addBtn.text = it.label
         }
     }
 }

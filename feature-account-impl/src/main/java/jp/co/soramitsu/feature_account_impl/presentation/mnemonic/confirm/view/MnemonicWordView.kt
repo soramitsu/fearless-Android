@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
 import jp.co.soramitsu.feature_account_impl.R
-import kotlinx.android.synthetic.main.view_mnemonic_word.view.wordTv
+import jp.co.soramitsu.feature_account_impl.databinding.ViewMnemonicWordBinding
 
 class MnemonicWordView @JvmOverloads constructor(
     context: Context,
@@ -18,8 +18,12 @@ class MnemonicWordView @JvmOverloads constructor(
         DARK
     }
 
+    private val binding: ViewMnemonicWordBinding
+
     init {
-        View.inflate(context, R.layout.view_mnemonic_word, this)
+        inflate(context, R.layout.view_mnemonic_word, this)
+        binding = ViewMnemonicWordBinding.bind(this)
+
         applyAttributes(attrs)
     }
 
@@ -38,11 +42,11 @@ class MnemonicWordView @JvmOverloads constructor(
     }
 
     fun setWord(word: String) {
-        wordTv.text = word
+        binding.wordTv.text = word
     }
 
     fun getWord(): String {
-        return wordTv.text.toString()
+        return binding.wordTv.text.toString()
     }
 
     fun setColorMode(colorMode: ColorMode) {
@@ -50,6 +54,6 @@ class MnemonicWordView @JvmOverloads constructor(
             ColorMode.LIGHT -> R.drawable.bg_mnemonic_word_light
             ColorMode.DARK -> R.drawable.bg_mnemonic_word_dark
         }
-        wordTv.setBackgroundResource(background)
+        binding.wordTv.setBackgroundResource(background)
     }
 }

@@ -2,15 +2,14 @@ package jp.co.soramitsu.feature_staking_impl.presentation.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewAlertsBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.AlertsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
-import kotlinx.android.synthetic.main.view_alerts.view.*
 
 class AlertsView @JvmOverloads constructor(
     context: Context,
@@ -20,8 +19,11 @@ class AlertsView @JvmOverloads constructor(
 
     private val alertsAdapter = AlertsAdapter()
 
+    private val binding: ViewAlertsBinding
+
     init {
-        View.inflate(context, R.layout.view_alerts, this)
+        inflate(context, R.layout.view_alerts, this)
+        binding = ViewAlertsBinding.bind(this)
 
         orientation = VERTICAL
 
@@ -29,30 +31,30 @@ class AlertsView @JvmOverloads constructor(
             background = getCutCornerDrawable(R.color.blurColor)
         }
 
-        alertsRecycler.adapter = alertsAdapter
+        binding.alertsRecycler.adapter = alertsAdapter
     }
 
     fun setStatus(alerts: List<AlertModel>) {
         if (alerts.isEmpty()) {
-            alertsRecycler.makeGone()
-            alertNoAlertsInfoTextView.makeVisible()
+            binding.alertsRecycler.makeGone()
+            binding.alertNoAlertsInfoTextView.makeVisible()
         } else {
-            alertsRecycler.makeVisible()
-            alertNoAlertsInfoTextView.makeGone()
+            binding.alertsRecycler.makeVisible()
+            binding.alertNoAlertsInfoTextView.makeGone()
 
             alertsAdapter.submitList(alerts)
         }
     }
 
     fun showLoading() {
-        alertShimmer.makeVisible()
-        alertNoAlertsInfoTextView.makeGone()
-        alertsRecycler.makeGone()
+        binding.alertShimmer.makeVisible()
+        binding.alertNoAlertsInfoTextView.makeGone()
+        binding.alertsRecycler.makeGone()
     }
 
     fun hideLoading() {
-        alertShimmer.makeGone()
-        alertNoAlertsInfoTextView.makeVisible()
-        alertsRecycler.makeVisible()
+        binding.alertShimmer.makeGone()
+        binding.alertNoAlertsInfoTextView.makeVisible()
+        binding.alertsRecycler.makeVisible()
     }
 }

@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_account_api.presentation.accountSource
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.utils.inflateChild
@@ -14,11 +16,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_api.R
-import kotlinx.android.synthetic.main.item_source.view.rightArrow
-import kotlinx.android.synthetic.main.item_source.view.rightIcon
-import kotlinx.android.synthetic.main.item_source.view.sourceHintTv
-import kotlinx.android.synthetic.main.item_source.view.sourceIcon
-import kotlinx.android.synthetic.main.item_source.view.sourceTv
 
 class SourceTypeChooserBottomSheetDialog<T : AccountSource>(
     @StringRes private val titleRes: Int = R.string.recovery_source_type,
@@ -46,22 +43,22 @@ class SourceTypeHolder<T : AccountSource>(itemView: View) : DynamicListSheetAdap
         with(itemView) {
             when {
                 item.isExport -> {
-                    rightIcon.makeGone()
-                    rightArrow.makeVisible()
+                    findViewById<ImageView>(R.id.rightIcon).makeGone()
+                    findViewById<ImageView>(R.id.rightArrow).makeVisible()
                 }
                 isSelected -> {
-                    rightIcon.makeVisible()
-                    rightArrow.makeGone()
+                    findViewById<ImageView>(R.id.rightIcon).makeVisible()
+                    findViewById<ImageView>(R.id.rightArrow).makeGone()
                 }
                 else -> {
-                    rightIcon.makeInvisible()
-                    rightArrow.makeGone()
+                    findViewById<ImageView>(R.id.rightIcon).makeInvisible()
+                    findViewById<ImageView>(R.id.rightArrow).makeGone()
                 }
             }
 
-            sourceTv.setText(item.nameRes)
-            sourceHintTv.setText(item.hintRes)
-            sourceIcon.setImageResource(item.iconRes)
+            findViewById<TextView>(R.id.sourceTv).setText(item.nameRes)
+            findViewById<TextView>(R.id.sourceHintTv).setText(item.hintRes)
+            findViewById<ImageView>(R.id.sourceIcon).setImageResource(item.iconRes)
         }
     }
 }

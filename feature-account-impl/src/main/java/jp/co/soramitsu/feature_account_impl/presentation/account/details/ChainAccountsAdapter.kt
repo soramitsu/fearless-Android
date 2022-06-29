@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import coil.ImageLoader
@@ -16,12 +18,6 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.view.shape.getCutLeftBottomCornerDrawableFromColors
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
-import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountAccountAddress
-import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountAccountIcon
-import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountChainIcon
-import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountChainName
-import kotlinx.android.synthetic.main.item_chain_acount.view.chainAccountNameBadge
-import kotlinx.android.synthetic.main.item_chain_acount.view.labeledTextAction
 
 class ChainAccountsAdapter(
     private val handler: Handler,
@@ -61,42 +57,46 @@ class ChainAccountHolder(view: View) : GroupedListHolder(view) {
 
         val interactionAllowed = item.enabled && item.isSupported
 
-        chainAccountChainIcon.load(item.chainIcon, imageLoader)
-        chainAccountChainName.text = item.chainName
+        findViewById<ImageView>(R.id.chainAccountChainIcon).load(item.chainIcon, imageLoader)
+        findViewById<TextView>(R.id.chainAccountChainName).text = item.chainName
 
-        chainAccountAccountAddress.text = if (item.isSupported) item.address else resources.getString(R.string.common_unsupported)
+        findViewById<TextView>(R.id.chainAccountAccountAddress).text = if (item.isSupported) item.address else resources.getString(R.string.common_unsupported)
 
-        labeledTextAction.isVisible = interactionAllowed
+        findViewById<ImageView>(R.id.labeledTextAction).isVisible = interactionAllowed
         if (interactionAllowed) {
-            labeledTextAction.setOnClickListener { handler.chainAccountOptionsClicked(item) }
+            findViewById<ImageView>(R.id.labeledTextAction).setOnClickListener {
+                handler.chainAccountOptionsClicked(item)
+            }
 
             setOnClickListener { handler.chainAccountClicked(item) }
         }
 
-        chainAccountNameBadge.isVisible = !item.accountName.isNullOrEmpty()
-        chainAccountNameBadge.text = item.accountName.orEmpty()
+        findViewById<TextView>(R.id.chainAccountNameBadge).apply {
+            isVisible = !item.accountName.isNullOrEmpty()
+            text = item.accountName.orEmpty()
+        }
         when (item.accountFrom) {
             AccountInChain.From.CHAIN_ACCOUNT -> context.getCutLeftBottomCornerDrawableFromColors()
             AccountInChain.From.META_ACCOUNT -> context.getCutLeftBottomCornerDrawableFromColors(context.getColor(R.color.white_50))
             else -> null
-        }?.let(chainAccountNameBadge::setBackground)
+        }?.let(findViewById<TextView>(R.id.chainAccountNameBadge)::setBackground)
 
         if (item.isSupported) {
-            chainAccountAccountIcon.isVisible = item.accountIcon != null
-            chainAccountAccountIcon.setImageDrawable(item.accountIcon)
+            findViewById<ImageView>(R.id.chainAccountAccountIcon).isVisible = item.accountIcon != null
+            findViewById<ImageView>(R.id.chainAccountAccountIcon).setImageDrawable(item.accountIcon)
         } else {
             (this as ViewGroup).children.forEach {
                 it.alpha = 0.4f
             }
             setOnClickListener { handler.chainAccountClicked(item) }
-            chainAccountAccountIcon.setImageResource(R.drawable.ic_warning_filled)
+            findViewById<ImageView>(R.id.chainAccountAccountIcon).setImageResource(R.drawable.ic_warning_filled)
         }
 
         val chainNameColorId = when {
             item.hasAccount -> R.color.white
             else -> R.color.black2
         }
-        chainAccountChainName.setTextColor(context.getColor(chainNameColorId))
+        findViewById<TextView>(R.id.chainAccountChainName).setTextColor(context.getColor(chainNameColorId))
     }
 }
 

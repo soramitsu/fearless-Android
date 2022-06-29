@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.lifecycle.lifecycleScope
@@ -12,13 +13,9 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentNodesBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
-import kotlinx.android.synthetic.main.fragment_nodes.addNodeButton
-import kotlinx.android.synthetic.main.fragment_nodes.autoSelectNodesLabel
-import kotlinx.android.synthetic.main.fragment_nodes.autoSelectNodesSwitch
-import kotlinx.android.synthetic.main.fragment_nodes.connectionsList
-import kotlinx.android.synthetic.main.fragment_nodes.nodesToolbar
 import javax.inject.Inject
 
 class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
@@ -34,31 +31,38 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     @Inject
     lateinit var imageLoader: ImageLoader
 
+    private lateinit var binding: FragmentNodesBinding
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_nodes, container, false)
+    ) : View {
+        binding = FragmentNodesBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun initViews() {
         adapter = NodesAdapter(this)
 
-        connectionsList.setHasFixedSize(true)
-        connectionsList.adapter = adapter
+        with(binding) {
+            connectionsList.setHasFixedSize(true)
+            connectionsList.adapter = adapter
 
-        nodesToolbar.setHomeButtonListener {
-            viewModel.backClicked()
+            nodesToolbar.setHomeButtonListener {
+                viewModel.backClicked()
+            }
+
+            nodesToolbar.setRightActionClickListener {
+                viewModel.editClicked()
+            }
+
+            addNodeButton.setOnClickListener {
+                viewModel.addNodeClicked()
+            }
+
+            autoSelectNodesSwitch.bindTo(viewModel.autoSelectedNodeFlow, lifecycleScope)
         }
-
-        nodesToolbar.setRightActionClickListener {
-            viewModel.editClicked()
-        }
-
-        addNodeButton.setOnClickListener {
-            viewModel.addNodeClicked()
-        }
-
-        autoSelectNodesSwitch.bindTo(viewModel.autoSelectedNodeFlow, lifecycleScope)
     }
 
     override fun inject() {
@@ -78,18 +82,18 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
         viewModel.editMode.observe(adapter::switchToEdit)
 
-        viewModel.toolbarAction.observe(nodesToolbar.rightActionText::setText)
+        viewModel.toolbarAction.observe(binding.nodesToolbar.rightActionText::setText)
 
         viewModel.deleteNodeEvent.observeEvent(::showDeleteNodeDialog)
 
-        viewModel.chainName.observe(nodesToolbar::setTitle)
+        viewModel.chainName.observe(binding.nodesToolbar::setTitle)
 
         viewModel.autoSelectedNodeFlow.observe {
-            autoSelectNodesLabel.isEnabled = it
+            binding.autoSelectNodesLabel.isEnabled = it
             adapter.handleAutoSelected(it)
         }
 
-        viewModel.hasCustomNodeModelsLiveData.observe(nodesToolbar.rightActionText::setEnabled)
+        viewModel.hasCustomNodeModelsLiveData.observe(binding.nodesToolbar.rightActionText::setEnabled)
     }
 
     override fun infoClicked(nodeModel: NodeModel) {

@@ -2,16 +2,15 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.mo
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import androidx.lifecycle.LifecycleCoroutineScope
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.databinding.ViewMoonbeamStep2Binding
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
-import kotlinx.android.synthetic.main.view_moonbeam_step2.view.tvMoonbeamRegistrationDesc
 
 class MoonbeamStep2Registration @JvmOverloads constructor(
     context: Context,
@@ -19,8 +18,11 @@ class MoonbeamStep2Registration @JvmOverloads constructor(
     defStyle: Int = 0
 ) : CustomContributeView(context, attrs, defStyle) {
 
+    private val binding: ViewMoonbeamStep2Binding
+
     init {
-        View.inflate(context, R.layout.view_moonbeam_step2, this)
+        inflate(context, R.layout.view_moonbeam_step2, this)
+        binding = ViewMoonbeamStep2Binding.bind(this)
 
         FeatureUtils.getFeature<CrowdloanFeatureComponent>(
             context,
@@ -30,7 +32,7 @@ class MoonbeamStep2Registration @JvmOverloads constructor(
 
     override fun bind(viewState: CustomContributeViewState, scope: LifecycleCoroutineScope) {
         require(viewState is MoonbeamContributeViewState)
-        tvMoonbeamRegistrationDesc.text = createSpannable(context.getString(R.string.moonbeam_registration_description)) {
+        binding.tvMoonbeamRegistrationDesc.text = createSpannable(context.getString(R.string.moonbeam_registration_description)) {
             clickable(context.getString(R.string.moonbeam_registration_description_system_remark)) {}
         }
     }

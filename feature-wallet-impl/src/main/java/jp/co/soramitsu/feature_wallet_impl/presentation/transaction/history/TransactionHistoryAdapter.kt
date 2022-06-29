@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
@@ -17,13 +19,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
-import kotlinx.android.synthetic.main.item_day_header.view.itemDayHeader
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionAmount
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionHeader
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionIcon
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionStatus
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionSubHeader
-import kotlinx.android.synthetic.main.item_transaction.view.itemTransactionTime
 
 class TransactionHistoryAdapter(
     private val handler: Handler,
@@ -55,29 +50,29 @@ class TransactionHolder(view: View, private val imageLoader: ImageLoader) : Grou
     fun bind(item: OperationModel, handler: TransactionHistoryAdapter.Handler) {
         with(containerView) {
             with(item) {
-                itemTransactionHeader.text = header
+                findViewById<TextView>(R.id.itemTransactionHeader).text = header
 
-                itemTransactionAmount.setTextColorRes(amountColorRes)
-                itemTransactionAmount.text = amount
+                findViewById<TextView>(R.id.itemTransactionAmount).setTextColorRes(amountColorRes)
+                findViewById<TextView>(R.id.itemTransactionAmount).text = amount
 
-                itemTransactionTime.text = time.formatDateTime(context)
+                findViewById<TextView>(R.id.itemTransactionTime).text = time.formatDateTime(context)
 
-                itemTransactionSubHeader.text = subHeader
+                findViewById<TextView>(R.id.itemTransactionSubHeader).text = subHeader
 
                 if (statusAppearance != OperationStatusAppearance.COMPLETED) {
-                    itemTransactionStatus.makeVisible()
-                    itemTransactionStatus.setImageResource(statusAppearance.icon)
+                    findViewById<ImageView>(R.id.itemTransactionStatus).makeVisible()
+                    findViewById<ImageView>(R.id.itemTransactionStatus).setImageResource(statusAppearance.icon)
                 } else {
-                    itemTransactionStatus.makeGone()
+                    findViewById<ImageView>(R.id.itemTransactionStatus).makeGone()
                 }
 
                 setOnClickListener { handler.transactionClicked(this) }
             }
 
             if (item.assetIconUrl != null) {
-                itemTransactionIcon.load(item.assetIconUrl, imageLoader)
+                findViewById<ImageView>(R.id.itemTransactionIcon).load(item.assetIconUrl, imageLoader)
             } else {
-                itemTransactionIcon.setImageDrawable(item.operationIcon)
+                findViewById<ImageView>(R.id.itemTransactionIcon).setImageDrawable(item.operationIcon)
             }
         }
     }
@@ -86,7 +81,7 @@ class TransactionHolder(view: View, private val imageLoader: ImageLoader) : Grou
 class DayHolder(view: View) : GroupedListHolder(view) {
     fun bind(item: DayHeader) {
         with(containerView) {
-            itemDayHeader.text = item.daysSinceEpoch.formatDaysSinceEpoch(context)
+            findViewById<TextView>(R.id.itemDayHeader).text = item.daysSinceEpoch.formatDaysSinceEpoch(context)
         }
     }
 }
