@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_onboarding_impl.presentation.welcome
 
 import android.os.Parcelable
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class WelcomeFragmentPayload(

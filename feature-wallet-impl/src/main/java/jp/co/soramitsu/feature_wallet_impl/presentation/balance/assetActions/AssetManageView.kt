@@ -7,16 +7,19 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_wallet_impl.R
-import kotlinx.android.synthetic.main.view_assets_manage.view.assetsManageAction
-import kotlinx.android.synthetic.main.view_assets_manage.view.assetsManageWarning
+import jp.co.soramitsu.feature_wallet_impl.databinding.ViewAssetsManageBinding
 
 class AssetManageView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+
+    private val binding: ViewAssetsManageBinding
+
     init {
-        View.inflate(context, R.layout.view_assets_manage, this)
+        inflate(context, R.layout.view_assets_manage, this)
+        binding = ViewAssetsManageBinding.bind(this)
 
         with(context) {
             background = addRipple(getCutCornerDrawable(R.color.blurColor))
@@ -24,10 +27,10 @@ class AssetManageView @JvmOverloads constructor(
     }
 
     val warning: View
-        get() = assetsManageWarning
+        get() = binding.assetsManageWarning
 
     fun setActionClickListener(listener: (View) -> Unit) {
-        assetsManageAction.setOnClickListener(listener)
+        binding.assetsManageAction.setOnClickListener(listener)
     }
 
     fun setWholeClickListener(listener: (View) -> Unit) {

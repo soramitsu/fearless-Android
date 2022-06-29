@@ -13,20 +13,11 @@ import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.core.BuildConfig
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportSeedBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.synthetic.main.fragment_export_seed.exportEthereumSeedCopyButton
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedAdvanced
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedEthereumLayout
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedEthereumValue
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedExport
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedSubstrateLayout
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedSubstrateValue
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedToolbar
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSeedType
-import kotlinx.android.synthetic.main.fragment_export_seed.exportSubstrateSeedCopyButton
 
 class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
@@ -37,30 +28,35 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
             bundleOf(PAYLOAD_KEY to ExportSeedPayload(metaId, chainId, isExportWallet))
     }
 
+    private lateinit var binding: FragmentExportSeedBinding
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_export_seed, container, false)
+        binding = FragmentExportSeedBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun initViews() {
-        exportSeedToolbar.setHomeButtonListener { viewModel.back() }
+        with(binding) {
+            exportSeedToolbar.setHomeButtonListener { viewModel.back() }
 
-        exportSeedToolbar.setTitle(
-            when {
-                viewModel.isExportFromWallet -> R.string.export_wallet
-                else -> R.string.account_export
-            }
-        )
+            exportSeedToolbar.setTitle(
+                when {
+                    viewModel.isExportFromWallet -> R.string.export_wallet
+                    else -> R.string.account_export
+                }
+            )
 
-        exportSeedAdvanced.configureSubstrate(FieldState.DISABLED)
-        exportSeedAdvanced.configureEthereum(FieldState.HIDDEN)
+            exportSeedAdvanced.configureSubstrate(FieldState.DISABLED)
+            exportSeedAdvanced.configureEthereum(FieldState.HIDDEN)
 
-        exportSeedExport.setOnClickListener { viewModel.exportClicked() }
+            exportSeedExport.setOnClickListener { viewModel.exportClicked() }
 
-        exportSubstrateSeedCopyButton.setOnClickListener { viewModel.substrateSeedClicked() }
-        exportSubstrateSeedCopyButton.isVisible = BuildConfig.DEBUG
+            exportSubstrateSeedCopyButton.setOnClickListener { viewModel.substrateSeedClicked() }
+            exportSubstrateSeedCopyButton.isVisible = BuildConfig.DEBUG
 
-        exportEthereumSeedCopyButton.setOnClickListener { viewModel.ethereumSeedClicked() }
-        exportEthereumSeedCopyButton.isVisible = BuildConfig.DEBUG
+            exportEthereumSeedCopyButton.setOnClickListener { viewModel.ethereumSeedClicked() }
+            exportEthereumSeedCopyButton.isVisible = BuildConfig.DEBUG
+        }
     }
 
     override fun inject() {
@@ -77,7 +73,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
         val typeNameRes = viewModel.exportSource.nameRes
 
-        exportSeedType.setMessage(typeNameRes)
+        binding.exportSeedType.setMessage(typeNameRes)
 
         mediateWith(
             viewModel.isEthereum,
@@ -90,35 +86,39 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
             val derivationPathFieldState = if (derivationPath.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
             val ethereumEncryptionTypeFieldState = if (ethereumSeed.isNullOrBlank()) FieldState.HIDDEN else FieldState.DISABLED
 
-            substrateSeed?.let { exportSeedSubstrateValue.setMessage(it) }
-            ethereumSeed?.let { exportSeedEthereumValue.setMessage(it) }
+            substrateSeed?.let { binding.exportSeedSubstrateValue.setMessage(it) }
+            ethereumSeed?.let { binding.exportSeedEthereumValue.setMessage(it) }
 
-            with(exportSeedAdvanced) {
+            with(binding.exportSeedAdvanced) {
                 derivationPathFieldState.applyTo(substrateDerivationPathField)
                 setSubstrateDerivationPath(derivationPath)
             }
 
             when {
                 viewModel.isExportFromWallet -> {
-                    exportSeedSubstrateLayout.isVisible = true
-                    exportSeedEthereumLayout.isGone = ethereumSeed.isNullOrBlank()
-                    ethereumEncryptionTypeFieldState.applyTo(exportSeedAdvanced.ethereumEncryptionTypeField)
+                    with(binding) {
+                        exportSeedSubstrateLayout.isVisible = true
+                        exportSeedEthereumLayout.isGone = ethereumSeed.isNullOrBlank()
+                        ethereumEncryptionTypeFieldState.applyTo(exportSeedAdvanced.ethereumEncryptionTypeField)
+                    }
                 }
                 isEthereum == true -> {
-                    exportSeedSubstrateLayout.isVisible = false
-                    exportSeedEthereumLayout.isVisible = true
-                    exportSeedAdvanced.configureSubstrate(FieldState.HIDDEN)
-                    FieldState.DISABLED.applyTo(exportSeedAdvanced.ethereumEncryptionTypeField)
+                    with(binding) {
+                        exportSeedSubstrateLayout.isVisible = false
+                        exportSeedEthereumLayout.isVisible = true
+                        exportSeedAdvanced.configureSubstrate(FieldState.HIDDEN)
+                        FieldState.DISABLED.applyTo(exportSeedAdvanced.ethereumEncryptionTypeField)
+                    }
                 }
                 isEthereum == false -> {
-                    exportSeedSubstrateLayout.isVisible = true
-                    exportSeedEthereumLayout.isVisible = false
+                    binding.exportSeedSubstrateLayout.isVisible = true
+                    binding.exportSeedEthereumLayout.isVisible = false
                 }
             }
         }.observe { }
 
         viewModel.cryptoTypeLiveData.observe {
-            exportSeedAdvanced.setSubstrateEncryption(it.name)
+            binding.exportSeedAdvanced.setSubstrateEncryption(it.name)
         }
     }
 }

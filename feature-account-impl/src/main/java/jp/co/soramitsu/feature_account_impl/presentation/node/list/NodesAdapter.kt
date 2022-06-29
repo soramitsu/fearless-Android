@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 import android.annotation.SuppressLint
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
@@ -10,12 +12,6 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeHeaderModel
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
-import kotlinx.android.synthetic.main.item_node.view.nodeCheck
-import kotlinx.android.synthetic.main.item_node.view.nodeDelete
-import kotlinx.android.synthetic.main.item_node.view.nodeHost
-import kotlinx.android.synthetic.main.item_node.view.nodeInfo
-import kotlinx.android.synthetic.main.item_node.view.nodeTitle
-import kotlinx.android.synthetic.main.item_node_group.view.nodeGroupTitle
 
 class NodesAdapter(
     private val nodeItemHandler: NodeItemHandler
@@ -70,12 +66,18 @@ class NodesAdapter(
 
 class NodeGroupHolder(view: View) : GroupedListHolder(view) {
     fun bind(nodeHeaderModel: NodeHeaderModel, isAuto: Boolean) = with(containerView) {
-        nodeGroupTitle.text = nodeHeaderModel.title
+        findViewById<TextView>(R.id.nodeGroupTitle).text = nodeHeaderModel.title
         isEnabled = !isAuto
     }
 }
 
 class NodeHolder(view: View) : GroupedListHolder(view) {
+
+    private val nodeTitle: TextView = view.findViewById(R.id.nodeTitle)
+    private val nodeHost: TextView = view.findViewById(R.id.nodeHost)
+    private val nodeCheck: ImageView = view.findViewById(R.id.nodeCheck)
+    private val nodeDelete: ImageView = view.findViewById(R.id.nodeDelete)
+    private val nodeInfo: ImageView = view.findViewById(R.id.nodeInfo)
 
     fun bind(
         nodeModel: NodeModel,

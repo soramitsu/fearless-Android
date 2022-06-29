@@ -1,9 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.custom
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
@@ -13,37 +9,31 @@ import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentRebondCustomBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import kotlinx.android.synthetic.main.fragment_rebond_custom.rebondAmount
-import kotlinx.android.synthetic.main.fragment_rebond_custom.rebondContinue
-import kotlinx.android.synthetic.main.fragment_rebond_custom.rebondFee
-import kotlinx.android.synthetic.main.fragment_rebond_custom.rebondToolbar
 import javax.inject.Inject
 
-class CustomRebondFragment : BaseFragment<CustomRebondViewModel>() {
+class CustomRebondFragment : BaseFragment<CustomRebondViewModel>(R.layout.fragment_rebond_custom) {
 
     @Inject protected lateinit var imageLoader: ImageLoader
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_rebond_custom, container, false)
-    }
+    private val binding by viewBinding(FragmentRebondCustomBinding::bind)
 
     override fun initViews() {
-        rebondToolbar.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            rebondToolbar.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
             }
-        }
 
-        rebondToolbar.setHomeButtonListener { viewModel.backClicked() }
-        rebondContinue.prepareForProgress(viewLifecycleOwner)
-        rebondContinue.setOnClickListener { viewModel.confirmClicked() }
+            rebondToolbar.setHomeButtonListener { viewModel.backClicked() }
+            rebondContinue.prepareForProgress(viewLifecycleOwner)
+            rebondContinue.setOnClickListener { viewModel.confirmClicked() }
+        }
     }
 
     override fun inject() {
@@ -60,20 +50,20 @@ class CustomRebondFragment : BaseFragment<CustomRebondViewModel>() {
         observeValidations(viewModel)
         observeRetries(viewModel)
 
-        viewModel.showNextProgress.observe(rebondContinue::setProgress)
+        viewModel.showNextProgress.observe(binding.rebondContinue::setProgress)
 
         viewModel.assetModelFlow.observe {
-            rebondAmount.setAssetBalance(it.assetBalance)
-            rebondAmount.setAssetName(it.tokenName)
-            rebondAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+            binding.rebondAmount.setAssetBalance(it.assetBalance)
+            binding.rebondAmount.setAssetName(it.tokenName)
+            binding.rebondAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
-        rebondAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
+        binding.rebondAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
 
         viewModel.amountFiatFLow.observe {
-            it?.let(rebondAmount::setAssetBalanceFiatAmount)
+            it?.let(binding.rebondAmount::setAssetBalanceFiatAmount)
         }
 
-        viewModel.feeLiveData.observe(rebondFee::setFeeStatus)
+        viewModel.feeLiveData.observe(binding.rebondFee::setFeeStatus)
     }
 }

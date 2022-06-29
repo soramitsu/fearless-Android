@@ -1,9 +1,5 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.create
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import jp.co.soramitsu.common.base.BaseFragment
@@ -12,40 +8,39 @@ import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.showSoftKeyboard
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentCreateAccountBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_create_account.accountNameInput
-import kotlinx.android.synthetic.main.fragment_create_account.nextBtn
-import kotlinx.android.synthetic.main.fragment_create_account.toolbar
 
-class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
+class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.fragment_create_account) {
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(payload: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_create_account, container, false)
-    }
+    private val binding by viewBinding(FragmentCreateAccountBinding::bind)
 
     override fun initViews() {
-        toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
+        with(binding) {
+            toolbar.setHomeButtonListener { viewModel.homeButtonClicked() }
 
-        nextBtn.setOnClickListener {
-            accountNameInput.hideSoftKeyboard()
-            viewModel.nextClicked()
+            nextBtn.setOnClickListener {
+                accountNameInput.hideSoftKeyboard()
+                viewModel.nextClicked()
+            }
+
+            accountNameInput.content.onTextChanged {
+                viewModel.accountNameChanged(it)
+            }
+
+            accountNameInput.content.filters = nameInputFilters()
+            accountNameInput.content.requestFocus()
+            accountNameInput.content.showSoftKeyboard()
         }
-
-        accountNameInput.content.onTextChanged {
-            viewModel.accountNameChanged(it)
-        }
-
-        accountNameInput.content.filters = nameInputFilters()
-        accountNameInput.content.requestFocus()
-        accountNameInput.content.showSoftKeyboard()
     }
 
     override fun inject() {
@@ -59,7 +54,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
 
     override fun subscribe(viewModel: CreateAccountViewModel) {
         viewModel.nextButtonEnabledLiveData.observe {
-            nextBtn.isEnabled = it
+            binding.nextBtn.isEnabled = it
         }
 
         viewModel.showScreenshotsWarningEvent.observeEvent {
@@ -73,7 +68,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>() {
             .setMessage(R.string.common_no_screenshot_message)
             .setPositiveButton(R.string.common_ok) { dialog, _ ->
                 dialog?.dismiss()
-                viewModel.screenshotWarningConfirmed(accountNameInput.content.text.toString())
+                viewModel.screenshotWarningConfirmed(binding.accountNameInput.content.text.toString())
             }
             .show()
     }

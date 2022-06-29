@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
+import android.widget.TextView
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -28,7 +29,6 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
-import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
 import javax.inject.Inject
 
 class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
@@ -60,7 +60,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         navigator.attach(navController, this)
 
-        rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
+        findViewById<TextView>(R.id.rootNetworkBar).setOnApplyWindowInsetsListener { view, insets ->
             view.updatePadding(top = WindowInsetsCompat.toWindowInsetsCompat(insets, view).getInsets(WindowInsetsCompat.Type.systemBars()).top)
 
             insets
@@ -177,27 +177,29 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     private fun showBadConnectionView() {
-        if (rootNetworkBar.isVisible) {
+        if (findViewById<TextView>(R.id.rootNetworkBar).isVisible) {
             return
         }
 
         val errorColor = getColor(R.color.colorAccent)
-        rootNetworkBar.setText(R.string.network_status_connecting)
-        rootNetworkBar.setBackgroundColor(errorColor)
+        findViewById<TextView>(R.id.rootNetworkBar).apply {
+            setText(R.string.network_status_connecting)
+            setBackgroundColor(errorColor)
+        }
         val animation = TranslateAnimation(0f, 0f, -ANIM_START_POSITION, 0f)
         animation.duration = ANIM_DURATION
-        rootNetworkBar.startAnimation(animation)
-        rootNetworkBar.isVisible = true
+        findViewById<TextView>(R.id.rootNetworkBar).startAnimation(animation)
+        findViewById<TextView>(R.id.rootNetworkBar).isVisible = true
     }
 
     private fun hideBadConnectionView() {
-        if (!rootNetworkBar.isVisible) {
+        if (!findViewById<TextView>(R.id.rootNetworkBar).isVisible) {
             return
         }
 
         val successColor = getColor(R.color.green)
-        rootNetworkBar.setText(R.string.network_status_connected)
-        rootNetworkBar.setBackgroundColor(successColor)
+        findViewById<TextView>(R.id.rootNetworkBar).setText(R.string.network_status_connected)
+        findViewById<TextView>(R.id.rootNetworkBar).setBackgroundColor(successColor)
         val animation = TranslateAnimation(0f, 0f, 0f, -ANIM_START_POSITION)
         animation.duration = ANIM_DURATION
         animation.startOffset = 500
@@ -206,13 +208,13 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             }
 
             override fun onAnimationEnd(p0: Animation?) {
-                rootNetworkBar.isVisible = false
+                findViewById<TextView>(R.id.rootNetworkBar).isVisible = false
             }
 
             override fun onAnimationStart(p0: Animation?) {
             }
         })
-        rootNetworkBar.startAnimation(animation)
+        findViewById<TextView>(R.id.rootNetworkBar).startAnimation(animation)
     }
 
     override fun changeLanguage() {

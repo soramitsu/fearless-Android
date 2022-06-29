@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.drawable.StateListDrawable
 import android.util.AttributeSet
 import android.util.StateSet
-import android.view.View
 import android.widget.Checkable
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
@@ -14,12 +13,7 @@ import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawableFromColors
 import jp.co.soramitsu.common.view.shape.getDisabledDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountFiat
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountGain
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetAmountToken
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetCheck
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetCheckedDisabled
-import kotlinx.android.synthetic.main.view_payout_target.view.payoutTargetName
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewPayoutTargetBinding
 import jp.co.soramitsu.common.R as RCommon
 
 private val CheckedStateSet = intArrayOf(android.R.attr.state_checked)
@@ -32,8 +26,11 @@ class RewardDestinationView @JvmOverloads constructor(
 
     private var isChecked: Boolean = false
 
+    private val binding: ViewPayoutTargetBinding
+
     init {
-        View.inflate(context, R.layout.view_payout_target, this)
+        inflate(context, R.layout.view_payout_target, this)
+        binding = ViewPayoutTargetBinding.bind(this)
 
         background = stateDrawable()
 
@@ -56,31 +53,31 @@ class RewardDestinationView @JvmOverloads constructor(
     }
 
     fun setName(name: String) {
-        payoutTargetName.text = name
+        binding.payoutTargetName.text = name
     }
 
     fun setTokenAmount(amount: String) {
-        payoutTargetAmountToken.text = amount
+        binding.payoutTargetAmountToken.text = amount
     }
 
     fun setPercentageGain(gain: String) {
-        payoutTargetAmountGain.text = gain
+        binding.payoutTargetAmountGain.text = gain
     }
 
     fun setFiatAmount(amount: String?) {
-        payoutTargetAmountFiat.setTextOrHide(amount)
+        binding.payoutTargetAmountFiat.setTextOrHide(amount)
     }
 
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
-        payoutTargetCheck.isVisible = enabled
-        payoutTargetCheckedDisabled.isVisible = !enabled
+        binding.payoutTargetCheck.isVisible = enabled
+        binding.payoutTargetCheckedDisabled.isVisible = !enabled
     }
 
     override fun setChecked(checked: Boolean) {
         isChecked = checked
-        payoutTargetCheck.isChecked = checked
+        binding.payoutTargetCheck.isChecked = checked
         refreshDrawableState()
     }
 

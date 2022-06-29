@@ -2,18 +2,13 @@ package jp.co.soramitsu.common.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.databinding.ViewGoNextBinding
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.utils.setVisible
-import kotlinx.android.synthetic.main.view_go_next.view.goNextActionImage
-import kotlinx.android.synthetic.main.view_go_next.view.goNextBadgeText
-import kotlinx.android.synthetic.main.view_go_next.view.goNextIcon
-import kotlinx.android.synthetic.main.view_go_next.view.goNextProgress
-import kotlinx.android.synthetic.main.view_go_next.view.goNextTitle
 
 class GoNextView @JvmOverloads constructor(
     context: Context,
@@ -21,8 +16,11 @@ class GoNextView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
+    private val binding: ViewGoNextBinding
+
     init {
-        View.inflate(context, R.layout.view_go_next, this)
+        inflate(context, R.layout.view_go_next, this)
+        binding = ViewGoNextBinding.bind(this)
 
         setBackgroundResource(R.drawable.bg_primary_list_item)
 
@@ -30,20 +28,20 @@ class GoNextView @JvmOverloads constructor(
     }
 
     val icon: ImageView
-        get() = goNextIcon
+        get() = binding.goNextIcon
 
     val title: TextView
-        get() = goNextTitle
+        get() = binding.goNextTitle
 
     fun setInProgress(inProgress: Boolean) {
         isEnabled = !inProgress
 
-        goNextActionImage.setVisible(!inProgress)
-        goNextProgress.setVisible(inProgress)
+        binding.goNextActionImage.setVisible(!inProgress)
+        binding.goNextProgress.setVisible(inProgress)
     }
 
     fun setBadgeText(badgeText: String?) {
-        goNextBadgeText.setTextOrHide(badgeText)
+        binding.goNextBadgeText.setTextOrHide(badgeText)
     }
 
     private fun applyAttributes(attributeSet: AttributeSet?) {
@@ -59,7 +57,7 @@ class GoNextView @JvmOverloads constructor(
         icon.setImageDrawable(iconDrawable)
 
         val actionIconDrawable = typedArray.getDrawable(R.styleable.GoNextView_actionIcon)
-        goNextActionImage.setImageDrawable(actionIconDrawable)
+        binding.goNextActionImage.setImageDrawable(actionIconDrawable)
 
         typedArray.recycle()
     }

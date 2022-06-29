@@ -3,23 +3,17 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets
 import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.constraintlayout.widget.Group
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import coil.load
+import com.google.android.material.switchmaterial.SwitchMaterial
+import jp.co.soramitsu.common.view.BadgeView
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsAccountExistStateGroup
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsAddAccount
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsBadge
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsItemAmount
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsItemDragView
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsItemIcon
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsItemName
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsItemSwitch
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsMissingAccountMessage
-import kotlinx.android.synthetic.main.item_manage_asset.view.manageAssetsMissingAccountStateGroup
-import kotlinx.android.synthetic.main.item_manage_asset.view.testnetBadge
 
 @SuppressLint("ClickableViewAccessibility")
 class ManageAssetViewHolder(
@@ -35,11 +29,11 @@ class ManageAssetViewHolder(
     }
 
     init {
-        itemView.manageAssetsItemSwitch.setOnCheckedChangeListener { _, checked ->
+        itemView.findViewById<SwitchMaterial>(R.id.manageAssetsItemSwitch).setOnCheckedChangeListener { _, checked ->
             listener.switch(adapterPosition, checked)
         }
 
-        itemView.manageAssetsItemDragView.setOnTouchListener { _, event ->
+        itemView.findViewById<ImageView>(R.id.manageAssetsItemDragView).setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 listener.startDrag(this)
             }
@@ -49,30 +43,30 @@ class ManageAssetViewHolder(
 
     fun bind(item: ManageAssetModel) =
         with(itemView) {
-            manageAssetsItemIcon.load(item.iconUrl, imageLoader)
-            manageAssetsItemName.text = item.name
+            findViewById<ImageView>(R.id.manageAssetsItemIcon).load(item.iconUrl, imageLoader)
+            findViewById<TextView>(R.id.manageAssetsItemName).text = item.name
 
-            manageAssetsAccountExistStateGroup.isVisible = item.hasAccount
-            manageAssetsMissingAccountStateGroup.isVisible = !item.hasAccount
+            findViewById<Group>(R.id.manageAssetsAccountExistStateGroup).isVisible = item.hasAccount
+            findViewById<Group>(R.id.manageAssetsMissingAccountStateGroup).isVisible = !item.hasAccount
             if (item.hasAccount) {
-                manageAssetsItemName.setTextColor(context.getColor(R.color.white))
-                manageAssetsItemAmount.text = item.amount
-                manageAssetsItemSwitch.isChecked = item.enabled
+                findViewById<TextView>(R.id.manageAssetsItemName).setTextColor(context.getColor(R.color.white))
+                findViewById<TextView>(R.id.manageAssetsItemAmount).text = item.amount
+                findViewById<SwitchMaterial>(R.id.manageAssetsItemSwitch).isChecked = item.enabled
                 setupNetworkBadge(item.network)
-                testnetBadge.isVisible = item.isTestNet
+                findViewById<BadgeView>(R.id.testnetBadge).isVisible = item.isTestNet
             } else {
-                manageAssetsItemName.setTextColor(context.getColor(R.color.black2))
-                manageAssetsBadge.isVisible = false
-                testnetBadge.isVisible = false
+                findViewById<TextView>(R.id.manageAssetsItemName).setTextColor(context.getColor(R.color.black2))
+                findViewById<BadgeView>(R.id.manageAssetsBadge).isVisible = false
+                findViewById<BadgeView>(R.id.testnetBadge).isVisible = false
             }
 
             if (item.markedAsNotNeed) {
-                manageAssetsMissingAccountMessage.setCompoundDrawables(null, null, null, null)
+                findViewById<TextView>(R.id.manageAssetsMissingAccountMessage).setCompoundDrawables(null, null, null, null)
             } else {
-                manageAssetsMissingAccountMessage.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_warning_filled, 0, 0, 0)
+                findViewById<TextView>(R.id.manageAssetsMissingAccountMessage).setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_warning_filled, 0, 0, 0)
             }
 
-            manageAssetsAddAccount.setOnClickListener {
+            findViewById<TextView>(R.id.manageAssetsAddAccount).setOnClickListener {
                 listener.addAccount(
                     chainId = item.chainId,
                     chainName = item.name,
@@ -83,9 +77,9 @@ class ManageAssetViewHolder(
         }
 
     private fun setupNetworkBadge(model: ManageAssetModel.Network?) = itemView.apply {
-        manageAssetsBadge.isVisible = model?.let {
-            manageAssetsBadge.setIcon(it.iconUrl, imageLoader)
-            manageAssetsBadge.setText(stringText = it.name)
+        findViewById<BadgeView>(R.id.manageAssetsBadge).isVisible = model?.let {
+            findViewById<BadgeView>(R.id.manageAssetsBadge).setIcon(it.iconUrl, imageLoader)
+            findViewById<BadgeView>(R.id.manageAssetsBadge).setText(stringText = it.name)
             true
         } ?: false
     }

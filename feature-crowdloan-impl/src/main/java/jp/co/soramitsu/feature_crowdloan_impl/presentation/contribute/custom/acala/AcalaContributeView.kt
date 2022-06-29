@@ -12,10 +12,10 @@ import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.Toolbar
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.databinding.AcalaReferralFlowBinding
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeView
-import kotlinx.android.synthetic.main.view_referral_flow.view.referralReferralCodeInput
 
 class AcalaContributeView @JvmOverloads constructor(
     context: Context,
@@ -24,6 +24,8 @@ class AcalaContributeView @JvmOverloads constructor(
 ) : ReferralContributeView(context, attrs, defStyle, R.layout.acala_referral_flow) {
 
     var icon: Drawable? = null
+
+    private val binding: AcalaReferralFlowBinding = AcalaReferralFlowBinding.bind(this)
 
     init {
         FeatureUtils.getFeature<CrowdloanFeatureComponent>(
@@ -41,7 +43,7 @@ class AcalaContributeView @JvmOverloads constructor(
 
         require(viewState is AcalaContributeViewState)
         viewState.privacyAcceptedFlow.value = true // agreement for acala on contribution screen
-        referralReferralCodeInput.hint = context.getString(R.string.crowdloan_referral_code_hint)
+        binding.referralReferralCodeInput.hint = context.getString(R.string.crowdloan_referral_code_hint)
 
         if (viewState.isAcala) {
             icon?.let {
