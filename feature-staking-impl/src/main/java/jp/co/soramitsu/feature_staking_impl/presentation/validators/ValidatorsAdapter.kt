@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -13,13 +15,6 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
-import kotlinx.android.extensions.LayoutContainer
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorActionIcon
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorIcon
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorInfo
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorName
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoringPrimary
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoringSecondary
 
 class ValidatorsAdapter(
     private val itemHandler: ItemHandler,
@@ -79,17 +74,17 @@ class ValidatorsAdapter(
     }
 }
 
-class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+class ValidatorViewHolder(private val containerView: View) : RecyclerView.ViewHolder(containerView) {
 
     fun bind(
         validator: ValidatorModel,
         itemHandler: ValidatorsAdapter.ItemHandler,
         mode: ValidatorsAdapter.Mode
     ) = with(containerView) {
-        itemValidatorName.text = validator.title
-        itemValidatorIcon.setImageDrawable(validator.image)
+        findViewById<TextView>(R.id.itemValidatorName).text = validator.title
+        findViewById<ImageView>(R.id.itemValidatorIcon).setImageDrawable(validator.image)
 
-        itemValidatorInfo.setOnClickListener {
+        findViewById<ImageView>(R.id.itemValidatorInfo).setOnClickListener {
             itemHandler.validatorInfoClicked(validator)
         }
 
@@ -107,43 +102,48 @@ class ValidatorViewHolder(override val containerView: View) : RecyclerView.ViewH
         validatorModel: ValidatorModel,
         handler: ValidatorsAdapter.ItemHandler
     ) = with(containerView) {
+        val icon = findViewById<ImageView>(R.id.itemValidatorActionIcon)
+
         when {
             mode == ValidatorsAdapter.Mode.EDIT -> {
-                itemValidatorActionIcon.setImageResource(R.drawable.ic_delete_symbol)
-                itemValidatorActionIcon.makeVisible()
+                icon.setImageResource(R.drawable.ic_delete_symbol)
+                icon.makeVisible()
 
-                itemValidatorActionIcon.setOnClickListener { handler.removeClicked(validatorModel) }
+                icon.setOnClickListener { handler.removeClicked(validatorModel) }
             }
             validatorModel.isChecked == null -> {
-                itemValidatorActionIcon.makeGone()
+                icon.makeGone()
             }
             else -> {
-                itemValidatorActionIcon.setOnClickListener(null)
+                icon.setOnClickListener(null)
 
-                itemValidatorActionIcon.setImageResource(R.drawable.ic_checkmark_white_24)
-                itemValidatorActionIcon.setVisible(validatorModel.isChecked, falseState = View.INVISIBLE)
+                icon.setImageResource(R.drawable.ic_checkmark_white_24)
+                icon.setVisible(validatorModel.isChecked, falseState = View.INVISIBLE)
             }
         }
     }
 
     fun bindScoring(validatorModel: ValidatorModel) = with(containerView) {
+        val scoringPrimary = findViewById<TextView>(R.id.itemValidatorScoringPrimary)
+        val scoringSecondary = findViewById<TextView>(R.id.itemValidatorScoringSecondary)
+
         when (val scoring = validatorModel.scoring) {
             null -> {
-                itemValidatorScoringPrimary.makeGone()
-                itemValidatorScoringSecondary.makeGone()
+                scoringPrimary.makeGone()
+                scoringSecondary.makeGone()
             }
 
             is ValidatorModel.Scoring.OneField -> {
-                itemValidatorScoringPrimary.makeVisible()
-                itemValidatorScoringSecondary.makeGone()
-                itemValidatorScoringPrimary.text = scoring.field
+                scoringPrimary.makeVisible()
+                scoringSecondary.makeGone()
+                scoringPrimary.text = scoring.field
             }
 
             is ValidatorModel.Scoring.TwoFields -> {
-                itemValidatorScoringPrimary.makeVisible()
-                itemValidatorScoringSecondary.makeVisible()
-                itemValidatorScoringPrimary.text = scoring.primary
-                itemValidatorScoringSecondary.text = scoring.secondary
+                scoringPrimary.makeVisible()
+                scoringSecondary.makeVisible()
+                scoringPrimary.text = scoring.primary
+                scoringSecondary.text = scoring.secondary
             }
         }
     }

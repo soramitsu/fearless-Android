@@ -1,48 +1,44 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.edit
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.dragAndDropItemTouchHelper
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentEditAccountsBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
-import kotlinx.android.synthetic.main.fragment_accounts.addAccount
-import kotlinx.android.synthetic.main.fragment_edit_accounts.accountsList
-import kotlinx.android.synthetic.main.fragment_edit_accounts.fearlessToolbar
 
-class AccountEditFragment : BaseFragment<AccountEditViewModel>(), EditAccountsAdapter.EditAccountItemHandler {
+class AccountEditFragment : BaseFragment<AccountEditViewModel>(R.layout.fragment_edit_accounts), EditAccountsAdapter.EditAccountItemHandler {
+
+    private val binding by viewBinding(FragmentEditAccountsBinding::bind)
+
     private lateinit var adapter: EditAccountsAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_edit_accounts, container, false)
-
     override fun initViews() {
-        accountsList.setHasFixedSize(true)
+        binding.accountsList.setHasFixedSize(true)
 
         val dragHelper = dragAndDropItemTouchHelper(viewModel.dragAndDropDelegate)
 
-        dragHelper.attachToRecyclerView(accountsList)
+        dragHelper.attachToRecyclerView(binding.accountsList)
 
         adapter = EditAccountsAdapter(this, dragHelper)
-        accountsList.adapter = adapter
 
-        fearlessToolbar.setRightActionClickListener {
-            viewModel.doneClicked()
+        with(binding) {
+            accountsList.adapter = adapter
+
+            fearlessToolbar.setRightActionClickListener {
+                viewModel.doneClicked()
+            }
+
+            fearlessToolbar.setHomeButtonListener {
+                viewModel.backClicked()
+            }
+
+            addAccount.setOnClickListener { viewModel.addAccountClicked() }
         }
-
-        fearlessToolbar.setHomeButtonListener {
-            viewModel.backClicked()
-        }
-
-        addAccount.setOnClickListener { viewModel.addAccountClicked() }
     }
 
     override fun inject() {

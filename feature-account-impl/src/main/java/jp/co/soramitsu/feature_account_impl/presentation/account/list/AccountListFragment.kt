@@ -1,22 +1,21 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentAccountsBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
-import kotlinx.android.synthetic.main.fragment_accounts.accountsList
-import kotlinx.android.synthetic.main.fragment_accounts.addAccount
-import kotlinx.android.synthetic.main.fragment_accounts.fearlessToolbar
 
 private const val ARG_DIRECTION = "ARG_DIRECTION"
 
-class AccountListFragment : BaseFragment<AccountListViewModel>(), AccountsAdapter.AccountItemHandler {
+class AccountListFragment : BaseFragment<AccountListViewModel>(R.layout.fragment_accounts), AccountsAdapter.AccountItemHandler {
     private lateinit var adapter: AccountsAdapter
+
+    private val binding by viewBinding(FragmentAccountsBinding::bind)
 
     companion object {
 
@@ -25,27 +24,23 @@ class AccountListFragment : BaseFragment<AccountListViewModel>(), AccountsAdapte
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ) = layoutInflater.inflate(R.layout.fragment_accounts, container, false)
-
     override fun initViews() {
         adapter = AccountsAdapter(this)
 
-        accountsList.setHasFixedSize(true)
-        accountsList.adapter = adapter
+        with(binding) {
+            accountsList.setHasFixedSize(true)
+            accountsList.adapter = adapter
 
-        fearlessToolbar.setRightActionClickListener {
-            viewModel.editClicked()
+            fearlessToolbar.setRightActionClickListener {
+                viewModel.editClicked()
+            }
+
+            fearlessToolbar.setHomeButtonListener {
+                viewModel.backClicked()
+            }
+
+            addAccount.setOnClickListener { viewModel.addAccountClicked() }
         }
-
-        fearlessToolbar.setHomeButtonListener {
-            viewModel.backClicked()
-        }
-
-        addAccount.setOnClickListener { viewModel.addAccountClicked() }
     }
 
     override fun inject() {

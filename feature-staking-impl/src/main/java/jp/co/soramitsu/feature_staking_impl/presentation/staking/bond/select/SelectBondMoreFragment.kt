@@ -1,9 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
@@ -13,21 +10,20 @@ import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentBondMoreBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreAmount
-import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreContainer
-import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreContinue
-import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreFee
-import kotlinx.android.synthetic.main.fragment_bond_more.bondMoreToolbar
 import javax.inject.Inject
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
+class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fragment_bond_more) {
 
     @Inject protected lateinit var imageLoader: ImageLoader
+
+    private val binding by viewBinding(FragmentBondMoreBinding::bind)
 
     companion object {
 
@@ -36,16 +32,8 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_bond_more, container, false)
-    }
-
     override fun initViews() {
-        bondMoreContainer.applyInsetter {
+        binding.bondMoreContainer.applyInsetter {
             type(statusBars = true) {
                 padding()
             }
@@ -53,9 +41,9 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
             consume(true)
         }
 
-        bondMoreToolbar.setHomeButtonListener { viewModel.backClicked() }
-        bondMoreContinue.prepareForProgress(viewLifecycleOwner)
-        bondMoreContinue.setOnClickListener { viewModel.nextClicked() }
+        binding.bondMoreToolbar.setHomeButtonListener { viewModel.backClicked() }
+        binding.bondMoreContinue.prepareForProgress(viewLifecycleOwner)
+        binding.bondMoreContinue.setOnClickListener { viewModel.nextClicked() }
     }
 
     override fun inject() {
@@ -74,20 +62,20 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>() {
         observeRetries(viewModel)
         observeValidations(viewModel)
 
-        viewModel.showNextProgress.observe(bondMoreContinue::setProgress)
+        viewModel.showNextProgress.observe(binding.bondMoreContinue::setProgress)
 
         viewModel.assetModelFlow.observe {
-            bondMoreAmount.setAssetBalance(it.assetBalance)
-            bondMoreAmount.setAssetName(it.tokenName)
-            bondMoreAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+            binding.bondMoreAmount.setAssetBalance(it.assetBalance)
+            binding.bondMoreAmount.setAssetName(it.tokenName)
+            binding.bondMoreAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
-        bondMoreAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
+        binding.bondMoreAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
 
         viewModel.enteredFiatAmountFlow.observe {
-            it?.let(bondMoreAmount::setAssetBalanceFiatAmount)
+            it?.let(binding.bondMoreAmount::setAssetBalanceFiatAmount)
         }
 
-        viewModel.feeLiveData.observe(bondMoreFee::setFeeStatus)
+        viewModel.feeLiveData.observe(binding.bondMoreFee::setFeeStatus)
     }
 }

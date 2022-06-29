@@ -1,44 +1,36 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.receive
 
 import android.content.Intent
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentReceiveBinding
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
-import kotlinx.android.synthetic.main.fragment_receive.accountView
-import kotlinx.android.synthetic.main.fragment_receive.fearlessToolbar
-import kotlinx.android.synthetic.main.fragment_receive.qrImg
 
 private const val KEY_ASSET_PAYLOAD = "assetPayload"
 
-class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
+class ReceiveFragment : BaseFragment<ReceiveViewModel>(R.layout.fragment_receive) {
     companion object {
         fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_receive, container, false)
+    private val binding by viewBinding(FragmentReceiveBinding::bind)
 
     override fun initViews() {
-        accountView.setWholeClickListener { viewModel.recipientClicked() }
+        binding.accountView.setWholeClickListener { viewModel.recipientClicked() }
 
-        fearlessToolbar.setHomeButtonListener {
+        binding.fearlessToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
 
-        fearlessToolbar.setRightActionClickListener {
+        binding.fearlessToolbar.setRightActionClickListener {
             viewModel.shareButtonClicked()
         }
     }
@@ -59,21 +51,21 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>() {
         setupExternalActions(viewModel)
 
         viewModel.qrBitmapLiveData.observe {
-            qrImg.setImageBitmap(it)
+            binding.qrImg.setImageBitmap(it)
         }
 
         viewModel.accountLiveData.observe { account ->
-            account.name?.let(accountView::setTitle)
-            accountView.setText(account.address)
+            account.name?.let(binding.accountView::setTitle)
+            binding.accountView.setText(account.address)
         }
 
         viewModel.accountIconLiveData.observe {
-            accountView.setAccountIcon(it.image)
+            binding.accountView.setAccountIcon(it.image)
         }
 
         viewModel.shareEvent.observeEvent(::startQrSharingIntent)
 
-        fearlessToolbar.setTitle(getString(R.string.wallet_asset_receive_template, viewModel.assetSymbol))
+        binding.fearlessToolbar.setTitle(getString(R.string.wallet_asset_receive_template, viewModel.assetSymbol))
     }
 
     private fun startQrSharingIntent(qrSharingPayload: QrSharingPayload) {

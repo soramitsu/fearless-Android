@@ -1,29 +1,22 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmRewardDestinationBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
-import kotlinx.android.synthetic.main.fragment_confirm_reward_destination.confirmRewardDestinationConfirm
-import kotlinx.android.synthetic.main.fragment_confirm_reward_destination.confirmRewardDestinationContainer
-import kotlinx.android.synthetic.main.fragment_confirm_reward_destination.confirmRewardDestinationFee
-import kotlinx.android.synthetic.main.fragment_confirm_reward_destination.confirmRewardDestinationOriginAccount
-import kotlinx.android.synthetic.main.fragment_confirm_reward_destination.confirmRewardDestinationRewardDestination
-import kotlinx.android.synthetic.main.fragment_confirm_reward_destination.confirmRewardDestinationToolbar
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
-class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationViewModel>() {
+class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationViewModel>(R.layout.fragment_confirm_reward_destination) {
 
     companion object {
 
@@ -32,31 +25,27 @@ class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationVi
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_confirm_reward_destination, container, false)
-    }
+    private val binding by viewBinding(FragmentConfirmRewardDestinationBinding::bind)
 
     override fun initViews() {
-        confirmRewardDestinationContainer.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            confirmRewardDestinationContainer.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
+
+                consume(true)
             }
 
-            consume(true)
+            confirmRewardDestinationToolbar.setHomeButtonListener { viewModel.backClicked() }
+
+            confirmRewardDestinationOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
+
+            confirmRewardDestinationConfirm.prepareForProgress(viewLifecycleOwner)
+            confirmRewardDestinationConfirm.setOnClickListener { viewModel.confirmClicked() }
+
+            confirmRewardDestinationRewardDestination.setPayoutAccountClickListener { viewModel.payoutAccountClicked() }
         }
-
-        confirmRewardDestinationToolbar.setHomeButtonListener { viewModel.backClicked() }
-
-        confirmRewardDestinationOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
-
-        confirmRewardDestinationConfirm.prepareForProgress(viewLifecycleOwner)
-        confirmRewardDestinationConfirm.setOnClickListener { viewModel.confirmClicked() }
-
-        confirmRewardDestinationRewardDestination.setPayoutAccountClickListener { viewModel.payoutAccountClicked() }
     }
 
     override fun inject() {
@@ -75,15 +64,15 @@ class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationVi
         observeValidations(viewModel)
         setupExternalActions(viewModel)
 
-        viewModel.showNextProgress.observe(confirmRewardDestinationConfirm::setProgress)
+        viewModel.showNextProgress.observe(binding.confirmRewardDestinationConfirm::setProgress)
 
-        viewModel.rewardDestinationLiveData.observe(confirmRewardDestinationRewardDestination::showRewardDestination)
+        viewModel.rewardDestinationLiveData.observe(binding.confirmRewardDestinationRewardDestination::showRewardDestination)
 
-        viewModel.feeLiveData.observe(confirmRewardDestinationFee::setFeeStatus)
+        viewModel.feeLiveData.observe(binding.confirmRewardDestinationFee::setFeeStatus)
 
         viewModel.originAccountModelLiveData.observe {
-            confirmRewardDestinationOriginAccount.setMessage(it.nameOrAddress)
-            confirmRewardDestinationOriginAccount.setTextIcon(it.image)
+            binding.confirmRewardDestinationOriginAccount.setMessage(it.nameOrAddress)
+            binding.confirmRewardDestinationOriginAccount.setTextIcon(it.image)
         }
     }
 }

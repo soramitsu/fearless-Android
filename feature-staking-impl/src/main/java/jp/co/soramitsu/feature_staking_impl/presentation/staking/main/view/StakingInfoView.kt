@@ -2,14 +2,13 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeInvisible
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_staking_info.view.*
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewStakingInfoBinding
 
 class StakingInfoView @JvmOverloads constructor(
     context: Context,
@@ -17,8 +16,11 @@ class StakingInfoView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewStakingInfoBinding
+
     init {
-        View.inflate(context, R.layout.view_staking_info, this)
+        inflate(context, R.layout.view_staking_info, this)
+        binding = ViewStakingInfoBinding.bind(this)
 
         orientation = VERTICAL
 
@@ -51,62 +53,62 @@ class StakingInfoView @JvmOverloads constructor(
     }
 
     fun setTitle(title: String) {
-        stakingInfoTitle.text = title
+        binding.stakingInfoTitle.text = title
     }
 
     fun setTitleVisibility(isVisible: Boolean) {
-        stakingInfoTitle.setVisible(isVisible)
+        binding.stakingInfoTitle.setVisible(isVisible)
     }
 
     fun setTitleDetail(titleDetail: String) {
-        stakingInfoTitleDetail.text = titleDetail
+        binding.stakingInfoTitleDetail.text = titleDetail
     }
 
     fun setBody(body: String) {
-        stakingInfoBody.text = body
+        binding.stakingInfoBody.text = body
     }
 
     fun setExtraBlockValueText(text: String) {
-        stakingInfoExtraBlockValue.text = text
+        binding.stakingInfoExtraBlockValue.text = text
     }
 
     fun showExtraBlockValue() {
-        stakingInfoExtraBlockValue.makeVisible()
+        binding.stakingInfoExtraBlockValue.makeVisible()
     }
 
     fun hideExtraBlockValue() {
-        stakingInfoExtraBlockValue.makeGone()
+        binding.stakingInfoExtraBlockValue.makeGone()
     }
 
     fun setExtraBlockAdditionalText(text: String) {
-        stakingInfoExtraTitleDetailView.makeVisible()
+        binding.stakingInfoExtraTitleDetailView.makeVisible()
 
-        stakingInfoExtraBlockAdditional.text = text
+        binding.stakingInfoExtraBlockAdditional.text = text
     }
 
     fun showWholeExtraBlock() {
-        stakingInfoExtraBlock.makeVisible()
+        binding.stakingInfoExtraBlock.makeVisible()
     }
 
     fun hideWholeExtraBlock() {
-        stakingInfoExtraBlock.makeGone()
+        binding.stakingInfoExtraBlock.makeGone()
     }
 
     fun makeExtraBlockInvisible() {
-        stakingInfoExtraBlock.makeInvisible()
+        binding.stakingInfoExtraBlock.makeInvisible()
     }
 
     fun showLoading() {
-        stakingInfoBodyShimmer.makeVisible()
-        stakingInfoBody.makeGone()
-        stakingInfoExtraBlockValue.makeGone()
-        stakingInfoExtraBlockShimmer.makeVisible()
+        binding.stakingInfoBodyShimmer.makeVisible()
+        binding.stakingInfoBody.makeGone()
+        binding.stakingInfoExtraBlockValue.makeGone()
+        binding.stakingInfoExtraBlockShimmer.makeVisible()
     }
 
     fun hideLoading() {
-        stakingInfoBody.makeVisible()
-        stakingInfoBodyShimmer.makeGone()
-        stakingInfoExtraBlockValue.makeVisible()
-        stakingInfoExtraBlockShimmer.makeGone()
+        binding.stakingInfoBody.makeVisible()
+        binding.stakingInfoBodyShimmer.makeGone()
+        binding.stakingInfoExtraBlockValue.makeVisible()
+        binding.stakingInfoExtraBlockShimmer.makeGone()
     }
 }

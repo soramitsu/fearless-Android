@@ -12,10 +12,8 @@ import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_wallet_api.R
+import jp.co.soramitsu.feature_wallet_api.databinding.ViewAssetSelectorBinding
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
-import kotlinx.android.synthetic.main.view_asset_selector.view.assetSelectorBalance
-import kotlinx.android.synthetic.main.view_asset_selector.view.assetSelectorIcon
-import kotlinx.android.synthetic.main.view_asset_selector.view.assetSelectorTokenName
 
 class AssetSelectorView @JvmOverloads constructor(
     context: Context,
@@ -27,8 +25,11 @@ class AssetSelectorView @JvmOverloads constructor(
         BLURRED, BORDERED
     }
 
+    private val binding: ViewAssetSelectorBinding
+
     init {
-        View.inflate(context, R.layout.view_asset_selector, this)
+        inflate(context, R.layout.view_asset_selector, this)
+        binding = ViewAssetSelectorBinding.bind(this)
 
         attrs?.let {
             applyAttributes(it)
@@ -59,9 +60,9 @@ class AssetSelectorView @JvmOverloads constructor(
         assetModel: AssetModel
     ) {
         with(assetModel) {
-            assetSelectorBalance.text = assetBalance
-            assetSelectorTokenName.text = tokenName
-            assetSelectorIcon.load(imageUrl, imageLoader)
+            binding.assetSelectorBalance.text = assetBalance
+            binding.assetSelectorTokenName.text = tokenName
+            binding.assetSelectorIcon.load(imageUrl, imageLoader)
         }
     }
 }

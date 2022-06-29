@@ -3,14 +3,12 @@ package jp.co.soramitsu.common.view
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.R
-import kotlinx.android.synthetic.main.view_token_badge.view.badgeIcon
-import kotlinx.android.synthetic.main.view_token_badge.view.badgeName
+import jp.co.soramitsu.common.databinding.ViewTokenBadgeBinding
 
 class BadgeView @JvmOverloads constructor(
     context: Context,
@@ -18,8 +16,12 @@ class BadgeView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
+    private val binding: ViewTokenBadgeBinding
+
     init {
-        View.inflate(context, R.layout.view_token_badge, this)
+        inflate(context, R.layout.view_token_badge, this)
+        binding = ViewTokenBadgeBinding.bind(this)
+
         orientation = HORIZONTAL
         background = ContextCompat.getDrawable(context, R.drawable.bg_asset_badge)
         applyAttributes(attrs)
@@ -40,18 +42,18 @@ class BadgeView @JvmOverloads constructor(
     }
 
     fun setIcon(icon: Drawable) {
-        badgeIcon.setImageDrawable(icon)
+        binding.badgeIcon.setImageDrawable(icon)
     }
 
     fun setIcon(iconUrl: String?, imageLoader: ImageLoader) {
-        badgeIcon.load(iconUrl, imageLoader)
+        binding.badgeIcon.load(iconUrl, imageLoader)
     }
 
     fun setText(text: CharSequence) {
-        badgeName.text = text
+        binding.badgeName.text = text
     }
 
     fun setText(stringText: String?) {
-        badgeName.text = stringText
+        binding.badgeName.text = stringText
     }
 }
