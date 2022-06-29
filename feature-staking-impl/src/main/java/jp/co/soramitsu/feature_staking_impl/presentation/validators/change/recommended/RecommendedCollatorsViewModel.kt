@@ -95,16 +95,18 @@ class RecommendedCollatorsViewModel(
                     minBond = collatorModel.collator.lowestTopDelegationAmount,
                     estimatedRewards = collatorModel.collator.apy,
                 ),
-                IdentityParcelModel(
-                    display = collatorModel.collator.identity?.display,
-                    legal = collatorModel.collator.identity?.legal,
-                    web = collatorModel.collator.identity?.web,
-                    riot = collatorModel.collator.identity?.riot,
-                    email = collatorModel.collator.identity?.email,
-                    pgpFingerprint = collatorModel.collator.identity?.pgpFingerprint,
-                    image = collatorModel.collator.identity?.image,
-                    twitter = collatorModel.collator.identity?.twitter,
-                ),
+                collatorModel.collator.identity?.let {
+                    IdentityParcelModel(
+                        display = it.display,
+                        legal = it.legal,
+                        web = it.web,
+                        riot = it.riot,
+                        email = it.email,
+                        pgpFingerprint = it.pgpFingerprint,
+                        image = it.image,
+                        twitter = it.twitter,
+                    )
+                },
                 collatorModel.collator.request.orEmpty(),
             )
         )

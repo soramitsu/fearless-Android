@@ -555,16 +555,18 @@ class DelegatorViewState(
                         minBond = candidateInfo.lowestTopDelegationAmount,
                         estimatedRewards = apy,
                     ),
-                    IdentityParcelModel(
-                        display = identity?.display,
-                        legal = identity?.legal,
-                        web = identity?.web,
-                        riot = identity?.riot,
-                        email = identity?.email,
-                        pgpFingerprint = identity?.pgpFingerprint,
-                        image = identity?.image,
-                        twitter = identity?.twitter,
-                    ),
+                    identity?.let {
+                        IdentityParcelModel(
+                            display = it.display,
+                            legal = it.legal,
+                            web = it.web,
+                            riot = it.riot,
+                            email = it.email,
+                            pgpFingerprint = it.pgpFingerprint,
+                            image = it.image,
+                            twitter = it.twitter,
+                        )
+                    },
                     candidateInfo.request.orEmpty(),
                 )
             )
