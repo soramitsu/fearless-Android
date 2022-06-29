@@ -157,7 +157,7 @@ class SelectCustomCollatorsViewModel(
             CollatorDetailsParcelModel(
                 collatorModel.accountIdHex,
                 CollatorStakeParcelModel(
-                    elected = true,
+                    status = collatorModel.collator.status,
                     selfBonded = collatorModel.collator.bond,
                     delegations = collatorModel.collator.delegationCount.toInt(),
                     totalStake = collatorModel.collator.totalCounted,

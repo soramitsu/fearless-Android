@@ -40,8 +40,8 @@ class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             item.stakedFiat?.let(::setTotalStakedFiat) ?: hideTotalStakeFiat()
             val status = when (item.status) {
                 DelegatorViewState.CollatorDelegationModel.Status.ACTIVE -> StakeSummaryView.Status.ActiveCollator(item.nextRewardTimeLeft)
-                DelegatorViewState.CollatorDelegationModel.Status.INACTIVE -> StakeSummaryView.Status.InactiveCollator()
                 DelegatorViewState.CollatorDelegationModel.Status.LEAVING -> StakeSummaryView.Status.LeavingCollator()
+                DelegatorViewState.CollatorDelegationModel.Status.INACTIVE,
                 DelegatorViewState.CollatorDelegationModel.Status.IDLE -> StakeSummaryView.Status.IdleCollator()
             }
 
