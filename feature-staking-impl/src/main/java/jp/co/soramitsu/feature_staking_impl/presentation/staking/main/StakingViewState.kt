@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.asLiveData
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
@@ -64,7 +65,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -495,7 +495,9 @@ class DelegatorViewState(
     availableManageActions = ManageStakeAction.values().toSet()
 ) {
 
-    val delegations = currentAssetFlow.filter { it.token.configuration.staking == Chain.Asset.StakingType.PARACHAIN }.map { asset ->
+    val delegations = flowOf {
+        val asset = currentAssetFlow.first()
+        if (asset.token.configuration.staking != Chain.Asset.StakingType.PARACHAIN) return@flowOf listOf()
         val chainId = asset.token.configuration.chainId
         val collatorsIds = delegatorState.delegations.map { it.collatorId }
         val chain = stakingInteractor.getSelectedChain()
@@ -505,10 +507,12 @@ class DelegatorViewState(
                 chain.accountFromMapKey(it.key) to it.value
             }
         }.toMap()
-        val delegations = delegatorState.delegations.map { collator ->
+        val candidateInfos = parachainScenarioInteractor.getCandidateInfos(chainId, collatorsIds)
+
+        delegatorState.delegations.mapNotNull { collator ->
             val collatorIdHex = collator.collatorId.toHexString(false)
             val identity = collatorsNamesMap[collatorIdHex]
-            val candidateInfo = parachainScenarioInteractor.getCollator(collator.collatorId)
+            val candidateInfo = candidateInfos[collatorIdHex] ?: return@mapNotNull null//parachainScenarioInteractor.getCollator(collator.collatorId)
 
             val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
             val rewarded = asset.token.amountFromPlanks(collator.rewardedAmountInPlanks)
@@ -531,7 +535,6 @@ class DelegatorViewState(
                 candidateInfo
             )
         }
-        return@map delegations
     }
 
     private fun calculateTimeTillTheEndOfRound(currentRound: Round, currentBlock: BigInteger, hoursInRound: Int): Long {

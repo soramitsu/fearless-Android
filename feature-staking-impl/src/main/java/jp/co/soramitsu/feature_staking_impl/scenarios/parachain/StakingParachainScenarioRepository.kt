@@ -79,7 +79,8 @@ class StakingParachainScenarioRepository(
         )
     }
 
-    suspend fun getCandidateInfos(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<CandidateInfo?> {
+    suspend fun getCandidateInfos(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<CandidateInfo> {
+        if(addresses20.isEmpty()) return emptyMap()
         return remoteStorage.queryKeys(
             chainId = chainId,
             keysBuilder = { runtime ->
@@ -91,7 +92,7 @@ class StakingParachainScenarioRepository(
                 )
             },
             binding = { scale, runtime ->
-                scale?.let { bindCandidateInfo(it, runtime) }
+                scale?.let { bindCandidateInfo(it, runtime) } ?: incompatible()
             }
         )
     }

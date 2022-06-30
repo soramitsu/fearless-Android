@@ -35,7 +35,7 @@ class CollatorProvider(
         }.toMap()
 
         val collators = candidateInfos.mapValuesNotNull {
-            it.value?.toCollator(it.key, identityInfo[it.key], apy[it.key])
+            it.value.toCollator(it.key, identityInfo[it.key], apy[it.key])
         }
         return collators
     }
