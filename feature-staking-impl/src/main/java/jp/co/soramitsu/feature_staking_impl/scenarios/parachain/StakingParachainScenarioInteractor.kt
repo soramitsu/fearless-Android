@@ -8,6 +8,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
+import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
@@ -222,5 +223,9 @@ class StakingParachainScenarioInteractor(
         val chain = stakingInteractor.getSelectedChain()
         val identities = identityRepositoryImpl.getIdentitiesFromIdsBytes(chain, listOf(collatorId))
         return identities[collatorId.toHexString()]
+    }
+
+    suspend fun getCandidateInfos(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<CandidateInfo> {
+        return stakingParachainScenarioRepository.getCandidateInfos(chainId, addresses20)
     }
 }
