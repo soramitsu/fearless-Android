@@ -5,6 +5,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfoStatus
 import kotlinx.android.parcel.Parcelize
+import kotlinx.android.parcel.RawValue
 
 sealed class ValidatorStakeParcelModel : Parcelable {
 
@@ -29,7 +30,7 @@ sealed class ValidatorStakeParcelModel : Parcelable {
 
 @Parcelize
 class CollatorStakeParcelModel(
-    val status: CandidateInfoStatus,
+    val status: @RawValue CandidateInfoStatus,
     val selfBonded: BigInteger,
     val delegations: Int,
     val totalStake: BigInteger,

@@ -15,17 +15,21 @@ class CandidateInfo(
     val status: CandidateInfoStatus,
 )
 
-enum class CandidateInfoStatus {
-    ACTIVE, EMPTY, LEAVING, IDLE;
+sealed class CandidateInfoStatus {
 
     companion object {
         fun from(key: String?) = when (key) {
             "Active" -> ACTIVE
-            "Leaving" -> LEAVING
+            "Leaving" -> LEAVING(null)
             "Idle" -> IDLE
             else -> EMPTY
         }
     }
+
+    object ACTIVE : CandidateInfoStatus()
+    object EMPTY : CandidateInfoStatus()
+    class LEAVING(val leavingBlock: Long?) : CandidateInfoStatus()
+    object IDLE : CandidateInfoStatus()
 }
 
 enum class CandidateCapacity {

@@ -258,4 +258,9 @@ class StakingParachainScenarioInteractor(
             )
         )
     }
+
+    suspend fun getLeaveCandidatesDelay(): Int {
+        val chainId = stakingInteractor.getSelectedChain().id
+        return stakingConstantsRepository.parachainLeaveCandidatesDelay(chainId).toInt()
+    }
 }
