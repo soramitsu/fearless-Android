@@ -21,7 +21,6 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfoStatus
-import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorStateStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
@@ -522,6 +521,12 @@ class DelegatorViewState(
             val hoursInRound = parachainScenarioInteractor.hoursInRound[chainId] ?: 0
             val millisecondsTillTheEndOfRound = calculateTimeTillTheEndOfRound(currentRound, currentBlock, hoursInRound)
 
+            val leaveCandidatesDelayInRounds = parachainScenarioInteractor.getLeaveCandidatesDelay()
+            val roundWhenCandidateWillLeave = (candidateInfo.status as? CandidateInfoStatus.LEAVING)?.leavingBlock?.let { it + leaveCandidatesDelayInRounds }
+            val roundsTillCandidateWillLeave = roundWhenCandidateWillLeave?.let { it - currentRound.current.toLong() }
+            val hoursTillCandidateWillLeave = roundsTillCandidateWillLeave?.times(hoursInRound)
+            val millisecondsTillCandidateWillLeave = hoursTillCandidateWillLeave?.times(60)?.times(60)?.times(1000)
+
             CollatorDelegationModel(
                 collatorId = collator.collatorId,
                 collatorAddress = collator.collatorId.toHexString(true),
@@ -530,7 +535,7 @@ class DelegatorViewState(
                 stakedFiat = staked.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
                 rewarded = rewarded.formatTokenAmount(asset.token.configuration),
                 rewardedFiat = rewarded.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
-                status = candidateInfo.status.toModelStatus(),
+                status = candidateInfo.toModelStatus(millisecondsTillTheEndOfRound, millisecondsTillCandidateWillLeave),
                 nextRewardTimeLeft = millisecondsTillTheEndOfRound,
                 candidateInfo
             )
@@ -593,24 +598,23 @@ class DelegatorViewState(
         val nextRewardTimeLeft: Long,
         val collator: CandidateInfo
     ) {
-        enum class Status {
-            ACTIVE, INACTIVE, LEAVING, IDLE;
-
-            companion object {
-                fun from(status: DelegatorStateStatus) = when (status) {
-                    DelegatorStateStatus.ACTIVE -> ACTIVE
-                    DelegatorStateStatus.EMPTY -> INACTIVE
-                    DelegatorStateStatus.LEAVING -> LEAVING
-                    DelegatorStateStatus.IDLE -> IDLE
-                }
-            }
+        sealed class Status {
+            class Active(val nextRoundTimeLeft: Long) : Status()
+            object Inactive : Status()
+            class Leaving(val collatorLeaveTimeLeft: Long?) : Status()
+            object Idle : Status()
         }
     }
 }
 
-fun CandidateInfoStatus.toModelStatus() = when (this) {
-    CandidateInfoStatus.ACTIVE -> DelegatorViewState.CollatorDelegationModel.Status.ACTIVE
-    CandidateInfoStatus.EMPTY -> DelegatorViewState.CollatorDelegationModel.Status.INACTIVE
-    CandidateInfoStatus.LEAVING -> DelegatorViewState.CollatorDelegationModel.Status.LEAVING
-    CandidateInfoStatus.IDLE -> DelegatorViewState.CollatorDelegationModel.Status.IDLE
+fun CandidateInfo.toModelStatus(
+    millisecondsTillTheEndOfRound: Long,
+    millisecondsTillCandidateWillLeave: Long?
+): DelegatorViewState.CollatorDelegationModel.Status {
+    return when (status) {
+        CandidateInfoStatus.ACTIVE -> DelegatorViewState.CollatorDelegationModel.Status.Active(millisecondsTillTheEndOfRound)
+        CandidateInfoStatus.EMPTY -> DelegatorViewState.CollatorDelegationModel.Status.Inactive
+        is CandidateInfoStatus.LEAVING -> DelegatorViewState.CollatorDelegationModel.Status.Leaving(millisecondsTillCandidateWillLeave) // todo
+        CandidateInfoStatus.IDLE -> DelegatorViewState.CollatorDelegationModel.Status.Idle
+    }
 }

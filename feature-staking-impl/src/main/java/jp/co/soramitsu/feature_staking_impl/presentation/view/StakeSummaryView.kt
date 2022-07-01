@@ -33,17 +33,18 @@ class StakeSummaryView @JvmOverloads constructor(
 
         class Inactive(eraDisplay: String) : Status(R.string.staking_nominator_status_inactive, R.color.red, eraDisplay)
 
-        class Waiting(override val timeLeft: Long) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null), WithTimer
+        class Waiting(override val timeLeft: Long, override val hideZeroTimer: Boolean = false) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null), WithTimer
 
-        class ActiveCollator(override val timeLeft: Long) : Status(R.string.staking_nominator_status_active, R.color.green, "Next reward"), WithTimer
+        class ActiveCollator(override val timeLeft: Long, override val hideZeroTimer: Boolean = false) : Status(R.string.staking_nominator_status_active, R.color.green, "Next round"), WithTimer
 
         class IdleCollator : Status(R.string.staking_collator_status_idle, R.color.colorGreyText, null)
 
-        class LeavingCollator : Status(R.string.staking_collator_status_leaving, R.color.colorGreyText, null)
+        class LeavingCollator(override val timeLeft: Long, override val hideZeroTimer: Boolean = true) : Status(R.string.staking_collator_status_leaving, R.color.red, "Waiting execution"), WithTimer
 
         interface WithTimer {
             val timeLeft: Long
             val extraMessage: String?
+            val hideZeroTimer: Boolean
         }
     }
 
@@ -65,7 +66,7 @@ class StakeSummaryView @JvmOverloads constructor(
         }
 
         if (status is Status.WithTimer) {
-            stakeSummaryStatusHelper.startTimer(millis = status.timeLeft, extraMessage = status.extraMessage)
+            stakeSummaryStatusHelper.startTimer(millis = status.timeLeft, extraMessage = status.extraMessage, hideZeroTimer = status.hideZeroTimer)
         } else {
             stakeSummaryStatusHelper.stopTimer()
             stakeSummaryStatusHelper.text = status.extraMessage

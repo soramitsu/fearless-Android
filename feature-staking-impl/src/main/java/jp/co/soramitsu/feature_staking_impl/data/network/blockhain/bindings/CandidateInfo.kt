@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.UseCaseBinding
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
@@ -24,7 +25,13 @@ fun bindCandidateInfo(scale: String, runtime: RuntimeSnapshot): CandidateInfo {
 
     val topCapacity = CandidateCapacity.from(dynamicInstance.getTyped<DictEnum.Entry<*>>("topCapacity").name)
     val bottomCapacity = CandidateCapacity.from(dynamicInstance.getTyped<DictEnum.Entry<*>>("bottomCapacity").name)
-    val status = CandidateInfoStatus.from(dynamicInstance.getTyped<DictEnum.Entry<*>>("status").name)
+    val status = dynamicInstance.getTyped<DictEnum.Entry<*>>("status")
+    val parsedStatus = if (status.name == "Leaving") {
+        val leavingRound = status.value as? BigInteger
+        CandidateInfoStatus.LEAVING(leavingRound?.toLong())
+    } else {
+        CandidateInfoStatus.from(status.name)
+    }
 
     return CandidateInfo(
         bond = dynamicInstance["bond"] ?: incompatible(),
@@ -36,6 +43,6 @@ fun bindCandidateInfo(scale: String, runtime: RuntimeSnapshot): CandidateInfo {
         topCapacity = topCapacity,
         bottomCapacity = bottomCapacity,
         request = dynamicInstance["request"],
-        status = status
+        status = parsedStatus
     )
 }

@@ -100,9 +100,9 @@ class CollatorDetailsViewModel(
     private fun mapStatus(status: CandidateInfoStatus) =
         when (status) {
             CandidateInfoStatus.ACTIVE -> R.string.staking_nominator_status_active to R.color.green
-            CandidateInfoStatus.LEAVING -> R.string.staking_collator_status_leaving to R.color.colorGreyText
             CandidateInfoStatus.EMPTY,
             CandidateInfoStatus.IDLE -> R.string.staking_collator_status_idle to R.color.colorGreyText
+            is CandidateInfoStatus.LEAVING -> R.string.staking_collator_status_leaving to R.color.colorGreyText
         }
 
 //    val errorFlow = flowOf { mapValidatorDetailsToErrors(validator) }
