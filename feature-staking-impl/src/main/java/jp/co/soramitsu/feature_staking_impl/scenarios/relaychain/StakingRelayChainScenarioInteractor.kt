@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_staking_impl.scenarios.relaychain
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
+import jp.co.soramitsu.common.validation.CompositeValidation
+import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -37,6 +39,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -398,6 +404,23 @@ class StakingRelayChainScenarioInteractor(
 
     override suspend fun stakePeriodInHours(): Int {
         return getEraHoursLength()
+    }
+
+    override fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                listOf(
+                    stakingInteractor.feeValidation(),
+                    MinimumAmountValidation(this),
+                    SetupStakingMaximumNominatorsValidation(
+                        stakingScenarioInteractor = this,
+                        errorProducer = { SetupStakingValidationFailure.MaxNominatorsReached },
+                        isAlreadyNominating = SetupStakingPayload::isAlreadyNominating,
+                        sharedState = stakingSharedState
+                    )
+                )
+            )
+        )
     }
 }
 

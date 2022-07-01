@@ -1,12 +1,15 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
@@ -29,8 +32,10 @@ interface StakingScenarioInteractor {
     suspend fun checkAccountRequiredValidation(accountAddress: String?): Boolean
     suspend fun maxStakersPerBlockProducer(): Int
     suspend fun unstakingPeriod(): Int
+
     // era for relaychain
     // round for parachain
     suspend fun stakePeriodInHours(): Int
     suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination
+    fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>
 }

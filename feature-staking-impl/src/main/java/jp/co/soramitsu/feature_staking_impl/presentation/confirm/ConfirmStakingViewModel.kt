@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
@@ -29,7 +28,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.setup.BondPayload
 import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess.ReadyToSubmit.Payload
@@ -62,7 +60,6 @@ class ConfirmStakingViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val resourceManager: ResourceManager,
-    private val validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val setupStakingInteractor: SetupStakingInteractor,
     private val chainRegistry: ChainRegistry,
@@ -272,7 +269,7 @@ class ConfirmStakingViewModel(
             )
 
             validationExecutor.requireValid(
-                validationSystem = validationSystem,
+                validationSystem = scenarioInteractor.getSetupStakingValidationSystem(),
                 payload = payload,
                 validationFailureTransformer = { stakingValidationFailure(payload, it, resourceManager) },
                 progressConsumer = _showNextProgress.progressConsumer()
