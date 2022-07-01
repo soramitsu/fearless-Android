@@ -21,6 +21,8 @@ class StakingConstantsRepository(
 
     suspend fun parachainLockupPeriodInRounds(chainId: ChainId): BigInteger = getParachainNumberConstant(chainId, "RevokeDelegationDelay")
 
+    suspend fun parachainLeaveCandidatesDelay(chainId: ChainId): BigInteger = getParachainNumberConstant(chainId, "LeaveCandidatesDelay")
+
     suspend fun parachainMinimumStaking(chainId: ChainId): BigInteger = getParachainNumberConstant(chainId, "MinDelegation")
 
     suspend fun maxValidatorsPerNominator(chainId: ChainId): Int {
