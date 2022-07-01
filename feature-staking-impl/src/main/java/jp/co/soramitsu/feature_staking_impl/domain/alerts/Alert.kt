@@ -1,7 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.domain.alerts
 
-import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import java.math.BigDecimal
+import jp.co.soramitsu.feature_staking_api.domain.model.Delegation
+import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 
 sealed class Alert {
 
@@ -14,4 +15,6 @@ sealed class Alert {
     object WaitingForNextEra : Alert()
 
     object SetValidators : Alert()
+
+    class ChangeCollators(val collatorIdHex: String, delegation: Delegation) : Alert()
 }

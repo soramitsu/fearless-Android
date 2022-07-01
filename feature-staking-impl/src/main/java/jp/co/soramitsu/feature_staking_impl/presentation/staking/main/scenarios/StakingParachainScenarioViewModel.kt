@@ -3,12 +3,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
@@ -77,6 +77,40 @@ class StakingParachainScenarioViewModel(
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
-        return flowOf<List<AlertModel>> { emptyList() }.withLoading()
+        return scenarioInteractor.getStakingStateFlow().map { state ->
+            if (state !is StakingState.Parachain.Delegator) return@map emptyList<AlertModel>()
+
+            val lowStakeAlerts = produceLowStakeAlerts(state).map { it.toModel() }
+            // todo add all other alerts
+
+            lowStakeAlerts
+        }.withLoading()
+    }
+
+    private suspend fun produceLowStakeAlerts(state: StakingState.Parachain.Delegator): List<Alert.ChangeCollators> {
+        val collatorIds = state.delegations.map { it.collatorId }
+        val bottomDelegations = scenarioInteractor.getBottomDelegations(state.chain.id, collatorIds)
+        val accountIdToCheck = state.accountId
+
+        return bottomDelegations.mapNotNull { (collatorIdHex, delegations) ->
+            val delegation = delegations.find { it.owner.contentEquals(accountIdToCheck) } ?: return@mapNotNull null
+            Alert.ChangeCollators(collatorIdHex, delegation)
+        }
+    }
+
+    // todo extract text to resources
+    // todo add all other alerts
+    private fun Alert.toModel(): AlertModel {
+        return when (this) {
+            is Alert.ChangeCollators -> {
+                AlertModel(
+                    StakingScenarioViewModel.WARNING_ICON,
+                    "Stake more",
+                    "Your stake became bottom delegation ",
+                    AlertModel.Type.CallToAction { baseViewModel.openCurrentValidators() }
+                )
+            }
+            else -> error("Wrong alert type")
+        }
     }
 }

@@ -1,15 +1,23 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
+import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
+import jp.co.soramitsu.common.data.network.runtime.binding.requireType
+import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
+import jp.co.soramitsu.feature_staking_api.domain.model.Delegation
 import jp.co.soramitsu.feature_staking_api.domain.model.DelegatorState
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -25,7 +33,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -80,7 +87,7 @@ class StakingParachainScenarioRepository(
     }
 
     suspend fun getCandidateInfos(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<CandidateInfo> {
-        if(addresses20.isEmpty()) return emptyMap()
+        if (addresses20.isEmpty()) return emptyMap()
         return remoteStorage.queryKeys(
             chainId = chainId,
             keysBuilder = { runtime ->
@@ -139,4 +146,31 @@ class StakingParachainScenarioRepository(
             scale?.let { bindDelegationScheduledRequests(it, runtime) }
         }
     )
+
+    suspend fun getBottomDelegations(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<List<Delegation>> {
+        return remoteStorage.queryKeys(
+            chainId = chainId,
+            keysBuilder = { runtime ->
+                val storage = runtime.metadata.parachainStaking().storage("BottomDelegations")
+                storage.storageKeys(
+                    runtime = runtime,
+                    singleMapArguments = addresses20,
+                    argumentTransform = { it.toHexString() }
+                )
+            },
+            binding = { scale, runtime ->
+                scale?.let { bindDelegations(it, runtime) } ?: incompatible()
+            }
+        )
+    }
+}
+
+fun bindDelegations(scale: String, runtime: RuntimeSnapshot): List<Delegation> {
+    val type = runtime.metadata.parachainStaking().storage("DelegatorState").returnType()
+
+    val dynamicInstance = type.fromHexOrNull(runtime, scale) ?: return emptyList()
+    requireType<Struct.Instance>(dynamicInstance)
+
+    return (dynamicInstance.getList("delegations")).map { it as Struct.Instance }
+        .map { Delegation(it["owner"] ?: incompatible(), it["amount"] ?: incompatible()) }
 }

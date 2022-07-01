@@ -216,14 +216,16 @@ class StakingFeatureModule {
         accountRepository: AccountRepository,
         stakingConstantsRepository: StakingConstantsRepository,
         stakingParachainScenarioRepository: StakingParachainScenarioRepository,
-        identityRepository: IdentityRepository
+        identityRepository: IdentityRepository,
+        stakingSharedState: StakingSharedState,
     ): StakingParachainScenarioInteractor {
         return StakingParachainScenarioInteractor(
             interactor,
             accountRepository,
             stakingConstantsRepository,
             stakingParachainScenarioRepository,
-            identityRepository
+            identityRepository,
+            stakingSharedState
         )
     }
 

@@ -105,7 +105,6 @@ class CollatorDetailsViewModel(
             CandidateInfoStatus.IDLE -> R.string.staking_collator_status_idle to R.color.colorGreyText
         }
 
-
 //    val errorFlow = flowOf { mapValidatorDetailsToErrors(validator) }
 //        .inBackground()
 //        .share()

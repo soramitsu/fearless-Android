@@ -512,7 +512,7 @@ class DelegatorViewState(
         delegatorState.delegations.mapNotNull { collator ->
             val collatorIdHex = collator.collatorId.toHexString(false)
             val identity = collatorsNamesMap[collatorIdHex]
-            val candidateInfo = candidateInfos[collatorIdHex] ?: return@mapNotNull null//parachainScenarioInteractor.getCollator(collator.collatorId)
+            val candidateInfo = candidateInfos[collatorIdHex] ?: return@mapNotNull null
 
             val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
             val rewarded = asset.token.amountFromPlanks(collator.rewardedAmountInPlanks)

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.combineToPair
@@ -9,9 +10,13 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
+import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
+import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -117,5 +122,20 @@ class StakingInteractor(
 
     suspend fun getChain(chainId: ChainId): Chain {
         return chainRegistry.getChain(chainId)
+    }
+
+    fun feeValidation(): SetupStakingFeeValidation {
+        return EnoughToPayFeesValidation(
+            feeExtractor = { it.maxFee },
+            availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
+                accountRepository,
+                walletRepository,
+                originAddressExtractor = { it.controllerAddress },
+                chainAssetExtractor = { it.asset.token.configuration },
+                stakingSharedState = stakingSharedState
+            ),
+            errorProducer = { SetupStakingValidationFailure.CannotPayFee },
+            extraAmountExtractor = { it.bondAmount ?: BigDecimal.ZERO }
+        )
     }
 }

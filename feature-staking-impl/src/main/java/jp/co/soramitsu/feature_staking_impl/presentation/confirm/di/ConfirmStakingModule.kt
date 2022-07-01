@@ -11,13 +11,10 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
-import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.setup.SetupStakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.confirm.ConfirmStakingViewModel
@@ -39,7 +36,6 @@ class ConfirmStakingModule {
         resourceManager: ResourceManager,
         addressDisplayUseCase: AddressDisplayUseCase,
         setupStakingInteractor: SetupStakingInteractor,
-        validationSystem: ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>,
         validationExecutor: ValidationExecutor,
         setupStakingSharedState: SetupStakingSharedState,
         chainRegistry: ChainRegistry,
@@ -53,7 +49,6 @@ class ConfirmStakingModule {
             addressIconGenerator,
             addressDisplayUseCase,
             resourceManager,
-            validationSystem,
             setupStakingSharedState,
             setupStakingInteractor,
             chainRegistry,
