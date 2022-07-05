@@ -7,10 +7,6 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_network_info.view.activeNominatorsView
-import kotlinx.android.synthetic.main.view_network_info.view.lockUpPeriodView
-import kotlinx.android.synthetic.main.view_network_info.view.minimumStakeView
-import kotlinx.android.synthetic.main.view_network_info.view.totalStakeView
 
 class RelayChainNetworkInfoView @JvmOverloads constructor(
     context: Context,
@@ -27,56 +23,56 @@ class RelayChainNetworkInfoView @JvmOverloads constructor(
     }
 
     override fun showLoading() {
-        totalStakeView.showLoading()
-        minimumStakeView.showLoading()
-        activeNominatorsView.showLoading()
-        lockUpPeriodView.showLoading()
+        binding.totalStakeView.showLoading()
+        binding.minimumStakeView.showLoading()
+        binding.activeNominatorsView.showLoading()
+        binding.lockUpPeriodView.showLoading()
     }
 
     override fun hideLoading() {
-        totalStakeView.hideLoading()
-        minimumStakeView.hideLoading()
-        activeNominatorsView.hideLoading()
-        lockUpPeriodView.hideLoading()
+        binding.totalStakeView.hideLoading()
+        binding.minimumStakeView.hideLoading()
+        binding.activeNominatorsView.hideLoading()
+        binding.lockUpPeriodView.hideLoading()
     }
 
     fun setTotalStake(totalStake: String) {
-        totalStakeView.setBody(totalStake)
+        binding.totalStakeView.setBody(totalStake)
     }
 
     fun setNominatorsCount(nominatorsCount: String) {
-        activeNominatorsView.setBody(nominatorsCount)
+        binding.activeNominatorsView.setBody(nominatorsCount)
     }
 
     fun setTotalStakeFiat(totalStake: String) {
-        totalStakeView.setExtraBlockValueText(totalStake)
+        binding.totalStakeView.setExtraBlockValueText(totalStake)
     }
 
     fun showTotalStakeFiat() {
-        totalStakeView.showWholeExtraBlock()
+        binding.totalStakeView.showWholeExtraBlock()
     }
 
     fun hideTotalStakeFiat() {
-        totalStakeView.makeExtraBlockInvisible()
+        binding.totalStakeView.makeExtraBlockInvisible()
     }
 
     fun setMinimumStake(minimumStake: String) {
-        minimumStakeView.setBody(minimumStake)
+        binding.minimumStakeView.setBody(minimumStake)
     }
 
     fun setLockupPeriod(period: String) {
-        lockUpPeriodView.setBody(period)
+        binding.lockUpPeriodView.setBody(period)
     }
 
     fun setMinimumStakeFiat(minimumStake: String) {
-        minimumStakeView.setExtraBlockValueText(minimumStake)
+        binding.minimumStakeView.setExtraBlockValueText(minimumStake)
     }
 
     fun showMinimumStakeFiat() {
-        minimumStakeView.showWholeExtraBlock()
+        binding.minimumStakeView.showWholeExtraBlock()
     }
 
     fun hideMinimumStakeFiat() {
-        minimumStakeView.makeExtraBlockInvisible()
+        binding.minimumStakeView.makeExtraBlockInvisible()
     }
 }

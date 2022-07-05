@@ -1,9 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.createSendEmailIntent

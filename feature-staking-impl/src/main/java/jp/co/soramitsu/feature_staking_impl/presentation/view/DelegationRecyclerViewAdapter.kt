@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.DelegatorViewState
-import kotlinx.android.synthetic.main.item_collator_delegation.view.summaryView
 
 class DelegationRecyclerViewAdapter(
     private val itemHandler: DelegationHandler
@@ -31,7 +30,7 @@ class DelegationRecyclerViewAdapter(
 
 class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     fun bind(item: DelegatorViewState.CollatorDelegationModel, itemHandler: DelegationRecyclerViewAdapter.DelegationHandler) {
-        itemView.summaryView.apply {
+        itemView.findViewById<StakeSummaryView>(R.id.summaryView).apply {
             hideLoading()
             setTitle(item.collatorName)
             setTotalRewards(item.rewarded)

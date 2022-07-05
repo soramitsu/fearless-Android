@@ -10,7 +10,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.databinding.ViewAccountInfoBinding
 import jp.co.soramitsu.common.databinding.ViewStakingAmountBinding
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible

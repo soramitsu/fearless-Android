@@ -7,8 +7,6 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_parachain_network_info.view.parachainLockUpPeriodView
-import kotlinx.android.synthetic.main.view_parachain_network_info.view.parachainMinimumStakeView
 
 class ParachainNetworkInfoView(
     context: Context,
@@ -20,6 +18,8 @@ class ParachainNetworkInfoView(
     override val storiesList: RecyclerView by lazy { view.findViewById(R.id.parachainStakingStoriesList) }
     override val infoTitle: TextView by lazy { view.findViewById(R.id.parachainStakingNetworkInfoTitle) }
     override val collapsibleView: ConstraintLayout by lazy { view.findViewById(R.id.parachainStakingNetworkCollapsibleView) }
+    private val parachainMinimumStakeView: StakingInfoView by lazy { view.findViewById(R.id.parachainMinimumStakeView) }
+    private val parachainLockUpPeriodView: StakingInfoView by lazy { view.findViewById(R.id.parachainLockUpPeriodView) }
 
     init {
         setup()

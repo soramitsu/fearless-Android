@@ -207,7 +207,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
 
     private fun setupNetworkInfo(model: StakingNetworkInfoModel.Parachain) {
         binding.stakingNetworkInfo.isVisible = false
-        binding. parachainStakingNetworkInfo.isVisible = true
+        binding.parachainStakingNetworkInfo.isVisible = true
         with(binding.parachainStakingNetworkInfo) {
             hideLoading()
             setMinimumStake(model.minimumStake)

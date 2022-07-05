@@ -15,7 +15,9 @@ import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 
-class SearchCustomValidatorsFragment : BaseFragment<SearchCustomValidatorsViewModel>(R.layout.fragment_search_custom_validators), ValidatorsAdapter.ItemHandler {
+class SearchCustomValidatorsFragment :
+    BaseFragment<SearchCustomValidatorsViewModel>(R.layout.fragment_search_custom_validators),
+    ValidatorsAdapter.ItemHandler {
 
     private val adapter: ValidatorsAdapter by lazy(LazyThreadSafetyMode.NONE) {
         ValidatorsAdapter(this)
