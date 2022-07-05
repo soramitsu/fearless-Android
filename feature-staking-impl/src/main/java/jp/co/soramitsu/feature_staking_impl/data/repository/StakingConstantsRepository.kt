@@ -49,6 +49,10 @@ class StakingConstantsRepository(
         return getParachainNumberConstant(chainId, "MaxBottomDelegationsPerCandidate").toInt()
     }
 
+    suspend fun candidateBondLessDelay(chainId: ChainId): Int {
+        return getParachainNumberConstant(chainId, "CandidateBondLessDelay").toInt()
+    }
+
     private suspend fun getNumberConstant(chainId: ChainId, constantName: String): BigInteger {
         val runtime = chainRegistry.getRuntime(chainId)
 
