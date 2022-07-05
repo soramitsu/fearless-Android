@@ -22,7 +22,7 @@ class LanguagesFragment : BaseFragment<LanguagesViewModel>(), LanguagesAdapter.L
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) : View {
+    ): View {
         binding = FragmentLanguagesBinding.inflate(inflater, container, false)
         return binding.root
     }

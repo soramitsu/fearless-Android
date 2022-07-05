@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.FrameLayout
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.ViewMnemonicWordBinding

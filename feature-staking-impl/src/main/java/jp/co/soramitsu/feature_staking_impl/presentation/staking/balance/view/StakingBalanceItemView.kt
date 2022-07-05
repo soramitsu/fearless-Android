@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.setTextOrHide

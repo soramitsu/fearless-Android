@@ -5,9 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.radiobutton.MaterialRadioButton
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.item_settings_sorting.view.settingsSortingItem
 
 private object SettingsSortingDiffCallback : DiffUtil.ItemCallback<SettingsSchema.Sorting>() {
     override fun areItemsTheSame(oldItem: SettingsSchema.Sorting, newItem: SettingsSchema.Sorting): Boolean {
@@ -37,13 +37,13 @@ class SettingsSortingAdapter(private val onCheckListener: (SettingsSchema.Sortin
 
 class SettingsSortingViewHolder(itemView: View, private val onCheckListener: (Int) -> Unit) : RecyclerView.ViewHolder(itemView) {
     init {
-        itemView.settingsSortingItem.setOnClickListener { onCheckListener(adapterPosition) }
+        itemView.findViewById<MaterialRadioButton>(R.id.settingsSortingItem).setOnClickListener { onCheckListener(adapterPosition) }
     }
 
     fun bind(item: SettingsSchema.Sorting) {
         itemView.apply {
-            settingsSortingItem.setText(item.title)
-            settingsSortingItem.isChecked = item.checked
+            findViewById<MaterialRadioButton>(R.id.settingsSortingItem).setText(item.title)
+            findViewById<MaterialRadioButton>(R.id.settingsSortingItem).isChecked = item.checked
         }
     }
 }

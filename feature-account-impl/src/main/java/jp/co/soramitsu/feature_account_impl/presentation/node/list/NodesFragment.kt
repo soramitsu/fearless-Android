@@ -37,7 +37,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) : View {
+    ): View {
         binding = FragmentNodesBinding.inflate(inflater, container, false)
         return binding.root
     }
