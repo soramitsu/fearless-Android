@@ -68,6 +68,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.CollatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
@@ -267,8 +269,8 @@ class Navigator :
         navController?.navigate(R.id.action_return_to_staking_balance)
     }
 
-    override fun openSelectUnbond() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment)
+    override fun openSelectUnbond(payload: SelectUnbondPayload) {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment, SelectUnbondFragment.getBundle(payload))
     }
 
     override fun openConfirmUnbond(payload: ConfirmUnbondPayload) {

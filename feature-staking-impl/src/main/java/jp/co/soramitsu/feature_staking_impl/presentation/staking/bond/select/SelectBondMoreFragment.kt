@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select
 
 import android.os.Bundle
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
@@ -44,6 +46,8 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fr
         binding.bondMoreToolbar.setHomeButtonListener { viewModel.backClicked() }
         binding.bondMoreContinue.prepareForProgress(viewLifecycleOwner)
         binding.bondMoreContinue.setOnClickListener { viewModel.nextClicked() }
+        binding.bondMoreConfirm.prepareForProgress(viewLifecycleOwner)
+        binding.bondMoreConfirm.setOnClickListener { viewModel.confirmClicked() }
     }
 
     override fun inject() {
@@ -76,6 +80,32 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fr
             it?.let(binding.bondMoreAmount::setAssetBalanceFiatAmount)
         }
 
-        viewModel.feeLiveData.observe(binding.bondMoreFee::setFeeStatus)
+        viewModel.feeLiveData.observe {
+            binding.bondMoreFee.setFeeStatus(it)
+            binding.bondMoreConfirmFee.setFeeStatus(it)
+        }
+
+        viewModel.collatorLiveData.observe {
+            it.ifPresent {
+                binding.collatorAddressView.isVisible = true
+                binding.collatorAddressView.setMessage(it.nameOrAddress)
+                binding.collatorAddressView.setTextIcon(it.image)
+            }
+        }
+
+        viewModel.accountLiveData.observe {
+            it.ifPresent {
+               binding.accountAddressView.isVisible = true
+               binding.accountAddressView.setMessage(it.nameOrAddress)
+               binding.accountAddressView.setTextIcon(it.image)
+            }
+        }
+
+        viewModel.oneScreenConfirmation.let { showConfirm ->
+            binding.stakingMoreRewardHint.isVisible = showConfirm
+            binding.confirmBondMoreLayout.isVisible = showConfirm
+            binding.bondMoreFee.isGone = showConfirm
+            binding.bondMoreContinue.isGone = showConfirm
+        }
     }
 }

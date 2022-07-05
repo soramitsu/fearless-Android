@@ -22,6 +22,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreVali
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.bondMoreValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
@@ -43,6 +44,7 @@ class ConfirmBondMoreViewModel(
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val payload: ConfirmBondMorePayload,
+    private val stakingScenarioInteractor: StakingScenarioInteractor
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     Validatable by validationExecutor {
@@ -126,7 +128,9 @@ class ConfirmBondMoreViewModel(
         val token = assetFlow.first().token
         val amountInPlanks = token.planksFromAmount(payload.amount)
 
-        val result = bondMoreInteractor.bondMore(payload.stashAddress, amountInPlanks)
+        val result = bondMoreInteractor.bondMore(payload.stashAddress) {
+            stakingScenarioInteractor.stakeMore(this, amountInPlanks, payload.collatorAddress)
+        }
 
         _showNextProgress.value = false
 

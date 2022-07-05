@@ -333,6 +333,10 @@ Derivation path: %s</string>
         <item quantity="one">%d day left</item>
         <item quantity="other">%d days left</item>
     </plurals>
+    <plurals name="days_format">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
     <string name="staking_reward_payouts_empty_rewards">Perfect! All rewards are paid.</string>
     <string name="staking_reward_details_validator">Validator</string>
     <string name="common_not_enough_funds_title">Insufficient balance</string>
@@ -340,13 +344,12 @@ Derivation path: %s</string>
     <string name="staking_warning_tiny_payout">The reward is less than the network fee.</string>
     <string name="staking_unbonding_limit_reached_message">You have reached the unstaking requests limit (%d active requests).</string>
     <string name="staking_unbonding_limit_reached_title">Unstaking requests limit reached</string>
-    <string name="staking_bond_more">Stake more</string>
-    <string name="staking_unbond">Unstake</string>
     <string name="staking_redeem">Redeem</string>
     <string name="parachain_staking_unlock">Unlock</string>
     <string name="staking_balance_ready_for_unlocking">Ready for unlocking</string>
     <string name="common_balance">Balance</string>
     <string name="your_collator">Your collator</string>
+    <string name="collator">Collator</string>
     <string name="staking_balance_title">Staking balance</string>
     <string name="make_payout_transaction_sent">Payout transaction sent</string>
     <string name="staking_zero_bond_error">Amount must be positive</string>
@@ -363,6 +366,8 @@ Derivation path: %s</string>
     <string name="staking_bonded_format">Bonded: %s</string>
     <string name="staking_unbonding_all_message">Remaining staking balance will drop under minimum value and also will be added to unstaking amount</string>
     <string name="staking_unbonding_hint">Your tokens will be available to redeem after the unstaking period.</string>
+    <string name="parachain_staking_unbonding_hint_template">Note: you can still cancel this initiation request. Once the exit delay period has passed (%1$s), you can return to this staking dashboard and execute the request, after which you will see the unbonded funds in your free balance.</string>
+    <string name="parachain_staking_unbonding_period_template">%1$s in %2$s - which is %3$s</string>
     <string name="common_account">Account</string>
     <string name="account_template">%s account</string>
     <string name="staking_redeemable_format">Redeemable: %s</string>
@@ -501,6 +506,7 @@ Derivation path: %s</string>
     <string name="staking_hint_no_rewards">Tokens in unstaking period generate no rewards.</string>
     <string name="staking_hint_redeem">After unstaking period you will need to redeem your tokens.</string>
     <string name="staking_hint_reward_bond_more">Your rewards will be increased starting from the next era.</string>
+    <string name="staking_hint_reward_more">Your rewards will be increased starting from the next period.</string>
     <string name="staking_hint_unbond_kills_stash">Fearless wallet will change rewards destination
 to your account to avoid remaining stake.</string>
     <string name="staking_custom_validators_settings_filters">Show</string>
@@ -544,6 +550,10 @@ to your account to avoid remaining stake.</string>
     <plurals name="common_hours_format">
         <item quantity="one">%d hour</item>
         <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="rounds_format">
+        <item quantity="one">%d round</item>
+        <item quantity="other">%d rounds</item>
     </plurals>
     <string name="import_mnemonic_invalid_title">Your mnemonic is invalid</string>
     <string name="account_error_try_another_one">Please, try another one.</string>

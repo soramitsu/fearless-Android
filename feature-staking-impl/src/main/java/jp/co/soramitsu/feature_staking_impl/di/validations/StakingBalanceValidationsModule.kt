@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
-import javax.inject.Named
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -16,7 +15,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MA
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_REDEEM
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.SYSTEM_MANAGE_STAKING_UNBOND
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
-import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import javax.inject.Named
 
 @Module
 class StakingBalanceValidationsModule {
@@ -28,7 +27,7 @@ class StakingBalanceValidationsModule {
         stakingScenarioInteractor: StakingScenarioInteractor,
     ) = BalanceAccountRequiredValidation(
         stakingScenarioInteractor,
-        accountAddressExtractor = { it.stashState?.controllerAddress.orEmpty() },
+        accountAddressExtractor = { it.stashState?.controllerAddress },
         errorProducer = ManageStakingValidationFailure::ControllerRequired,
     )
 
@@ -39,7 +38,7 @@ class StakingBalanceValidationsModule {
         stakingScenarioInteractor: StakingScenarioInteractor,
     ) = BalanceAccountRequiredValidation(
         stakingScenarioInteractor,
-        accountAddressExtractor = { it.stashState?.stashAddress.orEmpty() },
+        accountAddressExtractor = { it.stashState?.stashAddress },
         errorProducer = ManageStakingValidationFailure::StashRequired,
     )
 
@@ -47,10 +46,8 @@ class StakingBalanceValidationsModule {
     @Provides
     fun provideUnbondingLimitValidation(
         stakingScenarioInteractor: StakingScenarioInteractor,
-        stakingRepository: StakingRelayChainScenarioRepository,
     ) = BalanceUnlockingLimitValidation(
         stakingScenarioInteractor,
-        stakingRepository,
         errorProducer = ManageStakingValidationFailure::UnbondingRequestLimitReached
     )
 

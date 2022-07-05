@@ -325,6 +325,12 @@
         <item quantity="many">%d дней</item>
         <item quantity="other">%d дней</item>
     </plurals>
+    <plurals name="days_format">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дней</item>
+    </plurals>
     <string name="staking_reward_payouts_empty_rewards">Прекрасно! Все вознаграждения выплачены.</string>
     <string name="staking_reward_details_validator">Валидатор</string>
     <string name="common_not_enough_funds_title">Недостаточный баланс</string>
@@ -332,11 +338,10 @@
     <string name="staking_warning_tiny_payout">Вознаграждение меньше комиссии сети.</string>
     <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на вывод из стейка (%d активных запросов).</string>
     <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
-    <string name="staking_bond_more">Застейкать ещё</string>
-    <string name="staking_unbond">Вывод из стейка</string>
     <string name="staking_redeem">Забрать</string>
     <string name="common_balance">Баланс</string>
     <string name="your_collator">Ваш коллатор</string>
+    <string name="collator">Коллатор</string>
     <string name="staking_balance_title">Баланс стейкинга</string>
     <string name="make_payout_transaction_sent">Транзакция на выплату отправлена</string>
     <string name="staking_zero_bond_error">Сумма должна быть больше нуля</string>
@@ -486,6 +491,7 @@
     <string name="staking_hint_no_rewards">Во время вывода токены не приносят наград.</string>
     <string name="staking_hint_redeem">После вывода токенов из стейкинга не забудьте их забрать.</string>
     <string name="staking_hint_reward_bond_more">Ваши вознаграждения увеличатся со следующей эры.</string>
+    <string name="staking_hint_reward_more">Ваши вознаграждения увеличатся со следующего периода.</string>
     <string name="staking_hint_unbond_kills_stash">Fearless wallet изменит назначение вознаграждений
 на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
     <string name="staking_custom_validators_settings_filters">Показать</string>
@@ -531,6 +537,12 @@
         <item quantity="few">%d часа</item>
         <item quantity="many">%d часов</item>
         <item quantity="other">%d час</item>
+    </plurals>
+    <plurals name="rounds_format">
+        <item quantity="one">%d раунд</item>
+        <item quantity="few">%d раунда</item>
+        <item quantity="many">%d раундов</item>
+        <item quantity="other">%d раундов</item>
     </plurals>
     <string name="import_mnemonic_invalid_title">Ваша мнемоника недействительна</string>
     <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>

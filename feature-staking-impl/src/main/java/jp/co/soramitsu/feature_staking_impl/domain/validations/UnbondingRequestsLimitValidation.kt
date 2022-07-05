@@ -4,14 +4,12 @@ import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
-import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 
 private const val UNLOCKING_LIMIT = 32
 
 class UnbondingRequestsLimitValidation<P, E>(
     private val stakingScenarioInteractor: StakingScenarioInteractor,
-    val stakingRepository: StakingRelayChainScenarioRepository,
     val errorProducer: (limit: Int) -> E
 ) : Validation<P, E> {
 
