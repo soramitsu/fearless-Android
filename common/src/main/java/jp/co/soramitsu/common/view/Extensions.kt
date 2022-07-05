@@ -17,7 +17,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 private val TIMER_TAG = R.string.common_time_left
 
-fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, extraMessage: String? = null, hideZeroTimer: Boolean = false, onFinish: ((view: TextView) -> Unit)? = null) {
+fun TextView.startTimer(
+    millis: Long,
+    timeLeftTimestamp: Long? = null,
+    extraMessage: String? = null,
+    hideZeroTimer: Boolean = false,
+    onFinish: ((view: TextView) -> Unit)? = null
+) {
     val deltaTime = if (timeLeftTimestamp != null) System.currentTimeMillis() - timeLeftTimestamp else 0L
 
     val currentTimer = getTag(TIMER_TAG)
@@ -30,7 +36,7 @@ fun TextView.startTimer(millis: Long, timeLeftTimestamp: Long? = null, extraMess
         @SuppressLint("SetTextI18n")
         override fun onTick(millisUntilFinished: Long) {
             val days = millisUntilFinished.toDuration(DurationUnit.MILLISECONDS).toInt(DurationUnit.DAYS)
-            if(hideZeroTimer){
+            if (hideZeroTimer) {
                 hashCode()
             }
             val formattedTime = when {

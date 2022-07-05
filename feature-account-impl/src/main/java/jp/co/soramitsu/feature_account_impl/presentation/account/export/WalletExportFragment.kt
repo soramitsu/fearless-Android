@@ -31,7 +31,7 @@ class WalletExportFragment : BaseFragment<WalletExportViewModel>() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) : View {
+    ): View {
         binding = FragmentWalletExportBinding.inflate(inflater, container, false)
         return binding.root
     }

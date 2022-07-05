@@ -29,7 +29,7 @@ abstract class NetworkInfoView @JvmOverloads constructor(
         COLLAPSED
     }
 
-    private val binding: ViewNetworkInfoBinding
+    protected val binding: ViewNetworkInfoBinding
 
     var storyItemHandler: (StakingStoryModel) -> Unit = {}
 
@@ -62,10 +62,10 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     }
 
     private fun setupViews() {
-        binding.storiesList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        binding.storiesList.adapter = storiesAdapter
+        binding.stakingStoriesList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        binding.stakingStoriesList.adapter = storiesAdapter
 
-        binding.infoTitle.setOnClickListener { changeExpandableState() }
+        binding.stakingNetworkInfoTitle.setOnClickListener { changeExpandableState() }
     }
 
     private fun applyAttributes(attrs: AttributeSet?) {
@@ -80,7 +80,7 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     }
 
     fun setTitle(title: String) {
-        binding.infoTitle.text = title
+        binding.stakingNetworkInfoTitle.text = title
     }
 
     fun submitStories(stories: List<StakingStoryModel>) {
@@ -104,19 +104,19 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     }
 
     private fun collapse() {
-        binding.infoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
+        binding.stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
         currentState = State.COLLAPSED
-        binding.collapsibleView.animate()
+        binding.stakingNetworkCollapsibleView.animate()
             .setDuration(ANIMATION_DURATION)
             .alpha(0f)
-            .withEndAction { binding.collapsibleView.makeGone() }
+            .withEndAction { binding.stakingNetworkCollapsibleView.makeGone() }
     }
 
     private fun expand() {
-        binding.infoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
-        binding.collapsibleView.makeVisible()
+        binding.stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
+        binding.stakingNetworkCollapsibleView.makeVisible()
         currentState = State.EXPANDED
-        binding.collapsibleView.animate()
+        binding.stakingNetworkCollapsibleView.animate()
             .setDuration(ANIMATION_DURATION)
             .alpha(1f)
     }

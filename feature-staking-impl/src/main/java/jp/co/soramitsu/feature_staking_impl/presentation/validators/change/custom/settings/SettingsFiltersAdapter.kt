@@ -5,9 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.switchmaterial.SwitchMaterial
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.item_settings_filter.view.settingsFilterItem
 
 private object SettingsFilterDiffCallback : DiffUtil.ItemCallback<SettingsSchema.Filter>() {
     override fun areItemsTheSame(oldItem: SettingsSchema.Filter, newItem: SettingsSchema.Filter): Boolean {
@@ -37,13 +37,13 @@ class SettingsFiltersAdapter(private val onCheckListener: (SettingsSchema.Filter
 
 class SettingsFilterViewHolder(itemView: View, private val onCheckListener: (Int) -> Unit) : RecyclerView.ViewHolder(itemView) {
     init {
-        itemView.settingsFilterItem.setOnClickListener { onCheckListener(adapterPosition) }
+        itemView.findViewById<SwitchMaterial>(R.id.settingsFilterItem).setOnClickListener { onCheckListener(adapterPosition) }
     }
 
     fun bind(item: SettingsSchema.Filter) {
         itemView.apply {
-            settingsFilterItem.setText(item.title)
-            settingsFilterItem.isChecked = item.checked
+            findViewById<SwitchMaterial>(R.id.settingsFilterItem).setText(item.title)
+            findViewById<SwitchMaterial>(R.id.settingsFilterItem).isChecked = item.checked
         }
     }
 }

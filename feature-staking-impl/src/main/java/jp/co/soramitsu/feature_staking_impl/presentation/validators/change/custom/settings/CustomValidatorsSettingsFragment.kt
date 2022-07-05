@@ -11,7 +11,8 @@ import jp.co.soramitsu.feature_staking_impl.databinding.FragmentCustomValidators
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
-class CustomValidatorsSettingsFragment : BaseFragment<CustomValidatorsSettingsViewModel>(R.layout.fragment_custom_validators_settings) {
+class CustomValidatorsSettingsFragment :
+    BaseFragment<CustomValidatorsSettingsViewModel>(R.layout.fragment_custom_validators_settings) {
 
     companion object {
         private const val STAKING_TYPE_KEY = "stakingType"
@@ -20,13 +21,11 @@ class CustomValidatorsSettingsFragment : BaseFragment<CustomValidatorsSettingsVi
 
     private val filtersAdapter by lazy { SettingsFiltersAdapter(viewModel::onFilterChecked) }
     private val sortingAdapter by lazy { SettingsSortingAdapter(viewModel::onSortingChecked) }
-    
     private val binding by viewBinding(FragmentCustomValidatorsSettingsBinding::bind)
 
     override fun initViews() {
         with(binding) {
             customValidatorSettingsApply.setOnClickListener { viewModel.applyChanges() }
-
             customValidatorSettingsToolbar.setHomeButtonListener { viewModel.backClicked() }
             customValidatorSettingsToolbar.setRightActionClickListener { viewModel.reset() }
             settingsFiltersList.adapter = filtersAdapter
@@ -46,7 +45,7 @@ class CustomValidatorsSettingsFragment : BaseFragment<CustomValidatorsSettingsVi
     }
 
     override fun subscribe(viewModel: CustomValidatorsSettingsViewModel) {
-        viewModel.isResetButtonEnabled.observe(customValidatorSettingsToolbar.rightActionText::setEnabled)
+        viewModel.isResetButtonEnabled.observe(binding.customValidatorSettingsToolbar.rightActionText::setEnabled)
         viewModel.isApplyButtonEnabled.observe {
             binding.customValidatorSettingsApply.setState(if (it) ButtonState.NORMAL else ButtonState.DISABLED)
         }

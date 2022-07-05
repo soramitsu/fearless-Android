@@ -7,7 +7,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.ViewValidatorIdentityBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
 
-
 class ValidatorIdentityView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,

@@ -2,14 +2,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
-import kotlinx.android.synthetic.main.view_payout_viewer.view.payoutViewerAccountView
-import kotlinx.android.synthetic.main.view_payout_viewer.view.payoutViewerInfo
-import kotlinx.android.synthetic.main.view_payout_viewer.view.payoutViewerLearnMore
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewPayoutViewerBinding
 
 class PayoutViewerView @JvmOverloads constructor(
     context: Context,
@@ -17,25 +14,28 @@ class PayoutViewerView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewPayoutViewerBinding
+
     init {
         orientation = VERTICAL
 
-        View.inflate(context, R.layout.view_payout_viewer, this)
+        inflate(context, R.layout.view_payout_viewer, this)
+        binding = ViewPayoutViewerBinding.bind(this)
     }
 
     fun setRewardEstimation(estimation: RewardEstimation) {
-        payoutViewerInfo.setPercentageGain(estimation.gain)
-        payoutViewerInfo.setTokenAmount(estimation.amount)
-        payoutViewerInfo.setFiatAmount(estimation.fiatAmount)
+        binding.payoutViewerInfo.setPercentageGain(estimation.gain)
+        binding.payoutViewerInfo.setTokenAmount(estimation.amount)
+        binding.payoutViewerInfo.setFiatAmount(estimation.fiatAmount)
     }
 
     fun setAccountInfo(addressModel: AddressModel) {
-        payoutViewerAccountView.setText(addressModel.address)
-        payoutViewerAccountView.setTitle(addressModel.name ?: "")
-        payoutViewerAccountView.setAccountIcon(addressModel.image)
+        binding.payoutViewerAccountView.setText(addressModel.address)
+        binding.payoutViewerAccountView.setTitle(addressModel.name ?: "")
+        binding.payoutViewerAccountView.setAccountIcon(addressModel.image)
     }
 
     fun setOnViewMoreClickListener(viewMore: () -> Unit) {
-        payoutViewerLearnMore.setOnClickListener { viewMore() }
+        binding.payoutViewerLearnMore.setOnClickListener { viewMore() }
     }
 }

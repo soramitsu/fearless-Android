@@ -41,6 +41,8 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     @Inject
     lateinit var navigator: Navigator
 
+    private val rootNetworkBar: TextView by lazy { findViewById(R.id.rootNetworkBar) }
+
     override fun inject() {
         FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
             .mainActivityComponentFactory()
@@ -60,7 +62,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         navigator.attach(navController, this)
 
-        findViewById<TextView>(R.id.rootNetworkBar).setOnApplyWindowInsetsListener { view, insets ->
+        rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
             view.updatePadding(top = WindowInsetsCompat.toWindowInsetsCompat(insets, view).getInsets(WindowInsetsCompat.Type.systemBars()).top)
 
             insets
@@ -177,7 +179,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     private fun showBadConnectionView() {
-        if (findViewById<TextView>(R.id.rootNetworkBar).isVisible) {
+        if (rootNetworkBar.isVisible) {
             return
         }
 
@@ -198,8 +200,8 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         }
 
         val successColor = getColor(R.color.green)
-        findViewById<TextView>(R.id.rootNetworkBar).setText(R.string.network_status_connected)
-        findViewById<TextView>(R.id.rootNetworkBar).setBackgroundColor(successColor)
+        rootNetworkBar.setText(R.string.network_status_connected)
+        rootNetworkBar.setBackgroundColor(successColor)
         val animation = TranslateAnimation(0f, 0f, 0f, -ANIM_START_POSITION)
         animation.duration = ANIM_DURATION
         animation.startOffset = 500

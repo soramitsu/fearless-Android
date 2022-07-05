@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.utils.doOnGlobalLayout
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.databinding.FragmentBackupMnemonicBinding
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentConfirmMnemonicBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
