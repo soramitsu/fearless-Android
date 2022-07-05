@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.dp

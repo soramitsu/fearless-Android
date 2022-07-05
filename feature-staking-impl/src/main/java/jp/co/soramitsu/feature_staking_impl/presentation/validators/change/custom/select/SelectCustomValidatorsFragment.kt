@@ -16,7 +16,9 @@ import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 
-class SelectCustomValidatorsFragment : BaseFragment<SelectCustomValidatorsViewModel>(R.layout.fragment_select_custom_validators), ValidatorsAdapter.ItemHandler {
+class SelectCustomValidatorsFragment :
+    BaseFragment<SelectCustomValidatorsViewModel>(R.layout.fragment_select_custom_validators),
+    ValidatorsAdapter.ItemHandler {
 
     lateinit var adapter: ValidatorsAdapter
 

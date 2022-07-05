@@ -43,9 +43,10 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>(R.layout.fragme
             setupStakingToolbar.setHomeButtonListener { viewModel.backClicked() }
             onBackPressed { viewModel.backClicked() }
 
-        setupStakingNext.prepareForProgress(viewLifecycleOwner)
-        setupStakingNext.setOnClickListener { viewModel.nextClicked() }
-        setupStakingPayoutViewer.setOnViewMoreClickListener { viewModel.learnMoreClicked(viewModel) }
+            setupStakingNext.prepareForProgress(viewLifecycleOwner)
+            setupStakingNext.setOnClickListener { viewModel.nextClicked() }
+            setupStakingPayoutViewer.setOnViewMoreClickListener { viewModel.learnMoreClicked(viewModel) }
+        }
     }
 
     override fun inject() {

@@ -2,19 +2,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details.vie
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.ColorRes
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_collator_info.view.collatorDelegations
-import kotlinx.android.synthetic.main.view_collator_info.view.collatorEffectiveAmountBonded
-import kotlinx.android.synthetic.main.view_collator_info.view.collatorEstimatedReward
-import kotlinx.android.synthetic.main.view_collator_info.view.collatorMinBond
-import kotlinx.android.synthetic.main.view_collator_info.view.collatorSelfBonded
-import kotlinx.android.synthetic.main.view_collator_info.view.collatorStatusView
-import kotlinx.android.synthetic.main.view_collator_info.view.collatorTotalStakeView
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewCollatorInfoBinding
 
 class CollatorInfoView @JvmOverloads constructor(
     context: Context,
@@ -22,44 +15,47 @@ class CollatorInfoView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewCollatorInfoBinding
+
     init {
-        View.inflate(context, R.layout.view_collator_info, this)
+        inflate(context, R.layout.view_collator_info, this)
+        binding = ViewCollatorInfoBinding.bind(this)
 
         orientation = VERTICAL
     }
 
-    private val totalStakeFields = listOf(collatorTotalStakeView, collatorEstimatedReward)
+    private val totalStakeFields = listOf(binding.collatorTotalStakeView, binding.collatorEstimatedReward)
 
     fun setMinBond(value: String) {
-        collatorMinBond.setBody(value)
+        binding.collatorMinBond.setBody(value)
     }
 
     fun setSelfBonded(value: String) {
-        collatorSelfBonded.setBody(value)
+        binding.collatorSelfBonded.setBody(value)
     }
 
     fun setEffectiveAmountBonded(value: String) {
-        collatorEffectiveAmountBonded.setBody(value)
+        binding.collatorEffectiveAmountBonded.setBody(value)
     }
 
     fun setTotalStakeValue(value: String?) {
-        collatorTotalStakeView.setBodyOrHide(value)
+        binding.collatorTotalStakeView.setBodyOrHide(value)
     }
 
     fun setTotalStakeValueFiat(fiat: String?) {
-        collatorTotalStakeView.setExtraOrHide(fiat)
+        binding.collatorTotalStakeView.setExtraOrHide(fiat)
     }
 
     fun setDelegationsCount(count: String) {
-        collatorDelegations.setBody(count)
+        binding.collatorDelegations.setBody(count)
     }
 
     fun setEstimatedRewardApr(reward: String) {
-        collatorEstimatedReward.setBody(reward)
+        binding.collatorEstimatedReward.setBody(reward)
     }
 
     fun setTotalStakeClickListener(clickListener: () -> Unit) {
-        collatorTotalStakeView.setOnClickListener { clickListener() }
+        binding.collatorTotalStakeView.setOnClickListener { clickListener() }
     }
 
     fun hideActiveStakeFields() {
@@ -71,7 +67,7 @@ class CollatorInfoView @JvmOverloads constructor(
     }
 
     fun setStatus(statusText: String, @ColorRes statusColorRes: Int) {
-        collatorStatusView.setBodyOrHide(statusText)
-        collatorStatusView.setBodyIconResource(R.drawable.ic_status_indicator, statusColorRes)
+        binding.collatorStatusView.setBodyOrHide(statusText)
+        binding.collatorStatusView.setBodyIconResource(R.drawable.ic_status_indicator, statusColorRes)
     }
 }

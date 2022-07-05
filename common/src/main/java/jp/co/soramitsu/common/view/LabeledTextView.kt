@@ -102,8 +102,8 @@ class LabeledTextView @JvmOverloads constructor(
     }
 
     fun loadIcon(pictureDrawable: PictureDrawable) {
-        labeledTextIcon.makeVisible()
-        labeledTextIcon.setImageDrawable(pictureDrawable)
+        binding.labeledTextIcon.makeVisible()
+        binding.labeledTextIcon.setImageDrawable(pictureDrawable)
     }
 
     fun setActionClickListener(listener: (View) -> Unit) {

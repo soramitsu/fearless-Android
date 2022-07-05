@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -14,12 +16,6 @@ import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
 import kotlinx.android.extensions.LayoutContainer
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorActionIcon
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorIcon
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorInfo
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorName
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoringPrimary
-import kotlinx.android.synthetic.main.item_validator.view.itemValidatorScoringSecondary
 
 class CollatorsAdapter(
     private val itemHandler: ItemHandler,
@@ -78,6 +74,13 @@ class CollatorsAdapter(
 }
 
 class CollatorViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+
+    private val itemValidatorName: TextView by lazy { containerView.findViewById(R.id.itemValidatorName) }
+    private val itemValidatorIcon: ImageView by lazy { containerView.findViewById(R.id.itemValidatorIcon) }
+    private val itemValidatorInfo: ImageView by lazy { containerView.findViewById(R.id.itemValidatorInfo) }
+    private val itemValidatorActionIcon: ImageView by lazy { containerView.findViewById(R.id.itemValidatorActionIcon) }
+    private val itemValidatorScoringPrimary: TextView by lazy { containerView.findViewById(R.id.itemValidatorScoringPrimary) }
+    private val itemValidatorScoringSecondary: TextView by lazy { containerView.findViewById(R.id.itemValidatorScoringSecondary) }
 
     fun bind(
         collator: CollatorModel,
