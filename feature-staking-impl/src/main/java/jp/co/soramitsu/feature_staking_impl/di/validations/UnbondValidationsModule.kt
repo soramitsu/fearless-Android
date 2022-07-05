@@ -11,9 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondFeeV
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
-import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 
 @Module
 class UnbondValidationsModule {
@@ -37,22 +35,22 @@ class UnbondValidationsModule {
     @Provides
     fun provideUnbondLimitValidation(
         stakingScenarioInteractor: StakingScenarioInteractor,
-        stakingRepository: StakingRelayChainScenarioRepository
     ) = UnbondLimitValidation(
         stakingScenarioInteractor = stakingScenarioInteractor,
-        stakingRepository = stakingRepository,
         errorProducer = UnbondValidationFailure::UnbondLimitReached
     )
 
     @FeatureScope
     @Provides
-    fun provideEnoughToUnbondValidation() = EnoughToUnbondValidation()
+    fun provideEnoughToUnbondValidation(
+        stakingScenarioInteractor: StakingScenarioInteractor
+    ) = EnoughToUnbondValidation(stakingScenarioInteractor)
 
     @FeatureScope
     @Provides
     fun provideCrossExistentialValidation(
-        walletConstants: WalletConstants
-    ) = CrossExistentialValidation(walletConstants)
+        stakingScenarioInteractor: StakingScenarioInteractor
+    ) = CrossExistentialValidation(stakingScenarioInteractor)
 
     @FeatureScope
     @Provides

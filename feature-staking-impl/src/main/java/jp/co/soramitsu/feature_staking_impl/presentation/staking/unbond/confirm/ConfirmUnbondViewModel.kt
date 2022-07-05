@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
@@ -24,7 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondVali
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondPayloadAutoFix
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondValidationFailure
-import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
@@ -32,7 +31,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -41,7 +39,7 @@ import kotlinx.coroutines.launch
 class ConfirmUnbondViewModel(
     private val router: StakingRouter,
     interactor: StakingInteractor,
-    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val unbondInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
@@ -57,12 +55,11 @@ class ConfirmUnbondViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val accountStakingFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
-        .filterIsInstance<StakingState.Stash>()
+    private val accountStakingFlow = stakingScenarioInteractor.getStakingStateFlow()
         .share()
 
     private val assetFlow = accountStakingFlow.flatMapLatest {
-        interactor.assetFlow(it.controllerAddress)
+        interactor.assetFlow(it.rewardsAddress)
     }
         .share()
 
@@ -88,7 +85,7 @@ class ConfirmUnbondViewModel(
         .asLiveData()
 
     val originAddressModelLiveData = accountStakingFlow.map {
-        val address = it.controllerAddress
+        val address = it.executionAddress
         val account = interactor.getProjectedAccount(address)
 
         val addressModel = iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
@@ -129,6 +126,7 @@ class ConfirmUnbondViewModel(
             stash = accountStakingFlow.first(),
             fee = payload.fee,
             amount = payload.amount,
+            collatorAddress = payload.collatorAddress
         )
 
         validationExecutor.requireValid(
@@ -145,7 +143,9 @@ class ConfirmUnbondViewModel(
     private fun sendTransaction(validPayload: UnbondValidationPayload) = launch {
         val amountInPlanks = validPayload.asset.token.configuration.planksFromAmount(payload.amount)
 
-        val result = unbondInteractor.unbond(validPayload.stash, validPayload.asset.bondedInPlanks.orZero(), amountInPlanks)
+        val result = unbondInteractor.unbond(validPayload.stash) {
+            stakingScenarioInteractor.stakeLess(this, amountInPlanks, validPayload.stash, validPayload.asset.bondedInPlanks.orZero())
+        }
 
         _showNextProgress.value = false
 

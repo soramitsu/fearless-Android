@@ -13,6 +13,9 @@ sealed class StakingState(
 
     val accountAddress: String = chain.addressOf(accountId)
     open val rewardsAddress: String = accountAddress
+    open val executionAddressId: ByteArray = accountId
+    val executionAddress: String
+        get() = chain.addressOf(executionAddressId)
 
     class NonStash(chain: Chain, accountId: AccountId) : StakingState(chain, accountId)
 
@@ -27,6 +30,7 @@ sealed class StakingState(
         val stashAddress = chain.addressOf(stashId)
         override val rewardsAddress = stashAddress
         val controllerAddress = chain.addressOf(controllerId)
+        override val executionAddressId = controllerId
 
         class None(
             chain: Chain,
