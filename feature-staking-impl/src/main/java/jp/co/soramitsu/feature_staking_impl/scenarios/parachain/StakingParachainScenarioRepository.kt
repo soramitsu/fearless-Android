@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
@@ -33,6 +32,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.math.BigInteger
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -166,7 +166,7 @@ class StakingParachainScenarioRepository(
 }
 
 fun bindDelegations(scale: String, runtime: RuntimeSnapshot): List<Delegation> {
-    val type = runtime.metadata.parachainStaking().storage("DelegatorState").returnType()
+    val type = runtime.metadata.parachainStaking().storage("BottomDelegations").returnType()
 
     val dynamicInstance = type.fromHexOrNull(runtime, scale) ?: return emptyList()
     requireType<Struct.Instance>(dynamicInstance)

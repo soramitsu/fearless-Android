@@ -95,9 +95,9 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fr
 
         viewModel.accountLiveData.observe {
             it.ifPresent {
-               binding.accountAddressView.isVisible = true
-               binding.accountAddressView.setMessage(it.nameOrAddress)
-               binding.accountAddressView.setTextIcon(it.image)
+                binding.accountAddressView.isVisible = true
+                binding.accountAddressView.setMessage(it.nameOrAddress)
+                binding.accountAddressView.setTextIcon(it.image)
             }
         }
 

@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_wallet_api.presentation.view
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import android.widget.LinearLayout
+import androidx.constraintlayout.widget.ConstraintLayout
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.utils.getEnum
@@ -19,7 +19,7 @@ class AssetSelectorView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
-) : LinearLayout(context, attrs, defStyle) {
+) : ConstraintLayout(context, attrs, defStyle) {
 
     enum class BackgroundStyle {
         BLURRED, BORDERED
