@@ -48,7 +48,14 @@ interface StakingScenarioInteractor {
     fun getSelectedAccountAddress(): Flow<Optional<AddressModel>>
     fun getCollatorAddress(collatorAddress: String?): Flow<Optional<AddressModel>>
     suspend fun stakeMore(extrinsicBuilder: ExtrinsicBuilder, amountInPlanks: BigInteger, candidate: String? = null): ExtrinsicBuilder
-    suspend fun stakeLess(extrinsicBuilder: ExtrinsicBuilder, amountInPlanks: BigInteger, stashState: StakingState, currentBondedBalance: BigInteger, candidate: String? = null)
+    suspend fun stakeLess(
+        extrinsicBuilder: ExtrinsicBuilder,
+        amountInPlanks: BigInteger,
+        stashState: StakingState,
+        currentBondedBalance: BigInteger,
+        candidate: String? = null
+    )
+
     suspend fun overrideUnbondHint(): String?
     fun overrideUnbondAvailableLabel(): Int?
     suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal

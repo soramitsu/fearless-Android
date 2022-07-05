@@ -280,6 +280,7 @@ class StakingRelayChainScenarioInteractor(
         val resultIsZero = bonded == payload.amount
         return resultGreaterThanExistential || resultIsZero
     }
+
     override suspend fun accountIsNotController(controllerAddress: String): Boolean {
         val currentStakingState = selectedAccountStakingStateFlow().first()
         val chainId = currentStakingState.chain.id
@@ -470,9 +471,8 @@ class StakingRelayChainScenarioInteractor(
         currentBondedBalance: BigInteger,
         unbondAmount: BigInteger
     ) = // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
-        if (
         // if account is nominating
-            stashState is StakingState.Stash.Nominator &&
+        if (stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
             currentBondedBalance - unbondAmount < stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.id)
         ) {
