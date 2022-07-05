@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
@@ -52,20 +53,20 @@ class StakingBalanceViewModel(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    val stakingBalanceModelLiveData = MutableLiveData<StakingBalanceModel>()
-
-    private val unbondingsFlow = MutableSharedFlow<List<Unbonding>>()
-
-    init {
+    val stakingBalanceModelLiveData = MutableLiveData<StakingBalanceModel>().apply {
         launch {
             stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex()).onEach {
-                stakingBalanceModelLiveData.postValue(it)
+                postValue(it)
             }
                 .inBackground()
                 .share()
+        }
+    }
 
+    private val unbondingsFlow = MutableSharedFlow<List<Unbonding>>().apply {
+        launch {
             stakingScenarioInteractor.currentUnbondingsFlow().onEach {
-                unbondingsFlow.emit(it)
+                emit(it)
             }.share()
         }
     }
@@ -95,11 +96,22 @@ class StakingBalanceViewModel(
     val showRebondActionsEvent: LiveData<Event<Unit>> = _showRebondActionsEvent
 
     fun bondMoreClicked() = requireValidManageAction(bondMoreValidationSystem) {
-        router.openBondMore(SelectBondMorePayload(overrideFinishAction = null))
+        router.openBondMore(
+            SelectBondMorePayload(
+                overrideFinishAction = null,
+                collatorAddress = collatorAddress,
+                oneScreenConfirmation = collatorAddress != null
+            )
+        )
     }
 
     fun unbondClicked() = requireValidManageAction(unbondValidationSystem) {
-        router.openSelectUnbond()
+        router.openSelectUnbond(
+            SelectUnbondPayload(
+                collatorAddress = collatorAddress,
+                oneScreenConfirmation = collatorAddress != null
+            )
+        )
     }
 
     fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {

@@ -6,4 +6,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class SelectBondMorePayload(val overrideFinishAction: PendingNavigationAction<StakingRouter>?) : Parcelable
+class SelectBondMorePayload(
+    val overrideFinishAction: PendingNavigationAction<StakingRouter>?,
+    val collatorAddress: String?,
+    val oneScreenConfirmation: Boolean = false
+) : Parcelable

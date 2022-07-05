@@ -52,7 +52,7 @@ class StakingParachainScenarioRepository(
     }
 
     private fun getDelegatorStateFlow(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
-        return localStorage.observe(
+        return remoteStorage.observe(
             chainId = chainId,
             keyBuilder = {
                 it.metadata.parachainStaking().storage("DelegatorState").storageKey(it, accountId)

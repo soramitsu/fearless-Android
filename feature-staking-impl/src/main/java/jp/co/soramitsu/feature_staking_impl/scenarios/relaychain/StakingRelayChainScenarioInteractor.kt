@@ -1,12 +1,13 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.relaychain
 
-import java.math.BigInteger
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
@@ -21,6 +22,9 @@ import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bondMore
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.chill
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.unbond
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
@@ -43,8 +47,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmou
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
@@ -61,8 +67,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
+import java.util.Optional
 
 val ERA_OFFSET = 1.toBigInteger()
 const val HOURS_IN_DAY = 24
@@ -78,6 +87,7 @@ class StakingRelayChainScenarioInteractor(
     private val stakingSharedState: StakingSharedState,
     private val identityRepository: IdentityRepository,
     private val payoutRepository: PayoutRepository,
+    private val walletConstants: WalletConstants,
 ) : StakingScenarioInteractor {
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
@@ -220,8 +230,26 @@ class StakingRelayChainScenarioInteractor(
         emitAll(stakingRelayChainScenarioRepository.stakingStateFlow(chain, chainAsset, accountId))
     }
 
-    fun selectedAccountStakingStateFlow() = stakingInteractor.selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
+    override fun selectedAccountStakingStateFlow() = stakingInteractor.selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
         selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
+    }
+
+    override fun getSelectedAccountAddress(): Flow<Optional<AddressModel>> = flowOf(Optional.empty())
+
+    override fun getCollatorAddress(collatorAddress: String?): Flow<Optional<AddressModel>> = flowOf(Optional.empty())
+
+    override suspend fun stakeMore(extrinsicBuilder: ExtrinsicBuilder, amountInPlanks: BigInteger, candidate: String?) =
+        extrinsicBuilder.bondMore(amountInPlanks)
+
+    override suspend fun stakeLess(
+        extrinsicBuilder: ExtrinsicBuilder,
+        amountInPlanks: BigInteger,
+        stashState: StakingState,
+        currentBondedBalance: BigInteger,
+        candidate: String?
+    ) {
+        require(stashState is StakingState.Stash)
+        extrinsicBuilder.constructUnbondExtrinsic(stashState, currentBondedBalance, amountInPlanks)
     }
 
     override suspend fun getSelectedAccountStakingState() = selectedAccountStakingStateFlow().first()
@@ -237,7 +265,21 @@ class StakingRelayChainScenarioInteractor(
     }
 
     override fun overrideRedeemActionTitle(): Int? = null
+    override suspend fun overrideUnbondHint(): String? = null
+    override fun overrideUnbondAvailableLabel(): Int = R.string.staking_bonded_format
+    override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?) = asset.bonded
+    override suspend fun checkEnoughToUnbondValidation(payload: UnbondValidationPayload) = payload.amount <= payload.asset.bonded
+    override suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean {
+        val tokenConfiguration = payload.asset.token.configuration
 
+        val existentialDepositInPlanks = walletConstants.existentialDeposit(tokenConfiguration.chainId)
+        val existentialDeposit = tokenConfiguration.amountFromPlanks(existentialDepositInPlanks)
+
+        val bonded = payload.asset.bonded
+        val resultGreaterThanExistential = bonded - payload.amount >= existentialDeposit
+        val resultIsZero = bonded == payload.amount
+        return resultGreaterThanExistential || resultIsZero
+    }
     override suspend fun accountIsNotController(controllerAddress: String): Boolean {
         val currentStakingState = selectedAccountStakingStateFlow().first()
         val chainId = currentStakingState.chain.id
@@ -422,6 +464,22 @@ class StakingRelayChainScenarioInteractor(
             )
         )
     }
+
+    private suspend fun ExtrinsicBuilder.constructUnbondExtrinsic(
+        stashState: StakingState.Stash,
+        currentBondedBalance: BigInteger,
+        unbondAmount: BigInteger
+    ) = // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
+        if (
+        // if account is nominating
+            stashState is StakingState.Stash.Nominator &&
+            // and resulting bonded balance is less than min bond
+            currentBondedBalance - unbondAmount < stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.id)
+        ) {
+            chill()
+        } else {
+            unbond(unbondAmount)
+        }
 }
 
 class EraRelativeInfo(

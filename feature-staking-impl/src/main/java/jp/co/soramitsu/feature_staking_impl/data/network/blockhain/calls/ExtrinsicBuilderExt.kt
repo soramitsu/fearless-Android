@@ -1,12 +1,13 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
+import java.math.BigInteger
 
 fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBuilder {
     return call(
@@ -73,6 +74,53 @@ fun ExtrinsicBuilder.bondMore(amount: BigInteger): ExtrinsicBuilder {
         "Staking", "bond_extra",
         mapOf(
             "max_additional" to amount
+        )
+    )
+}
+
+fun ExtrinsicBuilder.parachainCandidateBondMore(amount: BigInteger): ExtrinsicBuilder {
+    return call(
+        "ParachainStaking", "candidate_bond_more",
+        mapOf(
+            "more" to amount
+        )
+    )
+}
+
+fun ExtrinsicBuilder.parachainScheduleCandidateBondLess(amount: BigInteger): ExtrinsicBuilder {
+    return call(
+        "ParachainStaking", "schedule_candidate_bond_less",
+        mapOf(
+            "less" to amount
+        )
+    )
+}
+
+fun ExtrinsicBuilder.parachainDelegatorBondMore(candidate: String, amount: BigInteger): ExtrinsicBuilder {
+    return call(
+        "ParachainStaking", "delegator_bond_more",
+        mapOf(
+            "candidate" to candidate.fromHex(),
+            "more" to amount
+        )
+    )
+}
+
+fun ExtrinsicBuilder.parachainScheduleDelegatorBondLess(candidate: String, amount: BigInteger): ExtrinsicBuilder {
+    return call(
+        "ParachainStaking", "schedule_delegator_bond_less",
+        mapOf(
+            "candidate" to candidate.fromHex(),
+            "less" to amount
+        )
+    )
+}
+
+fun ExtrinsicBuilder.parachainScheduleRevokeDelegation(candidate: String): ExtrinsicBuilder {
+    return call(
+        "ParachainStaking", "schedule_revoke_delegation",
+        mapOf(
+            "candidate" to candidate.fromHex()
         )
     )
 }

@@ -1,5 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select
 
+import androidx.core.os.bundleOf
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
@@ -18,7 +21,14 @@ import javax.inject.Inject
 
 class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragment_select_unbond) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
+
+    companion object {
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+
+        fun getBundle(payload: SelectUnbondPayload) = bundleOf(PAYLOAD_KEY to payload)
+    }
 
     private val binding by viewBinding(FragmentSelectUnbondBinding::bind)
 
@@ -35,16 +45,19 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
             unbondToolbar.setHomeButtonListener { viewModel.backClicked() }
             unbondContinue.prepareForProgress(viewLifecycleOwner)
             unbondContinue.setOnClickListener { viewModel.nextClicked() }
+            unbondConfirm.prepareForProgress(viewLifecycleOwner)
+            unbondConfirm.setOnClickListener { viewModel.confirmClicked() }
         }
     }
 
     override fun inject() {
+        val payload = argument<SelectUnbondPayload>(PAYLOAD_KEY)
         FeatureUtils.getFeature<StakingFeatureComponent>(
             requireContext(),
             StakingFeatureApi::class.java
         )
             .selectUnbondFactory()
-            .create(this)
+            .create(this, payload)
             .inject(this)
     }
 
@@ -66,8 +79,42 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
             it?.let(binding.unbondAmount::setAssetBalanceFiatAmount)
         }
 
-        viewModel.feeLiveData.observe(binding.unbondFee::setFeeStatus)
+        viewModel.feeLiveData.observe {
+            binding.unbondFee.setFeeStatus(it)
+            binding.unbondConfirmFee.setFeeStatus(it)
+        }
 
-        viewModel.lockupPeriodLiveData.observe(binding.unbondPeriod::showValue)
+        viewModel.lockupPeriodLiveData.observe {
+            binding.unbondPeriod.showValue(it)
+            binding.unbondConfirmPeriod.showValue(it)
+        }
+
+        viewModel.collatorLiveData.observe {
+            it.ifPresent {
+                binding.collatorAddressView.isVisible = true
+                binding.collatorAddressView.setMessage(it.nameOrAddress)
+                binding.collatorAddressView.setTextIcon(it.image)
+            }
+        }
+
+        viewModel.accountLiveData.observe {
+            it.ifPresent {
+                binding.accountAddressView.isVisible = true
+                binding.accountAddressView.setMessage(it.nameOrAddress)
+                binding.accountAddressView.setTextIcon(it.image)
+            }
+        }
+
+        viewModel.unbondHint.observe {
+            binding.unbondHint.text = it
+        }
+
+        viewModel.oneScreenConfirmation.let { showConfirm ->
+            binding.confirmUnbondLayout.isVisible = showConfirm
+            binding.unbondConfirmPeriod.isVisible = showConfirm
+            binding.unbondPeriod.isGone = showConfirm
+            binding.unbondFee.isGone = showConfirm
+            binding.unbondContinue.isGone = showConfirm
+        }
     }
 }
