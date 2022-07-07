@@ -26,6 +26,7 @@ import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingRewardsRepository
+import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingRewardsDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.feature_staking_impl.data.repository.datasource.StakingStoriesDataSourceImpl
@@ -50,6 +51,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validators.CollatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomValidatorsInteractor
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationProvider
@@ -71,6 +73,7 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderProvid
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
@@ -130,7 +133,27 @@ class StakingFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideStakingStoriesDataSource(): StakingStoriesDataSource = StakingStoriesDataSourceImpl()
+    fun provideStakingStoriesDataSource(
+        setupStakingSharedState: SetupStakingSharedState,
+    ): StakingStoriesDataSource {
+        return when (val state = setupStakingSharedState.setupStakingProcess.value) {
+            is SetupStakingProcess.Initial -> if (state.stakingType == Chain.Asset.StakingType.RELAYCHAIN)
+                StakingStoriesDataSourceImpl()
+            else ParachainStakingStoriesDataSourceImpl()
+
+            is SetupStakingProcess.ReadyToSubmit.Stash,
+            is SetupStakingProcess.SelectBlockProducersStep.Validators,
+            is SetupStakingProcess.SetupStep.Stash -> {
+                StakingStoriesDataSourceImpl()
+            }
+
+            is SetupStakingProcess.ReadyToSubmit.Parachain,
+            is SetupStakingProcess.SelectBlockProducersStep.Collators,
+            is SetupStakingProcess.SetupStep.Parachain -> {
+                ParachainStakingStoriesDataSourceImpl()
+            }
+        }
+    }
 
     @Provides
     @FeatureScope

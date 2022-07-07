@@ -57,8 +57,8 @@ class StoryViewModel(
     }
 
     fun learnMoreClicked() {
-        (currentStoryLiveData.value as? StoryElement.Staking?)?.let {
-            openBrowserEvent.value = Event(it.url)
+        (currentStoryLiveData.value as? StoryElement.Staking?)?.url?.let {
+            openBrowserEvent.value = Event(it)
         }
     }
 }
