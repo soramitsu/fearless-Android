@@ -75,7 +75,7 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
                     binding.stakingStoryLearnMore.setOnClickListener { viewModel.complete() }
                 }
             } else {
-                binding.stakingStoryLearnMore.isVisible = true
+                binding.stakingStoryLearnMore.isVisible = !(it as? StoryElement.Staking)?.url.isNullOrEmpty()
                 binding.stakingStoryLearnMore.setText(R.string.common_learn_more)
                 binding.stakingStoryLearnMore.setOnClickListener { viewModel.learnMoreClicked() }
             }
