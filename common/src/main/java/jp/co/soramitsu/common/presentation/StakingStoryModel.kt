@@ -24,7 +24,7 @@ sealed class StoryElement(
     data class Staking(
         @StringRes override val titleRes: Int,
         @StringRes override val bodyRes: Int,
-        val url: String
+        val url: String?
     ) : StoryElement(titleRes, bodyRes)
 
     @Parcelize
