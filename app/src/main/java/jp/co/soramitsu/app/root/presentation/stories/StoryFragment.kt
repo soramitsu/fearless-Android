@@ -94,11 +94,6 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
         viewModel.nextStory()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding.stories.destroy()
-    }
-
     private fun handleStoryTouchEvent(view: View, event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
