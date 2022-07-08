@@ -12,6 +12,7 @@ def pipeline = new org.android.AppPipeline(
     testCmd:          'runTest',
     dockerImage:      'build-tools/android-build-box-jdk11:latest',
     publishCmd:       'publishReleaseApk',
-    jobParams: jobParams
+    jobParams: jobParams,
+    appPushNoti: true
 )
 pipeline.runPipeline('fearless')
