@@ -4,8 +4,9 @@ class StakingDelegatorHistoryRequest(delegatorAddress: String) {
     val query = """
     query {
         delegatorHistoryElements(
+        last: 20,
         filter: {
-            delegatorId: { equalTo: "$delegatorAddress"}  }
+            delegatorId: { equalToInsensitive: "$delegatorAddress"}  }
         ) {
             nodes {
               id
