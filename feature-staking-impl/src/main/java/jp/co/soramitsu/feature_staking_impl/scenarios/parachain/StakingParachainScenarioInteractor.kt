@@ -187,7 +187,7 @@ class StakingParachainScenarioInteractor(
         val chain = stakingInteractor.getSelectedChain()
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
         return combine(
-            flowOf(delegationHistoryFetcher.fetchDelegationHistory(chain.id, accountId.toHexString())),
+            flowOf(delegationHistoryFetcher.fetchDelegationHistory(chain.id, accountId.toHexString(true))),
             unbondingsFlow
         ) { subQueryHistory: List<Unbonding>, currentUnbondings: List<Unbonding> ->
             currentUnbondings + subQueryHistory
