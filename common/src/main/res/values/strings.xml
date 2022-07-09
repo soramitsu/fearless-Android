@@ -315,6 +315,7 @@ Derivation path: %s</string>
     <string name="staking_reward_details_era">Era</string>
     <string name="staking_reward_details_reward">Reward</string>
     <string name="staking_reward">Reward</string>
+    <string name="staking_delegate">Delegate</string>
     <string name="staking_slash">Slash</string>
     <string name="common_call">Call</string>
     <string name="common_module">Module</string>

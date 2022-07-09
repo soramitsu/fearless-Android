@@ -85,7 +85,7 @@ class StakingBalanceViewModel(
                     index = index,
                     timeLeft = unbonding.timeLeft,
                     calculatedAt = unbonding.calculatedAt,
-                    amountModel = mapAmountToAmountModel(unbonding.amount, asset)
+                    amountModel = mapAmountToAmountModel(unbonding.amount, asset, unbonding.type?.nameResId)
                 )
             }
         }
