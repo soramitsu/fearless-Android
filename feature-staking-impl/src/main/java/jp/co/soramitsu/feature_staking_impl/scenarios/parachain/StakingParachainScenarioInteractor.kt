@@ -104,7 +104,7 @@ class StakingParachainScenarioInteractor(
         return lockupPeriodInHours.toDuration(DurationUnit.HOURS).toInt(DurationUnit.DAYS)
     }
 
-    //todo move to overrides parameter of chain_type.json
+    // todo move to overrides parameter of chain_type.json
     val hoursInRound = mapOf(
         "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d" to 6, // moonbeam
         "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b" to 2, // moonriver
