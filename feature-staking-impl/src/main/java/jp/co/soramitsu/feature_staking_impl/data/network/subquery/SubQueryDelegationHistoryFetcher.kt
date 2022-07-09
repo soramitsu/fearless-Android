@@ -24,7 +24,7 @@ class SubQueryDelegationHistoryFetcher(
             StakingDelegatorHistoryRequest(delegatorAddress)
         )
 
-        return delegatorHistory.data.delegatorHistoryElements.nodes.map{
+        return delegatorHistory.data.delegatorHistoryElements.nodes.map {
             it.toUnbonding()
         }.distinct()
     }
