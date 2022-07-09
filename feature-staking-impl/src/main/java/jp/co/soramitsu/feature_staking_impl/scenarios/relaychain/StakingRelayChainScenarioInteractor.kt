@@ -407,7 +407,8 @@ class StakingRelayChainScenarioInteractor(
                             Unbonding(
                                 amount = it.amount,
                                 timeLeft = leftTime.toLong(),
-                                calculatedAt = System.currentTimeMillis()
+                                calculatedAt = System.currentTimeMillis(),
+                                type = null
                             )
                         }
                 }

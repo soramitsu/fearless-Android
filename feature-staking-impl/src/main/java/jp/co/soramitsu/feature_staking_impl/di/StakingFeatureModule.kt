@@ -20,6 +20,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.StakingApi
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.SubQueryDelegationHistoryFetcher
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.SubQueryValidatorSetFetcher
 import jp.co.soramitsu.feature_staking_impl.data.repository.IdentityRepositoryImpl
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
@@ -242,7 +243,8 @@ class StakingFeatureModule {
         identityRepository: IdentityRepository,
         stakingSharedState: StakingSharedState,
         iconGenerator: AddressIconGenerator,
-        resourceManager: ResourceManager
+        resourceManager: ResourceManager,
+        delegationHistoryFetcher: SubQueryDelegationHistoryFetcher
     ): StakingParachainScenarioInteractor {
         return StakingParachainScenarioInteractor(
             interactor,
@@ -252,7 +254,8 @@ class StakingFeatureModule {
             identityRepository,
             stakingSharedState,
             iconGenerator,
-            resourceManager
+            resourceManager,
+            delegationHistoryFetcher
         )
     }
 
@@ -426,6 +429,18 @@ class StakingFeatureModule {
         return SubQueryValidatorSetFetcher(
             stakingApi,
             stakingRelayChainScenarioRepository,
+            chainRegistry
+        )
+    }
+
+    @Provides
+    @FeatureScope
+    fun provideDelegationHistoryFetcher(
+        stakingApi: StakingApi,
+        chainRegistry: ChainRegistry
+    ): SubQueryDelegationHistoryFetcher {
+        return SubQueryDelegationHistoryFetcher(
+            stakingApi,
             chainRegistry
         )
     }

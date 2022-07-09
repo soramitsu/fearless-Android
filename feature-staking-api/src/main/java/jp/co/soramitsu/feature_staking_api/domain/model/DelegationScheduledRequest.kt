@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_staking_api.domain.model
 
+import androidx.annotation.StringRes
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.feature_staking_api.R
 import java.math.BigInteger
 
 data class DelegationScheduledRequest(
@@ -32,13 +34,26 @@ data class DelegationScheduledRequest(
     }
 }
 
-enum class DelegationAction {
-    REVOKE, DECREASE, OTHER;
+enum class DelegationAction(@StringRes val nameResId: Int?) {
+    STAKE(R.string.staking_stake),
+    UNSTAKE(R.string.staking_unbond_v1_9_0),
+    REWARD(R.string.staking_reward),
+    DELEGATE(R.string.staking_delegate),
+    OTHER(null);
+
 
     companion object {
         fun from(key: String?) = when (key) {
-            "Revoke" -> REVOKE
-            "Decrease" -> DECREASE
+            "Revoke" -> UNSTAKE
+            "Decrease" -> UNSTAKE
+            else -> OTHER
+        }
+
+        fun byId(id: Int?) = when (id) {
+            0 -> STAKE
+            1 -> UNSTAKE
+            2 -> REWARD
+            3 -> DELEGATE
             else -> OTHER
         }
     }

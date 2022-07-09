@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.singleReplaySharedFlow
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -18,6 +19,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
+import jp.co.soramitsu.feature_staking_api.domain.model.BlockNumber
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.Delegation
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
@@ -32,11 +34,13 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.paracha
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleCandidateBondLess
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleDelegatorBondLess
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleRevokeDelegation
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.SubQueryDelegationHistoryFetcher
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
+import jp.co.soramitsu.feature_staking_impl.domain.model.toUnbonding
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
@@ -77,6 +81,7 @@ class StakingParachainScenarioInteractor(
     private val stakingSharedState: StakingSharedState,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
+    private val delegationHistoryFetcher: SubQueryDelegationHistoryFetcher,
 ) : StakingScenarioInteractor {
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
@@ -99,6 +104,7 @@ class StakingParachainScenarioInteractor(
         return lockupPeriodInHours.toDuration(DurationUnit.HOURS).toInt(DurationUnit.DAYS)
     }
 
+    //todo move to overrides parameter of chain_type.json
     val hoursInRound = mapOf(
         "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d" to 6, // moonbeam
         "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b" to 2, // moonriver
@@ -175,15 +181,16 @@ class StakingParachainScenarioInteractor(
         return currentDelegationsCount >= maxDelegations
     }
 
+    val unbondingsFlow = singleReplaySharedFlow<List<Unbonding>>()
+
     override suspend fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
         val chain = stakingInteractor.getSelectedChain()
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-        return stakingParachainScenarioRepository.stakingStateFlow(chain, accountId).map { stakingState: StakingState ->
-            val round = stakingParachainScenarioRepository.getCurrentRound(chain.id)
-            (stakingState as? StakingState.Parachain.Delegator)?.delegations?.map {
-                it.collatorId // todo SubQuery
-            }
-            emptyList()
+        return combine(
+            flowOf(delegationHistoryFetcher.fetchDelegationHistory(chain.id, accountId.toHexString())),
+            unbondingsFlow
+        ) { subQueryHistory: List<Unbonding>, currentUnbondings: List<Unbonding> ->
+            currentUnbondings + subQueryHistory
         }
     }
 
@@ -264,15 +271,23 @@ class StakingParachainScenarioInteractor(
             val currentRound = getCurrentRound(chain.id)
 
             val delegationScheduledRequests = stakingParachainScenarioRepository.getDelegationScheduledRequests(chain.id, collatorId)
+            val currentBlock = stakingInteractor.currentBlockNumber()
+            val hoursInRound = hoursInRound[chain.id] ?: 0
+            val unbondings = delegationScheduledRequests?.map {
+                val timeLeft = calculateTimeTillTheRoundStart(currentRound, currentBlock, it.whenExecutable, hoursInRound)
+                it.toUnbonding(timeLeft)
+            }
+            unbondingsFlow.tryEmit(unbondings.orEmpty())
+
             val userRequests = delegationScheduledRequests?.filter {
                 it.delegator.contentEquals(accountId)
             }.orEmpty()
             val unstaking = userRequests.filter {
-                it.whenExecutable >= currentRound.current
+                it.whenExecutable > currentRound.current
             }.sumByBigInteger { it.actionValue }
 
             val readyForUnlocking = userRequests.filter {
-                it.whenExecutable < currentRound.current
+                it.whenExecutable <= currentRound.current
             }.sumByBigInteger { it.actionValue }
 
             StakingBalanceModel(
@@ -410,5 +425,22 @@ class StakingParachainScenarioInteractor(
     suspend fun getLeaveCandidatesDelay(): Int {
         val chainId = stakingInteractor.getSelectedChain().id
         return stakingConstantsRepository.parachainLeaveCandidatesDelay(chainId).toInt()
+    }
+
+    private fun calculateTimeTillTheRoundStart(currentRound: Round, currentBlock: BlockNumber, roundNumber: BigInteger, hoursInRound: Int): Long {
+        if (roundNumber <= currentRound.current) return 0
+
+        val currentRoundFinishAtBlock = currentRound.first + currentRound.length
+        val blocksTillTheEndOfRound = currentRoundFinishAtBlock - currentBlock
+        val secondsInRound = (hoursInRound * 60 * 60).toBigDecimal()
+        val secondsInBlock = secondsInRound / currentRound.length.toBigDecimal()
+        val secondsTillTheEndOfRound = blocksTillTheEndOfRound.toBigDecimal() * secondsInBlock
+
+        val wholeRoundsMore = roundNumber - currentRound.current - BigInteger.ONE
+        val secondsInWholeRounds = wholeRoundsMore.toBigDecimal() * secondsInRound
+
+        val secondTillRound = secondsTillTheEndOfRound + secondsInWholeRounds
+        val millisecondTillRound = secondTillRound * BigDecimal(1000)
+        return millisecondTillRound.toLong()
     }
 }

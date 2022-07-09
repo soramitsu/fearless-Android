@@ -32,7 +32,7 @@ class UnbondingsHolder(val containerView: View) : RecyclerView.ViewHolder(contai
         with(unbonding) {
             findViewById<TextView>(R.id.itemListElementDescriptionLeft).startTimer(timeLeft, calculatedAt)
 
-            findViewById<TextView>(R.id.itemListElementTitleLeft).text = context.getString(R.string.staking_unbond_v1_9_0)
+            findViewById<TextView>(R.id.itemListElementTitleLeft).text = unbonding.amountModel.titleResId?.let { context.getString(it) }
             findViewById<TextView>(R.id.itemListElementTitleRight).text = unbonding.amountModel.token
             findViewById<TextView>(R.id.itemListElementDescriptionRight).text = unbonding.amountModel.fiat
         }
