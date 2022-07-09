@@ -41,7 +41,6 @@ enum class DelegationAction(@StringRes val nameResId: Int?) {
     DELEGATE(R.string.staking_delegate),
     OTHER(null);
 
-
     companion object {
         fun from(key: String?) = when (key) {
             "Revoke" -> UNSTAKE

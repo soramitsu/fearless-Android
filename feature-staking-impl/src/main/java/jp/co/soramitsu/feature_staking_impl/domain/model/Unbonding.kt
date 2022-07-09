@@ -34,4 +34,3 @@ fun StakingHistoryRemote.HistoryElement.toUnbonding(): Unbonding {
         type = DelegationAction.byId(type?.toInt())
     )
 }
-
