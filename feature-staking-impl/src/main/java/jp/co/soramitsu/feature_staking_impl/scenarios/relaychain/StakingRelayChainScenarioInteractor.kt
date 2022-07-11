@@ -390,7 +390,7 @@ class StakingRelayChainScenarioInteractor(
         stakingRelayChainScenarioRepository.getRewardDestination(accountStakingState)
     }
 
-    override suspend fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
+    override suspend fun currentUnbondingsFlow(collatorAddress: String?): Flow<List<Unbonding>> {
         return selectedAccountStakingStateFlow()
             .filterIsInstance<StakingState.Stash>()
             .flatMapLatest { stash ->

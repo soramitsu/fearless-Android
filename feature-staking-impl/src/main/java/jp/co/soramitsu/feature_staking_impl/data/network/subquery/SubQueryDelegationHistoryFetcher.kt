@@ -12,7 +12,7 @@ class SubQueryDelegationHistoryFetcher(
     private val chainRegistry: ChainRegistry
 ) {
 
-    suspend fun fetchDelegationHistory(chainId: ChainId, delegatorAddress: String): List<Unbonding> {
+    suspend fun fetchDelegationHistory(chainId: ChainId, delegatorAddress: String, collatorAddress: String): List<Unbonding> {
         val chain = chainRegistry.getChain(chainId)
         val stakingUrl = chain.externalApi?.staking?.url
         if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
@@ -21,7 +21,7 @@ class SubQueryDelegationHistoryFetcher(
 
         val delegatorHistory = stakingApi.getDelegatorHistory(
             stakingUrl,
-            StakingDelegatorHistoryRequest(delegatorAddress)
+            StakingDelegatorHistoryRequest(delegatorAddress, collatorAddress)
         )
 
         return delegatorHistory.data.delegatorHistoryElements.nodes.map {
