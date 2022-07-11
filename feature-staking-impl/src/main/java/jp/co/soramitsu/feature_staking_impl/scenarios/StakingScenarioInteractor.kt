@@ -57,6 +57,7 @@ interface StakingScenarioInteractor {
         currentBondedBalance: BigInteger,
         candidate: String? = null
     )
+    suspend fun confirmRevoke(extrinsicBuilder: ExtrinsicBuilder, candidate: String?, stashState: StakingState)
 
     suspend fun overrideUnbondHint(): String?
     fun overrideUnbondAvailableLabel(): Int?

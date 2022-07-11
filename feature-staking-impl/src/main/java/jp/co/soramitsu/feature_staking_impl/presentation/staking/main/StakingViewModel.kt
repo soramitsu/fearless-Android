@@ -161,7 +161,7 @@ class StakingViewModel(
         viewModelScope.launch {
             val validation = stakingScenario.redeemValidationSystem.last()
             requireValidManageStakingAction(validation) {
-                val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back)
+                val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back, collatorAddress = null)
 
                 router.openRedeem(redeemPayload)
             }

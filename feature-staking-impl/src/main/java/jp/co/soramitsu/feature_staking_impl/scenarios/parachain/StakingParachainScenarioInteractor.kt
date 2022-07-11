@@ -31,6 +31,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCancelDelegationRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCandidateBondMore
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainConfirmRevokeDelegation
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainDelegatorBondMore
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleCandidateBondLess
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleDelegatorBondLess
@@ -269,6 +270,21 @@ class StakingParachainScenarioInteractor(
             performRevoke -> extrinsicBuilder.parachainScheduleRevokeDelegation(candidate)
             else -> extrinsicBuilder.parachainScheduleDelegatorBondLess(candidate, amountInPlanks)
         }
+    }
+
+    override suspend fun confirmRevoke(
+        extrinsicBuilder: ExtrinsicBuilder,
+        candidate: String?,
+        stashState: StakingState
+    ) {
+        require(stashState is StakingState.Parachain)
+        require(candidate != null) {
+            "Candidate address not specified for stake less"
+        }
+        val chain = stakingInteractor.getSelectedChain()
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+
+        extrinsicBuilder.parachainConfirmRevokeDelegation(candidateId = candidate.fromHex(), delegatorId = accountId)
     }
 
     override suspend fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
