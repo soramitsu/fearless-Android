@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint
 
-import androidx.biometric.BiometricConstants
 import androidx.biometric.BiometricPrompt
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.PinCodeViewModel
 
@@ -9,9 +8,9 @@ class FingerprintCallback(
 ) : BiometricPrompt.AuthenticationCallback() {
 
     override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
-        if (errMsgId != BiometricConstants.ERROR_CANCELED &&
-            errMsgId != BiometricConstants.ERROR_NEGATIVE_BUTTON &&
-            errMsgId != BiometricConstants.ERROR_USER_CANCELED
+        if (errMsgId != BiometricPrompt.ERROR_CANCELED &&
+            errMsgId != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
+            errMsgId != BiometricPrompt.ERROR_USER_CANCELED
         ) {
             pinCodeViewModel.onAuthenticationError(errString.toString())
         }

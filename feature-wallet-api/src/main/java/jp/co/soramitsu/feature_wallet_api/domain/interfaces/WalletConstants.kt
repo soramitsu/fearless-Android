@@ -6,4 +6,6 @@ import java.math.BigInteger
 interface WalletConstants {
 
     suspend fun existentialDeposit(chainId: ChainId): BigInteger
+
+    suspend fun tip(chainId: ChainId): BigInteger?
 }

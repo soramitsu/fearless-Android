@@ -35,6 +35,7 @@ android {
         jvmTarget = '1.8'
 
     }
+    namespace 'jp.co.soramitsu.runtime'
 }
 
 dependencies {

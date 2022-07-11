@@ -32,6 +32,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.feature_onboarding_impl'
 }
 
 dependencies {
@@ -54,8 +55,8 @@ dependencies {
     implementation daggerDep
     kapt daggerKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
+    implementation gsonConvertedDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep

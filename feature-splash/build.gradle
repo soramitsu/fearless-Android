@@ -31,6 +31,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.splash'
 }
 
 dependencies {
@@ -45,11 +46,12 @@ dependencies {
     implementation daggerDep
     kapt daggerKapt
 
-    implementation lifecycleDep
+    implementation viewModelKtxDep
     kapt lifecycleKapt
 
     testImplementation jUnitDep
     testImplementation mockitoDep
+    implementation gsonConvertedDep
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep
