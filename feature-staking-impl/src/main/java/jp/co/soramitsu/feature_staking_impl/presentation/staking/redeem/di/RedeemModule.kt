@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -20,7 +19,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPa
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemViewModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class RedeemModule {
@@ -36,8 +34,6 @@ class RedeemModule {
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
         validationSystem: RedeemValidationSystem,
-        iconGenerator: AddressIconGenerator,
-        chainRegistry: ChainRegistry,
         externalAccountActions: ExternalAccountActions.Presentation,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         payload: RedeemPayload
@@ -50,8 +46,6 @@ class RedeemModule {
             resourceManager,
             validationExecutor,
             validationSystem,
-            iconGenerator,
-            chainRegistry,
             feeLoaderMixin,
             externalAccountActions,
             payload
