@@ -28,7 +28,7 @@ interface StakingScenarioInteractor {
     suspend fun getMinimumStake(chainId: ChainId): BigInteger
     suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean
 
-    suspend fun currentUnbondingsFlow(): Flow<List<Unbonding>>
+    suspend fun currentUnbondingsFlow(collatorAddress: String?): Flow<List<Unbonding>>
     suspend fun getSelectedAccountStakingState(): StakingState
     fun selectedAccountStakingStateFlow(): Flow<StakingState>
 

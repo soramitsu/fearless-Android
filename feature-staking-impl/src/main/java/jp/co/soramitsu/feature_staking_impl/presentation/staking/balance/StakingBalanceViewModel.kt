@@ -65,7 +65,7 @@ class StakingBalanceViewModel(
 
     private val unbondingsFlow = MutableSharedFlow<List<Unbonding>>().apply {
         launch {
-            stakingScenarioInteractor.currentUnbondingsFlow().onEach {
+            stakingScenarioInteractor.currentUnbondingsFlow(collatorAddress).onEach {
                 emit(it)
             }.share()
         }

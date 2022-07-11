@@ -183,11 +183,12 @@ class StakingParachainScenarioInteractor(
 
     val unbondingsFlow = singleReplaySharedFlow<List<Unbonding>>()
 
-    override suspend fun currentUnbondingsFlow(): Flow<List<Unbonding>> {
+    override suspend fun currentUnbondingsFlow(collatorAddress: String?): Flow<List<Unbonding>> {
+        collatorAddress ?: throw IllegalArgumentException("No collator address provided")
         val chain = stakingInteractor.getSelectedChain()
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
         return combine(
-            flowOf(delegationHistoryFetcher.fetchDelegationHistory(chain.id, accountId.toHexString(true))),
+            flowOf(delegationHistoryFetcher.fetchDelegationHistory(chain.id, accountId.toHexString(true), collatorAddress)),
             unbondingsFlow
         ) { subQueryHistory: List<Unbonding>, currentUnbondings: List<Unbonding> ->
             currentUnbondings + subQueryHistory
@@ -273,15 +274,16 @@ class StakingParachainScenarioInteractor(
             val delegationScheduledRequests = stakingParachainScenarioRepository.getDelegationScheduledRequests(chain.id, collatorId)
             val currentBlock = stakingInteractor.currentBlockNumber()
             val hoursInRound = hoursInRound[chain.id] ?: 0
-            val unbondings = delegationScheduledRequests?.map {
-                val timeLeft = calculateTimeTillTheRoundStart(currentRound, currentBlock, it.whenExecutable, hoursInRound)
-                it.toUnbonding(timeLeft)
-            }
-            unbondingsFlow.tryEmit(unbondings.orEmpty())
-
             val userRequests = delegationScheduledRequests?.filter {
                 it.delegator.contentEquals(accountId)
             }.orEmpty()
+
+            val unbondings = userRequests.map {
+                val timeLeft = calculateTimeTillTheRoundStart(currentRound, currentBlock, it.whenExecutable, hoursInRound)
+                it.toUnbonding(timeLeft)
+            }
+            unbondingsFlow.tryEmit(unbondings)
+
             val unstaking = userRequests.filter {
                 it.whenExecutable > currentRound.current
             }.sumByBigInteger { it.actionValue }
