@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -29,7 +30,6 @@ import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountMo
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -72,9 +72,9 @@ class StakingBalanceViewModel(
 
     val redeemTitle = stakingScenarioInteractor.overrideRedeemActionTitle()
 
-    val redeemEnabledLiveData = assetFlow
-        .map { it.redeemable > BigDecimal.ZERO }
-        .asLiveData()
+    val redeemEnabledLiveData = stakingBalanceModelLiveData.map {
+        it.redeemable.amount > BigDecimal.ZERO
+    }
 
     val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
