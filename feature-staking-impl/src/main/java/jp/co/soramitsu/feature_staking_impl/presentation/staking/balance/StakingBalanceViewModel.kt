@@ -114,7 +114,12 @@ class StakingBalanceViewModel(
     }
 
     fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {
-        router.openRedeem(RedeemPayload(overrideFinishAction = null))
+        router.openRedeem(
+            RedeemPayload(
+                overrideFinishAction = null,
+                collatorAddress = collatorAddress
+            )
+        )
     }
 
     fun backClicked() {
