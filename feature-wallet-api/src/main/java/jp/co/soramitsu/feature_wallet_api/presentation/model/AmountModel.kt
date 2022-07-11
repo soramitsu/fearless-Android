@@ -10,6 +10,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 data class AmountModel(
+    val amount: BigDecimal,
     val token: String,
     val fiat: String?,
     @StringRes val titleResId: Int? = null,
@@ -35,6 +36,7 @@ fun mapAmountToAmountModel(
     val fiatAmount = token.fiatAmount(amount)
 
     return AmountModel(
+        amount = amount,
         token = amount.formatTokenAmount(token.configuration),
         fiat = fiatAmount?.formatAsCurrency(token.fiatSymbol),
         titleResId = titleResId
