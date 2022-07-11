@@ -483,9 +483,8 @@ class StakingFeatureModule {
     @Provides
     @FeatureScope
     fun provideRedeemInteractor(
-        extrinsicService: ExtrinsicService,
-        stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository
-    ) = RedeemInteractor(extrinsicService, stakingRelayChainScenarioRepository)
+        extrinsicService: ExtrinsicService
+    ) = RedeemInteractor(extrinsicService)
 
     @Provides
     @FeatureScope

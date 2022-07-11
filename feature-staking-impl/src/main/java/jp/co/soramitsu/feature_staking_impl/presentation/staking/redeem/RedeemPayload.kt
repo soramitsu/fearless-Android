@@ -6,4 +6,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class RedeemPayload(val overrideFinishAction: PendingNavigationAction<StakingRouter>?) : Parcelable
+class RedeemPayload(
+    val collatorAddress: String?,
+    val overrideFinishAction: PendingNavigationAction<StakingRouter>?
+) : Parcelable
