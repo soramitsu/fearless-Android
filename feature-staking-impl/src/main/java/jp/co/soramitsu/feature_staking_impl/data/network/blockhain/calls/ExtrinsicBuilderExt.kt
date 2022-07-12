@@ -125,16 +125,7 @@ fun ExtrinsicBuilder.parachainScheduleRevokeDelegation(candidate: String): Extri
     )
 }
 
-fun ExtrinsicBuilder.parachainCancelDelegationRequest(candidate: String): ExtrinsicBuilder {
-    return call(
-        "ParachainStaking", "cancel_delegation_request",
-        mapOf(
-            "candidate" to candidate.fromHex()
-        )
-    )
-}
-
-fun ExtrinsicBuilder.parachainConfirmRevokeDelegation(
+fun ExtrinsicBuilder.parachainExecuteDelegationRequest(
     candidateId: AccountId,
     delegatorId: AccountId
 ): ExtrinsicBuilder {
@@ -147,15 +138,11 @@ fun ExtrinsicBuilder.parachainConfirmRevokeDelegation(
     )
 }
 
-fun ExtrinsicBuilder.confirmRevokeDelegation(
-    candidateId: AccountId,
-    delegatorId: AccountId
-): ExtrinsicBuilder {
+fun ExtrinsicBuilder.parachainCancelDelegationRequest(candidate: String): ExtrinsicBuilder {
     return call(
-        "Staking", "execute_delegation_request",
+        "ParachainStaking", "cancel_delegation_request",
         mapOf(
-            "delegator" to delegatorId,
-            "candidate" to candidateId
+            "candidate" to candidate.fromHex()
         )
     )
 }

@@ -5,7 +5,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -24,7 +23,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bondMore
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.confirmRevokeDelegation
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.withdrawUnbonded
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.chill
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.rebond
@@ -271,16 +269,8 @@ class StakingRelayChainScenarioInteractor(
         stashState: StakingState
     ) {
         require(stashState is StakingState.Stash)
-        require(candidate != null) {
-            "Candidate address not specified for stake less"
-        }
-        val chain = stakingInteractor.getSelectedChain()
-        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
 
-        extrinsicBuilder.confirmRevokeDelegation(
-            candidateId = candidate.fromHex(),
-            delegatorId = accountId
-        ).withdrawUnbonded(getSlashingSpansNumber(stashState))
+        extrinsicBuilder.withdrawUnbonded(getSlashingSpansNumber(stashState))
     }
 
     override suspend fun getSelectedAccountStakingState() = selectedAccountStakingStateFlow().first()
