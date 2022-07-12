@@ -5,17 +5,22 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import java.math.BigDecimal
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireException
+import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationPayload
@@ -23,10 +28,11 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemVal
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
@@ -35,11 +41,11 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
 class RedeemViewModel(
@@ -50,6 +56,8 @@ class RedeemViewModel(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: RedeemValidationSystem,
+    private val iconGenerator: AddressIconGenerator,
+    private val chainRegistry: ChainRegistry,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val payload: RedeemPayload
@@ -61,6 +69,14 @@ class RedeemViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
+    val stakingUnlockAmount = MutableSharedFlow<String>().apply {
+        launch {
+            stakingScenarioInteractor.getStakingBalanceFlow(payload.collatorAddress?.fromHex()).onEach {
+                emit(it.redeemable.amount.format())
+            }.share()
+        }
+    }
+
     private val accountStakingFlow = stakingScenarioInteractor.getStakingStateFlow()
         .share()
 
@@ -68,9 +84,9 @@ class RedeemViewModel(
         .flatMapLatest { interactor.assetFlow(it.rewardsAddress) }
         .share()
 
-    val enteredAmountFlow = MutableStateFlow(DEFAULT_AMOUNT.toString())
-
-    private val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
+    private val parsedAmountFlow = stakingUnlockAmount.mapNotNull {
+        it.toBigDecimalOrNull()
+    }
 
     val enteredFiatAmountFlow = assetFlow.combine(parsedAmountFlow) { asset, amount ->
         asset.token.fiatAmount(amount)?.formatAsCurrency(asset.token.fiatSymbol)
@@ -100,11 +116,12 @@ class RedeemViewModel(
         .inBackground()
         .asLiveData()
 
-    val unbondHint: LiveData<String> = MutableLiveData<String>().apply {
-        launch {
-            stakingScenarioInteractor.overrideUnbondHint()?.let { postValue(it) }
-        }
-    }
+    private val originAddressModelLiveData = accountStakingFlow.filterIsInstance<StakingState.Stash>().map {
+        val address = it.controllerAddress
+        val account = interactor.getProjectedAccount(address)
+
+        iconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_SMALL, account.name)
+    }.asLiveData()
 
     init {
         listenFee()
@@ -130,23 +147,33 @@ class RedeemViewModel(
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
             feeConstructor = { token ->
-                val amountInPlanks = token.planksFromAmount(amount)
-                val asset = assetFlow.first()
-
                 val stashState = accountStakingFlow.first()
 
                 redeemInteractor.estimateFee(stashState) {
-                    stakingScenarioInteractor.stakeLess(
+                    stakingScenarioInteractor.confirmRevoke(
                         this,
-                        amountInPlanks,
-                        stashState,
-                        asset.bondedInPlanks.orZero(),
-                        payload.collatorAddress
+                        candidate = payload.collatorAddress,
+                        stashState = stashState
                     )
                 }
             },
             onRetryCancelled = ::backClicked
         )
+    }
+
+    fun originAccountClicked() = launch {
+        val address = originAddressModelLiveData.value?.address ?: return@launch
+        val chainId = assetFlow.first().token.configuration.chainId
+        val chain = chainRegistry.getChain(chainId)
+        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, address)
+        val externalActionsPayload = ExternalAccountActions.Payload(
+            value = address,
+            chainId = chainId,
+            chainName = chain.name,
+            explorers = supportedExplorers
+        )
+
+        externalAccountActions.showExternalActions(externalActionsPayload)
     }
 
     private fun requireFee(block: (BigDecimal) -> Unit) = feeLoaderMixin.requireFee(
@@ -176,7 +203,7 @@ class RedeemViewModel(
     }
 
     private fun sendTransaction(redeemValidationPayload: RedeemValidationPayload) = launch {
-        val result = redeemInteractor.redeem(accountStakingFlow.first()) {
+        val result = redeemInteractor.redeem(accountStakingFlow.first(), redeemValidationPayload.asset) {
             stakingScenarioInteractor.confirmRevoke(
                 this,
                 candidate = redeemValidationPayload.collatorAddress,
@@ -191,6 +218,7 @@ class RedeemViewModel(
 
             when {
                 payload.overrideFinishAction != null -> payload.overrideFinishAction.invoke(router)
+                result.requireValue().willKillStash -> router.returnToMain()
                 else -> router.returnToStakingBalance()
             }
         } else {
