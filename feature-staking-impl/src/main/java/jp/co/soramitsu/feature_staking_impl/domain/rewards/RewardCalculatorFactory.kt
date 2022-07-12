@@ -6,6 +6,8 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.error.accountIdNotFound
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.getActiveElectedValidatorsExposures
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -16,6 +18,7 @@ class RewardCalculatorFactory(
     private val relayChainRepository: StakingRelayChainScenarioRepository,
     private val stakingRepository: StakingRepository,
     private val sharedState: StakingSharedState,
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
 ) {
 
     suspend fun createManual(
@@ -55,7 +58,7 @@ class RewardCalculatorFactory(
     }
 
     fun createSubquery(): SubqueryRewardCalculator {
-        return SubqueryRewardCalculator()
+        return SubqueryRewardCalculator(stakingRepository, stakingScenarioInteractor as? StakingParachainScenarioInteractor)
     }
 
     suspend fun create(stakingType: Chain.Asset.StakingType): RewardCalculator {

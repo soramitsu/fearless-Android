@@ -2,8 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -71,6 +69,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 
 sealed class StakingViewState
 
@@ -369,11 +369,14 @@ class RelaychainWelcomeViewState(
     validationSystem,
     validationExecutor
 ) {
+    val chainId = currentAssetFlow.map { it.token.configuration.chainId }
+
     override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual() }
 
     override val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
-        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
-        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
+        val chainId = asset.token.configuration.chainId
+        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
 
         val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
@@ -385,7 +388,7 @@ class RelaychainWelcomeViewState(
         scope.launch {
             val rewardCalculator = rewardCalculator()
 
-            val maxAPY = rewardCalculator.calculateMaxAPY()
+            val maxAPY = rewardCalculator.calculateMaxAPY(chainId.first())
             val avgAPY = rewardCalculator.calculateAvgAPY()
 
             val payload = StakingRewardEstimationBottomSheet.Payload(
@@ -437,12 +440,14 @@ class ParachainWelcomeViewState(
     validationSystem,
     validationExecutor
 ) {
+    val chainId = currentAssetFlow.map { it.token.configuration.chainId }
 
     override val rewardCalculator = scope.async { rewardCalculatorFactory.createSubquery() }
 
     override val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
-        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true)
-        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true)
+        val chainId = asset.token.configuration.chainId
+        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
 
         val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
@@ -454,7 +459,7 @@ class ParachainWelcomeViewState(
         scope.launch {
             val rewardCalculator = rewardCalculator()
 
-            val maxAPY = rewardCalculator.calculateMaxAPY()
+            val maxAPY = rewardCalculator.calculateMaxAPY(chainId.first())
             val avgAPY = rewardCalculator.calculateAvgAPY()
 
             val payload = StakingRewardEstimationBottomSheet.Payload(
