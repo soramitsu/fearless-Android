@@ -18,8 +18,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.rewards.DAYS_IN_YEAR
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -29,13 +31,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
-import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 class RewardDestinationProvider(
     private val resourceManager: ResourceManager,
     private val interactor: StakingInteractor,
-    private val relayChainInteractor: StakingRelayChainScenarioInteractor,
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
     private val sharedState: StakingSharedState,
@@ -96,7 +96,7 @@ class RewardDestinationProvider(
     }
 
     override suspend fun loadActiveRewardDestination(stashState: StakingState.Stash) {
-        val rewardDestination = relayChainInteractor.getRewardDestination(stashState)
+        val rewardDestination = stakingScenarioInteractor.getRewardDestination(stashState)
         val rewardDestinationModel = mapRewardDestinationToRewardDestinationModel(rewardDestination)
 
         initialRewardDestination.emit(rewardDestinationModel)
@@ -104,8 +104,10 @@ class RewardDestinationProvider(
     }
 
     override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {
-        val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true)
-        val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false)
+        val chainId = sharedState.chain().id
+        val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true, chainId)
+
+        val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false, chainId)
 
         val restakeEstimations = mapPeriodReturnsToRewardEstimation(restakeReturns, asset.token, resourceManager, RewardSuffix.APY)
         val payoutEstimations = mapPeriodReturnsToRewardEstimation(payoutReturns, asset.token, resourceManager, RewardSuffix.APR)
