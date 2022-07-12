@@ -1,13 +1,16 @@
 package jp.co.soramitsu.feature_staking_impl.domain.rewards
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumByBigInteger
-import kotlin.math.pow
+import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
+import kotlin.math.pow
 
 private const val PARACHAINS_ENABLED = false
 
@@ -76,7 +79,12 @@ class ManualRewardCalculator(
 
     private val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
 
-    override suspend fun calculateMaxAPY() = calculateReturns(amount = BigDecimal.ONE, DAYS_IN_YEAR, isCompound = true).gainPercentage
+    override suspend fun calculateMaxAPY(chainId: ChainId) = calculateReturns(
+        amount = BigDecimal.ONE,
+        days = DAYS_IN_YEAR,
+        isCompound = true,
+        chainId = chainId
+    ).gainPercentage
 
     override fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
 
@@ -89,7 +97,8 @@ class ManualRewardCalculator(
     override suspend fun calculateReturns(
         amount: BigDecimal,
         days: Int,
-        isCompound: Boolean
+        isCompound: Boolean,
+        chainId: ChainId
     ) = withContext(Dispatchers.Default) {
         val dailyPercentage = maxAPY / DAYS_IN_YEAR
 
@@ -143,7 +152,7 @@ class ManualRewardCalculator(
 
 interface RewardCalculator {
 
-    suspend fun calculateMaxAPY(): BigDecimal
+    suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal
 
     fun calculateAvgAPY(): BigDecimal
 
@@ -152,7 +161,8 @@ interface RewardCalculator {
     suspend fun calculateReturns(
         amount: BigDecimal,
         days: Int,
-        isCompound: Boolean
+        isCompound: Boolean,
+        chainId: ChainId
     ): PeriodReturns
 
     suspend fun calculateReturns(
@@ -163,9 +173,12 @@ interface RewardCalculator {
     ): PeriodReturns
 }
 
-class SubqueryRewardCalculator : RewardCalculator {
+class SubqueryRewardCalculator(
+    private val stakingRepository: StakingRepository,
+    private val stakingParachainScenarioInteractor: StakingParachainScenarioInteractor?,
+) : RewardCalculator {
 
-    override suspend fun calculateMaxAPY(): BigDecimal {
+    override suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal {
         return BigDecimal.ZERO
     }
 
@@ -177,8 +190,18 @@ class SubqueryRewardCalculator : RewardCalculator {
         return BigDecimal.ZERO
     }
 
-    override suspend fun calculateReturns(amount: BigDecimal, days: Int, isCompound: Boolean): PeriodReturns {
-        return PeriodReturns(BigDecimal.ZERO, BigDecimal.ZERO)
+    override suspend fun calculateReturns(amount: BigDecimal, days: Int, isCompound: Boolean, chainId: ChainId): PeriodReturns {
+        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
+        val staked = stakingParachainScenarioInteractor?.getStaked(chainId)?.getOrNull()
+        val rewardsAmountPart = BigDecimal(0.025)
+        val currentApy = if (staked != null && staked > BigInteger.ZERO) {
+            totalIssuance.toBigDecimal() * rewardsAmountPart / staked.toBigDecimal()
+        } else {
+            BigDecimal.ZERO
+        }
+        val gainAmount = amount * currentApy
+
+        return PeriodReturns(gainAmount, currentApy.fractionToPercentage())
     }
 
     override suspend fun calculateReturns(amount: Double, days: Int, isCompound: Boolean, targetIdHex: String): PeriodReturns {

@@ -7,15 +7,12 @@ import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import java.math.BigInteger
 
-/*
-Balance
- */
 @UseCaseBinding
-fun bindTotalIssuance(
+fun bindStaked(
     scale: String,
     runtime: RuntimeSnapshot
 ): BigInteger {
-    val returnType = runtime.metadata.storageReturnType("Balances", "TotalIssuance")
+    val returnType = runtime.metadata.storageReturnType("ParachainStaking", "Staked")
 
     return bindNumber(returnType.fromHexOrIncompatible(scale, runtime))
 }

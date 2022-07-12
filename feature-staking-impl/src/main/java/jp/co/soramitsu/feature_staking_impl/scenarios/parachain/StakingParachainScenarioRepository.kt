@@ -27,6 +27,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindDelegatorState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRound
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSelectedCandidates
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStaked
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
@@ -82,6 +83,19 @@ class StakingParachainScenarioRepository(
             },
             binding = { scale, runtime ->
                 scale?.let { bindAtStakeOfCollator(it, runtime) } ?: incompatible()
+            }
+        )
+    }
+
+    suspend fun getStaked(chainId: ChainId, currentRound: BigInteger): BigInteger {
+        return remoteStorage.query(
+            chainId = chainId,
+            keyBuilder = { runtime ->
+                val storage = runtime.metadata.parachainStaking().storage("Staked")
+                storage.storageKey(runtime, currentRound)
+            },
+            binding = { scale, runtime ->
+                scale?.let { bindStaked(it, runtime) } ?: incompatible()
             }
         )
     }
