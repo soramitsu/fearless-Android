@@ -29,9 +29,9 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainExecuteDelegationRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCancelDelegationRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCandidateBondMore
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainConfirmRevokeDelegation
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainDelegatorBondMore
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleCandidateBondLess
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleDelegatorBondLess
@@ -284,7 +284,7 @@ class StakingParachainScenarioInteractor(
         val chain = stakingInteractor.getSelectedChain()
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
 
-        extrinsicBuilder.parachainConfirmRevokeDelegation(candidateId = candidate.fromHex(), delegatorId = accountId)
+        extrinsicBuilder.parachainExecuteDelegationRequest(candidateId = candidate.fromHex(), delegatorId = accountId)
     }
 
     override suspend fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {

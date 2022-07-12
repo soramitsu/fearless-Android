@@ -4,6 +4,7 @@ import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import java.math.BigInteger
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -24,11 +25,16 @@ class RedeemInteractor(
 
     suspend fun redeem(
         stashState: StakingState,
+        asset: Asset,
         formExtrinsic: suspend ExtrinsicBuilder.() -> Unit,
-    ): Result<String> {
+    ): Result<RedeemConsequences> {
         return withContext(Dispatchers.IO) {
             extrinsicService.submitExtrinsic(stashState.chain, stashState.executionAddressId) {
                 formExtrinsic.invoke(this)
+            }.map {
+                RedeemConsequences(
+                    willKillStash = asset.redeemable == asset.locked
+                )
             }
         }
     }
