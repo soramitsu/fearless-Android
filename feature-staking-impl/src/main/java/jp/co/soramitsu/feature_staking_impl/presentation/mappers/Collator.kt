@@ -1,12 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
-import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
-import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
@@ -16,6 +14,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import java.math.BigDecimal
 
 private const val ICON_SIZE_DP = 24
 
@@ -75,14 +74,14 @@ fun CandidateInfo.toCollator(address: String, identity: Identity?, apy: BigDecim
     request = request,
     status = status,
     identity = identity,
-    apy
+    apy = apy
 )
 
 fun BlockProducersSorting<Collator>.toScoring(collator: Collator, token: Token): CollatorModel.Scoring {
     return when (this) {
         BlockProducersSorting.CollatorSorting.APYSorting -> {
             val apy = collator.apy ?: BigDecimal.ZERO
-            CollatorModel.Scoring.OneField(apy.fractionToPercentage().formatAsPercentage())
+            CollatorModel.Scoring.OneField(apy.formatAsPercentage())
         }
         BlockProducersSorting.CollatorSorting.CollatorsOwnStakeSorting -> {
             val ownStakeFormatted = token.amountFromPlanks(collator.bond)
