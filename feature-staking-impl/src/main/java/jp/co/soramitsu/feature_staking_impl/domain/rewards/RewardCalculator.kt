@@ -3,10 +3,17 @@ package jp.co.soramitsu.feature_staking_impl.domain.rewards
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumByBigInteger
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.StakingApi
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingCollatorsApyRequest
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingLastRoundIdRequest
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -176,6 +183,7 @@ interface RewardCalculator {
 class SubqueryRewardCalculator(
     private val stakingRepository: StakingRepository,
     private val stakingParachainScenarioInteractor: StakingParachainScenarioInteractor?,
+    private val stakingApi: StakingApi,
 ) : RewardCalculator {
 
     override suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal {
@@ -206,5 +214,19 @@ class SubqueryRewardCalculator(
 
     override suspend fun calculateReturns(amount: Double, days: Int, isCompound: Boolean, targetIdHex: String): PeriodReturns {
         return PeriodReturns(BigDecimal.ZERO, BigDecimal.ZERO)
+    }
+
+    suspend fun getApy(selectedCandidates: List<ByteArray>): Map<String, BigDecimal?> {
+        val chain = stakingParachainScenarioInteractor?.getStakingStateFlow()?.first()?.chain
+        val stakingUrl = chain?.externalApi?.staking?.url
+        if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
+            throw Exception("Staking for this network is not supported yet")
+        }
+        val roundId = stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull()
+        val previousRoundId = roundId?.dec()
+        val collatorsApyRequest = StakingCollatorsApyRequest(selectedCandidates, previousRoundId)
+        return stakingApi.getCollatorsApy(stakingUrl, collatorsApyRequest).data.collatorRounds.nodes.mapNotNull { element ->
+            element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
+        }.toMap()
     }
 }

@@ -318,8 +318,9 @@ class StakingFeatureModule {
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         repository: StakingRepository,
         sharedState: StakingSharedState,
-        stakingScenarioInteractor: StakingScenarioInteractor
-    ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, sharedState, stakingScenarioInteractor)
+        stakingScenarioInteractor: StakingScenarioInteractor,
+        stakingApi: StakingApi
+    ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, sharedState, stakingScenarioInteractor, stakingApi)
 
     @Provides
     @FeatureScope

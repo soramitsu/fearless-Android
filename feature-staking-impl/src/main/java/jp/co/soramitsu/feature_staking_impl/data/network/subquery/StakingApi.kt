@@ -1,11 +1,15 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.subquery
 
 import jp.co.soramitsu.common.data.network.subquery.EraValidatorInfoQueryResponse
+import jp.co.soramitsu.common.data.network.subquery.StakingCollatorsApyResponse
 import jp.co.soramitsu.common.data.network.subquery.StakingHistoryRemote
+import jp.co.soramitsu.common.data.network.subquery.StakingLastRoundId
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.TransactionHistoryRemote
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingCollatorsApyRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingDelegatorHistoryRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingEraValidatorInfosRequest
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingLastRoundIdRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingSumRewardRequest
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -30,4 +34,16 @@ interface StakingApi {
         @Url url: String,
         @Body body: StakingDelegatorHistoryRequest
     ): SubQueryResponse<StakingHistoryRemote>
+
+    @POST
+    suspend fun getLastRoundId(
+        @Url url: String,
+        @Body body: StakingLastRoundIdRequest
+    ): SubQueryResponse<StakingLastRoundId>
+
+    @POST
+    suspend fun getCollatorsApy(
+        @Url url: String,
+        @Body body: StakingCollatorsApyRequest
+    ): SubQueryResponse<StakingCollatorsApyResponse>
 }
