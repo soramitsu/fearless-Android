@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.validators
 
 import jp.co.soramitsu.common.utils.mapValuesNotNull
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
@@ -29,13 +28,10 @@ class CollatorProvider(
         val selectedCandidates = stakingParachainScenarioRepository.getSelectedCandidates(chainId) ?: return emptyMap()
         val candidateInfos = stakingParachainScenarioRepository.getCandidateInfos(chainId, selectedCandidates)
         val identityInfo = identityRepository.getIdentitiesFromIdsBytes(chain, selectedCandidates)
-        val apy = selectedCandidates.map {
-            val accountId = it.toHexString(true)
-            accountId to rewardCalculator.getApyFor(accountId)
-        }.toMap()
+        val apyMap = rewardCalculator.getApy(selectedCandidates)
 
         val collators = candidateInfos.mapValuesNotNull {
-            it.value.toCollator(it.key, identityInfo[it.key], apy[it.key])
+            it.value.toCollator(it.key, identityInfo[it.key], apyMap[it.key])
         }
         return collators
     }
