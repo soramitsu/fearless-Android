@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
@@ -35,6 +36,7 @@ class BalanceDetailModule {
         resourceManager: ResourceManager,
         assetPayload: AssetPayload,
         addressDisplayUseCase: AddressDisplayUseCase,
+        localCursorStorage: TransferCursorStorage,
     ): TransactionHistoryMixin {
         return TransactionHistoryProvider(
             walletInteractor,
@@ -44,7 +46,8 @@ class BalanceDetailModule {
             resourceManager,
             addressDisplayUseCase,
             assetPayload.chainId,
-            assetPayload.chainAssetId
+            assetPayload.chainAssetId,
+            localCursorStorage,
         )
     }
 

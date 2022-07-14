@@ -10,13 +10,11 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.core_db.converters.CryptoTypeConverters
 import jp.co.soramitsu.core_db.converters.LongMathConverters
-import jp.co.soramitsu.core_db.converters.OperationConverters
 import jp.co.soramitsu.core_db.dao.AccountDao
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
-import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
@@ -45,12 +43,12 @@ import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_30_31
 import jp.co.soramitsu.core_db.migrations.MigrateTablesToV2_32_33
 import jp.co.soramitsu.core_db.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.core_db.migrations.RemoveLegacyData_35_36
+import jp.co.soramitsu.core_db.migrations.RemoveOperationMigration_42_43
 import jp.co.soramitsu.core_db.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.core_db.migrations.V2Migration
 import jp.co.soramitsu.core_db.model.AccountLocal
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.core_db.model.AssetLocal
-import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.core_db.model.PhishingAddressLocal
 import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import jp.co.soramitsu.core_db.model.TokenLocal
@@ -64,7 +62,7 @@ import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 
 @Database(
-    version = 42,
+    version = 43,
     entities = [
         AccountLocal::class,
         AssetLocal::class,
@@ -73,7 +71,6 @@ import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
         StorageEntryLocal::class,
         AccountStakingLocal::class,
         TotalRewardLocal::class,
-        OperationLocal::class,
 
         ChainLocal::class,
         ChainNodeLocal::class,
@@ -87,7 +84,6 @@ import jp.co.soramitsu.core_db.model.chain.MetaAccountLocal
 )
 @TypeConverters(
     LongMathConverters::class,
-    OperationConverters::class,
     CryptoTypeConverters::class
 )
 
@@ -127,6 +123,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AssetsMigration_38_39)
                     .addMigrations(ChainAssetsMigration_39_40)
                     .addMigrations(AssetsMigration_40_41)
+                    .addMigrations(RemoveOperationMigration_42_43)
                     .build()
             }
             return instance!!
@@ -136,8 +133,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): AccountDao
 
     abstract fun assetDao(): AssetDao
-
-    abstract fun operationDao(): OperationDao
 
     abstract fun phishingAddressesDao(): PhishingAddressDao
 

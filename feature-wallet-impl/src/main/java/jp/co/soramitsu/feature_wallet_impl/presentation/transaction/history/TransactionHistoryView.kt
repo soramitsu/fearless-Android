@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -88,9 +89,9 @@ class TransferHistorySheet @JvmOverloads constructor(
         bottomSheetBehavior?.isDraggable = false
     }
 
-    fun showPlaceholder(message: String? = null) {
+    fun showPlaceholder(@StringRes message: Int? = null) {
         placeholder.makeVisible()
-        message?.let { findViewById<TextView>(R.id.placeholderText)?.text = it }
+        message?.let { findViewById<TextView>(R.id.placeholderText)?.setText(it) }
 
         transactionHistoryProgress.makeGone()
         transactionHistoryList.makeGone()

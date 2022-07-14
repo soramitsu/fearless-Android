@@ -3,6 +3,12 @@ package jp.co.soramitsu.core_db.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val RemoveOperationMigration_42_43 = object : Migration(42, 43) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE operations")
+    }
+}
+
 val AssetsMigration_40_41 = object : Migration(40, 41) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE assets RENAME TO _assets")

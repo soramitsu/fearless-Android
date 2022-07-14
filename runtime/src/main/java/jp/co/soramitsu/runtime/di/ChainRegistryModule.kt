@@ -1,18 +1,25 @@
 package jp.co.soramitsu.runtime.di
 
+import android.content.Context
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import jp.co.soramitsu.common.data.network.subquery.subQueryTransactionPageSize
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.commonnetworking.fearless.FearlessChainsBuilder
-import jp.co.soramitsu.commonnetworking.networkclient.SoraNetworkClient
+import jp.co.soramitsu.xnetworking.fearless.FearlessChainsBuilder
+import jp.co.soramitsu.xnetworking.networkclient.SoramitsuNetworkClient
+import jp.co.soramitsu.xnetworking.subquery.SubQueryClient
+import jp.co.soramitsu.xnetworking.subquery.factory.SubQueryClientForFearless
+import jp.co.soramitsu.xnetworking.subquery.history.SubQueryHistoryItem
+import jp.co.soramitsu.xnetworking.subquery.history.fearless.FearlessSubQueryResponse
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.BuildConfig
+import jp.co.soramitsu.runtime.blockexplorer.SubQueryHistoryHandler
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
@@ -34,15 +41,31 @@ class ChainRegistryModule {
 
     @Provides
     @ApplicationScope
-    fun provideChainFetcher(client: SoraNetworkClient): ChainFetcher = ChainFetcher(client)
+    fun provideChainFetcher(client: SoramitsuNetworkClient): ChainFetcher = ChainFetcher(client)
 
     @Provides
     @ApplicationScope
-    fun provideSoraNetworkClient(): SoraNetworkClient = SoraNetworkClient(logging = BuildConfig.DEBUG)
+    fun provideSoraNetworkClient(): SoramitsuNetworkClient = SoramitsuNetworkClient(logging = BuildConfig.DEBUG)
 
     @Provides
     @ApplicationScope
-    fun provideFearlessChainBuilder(client: SoraNetworkClient): FearlessChainsBuilder = FearlessChainsBuilder(client, BuildConfig.CHAINS_URL)
+    fun provideFearlessChainBuilder(client: SoramitsuNetworkClient): FearlessChainsBuilder = FearlessChainsBuilder(client, BuildConfig.CHAINS_URL)
+
+    @Provides
+    @ApplicationScope
+    fun provideSubQueryClient(
+        context: Context,
+        client: SoramitsuNetworkClient,
+    ): SubQueryClient<FearlessSubQueryResponse, SubQueryHistoryItem> =
+        SubQueryClientForFearless.build(
+            context, client, "", subQueryTransactionPageSize
+        )
+
+    @Provides
+    @ApplicationScope
+    fun provideSubQueryHistoryHandler(
+        client: SubQueryClient<FearlessSubQueryResponse, SubQueryHistoryItem>,
+    ): SubQueryHistoryHandler = SubQueryHistoryHandler(client)
 
     @Provides
     @ApplicationScope
@@ -72,7 +95,7 @@ class ChainRegistryModule {
     @Provides
     @ApplicationScope
     fun provideTypesFetcher(
-        networkClient: SoraNetworkClient,
+        networkClient: SoramitsuNetworkClient,
     ) = TypesFetcher(networkClient)
 
     @Provides

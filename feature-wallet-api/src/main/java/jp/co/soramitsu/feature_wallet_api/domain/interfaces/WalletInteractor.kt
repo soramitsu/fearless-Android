@@ -9,7 +9,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.AssetWithStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
-import jp.co.soramitsu.feature_wallet_api.domain.model.OperationsPageChange
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
@@ -34,20 +33,10 @@ interface WalletInteractor {
 
     suspend fun getCurrentAsset(chainId: ChainId, chainAssetId: String): Asset
 
-    fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange>
-
-    suspend fun syncOperationsFirstPage(
-        chainId: ChainId,
-        chainAssetId: String,
-        pageSize: Int,
-        filters: Set<TransactionFilter>,
-    ): Result<*>
-
     suspend fun getOperations(
         chainId: ChainId,
         chainAssetId: String,
-        pageSize: Int,
-        cursor: String?,
+        pageNumber: Long,
         filters: Set<TransactionFilter>
     ): Result<CursorPage<Operation>>
 

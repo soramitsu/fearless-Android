@@ -15,7 +15,6 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrCodeGenerator
 import jp.co.soramitsu.core_db.dao.AssetDao
-import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
@@ -26,6 +25,7 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.runtime.blockexplorer.SubQueryHistoryHandler
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -53,8 +53,6 @@ interface WalletFeatureDependencies {
 
     fun tokenDao(): TokenDao
 
-    fun operationDao(): OperationDao
-
     fun networkCreator(): NetworkApiCreator
 
     fun signer(): Signer
@@ -78,6 +76,8 @@ interface WalletFeatureDependencies {
     fun phishingAddressesDao(): PhishingAddressDao
 
     fun rpcCalls(): RpcCalls
+
+    fun subQueryHistoryHandler(): SubQueryHistoryHandler
 
     fun accountUpdateScope(): AccountUpdateScope
 

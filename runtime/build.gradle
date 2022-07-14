@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlinx-serialization'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -54,7 +55,7 @@ dependencies {
     implementation coroutinesDep
     implementation liveDataKtxDep
 
-    implementation soraCommonNetworkingDep
+    implementation soramitsuXNetworkingDep
 
     implementation daggerDep
     kapt daggerKapt

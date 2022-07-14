@@ -1,36 +1,23 @@
 package jp.co.soramitsu.feature_wallet_impl.data.mappers
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Modules
-import jp.co.soramitsu.common.utils.nullIfEmpty
-import jp.co.soramitsu.core_db.model.OperationLocal
+import jp.co.soramitsu.xnetworking.subquery.history.SubQueryHistoryItem
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.data.network.model.response.SubqueryHistoryElementResponse
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import java.math.BigInteger
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-
-fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (status) {
-    Operation.Status.PENDING -> OperationLocal.Status.PENDING
-    Operation.Status.COMPLETED -> OperationLocal.Status.COMPLETED
-    Operation.Status.FAILED -> OperationLocal.Status.FAILED
-}
-
-private fun mapOperationStatusLocalToOperationStatus(status: OperationLocal.Status) = when (status) {
-    OperationLocal.Status.PENDING -> Operation.Status.PENDING
-    OperationLocal.Status.COMPLETED -> Operation.Status.COMPLETED
-    OperationLocal.Status.FAILED -> Operation.Status.FAILED
-}
 
 private val Operation.Type.operationAmount
     get() = when (this) {
@@ -53,7 +40,7 @@ private val Operation.Type.operationFee
         is Operation.Type.Transfer -> fee
     }
 
-private val Operation.Type.hash
+val Operation.Type.hash
     get() = when (this) {
         is Operation.Type.Extrinsic -> hash
         is Operation.Type.Transfer -> hash
@@ -64,126 +51,46 @@ private fun Operation.rewardOrNull() = type as? Operation.Type.Reward
 private fun Operation.transferOrNull() = type as? Operation.Type.Transfer
 private fun Operation.extrinsicOrNull() = type as? Operation.Type.Extrinsic
 
-fun mapOperationToOperationLocalDb(
-    operation: Operation,
-    chainAsset: Chain.Asset,
-    source: OperationLocal.Source,
-): OperationLocal {
-    val typeLocal = when (operation.type) {
-        is Operation.Type.Transfer -> OperationLocal.Type.TRANSFER
-        is Operation.Type.Reward -> OperationLocal.Type.REWARD
-        is Operation.Type.Extrinsic -> OperationLocal.Type.EXTRINSIC
-    }
-
-    return with(operation) {
-        OperationLocal(
-            id = id,
-            address = address,
-            time = time,
-            chainId = chainAsset.chainId,
-            chainAssetId = chainAsset.id,
-            module = extrinsicOrNull()?.module,
-            call = extrinsicOrNull()?.call,
-            amount = type.operationAmount,
-            fee = type.operationFee,
-            status = mapOperationStatusToOperationLocalStatus(type.operationStatus),
-            source = source,
-            operationType = typeLocal,
-            sender = transferOrNull()?.sender,
-            hash = type.hash,
-            receiver = transferOrNull()?.receiver,
-            isReward = rewardOrNull()?.isReward,
-            era = rewardOrNull()?.era,
-            validator = rewardOrNull()?.validator
-        )
-    }
-}
-
-fun mapOperationLocalToOperation(
-    operationLocal: OperationLocal,
-    chainAsset: Chain.Asset,
-): Operation {
-    with(operationLocal) {
-        val operationType = when (operationType) {
-            OperationLocal.Type.EXTRINSIC -> Operation.Type.Extrinsic(
-                hash = hash!!,
-                module = module!!,
-                call = call!!,
-                fee = fee!!,
-                status = mapOperationStatusLocalToOperationStatus(status)
-            )
-
-            OperationLocal.Type.TRANSFER -> Operation.Type.Transfer(
-                myAddress = address,
-                amount = amount!!,
-                receiver = receiver!!,
-                sender = sender!!,
-                fee = fee,
-                status = mapOperationStatusLocalToOperationStatus(status),
-                hash = hash
-            )
-
-            OperationLocal.Type.REWARD -> Operation.Type.Reward(
-                amount = amount!!,
-                isReward = isReward!!,
-                era = era!!,
-                validator = validator,
-            )
-        }
-
-        return Operation(
-            id = id,
-            address = address,
-            type = operationType,
-            time = time,
-            chainAsset = chainAsset,
-        )
-    }
-}
-
 fun mapNodeToOperation(
-    node: SubqueryHistoryElementResponse.Query.HistoryElements.Node,
+    node: SubQueryHistoryItem,
     tokenType: Chain.Asset,
+    myAddress: String,
 ): Operation {
-    val type: Operation.Type = when {
 
-        node.reward != null -> with(node.reward) {
+    fun getParam(name: String): String? = node.data?.firstOrNull { it.paramName == name }?.paramValue
+
+    val type: Operation.Type = when (node.module) {
+        TransactionFilter.REWARD.name.lowercase() ->
             Operation.Type.Reward(
-                amount = amount,
-                era = era,
-                isReward = isReward,
-                validator = validator.nullIfEmpty()
+                amount = getParam("amount")?.toBigInteger() ?: BigInteger.ZERO,
+                era = getParam("era")?.toInt() ?: 0,
+                isReward = getParam("isReward")?.toBoolean() ?: false,
+                validator = getParam("validator").orEmpty()
             )
-        }
-
-        node.extrinsic != null -> with(node.extrinsic) {
+        TransactionFilter.EXTRINSIC.name.lowercase() ->
             Operation.Type.Extrinsic(
-                hash = hash,
-                module = module,
-                call = call,
-                fee = fee,
-                status = Operation.Status.fromSuccess(success)
+                hash = getParam("hash").orEmpty(),
+                module = getParam("module").orEmpty(),
+                call = getParam("call").orEmpty(),
+                fee = getParam("fee")?.toBigInteger() ?: BigInteger.ZERO,
+                status = Operation.Status.fromSuccess(getParam("success")?.toBoolean() ?: false)
             )
-        }
-
-        node.transfer != null -> with(node.transfer) {
+        TransactionFilter.TRANSFER.name.lowercase() ->
             Operation.Type.Transfer(
-                myAddress = node.address,
-                amount = amount,
-                receiver = to,
-                sender = from,
-                fee = fee,
-                status = Operation.Status.fromSuccess(success),
-                hash = extrinsicHash
+                myAddress = myAddress,
+                amount = getParam("amount")?.toBigInteger() ?: BigInteger.ZERO,
+                receiver = getParam("to").orEmpty(),
+                sender = getParam("from").orEmpty(),
+                fee = getParam("fee")?.toBigInteger() ?: BigInteger.ZERO,
+                status = Operation.Status.fromSuccess(getParam("success")?.toBoolean() ?: false),
+                hash = getParam("extrinsicHash").orEmpty()
             )
-        }
-
         else -> throw IllegalStateException("All of the known operation type fields were null")
     }
 
     return Operation(
         id = node.id,
-        address = node.address,
+        address = myAddress,
         type = type,
         time = node.timestamp.toLong().toDuration(DurationUnit.SECONDS).inWholeMilliseconds,
         chainAsset = tokenType,

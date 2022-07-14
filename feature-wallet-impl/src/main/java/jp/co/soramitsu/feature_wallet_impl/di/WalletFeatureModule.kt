@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_wallet_impl.di
 
 import dagger.Module
 import dagger.Provides
-import javax.inject.Named
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -15,7 +14,6 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AssetDao
-import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.TokenDao
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
@@ -39,7 +37,6 @@ import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.WssSubstrateS
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.BalancesUpdateSystem
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.updaters.PaymentUpdaterFactory
 import jp.co.soramitsu.feature_wallet_impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.feature_wallet_impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.feature_wallet_impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.feature_wallet_impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.feature_wallet_impl.data.repository.WalletRepositoryImpl
@@ -48,19 +45,15 @@ import jp.co.soramitsu.feature_wallet_impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
+import jp.co.soramitsu.runtime.blockexplorer.SubQueryHistoryHandler
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
 
 @Module
 class WalletFeatureModule {
-
-    @Provides
-    @FeatureScope
-    fun provideSubQueryApi(networkApiCreator: NetworkApiCreator): SubQueryOperationsApi {
-        return networkApiCreator.create(SubQueryOperationsApi::class.java)
-    }
 
     @Provides
     @FeatureScope
@@ -117,14 +110,12 @@ class WalletFeatureModule {
 
     @Provides
     @FeatureScope
-    fun provideCursorStorage(preferences: Preferences) = TransferCursorStorage(preferences)
+    fun provideCursorStorage(): TransferCursorStorage = TransferCursorStorage()
 
     @Provides
     @FeatureScope
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
-        operationsDao: OperationDao,
-        subQueryOperationsApi: SubQueryOperationsApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
         phishingAddressDao: PhishingAddressDao,
@@ -136,10 +127,9 @@ class WalletFeatureModule {
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
         remoteConfigFetcher: RemoteConfigFetcher,
+        commonHistoryApi: SubQueryHistoryHandler,
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
-        operationsDao,
-        subQueryOperationsApi,
         httpExceptionHandler,
         phishingApi,
         assetCache,
@@ -150,7 +140,8 @@ class WalletFeatureModule {
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher
+        remoteConfigFetcher,
+        commonHistoryApi,
     )
 
     @Provides
@@ -199,17 +190,17 @@ class WalletFeatureModule {
     fun providePaymentUpdaterFactory(
         remoteSource: SubstrateRemoteSource,
         assetCache: AssetCache,
-        operationDao: OperationDao,
         accountUpdateScope: AccountUpdateScope,
         chainRegistry: ChainRegistry,
-        updatesMixin: UpdatesMixin
+        updatesMixin: UpdatesMixin,
+        operationLocalStorage: TransferCursorStorage,
     ) = PaymentUpdaterFactory(
         remoteSource,
         assetCache,
-        operationDao,
         chainRegistry,
         accountUpdateScope,
-        updatesMixin
+        updatesMixin,
+        operationLocalStorage,
     )
 
     @Provides

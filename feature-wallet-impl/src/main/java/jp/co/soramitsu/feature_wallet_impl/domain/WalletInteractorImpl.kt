@@ -23,7 +23,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.AssetWithStatus
 import jp.co.soramitsu.feature_wallet_api.domain.model.Fee
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
-import jp.co.soramitsu.feature_wallet_api.domain.model.OperationsPageChange
 import jp.co.soramitsu.feature_wallet_api.domain.model.RecipientSearchResult
 import jp.co.soramitsu.feature_wallet_api.domain.model.Transfer
 import jp.co.soramitsu.feature_wallet_api.domain.model.TransferValidityLevel
@@ -42,7 +41,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -135,38 +133,10 @@ class WalletInteractorImpl(
         return walletRepository.getAsset(metaAccount.id, metaAccount.accountId(chain)!!, chainAsset, chain.minSupportedVersion)!!
     }
 
-    override fun operationsFirstPageFlow(chainId: ChainId, chainAssetId: String): Flow<OperationsPageChange> {
-        return accountRepository.selectedMetaAccountFlow()
-            .flatMapLatest { metaAccount ->
-                val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
-                val accountId = metaAccount.accountId(chain)!!
-
-                walletRepository.operationsFirstPageFlow(accountId, chain, chainAsset).withIndex().map { (index, cursorPage) ->
-                    OperationsPageChange(cursorPage, accountChanged = index == 0)
-                }
-            }
-    }
-
-    override suspend fun syncOperationsFirstPage(
-        chainId: ChainId,
-        chainAssetId: String,
-        pageSize: Int,
-        filters: Set<TransactionFilter>,
-    ) = withContext(Dispatchers.Default) {
-        runCatching {
-            val metaAccount = accountRepository.getSelectedMetaAccount()
-            val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
-            val accountId = metaAccount.accountId(chain)!!
-
-            walletRepository.syncOperationsFirstPage(pageSize, filters, accountId, chain, chainAsset)
-        }
-    }
-
     override suspend fun getOperations(
         chainId: ChainId,
         chainAssetId: String,
-        pageSize: Int,
-        cursor: String?,
+        pageNumber: Long,
         filters: Set<TransactionFilter>,
     ): Result<CursorPage<Operation>> {
         return runCatching {
@@ -175,8 +145,7 @@ class WalletInteractorImpl(
             val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.getOperations(
-                pageSize,
-                cursor,
+                pageNumber,
                 filters,
                 accountId,
                 chain,

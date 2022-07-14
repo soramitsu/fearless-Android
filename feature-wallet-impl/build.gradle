@@ -87,6 +87,7 @@ dependencies {
     testImplementation mockitoDep
 
     implementation fearlessLibDep
+    implementation soramitsuXNetworkingDep
 
     implementation gsonDep
     implementation retrofitDep

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.di
 
 import jp.co.soramitsu.core.storage.StorageCache
+import jp.co.soramitsu.runtime.blockexplorer.SubQueryHistoryHandler
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
@@ -18,6 +19,8 @@ interface RuntimeApi {
     fun externalRequirementFlow(): MutableStateFlow<ChainConnection.ExternalRequirement>
 
     fun storageCache(): StorageCache
+
+    fun historyApi(): SubQueryHistoryHandler
 
     @Named(REMOTE_STORAGE_SOURCE)
     fun remoteStorageSource(): StorageDataSource

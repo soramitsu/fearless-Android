@@ -73,7 +73,7 @@ buildscript {
         recyclerviewVersion = '1.2.1'
         lifecycleVersion = '2.4.1'
 
-        soraCommonNetworking = '0.0.12'
+        soramitsuXNetworking = '0.0.33'
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -154,7 +154,7 @@ buildscript {
 
         roomTestsDep = "androidx.room:room-testing:$architectureComponentVersion"
 
-        soraCommonNetworkingDep = "jp.co.soramitsu:commonNetworking-android:$soraCommonNetworking"
+        soramitsuXNetworkingDep = "jp.co.soramitsu:XNetworking-android:$soramitsuXNetworking"
     }
 
     repositories {
@@ -169,6 +169,7 @@ buildscript {
         classpath 'com.google.gms:google-services:4.3.10'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlinVersion"
     }
 }
 

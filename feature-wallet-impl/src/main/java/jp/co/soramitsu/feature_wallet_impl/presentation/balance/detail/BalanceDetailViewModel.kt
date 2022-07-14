@@ -70,7 +70,7 @@ class BalanceDetailViewModel(
 
     fun sync() {
         viewModelScope.launch {
-            async { transactionHistoryMixin.syncFirstOperationsPage() }.start()
+            // async { transactionHistoryMixin.syncFirstOperationsPage() }.start()
 
             val deferredAssetSync = async { interactor.syncAssetsRates() }
             deferredAssetSync.await().exceptionOrNull()?.message?.let(::showMessage)

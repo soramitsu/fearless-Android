@@ -8,8 +8,6 @@ import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.core_db.dao.OperationDao
-import jp.co.soramitsu.core_db.model.OperationLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
@@ -21,9 +19,9 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.feature_wallet_api.data.cache.updateAsset
 import jp.co.soramitsu.feature_wallet_api.domain.model.Operation
-import jp.co.soramitsu.feature_wallet_impl.data.mappers.mapOperationStatusToOperationLocalStatus
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.feature_wallet_impl.data.network.blockchain.bindings.TransferExtrinsic
+import jp.co.soramitsu.feature_wallet_impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -35,25 +33,26 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import java.math.BigInteger
 
 class PaymentUpdaterFactory(
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
-    private val operationDao: OperationDao,
     private val chainRegistry: ChainRegistry,
     private val scope: AccountUpdateScope,
     private val updatesMixin: UpdatesMixin,
+    private val operationLocalStorage: TransferCursorStorage,
 ) {
 
     fun create(chainId: ChainId): Updater {
         return PaymentUpdater(
             substrateSource,
             assetCache,
-            operationDao,
             chainRegistry,
             scope,
             chainId,
-            updatesMixin
+            updatesMixin,
+            operationLocalStorage,
         )
     }
 }
@@ -61,11 +60,11 @@ class PaymentUpdaterFactory(
 class PaymentUpdater(
     private val substrateSource: SubstrateRemoteSource,
     private val assetCache: AssetCache,
-    private val operationDao: OperationDao,
     private val chainRegistry: ChainRegistry,
     override val scope: AccountUpdateScope,
     private val chainId: ChainId,
-    private val updatesMixin: UpdatesMixin
+    private val updatesMixin: UpdatesMixin,
+    private val operationLocalStorage: TransferCursorStorage,
 ) : Updater, UpdatesProviderUi by updatesMixin {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)
@@ -136,34 +135,33 @@ class PaymentUpdater(
 
             createTransferOperationLocal(it.extrinsic, localStatus, accountId, chain)
         }
-
-        operationDao.insertAll(local)
+        if (local.isNotEmpty()) {
+            operationLocalStorage.saveOperations(chain.name, chain.addressOf(accountId), local)
+        }
     }
 
-    private suspend fun createTransferOperationLocal(
+    private fun createTransferOperationLocal(
         extrinsic: TransferExtrinsic,
         status: Operation.Status,
         accountId: ByteArray,
         chain: Chain,
-    ): OperationLocal {
-        val localCopy = operationDao.getOperation(extrinsic.hash)
-
-        val fee = localCopy?.fee
-
+    ): Operation {
         val senderAddress = chain.addressOf(extrinsic.senderId)
         val recipientAddress = chain.addressOf(extrinsic.recipientId)
-
-        return OperationLocal.manualTransfer(
-            hash = extrinsic.hash,
-            chainId = chain.id,
+        return Operation(
+            id = extrinsic.hash,
             address = chain.addressOf(accountId),
-            chainAssetId = chain.utilityAsset.id, // TODO do not hardcode chain asset id
-            amount = extrinsic.amountInPlanks,
-            senderAddress = senderAddress,
-            receiverAddress = recipientAddress,
-            fee = fee,
-            status = mapOperationStatusToOperationLocalStatus(status),
-            source = OperationLocal.Source.BLOCKCHAIN,
+            time = System.currentTimeMillis(),
+            chainAsset = chain.utilityAsset, // TODO do not hardcode chain asset id
+            type = Operation.Type.Transfer(
+                hash = extrinsic.hash,
+                myAddress = chain.addressOf(accountId),
+                amount = extrinsic.amountInPlanks,
+                receiver = recipientAddress,
+                sender = senderAddress,
+                status = status,
+                fee = BigInteger.ZERO,
+            ),
         )
     }
 }

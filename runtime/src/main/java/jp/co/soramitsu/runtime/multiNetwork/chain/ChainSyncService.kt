@@ -1,7 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
-import jp.co.soramitsu.commonnetworking.fearless.FearlessChainsBuilder
+import jp.co.soramitsu.xnetworking.fearless.FearlessChainsBuilder
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.BuildConfig

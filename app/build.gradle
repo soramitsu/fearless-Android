@@ -160,7 +160,7 @@ dependencies {
     testImplementation project(':test-shared')
 
     implementation insetterDep
-    implementation soraCommonNetworkingDep
+    implementation soramitsuXNetworkingDep
 
     implementation liveDataKtxDep
 

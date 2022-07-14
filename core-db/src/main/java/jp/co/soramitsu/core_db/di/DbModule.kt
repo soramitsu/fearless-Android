@@ -12,7 +12,6 @@ import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.dao.AssetDao
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.dao.MetaAccountDao
-import jp.co.soramitsu.core_db.dao.OperationDao
 import jp.co.soramitsu.core_db.dao.PhishingAddressDao
 import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.core_db.dao.StorageDao
@@ -41,12 +40,6 @@ class DbModule {
     @ApplicationScope
     fun provideAssetDao(appDatabase: AppDatabase): AssetDao {
         return appDatabase.assetDao()
-    }
-
-    @Provides
-    @ApplicationScope
-    fun provideOperationHistoryDao(appDatabase: AppDatabase): OperationDao {
-        return appDatabase.operationDao()
     }
 
     @Provides

@@ -6,9 +6,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import jp.co.soramitsu.commonnetworking.fearless.ChainModel
-import jp.co.soramitsu.commonnetworking.fearless.FearlessChainsBuilder
-import jp.co.soramitsu.commonnetworking.fearless.ResultChainInfo
+import jp.co.soramitsu.xnetworking.fearless.ChainModel
+import jp.co.soramitsu.xnetworking.fearless.FearlessChainsBuilder
+import jp.co.soramitsu.xnetworking.fearless.ResultChainInfo
 import jp.co.soramitsu.core_db.dao.ChainDao
 import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher

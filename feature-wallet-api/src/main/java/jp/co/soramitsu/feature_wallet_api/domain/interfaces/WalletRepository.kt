@@ -30,31 +30,15 @@ interface WalletRepository {
 
     suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset?
 
-    suspend fun syncOperationsFirstPage(
-        pageSize: Int,
-        filters: Set<TransactionFilter>,
-        accountId: AccountId,
-        chain: Chain,
-        chainAsset: Chain.Asset
-    )
-
     suspend fun getOperations(
-        pageSize: Int,
-        cursor: String?,
+        pageNumber: Long,
         filters: Set<TransactionFilter>,
         accountId: AccountId,
         chain: Chain,
         chainAsset: Chain.Asset
     ): CursorPage<Operation>
 
-    fun operationsFirstPageFlow(
-        accountId: AccountId,
-        chain: Chain,
-        chainAsset: Chain.Asset
-    ): Flow<CursorPage<Operation>>
-
     suspend fun getContacts(
-        accountId: AccountId,
         chain: Chain,
         query: String
     ): Set<String>
