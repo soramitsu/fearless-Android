@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 class ChooseRebondKindBottomSheet(
     context: Context,
     private val actionListener: (RebondKind) -> Unit,
+    private val allowedRebondKinds: Set<RebondKind> = RebondKind.values().toSet()
 ) : FixedListBottomSheet(context) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,16 +17,18 @@ class ChooseRebondKindBottomSheet(
 
         setTitle(R.string.wallet_balance_unbonding_v1_9_0)
 
-        item(R.drawable.ic_stacking_24, R.string.staking_rebond_all) {
-            actionListener(RebondKind.ALL)
-        }
-
-        item(R.drawable.ic_stacking_24, R.string.staking_rebond_last) {
-            actionListener(RebondKind.LAST)
-        }
-
-        item(R.drawable.ic_stacking_24, R.string.staking_rebond) {
-            actionListener(RebondKind.CUSTOM)
+        allowedRebondKinds.forEach {
+            when (it) {
+                RebondKind.ALL -> item(R.drawable.ic_stacking_24, R.string.staking_rebond_all) {
+                    actionListener(RebondKind.ALL)
+                }
+                RebondKind.LAST -> item(R.drawable.ic_stacking_24, R.string.staking_rebond_last) {
+                    actionListener(RebondKind.LAST)
+                }
+                RebondKind.CUSTOM -> item(R.drawable.ic_stacking_24, R.string.staking_rebond) {
+                    actionListener(RebondKind.CUSTOM)
+                }
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm
 
-import android.os.Bundle
+import androidx.core.os.bundleOf
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
@@ -16,8 +16,6 @@ import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmRebondBin
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import javax.inject.Inject
 
-private const val PAYLOAD_KEY = "PAYLOAD_KEY"
-
 class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>(R.layout.fragment_confirm_rebond) {
 
     @Inject protected lateinit var imageLoader: ImageLoader
@@ -25,10 +23,9 @@ class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>(R.layout.frag
     private val binding by viewBinding(FragmentConfirmRebondBinding::bind)
 
     companion object {
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(payload: ConfirmRebondPayload) = Bundle().apply {
-            putParcelable(PAYLOAD_KEY, payload)
-        }
+        fun getBundle(payload: ConfirmRebondPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     override fun initViews() {

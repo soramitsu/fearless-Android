@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.custom
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -26,8 +25,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.requireFee
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -39,6 +37,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
@@ -95,10 +96,10 @@ class CustomRebondViewModel(
         router.back()
     }
 
-    @OptIn(ExperimentalTime::class)
+    @OptIn(FlowPreview::class)
     private fun listenFee() {
         parsedAmountFlow
-            .debounce(DEBOUNCE_DURATION_MILLIS.milliseconds)
+            .debounce(DEBOUNCE_DURATION_MILLIS.toDuration(DurationUnit.MILLISECONDS))
             .onEach { loadFee(it) }
             .launchIn(viewModelScope)
     }
@@ -109,7 +110,7 @@ class CustomRebondViewModel(
             feeConstructor = { token ->
                 val amountInPlanks = token.planksFromAmount(amount)
 
-                rebondInteractor.estimateFee(amountInPlanks)
+                rebondInteractor.estimateFee(amountInPlanks, null)
             },
             onRetryCancelled = ::backClicked
         )
@@ -136,7 +137,7 @@ class CustomRebondViewModel(
     private fun openConfirm(validPayload: RebondValidationPayload) {
         _showNextProgress.value = false
 
-        val confirmPayload = ConfirmRebondPayload(validPayload.rebondAmount)
+        val confirmPayload = ConfirmRebondPayload(validPayload.rebondAmount, null)
 
         router.openConfirmRebond(confirmPayload)
     }

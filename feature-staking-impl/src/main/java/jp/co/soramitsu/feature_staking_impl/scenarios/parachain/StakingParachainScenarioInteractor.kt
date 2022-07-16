@@ -29,6 +29,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCancelDelegationRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCandidateBondMore
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainDelegatorBondMore
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleCandidateBondLess
@@ -41,12 +42,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.toUnbonding
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
@@ -149,12 +152,18 @@ class StakingParachainScenarioInteractor(
         emitAll(stakingParachainScenarioRepository.stakingStateFlow(chain, accountId))
     }
 
-    override fun selectedAccountStakingStateFlow() = stakingInteractor.selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
-        selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
+    override fun selectedAccountStakingStateFlow(): Flow<StakingState> {
+        return stakingInteractor.selectionStateFlow().flatMapLatest { (selectedAccount, assetWithChain) ->
+            selectedAccountStakingStateFlow(selectedAccount, assetWithChain)
+        }
     }
 
     override suspend fun checkEnoughToUnbondValidation(payload: UnbondValidationPayload): Boolean {
         return payload.amount <= getUnstakeAvailableAmount(payload.asset, payload.collatorAddress?.fromHex())
+    }
+
+    override suspend fun checkEnoughToRebondValidation(payload: RebondValidationPayload): Boolean {
+        return true
     }
 
     override suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean {
@@ -185,7 +194,7 @@ class StakingParachainScenarioInteractor(
         return currentDelegationsCount >= maxDelegations
     }
 
-    val unbondingsFlow = singleReplaySharedFlow<List<Unbonding>>()
+    val unbondingRequestsFlow = singleReplaySharedFlow<List<Unbonding>>()
 
     override suspend fun currentUnbondingsFlow(collatorAddress: String?): Flow<List<Unbonding>> {
         collatorAddress ?: throw IllegalArgumentException("No collator address provided")
@@ -193,7 +202,7 @@ class StakingParachainScenarioInteractor(
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
         return combine(
             flowOf(delegationHistoryFetcher.fetchDelegationHistory(chain.id, accountId.toHexString(true), collatorAddress)),
-            unbondingsFlow
+            unbondingRequestsFlow
         ) { subQueryHistory: List<Unbonding>, currentUnbondings: List<Unbonding> ->
             currentUnbondings + subQueryHistory
         }
@@ -286,7 +295,7 @@ class StakingParachainScenarioInteractor(
                 val timeLeft = calculateTimeTillTheRoundStart(currentRound, currentBlock, it.whenExecutable, hoursInRound)
                 it.toUnbonding(timeLeft)
             }
-            unbondingsFlow.tryEmit(unbondings)
+            unbondingRequestsFlow.tryEmit(unbondings)
 
             val unstaking = userRequests.filter {
                 it.whenExecutable > currentRound.current
@@ -303,6 +312,18 @@ class StakingParachainScenarioInteractor(
             )
         }
     }
+
+    override suspend fun getRebondingUnbondings(): List<Unbonding> = unbondingRequestsFlow
+        .map { it.filter { it.timeLeft > 0 } }
+        .first()
+
+    override fun rebond(extrinsicBuilder: ExtrinsicBuilder, amount: BigInteger, candidate: String?): ExtrinsicBuilder {
+        candidate ?: error("cannot find collatorAddress")
+
+        return extrinsicBuilder.parachainCancelDelegationRequest(candidate)
+    }
+
+    override fun getRebondTypes(): Set<RebondKind> = setOf(RebondKind.ALL)
 
     override suspend fun overrideUnbondHint(): String {
         val chain = stakingInteractor.getSelectedChain()
@@ -322,6 +343,8 @@ class StakingParachainScenarioInteractor(
 
     override fun overrideRedeemActionTitle(): Int = R.string.parachain_staking_unlock
     override fun overrideUnbondAvailableLabel(): Int? = null
+    override fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal) = amount
+
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal {
         collatorId ?: error("cannot find collatorId")
 
