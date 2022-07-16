@@ -9,10 +9,12 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
@@ -59,6 +61,11 @@ interface StakingScenarioInteractor {
     suspend fun overrideUnbondHint(): String?
     fun overrideUnbondAvailableLabel(): Int?
     suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal
+    fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal): BigDecimal
     suspend fun checkEnoughToUnbondValidation(payload: UnbondValidationPayload): Boolean
+    suspend fun checkEnoughToRebondValidation(payload: RebondValidationPayload): Boolean
     suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean
+    fun getRebondTypes(): Set<RebondKind>
+    suspend fun getRebondingUnbondings(): List<Unbonding>
+    fun rebond(extrinsicBuilder: ExtrinsicBuilder, amount: BigInteger, candidate: String?): ExtrinsicBuilder
 }

@@ -89,7 +89,7 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
         }
 
         viewModel.showRebondActionsEvent.observeEvent {
-            ChooseRebondKindBottomSheet(requireContext(), viewModel::rebondKindChosen)
+            ChooseRebondKindBottomSheet(requireContext(), viewModel::rebondKindChosen, it)
                 .show()
         }
     }

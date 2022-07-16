@@ -7,7 +7,6 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -92,8 +91,8 @@ class StakingBalanceViewModel(
         .inBackground()
         .asLiveData()
 
-    private val _showRebondActionsEvent = MutableLiveData<Event<Unit>>()
-    val showRebondActionsEvent: LiveData<Event<Unit>> = _showRebondActionsEvent
+    private val _showRebondActionsEvent = MutableLiveData<Event<Set<RebondKind>>>()
+    val showRebondActionsEvent: LiveData<Event<Set<RebondKind>>> = _showRebondActionsEvent
 
     fun bondMoreClicked() = requireValidManageAction(bondMoreValidationSystem) {
         router.openBondMore(
@@ -123,8 +122,9 @@ class StakingBalanceViewModel(
     }
 
     fun unbondingsMoreClicked() {
+        val allowedRebondTypes = stakingScenarioInteractor.getRebondTypes()
         requireValidManageAction(rebondValidationSystem) {
-            _showRebondActionsEvent.sendEvent()
+            _showRebondActionsEvent.postValue(Event(allowedRebondTypes))
         }
     }
 
@@ -138,14 +138,14 @@ class StakingBalanceViewModel(
 
     private fun openConfirmRebond(amountBuilder: (List<Unbonding>) -> BigInteger) {
         launch {
-            val unbondings = unbondingsFlow.first()
+            val unbondings = stakingScenarioInteractor.getRebondingUnbondings()
 
             val amountInPlanks = amountBuilder(unbondings)
             val asset = assetFlow.first()
 
             val amount = asset.token.amountFromPlanks(amountInPlanks)
 
-            router.openConfirmRebond(ConfirmRebondPayload(amount))
+            router.openConfirmRebond(ConfirmRebondPayload(amount, collatorAddress))
         }
     }
 

@@ -24,6 +24,7 @@ import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bondMore
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.chill
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.rebond
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.unbond
 import jp.co.soramitsu.feature_staking_impl.data.repository.PayoutRepository
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
@@ -43,12 +44,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
@@ -70,6 +73,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
 
@@ -236,6 +240,12 @@ class StakingRelayChainScenarioInteractor(
 
     override fun getSelectedAccountAddress(): Flow<Optional<AddressModel>> = flowOf(Optional.empty())
 
+    override suspend fun getRebondingUnbondings(): List<Unbonding> = currentUnbondingsFlow(null).first()
+
+    override fun getRebondTypes(): Set<RebondKind> = RebondKind.values().toSet()
+
+    override fun rebond(extrinsicBuilder: ExtrinsicBuilder, amount: BigInteger, candidate: String?) = extrinsicBuilder.rebond(amount)
+
     override fun getCollatorAddress(collatorAddress: String?): Flow<Optional<AddressModel>> = flowOf(Optional.empty())
 
     override suspend fun stakeMore(extrinsicBuilder: ExtrinsicBuilder, amountInPlanks: BigInteger, candidate: String?) =
@@ -268,7 +278,10 @@ class StakingRelayChainScenarioInteractor(
     override suspend fun overrideUnbondHint(): String? = null
     override fun overrideUnbondAvailableLabel(): Int = R.string.staking_bonded_format
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?) = asset.bonded
+    override fun getRebondAvailableAmount(asset: Asset, amount: BigDecimal) = asset.unbonding
     override suspend fun checkEnoughToUnbondValidation(payload: UnbondValidationPayload) = payload.amount <= payload.asset.bonded
+    override suspend fun checkEnoughToRebondValidation(payload: RebondValidationPayload) = payload.rebondAmount <= payload.controllerAsset.unbonding
+
     override suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean {
         val tokenConfiguration = payload.asset.token.configuration
 
