@@ -492,7 +492,8 @@ class StakingFeatureModule {
     fun provideRebondInteractor(
         sharedState: StakingSharedState,
         extrinsicService: ExtrinsicService,
-    ) = RebondInteractor(extrinsicService, sharedState)
+        stakingScenarioInteractor: StakingScenarioInteractor
+    ) = RebondInteractor(extrinsicService, sharedState, stakingScenarioInteractor)
 
     @Provides
     @FeatureScope
