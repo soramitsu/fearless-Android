@@ -76,6 +76,10 @@ class StakingBalanceViewModel(
         it.redeemable.amount > BigDecimal.ZERO
     }
 
+    val hasScheduledRequestsLiveData = stakingBalanceModelLiveData.map {
+        it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO
+    }
+
     val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
             unbondings.mapIndexed { index, unbonding ->
