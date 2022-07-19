@@ -311,7 +311,7 @@
     <string name="common_module">Модуль</string>
     <string name="wallet_asset_buy_with">Купить %s с</string>
     <string name="wallet_filters_title">Фильтры</string>
-    <string name="common_apply">Применять</string>
+    <string name="common_apply">Применить</string>
     <string name="common_reset">Сброс</string>
     <string name="wallet_filters_transfers">Переводы</string>
     <string name="wallet_filters_rewards_and_slashes">Вознаграждения и слэши</string>
