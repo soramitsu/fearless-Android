@@ -722,4 +722,12 @@
 
     <string name="staking_collator_status_leaving">Выходящий</string>
     <string name="staking_collator_status_idle">Неактивный</string>
+
+    <string name="staking_alert_leaving_collator_title">Коллатор %s покидает список кандидатов</string>
+    <string name="staking_alert_leaving_collator_text">Проверьте делегацию коллатору %s и заберите токены, если они доступны</string>
+    <string name="staking_alert_low_stake_title">Ваша делегация не производит наград.</string>
+    <string name="staking_alert_low_stake_text">Ваш стейк слишком мал для генерации наград. Вы можете добавить %d токенов или забрать свой стейк</string>
+    <string name="staking_alert_unlock_title">Вы можете забрать ваши токены</string>
+    <string name="staking_alert_unlock_text">Пожалуйста завершите текущую операцию (уменьшить/отозвать стейк) забрав ваши токены</string>
+
 </resources>
