@@ -125,4 +125,5 @@ interface BaseStakingViewModel {
     fun bondMoreAlertClicked()
     fun showError(throwable: Throwable)
     fun showError(text: String)
+    fun openStakingBalance(collatorAddress: String)
 }

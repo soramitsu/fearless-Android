@@ -191,7 +191,11 @@ class StakingViewModel(
     }
 
     fun onStakingBalance(model: DelegatorViewState.CollatorDelegationModel) {
-        router.openStakingBalance(model.collatorAddress)
+        openStakingBalance(model.collatorAddress)
+    }
+
+    override fun openStakingBalance(collatorAddress: String) {
+        router.openStakingBalance(collatorAddress)
     }
 
     fun openCollatorInfo(model: DelegatorViewState.CollatorDelegationModel) {

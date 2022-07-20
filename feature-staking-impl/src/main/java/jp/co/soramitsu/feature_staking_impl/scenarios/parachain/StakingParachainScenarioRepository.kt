@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
@@ -33,7 +34,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -155,6 +155,17 @@ class StakingParachainScenarioRepository(
         chainId,
         keyBuilder = { runtime ->
             runtime.metadata.parachainStaking().storage("DelegationScheduledRequests").storageKey(runtime, accountId)
+        },
+        binding = { scale, runtime ->
+            scale?.let { bindDelegationScheduledRequests(it, runtime) }
+        }
+    )
+
+    suspend fun getScheduledRequests(chainId: ChainId, collatorIds: List<AccountId>) = remoteStorage.queryKeys(
+        chainId,
+        keysBuilder = { runtime ->
+            val storage = runtime.metadata.parachainStaking().storage("DelegationScheduledRequests")
+            storage.storageKeys(runtime, singleMapArguments = collatorIds, argumentTransform = { it.toHexString() })
         },
         binding = { scale, runtime ->
             scale?.let { bindDelegationScheduledRequests(it, runtime) }
