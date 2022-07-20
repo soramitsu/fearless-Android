@@ -9,6 +9,22 @@ class ParachainStakingStoriesDataSourceImpl : StakingStoriesDataSource {
     override fun getStoriesFlow() = flowOf(
         listOf(
             StoryGroup.Staking(
+                titleRes = R.string.staking_story_staking_title,
+                iconSymbol = "\uD83D\uDCB0",
+                elements = listOf(
+                    StoryGroup.Story.Staking(
+                        R.string.staking_story_staking_title,
+                        R.string.staking_story_staking_page_1,
+                        url = "https://wiki.polkadot.network/docs/en/learn-staking"
+                    ),
+                    StoryGroup.Story.Staking(
+                        R.string.staking_story_staking_title,
+                        R.string.staking_story_staking_page_2,
+                        url = "https://wiki.polkadot.network/docs/en/learn-staking"
+                    )
+                )
+            ),
+            StoryGroup.Staking(
                 titleRes = R.string.parachain_staking_story_collator_title,
                 iconSymbol = "\uD83D\uDC8E",
                 elements = listOf(

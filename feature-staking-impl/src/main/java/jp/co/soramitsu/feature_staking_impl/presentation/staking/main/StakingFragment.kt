@@ -55,6 +55,10 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             stakingNetworkInfo.storyItemHandler = {
                 viewModel.storyClicked(StoryGroupModel(it.elements))
             }
+
+            parachainStakingNetworkInfo.storyItemHandler = {
+                viewModel.storyClicked(StoryGroupModel(it.elements))
+            }
         }
 
         binding.collatorsList.layoutManager = object : LinearLayoutManager(requireContext()) {
