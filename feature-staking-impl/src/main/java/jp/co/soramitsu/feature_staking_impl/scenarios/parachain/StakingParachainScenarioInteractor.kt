@@ -1,5 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -10,6 +13,7 @@ import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -29,10 +33,10 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainExecuteDelegationRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCancelDelegationRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCandidateBondMore
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainDelegatorBondMore
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainExecuteDelegationRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleCandidateBondLess
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleDelegatorBondLess
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainScheduleRevokeDelegation
@@ -59,6 +63,8 @@ import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountMo
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
@@ -70,11 +76,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -487,5 +488,14 @@ class StakingParachainScenarioInteractor(
         val secondTillRound = secondsTillTheEndOfRound + secondsInWholeRounds
         val millisecondTillRound = secondTillRound * BigDecimal(1000)
         return millisecondTillRound.toLong()
+    }
+
+    suspend fun getCollatorIdsWithReadyToUnlockingTokens(collatorIds: List<AccountId>): List<AccountId> {
+        val chainId = stakingInteractor.getSelectedChain().id
+        val currentRound = getCurrentRound(chainId)
+        val delegationScheduledRequests = stakingParachainScenarioRepository.getScheduledRequests(chainId, collatorIds).filter {
+            it.value?.any { scheduledRequest -> scheduledRequest.whenExecutable <= currentRound.current } == true
+        }
+        return delegationScheduledRequests.keys.map { it.requireHexPrefix().fromHex() }
     }
 }
