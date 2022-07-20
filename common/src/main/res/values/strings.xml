@@ -512,7 +512,7 @@ Derivation path: %s</string>
 to your account to avoid remaining stake.</string>
     <string name="staking_custom_validators_settings_filters">Show</string>
     <string name="common_sort_by">Sort by</string>
-    <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
+    <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APR)</string>
     <string name="staking_information_controller_actions">Controller can unbond, redeem, rebond, change reward destination and validators</string>
     <string name="staking_only_apr">APR</string>
     <string name="staking_only_apy">APY</string>

@@ -11,7 +11,10 @@ import kotlinx.coroutines.flow.combine
 
 class SettingsStorage {
 
-    private val defaultSelectedFilters: Set<Filters> = setOf()
+    private val defaultSelectedFilters: Set<Filters> = setOf(
+        Filters.HavingOnChainIdentity,
+        Filters.NotOverSubscribed
+    )
     private val defaultSelectedSorting: Sorting = Sorting.EstimatedRewards
 
     private val selectedFilters: MutableStateFlow<Set<Filters>> =
