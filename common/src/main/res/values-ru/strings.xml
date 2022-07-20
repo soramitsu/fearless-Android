@@ -496,7 +496,7 @@
 на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
     <string name="staking_custom_validators_settings_filters">Показать</string>
     <string name="common_sort_by">Сортировать по:</string>
-    <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APY)</string>
+    <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APR)</string>
     <string name="staking_information_controller_actions">Контроллер аккаунт может вывести из стейка, забрать, вернуть в стейк, сменить назначение вознаграждений и валидаторов.</string>
     <string name="staking_only_apr">APR</string>
     <string name="staking_only_apy">APY</string>
