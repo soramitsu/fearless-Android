@@ -4,8 +4,8 @@ import android.os.Parcelable
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfoStatus
-import kotlinx.android.parcel.Parcelize
-import kotlinx.android.parcel.RawValue
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 
 sealed class ValidatorStakeParcelModel : Parcelable {
 
