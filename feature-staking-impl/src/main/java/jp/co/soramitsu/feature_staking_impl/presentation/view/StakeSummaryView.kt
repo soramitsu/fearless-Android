@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
+import androidx.core.view.isVisible
 import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.shape.addRipple
@@ -21,28 +22,33 @@ class StakeSummaryView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : LinearLayout(context, attrs, defStyle) {
 
-    sealed class Status(@StringRes val textRes: Int, @ColorRes val tintRes: Int, val extraMessage: String?) {
+    sealed class Status(
+        @StringRes val textRes: Int,
+        @ColorRes val tintRes: Int,
+        val extraMessage: String?,
+        val statusClickable: Boolean
+    ) {
 
-        class Active(eraDisplay: String) : Status(R.string.staking_nominator_status_active, R.color.green, eraDisplay)
+        class Active(eraDisplay: String) : Status(R.string.staking_nominator_status_active, R.color.green, eraDisplay, true)
 
-        class Inactive(eraDisplay: String) : Status(R.string.staking_nominator_status_inactive, R.color.red, eraDisplay)
+        class Inactive(eraDisplay: String) : Status(R.string.staking_nominator_status_inactive, R.color.red, eraDisplay, true)
 
         class Waiting(
             override val timeLeft: Long,
             override val hideZeroTimer: Boolean = false
-        ) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null), WithTimer
+        ) : Status(R.string.staking_nominator_status_waiting, R.color.white_64, null, true), WithTimer
 
         class ActiveCollator(
             override val timeLeft: Long,
             override val hideZeroTimer: Boolean = false
-        ) : Status(R.string.staking_nominator_status_active, R.color.green, "Next round"), WithTimer
+        ) : Status(R.string.staking_nominator_status_active, R.color.green, "Next round", false), WithTimer
 
-        class IdleCollator : Status(R.string.staking_collator_status_idle, R.color.colorGreyText, null)
+        class IdleCollator : Status(R.string.staking_collator_status_idle, R.color.colorGreyText, null, false)
 
         class LeavingCollator(
             override val timeLeft: Long,
             override val hideZeroTimer: Boolean = true
-        ) : Status(R.string.staking_collator_status_leaving, R.color.red, "Waiting execution"), WithTimer
+        ) : Status(R.string.staking_collator_status_leaving, R.color.red, "Waiting execution", false), WithTimer
 
         interface WithTimer {
             val timeLeft: Long
@@ -77,6 +83,7 @@ class StakeSummaryView @JvmOverloads constructor(
             binding.stakeSummaryStatusHelper.stopTimer()
             binding.stakeSummaryStatusHelper.text = status.extraMessage
         }
+        binding.imageView2.isVisible = status.statusClickable
     }
 
     fun hideLoading() {

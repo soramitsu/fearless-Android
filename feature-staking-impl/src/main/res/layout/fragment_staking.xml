@@ -74,7 +74,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginEnd="16dp"
+            android:visibility="gone" />
 
         <jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
             android:id="@+id/stakingStakeSummary"
@@ -90,9 +91,9 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/collatorsList"
             android:layout_width="match_parent"
-            android:visibility="gone"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
+            android:visibility="gone"
             tools:itemCount="2"
             tools:listitem="@layout/item_collator_delegation" />
 

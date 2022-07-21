@@ -11,15 +11,15 @@ class StakingRewardEstimationBottomSheet(
     context: Context,
     private val payload: Payload,
 ) : FixedListBottomSheet(context) {
-    class Payload(val apr: String, val apy: String)
+    class Payload(val apr: String, val apy: String, @StringRes val maximumTitle: Int, @StringRes val averageTitle: Int)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setTitle(R.string.staking_reward_info_title)
 
-        addItem(payload.apr, R.string.staking_reward_info_max)
-        addItem(payload.apy, R.string.staking_reward_info_avg)
+        addItem(payload.apr, payload.maximumTitle)
+        addItem(payload.apy, payload.averageTitle)
     }
 
     private fun addItem(
