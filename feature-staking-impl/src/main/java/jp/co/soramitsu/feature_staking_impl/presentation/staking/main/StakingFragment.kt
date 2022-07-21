@@ -29,6 +29,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.view.DelegationOptionsB
 import jp.co.soramitsu.feature_staking_impl.presentation.view.DelegationRecyclerViewAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import kotlinx.coroutines.flow.combine
 
 class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking), DelegationRecyclerViewAdapter.DelegationHandler {
 
@@ -149,14 +151,22 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                 }
             }
         }
-        viewModel.networkInfo.observe { state ->
-            when (state) {
-                is LoadingState.Loading<*> -> {
-                    binding.parachainStakingNetworkInfo.showLoading()
+
+        combine(viewModel.networkInfo, viewModel.assetSelectorMixin.selectedAssetFlow) { state, asset ->
+            state to asset.token.configuration.staking
+        }.observe { (state, stakingType) ->
+            when {
+                state is LoadingState.Loading<*> && stakingType == Chain.Asset.StakingType.RELAYCHAIN -> {
+                    binding.parachainStakingNetworkInfo.isVisible = false
+                    binding.stakingNetworkInfo.isVisible = true
                     binding.stakingNetworkInfo.showLoading()
                 }
-
-                is LoadingState.Loaded<StakingNetworkInfoModel> -> {
+                state is LoadingState.Loading<*> && stakingType == Chain.Asset.StakingType.PARACHAIN -> {
+                    binding.stakingNetworkInfo.isVisible = false
+                    binding.parachainStakingNetworkInfo.isVisible = true
+                    binding.parachainStakingNetworkInfo.showLoading()
+                }
+                state is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     when (val model = state.data) {
                         is StakingNetworkInfoModel.Parachain -> {
                             setupNetworkInfo(model)
