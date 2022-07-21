@@ -1,7 +1,10 @@
 package jp.co.soramitsu.feature_staking_api.domain.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import java.math.BigInteger
 
+@Parcelize
 class CandidateInfo(
     val bond: BigInteger,
     val delegationCount: BigInteger,
@@ -13,9 +16,9 @@ class CandidateInfo(
     val bottomCapacity: CandidateCapacity,
     val request: String?,
     val status: CandidateInfoStatus,
-)
+) : Parcelable
 
-sealed class CandidateInfoStatus {
+sealed class CandidateInfoStatus : Parcelable {
 
     companion object {
         fun from(key: String?) = when (key) {
@@ -26,9 +29,16 @@ sealed class CandidateInfoStatus {
         }
     }
 
+    @Parcelize
     object ACTIVE : CandidateInfoStatus()
+
+    @Parcelize
     object EMPTY : CandidateInfoStatus()
+
+    @Parcelize
     class LEAVING(val leavingBlock: Long?) : CandidateInfoStatus()
+
+    @Parcelize
     object IDLE : CandidateInfoStatus()
 }
 
