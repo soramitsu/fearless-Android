@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.databinding.ViewNetworkInfoBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingStoriesAdapter
 
 abstract class NetworkInfoView @JvmOverloads constructor(
@@ -29,8 +28,6 @@ abstract class NetworkInfoView @JvmOverloads constructor(
         COLLAPSED
     }
 
-    protected val binding: ViewNetworkInfoBinding
-
     var storyItemHandler: (StakingStoryModel) -> Unit = {}
 
     private val storiesAdapter = StakingStoriesAdapter(object : StakingStoriesAdapter.StoryItemHandler {
@@ -46,9 +43,6 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     protected abstract val collapsibleView: ConstraintLayout
 
     init {
-        inflate(context, R.layout.view_network_info, this)
-        binding = ViewNetworkInfoBinding.bind(this)
-
         with(context) {
             background = getCutCornerDrawable(R.color.blurColor)
         }
@@ -62,10 +56,10 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     }
 
     private fun setupViews() {
-        binding.stakingStoriesList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        binding.stakingStoriesList.adapter = storiesAdapter
+        storiesList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        storiesList.adapter = storiesAdapter
 
-        binding.stakingNetworkInfoTitle.setOnClickListener { changeExpandableState() }
+        infoTitle.setOnClickListener { changeExpandableState() }
     }
 
     private fun applyAttributes(attrs: AttributeSet?) {
@@ -80,7 +74,7 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     }
 
     fun setTitle(title: String) {
-        binding.stakingNetworkInfoTitle.text = title
+        infoTitle.text = title
     }
 
     fun submitStories(stories: List<StakingStoryModel>) {
@@ -104,19 +98,19 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     }
 
     private fun collapse() {
-        binding.stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
+        infoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_down_white, 0)
         currentState = State.COLLAPSED
-        binding.stakingNetworkCollapsibleView.animate()
+        collapsibleView.animate()
             .setDuration(ANIMATION_DURATION)
             .alpha(0f)
-            .withEndAction { binding.stakingNetworkCollapsibleView.makeGone() }
+            .withEndAction { collapsibleView.makeGone() }
     }
 
     private fun expand() {
-        binding.stakingNetworkInfoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
-        binding.stakingNetworkCollapsibleView.makeVisible()
+        infoTitle.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_chevron_up_white, 0)
+        collapsibleView.makeVisible()
         currentState = State.EXPANDED
-        binding.stakingNetworkCollapsibleView.animate()
+        collapsibleView.animate()
             .setDuration(ANIMATION_DURATION)
             .alpha(1f)
     }

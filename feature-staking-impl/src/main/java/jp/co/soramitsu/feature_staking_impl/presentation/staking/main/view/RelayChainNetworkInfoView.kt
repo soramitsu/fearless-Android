@@ -2,21 +2,18 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
-import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewNetworkInfoBinding
 
 class RelayChainNetworkInfoView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
 ) : NetworkInfoView(context, attrs) {
 
-    private val view = View.inflate(context, R.layout.view_network_info, this)
-    override val storiesList: RecyclerView by lazy { view.findViewById(R.id.stakingStoriesList) }
-    override val infoTitle: TextView by lazy { view.findViewById(R.id.stakingNetworkInfoTitle) }
-    override val collapsibleView: ConstraintLayout by lazy { view.findViewById(R.id.stakingNetworkCollapsibleView) }
+    private val binding = ViewNetworkInfoBinding.bind(inflate(context, R.layout.view_network_info, this))
+    override val storiesList by lazy { binding.stakingStoriesList }
+    override val infoTitle by lazy { binding.stakingNetworkInfoTitle }
+    override val collapsibleView by lazy { binding.stakingNetworkCollapsibleView }
 
     init {
         setup()
