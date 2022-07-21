@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 import android.os.Bundle
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.createSendEmailIntent
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -66,6 +67,7 @@ class CollatorDetailsFragment : BaseFragment<CollatorDetailsViewModel>(R.layout.
 
     override fun subscribe(viewModel: CollatorDetailsViewModel) {
         setupExternalActions(viewModel)
+        observeBrowserEvents(viewModel)
 
         viewModel.collatorDetails.observe { collator ->
             with(binding) {
