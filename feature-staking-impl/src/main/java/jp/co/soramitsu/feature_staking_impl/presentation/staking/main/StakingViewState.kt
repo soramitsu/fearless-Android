@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.TitleAndMessage
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -69,8 +71,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 
 sealed class StakingViewState
 
@@ -388,12 +388,15 @@ class RelaychainWelcomeViewState(
         scope.launch {
             val rewardCalculator = rewardCalculator()
 
-            val maxAPY = rewardCalculator.calculateMaxAPY(chainId.first())
+            val chainId = chainId.first()
+            val maxAPY = rewardCalculator.calculateMaxAPY(chainId)
             val avgAPY = rewardCalculator.calculateAvgAPY()
 
             val payload = StakingRewardEstimationBottomSheet.Payload(
                 maxAPY.formatAsPercentage(),
-                avgAPY.formatAsPercentage()
+                avgAPY.formatAsPercentage(),
+                R.string.staking_reward_info_max,
+                R.string.staking_reward_info_avg
             )
 
             _showRewardEstimationEvent.value = Event(payload)
@@ -459,12 +462,15 @@ class ParachainWelcomeViewState(
         scope.launch {
             val rewardCalculator = rewardCalculator()
 
-            val maxAPY = rewardCalculator.calculateMaxAPY(chainId.first())
+            val chainId = chainId.first()
+            val maxAPY = rewardCalculator.calculateMaxAPY(chainId)
             val avgAPY = rewardCalculator.calculateAvgAPY()
 
             val payload = StakingRewardEstimationBottomSheet.Payload(
                 maxAPY.formatAsPercentage(),
-                avgAPY.formatAsPercentage()
+                avgAPY.formatAsPercentage(),
+                R.string.staking_reward_info_apr_max,
+                R.string.staking_reward_info_apr_avg
             )
 
             _showRewardEstimationEvent.value = Event(payload)

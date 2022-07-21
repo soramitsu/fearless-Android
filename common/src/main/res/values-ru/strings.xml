@@ -730,4 +730,7 @@
     <string name="staking_alert_unlock_title">Вы можете забрать ваши токены</string>
     <string name="staking_alert_unlock_text">Пожалуйста завершите текущую операцию (уменьшить/отозвать стейк) забрав ваши токены</string>
 
+    <string name="staking_reward_info_apr_max">Максимальный APR</string>
+    <string name="staking_reward_info_apr_avg">Средний APR</string>
+
 </resources>

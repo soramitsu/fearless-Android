@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.data.network.subquery.StakingHistoryRemote
 import jp.co.soramitsu.common.data.network.subquery.StakingLastRoundId
 import jp.co.soramitsu.common.data.network.subquery.SubQueryResponse
 import jp.co.soramitsu.common.data.network.subquery.TransactionHistoryRemote
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingAllCollatorsApyRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingCollatorsApyRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingDelegatorHistoryRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingEraValidatorInfosRequest
@@ -45,5 +46,11 @@ interface StakingApi {
     suspend fun getCollatorsApy(
         @Url url: String,
         @Body body: StakingCollatorsApyRequest
+    ): SubQueryResponse<StakingCollatorsApyResponse>
+
+    @POST
+    suspend fun getAllCollatorsApy(
+        @Url url: String,
+        @Body body: StakingAllCollatorsApyRequest
     ): SubQueryResponse<StakingCollatorsApyResponse>
 }

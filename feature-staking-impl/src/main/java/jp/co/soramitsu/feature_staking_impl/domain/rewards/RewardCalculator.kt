@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingAllCollatorsApyRequest
 import kotlin.math.pow
 
 private const val PARACHAINS_ENABLED = false
@@ -186,12 +187,25 @@ class SubqueryRewardCalculator(
     private val stakingApi: StakingApi,
 ) : RewardCalculator {
 
+    private var avgApr = BigDecimal.ZERO
+
     override suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal {
-        return BigDecimal.ZERO
+        val chain = stakingParachainScenarioInteractor?.getStakingStateFlow()?.first()?.chain
+        val stakingUrl = chain?.externalApi?.staking?.url // todo add other urls to utils
+        if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
+            hashCode()
+            throw Exception("Staking for this network is not supported yet")
+        }
+        val roundId = stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull()
+        val previousRoundId = roundId?.dec()
+        val collatorsApyRequest = StakingAllCollatorsApyRequest(previousRoundId)
+        return stakingApi.getAllCollatorsApy(stakingUrl, collatorsApyRequest).data.collatorRounds.nodes.mapNotNull { element ->
+            element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
+        }.toMap().maxOf { it.value ?: BigDecimal.ZERO }
     }
 
     override fun calculateAvgAPY(): BigDecimal {
-        return BigDecimal.ZERO
+        return avgApr.fractionToPercentage()
     }
 
     override fun getApyFor(targetIdHex: String): BigDecimal {
@@ -207,6 +221,7 @@ class SubqueryRewardCalculator(
         } else {
             BigDecimal.ZERO
         }
+        avgApr = currentApy
         val gainAmount = amount * currentApy
 
         return PeriodReturns(gainAmount, currentApy.fractionToPercentage())

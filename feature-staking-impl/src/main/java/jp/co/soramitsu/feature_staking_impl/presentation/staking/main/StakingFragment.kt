@@ -84,21 +84,14 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         setupAssetSelector(binding.stakingAssetSelector, viewModel, imageLoader)
 
         viewModel.alertsFlow.observe { loadingState ->
-            when (loadingState) {
-                is LoadingState.Loaded -> {
-                    binding.stakingAlertsInfo.hideLoading()
+            if (loadingState is LoadingState.Loaded) {
+                binding.stakingAlertsInfo.hideLoading()
 
-                    if (loadingState.data.isEmpty()) {
-                        binding.stakingAlertsInfo.makeGone()
-                    } else {
-                        binding.stakingAlertsInfo.makeVisible()
-                        binding.stakingAlertsInfo.setStatus(loadingState.data)
-                    }
-                }
-
-                is LoadingState.Loading -> {
+                if (loadingState.data.isEmpty()) {
+                    binding.stakingAlertsInfo.makeGone()
+                } else {
                     binding.stakingAlertsInfo.makeVisible()
-                    binding.stakingAlertsInfo.showLoading()
+                    binding.stakingAlertsInfo.setStatus(loadingState.data)
                 }
             }
         }

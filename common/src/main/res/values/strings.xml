@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="common_next">Next</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_skip">Skip</string>
@@ -785,10 +785,13 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="staking_collator_status_leaving">Leaving</string>
     <string name="staking_collator_status_idle">Idle</string>
 
-  <string name="staking_alert_leaving_collator_title">The collator %s is leaving the set of candidates</string>
-  <string name="staking_alert_leaving_collator_text">Check your delegation to the collator %s and unlock your tokens if they’re ready</string>
-  <string name="staking_alert_low_stake_title">Your delegation doesn’t make any rewards.</string>
-  <string name="staking_alert_low_stake_text">Your stake amount is too small for generating rewards. You can stake %d more tokens or take away your stake.</string>
-  <string name="staking_alert_unlock_title">Your tokens are ready for unlocking</string>
-  <string name="staking_alert_unlock_text">Please complete the pending operation (stake less/revoke) by unlocking your tokens</string>
+    <string name="staking_alert_leaving_collator_title">The collator %s is leaving the set of candidates</string>
+    <string name="staking_alert_leaving_collator_text">Check your delegation to the collator %s and unlock your tokens if they’re ready</string>
+    <string name="staking_alert_low_stake_title">Your delegation doesn’t make any rewards.</string>
+    <string name="staking_alert_low_stake_text">Your stake amount is too small for generating rewards. You can stake %d more tokens or take away your stake.</string>
+    <string name="staking_alert_unlock_title">Your tokens are ready for unlocking</string>
+    <string name="staking_alert_unlock_text">Please complete the pending operation (stake less/revoke) by unlocking your tokens</string>
+
+    <string name="staking_reward_info_apr_max">Maximum APR</string>
+    <string name="staking_reward_info_apr_avg">Average APR</string>
 </resources>
