@@ -7,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.StakingApi
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingAllCollatorsApyRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingCollatorsApyRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingLastRoundIdRequest
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingAllCollatorsApyRequest
 import kotlin.math.pow
 
 private const val PARACHAINS_ENABLED = false
@@ -201,7 +201,7 @@ class SubqueryRewardCalculator(
         val collatorsApyRequest = StakingAllCollatorsApyRequest(previousRoundId)
         return stakingApi.getAllCollatorsApy(stakingUrl, collatorsApyRequest).data.collatorRounds.nodes.mapNotNull { element ->
             element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
-        }.toMap().maxOf { it.value ?: BigDecimal.ZERO }
+        }.toMap().maxOf { it.value ?: BigDecimal.ZERO }.fractionToPercentage()
     }
 
     override fun calculateAvgAPY(): BigDecimal {
