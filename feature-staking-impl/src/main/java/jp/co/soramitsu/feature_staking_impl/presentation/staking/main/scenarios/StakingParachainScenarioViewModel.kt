@@ -120,7 +120,7 @@ class StakingParachainScenarioViewModel(
 
     private suspend fun produceReadyForUnlockingAlerts(state: StakingState.Parachain.Delegator): List<Alert.ReadyForUnlocking> {
         val collatorIds = state.delegations.map { it.collatorId }
-        return scenarioInteractor.getCollatorIdsWithReadyToUnlockingTokens(collatorIds).map {
+        return scenarioInteractor.getCollatorIdsWithReadyToUnlockingTokens(collatorIds, state.accountId).map {
             Alert.ReadyForUnlocking(it)
         }
     }

@@ -490,10 +490,12 @@ class StakingParachainScenarioInteractor(
         return millisecondTillRound.toLong()
     }
 
-    suspend fun getCollatorIdsWithReadyToUnlockingTokens(collatorIds: List<AccountId>): List<AccountId> {
+    suspend fun getCollatorIdsWithReadyToUnlockingTokens(collatorIds: List<AccountId>, accountId: AccountId): List<AccountId> {
         val chainId = stakingInteractor.getSelectedChain().id
         val currentRound = getCurrentRound(chainId)
-        val delegationScheduledRequests = stakingParachainScenarioRepository.getScheduledRequests(chainId, collatorIds).filter {
+        val delegationScheduledRequests = stakingParachainScenarioRepository.getScheduledRequests(chainId, collatorIds).mapValues {
+            it.value?.filter { request -> request.delegator.contentEquals(accountId) }
+        }.filter {
             it.value?.any { scheduledRequest -> scheduledRequest.whenExecutable <= currentRound.current } == true
         }
         return delegationScheduledRequests.keys.map { it.requireHexPrefix().fromHex() }
