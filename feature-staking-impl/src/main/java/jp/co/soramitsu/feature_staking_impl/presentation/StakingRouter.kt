@@ -37,6 +37,8 @@ interface StakingRouter {
 
     fun openSearchCustomValidators()
 
+    fun openSearchCustomCollators()
+
     fun openReviewCustomValidators()
 
     fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel)

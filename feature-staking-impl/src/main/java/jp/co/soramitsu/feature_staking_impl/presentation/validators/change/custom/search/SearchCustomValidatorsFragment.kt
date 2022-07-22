@@ -12,15 +12,13 @@ import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSearchCustomValidatorsBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 
 class SearchCustomValidatorsFragment :
     BaseFragment<SearchCustomValidatorsViewModel>(R.layout.fragment_search_custom_validators),
-    ValidatorsAdapter.ItemHandler {
+    CustomBlockProducersAdapter.ItemHandler {
 
-    private val adapter: ValidatorsAdapter by lazy(LazyThreadSafetyMode.NONE) {
-        ValidatorsAdapter(this)
+    private val adapter: CustomBlockProducersAdapter by lazy(LazyThreadSafetyMode.NONE) {
+        CustomBlockProducersAdapter(this)
     }
 
     private val binding by viewBinding(FragmentSearchCustomValidatorsBinding::bind)
@@ -59,25 +57,25 @@ class SearchCustomValidatorsFragment :
 
     override fun subscribe(viewModel: SearchCustomValidatorsViewModel) {
         viewModel.screenState.observe {
-            binding.searchCustomValidatorsList.setVisible(it is SearchValidatorsState.Success, falseState = View.INVISIBLE)
-            binding.searchCustomValidatorProgress.setVisible(it is SearchValidatorsState.Loading, falseState = View.INVISIBLE)
-            binding.searchCustomValidatorsPlaceholder.setVisible(it is SearchValidatorsState.NoResults || it is SearchValidatorsState.NoInput)
-            binding.searchCustomValidatorListHeader.setVisible(it is SearchValidatorsState.Success)
+            binding.searchCustomValidatorsList.setVisible(it is SearchBlockProducersState.Success, falseState = View.INVISIBLE)
+            binding.searchCustomValidatorProgress.setVisible(it is SearchBlockProducersState.Loading, falseState = View.INVISIBLE)
+            binding.searchCustomValidatorsPlaceholder.setVisible(it is SearchBlockProducersState.NoResults || it is SearchBlockProducersState.NoInput)
+            binding.searchCustomValidatorListHeader.setVisible(it is SearchBlockProducersState.Success)
 
             when (it) {
-                SearchValidatorsState.NoInput -> {
+                SearchBlockProducersState.NoInput -> {
                     binding.searchCustomValidatorsPlaceholder.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.ic_placeholder, 0, 0)
                     binding.searchCustomValidatorsPlaceholder.text = getString(R.string.common_search_start_title)
                 }
-                SearchValidatorsState.NoResults -> {
+                SearchBlockProducersState.NoResults -> {
                     binding.searchCustomValidatorsPlaceholder.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.ic_no_search_results, 0, 0)
                     binding.searchCustomValidatorsPlaceholder.text = getString(R.string.staking_validator_search_empty_title)
                 }
-                SearchValidatorsState.Loading -> {}
-                is SearchValidatorsState.Success -> {
+                SearchBlockProducersState.Loading -> {}
+                is SearchBlockProducersState.Success -> {
                     binding.searchCustomValidatorAccounts.text = it.headerTitle
 
-                    adapter.submitList(it.validators)
+                    adapter.submitList(it.blockProducers)
                 }
             }
         }
@@ -85,11 +83,11 @@ class SearchCustomValidatorsFragment :
         binding.searchCustomValidatorsField.bindTo(viewModel.enteredQuery, viewLifecycleOwner.lifecycleScope)
     }
 
-    override fun validatorInfoClicked(validatorModel: ValidatorModel) {
-        viewModel.validatorInfoClicked(validatorModel)
+    override fun blockProducerInfoClicked(blockProducerModel: SearchBlockProducerModel) {
+        viewModel.blockProducerInfoClicked(blockProducerModel)
     }
 
-    override fun validatorClicked(validatorModel: ValidatorModel) {
-        viewModel.validatorClicked(validatorModel)
+    override fun blockProducerClicked(blockProducerModel: SearchBlockProducerModel) {
+        viewModel.blockProducerClicked(blockProducerModel)
     }
 }
