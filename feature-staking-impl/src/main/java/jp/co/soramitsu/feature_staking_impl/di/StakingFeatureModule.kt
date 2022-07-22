@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
 import dagger.Provides
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -51,6 +52,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteract
 import jp.co.soramitsu.feature_staking_impl.domain.validators.CollatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentValidatorsInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomBlockProducerInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -78,7 +80,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import javax.inject.Named
 
 @Module
 class StakingFeatureModule {
@@ -523,6 +524,15 @@ class StakingFeatureModule {
         validatorProvider: ValidatorProvider,
         sharedState: StakingSharedState
     ) = SearchCustomValidatorsInteractor(validatorProvider, sharedState)
+
+    @Provides
+    @FeatureScope
+    fun provideSearchCustomBlockProducerInteractor(
+        collatorProvider: CollatorProvider,
+        validatorProvider: ValidatorProvider,
+        sharedState: StakingSharedState,
+        computationalCache: ComputationalCache
+    ) = SearchCustomBlockProducerInteractor(collatorProvider, validatorProvider, sharedState, computationalCache)
 
     @Provides
     @FeatureScope

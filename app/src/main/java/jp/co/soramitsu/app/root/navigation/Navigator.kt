@@ -393,6 +393,10 @@ class Navigator :
         navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_searchCustomValidatorsFragment)
     }
 
+    override fun openSearchCustomCollators() {
+        navController?.navigate(R.id.action_selectCustomCollatorsFragment_to_searchCustomValidatorsFragment)
+    }
+
     override fun openReviewCustomValidators() {
         navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_reviewCustomValidatorsFragment)
     }
