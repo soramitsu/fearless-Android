@@ -41,10 +41,9 @@ class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewMode
             viewModel.settingsClicked()
         }
 
-        // todo fix search
-//        selectCustomValidatorsToolbar.addCustomAction(R.drawable.ic_basic_search_24) {
-//            viewModel.searchClicked()
-//        }
+        binding.selectCustomValidatorsToolbar.addCustomAction(R.drawable.ic_basic_search_24) {
+            viewModel.searchClicked()
+        }
 
         binding.selectCustomValidatorsList.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
 

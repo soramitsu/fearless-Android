@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -13,21 +14,16 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.Colla
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import java.math.BigDecimal
 
 private const val ICON_SIZE_DP = 24
 
 suspend fun mapCollatorToCollatorModel(
-    chain: Chain,
     collator: Collator,
     iconGenerator: AddressIconGenerator,
     token: Token,
-    isChecked: Boolean? = null,
     sorting: BlockProducersSorting<Collator>,
     selectedCollatorAddress: String?,
 ) = mapCollatorToCollatorModel(
-    chain,
     collator,
     selectedCollatorAddress,
     { iconGenerator.createAddressModel(it, ICON_SIZE_DP, collator.identity?.display) },
@@ -36,7 +32,6 @@ suspend fun mapCollatorToCollatorModel(
 )
 
 suspend fun mapCollatorToCollatorModel(
-    chain: Chain,
     collator: Collator,
     selectedCollatorAddress: String?,
     createIcon: suspend (address: String) -> AddressModel,

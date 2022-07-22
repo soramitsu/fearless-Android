@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.collators.change.custom.select
 
+import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -10,7 +11,6 @@ import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProvider
@@ -34,8 +34,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class SelectCustomCollatorsViewModel(
@@ -192,7 +195,7 @@ class SelectCustomCollatorsViewModel(
     fun searchClicked() {
         updateSetupStakingState()
 
-        router.openSearchCustomValidators()
+        router.openSearchCustomCollators()
     }
 
     private fun updateSetupStakingState() {
@@ -219,10 +222,10 @@ class SelectCustomCollatorsViewModel(
 //    }
 
     private fun observeExternalSelectionChanges() {
-//        setupStakingSharedState.setupStakingProcess
-//            .filterIsInstance<SetupStakingProcess.ReadyToSubmit.Parachain>()
-//            .onEach { selectedCollator.value = it.payload.blockProducers }
-//            .launchIn(viewModelScope)
+        setupStakingSharedState.setupStakingProcess
+            .filterIsInstance<SetupStakingProcess.ReadyToSubmit.Parachain>()
+            .onEach { selectedCollator.value = it.payload.blockProducers.firstOrNull() }
+            .launchIn(viewModelScope)
     }
 
     private suspend fun convertToModels(
@@ -231,11 +234,8 @@ class SelectCustomCollatorsViewModel(
         selectedCollator: String?,
         sorting: BlockProducersSorting<Collator>,
     ): List<CollatorModel> {
-        val chain = interactor.getSelectedChain()
-
         return collators.map {
             mapCollatorToCollatorModel(
-                chain = chain,
                 collator = it,
                 iconGenerator = addressIconGenerator,
                 token = token,

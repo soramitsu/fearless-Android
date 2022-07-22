@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.BlockProducersSorting
@@ -129,11 +128,8 @@ class RecommendedCollatorsViewModel(
         token: Token,
         selectedCollator: String?,
     ): List<CollatorModel> {
-        val chain = interactor.getSelectedChain()
-
         return collators.map {
             mapCollatorToCollatorModel(
-                chain = chain,
                 collator = it,
                 iconGenerator = addressIconGenerator,
                 token = token,
