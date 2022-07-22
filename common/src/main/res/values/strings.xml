@@ -348,6 +348,7 @@ Derivation path: %s</string>
     <string name="staking_redeem">Redeem</string>
     <string name="parachain_staking_unlock">Unlock</string>
     <string name="staking_balance_ready_for_unlocking">Ready for unlocking</string>
+    <string name="staking_delegation_status_ready_to_unlock">Ready to unlock</string>
     <string name="common_balance">Balance</string>
     <string name="your_collator">Your collator</string>
     <string name="collator">Collator</string>

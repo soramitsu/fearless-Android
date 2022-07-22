@@ -42,6 +42,7 @@ class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 is DelegatorViewState.CollatorDelegationModel.Status.Leaving -> StakeSummaryView.Status.LeavingCollator(item.status.collatorLeaveTimeLeft ?: 0L)
                 DelegatorViewState.CollatorDelegationModel.Status.Inactive,
                 DelegatorViewState.CollatorDelegationModel.Status.Idle -> StakeSummaryView.Status.IdleCollator()
+                DelegatorViewState.CollatorDelegationModel.Status.ReadyToUnlock -> StakeSummaryView.Status.ReadyToUnlockCollator
             }
 
             setElectionStatus(status)
