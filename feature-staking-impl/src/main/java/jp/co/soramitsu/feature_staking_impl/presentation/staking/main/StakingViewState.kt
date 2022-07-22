@@ -519,6 +519,8 @@ class DelegatorViewState(
         }.toMap()
         val candidateInfos = parachainScenarioInteractor.getCandidateInfos(chainId, collatorsIds)
 
+        val readyToUnlockCollatorIds = parachainScenarioInteractor.getCollatorIdsWithReadyToUnlockingTokens(collatorsIds, delegatorState.accountId)
+
         delegatorState.delegations.mapNotNull { collator ->
             val collatorIdHex = collator.collatorId.toHexString(false)
             val identity = collatorsNamesMap[collatorIdHex]
@@ -538,6 +540,8 @@ class DelegatorViewState(
             val hoursTillCandidateWillLeave = roundsTillCandidateWillLeave?.times(hoursInRound)
             val millisecondsTillCandidateWillLeave = hoursTillCandidateWillLeave?.times(60)?.times(60)?.times(1000)
 
+            val isReadyToUnlock = collator.collatorId in readyToUnlockCollatorIds
+
             CollatorDelegationModel(
                 collatorId = collator.collatorId,
                 collatorAddress = collator.collatorId.toHexString(true),
@@ -546,8 +550,7 @@ class DelegatorViewState(
                 stakedFiat = staked.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
                 rewarded = rewarded.formatTokenAmount(asset.token.configuration),
                 rewardedFiat = rewarded.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
-                status = candidateInfo.toModelStatus(millisecondsTillTheEndOfRound, millisecondsTillCandidateWillLeave),
-                nextRewardTimeLeft = millisecondsTillTheEndOfRound,
+                status = candidateInfo.toModelStatus(millisecondsTillTheEndOfRound, millisecondsTillCandidateWillLeave, isReadyToUnlock),
                 candidateInfo
             )
         }
@@ -606,7 +609,6 @@ class DelegatorViewState(
         val rewarded: String,
         val rewardedFiat: String?,
         val status: Status,
-        val nextRewardTimeLeft: Long,
         val collator: CandidateInfo
     ) {
         sealed class Status {
@@ -614,18 +616,22 @@ class DelegatorViewState(
             object Inactive : Status()
             class Leaving(val collatorLeaveTimeLeft: Long?) : Status()
             object Idle : Status()
+            object ReadyToUnlock : Status()
         }
     }
 }
 
 fun CandidateInfo.toModelStatus(
     millisecondsTillTheEndOfRound: Long,
-    millisecondsTillCandidateWillLeave: Long?
+    millisecondsTillCandidateWillLeave: Long?,
+    isReadyToUnlock: Boolean
 ): DelegatorViewState.CollatorDelegationModel.Status {
-    return when (status) {
-        CandidateInfoStatus.ACTIVE -> DelegatorViewState.CollatorDelegationModel.Status.Active(millisecondsTillTheEndOfRound)
-        CandidateInfoStatus.EMPTY -> DelegatorViewState.CollatorDelegationModel.Status.Inactive
-        is CandidateInfoStatus.LEAVING -> DelegatorViewState.CollatorDelegationModel.Status.Leaving(millisecondsTillCandidateWillLeave) // todo
-        CandidateInfoStatus.IDLE -> DelegatorViewState.CollatorDelegationModel.Status.Idle
+    return when {
+        status == CandidateInfoStatus.ACTIVE -> DelegatorViewState.CollatorDelegationModel.Status.Active(millisecondsTillTheEndOfRound)
+        status == CandidateInfoStatus.EMPTY -> DelegatorViewState.CollatorDelegationModel.Status.Inactive
+        status is CandidateInfoStatus.LEAVING -> DelegatorViewState.CollatorDelegationModel.Status.Leaving(millisecondsTillCandidateWillLeave)
+        status == CandidateInfoStatus.IDLE -> DelegatorViewState.CollatorDelegationModel.Status.Idle
+        isReadyToUnlock -> DelegatorViewState.CollatorDelegationModel.Status.ReadyToUnlock
+        else -> DelegatorViewState.CollatorDelegationModel.Status.Idle
     }
 }
