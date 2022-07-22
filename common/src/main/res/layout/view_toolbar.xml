@@ -32,9 +32,8 @@
         android:textColor="@color/white"
         app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.35"
-        app:layout_constraintStart_toEndOf="@id/backImg"
-        app:layout_goneMarginStart="46dp"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
         tools:text="Title" />
 
     <androidx.constraintlayout.widget.Barrier
