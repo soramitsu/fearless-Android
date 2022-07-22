@@ -52,6 +52,8 @@ class StakeSummaryView @JvmOverloads constructor(
 
         object ReadyToUnlockCollator : Status(R.string.staking_delegation_status_ready_to_unlock, R.color.red, null)
 
+        object ReadyToUnlockCollator : Status(R.string.staking_delegation_status_ready_to_unlock, R.color.red, null)
+
         interface WithTimer {
             val timeLeft: Long
             val extraMessage: String?
