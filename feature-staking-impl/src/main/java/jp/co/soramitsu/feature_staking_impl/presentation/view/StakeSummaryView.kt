@@ -50,9 +50,7 @@ class StakeSummaryView @JvmOverloads constructor(
             override val hideZeroTimer: Boolean = true
         ) : Status(R.string.staking_collator_status_leaving, R.color.red, "Waiting execution", false), WithTimer
 
-        object ReadyToUnlockCollator : Status(R.string.staking_delegation_status_ready_to_unlock, R.color.red, null)
-
-        object ReadyToUnlockCollator : Status(R.string.staking_delegation_status_ready_to_unlock, R.color.red, null)
+        object ReadyToUnlockCollator : Status(R.string.staking_delegation_status_ready_to_unlock, R.color.red, null, false)
 
         interface WithTimer {
             val timeLeft: Long

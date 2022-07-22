@@ -20,4 +20,3 @@ class StakingCollatorsApyRequest(collatorIds: List<ByteArray>, roundId: Int?) {
      }
     """.trimIndent()
 }
-
