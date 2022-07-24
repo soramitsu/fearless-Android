@@ -1,6 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
@@ -34,6 +33,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.math.BigInteger
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -45,9 +45,9 @@ class StakingParachainScenarioRepository(
         accountId: AccountId
     ): Flow<StakingState> {
         return getDelegatorStateFlow(chain.id, accountId).map {
-            when {
-                it != null -> StakingState.Parachain.Delegator(chain, accountId, it.toDelegations(), it.total.toBigDecimal())
-                else -> StakingState.Parachain.None(chain, accountId)
+            when (it) {
+                null -> StakingState.Parachain.None(chain, accountId)
+                else -> StakingState.Parachain.Delegator(chain, accountId, it.toDelegations(), it.total.toBigDecimal())
             }
         }
     }

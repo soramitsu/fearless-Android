@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.domain.recommendations
 import androidx.lifecycle.Lifecycle
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorSource
 import jp.co.soramitsu.runtime.state.chain

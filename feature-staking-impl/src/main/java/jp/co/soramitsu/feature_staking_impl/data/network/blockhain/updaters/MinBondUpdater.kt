@@ -6,7 +6,7 @@ import jp.co.soramitsu.core.updater.GlobalScope
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.StakingUpdater
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.updaters.SingleStorageKeyUpdater

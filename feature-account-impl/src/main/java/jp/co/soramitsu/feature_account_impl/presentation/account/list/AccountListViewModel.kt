@@ -5,9 +5,13 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
+import jp.co.soramitsu.runtime.state.chain
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 enum class AccountChosenNavDirection {
@@ -19,6 +23,7 @@ class AccountListViewModel(
     private val accountRouter: AccountRouter,
     private val accountChosenNavDirection: AccountChosenNavDirection,
     accountListingMixin: AccountListingMixin,
+    private val stakingSharedState: SingleAssetSharedState,
 ) : BaseViewModel() {
 
     val openWalletOptionsEvent = MutableLiveData<Event<Long>>()
@@ -45,8 +50,23 @@ class AccountListViewModel(
 
     fun selectAccountClicked(account: LightMetaAccountUi) = launch {
         accountInteractor.selectMetaAccount(account.id)
+        updateStakingState()
 
         dispatchNavigation()
+    }
+
+    private suspend fun updateStakingState() {
+        val chain = stakingSharedState.chain()
+        val wallet = accountInteractor.selectedMetaAccountFlow().first()
+        val accountId = wallet.accountId(chain)
+        if (accountId == null) {
+            stakingSharedState.availableToSelect().firstOrNull {
+                val checkingChain = accountInteractor.getChain(it.chainId)
+                wallet.accountId(checkingChain) != null
+            }?.let {
+                stakingSharedState.update(it.chainId, it.id)
+            }
+        }
     }
 
     private fun dispatchNavigation() {

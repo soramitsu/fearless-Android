@@ -9,6 +9,7 @@ import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 
 class AssetUseCaseImpl(
@@ -19,18 +20,22 @@ class AssetUseCaseImpl(
 
     override fun currentAssetFlow() = combine(
         accountRepository.selectedMetaAccountFlow(),
-        sharedState.assetWithChain,
-        ::Pair
-    ).flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
-        val (chain, chainAsset) = chainAndAsset
+        sharedState.assetWithChain
+    ) { selectedMetaAccount, chainAndAsset ->
+        selectedMetaAccount.accountId(chainAndAsset.chain)?.let {
+            Pair(selectedMetaAccount, chainAndAsset)
+        }
+    }.mapNotNull { it }
+        .flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
+            val (chain, chainAsset) = chainAndAsset
 
-        walletRepository.assetFlow(
-            metaId = selectedMetaAccount.id,
-            accountId = selectedMetaAccount.accountId(chain)!!,
-            chainAsset = chainAsset,
-            minSupportedVersion = chain.minSupportedVersion
-        )
-    }
+            walletRepository.assetFlow(
+                metaId = selectedMetaAccount.id,
+                accountId = selectedMetaAccount.accountId(chain)!!,
+                chainAsset = chainAsset,
+                minSupportedVersion = chain.minSupportedVersion
+            )
+        }
 
     override suspend fun availableAssetsToSelect(): List<Asset> = withContext(Dispatchers.Default) {
         val metaAccount = accountRepository.getSelectedMetaAccount()

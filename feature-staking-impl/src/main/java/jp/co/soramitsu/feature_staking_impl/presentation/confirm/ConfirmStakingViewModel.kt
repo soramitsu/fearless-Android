@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -52,6 +51,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class ConfirmStakingViewModel(
     private val router: StakingRouter,
@@ -181,18 +181,19 @@ class ConfirmStakingViewModel(
 
     fun originAccountClicked() {
         viewModelScope.launch {
-            val account = interactor.getSelectedAccountProjection()
-            val chainId = controllerAssetFlow.first().token.configuration.chainId
-            val chain = chainRegistry.getChain(chainId)
-            val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, account.address)
-            val externalActionsPayload = ExternalAccountActions.Payload(
-                value = account.address,
-                chainId = chainId,
-                chainName = chain.name,
-                explorers = supportedExplorers
-            )
+            interactor.getSelectedAccountProjection()?.let { account ->
+                val chainId = controllerAssetFlow.first().token.configuration.chainId
+                val chain = chainRegistry.getChain(chainId)
+                val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, account.address)
+                val externalActionsPayload = ExternalAccountActions.Payload(
+                    value = account.address,
+                    chainId = chainId,
+                    chainName = chain.name,
+                    explorers = supportedExplorers
+                )
 
-            externalAccountActions.showExternalActions(externalActionsPayload)
+                externalAccountActions.showExternalActions(externalActionsPayload)
+            }
         }
     }
 

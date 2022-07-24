@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.domain.staking.bond
 
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.Dispatchers

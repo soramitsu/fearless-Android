@@ -4,7 +4,7 @@ import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.ValidatorPrefs
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.feature_staking_impl.domain.error.accountIdNotFound
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor

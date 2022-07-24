@@ -7,7 +7,7 @@ import jp.co.soramitsu.core.updater.GlobalScopeUpdater
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.fetchValuesToCache
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.observeActiveEraIndex
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry

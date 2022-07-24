@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings
 
 import androidx.lifecycle.Lifecycle
 import jp.co.soramitsu.common.data.memory.ComputationalCache
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 

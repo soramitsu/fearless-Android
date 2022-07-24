@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -42,6 +41,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 
 class CollatorDetailsViewModel(
     private val interactor: StakingInteractor,
@@ -63,7 +63,7 @@ class CollatorDetailsViewModel(
 
     val collatorDetails = maxDelegations.combine(assetFlow) { maxDelegations, asset ->
         val chain = interactor.getSelectedChain()
-        val address = interactor.getSelectedAccountProjection().address
+        val address = interactor.getSelectedAccountProjection()?.address
         val atStake = stakingParachainScenarioInteractor.getAtStake(chain.id, collator.accountIdHex.fromHex()).getOrNull()
         val myTotalStake = atStake?.delegations?.find { it.first.toHexString(true) == address }?.second
         val totalStake = myTotalStake?.let { asset.token.amountFromPlanks(it) }
