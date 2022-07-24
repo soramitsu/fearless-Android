@@ -4,7 +4,7 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.NotZeroBalanceValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.IsNotControllerAccountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetControllerFeeValidation

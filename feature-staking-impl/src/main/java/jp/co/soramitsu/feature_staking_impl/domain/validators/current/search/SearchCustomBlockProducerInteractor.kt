@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validators.CollatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorSource

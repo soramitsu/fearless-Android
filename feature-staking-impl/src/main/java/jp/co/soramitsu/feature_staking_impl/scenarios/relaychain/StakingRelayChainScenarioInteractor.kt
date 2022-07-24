@@ -20,7 +20,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.bondMore
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.withdrawUnbonded

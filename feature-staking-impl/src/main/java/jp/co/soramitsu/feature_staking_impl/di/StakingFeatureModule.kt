@@ -2,7 +2,6 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
 import dagger.Provides
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -17,9 +16,9 @@ import jp.co.soramitsu.core_db.dao.StakingTotalRewardDao
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.SubQueryDelegationHistoryFetcher
 import jp.co.soramitsu.feature_staking_impl.data.network.subquery.SubQueryValidatorSetFetcher
@@ -80,6 +79,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Named
 
 @Module
 class StakingFeatureModule {

@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
@@ -14,7 +13,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
@@ -27,6 +26,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingVie
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
+import javax.inject.Named
 
 @Module(includes = [ViewModelModule::class])
 class StakingModule {

@@ -24,7 +24,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.isRedeemableIn
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_api.domain.model.sumStaking
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.StakingUpdater
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache

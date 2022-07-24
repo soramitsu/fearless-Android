@@ -10,9 +10,9 @@ fun mapAccountToStakingAccount(account: Account) = with(account) {
     StakingAccount(address, name)
 }
 
-fun mapAccountToStakingAccount(chain: Chain, metaAccount: MetaAccount) = with(metaAccount) {
+fun mapAccountToStakingAccount(chain: Chain, metaAccount: MetaAccount) = metaAccount.address(chain)?.let { address ->
     StakingAccount(
-        address = address(chain)!!, // TODO may be null in ethereum
-        name = name,
+        address = address,
+        name = metaAccount.name,
     )
 }

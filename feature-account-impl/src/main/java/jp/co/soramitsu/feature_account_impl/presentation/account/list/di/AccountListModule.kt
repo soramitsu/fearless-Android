@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
@@ -16,6 +17,8 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountCho
 import jp.co.soramitsu.feature_account_impl.presentation.account.list.AccountListViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.impl.AccountListingProvider
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
 class AccountListModule {
@@ -35,9 +38,16 @@ class AccountListModule {
         router: AccountRouter,
         accountListingMixin: AccountListingMixin,
         accountChosenNavDirection: AccountChosenNavDirection,
+        stakingSharedState: StakingSharedState
     ): ViewModel {
-        return AccountListViewModel(interactor, router, accountChosenNavDirection, accountListingMixin)
+        return AccountListViewModel(interactor, router, accountChosenNavDirection, accountListingMixin, stakingSharedState)
     }
+
+    @Provides
+    fun provideStakingSharedState(
+        chainRegistry: ChainRegistry,
+        preferences: Preferences
+    ) = StakingSharedState(chainRegistry, preferences)
 
     @Provides
     fun provideViewModelCreator(

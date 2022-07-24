@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.domain.payout
 
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.model.Payout
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.payoutStakers
 import jp.co.soramitsu.feature_staking_impl.domain.validations.payout.MakePayoutPayload

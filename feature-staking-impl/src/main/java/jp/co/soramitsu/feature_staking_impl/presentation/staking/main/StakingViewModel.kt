@@ -12,8 +12,8 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
@@ -35,8 +35,11 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachain
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -44,6 +47,7 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
 
@@ -97,7 +101,7 @@ class StakingViewModel(
 
     val stakingViewState = scenarioViewModelFlow.flatMapLatest {
         it.getStakingViewStateFlow()
-    }.distinctUntilChanged().share()
+    }.distinctUntilChanged().shareIn(CoroutineScope(Dispatchers.Default), SharingStarted.Eagerly, 1)
 
     val alertsFlow = scenarioViewModelFlow.flatMapLatest {
         it.alerts()

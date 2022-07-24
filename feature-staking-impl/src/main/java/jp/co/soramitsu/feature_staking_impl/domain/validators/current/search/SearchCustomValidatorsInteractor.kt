@@ -2,7 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.domain.validators.current.search
 
 import android.annotation.SuppressLint
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.state.chain
