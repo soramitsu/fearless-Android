@@ -1,8 +1,5 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -20,6 +17,7 @@ import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
@@ -32,7 +30,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.Round
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCancelDelegationRequest
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainCandidateBondMore
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls.parachainDelegatorBondMore
@@ -63,8 +60,6 @@ import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountMo
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
@@ -76,6 +71,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -149,9 +149,9 @@ class StakingParachainScenarioInteractor(
         assetWithChain: SingleAssetSharedState.AssetWithChain
     ) = flow {
         val chain = assetWithChain.chain
-        val accountId = metaAccount.accountId(chain)!! // TODO may be null for ethereum chains
-
-        emitAll(stakingParachainScenarioRepository.stakingStateFlow(chain, accountId))
+        metaAccount.accountId(chain)?.let { accountId ->
+            emitAll(stakingParachainScenarioRepository.stakingStateFlow(chain, accountId))
+        }
     }
 
     override fun selectedAccountStakingStateFlow(): Flow<StakingState> {

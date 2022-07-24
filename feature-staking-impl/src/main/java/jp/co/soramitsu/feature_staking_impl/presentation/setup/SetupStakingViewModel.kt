@@ -4,8 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,6 +12,7 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -45,6 +44,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class SetupStakingViewModel(
     private val router: StakingRouter,
@@ -100,9 +101,10 @@ class SetupStakingViewModel(
     }
 
     val currentAccountAddressModel = liveData {
-        val projection = interactor.getSelectedAccountProjection()
-        val addressModel = addressIconGenerator.createAddressModel(projection.address, AddressIconGenerator.SIZE_MEDIUM, projection.name)
-        this.emit(addressModel)
+        interactor.getSelectedAccountProjection()?.let { projection ->
+            val addressModel = addressIconGenerator.createAddressModel(projection.address, AddressIconGenerator.SIZE_MEDIUM, projection.name)
+            this.emit(addressModel)
+        }
     }
 
     init {
@@ -143,10 +145,11 @@ class SetupStakingViewModel(
         feeLoaderMixin.loadFee(
             coroutineScope = viewModelScope,
             feeConstructor = {
-                val address = interactor.getSelectedAccountProjection().address
                 when (currentProcessState) {
                     is SetupStakingProcess.SetupStep.Stash -> {
-                        setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                        interactor.getSelectedAccountProjection()?.address?.let { address ->
+                            setupStakingInteractor.estimateMaxSetupStakingFee(address)
+                        }.orZero()
                     }
                     is SetupStakingProcess.SetupStep.Parachain -> {
                         setupStakingInteractor.estimateParachainFee()
@@ -163,8 +166,9 @@ class SetupStakingViewModel(
             val amount = parsedAmountFlow.first()
             val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
-            val currentAccountAddress = interactor.getSelectedAccountProjection().address
-            goToNextStep(amount, rewardDestination, currentAccountAddress, asset.token.configuration.staking)
+            interactor.getSelectedAccountProjection()?.address?.let { currentAccountAddress ->
+                goToNextStep(amount, rewardDestination, currentAccountAddress, asset.token.configuration.staking)
+            }
         }
     }
 
@@ -173,7 +177,7 @@ class SetupStakingViewModel(
             val rewardDestinationModel = rewardDestinationMixin.rewardDestinationModelFlow.first()
             val rewardDestination = mapRewardDestinationModelToRewardDestination(rewardDestinationModel)
             val amount = parsedAmountFlow.first()
-            val currentAccountAddress = interactor.getSelectedAccountProjection().address
+            val currentAccountAddress = interactor.getSelectedAccountProjection()?.address ?: return@launch
             val asset = assetFlow.first()
             val payload = SetupStakingPayload(
                 bondAmount = amount,

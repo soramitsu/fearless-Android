@@ -9,10 +9,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.DAYS_IN_YEAR
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
@@ -59,9 +59,9 @@ class RewardDestinationProvider(
 
     override fun payoutClicked(scope: CoroutineScope) {
         scope.launch {
-            val currentAccount = interactor.getSelectedAccountProjection()
-
-            rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(generateDestinationModel(currentAccount)))
+            interactor.getSelectedAccountProjection()?.let { currentAccount ->
+                rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(generateDestinationModel(currentAccount)))
+            }
         }
     }
 

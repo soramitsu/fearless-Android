@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_staking_impl.data
+package jp.co.soramitsu.feature_staking_api.data
 
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
