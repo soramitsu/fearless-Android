@@ -733,4 +733,5 @@
     <string name="staking_reward_info_apr_max">Максимальный APR</string>
     <string name="staking_reward_info_apr_avg">Средний APR</string>
 
+    <string name="staking_recommended_collators_empty_text">Сумма вашего стейка меньше минимального из всех коллаторов, предложенных алгоритмом. Увеличьте сумму ставки или выберите коллатор вручную</string>
 </resources>
