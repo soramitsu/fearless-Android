@@ -60,7 +60,7 @@ class Toolbar @JvmOverloads constructor(
             binding.toolbarDivider.setVisible(dividerVisible)
 
             val backgroundAttrDrawable = typedArray.getDrawable(R.styleable.Toolbar_contentBackground) ?: ColorDrawable(context.getColor(R.color.black))
-            binding.toolbarContainer.background = backgroundAttrDrawable
+            binding.background.background = backgroundAttrDrawable
 
             typedArray.recycle()
         }

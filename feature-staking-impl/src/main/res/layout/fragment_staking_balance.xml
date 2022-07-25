@@ -51,8 +51,7 @@
         android:id="@+id/stakingBalanceToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/blurColor"
-        app:contentBackground="@android:color/transparent"
+        app:contentBackground="@color/blurColor"
         app:dividerVisible="false"
         app:titleText="@string/staking_balance_title" />
 </FrameLayout>
