@@ -540,7 +540,7 @@ class DelegatorViewState(
             val hoursTillCandidateWillLeave = roundsTillCandidateWillLeave?.times(hoursInRound)
             val millisecondsTillCandidateWillLeave = hoursTillCandidateWillLeave?.times(60)?.times(60)?.times(1000)
 
-            val isReadyToUnlock = collator.collatorId in readyToUnlockCollatorIds
+            val isReadyToUnlock = readyToUnlockCollatorIds.any { it.contentEquals(collator.collatorId) }
 
             CollatorDelegationModel(
                 collatorId = collator.collatorId,
@@ -627,11 +627,11 @@ fun CandidateInfo.toModelStatus(
     isReadyToUnlock: Boolean
 ): DelegatorViewState.CollatorDelegationModel.Status {
     return when {
+        isReadyToUnlock -> DelegatorViewState.CollatorDelegationModel.Status.ReadyToUnlock
         status == CandidateInfoStatus.ACTIVE -> DelegatorViewState.CollatorDelegationModel.Status.Active(millisecondsTillTheEndOfRound)
         status == CandidateInfoStatus.EMPTY -> DelegatorViewState.CollatorDelegationModel.Status.Inactive
         status is CandidateInfoStatus.LEAVING -> DelegatorViewState.CollatorDelegationModel.Status.Leaving(millisecondsTillCandidateWillLeave)
         status == CandidateInfoStatus.IDLE -> DelegatorViewState.CollatorDelegationModel.Status.Idle
-        isReadyToUnlock -> DelegatorViewState.CollatorDelegationModel.Status.ReadyToUnlock
         else -> DelegatorViewState.CollatorDelegationModel.Status.Idle
     }
 }
