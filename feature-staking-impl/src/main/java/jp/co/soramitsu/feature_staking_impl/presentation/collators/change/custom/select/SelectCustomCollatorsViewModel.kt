@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProvider
@@ -46,10 +45,9 @@ class SelectCustomCollatorsViewModel(
     private val collatorRecommendatorFactory: CollatorRecommendatorFactory,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val addressIconGenerator: AddressIconGenerator,
-    private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val setupStakingSharedState: SetupStakingSharedState,
-    private val tokenUseCase: TokenUseCase,
+    tokenUseCase: TokenUseCase,
     private val settingsStorage: SettingsStorage,
 ) : BaseViewModel() {
 
