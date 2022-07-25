@@ -67,6 +67,6 @@ interface StakingScenarioInteractor {
     suspend fun checkEnoughToRebondValidation(payload: RebondValidationPayload): Boolean
     suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean
     fun getRebondTypes(): Set<RebondKind>
-    suspend fun getRebondingUnbondings(): List<Unbonding>
+    suspend fun getRebondingUnbondings(collatorAddress: String?): List<Unbonding>
     fun rebond(extrinsicBuilder: ExtrinsicBuilder, amount: BigInteger, candidate: String?): ExtrinsicBuilder
 }
