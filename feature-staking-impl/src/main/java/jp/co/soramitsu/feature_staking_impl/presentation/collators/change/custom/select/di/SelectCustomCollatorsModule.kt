@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.CollatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
@@ -29,7 +28,6 @@ class SelectCustomCollatorsModule {
         collatorRecommendatorFactory: CollatorRecommendatorFactory,
         recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
         addressIconGenerator: AddressIconGenerator,
-        stakingInteractor: StakingInteractor,
         resourceManager: ResourceManager,
         setupStakingSharedState: SetupStakingSharedState,
         router: StakingRouter,
@@ -41,7 +39,6 @@ class SelectCustomCollatorsModule {
             collatorRecommendatorFactory,
             recommendationSettingsProviderFactory,
             addressIconGenerator,
-            stakingInteractor,
             resourceManager,
             setupStakingSharedState,
             tokenUseCase,
