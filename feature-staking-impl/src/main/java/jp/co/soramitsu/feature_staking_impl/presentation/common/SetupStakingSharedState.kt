@@ -244,6 +244,8 @@ class SetupStakingSharedState {
 
     inline fun <reified T : SetupStakingProcess> get(): T = setupStakingProcess.value as T
 
+    inline fun <reified T : SetupStakingProcess> getOrNull(): T? = setupStakingProcess.value as? T
+
     fun mutate(mutation: (SetupStakingProcess) -> SetupStakingProcess) {
         set(mutation(get()))
     }
