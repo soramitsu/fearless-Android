@@ -161,6 +161,16 @@ class StakingParachainScenarioRepository(
         }
     )
 
+    fun getDelegationScheduledRequestsFlow(chainId: ChainId, collatorId: AccountId) = remoteStorage.observe(
+        chainId,
+        keyBuilder = { runtime ->
+            runtime.metadata.parachainStaking().storage("DelegationScheduledRequests").storageKey(runtime, collatorId)
+        },
+        binder = { scale, runtime ->
+            scale?.let { bindDelegationScheduledRequests(it, runtime) }.orEmpty()
+        }
+    )
+
     suspend fun getScheduledRequests(chainId: ChainId, collatorIds: List<AccountId>) = remoteStorage.queryKeys(
         chainId,
         keysBuilder = { runtime ->

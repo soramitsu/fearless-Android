@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.singleReplaySharedFlow
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -28,6 +27,7 @@ import jp.co.soramitsu.feature_staking_api.domain.model.AtStake
 import jp.co.soramitsu.feature_staking_api.domain.model.BlockNumber
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
 import jp.co.soramitsu.feature_staking_api.domain.model.Delegation
+import jp.co.soramitsu.feature_staking_api.domain.model.DelegationScheduledRequest
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.Round
@@ -77,6 +77,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -197,18 +198,37 @@ class StakingParachainScenarioInteractor(
         return currentDelegationsCount >= maxDelegations
     }
 
-    val unbondingRequestsFlow = singleReplaySharedFlow<List<Unbonding>>()
-
     override suspend fun currentUnbondingsFlow(collatorAddress: String?): Flow<List<Unbonding>> {
         collatorAddress ?: throw IllegalArgumentException("No collator address provided")
         val chain = stakingInteractor.getSelectedChain()
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-        return combine(
-            flowOf(delegationHistoryFetcher.fetchDelegationHistory(chain.id, accountId.toHexString(true), collatorAddress)),
-            unbondingRequestsFlow
-        ) { subQueryHistory: List<Unbonding>, currentUnbondings: List<Unbonding> ->
+        val delegationHistoryFlow: Flow<List<Unbonding>> = flowOf(
+            delegationHistoryFetcher.fetchDelegationHistory(chain.id, accountId.toHexString(true), collatorAddress)
+        ).onStart { emit(emptyList()) }
+
+        val unbondingRequestsFlow = getUnbondingRequestsFlow(chain.id, collatorAddress.fromHex())
+
+        return combine(unbondingRequestsFlow, delegationHistoryFlow) { currentUnbondings: List<Unbonding>, subQueryHistory: List<Unbonding> ->
             currentUnbondings + subQueryHistory
         }
+    }
+
+    suspend fun List<DelegationScheduledRequest>.toUnbondings(): List<Unbonding> {
+        val chain = stakingInteractor.getSelectedChain()
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+
+        val userRequests = filter {
+            it.delegator.contentEquals(accountId)
+        }
+
+        val currentRound = getCurrentRound(chain.id)
+        val currentBlock = stakingInteractor.currentBlockNumber()
+        val hoursInRound = hoursInRound[chain.id] ?: 0
+        val unbondings = userRequests.map {
+            val timeLeft = calculateTimeTillTheRoundStart(currentRound, currentBlock, it.whenExecutable, hoursInRound)
+            it.toUnbonding(timeLeft)
+        }
+        return unbondings
     }
 
     override suspend fun getSelectedAccountStakingState(): StakingState {
@@ -293,31 +313,31 @@ class StakingParachainScenarioInteractor(
         extrinsicBuilder.parachainExecuteDelegationRequest(candidateId = candidate.fromHex(), delegatorId = accountId)
     }
 
+    private fun getUnbondingRequestsFlow(chainId: ChainId, collatorId: AccountId) =
+        stakingParachainScenarioRepository.getDelegationScheduledRequestsFlow(chainId, collatorId).map {
+            it.toUnbondings()
+        }
+
     override suspend fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
         collatorId ?: error("cannot find collatorId")
         val chain = stakingInteractor.getSelectedChain()
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
         val delegatorStateFlow = stakingParachainScenarioRepository.stakingStateFlow(chain, accountId).filterIsInstance<StakingState.Parachain.Delegator>()
+        val delegationScheduledRequestsFlow = stakingParachainScenarioRepository.getDelegationScheduledRequestsFlow(chain.id, collatorId)
 
-        return combine(stakingInteractor.currentAssetFlow(), delegatorStateFlow) { asset, delegatorState ->
+        return combine(
+            stakingInteractor.currentAssetFlow(),
+            delegatorStateFlow,
+            delegationScheduledRequestsFlow,
+        ) { asset, delegatorState, delegationScheduledRequests ->
             val staked = delegatorState.delegations.firstOrNull {
                 it.collatorId.contentEquals(collatorId)
             }?.delegatedAmountInPlanks.orZero()
 
             val currentRound = getCurrentRound(chain.id)
-
-            val delegationScheduledRequests = stakingParachainScenarioRepository.getDelegationScheduledRequests(chain.id, collatorId)
-            val currentBlock = stakingInteractor.currentBlockNumber()
-            val hoursInRound = hoursInRound[chain.id] ?: 0
-            val userRequests = delegationScheduledRequests?.filter {
+            val userRequests = delegationScheduledRequests.filter {
                 it.delegator.contentEquals(accountId)
-            }.orEmpty()
-
-            val unbondings = userRequests.map {
-                val timeLeft = calculateTimeTillTheRoundStart(currentRound, currentBlock, it.whenExecutable, hoursInRound)
-                it.toUnbonding(timeLeft)
             }
-            unbondingRequestsFlow.tryEmit(unbondings)
 
             val unstaking = userRequests.filter {
                 it.whenExecutable > currentRound.current
@@ -335,7 +355,12 @@ class StakingParachainScenarioInteractor(
         }
     }
 
-    override suspend fun getRebondingUnbondings(): List<Unbonding> = unbondingRequestsFlow
+    override suspend fun getRebondingUnbondings(collatorAddress: String?): List<Unbonding> = flowOf(
+        stakingInteractor.getSelectedChain()
+    ).flatMapLatest { chain ->
+        collatorAddress ?: error("cannot find collatorAddress")
+        getUnbondingRequestsFlow(chain.id, collatorAddress.fromHex())
+    }
         .map { it.filter { it.timeLeft > 0 } }
         .first()
 
@@ -370,22 +395,26 @@ class StakingParachainScenarioInteractor(
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal {
         collatorId ?: error("cannot find collatorId")
 
-        val first = jp.co.soramitsu.common.utils.flowOf {
+        val chainToAccountIdFlow = jp.co.soramitsu.common.utils.flowOf {
             val chain = stakingInteractor.getSelectedChain()
             val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
             chain to accountId
-        }.flatMapLatest { (chain, accountId) ->
-            stakingParachainScenarioRepository.stakingStateFlow(chain, accountId).filterIsInstance<StakingState.Parachain.Delegator>().map { delegatorState ->
+        }
+
+        val availableToStakeLessFlow = chainToAccountIdFlow.flatMapLatest { (chain, accountId) ->
+            combine(
+                stakingParachainScenarioRepository.stakingStateFlow(chain, accountId).filterIsInstance<StakingState.Parachain.Delegator>(),
+                stakingParachainScenarioRepository.getDelegationScheduledRequestsFlow(chain.id, collatorId),
+            ) { delegatorState, delegationScheduledRequests ->
                 val staked = delegatorState.delegations.firstOrNull {
                     it.collatorId.contentEquals(collatorId)
                 }?.delegatedAmountInPlanks.orZero()
 
                 val currentRound = getCurrentRound(chain.id)
 
-                val delegationScheduledRequests = stakingParachainScenarioRepository.getDelegationScheduledRequests(chain.id, collatorId)
-                val userRequests = delegationScheduledRequests?.filter {
+                val userRequests = delegationScheduledRequests.filter {
                     it.delegator.contentEquals(accountId)
-                }.orEmpty()
+                }
                 val unstaking = userRequests.filter {
                     it.whenExecutable >= currentRound.current
                 }.sumByBigInteger { it.actionValue }
@@ -398,8 +427,9 @@ class StakingParachainScenarioInteractor(
                 val amount = asset.token.amountFromPlanks(availableToStakeLess)
                 amount
             }
-        }.first()
-        return first
+        }
+
+        return availableToStakeLessFlow.first()
     }
 
     override suspend fun accountIsNotController(controllerAddress: String): Boolean {
