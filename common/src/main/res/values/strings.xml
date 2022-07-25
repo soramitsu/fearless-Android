@@ -795,4 +795,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="staking_reward_info_apr_max">Maximum APR</string>
     <string name="staking_reward_info_apr_avg">Average APR</string>
+
+    <string name="staking_recommended_collators_empty_text">Your stake amount is less than the minimum one of all collators suggested by the algorithm. Increase your stake amount or choose a collator manually</string>
 </resources>
