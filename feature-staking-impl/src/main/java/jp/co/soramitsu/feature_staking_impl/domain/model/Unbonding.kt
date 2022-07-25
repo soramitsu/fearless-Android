@@ -8,7 +8,7 @@ import java.math.BigInteger
 import java.util.Calendar
 import java.util.TimeZone
 
-class Unbonding(
+data class Unbonding(
     val amount: BigInteger,
     val timeLeft: Long,
     val calculatedAt: Long,

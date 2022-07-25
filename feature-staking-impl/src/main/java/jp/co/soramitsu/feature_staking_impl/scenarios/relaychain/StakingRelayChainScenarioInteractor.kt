@@ -241,7 +241,7 @@ class StakingRelayChainScenarioInteractor(
 
     override fun getSelectedAccountAddress(): Flow<Optional<AddressModel>> = flowOf(Optional.empty())
 
-    override suspend fun getRebondingUnbondings(): List<Unbonding> = currentUnbondingsFlow(null).first()
+    override suspend fun getRebondingUnbondings(collatorAddress: String?): List<Unbonding> = currentUnbondingsFlow(null).first()
 
     override fun getRebondTypes(): Set<RebondKind> = RebondKind.values().toSet()
 

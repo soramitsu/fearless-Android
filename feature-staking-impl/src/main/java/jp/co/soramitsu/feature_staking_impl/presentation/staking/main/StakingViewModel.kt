@@ -104,7 +104,8 @@ class StakingViewModel(
         it.alerts()
     }.distinctUntilChanged().share()
 
-    override val stakingStateScope = viewModelScope.childScope(supervised = true)
+    override val stakingStateScope: CoroutineScope
+        get() = viewModelScope.childScope(supervised = true)
 
     init {
         stakingUpdateSystem.start()
