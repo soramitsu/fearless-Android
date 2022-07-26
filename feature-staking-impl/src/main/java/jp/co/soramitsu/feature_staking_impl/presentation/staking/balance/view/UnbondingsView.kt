@@ -29,6 +29,8 @@ class UnbondingsView @JvmOverloads constructor(
         binding.unbondingsList.adapter = unbondingsAdapter
     }
 
+    val unbondingsMoreAction = binding.unbondingsMoreAction
+
     fun setMoreActionClickListener(listener: OnClickListener) {
         binding.unbondingsMoreAction.setOnClickListener(listener)
     }
@@ -38,6 +40,5 @@ class UnbondingsView @JvmOverloads constructor(
 
         binding.unbondingListContainer.setVisible(unbondings.isNotEmpty())
         binding.unbondingsPlaceholder.setVisible(unbondings.isEmpty())
-        binding.unbondingsMoreAction.isEnabled = unbondings.isNotEmpty()
     }
 }
