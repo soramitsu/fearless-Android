@@ -83,6 +83,9 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
         }
 
         viewModel.unbondingModelsLiveData.observe(binding.stakingBalanceUnbondings::submitList)
+        viewModel.unbondingEnabledLiveData.observe {
+            binding.stakingBalanceUnbondings.unbondingsMoreAction.isEnabled = it
+        }
 
         viewModel.redeemEnabledLiveData.observe {
             binding.stakingBalanceActions.redeem.isEnabled = it
