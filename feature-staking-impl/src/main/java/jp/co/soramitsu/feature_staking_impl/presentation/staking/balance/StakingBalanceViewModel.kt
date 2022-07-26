@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -85,6 +86,10 @@ class StakingBalanceViewModel(
         }
         .inBackground()
         .asLiveData()
+
+    val unbondingEnabledLiveData = flowOf {
+        stakingScenarioInteractor.getRebondingUnbondings(collatorAddress).isNotEmpty()
+    }.onStart { emit(false) }.share().asLiveData()
 
     private val _showRebondActionsEvent = MutableLiveData<Event<Set<RebondKind>>>()
     val showRebondActionsEvent: LiveData<Event<Set<RebondKind>>> = _showRebondActionsEvent
