@@ -15,8 +15,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 
-private const val ICON_SIZE_DP = 24
-
 suspend fun mapCollatorToCollatorModel(
     collator: Collator,
     iconGenerator: AddressIconGenerator,
@@ -26,7 +24,7 @@ suspend fun mapCollatorToCollatorModel(
 ) = mapCollatorToCollatorModel(
     collator,
     selectedCollatorAddress,
-    { iconGenerator.createEthereumAddressModel(it, ICON_SIZE_DP, collator.identity?.display) },
+    { iconGenerator.createEthereumAddressModel(it, AddressIconGenerator.SIZE_MEDIUM, collator.identity?.display) },
     token,
     sorting,
 )
