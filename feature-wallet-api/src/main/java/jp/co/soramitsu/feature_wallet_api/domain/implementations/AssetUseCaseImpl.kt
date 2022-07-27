@@ -43,6 +43,8 @@ class AssetUseCaseImpl(
 
         walletRepository.getAssets(metaAccount.id).filter {
             it.token.configuration in availableChainAssets
+        }.sortedBy {
+            it.token.configuration.orderInStaking
         }
     }
 }
