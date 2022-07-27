@@ -241,7 +241,7 @@ Derivation path: %s</string>
     <string name="staking_recommended_title">Validators</string>
     <string name="staking_recommended_section_title">Validators suggested by algorithm</string>
     <string name="staking_suggested_collators_title">Suggested collators</string>
-    <string name="staking_select_collator_title">Select collator</string>
+    <string name="staking_select_collator_title">Select a collator</string>
     <string name="staking_recommended_feature_1">Most profitable</string>
     <string name="staking_recommended_feature_2">Not oversubscribed</string>
     <string name="staking_recommended_feature_3">Having onchain identity</string>

@@ -3,8 +3,9 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
@@ -41,7 +42,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
 
 class CollatorDetailsViewModel(
     private val interactor: StakingInteractor,
@@ -70,7 +70,7 @@ class CollatorDetailsViewModel(
         val (statusText, statusColor) = mapStatus(collator.stake.status)
         CollatorDetailsModel(
             "0x${collator.accountIdHex}",
-            iconGenerator.createAddressModel(collator.accountIdHex, 24).image,
+            iconGenerator.createEthereumAddressModel(collator.accountIdHex, 24).image,
             collator.identity?.let { identity ->
                 IdentityModel(
                     display = identity.display,

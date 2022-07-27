@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
 import dagger.Provides
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -79,7 +80,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import javax.inject.Named
 
 @Module
 class StakingFeatureModule {
@@ -223,7 +223,8 @@ class StakingFeatureModule {
         stakingSharedState: StakingSharedState,
         assetUseCase: AssetUseCase,
         chainStateRepository: ChainStateRepository,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        addressIconGenerator: AddressIconGenerator
     ) = StakingInteractor(
         walletRepository,
         accountRepository,
@@ -232,7 +233,8 @@ class StakingFeatureModule {
         stakingSharedState,
         assetUseCase,
         chainStateRepository,
-        chainRegistry
+        chainRegistry,
+        addressIconGenerator
     )
 
     @Provides

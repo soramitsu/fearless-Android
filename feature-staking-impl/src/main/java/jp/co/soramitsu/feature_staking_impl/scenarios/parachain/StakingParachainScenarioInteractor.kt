@@ -1,8 +1,12 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.singleReplaySharedFlow
@@ -60,6 +64,8 @@ import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountMo
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
@@ -71,11 +77,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class StakingParachainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -216,7 +217,11 @@ class StakingParachainScenarioInteractor(
 
     override fun getSelectedAccountAddress(): Flow<Optional<AddressModel>> {
         return stakingInteractor.selectedAccountProjectionFlow().map {
-            Optional.of(iconGenerator.createAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name))
+            if (it.isEthereumBased) {
+                Optional.of(iconGenerator.createEthereumAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name))
+            } else {
+                Optional.of(iconGenerator.createAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name))
+            }
         }
     }
 
@@ -227,7 +232,7 @@ class StakingParachainScenarioInteractor(
             val collatorWoPrefix = collatorAddress.fromHex().toHexString()
             val name = identities[collatorWoPrefix]?.display
 
-            val model = iconGenerator.createAddressModel(collatorAddress, AddressIconGenerator.SIZE_SMALL, name)
+            val model = iconGenerator.createEthereumAddressModel(collatorAddress, AddressIconGenerator.SIZE_SMALL, name)
             send(Optional.of(model))
         }
     }

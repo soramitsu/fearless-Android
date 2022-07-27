@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
-import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfo
@@ -26,7 +26,7 @@ suspend fun mapCollatorToCollatorModel(
 ) = mapCollatorToCollatorModel(
     collator,
     selectedCollatorAddress,
-    { iconGenerator.createAddressModel(it, ICON_SIZE_DP, collator.identity?.display) },
+    { iconGenerator.createEthereumAddressModel(it, ICON_SIZE_DP, collator.identity?.display) },
     token,
     sorting,
 )
