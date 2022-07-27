@@ -4,9 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
-import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Retriable
@@ -51,13 +51,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class ConfirmStakingViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
     private val scenarioInteractor: StakingScenarioInteractor,
-    private val addressIconGenerator: AddressIconGenerator,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val resourceManager: ResourceManager,
     private val setupStakingSharedState: SetupStakingSharedState,
@@ -322,6 +320,6 @@ class ConfirmStakingViewModel(
     )
 
     private suspend fun generateDestinationModel(address: String, name: String?): AddressModel {
-        return addressIconGenerator.createAddressModel(address, AddressIconGenerator.SIZE_MEDIUM, name)
+        return interactor.getAddressModel(address, AddressIconGenerator.SIZE_MEDIUM, name)
     }
 }

@@ -77,7 +77,7 @@ class SelectCustomCollatorsViewModel(
 
     private val iconsCache: MutableMap<String, AddressModel> = mutableMapOf()
 
-    val sortingFlow = recommendationSettingsFlow.map { it.sorting }
+    private val sortingFlow = recommendationSettingsFlow.map { it.sorting }
 
     val collatorModelsFlow = combine(
         shownCollators,
@@ -98,7 +98,7 @@ class SelectCustomCollatorsViewModel(
         if (it == null) {
             ContinueButtonState(
                 enabled = false,
-                text = resourceManager.getString(R.string.staking_custom_collators_default_button_state_text)
+                text = resourceManager.getString(R.string.staking_select_collator_title)
             )
         } else {
             ContinueButtonState(
@@ -111,10 +111,12 @@ class SelectCustomCollatorsViewModel(
     val scoringHeader = recommendationSettingsFlow.map {
         when (it.sorting) {
             BlockProducersSorting.CollatorSorting.APYSorting -> resourceManager.getString(R.string.staking_rewards_apy)
-            BlockProducersSorting.CollatorSorting.CollatorsOwnStakeSorting -> "Own stake"
-            BlockProducersSorting.CollatorSorting.DelegationsSorting -> "Delegations"
-            BlockProducersSorting.CollatorSorting.EffectiveAmountBondedSorting -> "Effective amount bonded"
-            BlockProducersSorting.CollatorSorting.MinimumBondSorting -> "Minimum bond"
+            BlockProducersSorting.CollatorSorting.CollatorsOwnStakeSorting -> resourceManager.getString(R.string.collator_staking_sorting_own_stake)
+            BlockProducersSorting.CollatorSorting.DelegationsSorting -> resourceManager.getString(R.string.collator_staking_sorting_delegations)
+            BlockProducersSorting.CollatorSorting.EffectiveAmountBondedSorting -> {
+                resourceManager.getString(R.string.collator_staking_sorting_effective_amount_bonded)
+            }
+            BlockProducersSorting.CollatorSorting.MinimumBondSorting -> resourceManager.getString(R.string.collator_staking_sorting_minimum_bond)
             else -> throw IllegalArgumentException("Unknown sorting: ${it.sorting}")
         }
     }.inBackground().share()

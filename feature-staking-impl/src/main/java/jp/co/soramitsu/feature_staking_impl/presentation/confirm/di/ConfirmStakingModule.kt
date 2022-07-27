@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -32,7 +31,6 @@ class ConfirmStakingModule {
         interactor: StakingInteractor,
         scenarioInteractor: StakingScenarioInteractor,
         router: StakingRouter,
-        addressIconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
         addressDisplayUseCase: AddressDisplayUseCase,
         setupStakingInteractor: SetupStakingInteractor,
@@ -46,7 +44,6 @@ class ConfirmStakingModule {
             router,
             interactor,
             scenarioInteractor,
-            addressIconGenerator,
             addressDisplayUseCase,
             resourceManager,
             setupStakingSharedState,

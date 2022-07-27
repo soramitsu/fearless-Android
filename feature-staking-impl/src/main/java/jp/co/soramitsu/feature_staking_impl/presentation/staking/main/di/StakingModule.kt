@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.address.AddressIconGenerator
+import javax.inject.Named
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
@@ -26,7 +26,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingVie
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
-import javax.inject.Named
 
 @Module(includes = [ViewModelModule::class])
 class StakingModule {
@@ -59,7 +58,6 @@ class StakingModule {
     fun provideViewModel(
         interactor: StakingInteractor,
         alertsInteractor: AlertsInteractor,
-        addressIconGenerator: AddressIconGenerator,
         stakingViewStateFactory: StakingViewStateFactory,
         router: StakingRouter,
         resourceManager: ResourceManager,
@@ -79,7 +77,6 @@ class StakingModule {
         return StakingViewModel(
             interactor,
             alertsInteractor,
-            addressIconGenerator,
             stakingViewStateFactory,
             router,
             resourceManager,

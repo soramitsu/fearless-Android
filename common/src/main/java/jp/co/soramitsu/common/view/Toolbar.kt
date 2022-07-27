@@ -57,7 +57,7 @@ class Toolbar @JvmOverloads constructor(
             setHomeButtonVisibility(homeButtonVisible)
 
             val dividerVisible = typedArray.getBoolean(R.styleable.Toolbar_dividerVisible, true)
-            binding.toolbarDivider.setVisible(dividerVisible)
+            setDividerVisible(dividerVisible)
 
             val backgroundAttrDrawable = typedArray.getDrawable(R.styleable.Toolbar_contentBackground) ?: ColorDrawable(context.getColor(R.color.black))
             binding.toolbarContainer.background = backgroundAttrDrawable
@@ -111,6 +111,10 @@ class Toolbar @JvmOverloads constructor(
 
     fun setHomeButtonVisibility(visible: Boolean) {
         binding.backImg.visibility = if (visible) View.VISIBLE else View.GONE
+    }
+
+    fun setDividerVisible(visible: Boolean) {
+        binding.toolbarDivider.setVisible(visible)
     }
 
     fun addCustomAction(@DrawableRes icon: Int, onClick: OnClickListener) {
