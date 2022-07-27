@@ -238,7 +238,7 @@ class StakingParachainScenarioInteractor(
     override fun getSelectedAccountAddress(): Flow<Optional<AddressModel>> {
         return stakingInteractor.selectedAccountProjectionFlow().map {
             if (it.isEthereumBased) {
-                Optional.of(iconGenerator.createEthereumAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name))
+                Optional.of(iconGenerator.createEthereumAddressModel(it.address, AddressIconGenerator.SIZE_MEDIUM, it.name))
             } else {
                 Optional.of(iconGenerator.createAddressModel(it.address, AddressIconGenerator.SIZE_SMALL, it.name))
             }
@@ -252,7 +252,7 @@ class StakingParachainScenarioInteractor(
             val collatorWoPrefix = collatorAddress.fromHex().toHexString()
             val name = identities[collatorWoPrefix]?.display
 
-            val model = iconGenerator.createEthereumAddressModel(collatorAddress, AddressIconGenerator.SIZE_SMALL, name)
+            val model = iconGenerator.createEthereumAddressModel(collatorAddress, AddressIconGenerator.SIZE_MEDIUM, name)
             send(Optional.of(model))
         }
     }
