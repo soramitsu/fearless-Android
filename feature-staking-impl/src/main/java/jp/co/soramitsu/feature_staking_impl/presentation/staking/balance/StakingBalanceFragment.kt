@@ -40,7 +40,11 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
 
             // set padding dynamically so initially scrolling area in under toolbar
             stakingBalanceToolbar.doOnNextLayout {
-                stakingBalanceScrollingArea.updatePadding(top = it.height + 8.dp)
+                stakingBalanceSwipeRefresh.updatePadding(top = it.height + 8.dp)
+            }
+
+            stakingBalanceSwipeRefresh.setOnRefreshListener {
+                viewModel.refresh()
             }
 
             stakingBalanceUnbondings.setMoreActionClickListener {
@@ -67,6 +71,8 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
         viewModel.redeemTitle?.let { binding.stakingBalanceActions.redeem.setText(it) }
 
         viewModel.stakingBalanceModelLiveData.observe {
+            binding.stakingBalanceSwipeRefresh.isRefreshing = false
+
             with(binding.stakingBalanceInfo) {
                 it.staked.titleResId?.let { bonded.setTitle(it) }
                 bonded.setTokenAmount(it.staked.token)

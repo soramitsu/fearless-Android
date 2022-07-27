@@ -2,11 +2,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.validation.ValidationExecutor
@@ -29,13 +30,14 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class StakingBalanceViewModel(
     private val router: StakingRouter,
@@ -51,14 +53,16 @@ class StakingBalanceViewModel(
     private val collatorAddress: String?
 ) : BaseViewModel(), Validatable by validationExecutor {
 
+    private val refresh = MutableStateFlow(Event(Unit))
+
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    val stakingBalanceModelLiveData: LiveData<StakingBalanceModel> = flowOf {}.flatMapLatest {
+    val stakingBalanceModelLiveData: LiveData<StakingBalanceModel> = refresh.flatMapLatest {
         stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex())
     }.asLiveData()
 
-    private val unbondingsFlow: Flow<List<Unbonding>> = flowOf {}.flatMapLatest {
+    private val unbondingsFlow: Flow<List<Unbonding>> = refresh.flatMapLatest {
         stakingScenarioInteractor.currentUnbondingsFlow(collatorAddress)
     }
 
@@ -87,7 +91,7 @@ class StakingBalanceViewModel(
         .inBackground()
         .asLiveData()
 
-    val unbondingEnabledLiveData = flowOf {
+    val unbondingEnabledLiveData = refresh.map {
         stakingScenarioInteractor.getRebondingUnbondings(collatorAddress).isNotEmpty()
     }.onStart { emit(false) }.share().asLiveData()
 
@@ -168,5 +172,9 @@ class StakingBalanceViewModel(
                 block = block
             )
         }
+    }
+
+    fun refresh() {
+        refresh.tryEmit(Event(Unit))
     }
 }
