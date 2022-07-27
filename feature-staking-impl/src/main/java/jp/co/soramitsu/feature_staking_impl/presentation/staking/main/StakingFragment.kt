@@ -5,7 +5,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
-import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -31,6 +30,8 @@ import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import javax.inject.Inject
 
 class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking), DelegationRecyclerViewAdapter.DelegationHandler {
 
@@ -147,7 +148,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
 
         combine(viewModel.networkInfo, viewModel.assetSelectorMixin.selectedAssetFlow) { state, asset ->
             state to asset.token.configuration.staking
-        }.observe { (state, stakingType) ->
+        }.distinctUntilChanged().observe { (state, stakingType) ->
             when {
                 state is LoadingState.Loading<*> && stakingType == Chain.Asset.StakingType.RELAYCHAIN -> {
                     binding.parachainStakingNetworkInfo.isVisible = false

@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -48,6 +47,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import javax.inject.Named
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -90,7 +90,10 @@ class StakingViewModel(
 
     override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
 
-    private val scenarioViewModelFlow = assetSelectorMixin.selectedAssetFlow.map { stakingScenario.getViewModel(it.token.configuration.staking) }
+    private val scenarioViewModelFlow = assetSelectorMixin.selectedAssetFlow
+        .map { it.token.configuration.staking }
+        .distinctUntilChanged()
+        .map { stakingScenario.getViewModel(it) }
 
     val networkInfo = scenarioViewModelFlow.flatMapLatest {
         it.networkInfo()
