@@ -68,7 +68,7 @@ class CollatorDetailsViewModel(
         val (statusText, statusColor) = mapStatus(collator.stake.status)
         CollatorDetailsModel(
             "0x${collator.accountIdHex}",
-            iconGenerator.createEthereumAddressModel(collator.accountIdHex, 24).image,
+            iconGenerator.createEthereumAddressModel(collator.accountIdHex, AddressIconGenerator.SIZE_MEDIUM).image,
             collator.identity?.let { identity ->
                 IdentityModel(
                     display = identity.display,
