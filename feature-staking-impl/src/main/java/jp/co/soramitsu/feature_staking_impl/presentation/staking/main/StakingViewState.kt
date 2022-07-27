@@ -554,7 +554,7 @@ class DelegatorViewState(
                 candidateInfo
             )
         }
-    }
+    }.asLiveData(scope)
 
     private fun calculateTimeTillTheEndOfRound(currentRound: Round, currentBlock: BigInteger, hoursInRound: Int): Long {
         val currentRoundFinishAtBlock = currentRound.first + currentRound.length
