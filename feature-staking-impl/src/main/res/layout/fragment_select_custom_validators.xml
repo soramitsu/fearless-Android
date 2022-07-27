@@ -2,15 +2,15 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/selectCustomValidatorsContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/selectCustomValidatorsContainer"
     android:orientation="vertical"
     tools:background="@color/black">
 
     <jp.co.soramitsu.common.view.Toolbar
         android:id="@+id/selectCustomValidatorsToolbar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -18,17 +18,17 @@
         app:titleText="@string/staking_custom_validators_list_title" />
 
     <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_marginTop="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingStart="16dp"
         android:id="@+id/selectCustomValidatorsChips"
-        android:paddingEnd="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@id/selectCustomValidatorsToolbar"
-        android:layout_height="wrap_content">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/selectCustomValidatorsToolbar">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -121,6 +121,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="6dp"
+        android:clipToPadding="false"
+        android:paddingBottom="72dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -129,13 +131,13 @@
         tools:listitem="@layout/item_validator" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/selectCustomValidatorsNext"
         style="@style/Widget.Fearless.Button.Primary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
-        android:id="@+id/selectCustomValidatorsNext"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

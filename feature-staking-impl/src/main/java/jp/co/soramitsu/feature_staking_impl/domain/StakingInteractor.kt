@@ -1,9 +1,15 @@
 package jp.co.soramitsu.feature_staking_impl.domain
 
+import java.math.BigDecimal
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressModel
+import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
@@ -20,6 +26,7 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.chainAsset
@@ -32,7 +39,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
 
 class StakingInteractor(
     private val walletRepository: WalletRepository,
@@ -42,7 +48,8 @@ class StakingInteractor(
     private val stakingSharedState: StakingSharedState,
     private val assetUseCase: AssetUseCase,
     private val chainStateRepository: ChainStateRepository,
-    private val chainRegistry: ChainRegistry
+    private val chainRegistry: ChainRegistry,
+    private val addressIconGenerator: AddressIconGenerator,
 ) {
 
     suspend fun syncStakingRewards(chainId: ChainId, accountAddress: String) = withContext(Dispatchers.IO) {
@@ -110,6 +117,7 @@ class StakingInteractor(
         StakingAccount(
             address = address,
             name = metaAccount?.name,
+            chain.isEthereumBased
         )
     }
 
@@ -141,5 +149,21 @@ class StakingInteractor(
             errorProducer = { SetupStakingValidationFailure.CannotPayFee },
             extraAmountExtractor = { it.bondAmount ?: BigDecimal.ZERO }
         )
+    }
+
+    suspend fun getAddressModel(accountAddress: String, sizeInDp: Int, accountName: String? = null): AddressModel {
+        val isEthereumBased = selectedChainFlow().first().isEthereumBased
+        return if (isEthereumBased) {
+            addressIconGenerator.createEthereumAddressModel(accountAddress, sizeInDp, accountName)
+        } else {
+            addressIconGenerator.createAddressModel(accountAddress, sizeInDp, accountName)
+        }
+    }
+
+    suspend fun getWalletAddressModel(sizeInDp: Int): AddressModel {
+        val polkadotChain = chainRegistry.getChain(polkadotChainId)
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        val addressInPolkadot = metaAccount.address(polkadotChain) ?: error("Cannot find an address")
+        return addressIconGenerator.createAddressModel(addressInPolkadot, sizeInDp, metaAccount.name)
     }
 }

@@ -11,9 +11,9 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentCollatorDetailsBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
-import jp.co.soramitsu.feature_staking_impl.databinding.FragmentCollatorDetailsBinding
 
 class CollatorDetailsFragment : BaseFragment<CollatorDetailsViewModel>(R.layout.fragment_collator_details) {
 
@@ -82,7 +82,7 @@ class CollatorDetailsFragment : BaseFragment<CollatorDetailsViewModel>(R.layout.
                 collatorInfo.setSelfBonded(collator.selfBonded)
                 collatorInfo.setEffectiveAmountBonded(collator.effectiveAmountBonded)
 
-                if (collator.identity == null) {
+                if (collator.identity == null || collator.identity.isEmptyExceptName) {
                     collatorIdentity.makeGone()
                 } else {
                     collatorIdentity.makeVisible()

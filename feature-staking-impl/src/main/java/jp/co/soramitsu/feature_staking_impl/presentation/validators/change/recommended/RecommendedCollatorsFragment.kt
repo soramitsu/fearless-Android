@@ -1,15 +1,18 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended
 
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentRecommendedValidatorsBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.CollatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
-import jp.co.soramitsu.feature_staking_impl.databinding.FragmentRecommendedValidatorsBinding
 
 class RecommendedCollatorsFragment :
     BaseFragment<RecommendedCollatorsViewModel>(R.layout.fragment_recommended_validators),
@@ -22,7 +25,10 @@ class RecommendedCollatorsFragment :
     override fun initViews() {
         adapter = CollatorsAdapter(this)
         binding.recommendedValidatorsList.adapter = adapter
-
+        val dividerItemDecoration = DividerItemDecoration(context, LinearLayoutManager.VERTICAL).apply {
+            setDrawable(requireContext().getDrawableCompat(R.drawable.divider_decoration))
+        }
+        binding.recommendedValidatorsList.addItemDecoration(dividerItemDecoration)
         binding.recommendedValidatorsList.setHasFixedSize(true)
 
         binding.recommendedValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
@@ -32,6 +38,7 @@ class RecommendedCollatorsFragment :
             viewModel.nextClicked()
         }
         binding.recommendedValidatorsToolbar.setTitle(viewModel.toolbarTitle)
+        binding.recommendedValidatorsToolbar.setDividerVisible(false)
         binding.recommendedValidatorsRewards.text = getString(R.string.staking_rewards_apr)
         binding.recommendedValidatorsNext.text = getString(R.string.staking_select_collator_title)
     }

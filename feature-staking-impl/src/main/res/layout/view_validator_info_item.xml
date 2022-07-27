@@ -9,7 +9,7 @@
 
     <TextView
         android:id="@+id/validatorIdentityTitle"
-        style="@style/TextAppearance.Soramitsu.Body2"
+        style="@style/TextAppearance.Soramitsu.Body1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -70,12 +70,12 @@
         android:id="@+id/divider"
         android:layout_width="0dp"
         android:layout_height="1dp"
+        android:layout_marginTop="8dp"
         android:background="@color/gray3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/validatorsIdentityDescription"
-        android:layout_marginTop="8dp"
-        app:layout_goneMarginTop="8dp"/>
+        app:layout_goneMarginTop="8dp" />
 
 </merge>

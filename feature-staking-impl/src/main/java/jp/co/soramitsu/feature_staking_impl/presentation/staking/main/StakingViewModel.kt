@@ -1,9 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
-import jp.co.soramitsu.common.address.AddressIconGenerator
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressModel
-import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -49,14 +48,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import javax.inject.Named
 
 private const val CURRENT_ICON_SIZE = 40
 
 class StakingViewModel(
     private val interactor: StakingInteractor,
     alertsInteractor: AlertsInteractor,
-    private val addressIconGenerator: AddressIconGenerator,
     stakingViewStateFactory: StakingViewStateFactory,
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
@@ -190,7 +187,7 @@ class StakingViewModel(
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedAccountProjectionFlow().map {
-            addressIconGenerator.createAddressModel(it.address, CURRENT_ICON_SIZE, it.name)
+            interactor.getWalletAddressModel(CURRENT_ICON_SIZE)
         }
     }
 

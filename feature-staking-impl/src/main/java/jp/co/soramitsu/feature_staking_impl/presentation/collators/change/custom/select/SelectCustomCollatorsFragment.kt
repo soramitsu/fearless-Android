@@ -44,6 +44,7 @@ class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewMode
         binding.selectCustomValidatorsToolbar.addCustomAction(R.drawable.ic_basic_search_24) {
             viewModel.searchClicked()
         }
+        binding.selectCustomValidatorsToolbar.setDividerVisible(false)
 
         binding.selectCustomValidatorsList.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
 

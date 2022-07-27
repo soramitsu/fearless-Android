@@ -68,7 +68,6 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
         android:text="@string/staking_start_change_collators_custom_subtitle"
         android:textColor="@color/black1" />
 

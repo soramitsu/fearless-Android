@@ -4,8 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.createAddressModel
+import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -44,8 +46,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class SetupStakingViewModel(
     private val router: StakingRouter,
@@ -102,7 +102,7 @@ class SetupStakingViewModel(
 
     val currentAccountAddressModel = liveData {
         interactor.getSelectedAccountProjection()?.let { projection ->
-            val addressModel = addressIconGenerator.createAddressModel(projection.address, AddressIconGenerator.SIZE_MEDIUM, projection.name)
+            val addressModel = addressIconGenerator.createEthereumAddressModel(projection.address, AddressIconGenerator.SIZE_MEDIUM, projection.name)
             this.emit(addressModel)
         }
     }
