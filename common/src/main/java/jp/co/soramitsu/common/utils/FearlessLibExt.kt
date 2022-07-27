@@ -76,6 +76,9 @@ fun String.extrinsicHash(): String {
 
 fun String.toHexAccountId(): String = toAccountId().toHexString()
 
+fun String.accountIdFromMapKey() = fromHex().takeLast(32).toByteArray().toHexString()
+fun String.ethereumAddressFromMapKey() = fromHex().takeLast(20).toByteArray().toHexString()
+
 fun preBinder() = pojo<String>().nonNull()
 
 val GenericEvent.Instance.index
@@ -90,6 +93,8 @@ fun Module.constantOrNull(name: String) = constants[name]
 
 fun RuntimeMetadata.staking() = module(Modules.STAKING)
 
+fun RuntimeMetadata.parachainStaking() = module(Modules.PARACHAIN_STAKING)
+
 fun RuntimeMetadata.system() = module(Modules.SYSTEM)
 
 fun RuntimeMetadata.tokens() = module(Modules.TOKENS)
@@ -103,6 +108,8 @@ fun RuntimeMetadata.babe() = module(Modules.BABE)
 fun RuntimeMetadata.slots() = module(Modules.SLOTS)
 
 fun RuntimeMetadata.session() = module(Modules.SESSION)
+
+fun RuntimeMetadata.identity() = module(Modules.SESSION)
 
 fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapArguments: Collection<T>): Map<String, T> {
     return singleMapArguments.associateBy { storageKey(runtime, it) }
@@ -142,6 +149,7 @@ private fun cropSeedTo32Bytes(seedResult: SeedFactory.Result): SeedFactory.Resul
 
 object Modules {
     const val STAKING = "Staking"
+    const val PARACHAIN_STAKING = "ParachainStaking"
     const val BALANCES = "Balances"
     const val SYSTEM = "System"
     const val CROWDLOAN = "Crowdloan"
@@ -149,4 +157,5 @@ object Modules {
     const val SLOTS = "Slots"
     const val SESSION = "Session"
     const val TOKENS = "Tokens"
+    const val IDENTITY = "Identity"
 }

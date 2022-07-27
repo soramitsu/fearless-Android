@@ -1,9 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.confirm
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.core.view.isVisible
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
@@ -14,41 +11,25 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmStakeBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.displayFeeStatus
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeAmount
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeConfirm
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeOriginAccount
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeRewardDestination
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidators
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeSelectedValidatorsCount
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakeToolbar
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingEachEraLength
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeFiat
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeProgress
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingFeeToken
-import kotlinx.android.synthetic.main.fragment_confirm_stake.confirmStakingUnstakingPeriodLength
-import kotlinx.android.synthetic.main.fragment_confirm_stake.stakingConfirmationContainer
 import javax.inject.Inject
 
-class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
+class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>(R.layout.fragment_confirm_stake) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_confirm_stake, container, false)
-    }
+    private val binding by viewBinding(FragmentConfirmStakeBinding::bind)
 
     override fun initViews() {
-        stakingConfirmationContainer.applyInsetter {
+        binding.stakingConfirmationContainer.applyInsetter {
             type(statusBars = true) {
                 padding()
             }
@@ -56,17 +37,19 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
             consume(true)
         }
 
-        confirmStakeToolbar.setHomeButtonListener { viewModel.backClicked() }
+        binding.confirmStakeToolbar.setHomeButtonListener { viewModel.backClicked() }
         onBackPressed { viewModel.backClicked() }
 
-        confirmStakeOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
+        with(binding) {
+            confirmStakeOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
 
-        confirmStakeConfirm.prepareForProgress(viewLifecycleOwner)
-        confirmStakeConfirm.setOnClickListener { viewModel.confirmClicked() }
+            confirmStakeConfirm.prepareForProgress(viewLifecycleOwner)
+            confirmStakeConfirm.setOnClickListener { viewModel.confirmClicked() }
 
-        confirmStakeSelectedValidators.setOnClickListener { viewModel.nominationsClicked() }
+            confirmStakeSelectedValidators.setOnClickListener { viewModel.nominationsClicked() }
 
-        confirmStakeRewardDestination.setPayoutAccountClickListener { viewModel.payoutAccountClicked() }
+            confirmStakeRewardDestination.setPayoutAccountClickListener { viewModel.payoutAccountClicked() }
+        }
     }
 
     override fun inject() {
@@ -84,52 +67,68 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>() {
         observeValidations(viewModel)
         setupExternalActions(viewModel)
 
-        viewModel.showNextProgress.observe(confirmStakeConfirm::setProgress)
+        viewModel.showNextProgress.observe(binding.confirmStakeConfirm::setProgress)
 
         viewModel.rewardDestinationLiveData.observe {
 
             if (it != null) {
-                confirmStakeRewardDestination.makeVisible()
-                confirmStakeRewardDestination.showRewardDestination(it)
+                binding.confirmStakeRewardDestination.makeVisible()
+                binding.confirmStakeRewardDestination.showRewardDestination(it)
             } else {
-                confirmStakeRewardDestination.makeGone()
+                binding.confirmStakeRewardDestination.makeGone()
             }
         }
 
         viewModel.assetModelLiveData.observe {
-            confirmStakeAmount.setAssetBalance(it.assetBalance)
-            confirmStakeAmount.setAssetName(it.tokenName)
-            confirmStakeAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+            binding.confirmStakeAmount.setAssetBalance(it.assetBalance)
+            binding.confirmStakeAmount.setAssetName(it.tokenName)
+            binding.confirmStakeAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
         viewModel.feeLiveData.observe {
             displayFeeStatus(
                 it,
-                FeeViews(confirmStakingFeeProgress, confirmStakingFeeFiat, confirmStakingFeeToken)
+                FeeViews(
+                    binding.confirmStakingFeeProgress,
+                    binding.confirmStakingFeeFiat,
+                    binding.confirmStakingFeeToken
+                )
             )
         }
 
         viewModel.currentAccountModelLiveData.observe {
-            confirmStakeOriginAccount.setMessage(it.nameOrAddress)
-            confirmStakeOriginAccount.setTextIcon(it.image)
+            binding.confirmStakeOriginAccount.setMessage(it.nameOrAddress)
+            binding.confirmStakeOriginAccount.setTextIcon(it.image)
         }
 
         viewModel.nominationsLiveData.observe {
-            confirmStakeSelectedValidatorsCount.text = it
+            binding.confirmStakeSelectedValidatorsCount.text = it
         }
 
         viewModel.displayAmountLiveData.observe { bondedAmount ->
-            confirmStakeAmount.setVisible(bondedAmount != null)
+            binding.confirmStakeAmount.setVisible(bondedAmount != null)
 
-            bondedAmount?.let { confirmStakeAmount.amountInput.setText(it.toString()) }
+            bondedAmount?.let { binding.confirmStakeAmount.amountInput.setText(it.toString()) }
         }
 
         viewModel.unstakingTime.observe {
-            confirmStakingUnstakingPeriodLength.text = it
+            binding.confirmStakingUnstakingPeriodLength.text = it
         }
 
         viewModel.eraHoursLength.observe {
-            confirmStakingEachEraLength.text = it
+            binding.confirmStakingEachEraLength.text = it
+        }
+
+        viewModel.selectedCollatorLiveData.observe {
+            binding.confirmStakeSelectedCollator.isVisible = it != null
+            binding.confirmStakeSelectedValidators.isVisible = it == null
+            it?.let { model ->
+                binding.confirmStakeSelectedCollator.setMessage(model.address)
+
+                binding.confirmStakeSelectedCollator.setLabel(model.nameOrAddress)
+
+                binding.confirmStakeSelectedCollator.loadIcon(model.image)
+            }
         }
     }
 }

@@ -5,7 +5,8 @@ class AppLinksProvider(
     val privacyUrl: String,
     val payoutsLearnMore: String,
     val twitterAccountTemplate: String,
-    val setControllerLearnMore: String
+    val setControllerLearnMore: String,
+    val moonbeamStakingLearnMore: String
 ) {
 
     fun getTwitterAccountUrl(

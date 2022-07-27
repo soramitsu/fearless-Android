@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.C
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.list.model.PendingPayoutsStatisticsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
@@ -33,6 +34,7 @@ class PayoutsListViewModel(
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val interactor: StakingInteractor,
+    private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor
 ) : BaseViewModel(), Retriable {
 
     override val retryEvent: MutableLiveData<Event<RetryPayload>> = MutableLiveData()
@@ -78,7 +80,7 @@ class PayoutsListViewModel(
 
     private fun loadPayouts() {
         launch {
-            val result = interactor.calculatePendingPayouts()
+            val result = relayChainScenarioInteractor.calculatePendingPayouts()
 
             if (result.isSuccess) {
                 payoutsStatisticsFlow.emit(result.requireValue())

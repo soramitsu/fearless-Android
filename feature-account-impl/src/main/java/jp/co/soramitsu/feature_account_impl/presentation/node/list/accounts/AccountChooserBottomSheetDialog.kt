@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
@@ -11,8 +13,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdap
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.node.list.accounts.model.AccountByNetworkModel
-import kotlinx.android.synthetic.main.item_account_by_network.view.accountIcon
-import kotlinx.android.synthetic.main.item_account_by_network.view.accountTitle
 
 class AccountChooserBottomSheetDialog(
     context: Context,
@@ -38,10 +38,11 @@ class AccountHolder(
     override fun bind(item: AccountByNetworkModel, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<AccountByNetworkModel>) {
         super.bind(item, isSelected, handler)
 
-        with(itemView) {
-            accountTitle.text = item.name.orEmpty()
-            accountIcon.setImageDrawable(item.addressModel.image)
-        }
+        val title = itemView.findViewById<TextView>(R.id.accountTitle)
+        val accountIcon = itemView.findViewById<ImageView>(R.id.accountIcon)
+
+        title.text = item.name.orEmpty()
+        accountIcon.setImageDrawable(item.addressModel.image)
     }
 }
 

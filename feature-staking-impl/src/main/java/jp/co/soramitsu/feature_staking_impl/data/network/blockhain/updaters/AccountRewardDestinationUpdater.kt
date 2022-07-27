@@ -5,7 +5,7 @@ import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.StakingUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -19,7 +19,7 @@ class AccountRewardDestinationUpdater(
 ) : SingleStorageKeyUpdater<AccountStakingScope>(scope, stakingSharedState, chainRegistry, storageCache), StakingUpdater {
 
     override suspend fun storageKey(runtime: RuntimeSnapshot): String? {
-        val stakingAccessInfo = scope.getAccountStaking().stakingAccessInfo ?: return null
+        val stakingAccessInfo = scope.getAccountStaking()?.stakingAccessInfo ?: return null
         val stashId = stakingAccessInfo.stashId
 
         return runtime.metadata.staking().storage("Payee").storageKey(runtime, stashId)

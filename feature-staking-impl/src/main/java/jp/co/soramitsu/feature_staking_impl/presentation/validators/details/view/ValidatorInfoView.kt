@@ -1,21 +1,15 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view
 
 import android.content.Context
-import android.provider.Settings.Global.getString
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_validator_info.view.validatorEstimatedReward
-import kotlinx.android.synthetic.main.view_validator_info.view.validatorNominatorsView
-import kotlinx.android.synthetic.main.view_validator_info.view.validatorStatusView
-import kotlinx.android.synthetic.main.view_validator_info.view.validatorTotalStakeView
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewValidatorInfoBinding
 
 sealed class Error(@StringRes val errorDescription: Int, @DrawableRes val errorIcon: Int) {
     object OversubscribedUnpaid : Error(R.string.staking_validator_my_oversubscribed_message, R.drawable.ic_warning_filled)
@@ -29,24 +23,32 @@ class ValidatorInfoView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewValidatorInfoBinding
+
     init {
-        View.inflate(context, R.layout.view_validator_info, this)
+        inflate(context, R.layout.view_validator_info, this)
+        binding = ViewValidatorInfoBinding.bind(this)
 
         orientation = VERTICAL
     }
 
-    private val totalStakeFields = listOf(validatorTotalStakeView, validatorNominatorsView, validatorNominatorsView, validatorEstimatedReward)
+    private val totalStakeFields = listOf(
+        binding.validatorTotalStakeView,
+        binding.validatorNominatorsView,
+        binding.validatorNominatorsView,
+        binding.validatorEstimatedReward
+    )
 
     fun setTotalStakeValue(value: String) {
-        validatorTotalStakeView.setBody(value)
+        binding.validatorTotalStakeView.setBody(value)
     }
 
     fun setTotalStakeValueFiat(fiat: String?) {
-        validatorTotalStakeView.setExtraOrHide(fiat)
+        binding.validatorTotalStakeView.setExtraOrHide(fiat)
     }
 
     fun setNominatorsCount(count: String, maxNominations: String?) {
-        validatorNominatorsView.setBody(
+        binding.validatorNominatorsView.setBody(
             if (maxNominations == null)
                 count.format()
             else
@@ -57,11 +59,11 @@ class ValidatorInfoView @JvmOverloads constructor(
     }
 
     fun setEstimatedRewardApy(reward: String) {
-        validatorEstimatedReward.setBody(reward)
+        binding.validatorEstimatedReward.setBody(reward)
     }
 
     fun setTotalStakeClickListener(clickListener: () -> Unit) {
-        validatorTotalStakeView.setOnClickListener { clickListener() }
+        binding.validatorTotalStakeView.setOnClickListener { clickListener() }
     }
 
     fun hideActiveStakeFields() {
@@ -73,16 +75,16 @@ class ValidatorInfoView @JvmOverloads constructor(
     }
 
     fun setStatus(statusText: String, @ColorRes statusColorRes: Int) {
-        validatorStatusView.setBodyOrHide(statusText)
-        validatorStatusView.setBodyIconResource(R.drawable.ic_status_indicator, statusColorRes)
+        binding.validatorStatusView.setBodyOrHide(statusText)
+        binding.validatorStatusView.setBodyIconResource(R.drawable.ic_status_indicator, statusColorRes)
     }
 
     fun setErrors(error: List<Error>) {
         for (err in error) {
             when (err) {
-                is Error.OversubscribedUnpaid -> validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
-                is Error.OversubscribedPaid -> validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
-                is Error.Slashed -> validatorNominatorsView.setDescription(context.getString(err.errorDescription), err.errorIcon)
+                is Error.OversubscribedUnpaid -> binding.validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
+                is Error.OversubscribedPaid -> binding.validatorStatusView.setDescription(context.getString(err.errorDescription), err.errorIcon)
+                is Error.Slashed -> binding.validatorNominatorsView.setDescription(context.getString(err.errorDescription), err.errorIcon)
             }
         }
     }

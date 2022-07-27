@@ -11,5 +11,6 @@ class ConfirmBondMorePayload(
     val amount: BigDecimal,
     val fee: BigDecimal,
     val stashAddress: String,
-    val overrideFinishAction: PendingNavigationAction<StakingRouter>?
+    val overrideFinishAction: PendingNavigationAction<StakingRouter>?,
+    val collatorAddress: String?
 ) : Parcelable

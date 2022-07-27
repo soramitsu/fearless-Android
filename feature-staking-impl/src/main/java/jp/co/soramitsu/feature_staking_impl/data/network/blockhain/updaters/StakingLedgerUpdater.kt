@@ -20,12 +20,11 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChang
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.isRedeemableIn
 import jp.co.soramitsu.feature_staking_api.domain.model.isUnbondingIn
 import jp.co.soramitsu.feature_staking_api.domain.model.sumStaking
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.base.StakingUpdater
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
@@ -42,6 +41,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 
 class LedgerWithController(
     val ledger: StakingLedger,
@@ -49,7 +49,7 @@ class LedgerWithController(
 )
 
 class StakingLedgerUpdater(
-    private val stakingRepository: StakingRepository,
+    private val stakingRepository: StakingRelayChainScenarioRepository,
     private val stakingSharedState: StakingSharedState,
     private val chainRegistry: ChainRegistry,
     private val accountStakingDao: AccountStakingDao,

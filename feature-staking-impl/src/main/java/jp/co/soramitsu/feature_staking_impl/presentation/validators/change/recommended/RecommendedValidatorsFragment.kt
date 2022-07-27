@@ -1,45 +1,32 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.setVisible
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentRecommendedValidatorsBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsAccounts
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsList
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsNext
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsProgress
-import kotlinx.android.synthetic.main.fragment_recommended_validators.recommendedValidatorsToolbar
 
-class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewModel>(), ValidatorsAdapter.ItemHandler {
+class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewModel>(R.layout.fragment_recommended_validators), ValidatorsAdapter.ItemHandler {
 
     lateinit var adapter: ValidatorsAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_recommended_validators, container, false)
-    }
+    private val binding by viewBinding(FragmentRecommendedValidatorsBinding::bind)
 
     override fun initViews() {
         adapter = ValidatorsAdapter(this)
-        recommendedValidatorsList.adapter = adapter
+        binding.recommendedValidatorsList.adapter = adapter
 
-        recommendedValidatorsList.setHasFixedSize(true)
+        binding.recommendedValidatorsList.setHasFixedSize(true)
 
-        recommendedValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
+        binding.recommendedValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
         onBackPressed { viewModel.backClicked() }
 
-        recommendedValidatorsNext.setOnClickListener {
+        binding.recommendedValidatorsNext.setOnClickListener {
             viewModel.nextClicked()
         }
     }
@@ -58,13 +45,13 @@ class RecommendedValidatorsFragment : BaseFragment<RecommendedValidatorsViewMode
         viewModel.recommendedValidatorModels.observe {
             adapter.submitList(it)
 
-            recommendedValidatorsProgress.setVisible(false)
-            recommendedValidatorsNext.setVisible(true)
-            recommendedValidatorsNext.isEnabled = it.isNotEmpty()
-            recommendedValidatorsList.setVisible(true)
+            binding.recommendedValidatorsProgress.setVisible(false)
+            binding.recommendedValidatorsNext.setVisible(true)
+            binding.recommendedValidatorsNext.isEnabled = it.isNotEmpty()
+            binding.recommendedValidatorsList.setVisible(true)
         }
 
-        viewModel.selectedTitle.observe(recommendedValidatorsAccounts::setText)
+        viewModel.selectedTitle.observe(binding.recommendedValidatorsAccounts::setText)
     }
 
     override fun validatorInfoClicked(validatorModel: ValidatorModel) {

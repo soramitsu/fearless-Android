@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.RecommendedValidatorsViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 
 @Module(includes = [ViewModelModule::class])
@@ -29,6 +30,7 @@ class RecommendedValidatorsModule {
         recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
         addressIconGenerator: AddressIconGenerator,
         stakingInteractor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         resourceManager: ResourceManager,
         router: StakingRouter,
         setupStakingSharedState: SetupStakingSharedState,
@@ -40,6 +42,7 @@ class RecommendedValidatorsModule {
             recommendationSettingsProviderFactory,
             addressIconGenerator,
             stakingInteractor,
+            stakingRelayChainScenarioInteractor,
             resourceManager,
             setupStakingSharedState,
             tokenUseCase

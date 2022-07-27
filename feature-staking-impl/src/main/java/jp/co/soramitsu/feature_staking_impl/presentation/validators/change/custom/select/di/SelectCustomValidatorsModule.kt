@@ -13,9 +13,11 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.SelectCustomValidatorsViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 
 @Module(includes = [ViewModelModule::class])
@@ -29,10 +31,12 @@ class SelectCustomValidatorsModule {
         recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
         addressIconGenerator: AddressIconGenerator,
         stakingInteractor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         resourceManager: ResourceManager,
         setupStakingSharedState: SetupStakingSharedState,
         router: StakingRouter,
-        tokenUseCase: TokenUseCase
+        tokenUseCase: TokenUseCase,
+        settingsStorage: SettingsStorage
     ): ViewModel {
         return SelectCustomValidatorsViewModel(
             router,
@@ -40,9 +44,11 @@ class SelectCustomValidatorsModule {
             recommendationSettingsProviderFactory,
             addressIconGenerator,
             stakingInteractor,
+            stakingRelayChainScenarioInteractor,
             resourceManager,
             setupStakingSharedState,
-            tokenUseCase
+            tokenUseCase,
+            settingsStorage
         )
     }
 

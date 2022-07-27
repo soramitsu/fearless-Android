@@ -3,7 +3,7 @@ package jp.co.soramitsu.feature_wallet_api.presentation.view
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import android.widget.LinearLayout
+import androidx.constraintlayout.widget.ConstraintLayout
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.utils.getEnum
@@ -12,23 +12,24 @@ import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_wallet_api.R
+import jp.co.soramitsu.feature_wallet_api.databinding.ViewAssetSelectorBinding
 import jp.co.soramitsu.feature_wallet_api.presentation.model.AssetModel
-import kotlinx.android.synthetic.main.view_asset_selector.view.assetSelectorBalance
-import kotlinx.android.synthetic.main.view_asset_selector.view.assetSelectorIcon
-import kotlinx.android.synthetic.main.view_asset_selector.view.assetSelectorTokenName
 
 class AssetSelectorView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
-) : LinearLayout(context, attrs, defStyle) {
+) : ConstraintLayout(context, attrs, defStyle) {
 
     enum class BackgroundStyle {
         BLURRED, BORDERED
     }
 
+    private val binding: ViewAssetSelectorBinding
+
     init {
-        View.inflate(context, R.layout.view_asset_selector, this)
+        inflate(context, R.layout.view_asset_selector, this)
+        binding = ViewAssetSelectorBinding.bind(this)
 
         attrs?.let {
             applyAttributes(it)
@@ -59,9 +60,9 @@ class AssetSelectorView @JvmOverloads constructor(
         assetModel: AssetModel
     ) {
         with(assetModel) {
-            assetSelectorBalance.text = assetBalance
-            assetSelectorTokenName.text = tokenName
-            assetSelectorIcon.load(imageUrl, imageLoader)
+            binding.assetSelectorBalance.text = assetBalance
+            binding.assetSelectorTokenName.text = tokenName
+            binding.assetSelectorIcon.load(imageUrl, imageLoader)
         }
     }
 }

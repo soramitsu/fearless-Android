@@ -3,13 +3,13 @@ package jp.co.soramitsu.feature_account_impl.presentation.language
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.language.model.LanguageModel
-import kotlinx.android.synthetic.main.item_language.view.languageCheck
 
 class LanguagesAdapter(
     private val languagesItemHandler: LanguagesItemHandler
@@ -53,6 +53,7 @@ class LanguageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     private val languageNameTv: TextView = itemView.findViewById(R.id.languageNameTv)
     private val languageNativeNameTv: TextView = itemView.findViewById(R.id.languageNativeNameTv)
+    private val languageCheck: ImageView = itemView.findViewById(R.id.languageCheck)
 
     fun bind(language: LanguageModel, handler: LanguagesAdapter.LanguagesItemHandler, isChecked: Boolean) {
         with(itemView) {

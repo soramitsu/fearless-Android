@@ -6,10 +6,13 @@ import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.model.accountId
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.state.chainAndAsset
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 
 class AccountStakingScope(
     private val accountRepository: AccountRepository,
@@ -23,12 +26,15 @@ class AccountStakingScope(
             accountRepository.selectedMetaAccountFlow()
         ).flatMapLatest { (chainWithAsset, account) ->
             val (chain, chainAsset) = chainWithAsset
-
-            accountStakingDao.observeDistinct(chain.id, chainAsset.id, account.accountId(chain)!!)
+            when (chainAsset.staking) {
+                Chain.Asset.StakingType.RELAYCHAIN -> accountStakingDao.observeDistinct(chain.id, chainAsset.id, account.accountId(chain)!!)
+                Chain.Asset.StakingType.PARACHAIN -> flowOf(Unit)
+                else -> emptyFlow()
+            }
         }
     }
 
-    suspend fun getAccountStaking(): AccountStakingLocal {
+    suspend fun getAccountStaking(): AccountStakingLocal? {
         val (chain, chainAsset) = sharedStakingState.chainAndAsset()
         val account = accountRepository.getSelectedMetaAccount()
 
@@ -36,4 +42,10 @@ class AccountStakingScope(
     }
 
     suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
+
+    suspend fun getAccountId(): ByteArray? {
+        val chain = sharedStakingState.chainAndAsset().chain
+        val account = accountRepository.getSelectedMetaAccount()
+        return account.accountId(chain)
+    }
 }

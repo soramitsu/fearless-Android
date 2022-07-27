@@ -10,13 +10,9 @@ import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.ImportSourceSeedBinding
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
-import kotlinx.android.synthetic.main.import_source_seed.view.importSeedContent
-import kotlinx.android.synthetic.main.import_source_seed.view.importSeedContentContainer
-import kotlinx.android.synthetic.main.import_source_seed.view.importSeedTitle
-import kotlinx.android.synthetic.main.import_source_seed.view.importSeedUsernameInput
-import kotlinx.android.synthetic.main.import_source_seed.view.usernameHintTv
 
 class SeedImportView @JvmOverloads constructor(
     context: Context,
@@ -25,8 +21,10 @@ class SeedImportView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_seed, context, attrs, defStyleAttr) {
 
+    private val binding: ImportSourceSeedBinding = ImportSourceSeedBinding.bind(this)
+
     override val nameInputView: InputField
-        get() = importSeedUsernameInput
+        get() = binding.importSeedUsernameInput
 
     init {
         init()
@@ -37,26 +35,26 @@ class SeedImportView @JvmOverloads constructor(
     }
 
     fun init(type: ImportAccountType = ImportAccountType.Substrate) {
-        importSeedContentContainer.background = context.getIdleDrawable()
+        binding.importSeedContentContainer.background = context.getIdleDrawable()
 
-        importSeedUsernameInput.content.filters = nameInputFilters()
+        binding.importSeedUsernameInput.content.filters = nameInputFilters()
 
         setImportAccountType(type)
 
-        importSeedUsernameInput.isVisible = !isChainAccount
-        usernameHintTv.isVisible = !isChainAccount
+        binding.importSeedUsernameInput.isVisible = !isChainAccount
+        binding.usernameHintTv.isVisible = !isChainAccount
     }
 
     private fun setImportAccountType(type: ImportAccountType) {
         when (type) {
-            ImportAccountType.Substrate -> importSeedTitle.setText(R.string.account_import_substrate_raw_seed_placeholder)
-            ImportAccountType.Ethereum -> importSeedTitle.setText(R.string.account_import_ethereum_raw_seed_placeholder)
+            ImportAccountType.Substrate -> binding.importSeedTitle.setText(R.string.account_import_substrate_raw_seed_placeholder)
+            ImportAccountType.Ethereum -> binding.importSeedTitle.setText(R.string.account_import_ethereum_raw_seed_placeholder)
         }
     }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
         require(source is RawSeedImportSource)
 
-        importSeedContent.bindTo(source.rawSeedLiveData, lifecycleOwner)
+        binding.importSeedContent.bindTo(source.rawSeedLiveData, lifecycleOwner)
     }
 }

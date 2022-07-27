@@ -1,25 +1,20 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.createSendEmailIntent
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentValidatorDetailsBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import kotlinx.android.synthetic.main.fragment_validator_details.validatorAccountInfo
-import kotlinx.android.synthetic.main.fragment_validator_details.validatorDetailsToolbar
-import kotlinx.android.synthetic.main.fragment_validator_details.validatorIdentity
-import kotlinx.android.synthetic.main.fragment_validator_details.validatorInfo
 
-class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
+class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>(R.layout.fragment_validator_details) {
 
     companion object {
         private const val KEY_VALIDATOR = "validator"
@@ -31,34 +26,30 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_validator_details, container, false)
-    }
+    private val binding by viewBinding(FragmentValidatorDetailsBinding::bind)
 
     override fun initViews() {
-        validatorDetailsToolbar.setHomeButtonListener { viewModel.backClicked() }
+        with(binding) {
+            validatorDetailsToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        validatorInfo.setTotalStakeClickListener {
-            viewModel.totalStakeClicked()
+            validatorInfo.setTotalStakeClickListener {
+                viewModel.totalStakeClicked()
+            }
+
+            validatorIdentity.setEmailClickListener {
+                viewModel.emailClicked()
+            }
+
+            validatorIdentity.setWebClickListener {
+                viewModel.webClicked()
+            }
+
+            validatorIdentity.setTwitterClickListener {
+                viewModel.twitterClicked()
+            }
+
+            validatorAccountInfo.setWholeClickListener { viewModel.accountActionsClicked() }
         }
-
-        validatorIdentity.setEmailClickListener {
-            viewModel.emailClicked()
-        }
-
-        validatorIdentity.setWebClickListener {
-            viewModel.webClicked()
-        }
-
-        validatorIdentity.setTwitterClickListener {
-            viewModel.twitterClicked()
-        }
-
-        validatorAccountInfo.setWholeClickListener { viewModel.accountActionsClicked() }
     }
 
     override fun inject() {
@@ -78,41 +69,43 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>() {
 
         viewModel.validatorDetails.observe { validator ->
             with(validator.stake) {
-                validatorInfo.setStatus(statusText, statusColorRes)
+                binding.validatorInfo.setStatus(statusText, statusColorRes)
 
                 if (activeStakeModel != null) {
-                    validatorInfo.showActiveStakeFields()
+                    with(binding) {
+                        validatorInfo.showActiveStakeFields()
 
-                    validatorInfo.setNominatorsCount(activeStakeModel.nominatorsCount, activeStakeModel.maxNominations)
-                    validatorInfo.setEstimatedRewardApy(activeStakeModel.apy)
-                    validatorInfo.setTotalStakeValue(activeStakeModel.totalStake)
-                    validatorInfo.setTotalStakeValueFiat(activeStakeModel.totalStakeFiat)
+                        validatorInfo.setNominatorsCount(activeStakeModel.nominatorsCount, activeStakeModel.maxNominations)
+                        validatorInfo.setEstimatedRewardApy(activeStakeModel.apy)
+                        validatorInfo.setTotalStakeValue(activeStakeModel.totalStake)
+                        validatorInfo.setTotalStakeValueFiat(activeStakeModel.totalStakeFiat)
+                    }
                 } else {
-                    validatorInfo.hideActiveStakeFields()
+                    binding.validatorInfo.hideActiveStakeFields()
                 }
             }
 
             if (validator.identity == null) {
-                validatorIdentity.makeGone()
+                binding.validatorIdentity.makeGone()
             } else {
-                validatorIdentity.makeVisible()
-                validatorIdentity.populateIdentity(validator.identity)
+                binding.validatorIdentity.makeVisible()
+                binding.validatorIdentity.populateIdentity(validator.identity)
             }
 
-            validatorAccountInfo.setAccountIcon(validator.addressImage)
+            binding.validatorAccountInfo.setAccountIcon(validator.addressImage)
 
             if (validator.identity?.display == null) {
-                validatorAccountInfo.setTitle(validator.address)
-                validatorAccountInfo.hideBody()
+                binding.validatorAccountInfo.setTitle(validator.address)
+                binding.validatorAccountInfo.hideBody()
             } else {
-                validatorAccountInfo.setTitle(validator.identity.display)
-                validatorAccountInfo.setText(validator.address)
-                validatorAccountInfo.showBody()
+                binding.validatorAccountInfo.setTitle(validator.identity.display)
+                binding.validatorAccountInfo.setText(validator.address)
+                binding.validatorAccountInfo.showBody()
             }
         }
 
         viewModel.errorFlow.observe {
-            it?.let { validatorInfo.setErrors(it) }
+            it?.let { binding.validatorInfo.setErrors(it) }
         }
 
         viewModel.openEmailEvent.observeEvent {

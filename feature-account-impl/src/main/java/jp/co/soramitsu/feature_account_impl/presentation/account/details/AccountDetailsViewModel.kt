@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.list.headers.TextHeader
@@ -26,6 +27,8 @@ import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -34,8 +37,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
@@ -109,8 +110,14 @@ class AccountDetailsViewModel(
 
     private suspend fun mapChainAccountProjectionToUi(accountInChain: AccountInChain) = with(accountInChain) {
         val address = projection?.address ?: resourceManager.getString(R.string.account_no_chain_projection)
+
         val accountIcon = when {
-            projection != null -> iconGenerator.createAddressIcon(projection.accountId, AddressIconGenerator.SIZE_SMALL, R.color.account_icon_dark)
+            projection != null -> iconGenerator.createAddressIcon(
+                accountInChain.chain.isEthereumBased,
+                projection.address,
+                AddressIconGenerator.SIZE_SMALL,
+                R.color.account_icon_dark
+            )
             accountInChain.markedAsNotNeed -> null
             else -> resourceManager.getDrawable(R.drawable.ic_warning_filled)
         }

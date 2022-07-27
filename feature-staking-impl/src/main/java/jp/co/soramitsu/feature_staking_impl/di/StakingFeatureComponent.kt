@@ -8,6 +8,7 @@ import jp.co.soramitsu.core_db.di.DbApi
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.collators.change.custom.select.di.SelectCustomCollatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.confirm.di.ConfirmStakingComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations.di.ConfirmNominationsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.di.ConfirmPayoutComponent
@@ -30,11 +31,14 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.d
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review.di.ReviewCustomValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.search.di.SearchCustomValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.di.SelectCustomValidatorsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.di.CustomValidatorsSettingsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.di.RecommendedCollatorsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.di.RecommendedValidatorsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.di.StartChangeCollatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.di.StartChangeValidatorsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.di.CurrentValidatorsComponent
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.CollatorDetailsComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.di.ValidatorDetailsComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.di.RecommendedValidatorsComponent
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.di.CustomValidatorsSettingsComponent
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.runtime.di.RuntimeApi
 
@@ -45,7 +49,8 @@ import jp.co.soramitsu.runtime.di.RuntimeApi
     modules = [
         StakingFeatureModule::class,
         StakingUpdatersModule::class,
-        StakingValidationModule::class
+        StakingValidationModule::class,
+        StakingScenarioModule::class
     ]
 )
 @FeatureScope
@@ -59,9 +64,15 @@ interface StakingFeatureComponent : StakingFeatureApi {
 
     fun selectCustomValidatorsComponentFactory(): SelectCustomValidatorsComponent.Factory
 
+    fun selectCustomCollatorsComponentFactory(): SelectCustomCollatorsComponent.Factory
+
     fun startChangeValidatorsComponentFactory(): StartChangeValidatorsComponent.Factory
 
+    fun startChangeCollatorsComponentFactory(): StartChangeCollatorsComponent.Factory
+
     fun recommendedValidatorsComponentFactory(): RecommendedValidatorsComponent.Factory
+
+    fun recommendedCollatorsComponentFactory(): RecommendedCollatorsComponent.Factory
 
     fun stakingComponentFactory(): StakingComponent.Factory
 
@@ -72,6 +83,7 @@ interface StakingFeatureComponent : StakingFeatureApi {
     fun confirmNominationsComponentFactory(): ConfirmNominationsComponent.Factory
 
     fun validatorDetailsComponentFactory(): ValidatorDetailsComponent.Factory
+    fun collatorDetailsComponentFactory(): CollatorDetailsComponent.Factory
 
     fun payoutsListFactory(): PayoutsListComponent.Factory
 

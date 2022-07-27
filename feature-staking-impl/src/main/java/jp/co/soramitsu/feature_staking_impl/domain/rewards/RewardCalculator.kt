@@ -3,7 +3,18 @@ package jp.co.soramitsu.feature_staking_impl.domain.rewards
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumByBigInteger
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.StakingApi
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingAllCollatorsApyRequest
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingCollatorsApyRequest
+import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.StakingLastRoundIdRequest
+import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -27,10 +38,10 @@ class PeriodReturns(
     val gainPercentage: BigDecimal
 )
 
-class RewardCalculator(
+class ManualRewardCalculator(
     val validators: List<RewardCalculationTarget>,
     val totalIssuance: BigInteger
-) {
+) : RewardCalculator {
 
     private val totalStaked = validators.sumByBigInteger(RewardCalculationTarget::totalStake).toDouble()
 
@@ -76,27 +87,33 @@ class RewardCalculator(
 
     private val maxAPY = apyByValidator.values.maxOrNull() ?: 0.0
 
-    suspend fun calculateMaxAPY() = calculateReturns(amount = BigDecimal.ONE, DAYS_IN_YEAR, isCompound = true).gainPercentage
+    override suspend fun calculateMaxAPY(chainId: ChainId) = calculateReturns(
+        amount = BigDecimal.ONE,
+        days = DAYS_IN_YEAR,
+        isCompound = true,
+        chainId = chainId
+    ).gainPercentage
 
-    fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
+    override fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
 
-    fun getApyFor(targetIdHex: String): BigDecimal {
+    override fun getApyFor(targetIdHex: String): BigDecimal {
         val apy = apyByValidator[targetIdHex] ?: expectedAPY
 
         return apy.toBigDecimal()
     }
 
-    suspend fun calculateReturns(
+    override suspend fun calculateReturns(
         amount: BigDecimal,
         days: Int,
-        isCompound: Boolean
+        isCompound: Boolean,
+        chainId: ChainId
     ) = withContext(Dispatchers.Default) {
         val dailyPercentage = maxAPY / DAYS_IN_YEAR
 
         calculateReward(amount.toDouble(), days, dailyPercentage, isCompound)
     }
 
-    suspend fun calculateReturns(
+    override suspend fun calculateReturns(
         amount: Double,
         days: Int,
         isCompound: Boolean,
@@ -138,5 +155,93 @@ class RewardCalculator(
 
     private fun calculateCompoundReward(amount: Double, days: Int, dailyPercentage: Double): BigDecimal {
         return amount.toBigDecimal() * ((1 + dailyPercentage).toBigDecimal().pow(days)) - amount.toBigDecimal()
+    }
+}
+
+interface RewardCalculator {
+
+    suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal
+
+    fun calculateAvgAPY(): BigDecimal
+
+    fun getApyFor(targetIdHex: String): BigDecimal
+
+    suspend fun calculateReturns(
+        amount: BigDecimal,
+        days: Int,
+        isCompound: Boolean,
+        chainId: ChainId
+    ): PeriodReturns
+
+    suspend fun calculateReturns(
+        amount: Double,
+        days: Int,
+        isCompound: Boolean,
+        targetIdHex: String
+    ): PeriodReturns
+}
+
+class SubqueryRewardCalculator(
+    private val stakingRepository: StakingRepository,
+    private val stakingParachainScenarioInteractor: StakingParachainScenarioInteractor?,
+    private val stakingApi: StakingApi,
+) : RewardCalculator {
+
+    private var avgApr = BigDecimal.ZERO
+
+    override suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal {
+        val chain = stakingParachainScenarioInteractor?.getStakingStateFlow()?.first()?.chain
+        val stakingUrl = chain?.externalApi?.staking?.url // todo add other urls to utils
+        if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
+            hashCode()
+            throw Exception("Staking for this network is not supported yet")
+        }
+        val roundId = stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull()
+        val previousRoundId = roundId?.dec()
+        val collatorsApyRequest = StakingAllCollatorsApyRequest(previousRoundId)
+        return stakingApi.getAllCollatorsApy(stakingUrl, collatorsApyRequest).data.collatorRounds.nodes.mapNotNull { element ->
+            element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
+        }.toMap().maxOf { it.value ?: BigDecimal.ZERO }.fractionToPercentage()
+    }
+
+    override fun calculateAvgAPY(): BigDecimal {
+        return avgApr.fractionToPercentage()
+    }
+
+    override fun getApyFor(targetIdHex: String): BigDecimal {
+        return BigDecimal.ZERO
+    }
+
+    override suspend fun calculateReturns(amount: BigDecimal, days: Int, isCompound: Boolean, chainId: ChainId): PeriodReturns {
+        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
+        val staked = stakingParachainScenarioInteractor?.getStaked(chainId)?.getOrNull()
+        val rewardsAmountPart = BigDecimal(0.025)
+        val currentApy = if (staked != null && staked > BigInteger.ZERO) {
+            totalIssuance.toBigDecimal() * rewardsAmountPart / staked.toBigDecimal()
+        } else {
+            BigDecimal.ZERO
+        }
+        avgApr = currentApy
+        val gainAmount = amount * currentApy
+
+        return PeriodReturns(gainAmount, currentApy.fractionToPercentage())
+    }
+
+    override suspend fun calculateReturns(amount: Double, days: Int, isCompound: Boolean, targetIdHex: String): PeriodReturns {
+        return PeriodReturns(BigDecimal.ZERO, BigDecimal.ZERO)
+    }
+
+    suspend fun getApy(selectedCandidates: List<ByteArray>): Map<String, BigDecimal?> {
+        val chain = stakingParachainScenarioInteractor?.getStakingStateFlow()?.first()?.chain
+        val stakingUrl = chain?.externalApi?.staking?.url
+        if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
+            throw Exception("Staking for this network is not supported yet")
+        }
+        val roundId = stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull()
+        val previousRoundId = roundId?.dec()
+        val collatorsApyRequest = StakingCollatorsApyRequest(selectedCandidates, previousRoundId)
+        return stakingApi.getCollatorsApy(stakingUrl, collatorsApyRequest).data.collatorRounds.nodes.mapNotNull { element ->
+            element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
+        }.toMap()
     }
 }

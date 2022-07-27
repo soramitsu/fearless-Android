@@ -8,6 +8,8 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.launch
 
 enum class AccountChosenNavDirection {
@@ -19,6 +21,7 @@ class AccountListViewModel(
     private val accountRouter: AccountRouter,
     private val accountChosenNavDirection: AccountChosenNavDirection,
     accountListingMixin: AccountListingMixin,
+    private val stakingSharedState: SingleAssetSharedState,
 ) : BaseViewModel() {
 
     val openWalletOptionsEvent = MutableLiveData<Event<Long>>()
@@ -45,8 +48,16 @@ class AccountListViewModel(
 
     fun selectAccountClicked(account: LightMetaAccountUi) = launch {
         accountInteractor.selectMetaAccount(account.id)
+        updateStakingState()
 
         dispatchNavigation()
+    }
+
+    private suspend fun updateStakingState() {
+        val chainAsset =
+            stakingSharedState.availableToSelect().find { it.chainId.contentEquals(polkadotChainId) }
+                ?: stakingSharedState.availableToSelect().first()
+        stakingSharedState.update(chainAsset.chainId, chainAsset.id)
     }
 
     private fun dispatchNavigation() {

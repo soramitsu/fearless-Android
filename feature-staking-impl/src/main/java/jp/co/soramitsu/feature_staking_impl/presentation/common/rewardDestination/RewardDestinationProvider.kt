@@ -9,17 +9,19 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingAccount
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.DAYS_IN_YEAR
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.RewardSuffix
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -33,6 +35,7 @@ import java.math.BigDecimal
 class RewardDestinationProvider(
     private val resourceManager: ResourceManager,
     private val interactor: StakingInteractor,
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val appLinksProvider: AppLinksProvider,
     private val sharedState: StakingSharedState,
@@ -56,9 +59,9 @@ class RewardDestinationProvider(
 
     override fun payoutClicked(scope: CoroutineScope) {
         scope.launch {
-            val currentAccount = interactor.getSelectedAccountProjection()
-
-            rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(generateDestinationModel(currentAccount)))
+            interactor.getSelectedAccountProjection()?.let { currentAccount ->
+                rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(generateDestinationModel(currentAccount)))
+            }
         }
     }
 
@@ -75,8 +78,15 @@ class RewardDestinationProvider(
         scope.launch { rewardDestinationModelFlow.emit(RewardDestinationModel.Payout(newDestination)) }
     }
 
-    override fun learnMoreClicked() {
-        openBrowserEvent.value = Event(appLinksProvider.payoutsLearnMore)
+    override fun learnMoreClicked(scope: CoroutineScope) {
+        scope.launch {
+            val link = when (interactor.getCurrentAsset().staking) {
+                Chain.Asset.StakingType.PARACHAIN -> appLinksProvider.moonbeamStakingLearnMore
+                Chain.Asset.StakingType.RELAYCHAIN -> appLinksProvider.payoutsLearnMore
+                Chain.Asset.StakingType.UNSUPPORTED -> ""
+            }
+            openBrowserEvent.value = Event(link)
+        }
     }
 
     override fun restakeClicked(scope: CoroutineScope) {
@@ -86,7 +96,7 @@ class RewardDestinationProvider(
     }
 
     override suspend fun loadActiveRewardDestination(stashState: StakingState.Stash) {
-        val rewardDestination = interactor.getRewardDestination(stashState)
+        val rewardDestination = stakingScenarioInteractor.getRewardDestination(stashState)
         val rewardDestinationModel = mapRewardDestinationToRewardDestinationModel(rewardDestination)
 
         initialRewardDestination.emit(rewardDestinationModel)
@@ -94,8 +104,10 @@ class RewardDestinationProvider(
     }
 
     override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {
-        val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true)
-        val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false)
+        val chainId = sharedState.chain().id
+        val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true, chainId)
+
+        val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false, chainId)
 
         val restakeEstimations = mapPeriodReturnsToRewardEstimation(restakeReturns, asset.token, resourceManager, RewardSuffix.APY)
         val payoutEstimations = mapPeriodReturnsToRewardEstimation(payoutReturns, asset.token, resourceManager, RewardSuffix.APR)

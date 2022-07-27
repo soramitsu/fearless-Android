@@ -4,11 +4,11 @@ import jp.co.soramitsu.feature_staking_api.domain.model.ChildIdentity
 import jp.co.soramitsu.feature_staking_api.domain.model.Identity
 import jp.co.soramitsu.feature_staking_api.domain.model.RootIdentity
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationPostProcessor
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.RecommendationPostProcessor
 
 private const val MAX_PER_CLUSTER = 2
 
-object RemoveClusteringPostprocessor : RecommendationPostProcessor {
+object RemoveClusteringPostprocessor : RecommendationPostProcessor<Validator> {
 
     override fun invoke(original: List<Validator>): List<Validator> {
         val clusterCounter = mutableMapOf<Identity, Int>()

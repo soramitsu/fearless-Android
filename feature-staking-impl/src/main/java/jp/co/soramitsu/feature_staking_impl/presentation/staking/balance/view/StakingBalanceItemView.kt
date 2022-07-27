@@ -2,13 +2,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
+import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.view_staking_balance_item.view.stakingBalanceItemFiat
-import kotlinx.android.synthetic.main.view_staking_balance_item.view.stakingBalanceItemKind
-import kotlinx.android.synthetic.main.view_staking_balance_item.view.stakingBalanceItemToken
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewStakingBalanceItemBinding
 
 class StakingBalanceItemView @JvmOverloads constructor(
     context: Context,
@@ -16,8 +14,11 @@ class StakingBalanceItemView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyle) {
 
+    private val binding: ViewStakingBalanceItemBinding
+
     init {
-        View.inflate(context, R.layout.view_staking_balance_item, this)
+        inflate(context, R.layout.view_staking_balance_item, this)
+        binding = ViewStakingBalanceItemBinding.bind(this)
 
         attrs?.let(::applyAttrs)
     }
@@ -26,16 +27,24 @@ class StakingBalanceItemView @JvmOverloads constructor(
         val typedArray = context.obtainStyledAttributes(attrs, R.styleable.StakingBalanceItemView)
 
         val title = typedArray.getString(R.styleable.StakingBalanceItemView_title)
-        title?.let { stakingBalanceItemKind.text = title }
+        title?.let { binding.stakingBalanceItemKind.text = title }
 
         typedArray.recycle()
     }
 
+    fun setTitle(title: String) {
+        binding.stakingBalanceItemKind.text = title
+    }
+
+    fun setTitle(@StringRes titleResId: Int) {
+        binding.stakingBalanceItemKind.text = context.getText(titleResId)
+    }
+
     fun setTokenAmount(amount: String) {
-        stakingBalanceItemToken.text = amount
+        binding.stakingBalanceItemToken.text = amount
     }
 
     fun setFiatAmount(amount: String?) {
-        stakingBalanceItemFiat.setTextOrHide(amount)
+        binding.stakingBalanceItemFiat.setTextOrHide(amount)
     }
 }

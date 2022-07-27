@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondVali
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
@@ -28,6 +29,7 @@ class ConfirmUnbondModule {
     @ViewModelKey(ConfirmUnbondViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         router: StakingRouter,
         unbondInteractor: UnbondInteractor,
         resourceManager: ResourceManager,
@@ -41,6 +43,7 @@ class ConfirmUnbondModule {
         return ConfirmUnbondViewModel(
             router,
             interactor,
+            stakingRelayChainScenarioInteractor,
             unbondInteractor,
             resourceManager,
             validationExecutor,

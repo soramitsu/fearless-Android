@@ -10,11 +10,8 @@ import coil.ImageLoader
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewEstimateEarningBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.RewardEstimation
-import kotlinx.android.synthetic.main.view_estimate_earning.view.estimateEarningAmount
-import kotlinx.android.synthetic.main.view_estimate_earning.view.stakeMoreActions
-import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingMonthGain
-import kotlinx.android.synthetic.main.view_estimate_earning.view.stakingYearGain
 
 class EstimateEarningView @JvmOverloads constructor(
     context: Context,
@@ -22,11 +19,14 @@ class EstimateEarningView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
 
+    private val binding: ViewEstimateEarningBinding
+
     val amountInput: EditText
-        get() = estimateEarningAmount.amountInput
+        get() = binding.estimateEarningAmount.amountInput
 
     init {
-        View.inflate(context, R.layout.view_estimate_earning, this)
+        inflate(context, R.layout.view_estimate_earning, this)
+        binding = ViewEstimateEarningBinding.bind(this)
 
         with(context) {
             background = addRipple(getCutCornerDrawable(R.color.blurColor))
@@ -42,53 +42,53 @@ class EstimateEarningView @JvmOverloads constructor(
     }
 
     fun setAssetImage(image: Drawable) {
-        estimateEarningAmount.setAssetImage(image)
+        binding.estimateEarningAmount.setAssetImage(image)
     }
 
     fun setAssetImageResource(imageRes: Int) {
-        estimateEarningAmount.setAssetImageResource(imageRes)
+        binding.estimateEarningAmount.setAssetImageResource(imageRes)
     }
 
     fun setAssetImageUrl(imageUrl: String, imageLoader: ImageLoader) {
-        estimateEarningAmount.setAssetImageUrl(imageUrl, imageLoader)
+        binding.estimateEarningAmount.setAssetImageUrl(imageUrl, imageLoader)
     }
 
     fun setAssetName(name: String) {
-        estimateEarningAmount.setAssetName(name)
+        binding.estimateEarningAmount.setAssetName(name)
     }
 
     fun setAssetBalance(balance: String) {
-        estimateEarningAmount.setAssetBalance(balance)
+        binding.estimateEarningAmount.setAssetBalance(balance)
     }
 
     fun setAssetBalanceFiatAmount(fiatAmount: String?) {
-        estimateEarningAmount.setAssetBalanceFiatAmount(fiatAmount)
+        binding.estimateEarningAmount.setAssetBalanceFiatAmount(fiatAmount)
     }
 
     fun hideAssetBalanceFiatAmount() {
-        estimateEarningAmount.hideAssetFiatAmount()
+        binding.estimateEarningAmount.hideAssetFiatAmount()
     }
 
     fun showAssetBalanceFiatAmount() {
-        estimateEarningAmount.showAssetFiatAmount()
+        binding.estimateEarningAmount.showAssetFiatAmount()
     }
 
     fun showReturnsLoading() {
-        stakingMonthGain.showLoading()
-        stakingYearGain.showLoading()
+        binding.stakingMonthGain.showLoading()
+        binding.stakingYearGain.showLoading()
     }
 
     fun hideReturnsLoading() {
-        stakingMonthGain.hideLoading()
-        stakingYearGain.hideLoading()
+        binding.stakingMonthGain.hideLoading()
+        binding.stakingYearGain.hideLoading()
     }
 
     fun populateMonthEstimation(estimation: RewardEstimation) {
-        populateEstimationView(stakingMonthGain, estimation)
+        populateEstimationView(binding.stakingMonthGain, estimation)
     }
 
     fun populateYearEstimation(estimation: RewardEstimation) {
-        populateEstimationView(stakingYearGain, estimation)
+        populateEstimationView(binding.stakingYearGain, estimation)
     }
 
     private fun populateEstimationView(view: StakingInfoView, estimation: RewardEstimation) {
@@ -103,5 +103,5 @@ class EstimateEarningView @JvmOverloads constructor(
     }
 
     val infoActions: View
-        get() = stakeMoreActions
+        get() = binding.stakeMoreActions
 }

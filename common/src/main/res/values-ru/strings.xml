@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="common_next">Далее</string>
     <string name="common_cancel">Отмена</string>
     <string name="common_skip">Пропустить</string>
@@ -49,6 +49,8 @@
     <string name="ecdsa_selection_title">ECDSA</string>
     <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
     <string name="common_info">Информация</string>
+    <string name="common_selected">Выбрано</string>
+    <string name="common_select">Выбрать</string>
     <string name="common_undefined_error_message">Пожалуйста, попробуйте снова с другими входными данными. Если ошибка повторяется, то свяжитесь со службой поддержки.</string>
     <string name="recovery_source_type">Тип источника</string>
     <string name="recovery_raw_seed">Сид</string>
@@ -111,6 +113,7 @@
     <string name="choose_amount_asset">Токен</string>
     <string name="choose_amount_to">Кому</string>
     <string name="choose_amount_fee">Комиссия</string>
+    <string name="choose_amount_tip">Чаевые</string>
     <string name="common_continue">Продолжить</string>
     <string name="common_amount">Сумма</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
@@ -141,7 +144,6 @@
     <string name="wallet_balance_locked">Заблокировано</string>
     <string name="wallet_balance_reserved">Зарезервировано</string>
     <string name="wallet_balance_redeemable">Можно забрать</string>
-    <string name="wallet_balance_unbonding">В процессе вывода</string>
     <string name="transaction_details_hash_title">Хеш транзакции</string>
     <string name="transaction_details_copy_hash">Копировать хеш</string>
     <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
@@ -239,6 +241,7 @@
     <string name="staking_recommended_feature_3">Идентифицирован в сети</string>
     <string name="staking_recommended_feature_4">Не был заслешан</string>
     <string name="staking_validators">Валидаторы</string>
+    <string name="staking_collators">Коллаторы</string>
     <string name="staking_confirm_nominations" formatted="false">%s из %s</string>
     <string name="staking_recommended_custom_title">Выбрать других валидаторов</string>
     <string name="fee_not_yet_loaded_title">Расчет комиссии в процессе</string>
@@ -308,7 +311,7 @@
     <string name="common_module">Модуль</string>
     <string name="wallet_asset_buy_with">Купить %s с</string>
     <string name="wallet_filters_title">Фильтры</string>
-    <string name="common_apply">Применять</string>
+    <string name="common_apply">Применить</string>
     <string name="common_reset">Сброс</string>
     <string name="wallet_filters_transfers">Переводы</string>
     <string name="wallet_filters_rewards_and_slashes">Вознаграждения и слэши</string>
@@ -322,6 +325,12 @@
         <item quantity="many">%d дней</item>
         <item quantity="other">%d дней</item>
     </plurals>
+    <plurals name="days_format">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дня</item>
+        <item quantity="many">%d дней</item>
+        <item quantity="other">%d дней</item>
+    </plurals>
     <string name="staking_reward_payouts_empty_rewards">Прекрасно! Все вознаграждения выплачены.</string>
     <string name="staking_reward_details_validator">Валидатор</string>
     <string name="common_not_enough_funds_title">Недостаточный баланс</string>
@@ -329,10 +338,10 @@
     <string name="staking_warning_tiny_payout">Вознаграждение меньше комиссии сети.</string>
     <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на вывод из стейка (%d активных запросов).</string>
     <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
-    <string name="staking_bond_more">Застейкать ещё</string>
-    <string name="staking_unbond">Вывод из стейка</string>
     <string name="staking_redeem">Забрать</string>
     <string name="common_balance">Баланс</string>
+    <string name="your_collator">Ваш коллатор</string>
+    <string name="collator">Коллатор</string>
     <string name="staking_balance_title">Баланс стейкинга</string>
     <string name="make_payout_transaction_sent">Транзакция на выплату отправлена</string>
     <string name="staking_zero_bond_error">Сумма должна быть больше нуля</string>
@@ -417,6 +426,7 @@
     <string name="staking_add_controller">Чтобы выполнить это действие, добавьте контроллер аккаунт %s в приложение</string>
     <string name="crowdloan_empty_bonus_title">Получите специальный бонус</string>
     <string name="staking_start_change_validators_recommended_title">Стейкинг с рекоммендованными валидаторами</string>
+    <string name="staking_start_change_collators_suggested_title">Стейкинг с рекоммендованными коллаторами</string>
     <string name="staking_start_change_validators_custom_title">Стейкинг с выбранными валидаторами</string>
     <string name="common_applied">Применено</string>
     <string name="crowdloan_terms_action">Соглашаюсь с Условиями использования</string>
@@ -458,6 +468,7 @@
     <string name="staking_your_not_elected_format">Не избраны (%s)</string>
     <string name="staking_your_elected_format">Избраны (%s)</string>
     <string name="staking_rewards_apy">Вознаграждение (APY)</string>
+    <string name="staking_rewards_apr">Вознаграждение (APR)</string>
     <string name="staking_validator_slashed_desc">Валидатор наказан за неправильные действия в сети (например, был оффлайн, атаковал сеть, работал с модифицированным ПО).</string>
     <string name="staking_payout_expired">Срок выплаты истёк</string>
     <string name="wallet_balance_unbonding_v1_9_0">В процессе вывода</string>
@@ -466,6 +477,7 @@
     <string name="staking_total_rewards_v1.9.0">Заработано</string>
     <string name="staking_setup_reward_destination_section_title">Использовать вознаграждения для</string>
     <string name="staking_bond_more_v1_9_0">Застейкать ещё</string>
+    <string name="stake_less">Вывод из стейка</string>
     <string name="staking_unbond_v1_9_0">Вывод из стейка</string>
     <string name="staking_unbonding_empty_list_v1_9_0">Операции по выводу из стейка появятся здесь</string>
     <string name="staking_validator_my_oversubscribed_message">Превышен лимит номинаторов для валидатора. В этой эре вы не получите награду от этого валидатора.</string>
@@ -479,11 +491,12 @@
     <string name="staking_hint_no_rewards">Во время вывода токены не приносят наград.</string>
     <string name="staking_hint_redeem">После вывода токенов из стейкинга не забудьте их забрать.</string>
     <string name="staking_hint_reward_bond_more">Ваши вознаграждения увеличатся со следующей эры.</string>
+    <string name="staking_hint_reward_more">Ваши вознаграждения увеличатся со следующего периода.</string>
     <string name="staking_hint_unbond_kills_stash">Fearless wallet изменит назначение вознаграждений
 на ваш аккаунт, чтобы избежать остатка в стейкинге.</string>
     <string name="staking_custom_validators_settings_filters">Показать</string>
     <string name="common_sort_by">Сортировать по:</string>
-    <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APY)</string>
+    <string name="staking_custom_validators_settings_sort_apy">Примерное вознаграждение (% APR)</string>
     <string name="staking_information_controller_actions">Контроллер аккаунт может вывести из стейка, забрать, вернуть в стейк, сменить назначение вознаграждений и валидаторов.</string>
     <string name="staking_only_apr">APR</string>
     <string name="staking_only_apy">APY</string>
@@ -524,6 +537,12 @@
         <item quantity="few">%d часа</item>
         <item quantity="many">%d часов</item>
         <item quantity="other">%d час</item>
+    </plurals>
+    <plurals name="rounds_format">
+        <item quantity="one">%d раунд</item>
+        <item quantity="few">%d раунда</item>
+        <item quantity="many">%d раундов</item>
+        <item quantity="other">%d раундов</item>
     </plurals>
     <string name="import_mnemonic_invalid_title">Ваша мнемоника недействительна</string>
     <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>
@@ -700,4 +719,19 @@
 
     <string name="common_connection_problems">Проблема интернет-соединения</string>
     <string name="connection_problems_alert_message">Не удается загрузить необходимые данные для запуска приложения. Пожалуйста, проверьте ваше интернет соединение и повторите снова.</string>
+
+    <string name="staking_collator_status_leaving">Выходящий</string>
+    <string name="staking_collator_status_idle">Неактивный</string>
+
+    <string name="staking_alert_leaving_collator_title">Коллатор %s покидает список кандидатов</string>
+    <string name="staking_alert_leaving_collator_text">Проверьте делегацию коллатору %s и заберите токены, если они доступны</string>
+    <string name="staking_alert_low_stake_title">Ваша делегация не производит наград.</string>
+    <string name="staking_alert_low_stake_text">Ваш стейк слишком мал для генерации наград. Вы можете добавить %d токенов или забрать свой стейк</string>
+    <string name="staking_alert_unlock_title">Вы можете забрать ваши токены</string>
+    <string name="staking_alert_unlock_text">Пожалуйста завершите текущую операцию (уменьшить/отозвать стейк) забрав ваши токены</string>
+
+    <string name="staking_reward_info_apr_max">Максимальный APR</string>
+    <string name="staking_reward_info_apr_avg">Средний APR</string>
+
+    <string name="staking_recommended_collators_empty_text">Сумма вашего стейка меньше минимального из всех коллаторов, предложенных алгоритмом. Увеличьте сумму ставки или выберите коллатор вручную</string>
 </resources>

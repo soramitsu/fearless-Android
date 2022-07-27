@@ -22,7 +22,7 @@ sealed class StoryGroup(
         data class Staking(
             @StringRes override val titleRes: Int,
             @StringRes override val bodyRes: Int,
-            val url: String
+            val url: String? = null
         ) : Story(titleRes, bodyRes)
 
         data class Onboarding(

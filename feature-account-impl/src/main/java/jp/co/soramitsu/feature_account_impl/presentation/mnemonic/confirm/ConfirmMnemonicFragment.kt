@@ -12,13 +12,9 @@ import jp.co.soramitsu.common.utils.doOnGlobalLayout
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentConfirmMnemonicBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
-import kotlinx.android.synthetic.main.fragment_backup_mnemonic.toolbar
-import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmMnemonicSkip
-import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.confirmationMnemonicView
-import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.nextBtn
-import kotlinx.android.synthetic.main.fragment_confirm_mnemonic.wordsMnemonicView
 
 class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
@@ -33,31 +29,36 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_confirm_mnemonic, container, false)
+    private lateinit var binding: FragmentConfirmMnemonicBinding
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = FragmentConfirmMnemonicBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun initViews() {
-        toolbar.setHomeButtonListener {
-            viewModel.homeButtonClicked()
-        }
+        with(binding) {
+            toolbar.setHomeButtonListener {
+                viewModel.homeButtonClicked()
+            }
 
-        toolbar.setRightActionClickListener {
-            viewModel.resetConfirmationClicked()
-        }
+            toolbar.setRightActionClickListener {
+                viewModel.resetConfirmationClicked()
+            }
 
-        confirmationMnemonicView.setOnClickListener {
-            viewModel.removeLastWordFromConfirmation()
-        }
+            confirmationMnemonicView.setOnClickListener {
+                viewModel.removeLastWordFromConfirmation()
+            }
 
-        confirmationMnemonicView.disableWordDisappearAnimation()
+            confirmationMnemonicView.disableWordDisappearAnimation()
 
-        nextBtn.setOnClickListener {
-            viewModel.nextButtonClicked()
-        }
+            nextBtn.setOnClickListener {
+                viewModel.nextButtonClicked()
+            }
 
-        confirmMnemonicSkip.setOnClickListener {
-            viewModel.skipClicked()
+            confirmMnemonicSkip.setOnClickListener {
+                viewModel.skipClicked()
+            }
         }
     }
 
@@ -71,28 +72,28 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
     }
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {
-        confirmMnemonicSkip.setVisible(viewModel.skipVisible)
+        binding.confirmMnemonicSkip.setVisible(viewModel.skipVisible)
 
-        wordsMnemonicView.doOnGlobalLayout {
+        binding.wordsMnemonicView.doOnGlobalLayout {
             populateMnemonicContainer(viewModel.shuffledMnemonic)
         }
 
         viewModel.resetConfirmationEvent.observeEvent {
-            confirmationMnemonicView.resetView()
-            wordsMnemonicView.restoreAllWords()
+            binding.confirmationMnemonicView.resetView()
+            binding.wordsMnemonicView.restoreAllWords()
         }
 
         viewModel.removeLastWordFromConfirmationEvent.observeEvent {
-            confirmationMnemonicView.removeLastWord()
-            wordsMnemonicView.restoreLastWord()
+            binding.confirmationMnemonicView.removeLastWord()
+            binding.wordsMnemonicView.restoreLastWord()
         }
 
         viewModel.nextButtonEnableLiveData.observe {
-            nextBtn.isEnabled = it
+            binding.nextBtn.isEnabled = it
         }
 
         viewModel.skipButtonEnableLiveData.observe {
-            confirmMnemonicSkip.isEnabled = it
+            binding.confirmMnemonicSkip.isEnabled = it
         }
 
         viewModel.matchingMnemonicErrorAnimationEvent.observeEvent {
@@ -109,24 +110,27 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
                 measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
             }
         }
-        wordsMnemonicView.populateWithMnemonic(words)
 
-        val containerHeight = wordsMnemonicView.getMinimumMeasuredHeight()
-        wordsMnemonicView.minimumHeight = containerHeight
-        confirmationMnemonicView.minimumHeight = containerHeight
+        with(binding) {
+            wordsMnemonicView.populateWithMnemonic(words)
+
+            val containerHeight = wordsMnemonicView.getMinimumMeasuredHeight()
+            wordsMnemonicView.minimumHeight = containerHeight
+            confirmationMnemonicView.minimumHeight = containerHeight
+        }
     }
 
     private val wordClickListener: (MnemonicWordView, String) -> Unit = { mnemonicWordView, word ->
         viewModel.addWordToConfirmMnemonic(word)
 
-        wordsMnemonicView.removeWordView(mnemonicWordView)
+        binding.wordsMnemonicView.removeWordView(mnemonicWordView)
 
         val wordView = MnemonicWordView(activity!!).apply {
             setWord(word)
             setColorMode(MnemonicWordView.ColorMode.DARK)
             measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         }
-        confirmationMnemonicView.populateWord(wordView)
+        binding.confirmationMnemonicView.populateWord(wordView)
     }
 
     private fun playMatchingMnemonicErrorAnimation() {
@@ -142,6 +146,6 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
                 viewModel.matchingErrorAnimationCompleted()
             }
         })
-        confirmationMnemonicView.startAnimation(animation)
+        binding.confirmationMnemonicView.startAnimation(animation)
     }
 }

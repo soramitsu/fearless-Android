@@ -1,11 +1,8 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
-import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import coil.ImageLoader
@@ -15,29 +12,17 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentChooseAmountBinding
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount25
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount50
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmount75
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFee
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeFiat
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountFeeProgress
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountField
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountMax
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountNext
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountRecipientView
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountTip
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountTipFiat
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountTipGroup
-import kotlinx.android.synthetic.main.fragment_choose_amount.chooseAmountToolbar
 import javax.inject.Inject
 
 private const val KEY_ADDRESS = "KEY_ADDRESS"
@@ -48,37 +33,35 @@ private const val QUICK_VALUE_75 = 0.75
 private const val QUICK_VALUE_50 = 0.5
 private const val QUICK_VALUE_25 = 0.25
 
-class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
+class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>(R.layout.fragment_choose_amount) {
 
     @Inject
     lateinit var imageLoader: ImageLoader
+
+    private val binding by viewBinding(FragmentChooseAmountBinding::bind)
 
     companion object {
         fun getBundle(recipientAddress: String, assetPayload: AssetPayload) =
             bundleOf(KEY_ADDRESS to recipientAddress, KEY_ASSET_PAYLOAD to assetPayload)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_choose_amount, container, false)
-
     override fun initViews() {
-        chooseAmountNext.prepareForProgress(viewLifecycleOwner)
+        with(binding) {
+            chooseAmountNext.prepareForProgress(viewLifecycleOwner)
 
-        chooseAmountRecipientView.setActionClickListener { viewModel.recipientAddressClicked() }
+            chooseAmountRecipientView.setActionClickListener { viewModel.recipientAddressClicked() }
 
-        chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
+            chooseAmountToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        chooseAmountNext.setOnClickListener { viewModel.nextClicked() }
+            chooseAmountNext.setOnClickListener { viewModel.nextClicked() }
 
-        chooseAmountMax.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_MAX) }
-        chooseAmount75.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_75) }
-        chooseAmount50.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_50) }
-        chooseAmount25.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_25) }
+            chooseAmountMax.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_MAX) }
+            chooseAmount75.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_75) }
+            chooseAmount50.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_50) }
+            chooseAmount25.setOnClickListener { viewModel.quickInputSelected(QUICK_VALUE_25) }
+        }
 
-        chooseAmountField.amountInput.apply {
+        binding.chooseAmountField.amountInput.apply {
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) = Unit
 
@@ -110,54 +93,54 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
         observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
         viewModel.feeLiveData.observe {
-            chooseAmountFee.text = it?.feeAmount?.formatTokenAmount(it.type) ?: getString(R.string.common_error_general_title)
+            binding.chooseAmountFee.text = it?.feeAmount?.formatTokenAmount(it.type) ?: getString(R.string.common_error_general_title)
         }
         viewModel.tipAmountTextLiveData.observe {
-            chooseAmountTipGroup.makeVisible()
-            chooseAmountTip.text = it
+            binding.chooseAmountTipGroup.makeVisible()
+            binding.chooseAmountTip.text = it
         }
         viewModel.tipFiatAmountLiveData.observe {
-            chooseAmountTipFiat.text = it
+            binding.chooseAmountTipFiat.text = it
         }
         viewModel.feeFiatLiveData.observe {
-            chooseAmountFeeFiat.text = it ?: ""
+            binding.chooseAmountFeeFiat.text = it ?: ""
         }
 
         viewModel.feeLoadingLiveData.observe { loading ->
             val textColorRes = if (loading) R.color.gray3 else R.color.white
-            chooseAmountFee.setTextColorRes(textColorRes)
+            binding.chooseAmountFee.setTextColorRes(textColorRes)
 
-            chooseAmountFeeProgress.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.chooseAmountFeeProgress.visibility = if (loading) View.VISIBLE else View.GONE
         }
 
         viewModel.recipientModelLiveData.observe {
-            chooseAmountRecipientView.setMessage(it.address)
+            binding.chooseAmountRecipientView.setMessage(it.address)
 
-            chooseAmountRecipientView.setTextIcon(it.image)
+            binding.chooseAmountRecipientView.setTextIcon(it.image)
         }
         viewModel.assetModelLiveData.observe {
             val transferableAmount =
                 resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.orZero().formatTokenAmount(it.token.configuration))
-            chooseAmountField.setAssetBalance(transferableAmount)
-            chooseAmountField.setAssetName(it.token.configuration.symbol)
-            chooseAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
+            binding.chooseAmountField.setAssetBalance(transferableAmount)
+            binding.chooseAmountField.setAssetName(it.token.configuration.symbol)
+            binding.chooseAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
             val toolbarTitle = resources.getString(R.string.wallet_send_navigation_title, it.token.configuration.symbol)
-            chooseAmountToolbar.setTitle(toolbarTitle)
+            binding.chooseAmountToolbar.setTitle(toolbarTitle)
         }
 
         viewModel.enteredFiatAmountLiveData.observe {
-            it?.let(chooseAmountField::setAssetBalanceFiatAmount)
+            it?.let(binding.chooseAmountField::setAssetBalanceFiatAmount)
         }
 
         viewModel.amountRawLiveData.observe {
-            chooseAmountField.amountInput.setText(it)
+            binding.chooseAmountField.amountInput.setText(it)
         }
 
         viewModel.feeErrorLiveData.observeEvent {
             showRetry(it)
         }
 
-        viewModel.continueButtonStateLiveData.observe(chooseAmountNext::setState)
+        viewModel.continueButtonStateLiveData.observe(binding.chooseAmountNext::setState)
 
         viewModel.showBalanceDetailsEvent.observeEvent {
             BalanceDetailsBottomSheet(requireContext(), it).show()
@@ -165,7 +148,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>() {
 
         observePhishingCheck(viewModel)
 
-        chooseAmountField.amountInput.onTextChanged(viewModel::amountChanged)
+        binding.chooseAmountField.amountInput.onTextChanged(viewModel::amountChanged)
     }
 
     private fun showRetry(reason: RetryReason) {

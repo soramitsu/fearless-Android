@@ -8,3 +8,8 @@ interface StakingUpdater : Updater {
     override val requiredModules: List<String>
         get() = listOf(Modules.STAKING)
 }
+
+interface ParachainStakingUpdater : Updater {
+    override val requiredModules: List<String>
+        get() = listOf(Modules.PARACHAIN_STAKING)
+}

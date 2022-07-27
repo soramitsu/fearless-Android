@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
@@ -20,6 +20,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 
     kotlinOptions {
@@ -41,6 +45,7 @@ dependencies {
     implementation project(':feature-staking-api')
     implementation project(':feature-account-api')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-staking-api')
     implementation project(':runtime')
 
     implementation kotlinDep

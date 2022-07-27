@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.view
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.PictureDrawable
 import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.DrawableRes
@@ -10,23 +11,24 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.databinding.ViewLabeledTextBinding
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
-import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextAction
-import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextIcon
-import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextLabel
-import kotlinx.android.synthetic.main.view_labeled_text.view.labeledTextText
 
 class LabeledTextView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+
+    private val binding: ViewLabeledTextBinding
+
     init {
-        View.inflate(context, R.layout.view_labeled_text, this)
+        inflate(context, R.layout.view_labeled_text, this)
+        binding = ViewLabeledTextBinding.bind(this)
 
         with(context) {
             background = addRipple(getCutCornersStateDrawable())
@@ -57,7 +59,7 @@ class LabeledTextView @JvmOverloads constructor(
             actionIcon?.let(::setActionIcon)
 
             singleLine = typedArray.getBoolean(R.styleable.LabeledTextView_android_singleLine, true)
-            labeledTextText.isSingleLine = singleLine
+            binding.labeledTextText.isSingleLine = singleLine
 
             typedArray.recycle()
         }
@@ -66,41 +68,46 @@ class LabeledTextView @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
-        labeledTextAction.setVisible(enabled)
+        binding.labeledTextAction.setVisible(enabled)
     }
 
     fun setLabel(label: String) {
-        labeledTextLabel.text = label
+        binding.labeledTextLabel.text = label
     }
 
     fun setLabel(@StringRes label: Int) {
-        labeledTextLabel.setText(label)
+        binding.labeledTextLabel.setText(label)
     }
 
     fun setActionIcon(icon: Drawable) {
-        labeledTextAction.setImageDrawable(icon)
+        binding.labeledTextAction.setImageDrawable(icon)
     }
 
     fun setMessage(@StringRes messageRes: Int) = setMessage(context.getString(messageRes))
 
     fun setMessage(text: String) {
-        labeledTextText.text = text
+        binding.labeledTextText.text = text
     }
 
     fun setTextIcon(@DrawableRes iconRes: Int) = setTextIcon(context.getDrawableCompat(iconRes))
 
     fun setTextIcon(icon: Drawable) {
-        labeledTextIcon.makeVisible()
-        labeledTextIcon.setImageDrawable(icon)
+        binding.labeledTextIcon.makeVisible()
+        binding.labeledTextIcon.setImageDrawable(icon)
     }
 
     fun loadIcon(imageUrl: String, imageLoader: ImageLoader) {
-        labeledTextIcon.makeVisible()
-        labeledTextIcon.load(imageUrl, imageLoader)
+        binding.labeledTextIcon.makeVisible()
+        binding.labeledTextIcon.load(imageUrl, imageLoader)
+    }
+
+    fun loadIcon(pictureDrawable: PictureDrawable) {
+        binding.labeledTextIcon.makeVisible()
+        binding.labeledTextIcon.setImageDrawable(pictureDrawable)
     }
 
     fun setActionClickListener(listener: (View) -> Unit) {
-        labeledTextAction.setOnClickListener(listener)
+        binding.labeledTextAction.setOnClickListener(listener)
     }
 
     fun setWholeClickListener(listener: (View) -> Unit) {

@@ -524,6 +524,14 @@
         app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
+    <action
+        android:id="@+id/openStartChangeCollatorsFragment"
+        app:destination="@id/startChangeCollatorsFragment"
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
     <fragment
         android:id="@+id/startChangeValidatorsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.StartChangeValidatorsFragment"
@@ -545,6 +553,52 @@
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/startChangeCollatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start.StartChangeCollatorsFragment"
+        android:label="startChangeValidatorsFragment"
+        tools:layout="@layout/fragment_start_change_validators">
+
+        <action
+            android:id="@+id/action_startChangeCollatorsFragment_to_recommendedCollatorsFragment"
+            app:destination="@id/recommendedCollatorsFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+        <action
+            android:id="@+id/action_startChangeCollatorsFragment_to_selectCustomCollatorsFragment"
+            app:destination="@id/selectCustomCollatorsFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/selectCustomCollatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.collators.change.custom.select.SelectCustomCollatorsFragment"
+        android:label="selectCustomCollatorsFragment"
+        tools:layout="@layout/fragment_select_custom_validators">
+        <action
+            android:id="@+id/action_selectCustomCollatorsFragment_to_settingsCustomValidatorsFragment"
+            app:destination="@id/settingsCustomValidatorsFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+        <action
+            android:id="@+id/action_selectCustomCollatorsFragment_to_searchCustomValidatorsFragment"
+            app:destination="@id/searchCustomValidatorsFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
     </fragment>
 
     <fragment
@@ -610,6 +664,12 @@
         android:label="recommendedValidatorsFragment"
         tools:layout="@layout/fragment_recommended_validators" />
 
+    <fragment
+        android:id="@+id/recommendedCollatorsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.change.recommended.RecommendedCollatorsFragment"
+        android:label="recommendedValidatorsFragment"
+        tools:layout="@layout/fragment_recommended_validators" />
+
     <action
         android:id="@+id/back_to_main"
         app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
@@ -655,11 +715,25 @@
         app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
+    <action
+        android:id="@+id/open_collator_details"
+        app:destination="@id/collatorDetailsFragment"
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
     <fragment
         android:id="@+id/validatorDetailsFragment"
         android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment"
         android:label="validatorDetailsFragment"
         tools:layout="@layout/fragment_validator_details" />
+
+    <fragment
+        android:id="@+id/collatorDetailsFragment"
+        android:name="jp.co.soramitsu.feature_staking_impl.presentation.validators.details.CollatorDetailsFragment"
+        android:label="collatorDetailsFragment"
+        tools:layout="@layout/fragment_collator_details" />
 
     <action
         android:id="@+id/open_staking_story"
