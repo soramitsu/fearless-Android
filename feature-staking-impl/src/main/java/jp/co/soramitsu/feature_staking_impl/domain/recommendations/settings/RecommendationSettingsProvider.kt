@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings
 
+import java.math.BigInteger
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.BlockProducerFilters
@@ -42,7 +43,7 @@ abstract class RecommendationSettingsProvider<T> {
 
     abstract fun defaultSelectCustomSettings(): RecommendationSettings<T>
 
-    abstract fun settingsChanged(schema: SettingsSchema)
+    abstract fun settingsChanged(schema: SettingsSchema, amount: BigInteger)
 
     class RelayChain(
         private val maximumRewardedNominators: Int,
@@ -87,12 +88,13 @@ abstract class RecommendationSettingsProvider<T> {
             limit = null
         )
 
-        override fun settingsChanged(schema: SettingsSchema) {
-            val filters = schema.filters.filter { it.checked }.map {
+        override fun settingsChanged(schema: SettingsSchema, amount: BigInteger) {
+            val filters = schema.filters.filter { it.checked }.mapNotNull {
                 when (it.filter) {
                     Filters.HavingOnChainIdentity -> BlockProducerFilters.ValidatorFilter.HasIdentity
                     Filters.NotSlashedFilter -> BlockProducerFilters.ValidatorFilter.NotSlashedFilter
                     Filters.NotOverSubscribed -> BlockProducerFilters.ValidatorFilter.NotOverSubscribedFilter(maximumRewardedNominators)
+                    else -> null
                 }
             }
             val sorting = schema.sortings.first { it.checked }.let {
@@ -147,11 +149,12 @@ abstract class RecommendationSettingsProvider<T> {
             limit = null
         )
 
-        override fun settingsChanged(schema: SettingsSchema) {
+        override fun settingsChanged(schema: SettingsSchema, amount: BigInteger) {
             val filters = schema.filters.filter { it.checked }.mapNotNull {
                 when (it.filter) {
                     Filters.HavingOnChainIdentity -> BlockProducerFilters.CollatorFilter.HavingOnChainIdentity
                     Filters.NotOverSubscribed -> BlockProducerFilters.CollatorFilter.NotOverSubscribed
+                    Filters.WithRelevantBond -> BlockProducerFilters.CollatorFilter.WithRelevantBond(amount)
                     else -> null
                 }
             }

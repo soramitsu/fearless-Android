@@ -69,7 +69,7 @@ sealed class SetupStakingProcess {
             val payload: Payload.Full
         ) : SelectBlockProducersStep() {
 
-            override val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.NotOverSubscribed)
+            override val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.NotOverSubscribed, Filters.WithRelevantBond)
             override val sortingSet =
                 setOf(Sorting.EstimatedRewards, Sorting.EffectiveAmountBonded, Sorting.CollatorsOwnStake, Sorting.Delegations, Sorting.MinimumBond)
 

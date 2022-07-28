@@ -1,17 +1,21 @@
 package jp.co.soramitsu.feature_staking_impl.domain.validators.current.search
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.Lifecycle
 import java.math.BigDecimal
 import java.util.Locale
+import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressIcon
+import jp.co.soramitsu.common.address.createEthereumAddressIcon
 import jp.co.soramitsu.common.data.memory.ComputationalCache
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
-import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validators.CollatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.feature_staking_impl.domain.validators.ValidatorSource
@@ -33,7 +37,8 @@ class SearchCustomBlockProducerInteractor(
     private val collatorProvider: CollatorProvider,
     private val validatorProvider: ValidatorProvider,
     private val sharedState: StakingSharedState,
-    private val computationalCache: ComputationalCache
+    private val computationalCache: ComputationalCache,
+    private val addressIconGenerator: AddressIconGenerator,
 ) {
 
     private suspend fun getCollators(lifecycle: Lifecycle) = computationalCache.useCache(ELECTED_COLLATORS_CACHE, lifecycle) {
@@ -159,6 +164,19 @@ class SearchCustomBlockProducerInteractor(
                 val collators = getCollators(lifecycle)
                 val collator = collators[address] ?: error("cannot find collator")
                 openCollatorInfo(collator)
+            }
+        }
+    }
+
+    suspend fun getIcon(address: String, sizeInDp: Int): PictureDrawable {
+        val asset = sharedState.assetWithChain.first().asset
+        return when (asset.staking) {
+            Chain.Asset.StakingType.UNSUPPORTED -> error("Wrong staking type")
+            Chain.Asset.StakingType.RELAYCHAIN -> {
+                addressIconGenerator.createAddressIcon(address, sizeInDp)
+            }
+            Chain.Asset.StakingType.PARACHAIN -> {
+                addressIconGenerator.createEthereumAddressIcon(address.requireHexPrefix(), sizeInDp)
             }
         }
     }

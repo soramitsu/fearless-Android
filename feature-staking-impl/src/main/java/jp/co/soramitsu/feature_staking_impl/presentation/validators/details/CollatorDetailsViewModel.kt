@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
@@ -29,8 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.PERCENT_MULTIPL
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.CollatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.NominatorParcelModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorStakeParcelModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
@@ -120,22 +118,21 @@ class CollatorDetailsViewModel(
     }
 
     fun totalStakeClicked() {
-        val validatorStake = collator.stake
+        val collatorStake = collator.stake
+        hashCode()
         viewModelScope.launch {
             val asset = assetFlow.first()
-            // val payload = calculatePayload(asset, validatorStake)
-            // _totalStakeEvent.value = Event(payload)
+            val payload = calculatePayload(asset, collatorStake)
+            _totalStakeEvent.value = Event(payload)
         }
     }
 
-    private suspend fun calculatePayload(asset: Asset, validatorStake: ValidatorStakeParcelModel) = withContext(Dispatchers.Default) {
-        require(validatorStake is ValidatorStakeParcelModel.Active)
-
-        val ownStake = asset.token.amountFromPlanks(validatorStake.ownStake)
+    private suspend fun calculatePayload(asset: Asset, validatorStake: CollatorStakeParcelModel) = withContext(Dispatchers.Default) {
+        val ownStake = asset.token.amountFromPlanks(validatorStake.selfBonded)
         val ownStakeFormatted = ownStake.formatTokenAmount(asset.token.configuration)
         val ownStakeFiatFormatted = asset.token.fiatAmount(ownStake)?.formatAsCurrency(asset.token.fiatSymbol)
 
-        val nominatorsStakeValue = validatorStake.nominators.sumByBigInteger(NominatorParcelModel::value)
+        val nominatorsStakeValue = validatorStake.totalStake - validatorStake.selfBonded
         val nominatorsStake = asset.token.amountFromPlanks(nominatorsStakeValue)
         val nominatorsStakeFormatted = nominatorsStake.formatTokenAmount(asset.token.configuration)
         val nominatorsStakeFiatFormatted = asset.token.fiatAmount(nominatorsStake)?.formatAsCurrency(asset.token.fiatSymbol)
@@ -148,7 +145,7 @@ class CollatorDetailsViewModel(
             resourceManager.getString(R.string.staking_validator_own_stake),
             ownStakeFormatted,
             ownStakeFiatFormatted,
-            resourceManager.getString(R.string.staking_validator_nominators),
+            resourceManager.getString(R.string.collator_details_delegators),
             nominatorsStakeFormatted,
             nominatorsStakeFiatFormatted,
             resourceManager.getString(R.string.wallet_send_total_title),

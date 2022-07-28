@@ -1,8 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.search
 
-import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressIconGenerator.Companion.SIZE_MEDIUM
-import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.map
@@ -43,7 +41,6 @@ sealed class SearchBlockProducersState {
 
 class SearchCustomValidatorsViewModel(
     private val router: StakingRouter,
-    private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
     tokenUseCase: TokenUseCase,
@@ -88,7 +85,7 @@ class SearchCustomValidatorsViewModel(
     ) { selectedBlockProducers, foundBlockProducersState ->
         foundBlockProducersState.map { blockProducers ->
             blockProducers?.map { blockProducer ->
-                blockProducer.toModel(addressIconGenerator, blockProducer.address in selectedBlockProducers)
+                blockProducer.toModel(blockProducer.address in selectedBlockProducers)
             }
         }
     }
@@ -170,9 +167,8 @@ class SearchCustomValidatorsViewModel(
     }
 
     private suspend fun SearchCustomBlockProducerInteractor.BlockProducer.toModel(
-        iconGenerator: AddressIconGenerator,
         selected: Boolean
     ): SearchBlockProducerModel {
-        return SearchBlockProducerModel(name, address, selected, rewardsPercent, iconGenerator.createAddressIcon(address, SIZE_MEDIUM))
+        return SearchBlockProducerModel(name, address, selected, rewardsPercent, searchCustomBlockProducerInteractor.getIcon(address, SIZE_MEDIUM))
     }
 }

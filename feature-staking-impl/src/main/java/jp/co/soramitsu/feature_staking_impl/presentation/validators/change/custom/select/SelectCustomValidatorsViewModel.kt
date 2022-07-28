@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select
 
 import androidx.lifecycle.viewModelScope
+import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -30,6 +31,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCu
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -138,7 +140,11 @@ class SelectCustomValidatorsViewModel(
 
         launch {
             settingsStorage.schema.collect {
-                recommendationSettingsProvider().settingsChanged(it)
+                val state = setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()
+                val payload = state?.payload as? SetupStakingProcess.SelectBlockProducersStep.Payload.Full
+                val amount = payload?.amount
+                val amountInPlanks = amount?.let { tokenUseCase.currentToken().configuration.planksFromAmount(amount) }
+                recommendationSettingsProvider().settingsChanged(it, amountInPlanks ?: BigInteger.ZERO)
             }
         }
     }

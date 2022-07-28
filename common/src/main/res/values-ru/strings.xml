@@ -734,4 +734,7 @@
     <string name="staking_reward_info_apr_avg">Средний APR</string>
 
     <string name="staking_recommended_collators_empty_text">Сумма вашего стейка меньше минимального из всех коллаторов, предложенных алгоритмом. Увеличьте сумму ставки или выберите коллатор вручную</string>
+    <string name="collator_details_delegators">Делегаторы</string>
+    <string name="select_collator_having_identity">Идентифицирован в сети</string>
+    <string name="select_collator_having_relevant_minimum_bond">Релевантный минимальный стейк</string>
 </resources>

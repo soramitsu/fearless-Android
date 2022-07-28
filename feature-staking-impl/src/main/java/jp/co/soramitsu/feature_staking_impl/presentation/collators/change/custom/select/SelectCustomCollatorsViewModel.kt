@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.Reco
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProvider
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.Filters
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
@@ -28,6 +29,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.Colla
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.IdentityParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +49,7 @@ class SelectCustomCollatorsViewModel(
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val setupStakingSharedState: SetupStakingSharedState,
-    tokenUseCase: TokenUseCase,
+    private val tokenUseCase: TokenUseCase,
     private val settingsStorage: SettingsStorage,
 ) : BaseViewModel() {
 
@@ -129,6 +131,14 @@ class SelectCustomCollatorsViewModel(
 
     val deselectAllEnabled = selectedCollator.value != null
 
+    val identityFilterEnabled = settingsStorage.schema.map { schema ->
+        schema.filters.find { it.filter == Filters.HavingOnChainIdentity }?.checked == true
+    }.asLiveData()
+
+    val minimumBondFilterEnabled = settingsStorage.schema.map { schema ->
+        schema.filters.find { it.filter == Filters.WithRelevantBond }?.checked == true
+    }.asLiveData()
+
     init {
         observeExternalSelectionChanges()
 
@@ -137,7 +147,8 @@ class SelectCustomCollatorsViewModel(
 
         launch {
             settingsStorage.schema.collect {
-                recommendationSettingsProvider().settingsChanged(it)
+                val amount = tokenUseCase.currentToken().configuration.planksFromAmount(state.payload.amount)
+                recommendationSettingsProvider().settingsChanged(it, amount)
             }
         }
     }
@@ -246,4 +257,14 @@ class SelectCustomCollatorsViewModel(
     }
 
     private suspend fun recommendator() = collatorRecommendator.await()
+
+    fun havingOnChainIdentityFilterClicked() {
+        val filter = state.filtersSet.find { it == Filters.HavingOnChainIdentity }
+        filter?.let { settingsStorage.filterSelected(it) }
+    }
+
+    fun relevantBondFilterCLicked() {
+        val filter = state.filtersSet.find { it == Filters.WithRelevantBond }
+        filter?.let { settingsStorage.filterSelected(it) }
+    }
 }
