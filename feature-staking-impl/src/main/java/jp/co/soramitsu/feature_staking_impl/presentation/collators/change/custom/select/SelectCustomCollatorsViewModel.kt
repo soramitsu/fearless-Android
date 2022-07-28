@@ -144,12 +144,12 @@ class SelectCustomCollatorsViewModel(
         state?.let {
             settingsStorage.currentFiltersSet.value = it.filtersSet
             settingsStorage.currentSortingSet.value = it.sortingSet
-        }
 
-        launch {
-            settingsStorage.schema.collect {
-                val amount = tokenUseCase.currentToken().configuration.planksFromAmount(state.payload.amount)
-                recommendationSettingsProvider().settingsChanged(it, amount)
+            launch {
+                settingsStorage.schema.collect {
+                    val amount = tokenUseCase.currentToken().configuration.planksFromAmount(state.payload.amount)
+                    recommendationSettingsProvider().settingsChanged(it, amount)
+                }
             }
         }
     }
@@ -260,12 +260,12 @@ class SelectCustomCollatorsViewModel(
     private suspend fun recommendator() = collatorRecommendator.await()
 
     fun havingOnChainIdentityFilterClicked() {
-        val filter = state.filtersSet.find { it == Filters.HavingOnChainIdentity }
+        val filter = state?.filtersSet?.find { it == Filters.HavingOnChainIdentity }
         filter?.let { settingsStorage.filterSelected(it) }
     }
 
     fun relevantBondFilterCLicked() {
-        val filter = state.filtersSet.find { it == Filters.WithRelevantBond }
+        val filter = state?.filtersSet?.find { it == Filters.WithRelevantBond }
         filter?.let { settingsStorage.filterSelected(it) }
     }
 }
