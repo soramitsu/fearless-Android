@@ -28,6 +28,7 @@ import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
 
 class StakingParachainScenarioViewModel(
@@ -84,15 +85,16 @@ class StakingParachainScenarioViewModel(
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
-        return scenarioInteractor.stakingStateFlow.map { state ->
-            if (state !is StakingState.Parachain.Delegator) return@map emptyList<AlertModel>()
+        return scenarioInteractor.unlockActionsFlow.flatMapConcat {
+            scenarioInteractor.stakingStateFlow.map { state ->
+                if (state !is StakingState.Parachain.Delegator) return@map emptyList<AlertModel>()
 
-            val lowStakeAlerts = produceLowStakeAlerts(state)
-            val collatorLeavingAlerts = produceCollatorLeavingAlerts(state)
-            val readyForUnlocking = produceReadyForUnlockingAlerts(state)
-
-            (lowStakeAlerts + collatorLeavingAlerts + readyForUnlocking).map { it.toModel() }
-        }.withLoading()
+                val lowStakeAlerts = produceLowStakeAlerts(state)
+                val collatorLeavingAlerts = produceCollatorLeavingAlerts(state)
+                val readyForUnlocking = produceReadyForUnlockingAlerts(state)
+                (lowStakeAlerts + collatorLeavingAlerts + readyForUnlocking).map { it.toModel() }
+            }.withLoading()
+        }
     }
 
     private suspend fun produceCollatorLeavingAlerts(state: StakingState.Parachain.Delegator): List<Alert.CollatorLeaving> {

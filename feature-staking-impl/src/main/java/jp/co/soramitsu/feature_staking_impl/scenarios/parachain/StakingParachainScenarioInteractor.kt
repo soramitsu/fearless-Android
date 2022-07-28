@@ -70,6 +70,7 @@ import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -80,6 +81,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 
 class StakingParachainScenarioInteractor(
@@ -210,6 +212,7 @@ class StakingParachainScenarioInteractor(
         val unbondingRequestsFlow = getUnbondingRequestsFlow(chain.id, collatorAddress.fromHex())
 
         return combine(unbondingRequestsFlow, delegationHistoryFlow) { currentUnbondings: List<Unbonding>, subQueryHistory: List<Unbonding> ->
+            unlockActionsFlow.emit(Unit)
             currentUnbondings + subQueryHistory
         }
     }
@@ -299,6 +302,8 @@ class StakingParachainScenarioInteractor(
         }
     }
 
+    val unlockActionsFlow = MutableStateFlow(Unit)
+
     override suspend fun confirmRevoke(
         extrinsicBuilder: ExtrinsicBuilder,
         candidate: String?,
@@ -312,12 +317,13 @@ class StakingParachainScenarioInteractor(
         val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
 
         extrinsicBuilder.parachainExecuteDelegationRequest(candidateId = candidate.fromHex(), delegatorId = accountId)
+        unlockActionsFlow.emit(Unit)
     }
 
     private fun getUnbondingRequestsFlow(chainId: ChainId, collatorId: AccountId) =
         stakingParachainScenarioRepository.getDelegationScheduledRequestsFlow(chainId, collatorId).map {
             it.toUnbondings()
-        }
+        }.onEach { unlockActionsFlow.emit(Unit) }
 
     override suspend fun getStakingBalanceFlow(collatorId: AccountId?): Flow<StakingBalanceModel> {
         collatorId ?: error("cannot find collatorId")
@@ -348,6 +354,7 @@ class StakingParachainScenarioInteractor(
                 it.whenExecutable <= currentRound
             }.sumByBigInteger { it.actionValue }
 
+            unlockActionsFlow.emit(Unit)
             StakingBalanceModel(
                 staked = mapAmountToAmountModel(staked, asset, R.string.staking_main_stake_balance_staked),
                 unstaking = mapAmountToAmountModel(unstaking, asset, R.string.wallet_balance_unbonding_v1_9_0),

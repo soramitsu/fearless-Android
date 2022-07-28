@@ -44,6 +44,11 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
 
     private val binding by viewBinding(FragmentStakingBinding::bind)
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.onScreenAppeared()
+    }
+
     override fun initViews() {
         with(binding) {
             stakingContainer.applyInsetter {

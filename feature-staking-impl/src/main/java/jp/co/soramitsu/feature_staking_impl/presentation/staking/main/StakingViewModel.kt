@@ -96,7 +96,7 @@ class StakingViewModel(
         }.distinctUntilChanged().inBackground()
         .onEach { stakingStateScope.coroutineContext.cancelChildren() }
 
-    val alertsFlow = scenarioViewModelFlow
+    var alertsFlow = scenarioViewModelFlow
         .flatMapLatest {
             it.alerts()
         }.distinctUntilChanged().share()
@@ -205,5 +205,11 @@ class StakingViewModel(
             val stakingState = stakingViewState.first()
             ((stakingState as? LoadingState.Loaded)?.data as? DelegatorViewState)?.openCollatorInfo(model)
         }
+    }
+
+    fun onScreenAppeared() {
+        alertsFlow = scenarioViewModelFlow.flatMapLatest {
+            it.alerts()
+        }.distinctUntilChanged().share()
     }
 }
