@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters
 
+import java.math.BigInteger
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateCapacity
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
@@ -55,6 +56,13 @@ abstract class BlockProducerFilters<T> {
                 return model.topCapacity != CandidateCapacity.Full
             }
         }
+
+        class WithRelevantBond(private val amount: BigInteger) : CollatorFilter() {
+            override fun shouldInclude(model: Collator): Boolean {
+                hashCode()
+                return amount >= model.lowestTopDelegationAmount
+            }
+        }
     }
 }
 
@@ -67,7 +75,7 @@ interface RecommendationPostProcessor<T> {
 }
 
 enum class Filters {
-    HavingOnChainIdentity, NotOverSubscribed, NotSlashedFilter, // LimitOf2ValidatorsPerIdentity
+    HavingOnChainIdentity, NotOverSubscribed, NotSlashedFilter, WithRelevantBond // LimitOf2ValidatorsPerIdentity
 }
 
 enum class Sorting {
@@ -81,6 +89,7 @@ fun Filters.toModel(selectedFilters: Set<Filters>): SettingsSchema.Filter {
         Filters.HavingOnChainIdentity -> R.string.staking_recommended_feature_3
         Filters.NotOverSubscribed -> R.string.staking_recommended_feature_2
         Filters.NotSlashedFilter -> R.string.staking_recommended_feature_4
+        Filters.WithRelevantBond -> R.string.select_collator_having_relevant_minimum_bond
     }
 
     return SettingsSchema.Filter(title, this in selectedFilters, this)

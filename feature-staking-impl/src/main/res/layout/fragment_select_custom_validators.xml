@@ -79,6 +79,38 @@
                 android:paddingBottom="6dp"
                 android:text="@string/staking_custom_deselect_button_title"
                 android:textColor="@color/button_text_colors" />
+
+            <TextView
+                android:id="@+id/selectCustomCollatorsOnChainIdentity"
+                style="@style/TextAppearance.Soramitsu.CapsTitle2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/secondary_chip_background"
+                android:includeFontPadding="false"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:visibility="gone"
+                android:paddingEnd="12dp"
+                android:paddingBottom="6dp"
+                android:text="@string/select_collator_having_identity"
+                android:textColor="@color/button_text_colors" />
+
+            <TextView
+                android:id="@+id/selectCustomCollatorsRelevantBond"
+                style="@style/TextAppearance.Soramitsu.CapsTitle2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/secondary_chip_background"
+                android:includeFontPadding="false"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="12dp"
+                android:visibility="gone"
+                android:paddingBottom="6dp"
+                android:text="@string/select_collator_having_relevant_minimum_bond"
+                android:textColor="@color/button_text_colors" />
         </LinearLayout>
     </HorizontalScrollView>
 
