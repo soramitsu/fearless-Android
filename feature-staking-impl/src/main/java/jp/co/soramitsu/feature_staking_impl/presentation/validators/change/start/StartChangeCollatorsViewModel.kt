@@ -82,6 +82,12 @@ class StartChangeCollatorsViewModel(
 
     val customCollatorsTexts = combine(setupStakingSharedState.setupStakingProcess, customCollatorsCount) { (setupStakingProcess, collatorsCount) ->
         when {
+            setupStakingProcess is SetupStakingProcess.ReadyToSubmit.Parachain && setupStakingProcess.payload.blockProducers.isNotEmpty()
+                || setupStakingProcess is SetupStakingProcess.SelectBlockProducersStep ->
+                CustomValidatorsTexts(
+                    title = resourceManager.getString(R.string.staking_select_custom),
+                    badge = collatorsCount.toString()
+                )
             setupStakingProcess is SetupStakingProcess.ReadyToSubmit<*> && setupStakingProcess.payload.blockProducers.isNotEmpty() ->
                 CustomValidatorsTexts(
                     title = resourceManager.getString(R.string.staking_custom_validators_update_list),
@@ -90,11 +96,6 @@ class StartChangeCollatorsViewModel(
                         setupStakingProcess.payload.blockProducers.size,
                         maxValidatorsPerNominator.first()
                     )
-                )
-            setupStakingProcess is SetupStakingProcess.SelectBlockProducersStep ->
-                CustomValidatorsTexts(
-                    title = resourceManager.getString(R.string.staking_select_custom),
-                    badge = collatorsCount.toString()
                 )
             else -> null
         }
