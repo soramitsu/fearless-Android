@@ -533,8 +533,9 @@ class StakingFeatureModule {
         collatorProvider: CollatorProvider,
         validatorProvider: ValidatorProvider,
         sharedState: StakingSharedState,
-        computationalCache: ComputationalCache
-    ) = SearchCustomBlockProducerInteractor(collatorProvider, validatorProvider, sharedState, computationalCache)
+        computationalCache: ComputationalCache,
+        addressIconGenerator: AddressIconGenerator
+    ) = SearchCustomBlockProducerInteractor(collatorProvider, validatorProvider, sharedState, computationalCache, addressIconGenerator)
 
     @Provides
     @FeatureScope

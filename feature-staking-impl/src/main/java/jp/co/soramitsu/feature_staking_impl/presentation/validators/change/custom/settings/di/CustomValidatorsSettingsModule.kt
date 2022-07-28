@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsViewModel
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -26,14 +27,16 @@ class CustomValidatorsSettingsModule {
         router: StakingRouter,
         tokenUseCase: TokenUseCase,
         type: Chain.Asset.StakingType,
-        settingsStorage: SettingsStorage
+        settingsStorage: SettingsStorage,
+        setupStakingSharedState: SetupStakingSharedState
     ): ViewModel {
         return CustomValidatorsSettingsViewModel(
             router,
             recommendationSettingsProviderFactory,
             tokenUseCase,
             type,
-            settingsStorage
+            settingsStorage,
+            setupStakingSharedState
         )
     }
 

@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -23,7 +22,6 @@ class SearchCustomValidatorsModule {
     @IntoMap
     @ViewModelKey(SearchCustomValidatorsViewModel::class)
     fun provideViewModel(
-        addressIconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
         router: StakingRouter,
         setupStakingSharedState: SetupStakingSharedState,
@@ -32,7 +30,6 @@ class SearchCustomValidatorsModule {
     ): ViewModel {
         return SearchCustomValidatorsViewModel(
             router,
-            addressIconGenerator,
             resourceManager,
             setupStakingSharedState,
             tokenUseCase,

@@ -1,6 +1,9 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.collators.change.custom.select
 
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import dev.chrisbanes.insetter.applyInsetter
@@ -44,6 +47,12 @@ class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewMode
         binding.selectCustomValidatorsToolbar.addCustomAction(R.drawable.ic_basic_search_24) {
             viewModel.searchClicked()
         }
+        binding.selectCustomCollatorsOnChainIdentity.setOnClickListener {
+            viewModel.havingOnChainIdentityFilterClicked()
+        }
+        binding.selectCustomCollatorsRelevantBond.setOnClickListener {
+            viewModel.relevantBondFilterCLicked()
+        }
         binding.selectCustomValidatorsToolbar.setDividerVisible(false)
 
         binding.selectCustomValidatorsList.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
@@ -62,6 +71,8 @@ class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewMode
         binding.selectCustomValidatorsToolbar.setTitle(R.string.staking_select_collator_title)
         binding.selectCustomValidatorsFillWithRecommended.isVisible = false
         binding.selectCustomValidatorsDeselectAll.isVisible = false
+        binding.selectCustomCollatorsOnChainIdentity.isVisible = true
+        binding.selectCustomCollatorsRelevantBond.isVisible = true
     }
 
     override fun inject() {
@@ -92,6 +103,18 @@ class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewMode
 //        viewModel.fillWithRecommendedEnabled.observe(selectCustomValidatorsFillWithRecommended::setEnabled)
         viewModel.clearFiltersEnabled.observe(binding.selectCustomValidatorsClearFilters::setEnabled)
         binding.selectCustomValidatorsDeselectAll.isEnabled = viewModel.deselectAllEnabled
+        bindQuickFilter(viewModel.identityFilterEnabled, binding.selectCustomCollatorsOnChainIdentity)
+        bindQuickFilter(viewModel.minimumBondFilterEnabled, binding.selectCustomCollatorsRelevantBond)
+    }
+
+    private fun bindQuickFilter(liveData: LiveData<Boolean>, view: TextView) {
+        liveData.observe {
+            view.background = if (it) {
+                ContextCompat.getDrawable(requireContext(), R.drawable.primary_chip_background)
+            } else {
+                ContextCompat.getDrawable(requireContext(), R.drawable.secondary_chip_background)
+            }
+        }
     }
 
     override fun collatorInfoClicked(collatorModel: CollatorModel) {
