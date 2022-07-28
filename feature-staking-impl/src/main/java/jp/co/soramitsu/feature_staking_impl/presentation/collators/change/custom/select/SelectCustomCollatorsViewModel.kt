@@ -53,7 +53,7 @@ class SelectCustomCollatorsViewModel(
     private val settingsStorage: SettingsStorage,
 ) : BaseViewModel() {
 
-    val state = setupStakingSharedState.get<SetupStakingProcess.SelectBlockProducersStep.Collators>()
+    val state = setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Collators>()
 
     private val collatorRecommendator by lazyAsync {
         collatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
@@ -141,9 +141,10 @@ class SelectCustomCollatorsViewModel(
 
     init {
         observeExternalSelectionChanges()
-
-        settingsStorage.currentFiltersSet.value = state.filtersSet
-        settingsStorage.currentSortingSet.value = state.sortingSet
+        state?.let {
+            settingsStorage.currentFiltersSet.value = it.filtersSet
+            settingsStorage.currentSortingSet.value = it.sortingSet
+        }
 
         launch {
             settingsStorage.schema.collect {
