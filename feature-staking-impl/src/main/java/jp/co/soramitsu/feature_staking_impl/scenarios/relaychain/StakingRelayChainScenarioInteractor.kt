@@ -48,6 +48,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.StakeSummary
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceUnlockingLimitValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
@@ -495,6 +499,66 @@ class StakingRelayChainScenarioInteractor(
                         errorProducer = { SetupStakingValidationFailure.MaxNominatorsReached },
                         isAlreadyNominating = SetupStakingPayload::isAlreadyNominating,
                         sharedState = stakingSharedState
+                    )
+                )
+            )
+        )
+    }
+
+    override fun getRedeemValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                listOf(
+                    BalanceAccountRequiredValidation(
+                        this,
+                        accountAddressExtractor = { it.stashState?.controllerAddress },
+                        errorProducer = ManageStakingValidationFailure::ControllerRequired,
+                    )
+                )
+            )
+        )
+    }
+
+    override fun getBondMoreValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                listOf(
+                    BalanceAccountRequiredValidation(
+                        this,
+                        accountAddressExtractor = { it.stashState?.stashAddress },
+                        errorProducer = ManageStakingValidationFailure::StashRequired,
+                    )
+                )
+            )
+        )
+    }
+
+    override fun getUnbondingValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                validations = listOf(
+                    BalanceAccountRequiredValidation(
+                        this,
+                        accountAddressExtractor = { it.stashState?.controllerAddress },
+                        errorProducer = ManageStakingValidationFailure::ControllerRequired,
+                    ),
+                    BalanceUnlockingLimitValidation(
+                        this,
+                        errorProducer = ManageStakingValidationFailure::UnbondingRequestLimitReached
+                    )
+                )
+            )
+        )
+    }
+
+    override fun getRebondValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                validations = listOf(
+                    BalanceAccountRequiredValidation(
+                        this,
+                        accountAddressExtractor = { it.stashState?.controllerAddress },
+                        errorProducer = ManageStakingValidationFailure::ControllerRequired,
                     )
                 )
             )

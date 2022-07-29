@@ -59,7 +59,6 @@ abstract class BlockProducerFilters<T> {
 
         class WithRelevantBond(private val amount: BigInteger) : CollatorFilter() {
             override fun shouldInclude(model: Collator): Boolean {
-                hashCode()
                 return amount >= model.lowestTopDelegationAmount
             }
         }
