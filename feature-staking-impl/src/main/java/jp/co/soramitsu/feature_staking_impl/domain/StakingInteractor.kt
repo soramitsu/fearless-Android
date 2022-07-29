@@ -33,6 +33,7 @@ import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -67,7 +68,7 @@ class StakingInteractor(
     fun selectionStateFlow() = combineToPair(
         accountRepository.selectedMetaAccountFlow(),
         stakingSharedState.assetWithChain
-    )
+    ).debounce(100)
 
     suspend fun getAccountProjectionsInSelectedChains() = withContext(Dispatchers.Default) {
         val chain = stakingSharedState.chain()
@@ -102,7 +103,7 @@ class StakingInteractor(
     fun selectedAccountProjectionFlow(): Flow<StakingAccount> {
         return combine(
             stakingSharedState.assetWithChain,
-            accountRepository.selectedMetaAccountFlow()
+            accountRepository.selectedMetaAccountFlow().debounce(100)
         ) { (chain, _), account ->
             mapAccountToStakingAccount(chain, account)
         }.mapNotNull { it }
