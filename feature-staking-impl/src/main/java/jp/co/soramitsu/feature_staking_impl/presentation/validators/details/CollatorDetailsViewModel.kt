@@ -119,7 +119,6 @@ class CollatorDetailsViewModel(
 
     fun totalStakeClicked() {
         val collatorStake = collator.stake
-        hashCode()
         viewModelScope.launch {
             val asset = assetFlow.first()
             val payload = calculatePayload(asset, collatorStake)

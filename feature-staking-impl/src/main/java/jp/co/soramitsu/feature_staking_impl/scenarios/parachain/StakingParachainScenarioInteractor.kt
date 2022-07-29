@@ -48,6 +48,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
 import jp.co.soramitsu.feature_staking_impl.domain.model.toUnbonding
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceUnlockingLimitValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
@@ -499,6 +502,43 @@ class StakingParachainScenarioInteractor(
                         sharedState = stakingSharedState
                     )
                 )
+            )
+        )
+    }
+
+    override fun getRedeemValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                emptyList()
+            )
+        )
+    }
+
+    override fun getBondMoreValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                emptyList()
+            )
+        )
+    }
+
+    override fun getUnbondingValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                validations = listOf(
+                    BalanceUnlockingLimitValidation(
+                        this,
+                        errorProducer = ManageStakingValidationFailure::UnbondingRequestLimitReached
+                    )
+                )
+            )
+        )
+    }
+
+    override fun getRebondValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                validations = listOf()
             )
         )
     }
