@@ -18,5 +18,12 @@ data class CollatorModel(
         class OneField(val field: String) : Scoring()
 
         class TwoFields(val primary: String, val secondary: String?) : Scoring()
+
+        val apr: String by lazy {
+            when (this) {
+                is OneField -> field
+                is TwoFields -> primary
+            }
+        }
     }
 }
