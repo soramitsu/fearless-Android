@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 
 interface StakingScenarioInteractor {
 
@@ -47,6 +49,10 @@ interface StakingScenarioInteractor {
     suspend fun stakePeriodInHours(): Int
     suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination
     fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>
+    fun getRedeemValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
+    fun getBondMoreValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
+    fun getUnbondingValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
+    fun getRebondValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
     fun getSelectedAccountAddress(): Flow<Optional<AddressModel>>
     fun getCollatorAddress(collatorAddress: String?): Flow<Optional<AddressModel>>
     suspend fun stakeMore(extrinsicBuilder: ExtrinsicBuilder, amountInPlanks: BigInteger, candidate: String? = null): ExtrinsicBuilder

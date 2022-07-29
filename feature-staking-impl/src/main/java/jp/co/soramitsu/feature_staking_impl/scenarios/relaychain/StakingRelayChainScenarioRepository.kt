@@ -137,7 +137,6 @@ class StakingRelayChainScenarioRepository(
     )
 
     fun observeActiveEraIndex(chainId: String): Flow<BigInteger> {
-        hashCode()
         return localStorage.observeNonNull(
             chainId = chainId,
             keyBuilder = { it.metadata.activeEraStorageKey() },

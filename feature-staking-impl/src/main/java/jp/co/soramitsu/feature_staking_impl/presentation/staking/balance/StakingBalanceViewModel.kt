@@ -40,10 +40,6 @@ import kotlinx.coroutines.launch
 
 class StakingBalanceViewModel(
     private val router: StakingRouter,
-    private val redeemValidationSystem: ManageStakingValidationSystem,
-    private val unbondValidationSystem: ManageStakingValidationSystem,
-    private val bondMoreValidationSystem: ManageStakingValidationSystem,
-    private val rebondValidationSystem: ManageStakingValidationSystem,
     private val validationExecutor: ValidationExecutor,
     private val unbondingInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
@@ -97,7 +93,7 @@ class StakingBalanceViewModel(
     private val _showRebondActionsEvent = MutableLiveData<Event<Set<RebondKind>>>()
     val showRebondActionsEvent: LiveData<Event<Set<RebondKind>>> = _showRebondActionsEvent
 
-    fun bondMoreClicked() = requireValidManageAction(bondMoreValidationSystem) {
+    fun bondMoreClicked() = requireValidManageAction(stakingScenarioInteractor.getBondMoreValidation()) {
         router.openBondMore(
             SelectBondMorePayload(
                 overrideFinishAction = null,
@@ -107,7 +103,7 @@ class StakingBalanceViewModel(
         )
     }
 
-    fun unbondClicked() = requireValidManageAction(unbondValidationSystem) {
+    fun unbondClicked() = requireValidManageAction(stakingScenarioInteractor.getUnbondingValidation()) {
         router.openSelectUnbond(
             SelectUnbondPayload(
                 collatorAddress = collatorAddress,
@@ -116,7 +112,7 @@ class StakingBalanceViewModel(
         )
     }
 
-    fun redeemClicked() = requireValidManageAction(redeemValidationSystem) {
+    fun redeemClicked() = requireValidManageAction(stakingScenarioInteractor.getRedeemValidation()) {
         router.openRedeem(
             RedeemPayload(
                 overrideFinishAction = null,
@@ -131,7 +127,7 @@ class StakingBalanceViewModel(
 
     fun unbondingsMoreClicked() {
         val allowedRebondTypes = stakingScenarioInteractor.getRebondTypes()
-        requireValidManageAction(rebondValidationSystem) {
+        requireValidManageAction(stakingScenarioInteractor.getRebondValidation()) {
             _showRebondActionsEvent.postValue(Event(allowedRebondTypes))
         }
     }
@@ -163,7 +159,6 @@ class StakingBalanceViewModel(
     ) {
         launch {
             val stakingState = stakingScenarioInteractor.getSelectedAccountStakingState()
-
             validationExecutor.requireValid(
                 validationSystem,
                 ManageStakingValidationPayload(stakingState as? StakingState.Stash),
