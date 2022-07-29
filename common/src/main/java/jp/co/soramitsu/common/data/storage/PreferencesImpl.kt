@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.data.storage
 
 import android.content.SharedPreferences
 import jp.co.soramitsu.core.model.Language
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -87,7 +86,6 @@ class PreferencesImpl(
         sharedPreferences.edit().remove(field).apply()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override fun stringFlow(
         field: String,
         initialValueProducer: (suspend () -> String)?
