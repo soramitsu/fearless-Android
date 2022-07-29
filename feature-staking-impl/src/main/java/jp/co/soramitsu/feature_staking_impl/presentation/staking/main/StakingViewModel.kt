@@ -35,7 +35,6 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayCha
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithAssetSelector
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -91,27 +90,22 @@ class StakingViewModel(
     override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
 
     private val scenarioViewModelFlow = assetSelectorMixin.selectedAssetFlow
-        .map { it.token.configuration.staking }
-        .distinctUntilChanged()
-        .map { stakingScenario.getViewModel(it) }
+        .map { stakingScenario.getViewModel(it.token.configuration.staking) }
 
-    val networkInfo = assetSelectorMixin.selectedAssetFlow.flatMapLatest {
-        scenarioViewModelFlow.flatMapLatest {
+    val networkInfo = scenarioViewModelFlow
+        .flatMapLatest {
             it.networkInfo()
         }.distinctUntilChanged().share()
-    }
 
-    val stakingViewState = assetSelectorMixin.selectedAssetFlow.flatMapLatest {
-        scenarioViewModelFlow.flatMapLatest {
+    val stakingViewState = scenarioViewModelFlow
+        .flatMapLatest {
             it.getStakingViewStateFlow()
-        }.distinctUntilChanged().shareIn(CoroutineScope(Dispatchers.Default), SharingStarted.Eagerly, 1)
-    }
+        }.distinctUntilChanged().shareIn(stakingStateScope, SharingStarted.Eagerly, 1)
 
-    val alertsFlow = assetSelectorMixin.selectedAssetFlow.flatMapLatest {
-        scenarioViewModelFlow.flatMapLatest {
+    val alertsFlow = scenarioViewModelFlow
+        .flatMapLatest {
             it.alerts()
         }.distinctUntilChanged().share()
-    }
 
     override val stakingStateScope: CoroutineScope
         get() = viewModelScope.childScope(supervised = true)
@@ -124,7 +118,7 @@ class StakingViewModel(
             stakingStateScope.coroutineContext.cancelChildren()
         }
         viewModelScope.launch {
-            stakingSharedState.assetWithChain.collect {
+            stakingSharedState.assetWithChain.distinctUntilChanged().collect {
                 setupStakingSharedState.set(SetupStakingProcess.Initial(it.asset.staking))
             }
         }
