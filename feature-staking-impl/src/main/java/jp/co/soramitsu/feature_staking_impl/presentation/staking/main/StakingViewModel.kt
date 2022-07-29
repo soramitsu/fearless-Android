@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -47,7 +48,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import javax.inject.Named
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -95,17 +95,23 @@ class StakingViewModel(
         .distinctUntilChanged()
         .map { stakingScenario.getViewModel(it) }
 
-    val networkInfo = scenarioViewModelFlow.flatMapLatest {
-        it.networkInfo()
-    }.distinctUntilChanged().share()
+    val networkInfo = assetSelectorMixin.selectedAssetFlow.flatMapLatest {
+        scenarioViewModelFlow.flatMapLatest {
+            it.networkInfo()
+        }.distinctUntilChanged().share()
+    }
 
-    val stakingViewState = scenarioViewModelFlow.flatMapLatest {
-        it.getStakingViewStateFlow()
-    }.distinctUntilChanged().shareIn(CoroutineScope(Dispatchers.Default), SharingStarted.Eagerly, 1)
+    val stakingViewState = assetSelectorMixin.selectedAssetFlow.flatMapLatest {
+        scenarioViewModelFlow.flatMapLatest {
+            it.getStakingViewStateFlow()
+        }.distinctUntilChanged().shareIn(CoroutineScope(Dispatchers.Default), SharingStarted.Eagerly, 1)
+    }
 
-    val alertsFlow = scenarioViewModelFlow.flatMapLatest {
-        it.alerts()
-    }.distinctUntilChanged().share()
+    val alertsFlow = assetSelectorMixin.selectedAssetFlow.flatMapLatest {
+        scenarioViewModelFlow.flatMapLatest {
+            it.alerts()
+        }.distinctUntilChanged().share()
+    }
 
     override val stakingStateScope: CoroutineScope
         get() = viewModelScope.childScope(supervised = true)
