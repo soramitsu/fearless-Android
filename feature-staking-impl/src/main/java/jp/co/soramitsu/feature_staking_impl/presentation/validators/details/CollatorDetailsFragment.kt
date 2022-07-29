@@ -99,6 +99,8 @@ class CollatorDetailsFragment : BaseFragment<CollatorDetailsViewModel>(R.layout.
                     collatorAccountInfo.setText(collator.address)
                     collatorAccountInfo.showBody()
                 }
+
+                collatorInfoProgress.makeGone()
             }
         }
 
