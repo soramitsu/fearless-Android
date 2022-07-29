@@ -7,14 +7,12 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 
 private const val DELIMITER = ":"
 
@@ -38,6 +36,8 @@ abstract class SingleAssetSharedState(
             encode(defaultAsset.chainId, defaultAsset.id)
         }
     )
+        .distinctUntilChanged()
+        .debounce(100)
         .filterNotNull()
         .map { encoded ->
             val (chainId, chainAssetId) = decode(encoded)
@@ -53,7 +53,7 @@ abstract class SingleAssetSharedState(
             AssetWithChain(chain, chainAsset)
         }
         .inBackground()
-        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
+//        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableToSelect(): List<Chain.Asset> {
         val allChains = chainRegistry.currentChains.first()

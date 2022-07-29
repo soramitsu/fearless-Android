@@ -7,8 +7,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 
@@ -18,14 +18,13 @@ class AssetUseCaseImpl(
     private val sharedState: SingleAssetSharedState
 ) : AssetUseCase {
 
-    override fun currentAssetFlow() = combine(
-        accountRepository.selectedMetaAccountFlow(),
-        sharedState.assetWithChain
-    ) { selectedMetaAccount, chainAndAsset ->
-        selectedMetaAccount.accountId(chainAndAsset.chain)?.let {
-            Pair(selectedMetaAccount, chainAndAsset)
-        }
-    }.mapNotNull { it }
+    override fun currentAssetFlow() = sharedState.assetWithChain
+        .map { chainAndAsset ->
+            val meta = accountRepository.getSelectedMetaAccount()
+            meta.accountId(chainAndAsset.chain)?.let {
+                Pair(meta, chainAndAsset)
+            }
+        }.mapNotNull { it }
         .flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
             val (chain, chainAsset) = chainAndAsset
 
