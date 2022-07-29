@@ -193,7 +193,6 @@ class SubqueryRewardCalculator(
         val chain = stakingParachainScenarioInteractor?.getStakingStateFlow()?.first()?.chain
         val stakingUrl = chain?.externalApi?.staking?.url // todo add other urls to utils
         if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
-            hashCode()
             throw Exception("Staking for this network is not supported yet")
         }
         val roundId = stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull()
