@@ -5,6 +5,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -31,7 +32,8 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setup
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import javax.inject.Inject
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking), DelegationRecyclerViewAdapter.DelegationHandler {
 
@@ -132,9 +134,12 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             observeWelcomeState(stakingState)
                         }
                         is DelegatorViewState -> {
-                            stakingState.delegations.observe {
-                                delegationAdapter.submitList(it)
-                            }
+                            stakingState.delegations.onEach {
+                                if (it is LoadingState.Loaded) {
+                                    delegationAdapter.submitList(it.data)
+                                }
+                            }.launchIn(viewModel.stakingStateScope)
+
                             observeWelcomeState(stakingState.welcomeViewState)
 
                             binding.stakingStakeSummary.isVisible = false
