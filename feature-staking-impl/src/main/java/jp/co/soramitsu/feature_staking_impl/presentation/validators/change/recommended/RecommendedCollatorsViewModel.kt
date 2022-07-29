@@ -66,6 +66,7 @@ class RecommendedCollatorsViewModel(
 
     val recommendedCollatorModels = combine(recommendedCollators, selectedCollator) { collators, selected ->
         convertToModels(collators, tokenUseCase.currentToken(), selected?.address)
+            .sortedByDescending { it.scoring?.apr }
     }.inBackground().share()
 
     val selectedTitle = recommendedCollators.map {
