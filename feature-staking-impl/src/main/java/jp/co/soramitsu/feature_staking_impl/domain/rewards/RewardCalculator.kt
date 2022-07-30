@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.domain.rewards
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
 import jp.co.soramitsu.common.utils.sumByBigInteger
@@ -13,12 +15,10 @@ import jp.co.soramitsu.feature_staking_impl.data.network.subquery.request.Stakin
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import kotlin.math.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import kotlin.math.pow
 
 private const val PARACHAINS_ENABLED = false
 
@@ -221,9 +221,10 @@ class SubqueryRewardCalculator(
             BigDecimal.ZERO
         }
         avgApr = currentApy
-        val gainAmount = amount * currentApy
+        val apyByPeriod = currentApy * days.toBigDecimal() / DAYS_IN_YEAR.toBigDecimal()
+        val gainAmount = amount * apyByPeriod
 
-        return PeriodReturns(gainAmount, currentApy.fractionToPercentage())
+        return PeriodReturns(gainAmount, apyByPeriod.fractionToPercentage())
     }
 
     override suspend fun calculateReturns(amount: Double, days: Int, isCompound: Boolean, targetIdHex: String): PeriodReturns {
