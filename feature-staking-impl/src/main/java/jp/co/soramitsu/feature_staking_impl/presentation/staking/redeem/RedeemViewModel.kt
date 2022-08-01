@@ -77,7 +77,7 @@ class RedeemViewModel(
         }
     }
 
-    private val accountStakingFlow = stakingScenarioInteractor.getStakingStateFlow()
+    private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow
         .share()
 
     private val assetFlow = accountStakingFlow

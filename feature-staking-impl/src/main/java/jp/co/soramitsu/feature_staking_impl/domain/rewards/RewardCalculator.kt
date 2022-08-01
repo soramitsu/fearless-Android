@@ -190,7 +190,7 @@ class SubqueryRewardCalculator(
     private var avgApr = BigDecimal.ZERO
 
     override suspend fun calculateMaxAPY(chainId: ChainId): BigDecimal {
-        val chain = stakingParachainScenarioInteractor?.getStakingStateFlow()?.first()?.chain
+        val chain = stakingParachainScenarioInteractor?.stakingStateFlow?.first()?.chain
         val stakingUrl = chain?.externalApi?.staking?.url // todo add other urls to utils
         if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
             throw Exception("Staking for this network is not supported yet")
@@ -231,7 +231,7 @@ class SubqueryRewardCalculator(
     }
 
     suspend fun getApy(selectedCandidates: List<ByteArray>): Map<String, BigDecimal?> {
-        val chain = stakingParachainScenarioInteractor?.getStakingStateFlow()?.first()?.chain
+        val chain = stakingParachainScenarioInteractor?.stakingStateFlow?.first()?.chain
         val stakingUrl = chain?.externalApi?.staking?.url
         if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
             throw Exception("Staking for this network is not supported yet")

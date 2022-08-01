@@ -17,6 +17,7 @@ import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
+import jp.co.soramitsu.feature_staking_api.domain.model.DelegationAction
 import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.IndividualExposure
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
@@ -137,14 +138,12 @@ class StakingRelayChainScenarioInteractor(
         return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() / stakingRelayChainScenarioRepository.erasPerDay(chainId)
     }
 
-    override fun getStakingStateFlow(): Flow<StakingState> {
-        return combine(
-            stakingInteractor.selectedChainFlow(),
-            stakingInteractor.currentAssetFlow()
-        ) { chain, asset -> chain to asset }.flatMapConcat { (chain, asset) ->
-            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-            stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset.token.configuration, accountId)
-        }
+    override val stakingStateFlow = combine(
+        stakingInteractor.selectedChainFlow(),
+        stakingInteractor.currentAssetFlow()
+    ) { chain, asset -> chain to asset }.flatMapConcat { (chain, asset) ->
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        stakingRelayChainScenarioRepository.stakingStateFlow(chain, asset.token.configuration, accountId)
     }
 
     suspend fun observeStashSummary(
@@ -446,7 +445,7 @@ class StakingRelayChainScenarioInteractor(
                                 amount = it.amount,
                                 timeLeft = leftTime.toLong(),
                                 calculatedAt = System.currentTimeMillis(),
-                                type = null
+                                type = DelegationAction.UNSTAKE
                             )
                         }
                 }
