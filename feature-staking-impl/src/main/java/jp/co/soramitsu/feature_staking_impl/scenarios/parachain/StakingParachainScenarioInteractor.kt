@@ -135,16 +135,16 @@ class StakingParachainScenarioInteractor(
         return identityRepositoryImpl.getIdentitiesFromIds(chain, collatorsIds.map { it.toHexString(false) })
     }
 
-    suspend fun getCurrentRound(chainId: ChainId): Round {
-        return stakingParachainScenarioRepository.getCurrentRound(chainId)
+    suspend fun getCurrentRound(chainId: ChainId): Result<Round> {
+        return kotlin.runCatching { stakingParachainScenarioRepository.getCurrentRound(chainId) }
     }
 
     suspend fun getAtStake(chainId: ChainId, collatorId: AccountId): Result<AtStake> {
-        return runCatching { stakingParachainScenarioRepository.getAtStakeOfCollator(chainId, collatorId, getCurrentRound(chainId).current) }
+        return runCatching { stakingParachainScenarioRepository.getAtStakeOfCollator(chainId, collatorId, getCurrentRound(chainId).getOrThrow().current) }
     }
 
     suspend fun getStaked(chainId: ChainId): Result<BigInteger> {
-        return runCatching { stakingParachainScenarioRepository.getStaked(chainId, getCurrentRound(chainId).current) }
+        return runCatching { stakingParachainScenarioRepository.getStaked(chainId, getCurrentRound(chainId).getOrThrow().current) }
     }
 
     fun selectedAccountStakingStateFlow(
@@ -222,7 +222,7 @@ class StakingParachainScenarioInteractor(
             it.delegator.contentEquals(accountId)
         }
 
-        val currentRound = getCurrentRound(chain.id)
+        val currentRound = getCurrentRound(chain.id).getOrThrow()
         val currentBlock = stakingInteractor.currentBlockNumber()
         val hoursInRound = hoursInRound[chain.id] ?: 0
         val unbondings = userRequests.map {
@@ -335,17 +335,17 @@ class StakingParachainScenarioInteractor(
                 it.collatorId.contentEquals(collatorId)
             }?.delegatedAmountInPlanks.orZero()
 
-            val currentRound = getCurrentRound(chain.id)
+            val currentRound = getCurrentRound(chain.id).getOrNull()?.current ?: BigInteger.ZERO
             val userRequests = delegationScheduledRequests.filter {
                 it.delegator.contentEquals(accountId)
             }
 
             val unstaking = userRequests.filter {
-                it.whenExecutable > currentRound.current
+                it.whenExecutable > currentRound
             }.sumByBigInteger { it.actionValue }
 
             val readyForUnlocking = userRequests.filter {
-                it.whenExecutable <= currentRound.current
+                it.whenExecutable <= currentRound
             }.sumByBigInteger { it.actionValue }
 
             StakingBalanceModel(
@@ -411,17 +411,17 @@ class StakingParachainScenarioInteractor(
                     it.collatorId.contentEquals(collatorId)
                 }?.delegatedAmountInPlanks.orZero()
 
-                val currentRound = getCurrentRound(chain.id)
+                val currentRound = getCurrentRound(chain.id).getOrNull()?.current ?: BigInteger.ZERO
 
                 val userRequests = delegationScheduledRequests.filter {
                     it.delegator.contentEquals(accountId)
                 }
                 val unstaking = userRequests.filter {
-                    it.whenExecutable >= currentRound.current
+                    it.whenExecutable >= currentRound
                 }.sumByBigInteger { it.actionValue }
 
                 val readyForUnlocking = userRequests.filter {
-                    it.whenExecutable < currentRound.current
+                    it.whenExecutable < currentRound
                 }.sumByBigInteger { it.actionValue }
 
                 val availableToStakeLess = staked - unstaking - readyForUnlocking
@@ -541,9 +541,9 @@ class StakingParachainScenarioInteractor(
         )
     }
 
-    suspend fun getLeaveCandidatesDelay(): Int {
+    suspend fun getLeaveCandidatesDelay(): Result<Int> {
         val chainId = stakingInteractor.getSelectedChain().id
-        return stakingConstantsRepository.parachainLeaveCandidatesDelay(chainId).toInt()
+        return kotlin.runCatching { stakingConstantsRepository.parachainLeaveCandidatesDelay(chainId).toInt() }
     }
 
     private fun calculateTimeTillTheRoundStart(currentRound: Round, currentBlock: BlockNumber, roundNumber: BigInteger, hoursInRound: Int): Long {
@@ -565,12 +565,14 @@ class StakingParachainScenarioInteractor(
 
     suspend fun getCollatorIdsWithReadyToUnlockingTokens(collatorIds: List<AccountId>, accountId: AccountId): List<AccountId> {
         val chainId = stakingInteractor.getSelectedChain().id
-        val currentRound = getCurrentRound(chainId)
-        val delegationScheduledRequests = stakingParachainScenarioRepository.getScheduledRequests(chainId, collatorIds).mapValues {
-            it.value?.filter { request -> request.delegator.contentEquals(accountId) }
-        }.filter {
-            it.value?.any { scheduledRequest -> scheduledRequest.whenExecutable <= currentRound.current } == true
-        }
-        return delegationScheduledRequests.keys.map { it.requireHexPrefix().fromHex() }
+        val currentRound = getCurrentRound(chainId).getOrNull()?.current ?: BigInteger.ZERO
+        val delegationScheduledRequests = runCatching {
+            stakingParachainScenarioRepository.getScheduledRequests(chainId, collatorIds).mapValues {
+                it.value?.filter { request -> request.delegator.contentEquals(accountId) }
+            }.filter {
+                it.value?.any { scheduledRequest -> scheduledRequest.whenExecutable <= currentRound } == true
+            }
+        }.getOrNull()
+        return delegationScheduledRequests?.keys?.map { it.requireHexPrefix().fromHex() } ?: emptyList()
     }
 }
