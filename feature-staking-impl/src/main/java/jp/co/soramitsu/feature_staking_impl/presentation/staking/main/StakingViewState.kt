@@ -11,7 +11,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.asLiveData
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
@@ -61,10 +60,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -323,7 +324,7 @@ sealed class WelcomeViewState(
 
     protected abstract val rewardCalculator: Deferred<RewardCalculator>
 
-    abstract val returns: LiveData<ReturnsModel>
+    abstract val returns: Flow<ReturnsModel>
 
     abstract fun infoActionClicked()
     abstract fun nextClicked()
@@ -374,7 +375,7 @@ class RelaychainWelcomeViewState(
 
     override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual() }
 
-    override val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val chainId = asset.token.configuration.chainId
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
@@ -383,7 +384,7 @@ class RelaychainWelcomeViewState(
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
-    }.asLiveData(scope)
+    }.cancellable()
 
     override fun infoActionClicked() {
         scope.launch {
@@ -448,7 +449,7 @@ class ParachainWelcomeViewState(
 
     override val rewardCalculator = scope.async { rewardCalculatorFactory.createSubquery() }
 
-    override val returns: LiveData<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val chainId = asset.token.configuration.chainId
         val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
         val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
@@ -457,7 +458,7 @@ class ParachainWelcomeViewState(
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
-    }.distinctUntilChanged().asLiveData(scope)
+    }.distinctUntilChanged().cancellable()
 
     override fun infoActionClicked() {
         scope.launch {
@@ -506,9 +507,7 @@ class DelegatorViewState(
     availableManageActions = ManageStakeAction.values().toSet()
 ) {
 
-    val delegations = flowOf {
-        val asset = currentAssetFlow.first()
-        if (asset.token.configuration.staking != Chain.Asset.StakingType.PARACHAIN) return@flowOf listOf()
+    val delegations = currentAssetFlow.filter { it.token.configuration.staking == Chain.Asset.StakingType.PARACHAIN }.map { asset ->
         val chainId = asset.token.configuration.chainId
         val collatorsIds = delegatorState.delegations.map { it.collatorId }
         val chain = stakingInteractor.getSelectedChain()
@@ -531,11 +530,11 @@ class DelegatorViewState(
             val rewarded = asset.token.amountFromPlanks(collator.rewardedAmountInPlanks)
 
             val currentBlock = stakingInteractor.currentBlockNumber()
-            val currentRound = parachainScenarioInteractor.getCurrentRound(chainId)
+            val currentRound = parachainScenarioInteractor.getCurrentRound(chainId).getOrNull() ?: return@mapNotNull null
             val hoursInRound = parachainScenarioInteractor.hoursInRound[chainId] ?: 0
             val millisecondsTillTheEndOfRound = calculateTimeTillTheEndOfRound(currentRound, currentBlock, hoursInRound)
 
-            val leaveCandidatesDelayInRounds = parachainScenarioInteractor.getLeaveCandidatesDelay()
+            val leaveCandidatesDelayInRounds = parachainScenarioInteractor.getLeaveCandidatesDelay().getOrNull() ?: return@mapNotNull null
             val roundWhenCandidateWillLeave = (candidateInfo.status as? CandidateInfoStatus.LEAVING)?.leavingBlock?.let { it + leaveCandidatesDelayInRounds }
             val roundsTillCandidateWillLeave = roundWhenCandidateWillLeave?.let { it - currentRound.current.toLong() }
             val hoursTillCandidateWillLeave = roundsTillCandidateWillLeave?.times(hoursInRound)
@@ -555,7 +554,7 @@ class DelegatorViewState(
                 candidateInfo
             )
         }
-    }.withLoading()
+    }.withLoading().cancellable()
 
     private fun calculateTimeTillTheEndOfRound(currentRound: Round, currentBlock: BigInteger, hoursInRound: Int): Long {
         val currentRoundFinishAtBlock = currentRound.first + currentRound.length
