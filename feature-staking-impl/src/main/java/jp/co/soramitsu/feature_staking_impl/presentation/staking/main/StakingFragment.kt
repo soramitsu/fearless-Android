@@ -30,6 +30,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.view.DelegationRecycler
 import jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.setupAssetSelector
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -98,8 +99,9 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                 }
             }
         }
-
+        var observeDelegationsJob: Job? = null
         viewModel.stakingViewState.observe { loadingState ->
+            observeDelegationsJob?.cancel()
             when (loadingState) {
                 is LoadingState.Loading -> {
                     binding.startStakingBtn.setVisible(false)
@@ -134,11 +136,13 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             observeWelcomeState(stakingState)
                         }
                         is DelegatorViewState -> {
-                            stakingState.delegations.onEach {
+
+                            observeDelegationsJob = stakingState.delegations.onEach {
                                 if (it is LoadingState.Loaded) {
                                     delegationAdapter.submitList(it.data)
                                 }
                             }.launchIn(viewModel.stakingStateScope)
+                            observeDelegationsJob?.start()
 
                             observeWelcomeState(stakingState.welcomeViewState)
 
@@ -315,7 +319,10 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         }
     }
 
+    private var returnsJob: Job? = null
+
     private fun observeWelcomeState(stakingState: WelcomeViewState) {
+        returnsJob?.cancel()
         observeValidations(stakingState)
 
         stakingState.assetLiveData.observe {
@@ -329,11 +336,12 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             binding.stakingEstimate.setAssetBalanceFiatAmount(amountFiat)
         }
 
-        stakingState.returns.observe { rewards ->
+        returnsJob = stakingState.returns.onEach { rewards ->
             binding.stakingEstimate.hideReturnsLoading()
             binding.stakingEstimate.populateMonthEstimation(rewards.monthly)
             binding.stakingEstimate.populateYearEstimation(rewards.yearly)
-        }
+        }.launchIn(viewModel.stakingStateScope)
+        returnsJob?.start()
 
         binding.stakingEstimate.amountInput.bindTo(stakingState.enteredAmountFlow, viewLifecycleOwner.lifecycleScope)
 

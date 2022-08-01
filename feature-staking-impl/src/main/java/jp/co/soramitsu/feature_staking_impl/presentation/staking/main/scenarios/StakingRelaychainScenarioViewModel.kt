@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -9,9 +8,9 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
@@ -57,11 +56,10 @@ class StakingRelaychainScenarioViewModel(
         )
     )
 
-    override suspend fun stakingState(): Flow<LoadingState<StakingState>> =
-        scenarioInteractor.getStakingStateFlow().withLoading()
+    override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
 
-    override suspend fun getStakingViewStateFlow(): Flow<LoadingState<StakingViewState>> {
-        return stakingState().mapLoading { stakingState ->
+    override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
+        return stakingStateFlow.map { stakingState ->
             when (stakingState) {
                 is StakingState.Stash.Nominator -> stakingViewStateFactory.createNominatorViewState(
                     stakingState,
@@ -126,7 +124,7 @@ class StakingRelaychainScenarioViewModel(
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
-        return scenarioInteractor.getStakingStateFlow().flatMapConcat {
+        return scenarioInteractor.stakingStateFlow.flatMapConcat {
             alertsInteractor.getAlertsFlow(it)
         }.mapList(::mapAlertToAlertModel).withLoading()
     }
