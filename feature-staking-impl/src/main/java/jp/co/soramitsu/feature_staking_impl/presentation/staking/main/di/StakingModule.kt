@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import javax.inject.Named
 import jp.co.soramitsu.common.di.scope.ScreenScope
 import jp.co.soramitsu.common.di.viewmodel.ViewModelKey
 import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
@@ -17,9 +16,6 @@ import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewModel
@@ -61,10 +57,6 @@ class StakingModule {
         stakingViewStateFactory: StakingViewStateFactory,
         router: StakingRouter,
         resourceManager: ResourceManager,
-        @Named(BALANCE_REQUIRED_CONTROLLER)
-        controllerRequiredValidation: BalanceAccountRequiredValidation,
-        @Named(BALANCE_REQUIRED_STASH)
-        stashRequiredValidation: BalanceAccountRequiredValidation,
         validationExecutor: ValidationExecutor,
         stakingUpdateSystem: UpdateSystem,
         assetSelectorFactory: AssetSelectorMixin.Presentation.Factory,
@@ -80,8 +72,6 @@ class StakingModule {
             stakingViewStateFactory,
             router,
             resourceManager,
-            controllerRequiredValidation,
-            stashRequiredValidation,
             validationExecutor,
             stakingUpdateSystem,
             assetSelectorFactory,

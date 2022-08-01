@@ -121,14 +121,12 @@ class StakingParachainScenarioInteractor(
         "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527" to 2 // moonbase
     )
 
-    override fun getStakingStateFlow(): Flow<StakingState> {
-        return combine(
-            stakingInteractor.selectedChainFlow(),
-            stakingInteractor.currentAssetFlow()
-        ) { chain, asset -> chain to asset }.flatMapConcat { (chain, asset) ->
-            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-            stakingParachainScenarioRepository.stakingStateFlow(chain, accountId)
-        }
+    override val stakingStateFlow = combine(
+        stakingInteractor.selectedChainFlow(),
+        stakingInteractor.currentAssetFlow()
+    ) { chain, asset -> chain to asset }.flatMapConcat { (chain, asset) ->
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        stakingParachainScenarioRepository.stakingStateFlow(chain, accountId)
     }
 
     suspend fun getIdentities(collatorsIds: List<AccountId>): Map<String, Identity?> {

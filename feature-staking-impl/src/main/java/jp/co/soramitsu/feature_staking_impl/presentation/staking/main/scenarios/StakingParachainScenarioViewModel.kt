@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.presentation.mapLoading
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.withLoading
@@ -36,11 +35,10 @@ class StakingParachainScenarioViewModel(
     private val stakingViewStateFactory: StakingViewStateFactory
 ) : StakingScenarioViewModel {
 
-    override suspend fun stakingState(): Flow<LoadingState<StakingState>> =
-        scenarioInteractor.getStakingStateFlow().withLoading()
+    override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
 
-    override suspend fun getStakingViewStateFlow(): Flow<LoadingState<StakingViewState>> {
-        return stakingState().mapLoading { stakingState ->
+    override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
+        return stakingStateFlow.map { stakingState ->
             when (stakingState) {
                 is StakingState.Parachain.None -> {
                     stakingViewStateFactory.createParachainWelcomeViewState(
@@ -82,7 +80,7 @@ class StakingParachainScenarioViewModel(
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
-        return scenarioInteractor.getStakingStateFlow().map { state ->
+        return scenarioInteractor.stakingStateFlow.map { state ->
             if (state !is StakingState.Parachain.Delegator) return@map emptyList<AlertModel>()
 
             val lowStakeAlerts = produceLowStakeAlerts(state)

@@ -7,16 +7,14 @@ import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
-import javax.inject.Named
 
 class StakingScenario(
     private val state: StakingSharedState,
@@ -27,11 +25,7 @@ class StakingScenario(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
     private val alertsInteractor: AlertsInteractor,
-    private val stakingViewStateFactory: StakingViewStateFactory,
-    @Named(BALANCE_REQUIRED_CONTROLLER)
-    controllerRequiredValidation: BalanceAccountRequiredValidation,
-    @Named(BALANCE_REQUIRED_STASH)
-    stashRequiredValidation: BalanceAccountRequiredValidation,
+    private val stakingViewStateFactory: StakingViewStateFactory
 ) {
 
     private val parachainViewModel by lazy {
@@ -87,7 +81,13 @@ class StakingScenario(
                 listOf()
             }
             Chain.Asset.StakingType.RELAYCHAIN -> {
-                listOf(controllerRequiredValidation)
+                listOf(
+                    BalanceAccountRequiredValidation(
+                        relaychainInteractor,
+                        accountAddressExtractor = { payload -> payload.stashState?.controllerAddress },
+                        errorProducer = ManageStakingValidationFailure::ControllerRequired,
+                    )
+                )
             }
             else -> listOf()
         }
@@ -105,7 +105,13 @@ class StakingScenario(
                 listOf()
             }
             Chain.Asset.StakingType.RELAYCHAIN -> {
-                listOf(stashRequiredValidation)
+                listOf(
+                    BalanceAccountRequiredValidation(
+                        relaychainInteractor,
+                        accountAddressExtractor = { payload -> payload.stashState?.stashAddress },
+                        errorProducer = ManageStakingValidationFailure::StashRequired,
+                    )
+                )
             }
             else -> listOf()
         }
