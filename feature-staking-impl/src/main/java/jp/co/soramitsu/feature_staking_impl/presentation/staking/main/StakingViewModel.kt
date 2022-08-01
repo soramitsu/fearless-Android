@@ -1,7 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
-import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -9,6 +8,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
@@ -16,9 +16,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_CONTROLLER
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BALANCE_REQUIRED_STASH
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
@@ -56,10 +53,6 @@ class StakingViewModel(
     stakingViewStateFactory: StakingViewStateFactory,
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
-    @Named(BALANCE_REQUIRED_CONTROLLER)
-    controllerRequiredValidation: BalanceAccountRequiredValidation,
-    @Named(BALANCE_REQUIRED_STASH)
-    stashRequiredValidation: BalanceAccountRequiredValidation,
     private val validationExecutor: ValidationExecutor,
     stakingUpdateSystem: UpdateSystem,
     assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
@@ -73,6 +66,9 @@ class StakingViewModel(
     BaseStakingViewModel,
     Validatable by validationExecutor {
 
+    override val stakingStateScope: CoroutineScope
+        get() = viewModelScope.childScope(supervised = true)
+
     private val stakingScenario = StakingScenario(
         stakingSharedState,
         this,
@@ -83,8 +79,6 @@ class StakingViewModel(
         resourceManager,
         alertsInteractor,
         stakingViewStateFactory,
-        controllerRequiredValidation,
-        stashRequiredValidation
     )
 
     override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
@@ -99,16 +93,13 @@ class StakingViewModel(
 
     val stakingViewState = scenarioViewModelFlow
         .flatMapLatest {
-            it.getStakingViewStateFlow()
+            it.getStakingViewStateFlow().withLoading()
         }.distinctUntilChanged().shareIn(stakingStateScope, SharingStarted.Eagerly, 1)
 
     val alertsFlow = scenarioViewModelFlow
         .flatMapLatest {
             it.alerts()
         }.distinctUntilChanged().share()
-
-    override val stakingStateScope: CoroutineScope
-        get() = viewModelScope.childScope(supervised = true)
 
     init {
         stakingUpdateSystem.start()
@@ -177,7 +168,9 @@ class StakingViewModel(
         validationSystem: ManageStakingValidationSystem,
         action: () -> Unit,
     ) = launch {
-        val stakingState = (stakingScenario.viewModel.map { it.stakingState().first() }.first() as? LoadingState.Loaded)?.data
+        val viewModel = stakingScenario.viewModel.first()
+
+        val stakingState = viewModel.stakingStateFlow.first()
         val stashState = stakingState as? StakingState.Stash ?: return@launch
 
         validationExecutor.requireValid(
