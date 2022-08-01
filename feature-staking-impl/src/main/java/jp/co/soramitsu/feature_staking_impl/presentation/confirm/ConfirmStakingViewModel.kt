@@ -82,7 +82,7 @@ class ConfirmStakingViewModel(
         is Payload.Full<*> -> BondPayload(payload.amount, payload.rewardDestination)
         else -> null
     }
-    private val stateFlow = scenarioInteractor.getStakingStateFlow()
+    private val stateFlow = scenarioInteractor.stakingStateFlow
         .share()
 
     private val controllerAddressFlow = flowOf(payload)
@@ -229,7 +229,7 @@ class ConfirmStakingViewModel(
                     is SetupStakingProcess.ReadyToSubmit.Parachain -> {
                         val collator = currentProcessState.payload.blockProducers.first()
                         val amount = bondPayload?.amount ?: error("Amount cant be null")
-                        val delegationCount = (scenarioInteractor.getStakingStateFlow().first() as StakingState.Parachain.Delegator).delegations.size
+                        val delegationCount = (scenarioInteractor.stakingStateFlow.first() as StakingState.Parachain.Delegator).delegations.size
                         setupStakingInteractor.estimateFinalParachainFee(collator, it.planksFromAmount(amount), delegationCount)
                     }
                 }
@@ -291,8 +291,8 @@ class ConfirmStakingViewModel(
                 val token = controllerAssetFlow.first().token
                 val collator = currentProcessState.payload.blockProducers.first()
                 val amount = bondPayload?.amount ?: error("Amount cant be null")
-                val delegationCount = (scenarioInteractor.getStakingStateFlow().first() as StakingState.Parachain.Delegator).delegations.size
-                val accountAddress = (scenarioInteractor.getStakingStateFlow().first() as StakingState.Parachain).accountAddress
+                val delegationCount = (scenarioInteractor.stakingStateFlow.first() as StakingState.Parachain.Delegator).delegations.size
+                val accountAddress = (scenarioInteractor.stakingStateFlow.first() as StakingState.Parachain).accountAddress
                 setupStakingInteractor.setupStaking(collator, token.planksFromAmount(amount), delegationCount, accountAddress)
             }
         }

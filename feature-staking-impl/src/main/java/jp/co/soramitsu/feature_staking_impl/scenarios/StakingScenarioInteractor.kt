@@ -28,7 +28,7 @@ interface StakingScenarioInteractor {
 
     suspend fun observeNetworkInfoState(): Flow<NetworkInfo>
 
-    fun getStakingStateFlow(): Flow<StakingState>
+    val stakingStateFlow: Flow<StakingState>
     suspend fun getMinimumStake(chainId: ChainId): BigInteger
     suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean
 

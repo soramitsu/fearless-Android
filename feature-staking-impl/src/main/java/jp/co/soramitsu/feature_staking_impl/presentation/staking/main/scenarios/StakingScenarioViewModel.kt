@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -11,7 +12,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.Stak
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
 
 const val PERIOD_MONTH = 30
 const val PERIOD_YEAR = 365
@@ -22,8 +22,8 @@ interface StakingScenarioViewModel {
         val WAITING_ICON = R.drawable.ic_time_24
     }
 
-    suspend fun stakingState(): Flow<LoadingState<StakingState>>
-    suspend fun getStakingViewStateFlow(): Flow<LoadingState<StakingViewState>>
+    val stakingStateFlow: Flow<StakingState>
+    suspend fun getStakingViewStateFlow(): Flow<StakingViewState>
 
     suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>>
     suspend fun getRewardCalculator(): RewardCalculator
