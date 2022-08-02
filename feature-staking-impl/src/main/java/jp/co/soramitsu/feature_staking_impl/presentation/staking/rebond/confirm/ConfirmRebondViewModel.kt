@@ -30,7 +30,6 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.requireFee
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -55,12 +54,10 @@ class ConfirmRebondViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    val accountStakingFlow = stakingScenarioInteractor.selectedAccountStakingStateFlow()
+    private val accountStakingFlow = stakingScenarioInteractor.selectedAccountStakingStateFlow()
         .share()
 
-    private val assetFlow = accountStakingFlow.flatMapLatest {
-        interactor.assetFlow(it.executionAddress)
-    }
+    private val assetFlow = interactor.currentAssetFlow()
         .share()
 
     val assetModelFlow = assetFlow

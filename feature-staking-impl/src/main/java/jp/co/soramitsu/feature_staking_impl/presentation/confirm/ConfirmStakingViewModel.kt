@@ -43,7 +43,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -96,8 +95,7 @@ class ConfirmStakingViewModel(
         }
         .share()
 
-    private val controllerAssetFlow = controllerAddressFlow
-        .flatMapLatest { interactor.assetFlow(it) }
+    private val controllerAssetFlow = interactor.currentAssetFlow()
         .share()
 
     val assetModelLiveData = controllerAssetFlow

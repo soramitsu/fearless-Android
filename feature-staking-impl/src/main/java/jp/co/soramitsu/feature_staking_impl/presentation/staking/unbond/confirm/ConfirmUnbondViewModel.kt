@@ -32,7 +32,6 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -58,9 +57,7 @@ class ConfirmUnbondViewModel(
     private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow
         .share()
 
-    private val assetFlow = accountStakingFlow.flatMapLatest {
-        interactor.assetFlow(it.rewardsAddress)
-    }
+    private val assetFlow = interactor.currentAssetFlow()
         .share()
 
     val assetModelFlow = assetFlow

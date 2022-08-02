@@ -36,7 +36,6 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -44,7 +43,7 @@ import kotlinx.coroutines.launch
 class ConfirmRewardDestinationViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
-    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val validationSystem: RewardDestinationValidationSystem,
@@ -62,8 +61,7 @@ class ConfirmRewardDestinationViewModel(
         .filterIsInstance<StakingState.Stash>()
         .share()
 
-    private val controllerAssetFlow = stashFlow
-        .flatMapLatest { interactor.assetFlow(it.controllerAddress) }
+    private val controllerAssetFlow = interactor.currentAssetFlow()
         .share()
 
     val originAccountModelLiveData = stashFlow.map {

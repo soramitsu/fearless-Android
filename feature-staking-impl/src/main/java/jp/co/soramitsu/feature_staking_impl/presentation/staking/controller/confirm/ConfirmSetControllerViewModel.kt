@@ -41,7 +41,7 @@ class ConfirmSetControllerViewModel(
     Validatable by validationExecutor,
     ExternalAccountActions by externalActions {
 
-    private val assetFlow = interactor.assetFlow(payload.stashAddress)
+    private val assetFlow = interactor.currentAssetFlow()
         .share()
 
     val feeStatusLiveData = assetFlow.map { asset ->
