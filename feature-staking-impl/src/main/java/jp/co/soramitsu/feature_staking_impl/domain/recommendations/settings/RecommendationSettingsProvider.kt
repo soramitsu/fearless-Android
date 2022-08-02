@@ -97,15 +97,15 @@ abstract class RecommendationSettingsProvider<T> {
                     else -> null
                 }
             }
-            val sorting = schema.sortings.first { it.checked }.let {
-                when (it.sorting) {
+            val sorting = schema.sortings.firstOrNull { it.checked }.let {
+                when (it?.sorting) {
                     Sorting.EstimatedRewards -> BlockProducersSorting.ValidatorSorting.APYSorting
                     Sorting.TotalStake -> BlockProducersSorting.ValidatorSorting.TotalStakeSorting
                     Sorting.ValidatorsOwnStake -> BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting
                     else -> null
-                } as BlockProducersSorting<Validator>
+                } as? BlockProducersSorting<Validator>
             }
-            setCustomSettings(filters, sorting)
+            sorting?.let { setCustomSettings(filters, it) }
         }
     }
 
