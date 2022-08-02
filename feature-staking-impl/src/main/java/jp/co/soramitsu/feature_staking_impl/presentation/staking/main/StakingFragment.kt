@@ -269,7 +269,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                     hideLoading()
                     setElectionStatus(mapStatus(summary))
                     setTotalStaked(summary.totalStaked)
-                    setTotalRewards(summary.totalRewards)
+                    setRewardsApr(summary.totalRewards)
 
                     if (summary.totalStakedFiat == null) {
                         hideTotalStakeFiat()
@@ -277,13 +277,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                         showTotalStakedFiat()
                         setTotalStakedFiat(summary.totalStakedFiat)
                     }
-
-                    if (summary.totalRewardsFiat == null) {
-                        hideTotalRewardsFiat()
-                    } else {
-                        showTotalRewardsFiat()
-                        setTotalRewardsFiat(summary.totalRewardsFiat)
-                    }
+                    hideRewardsAprFiat()
                 }
                 is LoadingState.Loading -> {}
             }
@@ -311,10 +305,9 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
     }
 
     private fun mapNominatorStatus(summary: StakeSummaryModel<NominatorStatus>): StakeSummaryView.Status {
-        val currentEraDisplayer = getString(R.string.staking_era_title, summary.currentEraDisplay)
         return when (summary.status) {
-            is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(currentEraDisplayer)
-            NominatorStatus.Active -> StakeSummaryView.Status.Active(currentEraDisplayer)
+            is NominatorStatus.Inactive -> StakeSummaryView.Status.Inactive(summary.currentEraDisplay)
+            NominatorStatus.Active -> StakeSummaryView.Status.Active(summary.currentEraDisplay)
             is NominatorStatus.Waiting -> StakeSummaryView.Status.Waiting(summary.status.timeLeft)
         }
     }

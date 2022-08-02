@@ -355,7 +355,6 @@ Derivation path: %s</string>
     <string name="staking_balance_title">Staking balance</string>
     <string name="make_payout_transaction_sent">Payout transaction sent</string>
     <string name="staking_zero_bond_error">Amount must be positive</string>
-    <string name="staking_no_stash_account">Stash account %s is unavailable to update staking setup.</string>
     <string name="common_transaction_submitted">Transaction submitted</string>
     <string name="staking_your_validators">Your validators</string>
     <string name="staking_rebond_all">Rebond all</string>

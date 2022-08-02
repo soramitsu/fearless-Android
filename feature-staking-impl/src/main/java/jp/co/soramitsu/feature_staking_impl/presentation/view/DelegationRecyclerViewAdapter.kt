@@ -33,9 +33,9 @@ class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         itemView.findViewById<StakeSummaryView>(R.id.summaryView).apply {
             hideLoading()
             setTitle(item.collatorName)
-            setTotalRewards(item.rewarded)
+            setRewardsApr(item.rewardApy)
             setTotalStaked(item.staked)
-            item.rewardedFiat?.let(::setTotalRewardsFiat) ?: hideTotalRewardsFiat()
+            item.rewardedFiat?.let(::setRewardsAprFiat) ?: hideRewardsAprFiat()
             item.stakedFiat?.let(::setTotalStakedFiat) ?: hideTotalStakeFiat()
             val status = when (item.status) {
                 is DelegatorViewState.CollatorDelegationModel.Status.Active -> StakeSummaryView.Status.ActiveCollator(item.status.nextRoundTimeLeft)
