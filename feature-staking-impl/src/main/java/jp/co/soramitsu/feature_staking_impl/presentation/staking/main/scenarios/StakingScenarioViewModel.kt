@@ -3,9 +3,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 import java.math.BigDecimal
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.model.StakingNetworkInfoModel
@@ -28,6 +31,9 @@ interface StakingScenarioViewModel {
     suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>>
     suspend fun getRewardCalculator(): RewardCalculator
     suspend fun alerts(): Flow<LoadingState<List<AlertModel>>>
+
+    suspend fun getRedeemValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
+    suspend fun getBondMoreValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
 }
 
 fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {

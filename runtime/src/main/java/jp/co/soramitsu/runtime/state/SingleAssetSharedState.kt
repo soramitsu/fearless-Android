@@ -52,7 +52,7 @@ abstract class SingleAssetSharedState(
 
             AssetWithChain(chain, chainAsset)
         }
-        .inBackground()
+//        .inBackground()
 //        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableToSelect(): List<Chain.Asset> {
