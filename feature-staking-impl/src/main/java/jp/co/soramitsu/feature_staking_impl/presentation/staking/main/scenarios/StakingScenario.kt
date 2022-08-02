@@ -1,14 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.validation.CompositeValidation
-import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -73,54 +69,6 @@ class StakingScenario(
             }
             else -> error("")
         }
-    }
-
-    val redeemValidationSystem = state.assetWithChain.map {
-        val validations = when (it.asset.staking) {
-            Chain.Asset.StakingType.PARACHAIN -> {
-                listOf()
-            }
-            Chain.Asset.StakingType.RELAYCHAIN -> {
-                listOf(
-                    BalanceAccountRequiredValidation(
-                        relaychainInteractor,
-                        accountAddressExtractor = { payload -> payload.stashState?.controllerAddress },
-                        errorProducer = ManageStakingValidationFailure::ControllerRequired,
-                    )
-                )
-            }
-            else -> listOf()
-        }
-
-        ValidationSystem(
-            CompositeValidation(
-                validations = validations
-            )
-        )
-    }
-
-    val bondMoreValidationSystem = state.assetWithChain.map {
-        val validations = when (it.asset.staking) {
-            Chain.Asset.StakingType.PARACHAIN -> {
-                listOf()
-            }
-            Chain.Asset.StakingType.RELAYCHAIN -> {
-                listOf(
-                    BalanceAccountRequiredValidation(
-                        relaychainInteractor,
-                        accountAddressExtractor = { payload -> payload.stashState?.stashAddress },
-                        errorProducer = ManageStakingValidationFailure::StashRequired,
-                    )
-                )
-            }
-            else -> listOf()
-        }
-
-        ValidationSystem(
-            CompositeValidation(
-                validations = validations
-            )
-        )
     }
 }
 

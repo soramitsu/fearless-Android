@@ -2,7 +2,6 @@ package jp.co.soramitsu.runtime.state
 
 import jp.co.soramitsu.common.data.holders.ChainIdHolder
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -52,8 +51,6 @@ abstract class SingleAssetSharedState(
 
             AssetWithChain(chain, chainAsset)
         }
-        .inBackground()
-//        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableToSelect(): List<Chain.Asset> {
         val allChains = chainRegistry.currentChains.first()

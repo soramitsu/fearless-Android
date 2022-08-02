@@ -145,8 +145,8 @@ class StakingViewModel(
     }
 
     override fun bondMoreAlertClicked() {
-        viewModelScope.launch {
-            val validation = stakingScenario.bondMoreValidationSystem.last()
+        stakingStateScope.launch {
+            val validation = scenarioViewModelFlow.last().getBondMoreValidationSystem()
             requireValidManageStakingAction(validation) {
                 val bondMorePayload = SelectBondMorePayload(overrideFinishAction = StakingRouter::returnToMain, collatorAddress = null)
 
@@ -156,8 +156,10 @@ class StakingViewModel(
     }
 
     override fun redeemAlertClicked() {
-        viewModelScope.launch {
-            val validation = stakingScenario.redeemValidationSystem.last()
+        stakingStateScope.launch {
+            val vm = scenarioViewModelFlow.first()
+            val validation = vm.getRedeemValidationSystem()
+            hashCode()
             requireValidManageStakingAction(validation) {
                 val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back, collatorAddress = null)
 
@@ -166,14 +168,14 @@ class StakingViewModel(
         }
     }
 
-    private fun requireValidManageStakingAction(
+    private suspend fun requireValidManageStakingAction(
         validationSystem: ManageStakingValidationSystem,
         action: () -> Unit,
-    ) = launch {
+    ) {
         val viewModel = stakingScenario.viewModel.first()
 
         val stakingState = viewModel.stakingStateFlow.first()
-        val stashState = stakingState as? StakingState.Stash ?: return@launch
+        val stashState = stakingState as? StakingState.Stash ?: return
 
         validationExecutor.requireValid(
             validationSystem,
