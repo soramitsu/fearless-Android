@@ -20,7 +20,7 @@ import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUs
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_api.domain.model.WithAddress
+import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
@@ -219,8 +219,8 @@ class ConfirmStakingViewModel(
                 when (currentProcessState) {
                     is SetupStakingProcess.ReadyToSubmit.Stash -> {
                         setupStakingInteractor.calculateSetupStakingFee(
-                            controllerAddress = controllerAddressFlow.first(),
-                            validatorAccountIds = prepareNominations(),
+                            controllerAddress = controllerAddressFlow.first().lowercase(),
+                            validatorAccountIds = currentProcessState.payload.blockProducers.map(Validator::accountIdHex),
                             bondPayload = bondPayload
                         )
                     }
@@ -253,8 +253,6 @@ class ConfirmStakingViewModel(
         }
     }
 
-    private fun prepareNominations() = payload.blockProducers.map(WithAddress::address)
-
     private fun sendTransactionIfValid() = requireFee { fee ->
         launch {
             val payload = SetupStakingPayload(
@@ -281,7 +279,7 @@ class ConfirmStakingViewModel(
             is SetupStakingProcess.ReadyToSubmit.Stash -> {
                 setupStakingInteractor.setupStaking(
                     controllerAddress = setupStakingPayload.controllerAddress,
-                    validatorAccountIds = prepareNominations(),
+                    validatorAccountIds = currentProcessState.payload.blockProducers.map(Validator::accountIdHex),
                     bondPayload = bondPayload
                 )
             }
