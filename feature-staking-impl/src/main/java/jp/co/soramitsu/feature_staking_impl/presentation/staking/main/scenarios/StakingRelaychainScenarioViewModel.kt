@@ -16,6 +16,9 @@ import jp.co.soramitsu.feature_staking_impl.domain.alerts.Alert
 import jp.co.soramitsu.feature_staking_impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAccountRequiredValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingMaxNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.welcome.WelcomeStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.alerts.model.AlertModel
@@ -171,5 +174,33 @@ class StakingRelaychainScenarioViewModel(
             )
             else -> error("Wrong alert type")
         }
+    }
+
+    override suspend fun getBondMoreValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                validations = listOf(
+                    BalanceAccountRequiredValidation(
+                        scenarioInteractor,
+                        accountAddressExtractor = { payload -> payload.stashState?.stashAddress },
+                        errorProducer = ManageStakingValidationFailure::StashRequired,
+                    )
+                )
+            )
+        )
+    }
+
+    override suspend fun getRedeemValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {
+        return ValidationSystem(
+            CompositeValidation(
+                validations = listOf(
+                    BalanceAccountRequiredValidation(
+                        scenarioInteractor,
+                        accountAddressExtractor = { payload -> payload.stashState?.controllerAddress },
+                        errorProducer = ManageStakingValidationFailure::ControllerRequired,
+                    )
+                )
+            )
+        )
     }
 }
