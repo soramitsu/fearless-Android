@@ -36,6 +36,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.last
@@ -202,8 +203,8 @@ class StakingViewModel(
 
     fun openCollatorInfo(model: DelegatorViewState.CollatorDelegationModel) {
         viewModelScope.launch {
-            val stakingState = stakingViewState.first()
-            ((stakingState as? LoadingState.Loaded)?.data as? DelegatorViewState)?.openCollatorInfo(model)
+            val stakingState = stakingViewState.filterIsInstance<LoadingState.Loaded<DelegatorViewState>>().first()
+            (stakingState as? LoadingState.Loaded)?.data?.openCollatorInfo(model)
         }
     }
 }

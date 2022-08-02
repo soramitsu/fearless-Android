@@ -3,7 +3,6 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -23,8 +22,8 @@ import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
+import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
-import jp.co.soramitsu.feature_staking_impl.presentation.mappers.PERCENT_MULTIPLIER
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.CollatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
@@ -51,6 +50,7 @@ class CollatorDetailsViewModel(
     private val appLinksProvider: AppLinksProvider,
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
+    private val rewardCalculatorFactory: RewardCalculatorFactory,
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
     private val assetFlow = interactor.currentAssetFlow()
@@ -59,6 +59,8 @@ class CollatorDetailsViewModel(
     private val maxDelegations = flowOf { stakingParachainScenarioInteractor.maxDelegationsPerDelegator() }
         .inBackground()
 
+    val rewardCalculator = rewardCalculatorFactory.createSubquery()
+
     val collatorDetails = maxDelegations.combine(assetFlow) { maxDelegations, asset ->
         val chain = interactor.getSelectedChain()
         val address = interactor.getSelectedAccountProjection()?.address
@@ -66,6 +68,8 @@ class CollatorDetailsViewModel(
         val myTotalStake = atStake?.delegations?.find { it.first.toHexString(true) == address }?.second
         val totalStake = myTotalStake?.let { asset.token.amountFromPlanks(it) }
         val (statusText, statusColor) = mapStatus(collator.stake.status)
+        val rewardApr = rewardCalculator.getApyFor(collator.accountIdHex.fromHex())
+
         CollatorDetailsModel(
             "0x${collator.accountIdHex}",
             iconGenerator.createEthereumAddressModel(collator.accountIdHex, AddressIconGenerator.SIZE_MEDIUM).image,
@@ -84,7 +88,7 @@ class CollatorDetailsViewModel(
             statusText = resourceManager.getString(statusText),
             statusColor = statusColor,
             delegations = collator.stake.delegations.format(),
-            estimatedRewardsApr = (PERCENT_MULTIPLIER * BigDecimal.ONE).formatAsPercentage(),
+            estimatedRewardsApr = rewardApr.formatAsPercentage(),
             totalStake = totalStake?.formatTokenAmount(asset.token.configuration),
             totalStakeFiat = totalStake?.let { asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol) },
             minBond = asset.token.amountFromPlanks(collator.stake.minBond).formatTokenAmount(asset.token.configuration),

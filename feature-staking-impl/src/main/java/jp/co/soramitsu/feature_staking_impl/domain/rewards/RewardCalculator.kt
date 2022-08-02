@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.median
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -96,8 +97,8 @@ class ManualRewardCalculator(
 
     override fun calculateAvgAPY() = expectedAPY.toBigDecimal().fractionToPercentage()
 
-    override fun getApyFor(targetIdHex: String): BigDecimal {
-        val apy = apyByValidator[targetIdHex] ?: expectedAPY
+    override suspend fun getApyFor(targetId: ByteArray): BigDecimal {
+        val apy = apyByValidator[targetId.toHexString()] ?: expectedAPY
 
         return apy.toBigDecimal()
     }
@@ -164,7 +165,7 @@ interface RewardCalculator {
 
     fun calculateAvgAPY(): BigDecimal
 
-    fun getApyFor(targetIdHex: String): BigDecimal
+    suspend fun getApyFor(targetId: ByteArray): BigDecimal
 
     suspend fun calculateReturns(
         amount: BigDecimal,
@@ -207,8 +208,8 @@ class SubqueryRewardCalculator(
         return avgApr.fractionToPercentage()
     }
 
-    override fun getApyFor(targetIdHex: String): BigDecimal {
-        return BigDecimal.ZERO
+    override suspend fun getApyFor(targetId: ByteArray): BigDecimal {
+        return getApy(listOf(targetId))[targetId.toHexString()].orZero()
     }
 
     override suspend fun calculateReturns(amount: BigDecimal, days: Int, isCompound: Boolean, chainId: ChainId): PeriodReturns {
