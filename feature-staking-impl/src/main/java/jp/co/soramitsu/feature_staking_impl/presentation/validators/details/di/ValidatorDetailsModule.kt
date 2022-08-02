@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.CollatorDetailsViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsViewModel
@@ -37,7 +38,8 @@ class CollatorDetailsModule {
         externalAccountActions: ExternalAccountActions.Presentation,
         appLinksProvider: AppLinksProvider,
         resourceManager: ResourceManager,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        rewardCalculatorFactory: RewardCalculatorFactory
     ): ViewModel {
         return CollatorDetailsViewModel(
             interactor,
@@ -48,7 +50,8 @@ class CollatorDetailsModule {
             externalAccountActions,
             appLinksProvider,
             resourceManager,
-            chainRegistry
+            chainRegistry,
+            rewardCalculatorFactory
         )
     }
 

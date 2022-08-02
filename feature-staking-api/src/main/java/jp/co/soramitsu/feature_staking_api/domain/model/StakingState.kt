@@ -1,10 +1,10 @@
 package jp.co.soramitsu.feature_staking_api.domain.model
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import java.math.BigDecimal
-import java.math.BigInteger
 
 sealed class StakingState(
     val chain: Chain,

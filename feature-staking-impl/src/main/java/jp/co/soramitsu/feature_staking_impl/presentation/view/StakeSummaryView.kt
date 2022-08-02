@@ -90,7 +90,7 @@ class StakeSummaryView @JvmOverloads constructor(
 
     fun hideLoading() {
         binding.stakeTotalStakedView.hideLoading()
-        binding.stakeTotalRewardsView.hideLoading()
+        binding.stakeRewardsAprView.hideLoading()
     }
 
     fun setTotalStaked(inTokens: String) {
@@ -109,20 +109,20 @@ class StakeSummaryView @JvmOverloads constructor(
         binding.stakeTotalStakedView.setExtraBlockValueText(totalStake)
     }
 
-    fun setTotalRewards(inTokens: String) {
-        binding.stakeTotalRewardsView.setBody(inTokens)
+    fun setRewardsApr(value: String) {
+        binding.stakeRewardsAprView.setBody(value)
     }
 
-    fun showTotalRewardsFiat() {
-        binding.stakeTotalRewardsView.showWholeExtraBlock()
+    fun showRewardsAprFiat() {
+        binding.stakeRewardsAprView.showWholeExtraBlock()
     }
 
-    fun hideTotalRewardsFiat() {
-        binding.stakeTotalRewardsView.makeExtraBlockInvisible()
+    fun hideRewardsAprFiat() {
+        binding.stakeRewardsAprView.makeExtraBlockInvisible()
     }
 
-    fun setTotalRewardsFiat(totalRewards: String) {
-        binding.stakeTotalRewardsView.setExtraBlockValueText(totalRewards)
+    fun setRewardsAprFiat(totalRewards: String) {
+        binding.stakeRewardsAprView.setExtraBlockValueText(totalRewards)
     }
 
     fun setStatusClickListener(listener: OnClickListener) {

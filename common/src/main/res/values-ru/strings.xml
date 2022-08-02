@@ -345,7 +345,6 @@
     <string name="staking_balance_title">Баланс стейкинга</string>
     <string name="make_payout_transaction_sent">Транзакция на выплату отправлена</string>
     <string name="staking_zero_bond_error">Сумма должна быть больше нуля</string>
-    <string name="staking_no_stash_account">Стэш аккаунт %s недоступен для обновления настроек стейкинга</string>
     <string name="common_transaction_submitted">Транзакция отправлена</string>
     <string name="staking_your_validators">Ваши валидаторы</string>
     <string name="staking_rebond_all">Ребонд все</string>

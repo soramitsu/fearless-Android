@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -520,6 +521,7 @@ class DelegatorViewState(
         val candidateInfos = parachainScenarioInteractor.getCandidateInfos(chainId, collatorsIds)
 
         val readyToUnlockCollatorIds = parachainScenarioInteractor.getCollatorIdsWithReadyToUnlockingTokens(collatorsIds, delegatorState.accountId)
+        val apyMap = rewardCalculatorFactory.createSubquery().getApy(delegatorState.delegations.map { it.collatorId })
 
         delegatorState.delegations.mapNotNull { collator ->
             val collatorIdHex = collator.collatorId.toHexString(false)
@@ -528,6 +530,7 @@ class DelegatorViewState(
 
             val staked = asset.token.amountFromPlanks(collator.delegatedAmountInPlanks)
             val rewarded = asset.token.amountFromPlanks(collator.rewardedAmountInPlanks)
+            val rewardApy = apyMap[collatorIdHex].orZero()
 
             val currentBlock = stakingInteractor.currentBlockNumber()
             val currentRound = parachainScenarioInteractor.getCurrentRound(chainId).getOrNull() ?: return@mapNotNull null
@@ -548,7 +551,7 @@ class DelegatorViewState(
                 collatorName = identity?.display ?: collatorIdHex,
                 staked = staked.formatTokenAmount(asset.token.configuration),
                 stakedFiat = staked.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
-                rewarded = rewarded.formatTokenAmount(asset.token.configuration),
+                rewardApy = rewardApy.formatAsPercentage(),
                 rewardedFiat = rewarded.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol),
                 status = candidateInfo.toModelStatus(millisecondsTillTheEndOfRound, millisecondsTillCandidateWillLeave, isReadyToUnlock),
                 candidateInfo
@@ -569,7 +572,7 @@ class DelegatorViewState(
     fun openCollatorInfo(model: CollatorDelegationModel) {
         scope.launch {
             val identity = parachainScenarioInteractor.getIdentity(model.collatorId)
-            val apy = rewardCalculatorFactory.createSubquery().getApyFor(model.collatorId.toHexString(true))
+            val apy = rewardCalculatorFactory.createSubquery().getApyFor(model.collatorId)
             router.openCollatorDetails(
                 CollatorDetailsParcelModel(
                     model.collatorId.toHexString(true),
@@ -606,7 +609,7 @@ class DelegatorViewState(
         val collatorName: String,
         val staked: String,
         val stakedFiat: String?,
-        val rewarded: String,
+        val rewardApy: String,
         val rewardedFiat: String?,
         val status: Status,
         val collator: CandidateInfo
