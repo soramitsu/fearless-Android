@@ -11,11 +11,11 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -31,20 +31,19 @@ import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
@@ -80,8 +79,7 @@ class RedeemViewModel(
     private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow
         .share()
 
-    private val assetFlow = accountStakingFlow
-        .flatMapLatest { interactor.assetFlow(it.rewardsAddress) }
+    private val assetFlow = interactor.currentAssetFlow()
         .share()
 
     private val parsedAmountFlow = stakingUnlockAmount.mapNotNull {
