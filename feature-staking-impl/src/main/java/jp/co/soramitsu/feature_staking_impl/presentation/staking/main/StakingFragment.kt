@@ -195,6 +195,11 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         viewModel.currentAddressModelLiveData.observe {
             binding.stakingAvatar.setImageDrawable(it.image)
         }
+
+        viewModel.contentLoading.observe {
+            binding.stakingLoadableContent.isVisible = it.not()
+            binding.contentProgress.isVisible = it
+        }
     }
 
     private fun setupNetworkInfo(model: StakingNetworkInfoModel.RelayChain) {

@@ -35,6 +35,8 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithA
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -100,6 +102,10 @@ class StakingViewModel(
         .flatMapLatest {
             it.alerts()
         }.distinctUntilChanged().share()
+
+    val contentLoading = combine(networkInfo, stakingViewState, alertsFlow) { networkInfo, viewState, alerts ->
+        networkInfo is LoadingState.Loading || viewState is LoadingState.Loading || alerts is LoadingState.Loading
+    }.debounce(300)
 
     init {
         stakingUpdateSystem.start()
