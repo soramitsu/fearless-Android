@@ -15,21 +15,10 @@ import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentContributeConfirmBinding
 import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeAmount
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeBonus
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeConfirm
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeContainer
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeCrowloanTitle
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeFee
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeLeasingPeriod
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeOriginAcount
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeReward
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.confirmContributeToolbar
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressText
-import kotlinx.android.synthetic.main.fragment_contribute_confirm.moonbeamEtheriumAddressTitle
 import java.math.BigDecimal
 import javax.inject.Inject
 
@@ -38,6 +27,8 @@ private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
 
     @Inject protected lateinit var imageLoader: ImageLoader
+
+    private lateinit var binding: FragmentContributeConfirmBinding
 
     companion object {
 
@@ -50,25 +41,28 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_contribute_confirm, container, false)
+    ): View {
+        binding = FragmentContributeConfirmBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun initViews() {
-        confirmContributeContainer.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            confirmContributeContainer.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
+
+                consume(true)
             }
 
-            consume(true)
+            confirmContributeToolbar.setHomeButtonListener { viewModel.backClicked() }
+            confirmContributeConfirm.prepareForProgress(viewLifecycleOwner)
+            confirmContributeConfirm.setOnClickListener { viewModel.nextClicked() }
+
+            confirmContributeOriginAcount.setWholeClickListener { viewModel.originAccountClicked() }
+            confirmContributeBonus.setOnClickListener { viewModel.bonusClicked() }
         }
-
-        confirmContributeToolbar.setHomeButtonListener { viewModel.backClicked() }
-        confirmContributeConfirm.prepareForProgress(viewLifecycleOwner)
-        confirmContributeConfirm.setOnClickListener { viewModel.nextClicked() }
-
-        confirmContributeOriginAcount.setWholeClickListener { viewModel.originAccountClicked() }
-        confirmContributeBonus?.setOnClickListener { viewModel.bonusClicked() }
     }
 
     override fun inject() {
@@ -89,23 +83,25 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         setupExternalActions(viewModel)
         observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
-        viewModel.showNextProgress.observe(confirmContributeConfirm::setProgress)
+        viewModel.showNextProgress.observe(binding.confirmContributeConfirm::setProgress)
 
         viewModel.assetModelFlow.observe {
-            confirmContributeAmount.setAssetBalance(it.assetBalance)
-            confirmContributeAmount.setAssetName(it.tokenName)
-            confirmContributeAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+            with(binding) {
+                confirmContributeAmount.setAssetBalance(it.assetBalance)
+                confirmContributeAmount.setAssetName(it.tokenName)
+                confirmContributeAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+            }
         }
 
-        confirmContributeAmount.amountInput.setText(viewModel.selectedAmount)
+        binding.confirmContributeAmount.amountInput.setText(viewModel.selectedAmount)
 
         viewModel.enteredFiatAmountFlow.observe {
-            it?.let(confirmContributeAmount::setAssetBalanceFiatAmount)
+            it?.let(binding.confirmContributeAmount::setAssetBalanceFiatAmount)
         }
 
-        viewModel.feeFlow.observe(confirmContributeFee::setFeeStatus)
+        viewModel.feeFlow.observe(binding.confirmContributeFee::setFeeStatus)
 
-        with(confirmContributeReward) {
+        with(binding.confirmContributeReward) {
             val reward = viewModel.estimatedReward
 
             setVisible(reward != null)
@@ -114,47 +110,51 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
         }
 
         viewModel.crowdloanInfoFlow.observe {
-            confirmContributeLeasingPeriod.showValue(
+            binding.confirmContributeLeasingPeriod.showValue(
                 primary = it.leasePeriod,
                 secondary = getString(R.string.common_till_date, it.leasedUntil)
             )
         }
 
         viewModel.selectedAddressModelFlow.observe {
-            confirmContributeOriginAcount.setMessage(it.nameOrAddress)
-            confirmContributeOriginAcount.setTextIcon(it.image)
+            binding.confirmContributeOriginAcount.setMessage(it.nameOrAddress)
+            binding.confirmContributeOriginAcount.setTextIcon(it.image)
         }
 
         viewModel.bonusFlow.observe {
             val isMoonbeam = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isMoonbeam == true
             val isAstar = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isAstar == true
             val isInterlay = argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata?.isInterlay == true
-            confirmContributeBonus?.setVisible(it != null && !isMoonbeam && !isAstar && !isInterlay)
+            binding.confirmContributeBonus.setVisible(it != null && !isMoonbeam && !isAstar && !isInterlay)
 
-            it?.let { confirmContributeBonus?.showValue(it) }
+            it?.let { binding.confirmContributeBonus.showValue(it) }
         }
 
         viewModel.bonusNumberFlow.observe {
-            confirmContributeBonus?.setValueColorRes(getColor(it))
+            binding.confirmContributeBonus.setValueColorRes(getColor(it))
         }
 
         viewModel.ethAddress.let {
-            moonbeamEtheriumAddressText.setVisible(it != null)
-            moonbeamEtheriumAddressTitle.setVisible(it != null)
+            with(binding) {
+                moonbeamEtheriumAddressText.setVisible(it != null)
+                moonbeamEtheriumAddressTitle.setVisible(it != null)
 
-            moonbeamEtheriumAddressText.text = it?.first.orEmpty()
+                moonbeamEtheriumAddressText.text = it?.first.orEmpty()
+            }
         }
 
-        confirmContributeCrowloanTitle.text = viewModel.title
+        binding.confirmContributeCrowloanTitle.text = viewModel.title
         applyCustomBonus()
     }
 
     private fun applyCustomBonus() {
         val isApply = (argument<ConfirmContributePayload>(KEY_PAYLOAD).metadata)?.run { isAcala || isInterlay } ?: false
         if (isApply) {
-            confirmContributeBonus?.setVisible(true)
-            confirmContributeBonus?.showValue(getString(R.string.label_link))
-            confirmContributeBonus?.setValueColorRes(R.color.colorAccent)
+            with(binding) {
+                confirmContributeBonus.setVisible(true)
+                confirmContributeBonus.showValue(getString(R.string.label_link))
+                confirmContributeBonus.setValueColorRes(R.color.colorAccent)
+            }
         }
     }
 

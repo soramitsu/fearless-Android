@@ -1,9 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.core.view.isVisible
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
@@ -11,23 +9,21 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentRedeemBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import kotlinx.android.synthetic.main.fragment_redeem.redeemAmount
-import kotlinx.android.synthetic.main.fragment_redeem.redeemConfirm
-import kotlinx.android.synthetic.main.fragment_redeem.redeemContainer
-import kotlinx.android.synthetic.main.fragment_redeem.redeemFee
-import kotlinx.android.synthetic.main.fragment_redeem.redeemOriginAccount
-import kotlinx.android.synthetic.main.fragment_redeem.redeemToolbar
 import javax.inject.Inject
 
 private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-class RedeemFragment : BaseFragment<RedeemViewModel>() {
+class RedeemFragment : BaseFragment<RedeemViewModel>(R.layout.fragment_redeem) {
 
     @Inject protected lateinit var imageLoader: ImageLoader
+
+    private val binding by viewBinding(FragmentRedeemBinding::bind)
 
     companion object {
 
@@ -36,27 +32,21 @@ class RedeemFragment : BaseFragment<RedeemViewModel>() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_redeem, container, false)
-    }
-
     override fun initViews() {
-        redeemContainer.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            redeemContainer.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
+
+                consume(true)
             }
 
-            consume(true)
+            redeemToolbar.setHomeButtonListener { viewModel.backClicked() }
+            redeemConfirm.prepareForProgress(viewLifecycleOwner)
+            redeemConfirm.setOnClickListener { viewModel.confirmClicked() }
+            accountAddressView.setWholeClickListener { viewModel.originAccountClicked() }
         }
-
-        redeemToolbar.setHomeButtonListener { viewModel.backClicked() }
-        redeemConfirm.prepareForProgress(viewLifecycleOwner)
-        redeemConfirm.setOnClickListener { viewModel.confirmClicked() }
-        redeemOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
     }
 
     override fun inject() {
@@ -76,24 +66,41 @@ class RedeemFragment : BaseFragment<RedeemViewModel>() {
         observeValidations(viewModel)
         setupExternalActions(viewModel)
 
-        viewModel.showNextProgress.observe(redeemConfirm::setProgress)
+        viewModel.showNextProgress.observe(binding.redeemConfirm::setProgress)
 
-        viewModel.assetModelLiveData.observe {
-            redeemAmount.setAssetBalance(it.assetBalance)
-            redeemAmount.setAssetName(it.tokenName)
-            redeemAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+        viewModel.assetModelFlow.observe {
+            binding.redeemAmount.setAssetName(it.tokenName)
+            binding.redeemAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
-        viewModel.amountLiveData.observe { (amount, fiatAmount) ->
-            redeemAmount.amountInput.setText(amount)
-            fiatAmount?.let(redeemAmount::setAssetBalanceFiatAmount)
+        viewModel.stakingUnlockAmount.observe {
+            binding.redeemAmount.amountInput.setText(it)
         }
 
-        viewModel.originAddressModelLiveData.observe {
-            redeemOriginAccount.setMessage(it.nameOrAddress)
-            redeemOriginAccount.setTextIcon(it.image)
+        viewModel.enteredFiatAmountFlow.observe {
+            it?.let(binding.redeemAmount::setAssetBalanceFiatAmount)
         }
 
-        viewModel.feeLiveData.observe(redeemFee::setFeeStatus)
+        viewModel.feeLiveData.observe {
+            binding.redeemFee.setFeeStatus(it)
+        }
+
+        viewModel.collatorLiveData.observe {
+            it.ifPresent {
+                binding.collatorAddressView.isVisible = true
+                binding.collatorAddressView.setMessage(it.nameOrAddress)
+                binding.collatorAddressView.setTextIcon(it.image)
+            }
+        }
+
+        viewModel.accountLiveData.observe {
+            it.ifPresent {
+                binding.accountAddressView.isVisible = true
+                binding.accountAddressView.setMessage(it.nameOrAddress)
+                binding.accountAddressView.setTextIcon(it.image)
+            }
+        }
+
+        viewModel.feeLiveData.observe(binding.redeemFee::setFeeStatus)
     }
 }

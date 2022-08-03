@@ -6,11 +6,11 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
-import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
+import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculator
 
 interface RewardDestinationMixin : Browserable {
 
@@ -26,7 +26,7 @@ interface RewardDestinationMixin : Browserable {
 
     fun payoutDestinationChanged(newDestination: AddressModel, scope: CoroutineScope)
 
-    fun learnMoreClicked()
+    fun learnMoreClicked(scope: CoroutineScope)
 
     fun restakeClicked(scope: CoroutineScope)
 

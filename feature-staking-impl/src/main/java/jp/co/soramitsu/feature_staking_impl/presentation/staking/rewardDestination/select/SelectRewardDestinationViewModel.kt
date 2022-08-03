@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -22,21 +23,21 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestinatio
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.RewardDestinationParcelModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class SelectRewardDestinationViewModel(
     private val router: StakingRouter,
-    private val interactor: StakingInteractor,
+    interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
     private val changeRewardDestinationInteractor: ChangeRewardDestinationInteractor,
@@ -53,18 +54,17 @@ class SelectRewardDestinationViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.create() }
+    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.createManual() }
 
-    val rewardDestinationFlow = rewardDestinationMixin.rewardDestinationModelFlow
+    private val rewardDestinationFlow = rewardDestinationMixin.rewardDestinationModelFlow
         .map { mapRewardDestinationModelToRewardDestination(it) }
         .share()
 
-    private val stashStateFlow = interactor.selectedAccountStakingStateFlow()
+    private val stashStateFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 
-    private val controllerAssetFlow = stashStateFlow
-        .flatMapLatest { interactor.assetFlow(it.controllerAddress) }
+    private val controllerAssetFlow = interactor.currentAssetFlow()
         .share()
 
     val continueAvailable = rewardDestinationMixin.rewardDestinationChangedFlow

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 
 android {
@@ -21,6 +21,10 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
@@ -31,6 +35,7 @@ android {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
+    namespace 'jp.co.soramitsu.feature_crowdloan_impl'
 }
 
 dependencies {
@@ -65,7 +70,6 @@ dependencies {
     implementation roomDep
     kapt roomKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
 
     testImplementation jUnitDep

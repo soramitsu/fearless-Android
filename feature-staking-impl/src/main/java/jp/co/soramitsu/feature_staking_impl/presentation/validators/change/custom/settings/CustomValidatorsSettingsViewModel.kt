@@ -1,117 +1,71 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
-import jp.co.soramitsu.common.utils.reversed
-import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettings
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.HasIdentityFilter
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotOverSubscribedFilter
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.filters.NotSlashedFilter
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.postprocessors.RemoveClusteringPostprocessor
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
+import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
-import kotlinx.coroutines.flow.MutableStateFlow
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-
-private val SORT_MAPPING = mapOf(
-    R.id.customValidatorSettingsSortAPY to APYSorting,
-    R.id.customValidatorSettingsSortTotalStake to TotalStakeSorting,
-    R.id.customValidatorSettingsSortOwnStake to ValidatorOwnStakeSorting
-)
-
-private val SORT_MAPPING_REVERSE = SORT_MAPPING.reversed()
 
 class CustomValidatorsSettingsViewModel(
     private val router: StakingRouter,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
-    private val tokenUseCase: TokenUseCase
+    private val tokenUseCase: TokenUseCase,
+    private val stakingType: Chain.Asset.StakingType,
+    private val settingsStorage: SettingsStorage,
+    private val setupStakingSharedState: SetupStakingSharedState
 ) : BaseViewModel() {
 
     private val recommendationSettingsProvider by lazyAsync {
-        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle)
+        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle, stakingType)
     }
 
-    val selectedSortingIdFlow = MutableStateFlow(R.id.customValidatorSettingsSortAPY)
-
-    private val initialSettingsFlow = flow { emit(recommendationSettingsProvider().currentSettings()) }
-        .share()
-
-    private val defaultSettingsFlow = flow { emit(recommendationSettingsProvider().defaultSelectCustomSettings()) }
-        .share()
-
-    val filtersEnabledMap = createClassEnabledMap(
-        HasIdentityFilter::class.java,
-        NotOverSubscribedFilter::class.java,
-        NotSlashedFilter::class.java
-    )
-
-    val postProcessorsEnabledMap = createClassEnabledMap(
-        RemoveClusteringPostprocessor::class.java
-    )
-
-    private val modifiedSettings = combine(
-        filtersEnabledMap.values + postProcessorsEnabledMap.values + selectedSortingIdFlow
-    ) {
-        recommendationSettingsProvider().createModifiedCustomValidatorsSettings(
-            filterIncluder = { filtersEnabledMap.checkEnabled(it::class.java) },
-            postProcessorIncluder = { postProcessorsEnabledMap.checkEnabled(it::class.java) },
-            sorting = SORT_MAPPING.getValue(selectedSortingIdFlow.value)
-        )
-    }.inBackground()
-        .share()
-
-    val tokenNameFlow = tokenUseCase.currentTokenFlow().map { it.configuration.name }
-
-    val isApplyButtonEnabled = combine(initialSettingsFlow, modifiedSettings) { initial, modified ->
-        initial != modified
-    }.share()
-
-    val isResetButtonEnabled = combine(defaultSettingsFlow, modifiedSettings) { default, modified ->
-        default != modified
+    private val initialSettingsFlow = flow {
+        emit(settingsStorage.schema.first())
     }
 
-    init {
-        viewModelScope.launch {
-            initFromSettings(initialSettingsFlow.first())
-        }
+    val settingsSchemaLiveData: LiveData<SettingsSchema> = settingsStorage.schema.asLiveData()
+
+//    val tokenNameFlow = tokenUseCase.currentTokenFlow().map { it.configuration.name }
+
+    private val isSettingsModifiedFlow: Flow<Boolean> = combine(
+        settingsStorage.schema,
+        initialSettingsFlow
+    ) { currentSchema, initialSchema ->
+        currentSchema != initialSchema
     }
 
-    private fun initFromSettings(currentSettings: RecommendationSettings) {
-        currentSettings.customEnabledFilters.forEach {
-            filtersEnabledMap[it::class.java]?.value = true
-        }
+    val isApplyButtonEnabled = isSettingsModifiedFlow
 
-        currentSettings.postProcessors.forEach {
-            postProcessorsEnabledMap[it::class.java]?.value = true
-        }
-
-        selectedSortingIdFlow.value = SORT_MAPPING_REVERSE[currentSettings.sorting]!!
-    }
+    val isResetButtonEnabled: Flow<Boolean> = isSettingsModifiedFlow
 
     fun reset() {
-        viewModelScope.launch {
-            val defaultSettings = recommendationSettingsProvider().defaultSelectCustomSettings()
-
-            initFromSettings(defaultSettings)
-        }
+        settingsStorage.resetSorting()
+        settingsStorage.resetFilters()
     }
 
     fun applyChanges() {
         viewModelScope.launch {
-            recommendationSettingsProvider().setCustomValidatorsSettings(modifiedSettings.first())
-
+            val state = setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()
+            val payload = (state?.payload ?: setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Collators>()?.payload)
+                as? SetupStakingProcess.SelectBlockProducersStep.Payload.Full
+            val amount = payload?.amount
+            val config = tokenUseCase.currentToken().configuration
+            val amountInPlanks = amount?.let { config.planksFromAmount(amount) } ?: BigInteger.ZERO
+            recommendationSettingsProvider().settingsChanged(settingsStorage.schema.first(), amountInPlanks)
             router.back()
         }
     }
@@ -120,9 +74,11 @@ class CustomValidatorsSettingsViewModel(
         router.back()
     }
 
-    private fun <T> createClassEnabledMap(vararg classes: Class<out T>) = classes.associate {
-        it to MutableStateFlow(false)
+    fun onFilterChecked(checkedFilter: SettingsSchema.Filter) {
+        settingsStorage.filterSelected(checkedFilter.filter)
     }
 
-    private fun <T> Map<out T, MutableStateFlow<Boolean>>.checkEnabled(key: T) = get(key)?.value ?: false
+    fun onSortingChecked(checkedSorting: SettingsSchema.Sorting) {
+        settingsStorage.sortingSelected(checkedSorting.sorting)
+    }
 }

@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
@@ -11,10 +13,6 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.recipient.model.ContactsHeader
-import kotlinx.android.synthetic.main.item_contact.view.itemContactBody
-import kotlinx.android.synthetic.main.item_contact.view.itemContactIcon
-import kotlinx.android.synthetic.main.item_contact.view.itemContactTitle
-import kotlinx.android.synthetic.main.item_contact_group.view.contactGroupTitle
 
 class ChooseRecipientAdapter(
     private val itemHandler: RecipientItemHandler
@@ -44,7 +42,7 @@ class ChooseRecipientAdapter(
 
 class RecipientGroupHolder(view: View) : GroupedListHolder(view) {
     fun bind(header: ContactsHeader) = with(containerView) {
-        contactGroupTitle.text = header.title
+        findViewById<TextView>(R.id.contactGroupTitle).text = header.title
     }
 }
 
@@ -55,15 +53,15 @@ class RecipientHolder(view: View) : GroupedListHolder(view) {
     ) {
         with(containerView) {
             if (addressModel.name == null) {
-                itemContactTitle.text = addressModel.address
-                itemContactBody.text = ""
-                itemContactBody.makeGone()
+                findViewById<TextView>(R.id.itemContactTitle).text = addressModel.address
+                findViewById<TextView>(R.id.itemContactBody).text = ""
+                findViewById<TextView>(R.id.itemContactBody).makeGone()
             } else {
-                itemContactTitle.text = addressModel.name
-                itemContactBody.text = addressModel.address
-                itemContactBody.makeVisible()
+                findViewById<TextView>(R.id.itemContactTitle).text = addressModel.name
+                findViewById<TextView>(R.id.itemContactBody).text = addressModel.address
+                findViewById<TextView>(R.id.itemContactBody).makeVisible()
             }
-            itemContactIcon.setImageDrawable(addressModel.image)
+            findViewById<ImageView>(R.id.itemContactIcon).setImageDrawable(addressModel.image)
 
             setOnClickListener { handler.contactClicked(addressModel.address) }
         }

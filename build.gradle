@@ -1,53 +1,53 @@
 buildscript {
     ext {
         // App version
-        versionName = '2.0.7'
-        versionCode = 68
+        versionName = '2.0.8'
+        versionCode = 69
 
         // SDK and tools
         compileSdkVersion = 31
         minSdkVersion = 24
         targetSdkVersion = 31
 
-        kotlinVersion = '1.6.10'
+        kotlinVersion = '1.7.0'
 
         ktlintPinterestVersion = '0.40.0'
 
-        supportVersion = '1.1.0'
+        supportVersion = '1.6.1'
         cardViewVersion = '1.0.0'
-        constraintVersion = '1.1.3'
+        constraintVersion = '2.1.4'
 
-        coroutinesVersion = '1.6.0'
+        coroutinesVersion = '1.6.2'
 
-        biometricVersion = '1.0.1'
+        biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
 
-        daggerVersion = '2.25.2'
+        daggerVersion = '2.42'
         javaxInjectVersion = '1'
 
-        architectureComponentVersion = '2.2.0'
-        roomVersion = '2.4.0'
+        architectureComponentVersion = '2.4.1'
+        roomVersion = '2.4.2'
 
         retrofitVersion = '2.9.0'
-        okhttpVersion = '3.8.0'
-        gsonVersion = '2.8.2'
+        okhttpVersion = '5.0.0-alpha.8'
+        gsonVersion = '2.9.0'
 
         zXingVersion = '3.5.0'
 
-        navControllerVersion = '2.3.1'
+        navControllerVersion = '2.4.2'
 
-        junitVersion = '4.12'
-        mockitoVersion = '4.2.0'
+        junitVersion = '4.13.2'
+        mockitoVersion = '4.6.1'
         robolectricVersion = '4.1'
 
-        bouncyCastleVersion = '1.60'
+        bouncyCastleVersion = '1.70'
 
-        fearlessLibVersion = '1.0.108'
+        fearlessLibVersion = '1.0.109'
 
-        gifVersion = '1.2.19'
+        gifVersion = '1.2.24'
 
-        zXingVersion = '3.4.0'
+        zXingVersion = '3.5.0'
         zXingEmbeddedVersion = '3.5.0@aar'
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
@@ -55,7 +55,7 @@ buildscript {
         firebaseAppDistrVersion = '2.1.1'
         playPublisherVersion = '3.7.0'
 
-        wsVersion = "2.10"
+        wsVersion = '2.14'
 
         permissionsVersion = '1.1.2'
 
@@ -65,9 +65,13 @@ buildscript {
 
         storiesVersion = '3.0.0'
 
-        coilVersion = '1.2.1'
+        coilVersion = '2.1.0'
 
-        androidxCoreVersion = '1.7.0'
+        androidxCoreVersion = '1.8.0'
+
+        appcompatVersion = '1.4.2'
+        recyclerviewVersion = '1.2.1'
+        lifecycleVersion = '2.4.1'
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
@@ -76,9 +80,9 @@ buildscript {
 
         insetterDep = "dev.chrisbanes.insetter:insetter-widgets:$insetterVersion"
 
-        androidDep = "androidx.appcompat:appcompat:$supportVersion"
+        androidDep = "androidx.appcompat:appcompat:$appcompatVersion"
         cardViewDep = "androidx.cardview:cardview:$cardViewVersion"
-        recyclerViewDep = "androidx.recyclerview:recyclerview:$supportVersion"
+        recyclerViewDep = "androidx.recyclerview:recyclerview:$recyclerviewVersion"
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
         materialDep = "com.google.android.material:material:$supportVersion"
         androidxCoreDep = "androidx.core:core-ktx:$androidxCoreVersion"
@@ -86,7 +90,8 @@ buildscript {
         daggerDep = "com.google.dagger:dagger:$daggerVersion"
         daggerKapt = "com.google.dagger:dagger-compiler:$daggerVersion"
 
-        lifecycleDep = "androidx.lifecycle:lifecycle-extensions:$architectureComponentVersion"
+        lifecycleProcessDep = "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
+
         lifecycleKapt = "androidx.lifecycle:lifecycle-compiler:$architectureComponentVersion"
 
         coroutinesDep = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
@@ -149,11 +154,12 @@ buildscript {
 
     repositories {
         google()
-        jcenter()
+        mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
+        maven { url 'https://maven.google.com' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.android.tools.build:gradle:7.2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath 'com.google.gms:google-services:4.3.10'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"

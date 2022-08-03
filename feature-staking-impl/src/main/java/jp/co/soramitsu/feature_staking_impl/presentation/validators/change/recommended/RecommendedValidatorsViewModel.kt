@@ -21,6 +21,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setRecommendedValidators
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.flow.first
@@ -34,13 +35,14 @@ class RecommendedValidatorsViewModel(
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,
+    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
     private val tokenUseCase: TokenUseCase,
 ) : BaseViewModel() {
 
     private val recommendedSettings by lazyAsync {
-        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle).defaultSettings()
+        recommendationSettingsProviderFactory.createRelayChain(router.currentStackEntryLifecycle).defaultSettings()
     }
 
     private val recommendedValidators = flow {
@@ -55,7 +57,7 @@ class RecommendedValidatorsViewModel(
     }.inBackground().share()
 
     val selectedTitle = recommendedValidators.map {
-        val maxValidators = interactor.maxValidatorsPerNominator()
+        val maxValidators = stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
 
         resourceManager.getString(R.string.staking_custom_header_validators_title, it.size, maxValidators)
     }.inBackground().share()
@@ -90,7 +92,7 @@ class RecommendedValidatorsViewModel(
     }
 
     private fun retractRecommended() = sharedStateSetup.mutate {
-        if (it is ReadyToSubmit && it.payload.selectionMethod == SelectionMethod.RECOMMENDED) {
+        if (it is ReadyToSubmit<*> && it.payload.selectionMethod == SelectionMethod.RECOMMENDED) {
             it.previous()
         } else {
             it

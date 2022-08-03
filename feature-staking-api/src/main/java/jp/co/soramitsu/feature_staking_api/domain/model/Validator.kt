@@ -43,13 +43,13 @@ class SuperOf(
 )
 
 class Validator(
-    val address: String,
+    override val address: String,
     val slashed: Boolean,
     val accountIdHex: String,
     val prefs: ValidatorPrefs?,
     val electedInfo: ElectedInfo?,
     val identity: Identity?,
-) {
+) : WithAddress {
 
     class ElectedInfo(
         val totalStake: BigInteger,
@@ -58,4 +58,8 @@ class Validator(
         val apy: BigDecimal,
         val isOversubscribed: Boolean
     )
+}
+
+interface WithAddress {
+    val address: String
 }

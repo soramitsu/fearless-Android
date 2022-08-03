@@ -7,8 +7,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 
 class AssetUseCaseImpl(
@@ -17,20 +18,23 @@ class AssetUseCaseImpl(
     private val sharedState: SingleAssetSharedState
 ) : AssetUseCase {
 
-    override fun currentAssetFlow() = combine(
-        accountRepository.selectedMetaAccountFlow(),
-        sharedState.assetWithChain,
-        ::Pair
-    ).flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
-        val (chain, chainAsset) = chainAndAsset
+    override fun currentAssetFlow() = sharedState.assetWithChain
+        .map { chainAndAsset ->
+            val meta = accountRepository.getSelectedMetaAccount()
+            meta.accountId(chainAndAsset.chain)?.let {
+                Pair(meta, chainAndAsset)
+            }
+        }.mapNotNull { it }
+        .flatMapLatest { (selectedMetaAccount, chainAndAsset) ->
+            val (chain, chainAsset) = chainAndAsset
 
-        walletRepository.assetFlow(
-            metaId = selectedMetaAccount.id,
-            accountId = selectedMetaAccount.accountId(chain)!!,
-            chainAsset = chainAsset,
-            minSupportedVersion = chain.minSupportedVersion
-        )
-    }
+            walletRepository.assetFlow(
+                metaId = selectedMetaAccount.id,
+                accountId = selectedMetaAccount.accountId(chain)!!,
+                chainAsset = chainAsset,
+                minSupportedVersion = chain.minSupportedVersion
+            )
+        }
 
     override suspend fun availableAssetsToSelect(): List<Asset> = withContext(Dispatchers.Default) {
         val metaAccount = accountRepository.getSelectedMetaAccount()
@@ -38,6 +42,8 @@ class AssetUseCaseImpl(
 
         walletRepository.getAssets(metaAccount.id).filter {
             it.token.configuration in availableChainAssets
+        }.sortedBy {
+            it.token.configuration.orderInStaking
         }
     }
 }

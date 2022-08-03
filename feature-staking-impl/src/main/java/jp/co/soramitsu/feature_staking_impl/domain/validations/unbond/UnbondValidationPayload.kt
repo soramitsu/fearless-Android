@@ -5,8 +5,9 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import java.math.BigDecimal
 
 data class UnbondValidationPayload(
-    val stash: StakingState.Stash,
+    val stash: StakingState,
     val fee: BigDecimal,
     val amount: BigDecimal,
     val asset: Asset,
+    val collatorAddress: String? = null
 )

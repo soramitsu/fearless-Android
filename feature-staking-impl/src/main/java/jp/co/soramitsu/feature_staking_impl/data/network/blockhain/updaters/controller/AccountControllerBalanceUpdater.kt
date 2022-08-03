@@ -8,7 +8,7 @@ import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.feature_wallet_api.data.cache.bindAccountInfoOrDefault
@@ -38,7 +38,7 @@ class AccountControllerBalanceUpdater(
         val runtime = chainRegistry.getRuntime(chain.id)
 
         val accountStaking = scope.getAccountStaking()
-        val stakingAccessInfo = accountStaking.stakingAccessInfo ?: return emptyFlow()
+        val stakingAccessInfo = accountStaking?.stakingAccessInfo ?: return emptyFlow()
 
         val controllerId = stakingAccessInfo.controllerId
         val stashId = stakingAccessInfo.stashId

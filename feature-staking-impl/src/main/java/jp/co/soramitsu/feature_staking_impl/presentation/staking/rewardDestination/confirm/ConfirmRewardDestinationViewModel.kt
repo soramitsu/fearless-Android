@@ -29,13 +29,13 @@ import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestinatio
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.RewardDestinationParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.select.rewardDestinationValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 class ConfirmRewardDestinationViewModel(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val validationSystem: RewardDestinationValidationSystem,
@@ -56,12 +57,11 @@ class ConfirmRewardDestinationViewModel(
     Validatable by validationExecutor,
     ExternalAccountActions by externalAccountActions {
 
-    private val stashFlow = interactor.selectedAccountStakingStateFlow()
+    private val stashFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
         .share()
 
-    private val controllerAssetFlow = stashFlow
-        .flatMapLatest { interactor.assetFlow(it.controllerAddress) }
+    private val controllerAssetFlow = interactor.currentAssetFlow()
         .share()
 
     val originAccountModelLiveData = stashFlow.map {

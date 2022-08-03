@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
@@ -36,6 +36,10 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
@@ -46,6 +50,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.feature_wallet_impl'
 }
 
 dependencies {
@@ -78,7 +83,6 @@ dependencies {
     implementation roomDep
     kapt roomKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
 
     implementation bouncyCastleDep

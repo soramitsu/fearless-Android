@@ -9,12 +9,9 @@ import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.ImportSourceMnemonicBinding
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicContent
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicContentContainer
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.importMnemonicUsernameInput
-import kotlinx.android.synthetic.main.import_source_mnemonic.view.usernameHintTv
 
 class MnemonicImportView @JvmOverloads constructor(
     context: Context,
@@ -23,21 +20,23 @@ class MnemonicImportView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_mnemonic, context, attrs, defStyleAttr) {
 
+    private val binding: ImportSourceMnemonicBinding = ImportSourceMnemonicBinding.bind(this)
+
     override val nameInputView: InputField
-        get() = importMnemonicUsernameInput
+        get() = binding.importMnemonicUsernameInput
 
     init {
-        importMnemonicContentContainer.background = context.getIdleDrawable()
+        binding.importMnemonicContentContainer.background = context.getIdleDrawable()
 
-        importMnemonicUsernameInput.content.filters = nameInputFilters()
+        binding.importMnemonicUsernameInput.content.filters = nameInputFilters()
 
-        importMnemonicUsernameInput.isVisible = !isChainAccount
-        usernameHintTv.isVisible = !isChainAccount
+        binding.importMnemonicUsernameInput.isVisible = !isChainAccount
+        binding.usernameHintTv.isVisible = !isChainAccount
     }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
         require(source is MnemonicImportSource)
 
-        importMnemonicContent.bindTo(source.mnemonicContentLiveData, lifecycleOwner)
+        binding.importMnemonicContent.bindTo(source.mnemonicContentLiveData, lifecycleOwner)
     }
 }

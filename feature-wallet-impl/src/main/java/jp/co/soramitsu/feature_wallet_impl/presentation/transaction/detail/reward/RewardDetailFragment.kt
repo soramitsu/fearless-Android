@@ -1,8 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
 import jp.co.soramitsu.common.base.BaseFragment
@@ -12,43 +9,34 @@ import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.showBrowser
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentRewardSlashDetailsBinding
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailDate
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailEra
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailHash
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailReward
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailRewardLabel
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailToolbar
-import kotlinx.android.synthetic.main.fragment_reward_slash_details.rewardDetailValidator
 
-class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
+class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragment_reward_slash_details) {
     companion object {
         private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
         fun getBundle(payload: RewardDetailsPayload) = bundleOf(KEY_PAYLOAD to payload)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_reward_slash_details, container, false)
+    private val binding by viewBinding(FragmentRewardSlashDetailsBinding::bind)
 
     override fun initViews() {
-        rewardDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
+        binding.rewardDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        rewardDetailHash.setWholeClickListener {
+        binding.rewardDetailHash.setWholeClickListener {
             viewModel.showExternalActionsClicked(ExternalActionsSource.TRANSACTION_HASH)
         }
 
-        rewardDetailValidator.setWholeClickListener {
+        binding.rewardDetailValidator.setWholeClickListener {
             viewModel.showExternalActionsClicked(ExternalActionsSource.VALIDATOR_ADDRESS)
         }
     }
@@ -72,15 +60,15 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
 
     override fun subscribe(viewModel: RewardDetailViewModel) {
         with(viewModel.payload.operation) {
-            rewardDetailHash.setMessage(eventId)
-            rewardDetailDate.text = time.formatDateTime(requireContext())
-            rewardDetailReward.text = amount
-            rewardDetailReward.setTextColorRes(amountColorRes(this))
+            binding.rewardDetailHash.setMessage(eventId)
+            binding.rewardDetailDate.text = time.formatDateTime(requireContext())
+            binding.rewardDetailReward.text = amount
+            binding.rewardDetailReward.setTextColorRes(amountColorRes(this))
 
             if (isReward) {
-                rewardDetailRewardLabel.setText(R.string.staking_reward)
+                binding.rewardDetailRewardLabel.setText(R.string.staking_reward)
             } else {
-                rewardDetailRewardLabel.setText(R.string.staking_slash)
+                binding.rewardDetailRewardLabel.setText(R.string.staking_slash)
             }
         }
 
@@ -90,15 +78,15 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>() {
 
         viewModel.validatorAddressModelLiveData.observe { addressModel ->
             if (addressModel != null) {
-                rewardDetailValidator.setMessage(addressModel.nameOrAddress)
-                rewardDetailValidator.setTextIcon(addressModel.image)
+                binding.rewardDetailValidator.setMessage(addressModel.nameOrAddress)
+                binding.rewardDetailValidator.setTextIcon(addressModel.image)
             } else {
-                rewardDetailValidator.makeGone()
+                binding.rewardDetailValidator.makeGone()
             }
         }
 
         viewModel.eraLiveData.observe {
-            rewardDetailEra.text = it
+            binding.rewardDetailEra.text = it
         }
     }
 

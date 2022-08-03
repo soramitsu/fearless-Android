@@ -4,7 +4,6 @@ import dagger.Module
 import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.CrossExistentialValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.EnoughToUnbondValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.NotZeroUnbondValidation
@@ -12,7 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondFeeV
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 
 @Module
 class UnbondValidationsModule {
@@ -35,22 +34,23 @@ class UnbondValidationsModule {
     @FeatureScope
     @Provides
     fun provideUnbondLimitValidation(
-        stakingRepository: StakingRepository
+        stakingScenarioInteractor: StakingScenarioInteractor,
     ) = UnbondLimitValidation(
-        stakingRepository = stakingRepository,
-        stashStateProducer = { it.stash },
+        stakingScenarioInteractor = stakingScenarioInteractor,
         errorProducer = UnbondValidationFailure::UnbondLimitReached
     )
 
     @FeatureScope
     @Provides
-    fun provideEnoughToUnbondValidation() = EnoughToUnbondValidation()
+    fun provideEnoughToUnbondValidation(
+        stakingScenarioInteractor: StakingScenarioInteractor
+    ) = EnoughToUnbondValidation(stakingScenarioInteractor)
 
     @FeatureScope
     @Provides
     fun provideCrossExistentialValidation(
-        walletConstants: WalletConstants
-    ) = CrossExistentialValidation(walletConstants)
+        stakingScenarioInteractor: StakingScenarioInteractor
+    ) = CrossExistentialValidation(stakingScenarioInteractor)
 
     @FeatureScope
     @Provides

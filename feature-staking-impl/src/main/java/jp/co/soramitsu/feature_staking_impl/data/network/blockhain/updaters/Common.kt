@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
+import jp.co.soramitsu.common.utils.parachainStaking
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.model.StorageEntry
 import jp.co.soramitsu.core.storage.StorageCache
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.map
 import java.math.BigInteger
 
 fun RuntimeMetadata.activeEraStorageKey() = staking().storage("ActiveEra").storageKey()
+fun RuntimeMetadata.stakingRoundKey() = parachainStaking().storage("Round").storageKey()
 
 suspend fun StorageCache.observeActiveEraIndex(runtime: RuntimeSnapshot, chainId: String): Flow<BigInteger> {
     return observeEntry(runtime.metadata.activeEraStorageKey(), chainId)

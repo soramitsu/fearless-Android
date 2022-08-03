@@ -15,39 +15,36 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClicked
-import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentProfileBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_profile.aboutTv
-import kotlinx.android.synthetic.main.fragment_profile.accountView
-import kotlinx.android.synthetic.main.fragment_profile.changePinCodeTv
-import kotlinx.android.synthetic.main.fragment_profile.languageWrapper
-import kotlinx.android.synthetic.main.fragment_profile.profileCurrency
-import kotlinx.android.synthetic.main.fragment_profile.profileWallets
-import kotlinx.android.synthetic.main.fragment_profile.selectedCurrencyTv
-import kotlinx.android.synthetic.main.fragment_profile.selectedLanguageTv
 
 class ProfileFragment : BaseFragment<ProfileViewModel>() {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
 
+    private lateinit var binding: FragmentProfileBinding
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+    ): View {
+        binding = FragmentProfileBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun initViews() {
-        accountView.setWholeClickListener { viewModel.accountActionsClicked() }
+        with(binding) {
+            accountView.setWholeClickListener { viewModel.accountActionsClicked() }
 
-        aboutTv.setOnClickListener { viewModel.aboutClicked() }
+            aboutTv.setOnClickListener { viewModel.aboutClicked() }
 
-        profileWallets.setOnClickListener { viewModel.walletsClicked() }
-        languageWrapper.setOnClickListener { viewModel.languagesClicked() }
-        changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
-        profileCurrency.setOnClickListener { viewModel.currencyClicked() }
+            profileWallets.setOnClickListener { viewModel.walletsClicked() }
+            languageWrapper.setOnClickListener { viewModel.languagesClicked() }
+            changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
+            profileCurrency.setOnClickListener { viewModel.currencyClicked() }
+        }
     }
 
     override fun inject() {
@@ -64,26 +61,26 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
         observeBrowserEvents(viewModel)
 
         viewModel.selectedAccountLiveData.observe { account ->
-            account.name.let(accountView::setTitle)
+            account.name.let(binding.accountView::setTitle)
         }
 
         viewModel.accountIconLiveData.observe {
-            accountView.setAccountIcon(it.image)
+            binding.accountView.setAccountIcon(it.image)
         }
 
         viewModel.selectedLanguageLiveData.observe {
-            selectedLanguageTv.text = it.displayName
+            binding.selectedLanguageTv.text = it.displayName
         }
 
         viewModel.showExternalActionsEvent.observeEvent(::showAccountActions)
 
         viewModel.totalBalanceLiveData.observe {
-            accountView.setText(it)
+            binding.accountView.setText(it)
         }
 
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
 
-        viewModel.selectedFiatLiveData.observe(selectedCurrencyTv::setText)
+        viewModel.selectedFiatLiveData.observe(binding.selectedCurrencyTv::setText)
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {

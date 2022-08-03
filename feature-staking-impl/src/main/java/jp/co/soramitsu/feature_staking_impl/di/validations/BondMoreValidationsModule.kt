@@ -5,7 +5,7 @@ import dagger.Provides
 import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload

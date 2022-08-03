@@ -9,6 +9,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.NotZeroReb
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 
 @Module
 class RebondValidationsModule {
@@ -30,7 +31,7 @@ class RebondValidationsModule {
 
     @FeatureScope
     @Provides
-    fun provideEnoughToRebondValidation() = EnoughToRebondValidation()
+    fun provideEnoughToRebondValidation(stakingScenarioInteractor: StakingScenarioInteractor) = EnoughToRebondValidation(stakingScenarioInteractor)
 
     @FeatureScope
     @Provides

@@ -3,6 +3,8 @@ package jp.co.soramitsu.common.presentation
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import coil.ImageLoader
 import coil.load
@@ -13,9 +15,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
-import kotlinx.android.synthetic.main.item_fiat_chooser.view.currencyChecked
-import kotlinx.android.synthetic.main.item_fiat_chooser.view.currencyIcon
-import kotlinx.android.synthetic.main.item_fiat_chooser.view.currencyTitle
 
 class FiatCurrenciesChooserBottomSheetDialog(
     context: Context,
@@ -47,11 +46,11 @@ private class FiatCurrencyHolder(parent: View, private val imageLoader: ImageLoa
         super.bind(item, isSelected, handler)
 
         with(itemView) {
-            currencyIcon.load(item.icon, imageLoader) {
+            findViewById<ImageView>(R.id.currencyIcon).load(item.icon, imageLoader) {
                 this.size(resources.getDimension(R.dimen.x3).toInt())
             }
-            currencyTitle.text = item.id.uppercase()
-            currencyChecked.visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
+            findViewById<TextView>(R.id.currencyTitle).text = item.id.uppercase()
+            findViewById<ImageView>(R.id.currencyChecked).visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
         }
     }
 }

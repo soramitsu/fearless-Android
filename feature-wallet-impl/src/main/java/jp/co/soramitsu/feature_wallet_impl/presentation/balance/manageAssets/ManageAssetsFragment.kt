@@ -1,9 +1,5 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import jp.co.soramitsu.common.base.BaseFragment
@@ -12,21 +8,21 @@ import jp.co.soramitsu.common.utils.dragAndDropItemTouchHelper
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.view.ButtonState
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentManageAssetsBinding
 import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.synthetic.main.fragment_manage_assets.applyButton
-import kotlinx.android.synthetic.main.fragment_manage_assets.assetsList
-import kotlinx.android.synthetic.main.fragment_manage_assets.assetsSearchField
-import kotlinx.android.synthetic.main.fragment_manage_assets.manageAssetsToolbar
 import javax.inject.Inject
 
-class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(), ManageAssetsAdapter.Handler {
+class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(R.layout.fragment_manage_assets), ManageAssetsAdapter.Handler {
 
     @Inject
     lateinit var imageLoader: ImageLoader
+
+    private val binding by viewBinding(FragmentManageAssetsBinding::bind)
 
     private val dragHelper by lazy { dragAndDropItemTouchHelper(viewModel) }
 
@@ -34,16 +30,15 @@ class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(), ManageAssets
         ManageAssetsAdapter(this, imageLoader)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        inflater.inflate(R.layout.fragment_manage_assets, container, false)
-
     override fun initViews() {
-        assetsList.adapter = adapter
-        assetsList.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
-        dragHelper.attachToRecyclerView(assetsList)
-        assetsSearchField.onTextChanged { viewModel.searchQueryChanged(it) }
-        manageAssetsToolbar.setHomeButtonListener { viewModel.backClicked() }
-        applyButton.setOnClickListener { viewModel.onApply() }
+        with(binding) {
+            assetsList.adapter = adapter
+            assetsList.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
+            dragHelper.attachToRecyclerView(assetsList)
+            assetsSearchField.onTextChanged { viewModel.searchQueryChanged(it) }
+            manageAssetsToolbar.setHomeButtonListener { viewModel.backClicked() }
+            applyButton.setOnClickListener { viewModel.onApply() }
+        }
     }
 
     override fun inject() {
@@ -60,7 +55,7 @@ class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(), ManageAssets
         viewModel.unsyncedItemsFlow.observe(adapter::submitList)
         viewModel.canApply.observe {
             val state = if (it) ButtonState.NORMAL else ButtonState.DISABLED
-            applyButton.setState(state)
+            binding.applyButton.setState(state)
         }
         viewModel.showAddAccountChooser.observeEvent(::showAddAccountChooser)
     }

@@ -11,7 +11,7 @@ import java.math.BigInteger
 Balance
  */
 @UseCaseBinding
-fun bindTotalInsurance(
+fun bindTotalIssuance(
     scale: String,
     runtime: RuntimeSnapshot
 ): BigInteger {

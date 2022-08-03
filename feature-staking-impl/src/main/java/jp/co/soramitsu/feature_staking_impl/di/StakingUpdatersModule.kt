@@ -10,14 +10,14 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.feature_staking_api.domain.api.StakingRepository
-import jp.co.soramitsu.feature_staking_impl.data.StakingSharedState
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountNominationsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.AccountValidatorPrefsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.ActiveEraUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CounterForNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.CurrentEraUpdater
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.DelegatorStateUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.HistoryDepthUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MaxNominatorsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.MinBondUpdater
@@ -29,8 +29,10 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.hist
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalUpdateMediator
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.historical.HistoricalValidatorRewardPointsUpdater
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.scope.AccountStakingScope
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
 import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
 
 @Module
@@ -101,7 +103,7 @@ class StakingUpdatersModule {
     @Provides
     @FeatureScope
     fun provideStakingLedgerUpdater(
-        stakingRepository: StakingRepository,
+        stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
         accountStakingDao: AccountStakingDao,
@@ -111,7 +113,7 @@ class StakingUpdatersModule {
         accountUpdateScope: AccountUpdateScope,
     ): StakingLedgerUpdater {
         return StakingLedgerUpdater(
-            stakingRepository,
+            stakingRelayChainScenarioRepository,
             sharedState,
             chainRegistry,
             accountStakingDao,
@@ -181,7 +183,7 @@ class StakingUpdatersModule {
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
         bulkRetriever: BulkRetriever,
-        stakingRepository: StakingRepository,
+        stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         storageCache: StorageCache,
     ) = HistoricalUpdateMediator(
         historicalUpdaters = listOf(
@@ -191,7 +193,7 @@ class StakingUpdatersModule {
         stakingSharedState = sharedState,
         chainRegistry = chainRegistry,
         bulkRetriever = bulkRetriever,
-        stakingRepository = stakingRepository,
+        stakingRepository = stakingRelayChainScenarioRepository,
         storageCache = storageCache
     )
 
@@ -249,6 +251,28 @@ class StakingUpdatersModule {
 
     @Provides
     @FeatureScope
+    fun provideDelegatorStateUpdater(
+        scope: AccountStakingScope,
+        sharedState: StakingSharedState,
+        chainRegistry: ChainRegistry,
+        storageCache: StorageCache,
+    ) = DelegatorStateUpdater(
+        scope,
+        storageCache,
+        sharedState,
+        chainRegistry
+    )
+
+    @Provides
+    @FeatureScope
+    fun provideBlockNumberUpdater(
+        chainRegistry: ChainRegistry,
+        stakingSharedState: StakingSharedState,
+        storageCache: StorageCache,
+    ) = BlockNumberUpdater(chainRegistry, stakingSharedState, storageCache)
+
+    @Provides
+    @FeatureScope
     fun provideStakingUpdaterSystem(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,
@@ -264,6 +288,8 @@ class StakingUpdatersModule {
         minBondUpdater: MinBondUpdater,
         maxNominatorsUpdater: MaxNominatorsUpdater,
         counterForNominatorsUpdater: CounterForNominatorsUpdater,
+        delegatorStateUpdater: DelegatorStateUpdater,
+        blockNumberUpdater: BlockNumberUpdater,
 
         chainRegistry: ChainRegistry,
         stakingSharedState: StakingSharedState
@@ -283,6 +309,8 @@ class StakingUpdatersModule {
             minBondUpdater,
             maxNominatorsUpdater,
             counterForNominatorsUpdater,
+            delegatorStateUpdater,
+            blockNumberUpdater
         ),
         chainRegistry = chainRegistry,
         singleAssetSharedState = stakingSharedState

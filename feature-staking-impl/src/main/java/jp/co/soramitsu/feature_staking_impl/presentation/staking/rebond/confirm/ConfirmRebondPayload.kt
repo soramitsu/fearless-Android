@@ -6,5 +6,6 @@ import java.math.BigDecimal
 
 @Parcelize
 class ConfirmRebondPayload(
-    val amount: BigDecimal
+    val amount: BigDecimal,
+    val collatorAddress: String?
 ) : Parcelable

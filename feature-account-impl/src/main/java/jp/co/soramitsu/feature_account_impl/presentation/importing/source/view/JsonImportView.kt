@@ -11,11 +11,9 @@ import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.ImportSourceJsonBinding
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
-import kotlinx.android.synthetic.main.import_source_json.view.importJsonContent
-import kotlinx.android.synthetic.main.import_source_json.view.importJsonPasswordInput
-import kotlinx.android.synthetic.main.import_source_json.view.importJsonUsernameInput
 
 class JsonImportView @JvmOverloads constructor(
     context: Context,
@@ -24,8 +22,10 @@ class JsonImportView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ImportSourceView(R.layout.import_source_json, context, attrs, defStyleAttr) {
 
+    private val binding: ImportSourceJsonBinding = ImportSourceJsonBinding.bind(this)
+
     override val nameInputView: InputField
-        get() = importJsonUsernameInput
+        get() = binding.importJsonUsernameInput
 
     init {
         init()
@@ -36,22 +36,26 @@ class JsonImportView @JvmOverloads constructor(
     }
 
     private fun init(importAccountType: ImportAccountType = ImportAccountType.Substrate) {
-        importJsonUsernameInput.editText!!.filters = nameInputFilters()
+        binding.importJsonUsernameInput.apply {
+            editText!!.filters = nameInputFilters()
+            isVisible = !isChainAccount
+        }
         setImportAccountType(importAccountType)
-        importJsonUsernameInput.isVisible = !isChainAccount
     }
 
     private fun setImportAccountType(type: ImportAccountType) {
         when (type) {
-            ImportAccountType.Substrate -> importJsonContent.setLabel(R.string.import_substrate_recovery)
-            ImportAccountType.Ethereum -> importJsonContent.setLabel(R.string.import_ethereum_recovery)
+            ImportAccountType.Substrate -> binding.importJsonContent.setLabel(R.string.import_substrate_recovery)
+            ImportAccountType.Ethereum -> binding.importJsonContent.setLabel(R.string.import_ethereum_recovery)
         }
     }
 
     override fun observeSource(source: ImportSource, lifecycleOwner: LifecycleOwner) {
         require(source is JsonImportSource)
 
-        source.jsonContentLiveData.observe(lifecycleOwner, Observer(importJsonContent::setMessage))
+        source.jsonContentLiveData.observe(
+            lifecycleOwner, Observer(binding.importJsonContent::setMessage)
+        )
 
         source.showJsonInputOptionsEvent.observe(
             lifecycleOwner,
@@ -60,14 +64,15 @@ class JsonImportView @JvmOverloads constructor(
             }
         )
 
-        importJsonPasswordInput.content.bindTo(source.passwordLiveData, lifecycleOwner)
+        binding.importJsonPasswordInput.content.bindTo(source.passwordLiveData, lifecycleOwner)
 
-        importJsonContent.setActionClickListener {
-            source.chooseFileClicked()
-        }
-
-        importJsonContent.setOnClickListener {
-            source.jsonClicked()
+        binding.importJsonContent.apply {
+            setActionClickListener {
+                source.chooseFileClicked()
+            }
+            setOnClickListener {
+                source.jsonClicked()
+            }
         }
     }
 

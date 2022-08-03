@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
@@ -22,6 +22,10 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
@@ -32,6 +36,7 @@ android {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
+    namespace 'jp.co.soramitsu.feature_staking_impl'
 }
 
 dependencies {
@@ -40,6 +45,7 @@ dependencies {
     implementation project(':feature-staking-api')
     implementation project(':feature-account-api')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-staking-api')
     implementation project(':runtime')
 
     implementation kotlinDep
@@ -66,7 +72,6 @@ dependencies {
     implementation roomDep
     kapt roomKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
 
     testImplementation jUnitDep

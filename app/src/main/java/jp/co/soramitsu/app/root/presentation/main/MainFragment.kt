@@ -1,9 +1,5 @@
 package jp.co.soramitsu.app.root.presentation.main
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -11,15 +7,15 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI.onNavDestinationSelected
 import androidx.navigation.ui.setupWithNavController
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.databinding.FragmentMainBinding
 import jp.co.soramitsu.app.root.di.RootApi
 import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.updatePadding
-import kotlinx.android.synthetic.main.fragment_main.bottomNavHost
-import kotlinx.android.synthetic.main.fragment_main.bottomNavigationView
+import jp.co.soramitsu.common.view.viewBinding
 
-class MainFragment : BaseFragment<MainViewModel>() {
+class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
 
     private var navController: NavController? = null
 
@@ -29,9 +25,7 @@ class MainFragment : BaseFragment<MainViewModel>() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_main, container, false)
-    }
+    private val binding by viewBinding(FragmentMainBinding::bind)
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -40,17 +34,17 @@ class MainFragment : BaseFragment<MainViewModel>() {
     }
 
     override fun initViews() {
-        bottomNavigationView.setOnApplyWindowInsetsListener { _, insets ->
+        binding.bottomNavigationView.setOnApplyWindowInsetsListener { _, insets ->
             // overwrite BottomNavigation behavior and ignore insets
             insets
         }
 
-        bottomNavHost.setOnApplyWindowInsetsListener { v, insets ->
+        binding.bottomNavHost.setOnApplyWindowInsetsListener { v, insets ->
             val systemWindowInsetBottom = insets.systemWindowInsetBottom
 
             // post to prevent bottomNavigationView.height being 0 if callback is called before view has been measured
             v.post {
-                val padding = (systemWindowInsetBottom - bottomNavigationView.height).coerceAtLeast(0)
+                val padding = (systemWindowInsetBottom - binding.bottomNavigationView.height).coerceAtLeast(0)
                 v.updatePadding(bottom = padding)
             }
 
@@ -62,9 +56,9 @@ class MainFragment : BaseFragment<MainViewModel>() {
 
         navController = nestedNavHostFragment.navController
 
-        bottomNavigationView.setupWithNavController(navController!!)
+        binding.bottomNavigationView.setupWithNavController(navController!!)
 
-        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
+        binding.bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             onNavDestinationSelected(item, navController!!)
         }
 
@@ -84,10 +78,10 @@ class MainFragment : BaseFragment<MainViewModel>() {
 
     override fun subscribe(viewModel: MainViewModel) {
         viewModel.stakingAvailableLiveData.observe {
-            bottomNavigationView.menu.findItem(R.id.stakingFragment).isVisible = it
+            binding.bottomNavigationView.menu.findItem(R.id.stakingFragment).isVisible = it
         }
     }
 
     private fun isAtHomeTab(destination: NavDestination) =
-        destination.id == navController!!.graph.startDestination
+        destination.id == navController!!.graph.startDestinationId
 }

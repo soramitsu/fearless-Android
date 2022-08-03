@@ -3,12 +3,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.view.bottomSheet.list.fixed.FixedListBottomSheet
 import jp.co.soramitsu.feature_staking_impl.R
-import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetStakingActionImage
-import kotlinx.android.synthetic.main.item_sheet_staking_action.view.itemSheetStakingActionText
 
 class ManageStakingBottomSheet(
     context: Context,
@@ -42,8 +42,8 @@ class ManageStakingBottomSheet(
     ) {
         if (action in payload.availableActions) {
             item(R.layout.item_sheet_staking_action) {
-                it.itemSheetStakingActionImage.setImageResource(iconRes)
-                it.itemSheetStakingActionText.setText(titleRes)
+                it.findViewById<ImageView>(R.id.itemSheetStakingActionImage).setImageResource(iconRes)
+                it.findViewById<TextView>(R.id.itemSheetStakingActionText).setText(titleRes)
 
                 extraBuilder(it)
 

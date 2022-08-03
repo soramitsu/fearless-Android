@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_wallet_api.domain.validation
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
@@ -9,7 +10,6 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.runtime.state.chain
-import java.math.BigDecimal
 
 class EnoughToPayFeesValidation<P, E>(
     private val feeExtractor: AmountProducer<P>,
@@ -22,11 +22,12 @@ class EnoughToPayFeesValidation<P, E>(
 
     override suspend fun validate(value: P): ValidationStatus<E> {
 
-        return if (extraAmountExtractor(value) + feeExtractor(value) < availableBalanceProducer(value)) {
+        val result = if (extraAmountExtractor(value) + feeExtractor(value) < availableBalanceProducer(value)) {
             ValidationStatus.Valid()
         } else {
             ValidationStatus.NotValid(DefaultFailureLevel.ERROR, errorProducer())
         }
+        return result
     }
 }
 

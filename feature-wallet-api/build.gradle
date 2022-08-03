@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -14,6 +13,10 @@ android {
 
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
         jvmTarget = '1.8'
@@ -22,6 +25,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'jp.co.soramitsu.feature_wallet_api'
 }
 
 dependencies {
