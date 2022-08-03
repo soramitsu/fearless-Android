@@ -113,7 +113,7 @@ class StakingParachainScenarioViewModel(
         return bottomDelegations.mapNotNull { (collatorIdHex, delegations) ->
             val delegation = delegations.find { it.owner.contentEquals(accountIdToCheck) } ?: return@mapNotNull null
             val candidateInfo = scenarioInteractor.getCollator(collatorIdHex.requireHexPrefix().fromHex())
-            val amountToStakeMoreInPlanks = candidateInfo.lowestBottomDelegationAmount - delegation.amount
+            val amountToStakeMoreInPlanks = candidateInfo.lowestTopDelegationAmount - delegation.amount
             val token = stakingInteractor.currentAssetFlow().first().token
             val amountToStakeMore = token.amountFromPlanks(amountToStakeMoreInPlanks).formatTokenAmount(token.configuration.symbol)
             Alert.ChangeCollators(collatorIdHex.requireHexPrefix(), amountToStakeMore)
