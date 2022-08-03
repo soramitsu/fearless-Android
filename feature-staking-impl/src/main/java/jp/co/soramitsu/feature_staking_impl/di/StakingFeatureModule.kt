@@ -362,11 +362,13 @@ class StakingFeatureModule {
         identityRepository: IdentityRepository,
         rewardCalculatorFactory: RewardCalculatorFactory,
         stakingConstantsRepository: StakingConstantsRepository,
+        accountRepository: AccountRepository
     ) = CollatorProvider(
         stakingParachainScenarioRepository,
         identityRepository,
         rewardCalculatorFactory,
-        stakingConstantsRepository
+        stakingConstantsRepository,
+        accountRepository
     )
 
     @Provides
