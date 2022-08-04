@@ -188,6 +188,11 @@ sealed class SetupStakingProcess {
         }
 
         class Stash(payload: Payload<Validator>) : ReadyToSubmit<Validator>(payload) {
+
+            val filtersSet =
+                setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
+            val sortingSet = setOf(Sorting.EstimatedRewards, Sorting.TotalStake, Sorting.ValidatorsOwnStake)
+
             override fun changeBlockProducers(newBlockProducers: List<Validator>, selectionMethod: SelectionMethod): ReadyToSubmit<Validator> {
                 return Stash(payload.changeBlockProducers(newBlockProducers, selectionMethod))
             }
