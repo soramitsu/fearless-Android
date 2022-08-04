@@ -8,6 +8,7 @@ import jp.co.soramitsu.core_db.model.StorageEntryLocal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -36,11 +37,13 @@ class DbStorageCache(
         storageDao.insert(mapped)
     }
 
-    override suspend fun observeEntry(key: String, chainId: String): Flow<StorageEntry> {
-        return storageDao.observeEntry(chainId, key)
-            .filterNotNull()
-            .map { mapStorageEntryFromLocal(it) }
-            .distinctUntilChangedBy(StorageEntry::content)
+    override suspend fun observeEntry(key: String?, chainId: String): Flow<StorageEntry> {
+        return key?.let {
+            storageDao.observeEntry(chainId, it)
+                .filterNotNull()
+                .map { mapStorageEntryFromLocal(it) }
+                .distinctUntilChangedBy(StorageEntry::content)
+        } ?: emptyFlow()
     }
 
     override suspend fun observeEntries(keyPrefix: String, chainId: String): Flow<List<StorageEntry>> {

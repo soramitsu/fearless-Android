@@ -15,7 +15,7 @@ interface StorageDataSource {
 
     suspend fun <T> query(
         chainId: String,
-        keyBuilder: (RuntimeSnapshot) -> StorageKey,
+        keyBuilder: (RuntimeSnapshot) -> StorageKey?,
         at: BlockHash? = null,
         binding: Binder<T>,
     ): T
@@ -29,13 +29,13 @@ interface StorageDataSource {
 
     fun <T> observe(
         chainId: String,
-        keyBuilder: (RuntimeSnapshot) -> StorageKey,
+        keyBuilder: (RuntimeSnapshot) -> StorageKey?,
         binder: Binder<T>,
     ): Flow<T>
 
     suspend fun <K, T> queryByPrefix(
         chainId: String,
-        prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey,
+        prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey?,
         keyExtractor: (String) -> K,
         binding: BinderWithKey<T, K>,
     ): Map<K, T>
@@ -50,13 +50,13 @@ interface StorageDataSource {
 
 suspend inline fun <T> StorageDataSource.queryNonNull(
     chainId: String,
-    noinline keyBuilder: (RuntimeSnapshot) -> String,
+    noinline keyBuilder: (RuntimeSnapshot) -> String?,
     crossinline binding: NonNullBinder<T>,
     at: BlockHash? = null
 ) = query(chainId, keyBuilder, at) { scale, runtime -> binding(scale!!, runtime) }
 
 inline fun <T> StorageDataSource.observeNonNull(
     chainId: String,
-    noinline keyBuilder: (RuntimeSnapshot) -> String,
+    noinline keyBuilder: (RuntimeSnapshot) -> String?,
     crossinline binding: NonNullBinder<T>,
 ) = observe(chainId, keyBuilder) { scale, runtime -> binding(scale!!, runtime) }
