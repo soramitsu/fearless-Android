@@ -83,11 +83,14 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             .inject(this)
     }
 
+    private var observeDelegationsJob: Job? = null
+    private var observeAlertsJob: Job? = null
+
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
         setupAssetSelector(binding.stakingAssetSelector, viewModel, imageLoader)
-
-        viewModel.alertsFlow.observe { loadingState ->
+        observeAlertsJob?.cancel()
+        observeAlertsJob = viewModel.alertsFlow.onEach { loadingState ->
             if (loadingState is LoadingState.Loaded) {
                 binding.stakingAlertsInfo.hideLoading()
 
@@ -98,8 +101,8 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                     binding.stakingAlertsInfo.setStatus(loadingState.data)
                 }
             }
-        }
-        var observeDelegationsJob: Job? = null
+        }.launchIn(viewModel.stakingStateScope)
+
         viewModel.stakingViewState.observe { loadingState ->
             observeDelegationsJob?.cancel()
             when (loadingState) {
@@ -358,5 +361,12 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             onStakingBalance = viewModel::onStakingBalance,
             onYourCollator = viewModel::openCollatorInfo
         ).show()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        returnsJob?.cancel()
+        observeDelegationsJob?.cancel()
+        observeAlertsJob?.cancel()
     }
 }

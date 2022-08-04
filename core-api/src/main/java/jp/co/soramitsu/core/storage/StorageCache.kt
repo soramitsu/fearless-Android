@@ -13,7 +13,7 @@ interface StorageCache {
 
     suspend fun insert(entries: List<StorageEntry>, chainId: String)
 
-    suspend fun observeEntry(key: String, chainId: String): Flow<StorageEntry>
+    suspend fun observeEntry(key: String?, chainId: String): Flow<StorageEntry>
 
     /**
      * Should be not empty
