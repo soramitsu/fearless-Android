@@ -76,6 +76,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -413,7 +414,7 @@ class StakingRelayChainScenarioInteractor(
     }
 
     override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
-        val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainId).first().values
+        val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainId).firstOrNull()?.values ?: emptyList()
         val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainId)
         return minimumStake(exposures, minimumNominatorBond)
     }

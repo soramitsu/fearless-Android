@@ -100,7 +100,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
 
     protected fun EditText.bindTo(liveData: MutableLiveData<String>) = bindTo(liveData, viewLifecycleOwner)
 
-    protected inline fun <reified T> argument(key: String): T = arguments!![key] as T
+    protected inline fun <reified T> argument(key: String): T = requireArguments()[key] as T
 
     abstract fun initViews()
 

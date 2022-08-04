@@ -36,13 +36,13 @@ fun bindIndividualExposure(dynamicInstance: Any?, runtime: RuntimeSnapshot): Ind
 }
  */
 @UseCaseBinding
-fun bindExposure(scale: String, runtime: RuntimeSnapshot, type: Type<*>): Exposure {
-    val decoded = type.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
+fun bindExposure(scale: String, runtime: RuntimeSnapshot, type: Type<*>): Exposure? {
+    val decoded = type.fromHexOrNull(runtime, scale) as? Struct.Instance ?: return null
 
-    val total = decoded.get<BigInteger>("total") ?: incompatible()
-    val own = decoded.get<BigInteger>("own") ?: incompatible()
+    val total = decoded.get<BigInteger>("total") ?: return null
+    val own = decoded.get<BigInteger>("own") ?: return null
 
-    val others = decoded.get<List<*>>("others")?.map { bindIndividualExposure(it, runtime) } ?: incompatible()
+    val others = decoded.get<List<*>>("others")?.map { bindIndividualExposure(it, runtime) } ?: return null
 
     return Exposure(total, own, others)
 }

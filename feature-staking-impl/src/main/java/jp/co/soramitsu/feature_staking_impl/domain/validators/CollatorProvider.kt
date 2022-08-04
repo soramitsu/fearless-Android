@@ -6,13 +6,11 @@ import jp.co.soramitsu.feature_account_api.domain.model.accountId
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.api.IdentityRepository
 import jp.co.soramitsu.feature_staking_api.domain.model.Collator
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.toCollator
 import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import kotlinx.coroutines.flow.first
 
 class CollatorProvider(
     private val stakingParachainScenarioRepository: StakingParachainScenarioRepository,
@@ -29,9 +27,8 @@ class CollatorProvider(
         val rewardCalculator = rewardCalculatorFactory.createSubquery()
 
         val usedCollatorIds = accountRepository.getSelectedMetaAccount().accountId(chain)?.let { accountId ->
-            val state = stakingParachainScenarioRepository.stakingStateFlow(chain, accountId).first()
-            val delegatorState = state as? StakingState.Parachain.Delegator
-            delegatorState?.delegations?.map { it.collatorId }
+            val state = stakingParachainScenarioRepository.getDelegatorState(chainId, accountId)
+            state?.delegations?.map { it.owner }
         } ?: emptyList()
 
         val maxTopDelegationsPerCandidate = stakingConstantsRepository.maxTopDelegationsPerCandidate(chainId)
