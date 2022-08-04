@@ -148,6 +148,10 @@ class SelectCustomValidatorsViewModel(
             ?: setupStakingSharedState.getOrNull<SetupStakingProcess.ReadyToSubmit.Stash>()?.filtersSet?.let {
                 settingsStorage.currentFiltersSet.value = it
             }
+        setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()?.quickFilters
+            ?: setupStakingSharedState.getOrNull<SetupStakingProcess.ReadyToSubmit.Stash>()?.quickFilters?.let {
+                settingsStorage.quickFilters = it
+            }
 
         launch {
             settingsStorage.schema.collect {

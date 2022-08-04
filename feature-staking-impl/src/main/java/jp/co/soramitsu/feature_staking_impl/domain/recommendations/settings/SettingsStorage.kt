@@ -22,6 +22,8 @@ class SettingsStorage {
     private val selectedSorting: MutableStateFlow<Sorting> =
         MutableStateFlow(defaultSelectedSorting)
 
+    var quickFilters: Set<Filters> = setOf()
+
     val currentFiltersSet: MutableStateFlow<Set<Filters>> = MutableStateFlow(setOf())
     val currentSortingSet: MutableStateFlow<Set<Sorting>> = MutableStateFlow(setOf())
 

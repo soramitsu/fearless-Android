@@ -73,6 +73,7 @@ class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewMode
         binding.selectCustomValidatorsDeselectAll.isVisible = false
         binding.selectCustomCollatorsOnChainIdentity.isVisible = true
         binding.selectCustomCollatorsRelevantBond.isVisible = true
+        binding.selectCustomValidatorsClearFilters.isVisible = false
     }
 
     override fun inject() {

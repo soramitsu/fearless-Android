@@ -63,13 +63,15 @@ sealed class SetupStakingProcess {
     sealed class SelectBlockProducersStep : SetupStakingProcess() {
 
         abstract val filtersSet: Set<Filters>
+        abstract val quickFilters: Set<Filters>
         abstract val sortingSet: Set<Sorting>
 
         class Collators(
             val payload: Payload.Full
         ) : SelectBlockProducersStep() {
 
-            override val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.NotOverSubscribed, Filters.WithRelevantBond)
+            override val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.WithRelevantBond)
+            override val quickFilters = setOf(Filters.HavingOnChainIdentity, Filters.WithRelevantBond)
             override val sortingSet =
                 setOf(Sorting.EstimatedRewards, Sorting.EffectiveAmountBonded, Sorting.CollatorsOwnStake, Sorting.Delegations, Sorting.MinimumBond)
 
@@ -92,6 +94,7 @@ sealed class SetupStakingProcess {
 
             override val filtersSet =
                 setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
+            override val quickFilters = setOf<Filters>()
             override val sortingSet = setOf(Sorting.EstimatedRewards, Sorting.TotalStake, Sorting.ValidatorsOwnStake)
 
             fun previous() = when (payload) {
@@ -191,6 +194,7 @@ sealed class SetupStakingProcess {
 
             val filtersSet =
                 setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
+            val quickFilters = setOf<Filters>()
             val sortingSet = setOf(Sorting.EstimatedRewards, Sorting.TotalStake, Sorting.ValidatorsOwnStake)
 
             override fun changeBlockProducers(newBlockProducers: List<Validator>, selectionMethod: SelectionMethod): ReadyToSubmit<Validator> {
