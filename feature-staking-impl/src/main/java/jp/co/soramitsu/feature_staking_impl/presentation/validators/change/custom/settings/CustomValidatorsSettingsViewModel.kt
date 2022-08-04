@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class CustomValidatorsSettingsViewModel(
@@ -37,7 +38,9 @@ class CustomValidatorsSettingsViewModel(
         emit(settingsStorage.schema.first())
     }
 
-    val settingsSchemaLiveData: LiveData<SettingsSchema> = settingsStorage.schema.asLiveData()
+    val settingsSchemaLiveData: LiveData<SettingsSchema> = settingsStorage.schema.map { schema ->
+        schema.copy(filters = schema.filters.filter { it.filter !in settingsStorage.quickFilters })
+    }.asLiveData()
 
 //    val tokenNameFlow = tokenUseCase.currentTokenFlow().map { it.configuration.name }
 

@@ -19,7 +19,6 @@ import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.Coll
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
@@ -31,7 +30,6 @@ class CollatorDetailsModule {
     @ViewModelKey(CollatorDetailsViewModel::class)
     fun provideCollatorViewModel(
         interactor: StakingInteractor,
-        stakingParachainScenarioInteractor: StakingParachainScenarioInteractor,
         router: StakingRouter,
         collator: CollatorDetailsParcelModel,
         addressIconGenerator: AddressIconGenerator,
@@ -43,7 +41,6 @@ class CollatorDetailsModule {
     ): ViewModel {
         return CollatorDetailsViewModel(
             interactor,
-            stakingParachainScenarioInteractor,
             router,
             collator,
             addressIconGenerator,

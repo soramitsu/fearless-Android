@@ -50,6 +50,7 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
             stakingBalanceUnbondings.setMoreActionClickListener {
                 viewModel.unbondingsMoreClicked()
             }
+            stakingBalanceUnbondings.title.setText(R.string.staking_history_title)
         }
     }
 

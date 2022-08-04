@@ -10,39 +10,34 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.CollatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorStakeParcelModel
-import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class CollatorDetailsViewModel(
-    private val interactor: StakingInteractor,
-    private val stakingParachainScenarioInteractor: StakingParachainScenarioInteractor,
+    interactor: StakingInteractor,
     private val router: StakingRouter,
     private val collator: CollatorDetailsParcelModel,
     private val iconGenerator: AddressIconGenerator,
@@ -50,23 +45,16 @@ class CollatorDetailsViewModel(
     private val appLinksProvider: AppLinksProvider,
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
-    private val rewardCalculatorFactory: RewardCalculatorFactory,
+    rewardCalculatorFactory: RewardCalculatorFactory,
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    private val maxDelegations = flowOf { stakingParachainScenarioInteractor.maxDelegationsPerDelegator() }
-        .inBackground()
-
     val rewardCalculator = rewardCalculatorFactory.createSubquery()
 
-    val collatorDetails = maxDelegations.combine(assetFlow) { maxDelegations, asset ->
-        val chain = interactor.getSelectedChain()
-        val address = interactor.getSelectedAccountProjection()?.address
-        val atStake = stakingParachainScenarioInteractor.getAtStake(chain.id, collator.accountIdHex.fromHex()).getOrNull()
-        val myTotalStake = atStake?.delegations?.find { it.first.toHexString(true) == address }?.second
-        val totalStake = myTotalStake?.let { asset.token.amountFromPlanks(it) }
+    val collatorDetails = assetFlow.map { asset ->
+        val totalStake = asset.token.amountFromPlanks(collator.stake.totalStake)
         val (statusText, statusColor) = mapStatus(collator.stake.status)
         val rewardApr = rewardCalculator.getApyFor(collator.accountIdHex.fromHex())
 
@@ -89,11 +77,12 @@ class CollatorDetailsViewModel(
             statusColor = statusColor,
             delegations = collator.stake.delegations.format(),
             estimatedRewardsApr = rewardApr.formatAsPercentage(),
-            totalStake = totalStake?.formatTokenAmount(asset.token.configuration),
-            totalStakeFiat = totalStake?.let { asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol) },
+            totalStake = totalStake.formatTokenAmount(asset.token.configuration),
+            totalStakeFiat = totalStake.let { asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol) },
             minBond = asset.token.amountFromPlanks(collator.stake.minBond).formatTokenAmount(asset.token.configuration),
             selfBonded = asset.token.amountFromPlanks(collator.stake.selfBonded).formatTokenAmount(asset.token.configuration),
-            effectiveAmountBonded = asset.token.amountFromPlanks(collator.stake.totalStake).formatTokenAmount(asset.token.configuration),
+            effectiveAmountBonded = asset.token.amountFromPlanks(collator.stake.totalStake - collator.stake.selfBonded)
+                .formatTokenAmount(asset.token.configuration),
         )
     }
         .inBackground()

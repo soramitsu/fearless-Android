@@ -144,6 +144,7 @@ class SelectCustomCollatorsViewModel(
         state?.let {
             settingsStorage.currentFiltersSet.value = it.filtersSet
             settingsStorage.currentSortingSet.value = it.sortingSet
+            settingsStorage.quickFilters = it.quickFilters
 
             launch {
                 settingsStorage.schema.collect {

@@ -30,6 +30,7 @@ class UnbondingsView @JvmOverloads constructor(
     }
 
     val unbondingsMoreAction = binding.unbondingsMoreAction
+    val title = binding.unbondingsTitle
 
     fun setMoreActionClickListener(listener: OnClickListener) {
         binding.unbondingsMoreAction.setOnClickListener(listener)

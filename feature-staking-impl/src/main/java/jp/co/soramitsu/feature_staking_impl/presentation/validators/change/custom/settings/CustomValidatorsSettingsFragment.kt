@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings
 
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.ButtonState
@@ -56,6 +57,8 @@ class CustomValidatorsSettingsFragment :
 //        }
 
         viewModel.settingsSchemaLiveData.observe {
+            binding.filtersTitle.isVisible = it.filters.isNotEmpty()
+            binding.settingsFiltersList.isVisible = it.filters.isNotEmpty()
             filtersAdapter.submitList(it.filters)
             sortingAdapter.submitList(it.sortings)
         }

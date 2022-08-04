@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -113,9 +114,9 @@ class StakingParachainScenarioViewModel(
         return bottomDelegations.mapNotNull { (collatorIdHex, delegations) ->
             val delegation = delegations.find { it.owner.contentEquals(accountIdToCheck) } ?: return@mapNotNull null
             val candidateInfo = scenarioInteractor.getCollator(collatorIdHex.requireHexPrefix().fromHex())
-            val amountToStakeMoreInPlanks = candidateInfo.lowestTopDelegationAmount - delegation.amount
+            val amountToStakeMoreInPlanks = (candidateInfo.lowestTopDelegationAmount - delegation.amount)
             val token = stakingInteractor.currentAssetFlow().first().token
-            val amountToStakeMore = token.amountFromPlanks(amountToStakeMoreInPlanks).formatTokenAmount(token.configuration.symbol)
+            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatTokenAmount(token.configuration.symbol)
             Alert.ChangeCollators(collatorIdHex.requireHexPrefix(), amountToStakeMore)
         }
     }

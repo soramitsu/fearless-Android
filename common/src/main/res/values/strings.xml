@@ -801,4 +801,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="select_collator_having_identity">Having onchain identity</string>
     <string name="select_collator_having_relevant_minimum_bond">Having relevant minimum bond</string>
 
+    <string name="staking_history_title">Staking history</string>
+    <string name="parachain_staking_request_finished">Finished</string>
+
 </resources>
