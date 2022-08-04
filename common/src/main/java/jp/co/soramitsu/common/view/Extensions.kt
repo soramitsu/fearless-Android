@@ -24,6 +24,10 @@ fun TextView.startTimer(
     hideZeroTimer: Boolean = false,
     onFinish: ((view: TextView) -> Unit)? = null
 ) {
+    if (millis <= 0L) {
+        setText(R.string.parachain_staking_request_finished)
+        return
+    }
     val deltaTime = if (timeLeftTimestamp != null) System.currentTimeMillis() - timeLeftTimestamp else 0L
 
     val currentTimer = getTag(TIMER_TAG)
