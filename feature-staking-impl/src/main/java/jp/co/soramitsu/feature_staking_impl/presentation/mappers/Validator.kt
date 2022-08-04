@@ -41,7 +41,7 @@ suspend fun mapValidatorToValidatorModel(
     iconGenerator: AddressIconGenerator,
     token: Token,
     isChecked: Boolean? = null,
-    sorting: BlockProducersSorting<Validator> = BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting,
+    sorting: BlockProducersSorting<Validator> = BlockProducersSorting.ValidatorSorting.APYSorting,
 ) = mapValidatorToValidatorModel(
     chain,
     validator,
@@ -57,7 +57,7 @@ suspend fun mapValidatorToValidatorModel(
     createIcon: suspend (address: String) -> AddressModel,
     token: Token,
     isChecked: Boolean? = null,
-    sorting: BlockProducersSorting<Validator> = BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting,
+    sorting: BlockProducersSorting<Validator> = BlockProducersSorting.ValidatorSorting.APYSorting,
 ): ValidatorModel {
     val address = chain.addressOf(validator.accountIdHex.fromHex())
     val addressModel = createIcon(address)
