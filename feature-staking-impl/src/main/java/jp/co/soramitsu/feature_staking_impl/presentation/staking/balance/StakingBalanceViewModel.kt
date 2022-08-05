@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
@@ -29,6 +28,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.S
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -53,9 +53,9 @@ class StakingBalanceViewModel(
     private val assetFlow = interactor.currentAssetFlow()
         .share()
 
-    val stakingBalanceModelLiveData: LiveData<StakingBalanceModel> = refresh.flatMapLatest {
+    val stakingBalanceModelLiveData: Flow<StakingBalanceModel> = refresh.flatMapLatest {
         stakingScenarioInteractor.getStakingBalanceFlow(collatorAddress?.fromHex())
-    }.asLiveData()
+    }.share()
 
     private val unbondingsFlow: Flow<List<Unbonding>> = refresh.flatMapLatest {
         stakingScenarioInteractor.currentUnbondingsFlow(collatorAddress)
@@ -65,11 +65,12 @@ class StakingBalanceViewModel(
 
     val redeemEnabledLiveData = stakingBalanceModelLiveData.map {
         it.redeemable.amount > BigDecimal.ZERO
-    }
+    }.asLiveData()
 
-    val hasScheduledRequestsLiveData = stakingBalanceModelLiveData.map {
-        it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO
-    }
+    val shouldBlockActionButtons = stakingBalanceModelLiveData.map {
+        val isParachain = assetFlow.first().token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
+        (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
+    }.onStart { emit(true) }.asLiveData()
 
     val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
