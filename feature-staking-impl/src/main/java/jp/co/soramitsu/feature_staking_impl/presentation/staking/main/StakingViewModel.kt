@@ -8,7 +8,6 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
-import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -35,6 +34,8 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.WithA
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -43,6 +44,7 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
@@ -83,24 +85,28 @@ class StakingViewModel(
 
     override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
 
-    private val scenarioViewModelFlow = assetSelectorMixin.selectedAssetFlow
-        .map { stakingScenario.getViewModel(it.token.configuration.staking) }
+    val stakingTypeFlow = stakingSharedState.assetWithChain.map { interactor.currentAssetFlow().first().token.configuration.staking }
+
+    private val scenarioViewModelFlow = stakingSharedState.assetWithChain
+        .map {
+            val asset = interactor.currentAssetFlow().first()
+            stakingScenario.getViewModel(asset.token.configuration.staking)
+        }.debounce(100)
 
     val networkInfo = scenarioViewModelFlow
         .flatMapLatest {
             it.networkInfo()
-        }.distinctUntilChanged().share()
+        }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     val stakingViewState = scenarioViewModelFlow
         .flatMapLatest {
             it.getStakingViewStateFlow().withLoading()
-        }.distinctUntilChanged().inBackground()
-        .onEach { stakingStateScope.coroutineContext.cancelChildren() }
+        }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     val alertsFlow = scenarioViewModelFlow
         .flatMapLatest {
             it.alerts()
-        }.distinctUntilChanged().share()
+        }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     init {
         stakingUpdateSystem.start()
