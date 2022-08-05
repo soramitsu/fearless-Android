@@ -30,8 +30,11 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.main.scenarios.
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
 
@@ -45,6 +48,9 @@ class StakingRelaychainScenarioViewModel(
     private val stakingViewStateFactory: StakingViewStateFactory,
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
+
+    private val chainId = stakingInteractor.currentAssetFlow().filter { it.token.configuration.staking == Chain.Asset.StakingType.RELAYCHAIN }
+        .map { it.token.configuration.chainId }
 
     private val welcomeStakingValidationSystem = ValidationSystem(
         CompositeValidation(
@@ -96,7 +102,7 @@ class StakingRelaychainScenarioViewModel(
         }
     }
 
-    override suspend fun getRewardCalculator() = rewardCalculatorFactory.createManual()
+    override suspend fun getRewardCalculator() = rewardCalculatorFactory.createManual(chainId.first())
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
         return combine(

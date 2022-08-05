@@ -86,11 +86,13 @@ class StakingViewModel(
 
     val stakingTypeFlow = stakingSharedState.assetWithChain.map { interactor.currentAssetFlow().first().token.configuration.staking }
 
-    private val scenarioViewModelFlow = stakingSharedState.assetWithChain
+    private val scenarioViewModelFlow = stakingSharedState.assetWithChain.debounce(50).onEach {
+        stakingStateScope.coroutineContext.cancelChildren()
+    }
         .map {
             val asset = interactor.currentAssetFlow().first()
             stakingScenario.getViewModel(asset.token.configuration.staking)
-        }.debounce(100)
+        }.shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     val networkInfo = scenarioViewModelFlow
         .flatMapLatest {
@@ -110,12 +112,7 @@ class StakingViewModel(
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
-        // todo research
         viewModelScope.launch {
-            assetSelectorMixin.selectedAssetModelFlow.onEach {
-                stakingStateScope.coroutineContext.cancelChildren()
-            }
-
             stakingSharedState.assetWithChain.distinctUntilChanged().collect {
                 setupStakingSharedState.set(SetupStakingProcess.Initial(it.asset.staking))
                 stakingStateScope.coroutineContext.cancelChildren()
