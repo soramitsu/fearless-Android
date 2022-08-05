@@ -19,7 +19,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.bondMoreValidationFailure
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
@@ -40,7 +39,6 @@ class ConfirmBondMoreViewModel(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     private val iconGenerator: AddressIconGenerator,
-    private val validationSystem: BondMoreValidationSystem,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val payload: ConfirmBondMorePayload,
@@ -115,7 +113,7 @@ class ConfirmBondMoreViewModel(
         )
 
         validationExecutor.requireValid(
-            validationSystem = validationSystem,
+            validationSystem = stakingScenarioInteractor.provideBondMoreValidationSystem(),
             payload = payload,
             validationFailureTransformer = { bondMoreValidationFailure(it, resourceManager) },
             progressConsumer = _showNextProgress.progressConsumer()

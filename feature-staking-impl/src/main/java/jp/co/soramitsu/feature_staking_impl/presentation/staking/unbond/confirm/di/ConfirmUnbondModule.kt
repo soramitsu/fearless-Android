@@ -14,7 +14,6 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondViewModel
@@ -34,7 +33,6 @@ class ConfirmUnbondModule {
         unbondInteractor: UnbondInteractor,
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
-        validationSystem: UnbondValidationSystem,
         iconGenerator: AddressIconGenerator,
         chainRegistry: ChainRegistry,
         externalAccountActions: ExternalAccountActions.Presentation,
@@ -49,7 +47,6 @@ class ConfirmUnbondModule {
             validationExecutor,
             iconGenerator,
             chainRegistry,
-            validationSystem,
             externalAccountActions,
             payload
         )

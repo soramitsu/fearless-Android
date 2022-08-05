@@ -97,7 +97,7 @@ class SetupStakingViewModel(
 
     private val rewardCalculator = viewModelScope.async {
         val asset = interactor.getCurrentAsset()
-        rewardCalculatorFactory.create(asset.staking)
+        rewardCalculatorFactory.create(asset.staking, asset.chainId)
     }
 
     val currentAccountAddressModel = liveData {

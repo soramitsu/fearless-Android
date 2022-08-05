@@ -10,6 +10,7 @@ fun SetupStakingSharedState.retractValidators() = mutate {
     when (it) {
         is SetupStakingProcess.ReadyToSubmit<*> -> it.previous()
         is SetupStakingProcess.SelectBlockProducersStep.Validators -> it.previous()
+        is SetupStakingProcess.Initial -> it
         else -> throw IllegalArgumentException("Cannot retract validators from $it state")
     }
 }

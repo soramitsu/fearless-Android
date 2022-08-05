@@ -248,7 +248,8 @@ class StakingFeatureModule {
         stakingSharedState: StakingSharedState,
         iconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
-        delegationHistoryFetcher: SubQueryDelegationHistoryFetcher
+        delegationHistoryFetcher: SubQueryDelegationHistoryFetcher,
+        walletRepository: WalletRepository
     ): StakingParachainScenarioInteractor {
         return StakingParachainScenarioInteractor(
             interactor,
@@ -259,7 +260,8 @@ class StakingFeatureModule {
             stakingSharedState,
             iconGenerator,
             resourceManager,
-            delegationHistoryFetcher
+            delegationHistoryFetcher,
+            walletRepository
         )
     }
 
@@ -497,7 +499,7 @@ class StakingFeatureModule {
         sharedState: StakingSharedState,
         extrinsicService: ExtrinsicService,
         stakingScenarioInteractor: StakingScenarioInteractor
-    ) = RebondInteractor(extrinsicService, sharedState, stakingScenarioInteractor)
+    ) = RebondInteractor(extrinsicService, sharedState)
 
     @Provides
     @FeatureScope

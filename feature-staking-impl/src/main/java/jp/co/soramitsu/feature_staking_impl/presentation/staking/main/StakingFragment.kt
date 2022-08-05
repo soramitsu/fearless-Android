@@ -158,8 +158,8 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             }
         }
 
-        combine(viewModel.networkInfo, viewModel.assetSelectorMixin.selectedAssetFlow) { state, asset ->
-            state to asset.token.configuration.staking
+        combine(viewModel.networkInfo, viewModel.stakingTypeFlow) { state, stakingType ->
+            state to stakingType
         }.distinctUntilChanged().observe { (state, stakingType) ->
             when {
                 state is LoadingState.Loading<*> && stakingType == Chain.Asset.StakingType.RELAYCHAIN -> {
