@@ -7,9 +7,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.LifecycleCoroutineScope
-import coil.ImageLoader
 import com.google.android.material.switchmaterial.SwitchMaterial
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.utils.observe
@@ -17,13 +15,10 @@ import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.TableCellView
-import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
-import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import java.math.BigDecimal
-import javax.inject.Inject
 
 open class ReferralContributeView @JvmOverloads constructor(
     context: Context,
@@ -32,16 +27,8 @@ open class ReferralContributeView @JvmOverloads constructor(
     @LayoutRes layoutId: Int = R.layout.view_referral_flow
 ) : CustomContributeView(context, attrs, defStyle) {
 
-    @Inject
-    lateinit var imageLoader: ImageLoader
-
     init {
         View.inflate(context, layoutId, this)
-
-        FeatureUtils.getFeature<CrowdloanFeatureComponent>(
-            context,
-            CrowdloanFeatureApi::class.java
-        ).inject(this)
 
         findViewById<TextView>(R.id.referralPrivacyText)?.movementMethod = LinkMovementMethod.getInstance()
     }

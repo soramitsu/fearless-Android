@@ -2,7 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.di.scope.FeatureScope
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationControllerRequiredValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationFeeValidation
@@ -10,10 +11,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationSystem
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 
+@InstallIn(SingletonComponent::class)
 @Module
 class RewardDestinationValidationsModule {
 
-    @FeatureScope
     @Provides
     fun provideFeeValidation() = RewardDestinationFeeValidation(
         feeExtractor = { it.fee },
@@ -22,7 +23,6 @@ class RewardDestinationValidationsModule {
     )
 
     @Provides
-    @FeatureScope
     fun controllerRequiredValidation(
         stakingScenarioInteractor: StakingScenarioInteractor
     ) = RewardDestinationControllerRequiredValidation(
@@ -31,7 +31,6 @@ class RewardDestinationValidationsModule {
         errorProducer = RewardDestinationValidationFailure::MissingController,
     )
 
-    @FeatureScope
     @Provides
     fun provideRedeemValidationSystem(
         feeValidation: RewardDestinationFeeValidation,

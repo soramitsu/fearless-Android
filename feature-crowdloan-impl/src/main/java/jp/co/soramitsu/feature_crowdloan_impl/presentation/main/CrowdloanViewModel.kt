@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.main
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
@@ -57,11 +58,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 import kotlin.reflect.KClass
 
 private const val ICON_SIZE_DP = 40
 
-class CrowdloanViewModel(
+@HiltViewModel
+class CrowdloanViewModel @Inject constructor(
     private val interactor: CrowdloanInteractor,
     private val assetUseCase: AssetUseCase,
     private val iconGenerator: AddressIconGenerator,
@@ -70,7 +74,7 @@ class CrowdloanViewModel(
     private val router: CrowdloanRouter,
     private val sharedState: CrowdloanSharedState,
     private val crowdloanUpdateSystem: UpdateSystem,
-    assetSelectorFactory: AssetSelectorMixin.Presentation.Factory,
+    @Named("CrowdloanAssetSelector") assetSelectorFactory: AssetSelectorMixin.Presentation.Factory,
     private val accountUseCase: SelectedAccountUseCase,
     private val clipboardManager: ClipboardManager,
 ) : BaseViewModel(), WithAssetSelector, Browserable {

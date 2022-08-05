@@ -2,8 +2,13 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -36,7 +41,7 @@ import kotlinx.coroutines.withContext
 
 private const val ICON_IN_DP = 24
 
-class ConfirmTransferViewModel(
+class ConfirmTransferViewModel @AssistedInject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
@@ -44,7 +49,7 @@ class ConfirmTransferViewModel(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val walletConstants: WalletConstants,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    val transferDraft: TransferDraft
+    @Assisted val transferDraft: TransferDraft
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
@@ -148,6 +153,23 @@ class ConfirmTransferViewModel(
                 amount = amount,
                 chainAsset = token
             )
+        }
+    }
+
+    @AssistedFactory
+    interface ConfirmTransferViewModelFactory {
+        fun create(transferDraft: TransferDraft): ConfirmTransferViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ConfirmTransferViewModelFactory,
+            transferDraft: TransferDraft
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(transferDraft) as T
+            }
         }
     }
 }

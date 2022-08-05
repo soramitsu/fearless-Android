@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -45,18 +47,20 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
-class StakingViewModel(
+@HiltViewModel
+class StakingViewModel @Inject constructor(
     private val interactor: StakingInteractor,
     alertsInteractor: AlertsInteractor,
     stakingViewStateFactory: StakingViewStateFactory,
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    stakingUpdateSystem: UpdateSystem,
-    assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
+    @Named("StakingChainUpdateSystem") stakingUpdateSystem: UpdateSystem,
+    @Named("StakingAssetSelector") assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
     stakingSharedState: StakingSharedState,
     parachainScenarioInteractor: StakingParachainScenarioInteractor,
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,

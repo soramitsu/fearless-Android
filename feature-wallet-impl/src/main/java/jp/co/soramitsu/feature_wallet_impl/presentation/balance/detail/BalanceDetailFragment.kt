@@ -2,11 +2,12 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail
 
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
 import coil.load
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
@@ -18,11 +19,9 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentBalanceDetailBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
@@ -31,6 +30,7 @@ import javax.inject.Inject
 
 private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
+@AndroidEntryPoint
 class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.fragment_balance_detail) {
 
     companion object {
@@ -38,6 +38,18 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.frag
     }
 
     private val binding by viewBinding(FragmentBalanceDetailBinding::bind)
+
+    @Inject
+    lateinit var factory: BalanceDetailViewModel.BalanceDetailViewModelFactory
+
+    private val vm: BalanceDetailViewModel by viewModels {
+        BalanceDetailViewModel.provideFactory(
+            factory,
+            argument(KEY_ASSET_PAYLOAD)
+        )
+    }
+    override val viewModel: BalanceDetailViewModel
+        get() = vm
 
     @Inject
     lateinit var imageLoader: ImageLoader
@@ -83,18 +95,6 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.frag
                 viewModel.frozenInfoClicked()
             }
         }
-    }
-
-    override fun inject() {
-        val payload = requireArguments()[KEY_ASSET_PAYLOAD] as AssetPayload
-
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .balanceDetailComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: BalanceDetailViewModel) {

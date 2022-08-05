@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start
 
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private val RECOMMENDED_FEATURES_IDS = listOf(
     R.string.staking_recommended_feature_1,
@@ -31,7 +33,8 @@ class CustomValidatorsTexts(
     val badge: String?
 )
 
-class StartChangeValidatorsViewModel(
+@HiltViewModel
+class StartChangeValidatorsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,

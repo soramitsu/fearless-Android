@@ -1,21 +1,34 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import android.os.Bundle
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentAccountsBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
+import javax.inject.Inject
 
 private const val ARG_DIRECTION = "ARG_DIRECTION"
 
+@AndroidEntryPoint
 class AccountListFragment : BaseFragment<AccountListViewModel>(R.layout.fragment_accounts), AccountsAdapter.AccountItemHandler {
     private lateinit var adapter: AccountsAdapter
 
     private val binding by viewBinding(FragmentAccountsBinding::bind)
+
+    @Inject
+    lateinit var factory: AccountListViewModel.AccountListViewModelFactory
+
+    private val vm: AccountListViewModel by viewModels {
+        AccountListViewModel.provideFactory(
+            factory,
+            argument(ARG_DIRECTION)
+        )
+    }
+    override val viewModel: AccountListViewModel
+        get() = vm
 
     companion object {
 
@@ -41,18 +54,6 @@ class AccountListFragment : BaseFragment<AccountListViewModel>(R.layout.fragment
 
             addAccount.setOnClickListener { viewModel.addAccountClicked() }
         }
-    }
-
-    override fun inject() {
-        val accountChosenNavDirection = argument<AccountChosenNavDirection>(ARG_DIRECTION)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .accountsComponentFactory()
-            .create(this, accountChosenNavDirection)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: AccountListViewModel) {

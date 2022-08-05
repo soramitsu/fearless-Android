@@ -2,7 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.di.scope.FeatureScope
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -15,11 +16,11 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
 
+@InstallIn(SingletonComponent::class)
 @Module
 class MakePayoutValidationsModule {
 
     @Provides
-    @FeatureScope
     fun provideFeeValidation(
         stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository,
@@ -38,12 +39,10 @@ class MakePayoutValidationsModule {
         )
     }
 
-    @FeatureScope
     @Provides
     fun provideProfitableValidation() = ProfitablePayoutValidation()
 
     @Provides
-    @FeatureScope
     fun provideValidationSystem(
         enoughToPayFeesValidation: PayoutFeeValidation,
         profitablePayoutValidation: ProfitablePayoutValidation,

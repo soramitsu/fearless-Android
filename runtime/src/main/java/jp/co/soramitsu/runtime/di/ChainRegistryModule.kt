@@ -3,9 +3,10 @@ package jp.co.soramitsu.runtime.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
@@ -26,23 +27,25 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Provider
+import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module
 class ChainRegistryModule {
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideChainFetcher(apiCreator: NetworkApiCreator) = apiCreator.create(ChainFetcher::class.java)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideChainSyncService(
         dao: ChainDao,
         chainFetcher: ChainFetcher,
     ) = ChainSyncService(dao, chainFetcher)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideRuntimeFactory(
         runtimeFilesCache: RuntimeFilesCache,
         chainDao: ChainDao,
@@ -52,19 +55,19 @@ class ChainRegistryModule {
     }
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideRuntimeFilesCache(
         fileProvider: FileProvider,
     ) = RuntimeFilesCache(fileProvider)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideTypesFetcher(
         networkApiCreator: NetworkApiCreator,
     ) = networkApiCreator.create(TypesFetcher::class.java)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideRuntimeSyncService(
         typesFetcher: TypesFetcher,
         runtimeFilesCache: RuntimeFilesCache,
@@ -78,14 +81,14 @@ class ChainRegistryModule {
     )
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideBaseTypeSynchronizer(
         typesFetcher: TypesFetcher,
         runtimeFilesCache: RuntimeFilesCache,
     ) = BaseTypeSynchronizer(runtimeFilesCache, typesFetcher)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideRuntimeProviderPool(
         runtimeFactory: RuntimeFactory,
         runtimeSyncService: RuntimeSyncService,
@@ -93,11 +96,11 @@ class ChainRegistryModule {
     ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService, baseTypeSynchronizer)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideNodeSettingsStorage(preferences: Preferences) = NodesSettingsStorage(preferences)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideConnectionPool(
         socketProvider: Provider<SocketService>,
         externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
@@ -106,18 +109,18 @@ class ChainRegistryModule {
     ) = ConnectionPool(socketProvider, externalRequirementsFlow, nodesSettingsStorage, networkStateMixin)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideRuntimeVersionSubscriptionPool(
         chainDao: ChainDao,
         runtimeSyncService: RuntimeSyncService,
     ) = RuntimeSubscriptionPool(chainDao, runtimeSyncService)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideExternalRequirementsFlow() = MutableStateFlow(ChainConnection.ExternalRequirement.FORBIDDEN)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideChainRegistry(
         runtimeProviderPool: RuntimeProviderPool,
         chainConnectionPool: ConnectionPool,

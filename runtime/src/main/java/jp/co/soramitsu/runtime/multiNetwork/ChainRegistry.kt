@@ -30,13 +30,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class ChainService(
     val runtimeProvider: RuntimeProvider,
     val connection: ChainConnection
 )
 
-class ChainRegistry(
+class ChainRegistry @Inject constructor(
     private val runtimeProviderPool: RuntimeProviderPool,
     private val connectionPool: ConnectionPool,
     private val runtimeSubscriptionPool: RuntimeSubscriptionPool,

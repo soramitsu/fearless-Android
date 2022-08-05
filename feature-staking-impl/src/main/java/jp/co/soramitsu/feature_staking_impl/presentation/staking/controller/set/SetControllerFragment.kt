@@ -1,20 +1,22 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.set
 
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.address.AddressChooserBottomSheetDialog
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSetControllerAccountBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 
+@AndroidEntryPoint
 class SetControllerFragment : BaseFragment<SetControllerViewModel>(R.layout.fragment_set_controller_account) {
+
+    override val viewModel: SetControllerViewModel by viewModels()
 
     private val binding by viewBinding(FragmentSetControllerAccountBinding::bind)
 
@@ -29,16 +31,6 @@ class SetControllerFragment : BaseFragment<SetControllerViewModel>(R.layout.frag
             setControllerLearnMore.setOnClickListener { viewModel.onMoreClicked() }
             setControllerToolbar.setHomeButtonListener { viewModel.backClicked() }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .setControllerFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: SetControllerViewModel) {

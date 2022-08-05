@@ -4,25 +4,27 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.LiveData
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSelectCustomValidatorsBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.CollatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.CollatorModel
 
+@AndroidEntryPoint
 class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewModel>(R.layout.fragment_select_custom_validators), CollatorsAdapter.ItemHandler {
 
     private val binding by viewBinding(FragmentSelectCustomValidatorsBinding::bind)
+
+    override val viewModel: SelectCustomCollatorsViewModel by viewModels()
 
     lateinit var adapter: CollatorsAdapter
 
@@ -74,16 +76,6 @@ class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewMode
         binding.selectCustomCollatorsOnChainIdentity.isVisible = true
         binding.selectCustomCollatorsRelevantBond.isVisible = true
         binding.selectCustomValidatorsClearFilters.isVisible = false
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .selectCustomCollatorsComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: SelectCustomCollatorsViewModel) {

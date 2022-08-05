@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.collators.change.custom.select
 
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -41,8 +42,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SelectCustomCollatorsViewModel(
+@HiltViewModel
+class SelectCustomCollatorsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val collatorRecommendatorFactory: CollatorRecommendatorFactory,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,

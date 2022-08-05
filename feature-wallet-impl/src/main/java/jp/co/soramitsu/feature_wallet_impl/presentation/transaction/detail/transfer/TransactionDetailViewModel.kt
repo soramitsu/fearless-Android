@@ -2,7 +2,12 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.tran
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -27,7 +32,7 @@ enum class ExternalActionsSource {
     TRANSACTION_HASH, FROM_ADDRESS, TO_ADDRESS
 }
 
-class TransactionDetailViewModel(
+class TransactionDetailViewModel @AssistedInject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
@@ -35,8 +40,8 @@ class TransactionDetailViewModel(
     private val clipboardManager: ClipboardManager,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val chainRegistry: ChainRegistry,
-    val operation: OperationParcelizeModel.Transfer,
-    val assetPayload: AssetPayload
+    @Assisted val operation: OperationParcelizeModel.Transfer,
+    @Assisted val assetPayload: AssetPayload
 ) : BaseViewModel(), Browserable {
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
@@ -83,5 +88,23 @@ class TransactionDetailViewModel(
 
     fun openUrl(url: String) {
         openBrowserEvent.value = Event(url)
+    }
+
+    @AssistedFactory
+    interface TransactionDetailViewModelFactory {
+        fun create(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload): TransactionDetailViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: TransactionDetailViewModelFactory,
+            operation: OperationParcelizeModel.Transfer,
+            assetPayload: AssetPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(operation, assetPayload) as T
+            }
+        }
     }
 }

@@ -1,28 +1,30 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets
 
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.dragAndDropItemTouchHelper
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.AddAccountBottomSheet
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentManageAssetsBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(R.layout.fragment_manage_assets), ManageAssetsAdapter.Handler {
 
     @Inject
     lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentManageAssetsBinding::bind)
+
+    override val viewModel: ManageAssetsViewModel by viewModels()
 
     private val dragHelper by lazy { dragAndDropItemTouchHelper(viewModel) }
 
@@ -39,16 +41,6 @@ class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(R.layout.fragme
             manageAssetsToolbar.setHomeButtonListener { viewModel.backClicked() }
             applyButton.setOnClickListener { viewModel.onApply() }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .manageAssetsComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ManageAssetsViewModel) {

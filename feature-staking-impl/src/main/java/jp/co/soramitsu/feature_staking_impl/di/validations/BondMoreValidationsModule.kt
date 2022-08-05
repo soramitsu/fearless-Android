@@ -2,7 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.di.scope.FeatureScope
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
@@ -16,11 +17,11 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
 
+@InstallIn(SingletonComponent::class)
 @Module
 class BondMoreValidationsModule {
 
     @Provides
-    @FeatureScope
     fun provideFeeValidation(
         stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository,
@@ -41,14 +42,12 @@ class BondMoreValidationsModule {
     }
 
     @Provides
-    @FeatureScope
     fun provideNotZeroBondValidation() = NotZeroBondValidation(
         amountExtractor = BondMoreValidationPayload::amount,
         errorProvider = { BondMoreValidationFailure.ZERO_BOND }
     )
 
     @Provides
-    @FeatureScope
     fun provideBondMoreValidationSystem(
         bondMoreFeeValidation: BondMoreFeeValidation,
         notZeroBondValidation: NotZeroBondValidation,

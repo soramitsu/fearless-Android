@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -40,13 +45,13 @@ import kotlinx.coroutines.launch
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
-class AccountDetailsViewModel(
+class AccountDetailsViewModel @AssistedInject constructor(
     private val interactor: AccountDetailsInteractor,
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
-    private val metaId: Long,
+    @Assisted private val metaId: Long,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val assetNotNeedAccount: AssetNotNeedAccountUseCase
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
@@ -220,6 +225,23 @@ class AccountDetailsViewModel(
     fun noNeedAccount(chainId: ChainId, metaId: Long, symbol: String) {
         launch {
             assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, symbol = symbol)
+        }
+    }
+
+    @AssistedFactory
+    interface AccountDetailsViewModelFactory {
+        fun create(metaId: Long): AccountDetailsViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: AccountDetailsViewModelFactory,
+            metaId: Long
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(metaId) as T
+            }
         }
     }
 }

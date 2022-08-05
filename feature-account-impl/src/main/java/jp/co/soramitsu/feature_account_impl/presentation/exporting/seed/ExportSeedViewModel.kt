@@ -1,5 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.seed
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
@@ -22,12 +27,12 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
-class ExportSeedViewModel(
+class ExportSeedViewModel @AssistedInject constructor(
     private val router: AccountRouter,
     resourceManager: ResourceManager,
     accountInteractor: AccountInteractor,
     chainRegistry: ChainRegistry,
-    payload: ExportSeedPayload,
+    @Assisted payload: ExportSeedPayload,
     private val clipboardManager: ClipboardManager,
 ) : ExportViewModel(
     accountInteractor,
@@ -107,5 +112,22 @@ class ExportSeedViewModel(
     private fun copy(seed: String) {
         clipboardManager.addToClipboard(seed)
         showMessage(resourceManager.getString(R.string.common_copied))
+    }
+
+    @AssistedFactory
+    interface ExportSeedViewModelFactory {
+        fun create(payload: ExportSeedPayload): ExportSeedViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ExportSeedViewModelFactory,
+            payload: ExportSeedPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

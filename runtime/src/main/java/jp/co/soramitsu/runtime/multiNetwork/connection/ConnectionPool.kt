@@ -15,9 +15,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
 import javax.inject.Provider
 
-class ConnectionPool(
+class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
     private val externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     private val nodesSettingsStorage: NodesSettingsStorage,

@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
@@ -26,10 +31,10 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class BalanceDetailViewModel(
+class BalanceDetailViewModel @AssistedInject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
-    private val assetPayload: AssetPayload,
+    @Assisted private val assetPayload: AssetPayload,
     private val buyMixin: BuyMixin.Presentation,
     private val transactionHistoryMixin: TransactionHistoryMixin,
     private val externalAccountActions: ExternalAccountActions.Presentation
@@ -53,6 +58,10 @@ class BalanceDetailViewModel(
     val assetLiveData = currentAssetFlow().asLiveData()
 
     val buyEnabled = buyMixin.isBuyEnabled(assetPayload.chainId, assetPayload.chainAssetId)
+
+    init {
+        transactionHistoryMixin.setAssetPayload(assetPayload)
+    }
 
     override fun onCleared() {
         super.onCleared()
@@ -138,6 +147,23 @@ class BalanceDetailViewModel(
             }
 
             router.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
+        }
+    }
+
+    @AssistedFactory
+    interface BalanceDetailViewModelFactory {
+        fun create(assetPayload: AssetPayload): BalanceDetailViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: BalanceDetailViewModelFactory,
+            assetPayload: AssetPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(assetPayload) as T
+            }
         }
     }
 }

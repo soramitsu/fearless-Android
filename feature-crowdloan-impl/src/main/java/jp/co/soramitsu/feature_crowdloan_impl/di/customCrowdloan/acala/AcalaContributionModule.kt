@@ -2,10 +2,11 @@ package jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.acala
 
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_crowdloan_impl.data.network.api.acala.AcalaApi
@@ -14,17 +15,16 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.acala.Aca
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.acala.AcalaContributeSubmitter
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
+@InstallIn(SingletonComponent::class)
 @Module
 class AcalaContributionModule {
 
     @Provides
-    @FeatureScope
     fun provideAcalaApi(networkApiCreator: NetworkApiCreator): AcalaApi {
         return networkApiCreator.create(AcalaApi::class.java)
     }
 
     @Provides
-    @FeatureScope
     fun provideAcalaInteractor(
         acalaApi: AcalaApi,
         httpExceptionHandler: HttpExceptionHandler,
@@ -33,13 +33,11 @@ class AcalaContributionModule {
     ) = AcalaContributeInteractor(acalaApi, httpExceptionHandler, accountRepository, chainRegistry)
 
     @Provides
-    @FeatureScope
     fun provideAcalaSubmitter(
         interactor: AcalaContributeInteractor
     ) = AcalaContributeSubmitter(interactor)
 
     @Provides
-    @FeatureScope
     @IntoSet
     fun provideAcalaFactory(
         submitter: AcalaContributeSubmitter,

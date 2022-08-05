@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -20,11 +21,13 @@ import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
+import javax.inject.Inject
 import kotlin.concurrent.timerTask
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-class RootViewModel(
+@HiltViewModel
+class RootViewModel @Inject constructor(
     private val interactor: RootInteractor,
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ExternalRequirement>,

@@ -6,16 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.doOnGlobalLayout
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentConfirmMnemonicBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     companion object {
@@ -28,6 +29,18 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
             }
         }
     }
+
+    @Inject
+    lateinit var factory: ConfirmMnemonicViewModel.ConfirmMnemonicViewModelFactory
+
+    private val vm: ConfirmMnemonicViewModel by viewModels {
+        ConfirmMnemonicViewModel.provideFactory(
+            factory,
+            argument(KEY_PAYLOAD)
+        )
+    }
+    override val viewModel: ConfirmMnemonicViewModel
+        get() = vm
 
     private lateinit var binding: FragmentConfirmMnemonicBinding
 
@@ -60,15 +73,6 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
                 viewModel.skipClicked()
             }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ConfirmMnemonicPayload>(KEY_PAYLOAD)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
-            .confirmMnemonicComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ConfirmMnemonicViewModel) {

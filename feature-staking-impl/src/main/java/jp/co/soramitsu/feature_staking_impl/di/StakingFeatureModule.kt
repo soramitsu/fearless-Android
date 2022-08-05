@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.memory.ComputationalCache
@@ -9,7 +11,6 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
@@ -64,39 +65,24 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachain
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
-import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImpl
-import jp.co.soramitsu.feature_wallet_api.domain.implementations.TokenUseCaseImpl
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorFactory
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module
 class StakingFeatureModule {
 
     @Provides
-    @FeatureScope
-    fun provideAssetUseCase(
-        walletRepository: WalletRepository,
-        accountRepository: AccountRepository,
-        sharedState: StakingSharedState,
-    ): AssetUseCase = AssetUseCaseImpl(
-        walletRepository,
-        accountRepository,
-        sharedState
-    )
-
-    @Provides
+    @Named("StakingAssetSelector")
     fun provideAssetSelectorMixinFactory(
         assetUseCase: AssetUseCase,
         singleAssetSharedState: StakingSharedState,
@@ -108,34 +94,14 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
-    fun provideTokenUseCase(
-        tokenRepository: TokenRepository,
-        sharedState: StakingSharedState,
-    ): TokenUseCase = TokenUseCaseImpl(
-        tokenRepository,
-        sharedState
-    )
-
-    @Provides
-    @FeatureScope
-    fun provideFeeLoaderMixin(
-        resourceManager: ResourceManager,
-        tokenUseCase: TokenUseCase,
-    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(
-        resourceManager,
-        tokenUseCase
-    )
-
-    @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingSharedState(
         chainRegistry: ChainRegistry,
         preferences: Preferences
-    ) = StakingSharedState(chainRegistry, preferences)
+    ): StakingSharedState = StakingSharedState(chainRegistry, preferences)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingStoriesDataSource(
         setupStakingSharedState: SetupStakingSharedState,
     ): StakingStoriesDataSource {
@@ -159,7 +125,7 @@ class StakingFeatureModule {
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingRewardsSubqueryDataSource(
         stakingApi: StakingApi,
         stakingTotalRewardDao: StakingTotalRewardDao,
@@ -171,14 +137,14 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideParachainStakingRepository(
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource
     ) = StakingParachainScenarioRepository(remoteStorageSource, localStorageSource)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideRelayChainStakingRepository(
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
@@ -194,7 +160,7 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingRepository(
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
         stakingStoriesDataSource: StakingStoriesDataSource,
@@ -204,7 +170,7 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideIdentityRepository(
         bulkRetriever: BulkRetriever,
         chainRegistry: ChainRegistry,
@@ -214,7 +180,7 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingInteractor(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
@@ -238,7 +204,7 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideParachainScenarioInteractor(
         interactor: StakingInteractor,
         accountRepository: AccountRepository,
@@ -266,7 +232,7 @@ class StakingFeatureModule {
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideRelayChainScenarioInteractor(
         interactor: StakingInteractor,
         accountRepository: AccountRepository,
@@ -296,13 +262,13 @@ class StakingFeatureModule {
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideEraTimeCalculatorFactory(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository
     ) = EraTimeCalculatorFactory(stakingRelayChainScenarioRepository)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideAlertsInteractor(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         stakingConstantsRepository: StakingConstantsRepository,
@@ -318,7 +284,7 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideRewardCalculatorFactory(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         repository: StakingRepository,
@@ -328,7 +294,7 @@ class StakingFeatureModule {
     ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, sharedState, stakingScenarioInteractor, stakingApi)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideValidatorRecommendatorFactory(
         validatorProvider: ValidatorProvider,
         computationalCache: ComputationalCache,
@@ -336,7 +302,7 @@ class StakingFeatureModule {
     ) = ValidatorRecommendatorFactory(validatorProvider, sharedState, computationalCache)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideCollatorRecommendatorFactory(
         collatorProvider: CollatorProvider,
         computationalCache: ComputationalCache,
@@ -344,7 +310,7 @@ class StakingFeatureModule {
     ) = CollatorRecommendatorFactory(collatorProvider, sharedState, computationalCache)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideValidatorProvider(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         identityRepository: IdentityRepository,
@@ -358,7 +324,7 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideCollatorProvider(
         stakingParachainScenarioRepository: StakingParachainScenarioRepository,
         identityRepository: IdentityRepository,
@@ -374,13 +340,13 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingConstantsRepository(
         chainRegistry: ChainRegistry,
     ) = StakingConstantsRepository(chainRegistry)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideRecommendationSettingsProviderFactory(
         stakingConstantsRepository: StakingConstantsRepository,
         computationalCache: ComputationalCache,
@@ -392,14 +358,14 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideSetupStakingInteractor(
         extrinsicService: ExtrinsicService,
         sharedState: StakingSharedState,
     ) = SetupStakingInteractor(extrinsicService, sharedState)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideSetupStakingSharedState() = SetupStakingSharedState()
 
     @Provides
@@ -416,13 +382,13 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingRewardsApi(networkApiCreator: NetworkApiCreator): StakingApi {
         return networkApiCreator.create(StakingApi::class.java)
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingRewardsRepository(
         rewardDataSource: StakingRewardsDataSource,
     ): StakingRewardsRepository {
@@ -430,7 +396,7 @@ class StakingFeatureModule {
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideValidatorSetFetcher(
         stakingApi: StakingApi,
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
@@ -444,7 +410,7 @@ class StakingFeatureModule {
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideDelegationHistoryFetcher(
         stakingApi: StakingApi,
         chainRegistry: ChainRegistry
@@ -456,7 +422,7 @@ class StakingFeatureModule {
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun providePayoutRepository(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         validatorSetFetcher: SubQueryValidatorSetFetcher,
@@ -468,33 +434,33 @@ class StakingFeatureModule {
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun providePayoutInteractor(
         sharedState: StakingSharedState,
         extrinsicService: ExtrinsicService,
     ) = PayoutInteractor(sharedState, extrinsicService)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideBondMoreInteractor(
         sharedState: StakingSharedState,
         extrinsicService: ExtrinsicService,
     ) = BondMoreInteractor(extrinsicService, sharedState)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideUnbondInteractor(
         extrinsicService: ExtrinsicService,
     ) = UnbondInteractor(extrinsicService)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideRedeemInteractor(
         extrinsicService: ExtrinsicService
     ) = RedeemInteractor(extrinsicService)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideRebondInteractor(
         sharedState: StakingSharedState,
         extrinsicService: ExtrinsicService,
@@ -502,14 +468,14 @@ class StakingFeatureModule {
     ) = RebondInteractor(extrinsicService, sharedState)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideControllerInteractor(
         sharedState: StakingSharedState,
         extrinsicService: ExtrinsicService,
     ) = ControllerInteractor(extrinsicService, sharedState)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideCurrentValidatorsInteractor(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         stakingConstantsRepository: StakingConstantsRepository,
@@ -519,20 +485,20 @@ class StakingFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideChangeRewardDestinationInteractor(
         extrinsicService: ExtrinsicService,
     ) = ChangeRewardDestinationInteractor(extrinsicService)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideSearchCustomValidatorsInteractor(
         validatorProvider: ValidatorProvider,
         sharedState: StakingSharedState
     ) = SearchCustomValidatorsInteractor(validatorProvider, sharedState)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideSearchCustomBlockProducerInteractor(
         collatorProvider: CollatorProvider,
         validatorProvider: ValidatorProvider,
@@ -542,6 +508,6 @@ class StakingFeatureModule {
     ) = SearchCustomBlockProducerInteractor(collatorProvider, validatorProvider, sharedState, computationalCache, addressIconGenerator)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideSettingsStorage() = SettingsStorage()
 }

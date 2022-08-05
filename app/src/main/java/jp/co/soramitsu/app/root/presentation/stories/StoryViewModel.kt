@@ -2,16 +2,22 @@ package jp.co.soramitsu.app.root.presentation.stories
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.presentation.StoryElement
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.Event
 
 typealias NavigatorBackTransition = () -> Unit
 
-class StoryViewModel(
+class StoryViewModel @AssistedInject constructor(
     private val back: NavigatorBackTransition,
-    stories: List<StoryElement>
+    @Assisted private val stories: List<StoryElement>
 ) : BaseViewModel(), Browserable {
 
     private val _storyLiveData = MutableLiveData(stories)
@@ -59,6 +65,23 @@ class StoryViewModel(
     fun learnMoreClicked() {
         (currentStoryLiveData.value as? StoryElement.Staking?)?.url?.let {
             openBrowserEvent.value = Event(it)
+        }
+    }
+
+    @AssistedFactory
+    interface StoryViewModelFactory {
+        fun create(stories: List<StoryElement>): StoryViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: StoryViewModelFactory,
+            storyGroupModel: StoryGroupModel
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(storyGroupModel.stories) as T
+            }
         }
     }
 }

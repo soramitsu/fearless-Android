@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.search
 
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator.Companion.SIZE_MEDIUM
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed class SearchBlockProducersState {
     object NoInput : SearchBlockProducersState()
@@ -39,7 +41,8 @@ sealed class SearchBlockProducersState {
     class Success(val blockProducers: List<SearchBlockProducerModel>, val headerTitle: String) : SearchBlockProducersState()
 }
 
-class SearchCustomValidatorsViewModel(
+@HiltViewModel
+class SearchCustomValidatorsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,

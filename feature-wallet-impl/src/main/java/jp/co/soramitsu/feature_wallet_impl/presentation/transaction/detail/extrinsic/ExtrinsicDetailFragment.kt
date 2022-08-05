@@ -2,21 +2,22 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extr
 
 import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalViewCallback
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentExtrinsicDetailsBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>(R.layout.fragment_extrinsic_details) {
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -25,6 +26,18 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>(R.layout.
     }
 
     private val binding by viewBinding(FragmentExtrinsicDetailsBinding::bind)
+
+    @Inject
+    lateinit var factory: ExtrinsicDetailViewModel.ExtrinsicDetailViewModelFactory
+
+    private val vm: ExtrinsicDetailViewModel by viewModels {
+        ExtrinsicDetailViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: ExtrinsicDetailViewModel
+        get() = vm
 
     override fun initViews() {
         binding.extrinsicDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
@@ -36,18 +49,6 @@ class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>(R.layout.
         binding.extrinsicDetailFrom.setWholeClickListener {
             viewModel.showExternalActionsClicked(ExternalActionsSource.FROM_ADDRESS)
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ExtrinsicDetailsPayload>(PAYLOAD_KEY)
-
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .extrinsicDetailComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ExtrinsicDetailViewModel) {

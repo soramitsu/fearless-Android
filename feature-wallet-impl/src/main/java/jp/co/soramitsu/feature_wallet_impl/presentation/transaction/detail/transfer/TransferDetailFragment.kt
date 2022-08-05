@@ -2,9 +2,10 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.tran
 
 import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeInvisible
@@ -15,18 +16,18 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalViewCallback
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentTransferDetailsBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import javax.inject.Inject
 
 private const val KEY_TRANSACTION = "KEY_DRAFT"
 private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
+@AndroidEntryPoint
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout.fragment_transfer_details) {
 
     companion object {
@@ -35,6 +36,19 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
     }
 
     private val binding by viewBinding(FragmentTransferDetailsBinding::bind)
+
+    @Inject
+    lateinit var factory: TransactionDetailViewModel.TransactionDetailViewModelFactory
+
+    private val vm: TransactionDetailViewModel by viewModels {
+        TransactionDetailViewModel.provideFactory(
+            factory,
+            argument(KEY_TRANSACTION),
+            argument(KEY_ASSET_PAYLOAD)
+        )
+    }
+    override val viewModel: TransactionDetailViewModel
+        get() = vm
 
     override fun initViews() {
         binding.transactionDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
@@ -54,19 +68,6 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
         binding.transactionDetailRepeat.setWholeClickListener {
             viewModel.repeatTransaction()
         }
-    }
-
-    override fun inject() {
-        val operation = argument<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)
-        val assetPayload = argument<AssetPayload>(KEY_ASSET_PAYLOAD)
-
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .transactionDetailComponentFactory()
-            .create(this, operation, assetPayload)
-            .inject(this)
     }
 
     private fun amountColorRes(operation: OperationParcelizeModel.Transfer) = when {

@@ -1,19 +1,21 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.edit
 
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.dragAndDropItemTouchHelper
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentEditAccountsBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
 
+@AndroidEntryPoint
 class AccountEditFragment : BaseFragment<AccountEditViewModel>(R.layout.fragment_edit_accounts), EditAccountsAdapter.EditAccountItemHandler {
 
     private val binding by viewBinding(FragmentEditAccountsBinding::bind)
+
+    override val viewModel: AccountEditViewModel by viewModels()
 
     private lateinit var adapter: EditAccountsAdapter
 
@@ -39,16 +41,6 @@ class AccountEditFragment : BaseFragment<AccountEditViewModel>(R.layout.fragment
 
             addAccount.setOnClickListener { viewModel.addAccountClicked() }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .editAccountsComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: AccountEditViewModel) {

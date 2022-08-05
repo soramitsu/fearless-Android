@@ -1,22 +1,22 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm
 
 import android.os.Bundle
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmPayoutBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.displayFeeStatus
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>(R.layout.fragment_confirm_payout) {
 
     companion object {
@@ -28,6 +28,18 @@ class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>(R.layout.frag
             }
         }
     }
+
+    @Inject
+    lateinit var factory: ConfirmPayoutViewModel.ConfirmPayoutViewModelFactory
+
+    private val vm: ConfirmPayoutViewModel by viewModels {
+        ConfirmPayoutViewModel.provideFactory(
+            factory,
+            requireArguments().getParcelable<ConfirmPayoutPayload>(KEY_PAYOUTS) as ConfirmPayoutPayload
+        )
+    }
+    override val viewModel: ConfirmPayoutViewModel
+        get() = vm
 
     private val binding by viewBinding(FragmentConfirmPayoutBinding::bind)
 
@@ -50,22 +62,9 @@ class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>(R.layout.frag
         }
     }
 
-    override fun inject() {
-        val payload = argument<ConfirmPayoutPayload>(KEY_PAYOUTS)
-
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .confirmPayoutFactory()
-            .create(this, payload)
-            .inject(this)
-    }
-
     override fun subscribe(viewModel: ConfirmPayoutViewModel) {
         setupExternalActions(viewModel)
         observeValidations(viewModel)
-        observeRetries(viewModel)
 
         viewModel.feeLiveData.observe {
             displayFeeStatus(

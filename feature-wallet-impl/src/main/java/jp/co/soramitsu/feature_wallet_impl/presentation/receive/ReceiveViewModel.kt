@@ -2,8 +2,13 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.receive
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -32,13 +37,13 @@ import kotlinx.coroutines.launch
 private const val AVATAR_SIZE_DP = 32
 private const val QR_TEMP_IMAGE_NAME = "address.png"
 
-class ReceiveViewModel(
+class ReceiveViewModel @AssistedInject constructor(
     private val interactor: WalletInteractor,
     private val qrCodeGenerator: QrCodeGenerator,
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val assetPayload: AssetPayload,
+    @Assisted private val assetPayload: AssetPayload,
     private val router: WalletRouter,
     private val chainRegistry: ChainRegistry,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
@@ -112,5 +117,22 @@ class ReceiveViewModel(
             chain.name,
             asset?.symbol
         ) + " " + address
+    }
+
+    @AssistedFactory
+    interface ReceiveViewModelFactory {
+        fun create(assetPayload: AssetPayload): ReceiveViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ReceiveViewModelFactory,
+            assetPayload: AssetPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(assetPayload) as T
+            }
+        }
     }
 }

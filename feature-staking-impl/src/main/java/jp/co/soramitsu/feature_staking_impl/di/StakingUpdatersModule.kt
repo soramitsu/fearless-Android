@@ -2,8 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -34,12 +35,15 @@ import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
 import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
+import javax.inject.Named
+import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module
 class StakingUpdatersModule {
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideAccountStakingScope(
         accountRepository: AccountRepository,
         accountStakingDao: AccountStakingDao,
@@ -51,7 +55,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideActiveEraUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -63,7 +67,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideElectedNominatorsUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -77,7 +81,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideTotalInsuranceUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -89,7 +93,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideCurrentEraUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -101,7 +105,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideStakingLedgerUpdater(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         sharedState: StakingSharedState,
@@ -125,7 +129,7 @@ class StakingUpdatersModule {
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideAccountValidatorPrefsUpdater(
         storageCache: StorageCache,
         scope: AccountStakingScope,
@@ -139,7 +143,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideAccountNominationsUpdater(
         storageCache: StorageCache,
         scope: AccountStakingScope,
@@ -153,7 +157,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideAccountRewardDestinationUpdater(
         storageCache: StorageCache,
         scope: AccountStakingScope,
@@ -167,7 +171,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideHistoryDepthUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -178,7 +182,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideHistoricalMediator(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -198,7 +202,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideAccountControllerBalanceUpdater(
         assetCache: AssetCache,
         scope: AccountStakingScope,
@@ -214,7 +218,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideMinBondUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -226,7 +230,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideMaxNominatorsUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -238,7 +242,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideCounterForNominatorsUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -250,7 +254,7 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideDelegatorStateUpdater(
         scope: AccountStakingScope,
         sharedState: StakingSharedState,
@@ -264,15 +268,8 @@ class StakingUpdatersModule {
     )
 
     @Provides
-    @FeatureScope
-    fun provideBlockNumberUpdater(
-        chainRegistry: ChainRegistry,
-        stakingSharedState: StakingSharedState,
-        storageCache: StorageCache,
-    ) = BlockNumberUpdater(chainRegistry, stakingSharedState, storageCache)
-
-    @Provides
-    @FeatureScope
+    @Singleton
+    @Named("StakingChainUpdateSystem")
     fun provideStakingUpdaterSystem(
         activeEraUpdater: ActiveEraUpdater,
         validatorExposureUpdater: ValidatorExposureUpdater,

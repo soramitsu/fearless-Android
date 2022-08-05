@@ -2,6 +2,11 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -48,7 +53,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class ConfirmContributeViewModel(
+class ConfirmContributeViewModel @AssistedInject constructor(
     private val router: CrowdloanRouter,
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
@@ -57,7 +62,7 @@ class ConfirmContributeViewModel(
     accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
     private val validationExecutor: ValidationExecutor,
-    private val payload: ConfirmContributePayload,
+    @Assisted private val payload: ConfirmContributePayload,
     private val validationSystem: ContributeValidationSystem,
     private val customContributeManager: CustomContributeManager,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -273,5 +278,22 @@ class ConfirmContributeViewModel(
             openBrowserEvent.postValue(Event(bonusUrl))
         }
         else -> Unit
+    }
+
+    @AssistedFactory
+    interface ConfirmContributeViewModelFactory {
+        fun create(payload: ConfirmContributePayload): ConfirmContributeViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ConfirmContributeViewModelFactory,
+            payload: ConfirmContributePayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

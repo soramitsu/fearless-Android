@@ -3,11 +3,8 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.mo
 import android.content.Context
 import android.util.AttributeSet
 import androidx.lifecycle.LifecycleCoroutineScope
-import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.databinding.ViewMoonbeamStep3Binding
-import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeView
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 
@@ -22,11 +19,6 @@ class MoonbeamStep3Signed @JvmOverloads constructor(
     init {
         inflate(context, R.layout.view_moonbeam_step3, this)
         binding = ViewMoonbeamStep3Binding.bind(this)
-
-        FeatureUtils.getFeature<CrowdloanFeatureComponent>(
-            context,
-            CrowdloanFeatureApi::class.java
-        ).inject(this)
     }
 
     override fun bind(viewState: CustomContributeViewState, scope: LifecycleCoroutineScope) {

@@ -5,23 +5,35 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentWalletExportBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import javax.inject.Inject
 
 private const val META_ID_KEY = "META_ID_KEY"
 
+@AndroidEntryPoint
 class WalletExportFragment : BaseFragment<WalletExportViewModel>() {
 
     @Inject
     lateinit var imageLoader: ImageLoader
 
     private lateinit var binding: FragmentWalletExportBinding
+
+    @Inject
+    lateinit var factory: WalletExportViewModel.WalletExportViewModelFactory
+
+    private val vm: WalletExportViewModel by viewModels {
+        WalletExportViewModel.provideFactory(
+            factory,
+            argument(META_ID_KEY)
+        )
+    }
+    override val viewModel: WalletExportViewModel
+        get() = vm
 
     companion object {
         fun getBundle(metaAccountId: Long) = bundleOf(META_ID_KEY to metaAccountId)
@@ -47,18 +59,6 @@ class WalletExportFragment : BaseFragment<WalletExportViewModel>() {
                 }
             }
         }
-    }
-
-    override fun inject() {
-        val metaId = argument<Long>(META_ID_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .walletExportComponentFactory()
-            .create(this, metaId)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: WalletExportViewModel) {

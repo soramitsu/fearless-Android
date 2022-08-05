@@ -5,16 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentNodeDetailsBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     companion object {
@@ -27,6 +27,18 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
     lateinit var imageLoader: ImageLoader
 
     private lateinit var binding: FragmentNodeDetailsBinding
+
+    @Inject
+    lateinit var factory: NodeDetailsViewModel.NodeDetailsViewModelFactory
+
+    private val vm: NodeDetailsViewModel by viewModels {
+        NodeDetailsViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: NodeDetailsViewModel
+        get() = vm
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,18 +61,6 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
                 viewModel.updateClicked(nodeDetailsNameField.content.text.toString(), nodeDetailsHostField.content.text.toString())
             }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<NodeDetailsPayload>(PAYLOAD_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .nodeDetailsComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: NodeDetailsViewModel) {

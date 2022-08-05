@@ -1,8 +1,13 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.MediatorLiveData
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -69,9 +74,9 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
-class CustomContributeViewModel(
+class CustomContributeViewModel @AssistedInject constructor(
     private val customContributeManager: CustomContributeManager,
-    val payload: CustomContributePayload,
+    @Assisted val payload: CustomContributePayload,
     private val router: CrowdloanRouter,
     accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
@@ -484,5 +489,22 @@ class CustomContributeViewModel(
     fun resetProgress() {
         _validationProgress.postValue(false)
         _applyingInProgress.postValue(false)
+    }
+
+    @AssistedFactory
+    interface CustomContributeViewModelFactory {
+        fun create(payload: CustomContributePayload): CustomContributeViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: CustomContributeViewModelFactory,
+            payload: CustomContributePayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

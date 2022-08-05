@@ -1,6 +1,11 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -19,12 +24,12 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewMod
 import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
-class ExportMnemonicViewModel(
+class ExportMnemonicViewModel @AssistedInject constructor(
     private val router: AccountRouter,
     resourceManager: ResourceManager,
     accountInteractor: AccountInteractor,
     chainRegistry: ChainRegistry,
-    payload: ExportMnemonicPayload
+    @Assisted payload: ExportMnemonicPayload
 ) : ExportViewModel(
     accountInteractor,
     resourceManager,
@@ -111,5 +116,22 @@ class ExportMnemonicViewModel(
 
     override fun securityWarningCancel() {
         back()
+    }
+
+    @AssistedFactory
+    interface ExportMnemonicViewModelFactory {
+        fun create(payload: ExportMnemonicPayload): ExportMnemonicViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ExportMnemonicViewModelFactory,
+            payload: ExportMnemonicPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

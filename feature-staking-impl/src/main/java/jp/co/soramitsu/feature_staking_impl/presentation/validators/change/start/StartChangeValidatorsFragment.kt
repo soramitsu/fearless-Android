@@ -1,18 +1,20 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start
 
 import android.widget.TextView
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStartChangeValidatorsBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 
+@AndroidEntryPoint
 class StartChangeValidatorsFragment : BaseFragment<StartChangeValidatorsViewModel>(R.layout.fragment_start_change_validators) {
 
     private val binding by viewBinding(FragmentStartChangeValidatorsBinding::bind)
+
+    override val viewModel: StartChangeValidatorsViewModel by viewModels()
 
     override fun initViews() {
         with(binding) {
@@ -28,16 +30,6 @@ class StartChangeValidatorsFragment : BaseFragment<StartChangeValidatorsViewMode
             startChangeValidatorsRecommended.setOnClickListener { viewModel.goToRecommendedClicked() }
             startChangeValidatorsCustom.setOnClickListener { viewModel.goToCustomClicked() }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .startChangeValidatorsComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: StartChangeValidatorsViewModel) {

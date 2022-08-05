@@ -8,12 +8,13 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
@@ -23,10 +24,8 @@ import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.GoNextView
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.common.view.TableCellView
-import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentCustomContributeBinding
-import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
@@ -40,6 +39,7 @@ import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
+@AndroidEntryPoint
 class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
     @Inject
@@ -51,6 +51,18 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
     private lateinit var binding: FragmentCustomContributeBinding
 
     private val payload by lazy { argument<CustomContributePayload>(KEY_PAYLOAD) }
+
+    @Inject
+    lateinit var factory: CustomContributeViewModel.CustomContributeViewModelFactory
+
+    private val vm: CustomContributeViewModel by viewModels {
+        CustomContributeViewModel.provideFactory(
+            factory,
+            argument(KEY_PAYLOAD)
+        )
+    }
+    override val viewModel: CustomContributeViewModel
+        get() = vm
 
     companion object {
 
@@ -91,16 +103,6 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
             binding.customContributeToolbar.setTitle(title)
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<CrowdloanFeatureComponent>(
-            requireContext(),
-            CrowdloanFeatureApi::class.java
-        )
-            .customContributeFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: CustomContributeViewModel) {

@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -35,11 +40,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ValidatorDetailsViewModel(
+class ValidatorDetailsViewModel @AssistedInject constructor(
     private val interactor: StakingInteractor,
     private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val router: StakingRouter,
-    private val validator: ValidatorDetailsParcelModel,
+    @Assisted private val validator: ValidatorDetailsParcelModel,
     private val iconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val appLinksProvider: AppLinksProvider,
@@ -144,5 +149,22 @@ class ValidatorDetailsViewModel(
         )
 
         externalAccountActions.showExternalActions(externalActionsPayload)
+    }
+
+    @AssistedFactory
+    interface ValidatorDetailsViewModelFactory {
+        fun create(validator: ValidatorDetailsParcelModel): ValidatorDetailsViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ValidatorDetailsViewModelFactory,
+            validator: ValidatorDetailsParcelModel
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(validator) as T
+            }
+        }
     }
 }

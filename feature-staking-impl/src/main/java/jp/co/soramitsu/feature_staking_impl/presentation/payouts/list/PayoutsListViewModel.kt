@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.payouts.list
 
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.RetryPayload
@@ -29,8 +30,10 @@ import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenCha
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PayoutsListViewModel(
+@HiltViewModel
+class PayoutsListViewModel @Inject constructor(
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val interactor: StakingInteractor,

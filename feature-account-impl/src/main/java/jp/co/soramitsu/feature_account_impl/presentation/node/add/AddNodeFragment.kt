@@ -1,14 +1,15 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.add
 
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentNodeAddBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AddNodeFragment : BaseFragment<AddNodeViewModel>(R.layout.fragment_node_add) {
 
     companion object {
@@ -17,6 +18,18 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>(R.layout.fragment_node_ad
     }
 
     private val binding by viewBinding(FragmentNodeAddBinding::bind)
+
+    @Inject
+    lateinit var factory: AddNodeViewModel.AddNodeViewModelFactory
+
+    private val vm: AddNodeViewModel by viewModels {
+        AddNodeViewModel.provideFactory(
+            factory,
+            argument(CHAIN_ID_KEY)
+        )
+    }
+    override val viewModel: AddNodeViewModel
+        get() = vm
 
     override fun initViews() {
         with(binding) {
@@ -30,18 +43,6 @@ class AddNodeFragment : BaseFragment<AddNodeViewModel>(R.layout.fragment_node_ad
 
             addBtn.prepareForProgress(viewLifecycleOwner)
         }
-    }
-
-    override fun inject() {
-        val chainId = argument<String>(CHAIN_ID_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .addNodeComponentFactory()
-            .create(this, chainId)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: AddNodeViewModel) {

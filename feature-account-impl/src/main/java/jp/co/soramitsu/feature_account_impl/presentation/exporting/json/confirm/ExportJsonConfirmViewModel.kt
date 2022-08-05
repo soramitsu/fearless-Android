@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import java.io.File
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -17,13 +22,21 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import kotlinx.coroutines.launch
 
-class ExportJsonConfirmViewModel(
+class ExportJsonConfirmViewModel @AssistedInject constructor(
     private val router: AccountRouter,
     resourceManager: ResourceManager,
     accountInteractor: AccountInteractor,
     private val chainRegistry: ChainRegistry,
-    payload: ExportJsonConfirmPayload
-) : ExportViewModel(accountInteractor, resourceManager, chainRegistry, payload.metaId, payload.chainId, payload.isExportWallet, ExportSource.Json) {
+    @Assisted payload: ExportJsonConfirmPayload
+) : ExportViewModel(
+    accountInteractor,
+    resourceManager,
+    chainRegistry,
+    payload.metaId,
+    payload.chainId,
+    payload.isExportWallet,
+    ExportSource.Json
+) {
 
     private val _shareEvent = MutableLiveData<Event<File>>()
     val shareEvent: LiveData<Event<File>> = _shareEvent
@@ -96,6 +109,23 @@ class ExportJsonConfirmViewModel(
             exportEthereumJsonAsFile()
         } else {
             exportSubstrateAsFile()
+        }
+    }
+
+    @AssistedFactory
+    interface ExportJsonConfirmViewModelFactory {
+        fun create(payload: ExportJsonConfirmPayload): ExportJsonConfirmViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ExportJsonConfirmViewModelFactory,
+            payload: ExportJsonConfirmPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
         }
     }
 }

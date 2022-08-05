@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -46,8 +47,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SetupStakingViewModel(
+@HiltViewModel
+class SetupStakingViewModel @Inject constructor(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
     private val stakingScenarioInteractor: StakingScenarioInteractor,

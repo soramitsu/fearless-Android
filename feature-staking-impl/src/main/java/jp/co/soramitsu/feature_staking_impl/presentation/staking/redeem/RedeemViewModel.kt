@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import java.math.BigDecimal
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -46,7 +51,7 @@ import kotlinx.coroutines.launch
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
-class RedeemViewModel(
+class RedeemViewModel @AssistedInject constructor(
     private val router: StakingRouter,
     private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val interactor: StakingInteractor,
@@ -57,7 +62,7 @@ class RedeemViewModel(
     private val chainRegistry: ChainRegistry,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val payload: RedeemPayload
+    @Assisted private val payload: RedeemPayload
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin,
@@ -219,6 +224,23 @@ class RedeemViewModel(
             }
         } else {
             showError(result.requireException())
+        }
+    }
+
+    @AssistedFactory
+    interface RedeemViewModelFactory {
+        fun create(payload: RedeemPayload): RedeemViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: RedeemViewModelFactory,
+            payload: RedeemPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
         }
     }
 }

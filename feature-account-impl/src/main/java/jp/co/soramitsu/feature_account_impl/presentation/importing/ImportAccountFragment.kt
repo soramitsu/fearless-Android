@@ -9,20 +9,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentImportAccountBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.JsonImportSource
@@ -36,7 +35,9 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.S
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.EthereumDerivationPathTransformer
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     companion object {
         private const val BLOCKCHAIN_TYPE_KEY = "BLOCKCHAIN_TYPE_KEY"
@@ -47,6 +48,21 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private lateinit var binding: FragmentImportAccountBinding
+
+    @Inject
+    lateinit var factory: ImportAccountViewModel.ImportAccountViewModelFactory
+
+    private val vm: ImportAccountViewModel by viewModels {
+        ImportAccountViewModel.provideFactory(
+            factory,
+            arguments?.getInt(BLOCKCHAIN_TYPE_KEY)?.let { int ->
+                ImportAccountType.values().getOrNull(int)
+            },
+            arguments?.get(PAYLOAD_KEY) as? ChainAccountCreatePayload
+        )
+    }
+    override val viewModel: ImportAccountViewModel
+        get() = vm
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,22 +91,6 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
             advancedBlockView.ethereumDerivationPathEditText.addTextChangedListener(EthereumDerivationPathTransformer)
         }
-    }
-
-    override fun inject() {
-        val blockChainType = arguments?.getInt(BLOCKCHAIN_TYPE_KEY)?.let { int ->
-            ImportAccountType.values().getOrNull(int)
-        }
-
-        val chainCreateAccountData: ChainAccountCreatePayload? = arguments?.get(PAYLOAD_KEY) as? ChainAccountCreatePayload
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .importAccountComponentFactory()
-            .create(this, blockChainType, chainCreateAccountData)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ImportAccountViewModel) {

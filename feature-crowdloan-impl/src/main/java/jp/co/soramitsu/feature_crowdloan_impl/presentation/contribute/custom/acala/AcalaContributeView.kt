@@ -6,14 +6,11 @@ import android.util.AttributeSet
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.google.android.material.switchmaterial.SwitchMaterial
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.Toolbar
-import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.databinding.AcalaReferralFlowBinding
-import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeView
 
@@ -28,10 +25,6 @@ class AcalaContributeView @JvmOverloads constructor(
     private val binding: AcalaReferralFlowBinding = AcalaReferralFlowBinding.bind(this)
 
     init {
-        FeatureUtils.getFeature<CrowdloanFeatureComponent>(
-            context,
-            CrowdloanFeatureApi::class.java
-        ).inject(this)
         icon = AppCompatResources.getDrawable(context, R.drawable.ic_close)
     }
 

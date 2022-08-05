@@ -3,25 +3,38 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.receive
 import android.content.Intent
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentReceiveBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
+import javax.inject.Inject
 
 private const val KEY_ASSET_PAYLOAD = "assetPayload"
 
+@AndroidEntryPoint
 class ReceiveFragment : BaseFragment<ReceiveViewModel>(R.layout.fragment_receive) {
     companion object {
         fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
     private val binding by viewBinding(FragmentReceiveBinding::bind)
+
+    @Inject
+    lateinit var factory: ReceiveViewModel.ReceiveViewModelFactory
+
+    private val vm: ReceiveViewModel by viewModels {
+        ReceiveViewModel.provideFactory(
+            factory,
+            argument(KEY_ASSET_PAYLOAD)
+        )
+    }
+    override val viewModel: ReceiveViewModel
+        get() = vm
 
     override fun initViews() {
         binding.accountView.setWholeClickListener { viewModel.recipientClicked() }
@@ -33,18 +46,6 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>(R.layout.fragment_receive
         binding.fearlessToolbar.setRightActionClickListener {
             viewModel.shareButtonClicked()
         }
-    }
-
-    override fun inject() {
-        val assetPayload = arguments!![KEY_ASSET_PAYLOAD] as AssetPayload
-
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .receiveComponentFactory()
-            .create(this, assetPayload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ReceiveViewModel) {

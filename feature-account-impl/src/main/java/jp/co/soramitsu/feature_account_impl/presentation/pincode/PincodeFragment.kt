@@ -6,17 +6,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.common.io.MainThreadExecutor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentPincodeBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintCallback
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     companion object {
@@ -25,9 +29,34 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         fun getPinCodeBundle(pinCodeAction: PinCodeAction) = bundleOf(KEY_PINCODE_ACTION to pinCodeAction)
     }
 
-    @Inject lateinit var fingerprintWrapper: FingerprintWrapper
+    private val fingerprintWrapper: FingerprintWrapper by lazy {
+        val biometricManager = BiometricManager.from(context?.applicationContext!!)
+        val biometricPrompt =
+            BiometricPrompt(this, MainThreadExecutor(), FingerprintCallback(viewModel))
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.pincode_biometry_dialog_title))
+            .setNegativeButtonText(getString(R.string.common_cancel))
+            .build()
+        FingerprintWrapper(
+            biometricManager,
+            biometricPrompt,
+            promptInfo
+        )
+    }
 
     private lateinit var binding: FragmentPincodeBinding
+
+    @Inject
+    lateinit var factory: PinCodeViewModel.PinCodeViewModelFactory
+
+    private val vm: PinCodeViewModel by viewModels {
+        PinCodeViewModel.provideFactory(
+            factory,
+            argument(KEY_PINCODE_ACTION)
+        )
+    }
+    override val viewModel: PinCodeViewModel
+        get() = vm
 
     private val backCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -38,15 +67,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentPincodeBinding.inflate(inflater, container, false)
         return binding.root
-    }
-
-    override fun inject() {
-        val navigationFlow = argument<PinCodeAction>(KEY_PINCODE_ACTION)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
-            .pincodeComponentFactory()
-            .create(this, navigationFlow)
-            .inject(this)
     }
 
     override fun initViews() {

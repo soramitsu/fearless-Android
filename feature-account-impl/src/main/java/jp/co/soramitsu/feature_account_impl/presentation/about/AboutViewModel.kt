@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.about
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -11,8 +12,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import javax.inject.Inject
 
-class AboutViewModel(
+@HiltViewModel
+class AboutViewModel @Inject constructor(
     private val router: AccountRouter,
     context: Context,
     private val appLinksProvider: AppLinksProvider,

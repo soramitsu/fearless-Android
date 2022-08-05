@@ -3,11 +3,8 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.as
 import android.content.Context
 import android.util.AttributeSet
 import androidx.lifecycle.LifecycleCoroutineScope
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.InputField
-import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
-import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.CustomContributeViewState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.referral.ReferralContributeView
 
@@ -16,13 +13,6 @@ class AstarContributeView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyle: Int = 0
 ) : ReferralContributeView(context, attrs, defStyle, R.layout.astar_referral_flow) {
-
-    init {
-        FeatureUtils.getFeature<CrowdloanFeatureComponent>(
-            context,
-            CrowdloanFeatureApi::class.java
-        ).inject(this)
-    }
 
     override fun bind(
         viewState: CustomContributeViewState,
