@@ -40,7 +40,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -153,7 +152,8 @@ class StakingViewModel(
 
     override fun bondMoreAlertClicked() {
         stakingStateScope.launch {
-            val validation = scenarioViewModelFlow.last().getBondMoreValidationSystem()
+            val vm = scenarioViewModelFlow.first()
+            val validation = vm.getBondMoreValidationSystem()
             requireValidManageStakingAction(validation) {
                 val bondMorePayload = SelectBondMorePayload(overrideFinishAction = StakingRouter::returnToMain, collatorAddress = null)
 
@@ -166,7 +166,6 @@ class StakingViewModel(
         stakingStateScope.launch {
             val vm = scenarioViewModelFlow.first()
             val validation = vm.getRedeemValidationSystem()
-            hashCode()
             requireValidManageStakingAction(validation) {
                 val redeemPayload = RedeemPayload(overrideFinishAction = StakingRouter::back, collatorAddress = null)
 
