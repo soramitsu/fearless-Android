@@ -23,6 +23,10 @@ import java.math.BigInteger
 import java.util.Optional
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 
 interface StakingScenarioInteractor {
 
@@ -75,4 +79,8 @@ interface StakingScenarioInteractor {
     fun getRebondTypes(): Set<RebondKind>
     suspend fun getRebondingUnbondings(collatorAddress: String?): List<Unbonding>
     fun rebond(extrinsicBuilder: ExtrinsicBuilder, amount: BigInteger, candidate: String?): ExtrinsicBuilder
+    fun getUnbondValidationSystem(): UnbondValidationSystem
+    fun getRebondValidationSystem(): RebondValidationSystem
+    fun provideRedeemValidationSystem(): RedeemValidationSystem
+    fun provideBondMoreValidationSystem(): BondMoreValidationSystem
 }

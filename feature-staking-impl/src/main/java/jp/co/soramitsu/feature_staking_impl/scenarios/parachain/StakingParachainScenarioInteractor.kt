@@ -51,18 +51,41 @@ import jp.co.soramitsu.feature_staking_impl.domain.model.toUnbonding
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceUnlockingLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.NotZeroBondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.EnoughToRebondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.NotZeroRebondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondFeeValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemFeeValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.CrossExistentialValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.EnoughToUnbondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.NotZeroUnbondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondFeeValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondLimitValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
+import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
+import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -92,6 +115,7 @@ class StakingParachainScenarioInteractor(
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val delegationHistoryFetcher: SubQueryDelegationHistoryFetcher,
+    private val walletRepository: WalletRepository
 ) : StakingScenarioInteractor {
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
@@ -572,4 +596,80 @@ class StakingParachainScenarioInteractor(
         }.getOrNull()
         return delegationScheduledRequests?.keys?.map { it.requireHexPrefix().fromHex() } ?: emptyList()
     }
+
+    override fun getUnbondValidationSystem(): UnbondValidationSystem {
+        return UnbondValidationSystem(
+            CompositeValidation(
+                validations = listOf(
+                    UnbondFeeValidation(
+                        feeExtractor = { it.fee },
+                        availableBalanceProducer = { it.asset.transferable },
+                        errorProducer = { UnbondValidationFailure.CannotPayFees }
+                    ),
+                    NotZeroUnbondValidation(
+                        amountExtractor = { it.amount },
+                        errorProvider = { UnbondValidationFailure.ZeroUnbond }
+                    ),
+                    UnbondLimitValidation(
+                        stakingScenarioInteractor = this,
+                        errorProducer = UnbondValidationFailure::UnbondLimitReached
+                    ),
+                    EnoughToUnbondValidation(this),
+                    CrossExistentialValidation(this)
+                )
+            )
+        )
+    }
+
+    override fun getRebondValidationSystem() = RebondValidationSystem(
+        CompositeValidation(
+            validations = listOf(
+                RebondFeeValidation(
+                    feeExtractor = { it.fee },
+                    availableBalanceProducer = { it.controllerAsset.transferable },
+                    errorProducer = { RebondValidationFailure.CANNOT_PAY_FEE }
+                ),
+                NotZeroRebondValidation(
+                    amountExtractor = { it.rebondAmount },
+                    errorProvider = { RebondValidationFailure.ZERO_AMOUNT }
+                ),
+                EnoughToRebondValidation(this)
+            )
+        )
+    )
+
+    override fun provideRedeemValidationSystem() = RedeemValidationSystem(
+        CompositeValidation(
+            validations = listOf(
+                RedeemFeeValidation(
+                    feeExtractor = { it.fee },
+                    availableBalanceProducer = { it.asset.transferable },
+                    errorProducer = { RedeemValidationFailure.CANNOT_PAY_FEES }
+                )
+            )
+        )
+    )
+
+    override fun provideBondMoreValidationSystem() = BondMoreValidationSystem(
+        validation = CompositeValidation(
+            validations = listOf(
+                EnoughToPayFeesValidation(
+                    feeExtractor = { it.fee },
+                    availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
+                        accountRepository,
+                        walletRepository,
+                        originAddressExtractor = { it.stashAddress },
+                        chainAssetExtractor = { it.chainAsset },
+                        stakingSharedState = stakingSharedState
+                    ),
+                    errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
+                    extraAmountExtractor = { it.amount }
+                ),
+                NotZeroBondValidation(
+                    amountExtractor = BondMoreValidationPayload::amount,
+                    errorProvider = { BondMoreValidationFailure.ZERO_BOND }
+                )
+            )
+        )
+    )
 }

@@ -12,7 +12,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondViewModel
@@ -32,7 +31,6 @@ class SelectUnbondModule {
         unbondInteractor: UnbondInteractor,
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
-        validationSystem: UnbondValidationSystem,
         feeLoaderMixin: FeeLoaderMixin.Presentation,
         payload: SelectUnbondPayload
     ): ViewModel {
@@ -43,7 +41,6 @@ class SelectUnbondModule {
             unbondInteractor,
             resourceManager,
             validationExecutor,
-            validationSystem,
             feeLoaderMixin,
             payload
         )

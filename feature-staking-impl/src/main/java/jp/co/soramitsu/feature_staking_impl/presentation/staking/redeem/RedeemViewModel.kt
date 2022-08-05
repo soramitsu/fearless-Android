@@ -24,7 +24,6 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
@@ -54,7 +53,6 @@ class RedeemViewModel(
     private val redeemInteractor: RedeemInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    private val validationSystem: RedeemValidationSystem,
     private val iconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
@@ -190,7 +188,7 @@ class RedeemViewModel(
             )
 
             validationExecutor.requireValid(
-                validationSystem = validationSystem,
+                validationSystem = stakingScenarioInteractor.provideRedeemValidationSystem(),
                 payload = validationPayload,
                 validationFailureTransformer = { redeemValidationFailure(it, resourceManager) },
                 progressConsumer = _showNextProgress.progressConsumer()
