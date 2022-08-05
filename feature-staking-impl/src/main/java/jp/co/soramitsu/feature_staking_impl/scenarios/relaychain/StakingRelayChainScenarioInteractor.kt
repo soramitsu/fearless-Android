@@ -172,7 +172,7 @@ class StakingRelayChainScenarioInteractor(
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
 
             nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
-                timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
+                timeLeft = getCalculator(chainId).calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
             )
 
             else -> {
@@ -225,8 +225,8 @@ class StakingRelayChainScenarioInteractor(
         return stashIdHex in exposures.keys
     }
 
-    private suspend fun getCalculator(): EraTimeCalculator {
-        return factory.create(stakingSharedState.chainId())
+    private suspend fun getCalculator(chainId: String): EraTimeCalculator {
+        return factory.create(chainId)
     }
 
     fun selectedAccountStakingStateFlow(
@@ -350,7 +350,7 @@ class StakingRelayChainScenarioInteractor(
             val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
             val identityMapping = identityRepository.getIdentitiesFromAddresses(currentStakingState.chain, allValidatorAddresses)
 
-            val calculator = getCalculator()
+            val calculator = getCalculator(chainId)
             val pendingPayouts = payouts.map {
                 val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
 
@@ -432,7 +432,7 @@ class StakingRelayChainScenarioInteractor(
         return selectedAccountStakingStateFlow()
             .filterIsInstance<StakingState.Stash>()
             .flatMapLatest { stash ->
-                val calculator = getCalculator()
+                val calculator = getCalculator(stash.chain.id)
 
                 combine(
                     stakingRelayChainScenarioRepository.ledgerFlow(stash),
