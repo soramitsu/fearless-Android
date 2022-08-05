@@ -219,7 +219,7 @@ class ConfirmStakingViewModel(
                 when (currentProcessState) {
                     is SetupStakingProcess.ReadyToSubmit.Stash -> {
                         setupStakingInteractor.calculateSetupStakingFee(
-                            controllerAddress = controllerAddressFlow.first().lowercase(),
+                            controllerAddress = controllerAddressFlow.first(),
                             validatorAccountIds = currentProcessState.payload.blockProducers.map(Validator::accountIdHex),
                             bondPayload = bondPayload
                         )
