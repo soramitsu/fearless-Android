@@ -145,7 +145,7 @@ class SelectUnbondViewModel(
                 val asset = assetFlow.first()
 
                 val stashState = accountStakingFlow.first()
-                unbondInteractor.estimateFee(stashState/*, asset.bondedInPlanks.orZero(), amountInPlanks*/) {
+                unbondInteractor.estimateFee(stashState) {
                     stakingScenarioInteractor.stakeLess(this, amountInPlanks, stashState, asset.bondedInPlanks.orZero(), payload.collatorAddress)
                 }
             },
