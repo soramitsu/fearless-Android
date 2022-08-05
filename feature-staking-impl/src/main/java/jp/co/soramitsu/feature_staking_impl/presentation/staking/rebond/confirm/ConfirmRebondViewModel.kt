@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 class ConfirmRebondViewModel(
     private val router: StakingRouter,
     interactor: StakingInteractor,
-    stakingScenarioInteractor: StakingScenarioInteractor,
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val rebondInteractor: RebondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
@@ -119,8 +119,13 @@ class ConfirmRebondViewModel(
             coroutineScope = viewModelScope,
             feeConstructor = { token ->
                 val amountInPlanks = token.planksFromAmount(payload.amount)
-
-                rebondInteractor.estimateFee(amountInPlanks, payload.collatorAddress)
+                rebondInteractor.estimateFee {
+                    stakingScenarioInteractor.rebond(
+                        this,
+                        amountInPlanks,
+                        payload.collatorAddress
+                    )
+                }
             },
             onRetryCancelled = ::backClicked
         )
@@ -148,7 +153,9 @@ class ConfirmRebondViewModel(
         val amountInPlanks = validPayload.controllerAsset.token.planksFromAmount(payload.amount)
         val stashState = accountStakingFlow.first()
 
-        rebondInteractor.rebond(stashState, amountInPlanks, payload.collatorAddress)
+        rebondInteractor.rebond(stashState) {
+            stakingScenarioInteractor.rebond(this, amountInPlanks, payload.collatorAddress)
+        }
             .onSuccess {
                 showMessage(resourceManager.getString(R.string.common_transaction_submitted))
 

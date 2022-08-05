@@ -18,7 +18,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondPayloadAutoFix
@@ -50,7 +49,6 @@ class SelectUnbondViewModel(
     private val unbondInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    private val validationSystem: UnbondValidationSystem,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val payload: SelectUnbondPayload,
 ) : BaseViewModel(),
@@ -173,7 +171,7 @@ class SelectUnbondViewModel(
             )
 
             validationExecutor.requireValid(
-                validationSystem = validationSystem,
+                validationSystem = stakingScenarioInteractor.getUnbondValidationSystem(),
                 payload = payload,
                 validationFailureTransformer = { unbondValidationFailure(it, resourceManager) },
                 autoFixPayload = ::unbondPayloadAutoFix,

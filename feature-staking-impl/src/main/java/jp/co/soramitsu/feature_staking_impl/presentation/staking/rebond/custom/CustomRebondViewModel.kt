@@ -15,11 +15,10 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.rebondValidationFailure
-import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
@@ -44,11 +43,10 @@ private const val DEBOUNCE_DURATION_MILLIS = 500
 class CustomRebondViewModel(
     private val router: StakingRouter,
     interactor: StakingInteractor,
-    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val rebondInteractor: RebondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    private val validationSystem: RebondValidationSystem,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
 ) : BaseViewModel(),
     FeeLoaderMixin by feeLoaderMixin,
@@ -100,8 +98,13 @@ class CustomRebondViewModel(
             coroutineScope = viewModelScope,
             feeConstructor = { token ->
                 val amountInPlanks = token.planksFromAmount(amount)
-
-                rebondInteractor.estimateFee(amountInPlanks, null)
+                rebondInteractor.estimateFee {
+                    stakingScenarioInteractor.rebond(
+                        this,
+                        amountInPlanks,
+                        null
+                    )
+                }
             },
             onRetryCancelled = ::backClicked
         )
@@ -116,7 +119,7 @@ class CustomRebondViewModel(
             )
 
             validationExecutor.requireValid(
-                validationSystem = validationSystem,
+                validationSystem = stakingScenarioInteractor.getRebondValidationSystem(),
                 payload = payload,
                 validationFailureTransformer = { rebondValidationFailure(it, resourceManager) },
                 progressConsumer = _showNextProgress.progressConsumer(),
