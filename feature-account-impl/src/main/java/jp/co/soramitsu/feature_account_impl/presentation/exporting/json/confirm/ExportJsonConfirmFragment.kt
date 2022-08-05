@@ -9,22 +9,34 @@ import android.view.ViewGroup
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
-import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportJsonConfirmBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import java.io.File
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
     @Inject
     lateinit var imageLoader: ImageLoader
 
     private lateinit var binding: FragmentExportJsonConfirmBinding
+
+    @Inject
+    lateinit var factory: ExportJsonConfirmViewModel.ExportJsonConfirmViewModelFactory
+
+    private val vm: ExportJsonConfirmViewModel by viewModels {
+        ExportJsonConfirmViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: ExportJsonConfirmViewModel
+        get() = vm
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -56,15 +68,6 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
             exportJsonConfirmNetworkInput.isEnabled = false
             exportJsonConfirmNetworkInput.isVisible = !viewModel.isExportFromWallet
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ExportJsonConfirmPayload>(PAYLOAD_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
-            .exportJsonConfirmFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ExportJsonConfirmViewModel) {

@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Retriable
@@ -35,8 +36,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SelectRewardDestinationViewModel(
+@HiltViewModel
+class SelectRewardDestinationViewModel @Inject constructor(
     private val router: StakingRouter,
     interactor: StakingInteractor,
     stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,

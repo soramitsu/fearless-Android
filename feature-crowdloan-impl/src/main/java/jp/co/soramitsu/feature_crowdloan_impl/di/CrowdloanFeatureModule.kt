@@ -2,9 +2,10 @@ package jp.co.soramitsu.feature_crowdloan_impl.di
 
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -24,8 +25,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImp
 import jp.co.soramitsu.feature_wallet_api.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecks
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.TransferValidityChecksProvider
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorFactory
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
@@ -35,7 +34,9 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import javax.inject.Named
+import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module(
     includes = [
         CustomContributeModule::class
@@ -44,11 +45,10 @@ import javax.inject.Named
 class CrowdloanFeatureModule {
 
     @Provides
-    @FeatureScope
     fun provideCrowdloanStorage(preferences: Preferences) = CrowdloanStorage(preferences)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideAssetUseCase(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
@@ -60,6 +60,7 @@ class CrowdloanFeatureModule {
     )
 
     @Provides
+    @Named("CrowdloanAssetSelector")
     fun provideAssetSelectorMixinFactory(
         assetUseCase: AssetUseCase,
         singleAssetSharedState: CrowdloanSharedState,
@@ -71,7 +72,7 @@ class CrowdloanFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideTokenUseCase(
         tokenRepository: TokenRepository,
         sharedState: CrowdloanSharedState,
@@ -81,7 +82,7 @@ class CrowdloanFeatureModule {
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideFeeLoaderMixin(
         resourceManager: ResourceManager,
         tokenUseCase: TokenUseCase,
@@ -91,14 +92,12 @@ class CrowdloanFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideCrowdloanSharedState(
         chainRegistry: ChainRegistry,
         preferences: Preferences,
     ) = CrowdloanSharedState(chainRegistry, preferences)
 
     @Provides
-    @FeatureScope
     fun crowdloanRepository(
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         crowdloanMetadataApi: ParachainMetadataApi,
@@ -114,7 +113,6 @@ class CrowdloanFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideCrowdloanInteractor(
         accountRepository: AccountRepository,
         crowdloanRepository: CrowdloanRepository,
@@ -126,17 +124,11 @@ class CrowdloanFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideCrowdloanMetadataApi(networkApiCreator: NetworkApiCreator): ParachainMetadataApi {
         return networkApiCreator.create(ParachainMetadataApi::class.java)
     }
 
     @Provides
-    @FeatureScope
-    fun provideTransferChecks(): TransferValidityChecks.Presentation = TransferValidityChecksProvider()
-
-    @Provides
-    @FeatureScope
     fun provideCrowdloanContributeInteractor(
         extrinsicService: ExtrinsicService,
         accountRepository: AccountRepository,

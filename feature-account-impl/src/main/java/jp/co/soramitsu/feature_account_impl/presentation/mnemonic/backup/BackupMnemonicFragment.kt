@@ -2,19 +2,20 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 
 import android.text.method.DigitsKeyListener
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentBackupMnemonicBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fragment_backup_mnemonic) {
 
     companion object {
@@ -24,6 +25,18 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
     }
 
     private val binding by viewBinding(FragmentBackupMnemonicBinding::bind)
+
+    @Inject
+    lateinit var factory: BackupMnemonicViewModel.BackupMnemonicViewModelFactory
+
+    private val vm: BackupMnemonicViewModel by viewModels {
+        BackupMnemonicViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: BackupMnemonicViewModel
+        get() = vm
 
     override fun initViews() {
         with(binding) {
@@ -46,15 +59,6 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                 viewModel.nextClicked(advancedBlockView.getSubstrateDerivationPath(), advancedBlockView.getEthereumDerivationPath())
             }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<BackupMnemonicPayload>(PAYLOAD_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
-            .backupMnemonicComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: BackupMnemonicViewModel) {

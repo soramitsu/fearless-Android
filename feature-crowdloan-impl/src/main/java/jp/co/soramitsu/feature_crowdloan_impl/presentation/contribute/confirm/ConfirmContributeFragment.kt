@@ -4,19 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentContributeConfirmBinding
-import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import java.math.BigDecimal
@@ -24,11 +23,24 @@ import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
+@AndroidEntryPoint
 class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
 
     @Inject protected lateinit var imageLoader: ImageLoader
 
     private lateinit var binding: FragmentContributeConfirmBinding
+
+    @Inject
+    lateinit var factory: ConfirmContributeViewModel.ConfirmContributeViewModelFactory
+
+    private val vm: ConfirmContributeViewModel by viewModels {
+        ConfirmContributeViewModel.provideFactory(
+            factory,
+            argument(KEY_PAYLOAD)
+        )
+    }
+    override val viewModel: ConfirmContributeViewModel
+        get() = vm
 
     companion object {
 
@@ -63,18 +75,6 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
             confirmContributeOriginAcount.setWholeClickListener { viewModel.originAccountClicked() }
             confirmContributeBonus.setOnClickListener { viewModel.bonusClicked() }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ConfirmContributePayload>(KEY_PAYLOAD)
-
-        FeatureUtils.getFeature<CrowdloanFeatureComponent>(
-            requireContext(),
-            CrowdloanFeatureApi::class.java
-        )
-            .confirmContributeFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ConfirmContributeViewModel) {

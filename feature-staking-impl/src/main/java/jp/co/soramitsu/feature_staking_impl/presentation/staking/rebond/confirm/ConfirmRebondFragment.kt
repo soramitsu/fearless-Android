@@ -1,26 +1,38 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm
 
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmRebondBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>(R.layout.fragment_confirm_rebond) {
 
     @Inject protected lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentConfirmRebondBinding::bind)
+
+    @Inject
+    lateinit var factory: ConfirmRebondViewModel.ConfirmRebondViewModelFactory
+
+    private val vm: ConfirmRebondViewModel by viewModels {
+        ConfirmRebondViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: ConfirmRebondViewModel
+        get() = vm
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -42,18 +54,6 @@ class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>(R.layout.frag
             confirmRebondConfirm.prepareForProgress(viewLifecycleOwner)
             confirmRebondConfirm.setOnClickListener { viewModel.confirmClicked() }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ConfirmRebondPayload>(PAYLOAD_KEY)
-
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .confirmRebondFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ConfirmRebondViewModel) {

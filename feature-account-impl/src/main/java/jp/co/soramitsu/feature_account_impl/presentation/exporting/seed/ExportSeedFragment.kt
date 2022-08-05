@@ -7,18 +7,19 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
-import jp.co.soramitsu.common.di.FeatureUtils
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.core.BuildConfig
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportSeedBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
     companion object {
@@ -29,6 +30,18 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
     }
 
     private lateinit var binding: FragmentExportSeedBinding
+
+    @Inject
+    lateinit var factory: ExportSeedViewModel.ExportSeedViewModelFactory
+
+    private val vm: ExportSeedViewModel by viewModels {
+        ExportSeedViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: ExportSeedViewModel
+        get() = vm
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentExportSeedBinding.inflate(inflater, container, false)
@@ -57,15 +70,6 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
             exportEthereumSeedCopyButton.setOnClickListener { viewModel.ethereumSeedClicked() }
             exportEthereumSeedCopyButton.isVisible = BuildConfig.DEBUG
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ExportSeedPayload>(PAYLOAD_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
-            .exportSeedFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ExportSeedViewModel) {

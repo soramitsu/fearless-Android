@@ -3,6 +3,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -36,10 +42,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class CollatorDetailsViewModel(
+class CollatorDetailsViewModel @AssistedInject constructor(
     interactor: StakingInteractor,
     private val router: StakingRouter,
-    private val collator: CollatorDetailsParcelModel,
+    @Assisted private val collator: CollatorDetailsParcelModel,
     private val iconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val appLinksProvider: AppLinksProvider,
@@ -177,5 +183,22 @@ class CollatorDetailsViewModel(
         )
 
         externalAccountActions.showExternalActions(externalActionsPayload)
+    }
+
+    @AssistedFactory
+    interface CollatorDetailsViewModelFactory {
+        fun create(collator: CollatorDetailsParcelModel): CollatorDetailsViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: CollatorDetailsViewModelFactory,
+            collator: CollatorDetailsParcelModel
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(collator) as T
+            }
+        }
     }
 }

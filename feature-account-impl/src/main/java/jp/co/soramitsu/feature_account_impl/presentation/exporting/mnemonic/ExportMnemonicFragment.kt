@@ -6,15 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import jp.co.soramitsu.common.di.FeatureUtils
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportMnemonicBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
 
     companion object {
@@ -24,6 +25,18 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
             PAYLOAD_KEY to ExportMnemonicPayload(metaId, chainId, isExportWallet)
         )
     }
+
+    @Inject
+    lateinit var factory: ExportMnemonicViewModel.ExportMnemonicViewModelFactory
+
+    private val vm: ExportMnemonicViewModel by viewModels {
+        ExportMnemonicViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: ExportMnemonicViewModel
+        get() = vm
 
     private lateinit var binding: FragmentExportMnemonicBinding
 
@@ -55,15 +68,6 @@ class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
         with(binding.exportMnemonicAdvanced) {
             configure(FieldState.DISABLED)
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ExportMnemonicPayload>(PAYLOAD_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
-            .exportMnemonicFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ExportMnemonicViewModel) {

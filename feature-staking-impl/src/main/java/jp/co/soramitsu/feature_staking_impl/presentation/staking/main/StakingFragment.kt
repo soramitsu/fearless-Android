@@ -1,13 +1,14 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.main
 
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -17,10 +18,8 @@ import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.domain.model.NominatorStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.feature_staking_impl.domain.model.ValidatorStatus
@@ -36,11 +35,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
+@AndroidEntryPoint
 class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking), DelegationRecyclerViewAdapter.DelegationHandler {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
     private val delegationAdapter by lazy { DelegationRecyclerViewAdapter(this) }
+
+    override val viewModel: StakingViewModel by viewModels()
 
     private val binding by viewBinding(FragmentStakingBinding::bind)
 
@@ -71,16 +73,6 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             override fun canScrollVertically() = false
         }
         binding.collatorsList.adapter = delegationAdapter
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .stakingComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     private var observeDelegationsJob: Job? = null

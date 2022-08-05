@@ -5,12 +5,13 @@ import android.text.method.LinkMovementMethod
 import android.text.style.UnderlineSpan
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -19,21 +20,32 @@ import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_crowdloan_api.di.CrowdloanFeatureApi
 import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentContributeBinding
-import jp.co.soramitsu.feature_crowdloan_impl.di.CrowdloanFeatureComponent
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.ApplyActionState
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
+@AndroidEntryPoint
 class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>(R.layout.fragment_contribute) {
 
     @Inject protected lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentContributeBinding::bind)
+
+    @Inject
+    lateinit var factory: CrowdloanContributeViewModel.CrowdloanContributeViewModelFactory
+
+    private val vm: CrowdloanContributeViewModel by viewModels {
+        CrowdloanContributeViewModel.provideFactory(
+            factory,
+            argument(KEY_PAYLOAD)
+        )
+    }
+    override val viewModel: CrowdloanContributeViewModel
+        get() = vm
 
     companion object {
 
@@ -77,18 +89,6 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>(R
                 contributionTypeButton.toggle()
             }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ContributePayload>(KEY_PAYLOAD)
-
-        FeatureUtils.getFeature<CrowdloanFeatureComponent>(
-            requireContext(),
-            CrowdloanFeatureApi::class.java
-        )
-            .selectContributeFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: CrowdloanContributeViewModel) {

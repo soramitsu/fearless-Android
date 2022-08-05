@@ -4,13 +4,14 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.view.View
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.hideKeyboard
@@ -19,13 +20,12 @@ import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentBalanceListBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class BalanceListFragment : BaseFragment<BalanceListViewModel>(R.layout.fragment_balance_list), BalanceListAdapter.ItemAssetHandler {
 
     @Inject
@@ -34,6 +34,8 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(R.layout.fragment
     private lateinit var adapter: BalanceListAdapter
 
     private val binding by viewBinding(FragmentBalanceListBinding::bind)
+
+    override val viewModel: BalanceListViewModel by viewModels()
 
     override fun initViews() {
         binding.balanceListContent.applyInsetter {
@@ -65,16 +67,6 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(R.layout.fragment
             balanceListTotalAmountShimmer.setOnClickListener { viewModel.onBalanceClicked() }
             balanceListTotalAmountEmptyShimmer.setOnClickListener { viewModel.onBalanceClicked() }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .balanceListComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: BalanceListViewModel) {

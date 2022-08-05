@@ -1,17 +1,18 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings
 
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.core.view.isVisible
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentCustomValidatorsSettingsBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CustomValidatorsSettingsFragment :
     BaseFragment<CustomValidatorsSettingsViewModel>(R.layout.fragment_custom_validators_settings) {
 
@@ -24,6 +25,18 @@ class CustomValidatorsSettingsFragment :
     private val sortingAdapter by lazy { SettingsSortingAdapter(viewModel::onSortingChecked) }
     private val binding by viewBinding(FragmentCustomValidatorsSettingsBinding::bind)
 
+    @Inject
+    lateinit var factory: CustomValidatorsSettingsViewModel.CustomValidatorsSettingsViewModelFactory
+
+    private val vm: CustomValidatorsSettingsViewModel by viewModels {
+        CustomValidatorsSettingsViewModel.provideFactory(
+            factory,
+            argument(STAKING_TYPE_KEY)
+        )
+    }
+    override val viewModel: CustomValidatorsSettingsViewModel
+        get() = vm
+
     override fun initViews() {
         with(binding) {
             customValidatorSettingsApply.setOnClickListener { viewModel.applyChanges() }
@@ -32,17 +45,6 @@ class CustomValidatorsSettingsFragment :
             settingsFiltersList.adapter = filtersAdapter
             settingsSortingsList.adapter = sortingAdapter
         }
-    }
-
-    override fun inject() {
-        val type = (arguments?.get(STAKING_TYPE_KEY) as? Chain.Asset.StakingType) ?: error("There are no settings passed in settings screen")
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .customValidatorsSettingsComponentFactory()
-            .create(this, type)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: CustomValidatorsSettingsViewModel) {

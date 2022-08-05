@@ -2,16 +2,17 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.di.scope.FeatureScope
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 
+@InstallIn(SingletonComponent::class)
 @Module
 class RedeemValidationsModule {
 
-    @FeatureScope
     @Provides
     fun provideFeeValidation() = RedeemFeeValidation(
         feeExtractor = { it.fee },
@@ -19,7 +20,6 @@ class RedeemValidationsModule {
         errorProducer = { RedeemValidationFailure.CANNOT_PAY_FEES }
     )
 
-    @FeatureScope
     @Provides
     fun provideRedeemValidationSystem(
         feeValidation: RedeemFeeValidation,

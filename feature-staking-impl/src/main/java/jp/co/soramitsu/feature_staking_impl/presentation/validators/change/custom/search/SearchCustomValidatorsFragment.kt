@@ -1,18 +1,18 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.search
 
 import android.view.View
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSearchCustomValidatorsBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 
+@AndroidEntryPoint
 class SearchCustomValidatorsFragment :
     BaseFragment<SearchCustomValidatorsViewModel>(R.layout.fragment_search_custom_validators),
     CustomBlockProducersAdapter.ItemHandler {
@@ -20,6 +20,8 @@ class SearchCustomValidatorsFragment :
     private val adapter: CustomBlockProducersAdapter by lazy(LazyThreadSafetyMode.NONE) {
         CustomBlockProducersAdapter(this)
     }
+
+    override val viewModel: SearchCustomValidatorsViewModel by viewModels()
 
     private val binding by viewBinding(FragmentSearchCustomValidatorsBinding::bind)
 
@@ -43,16 +45,6 @@ class SearchCustomValidatorsFragment :
                 viewModel.doneClicked()
             }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .searchCustomValidatorsComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: SearchCustomValidatorsViewModel) {

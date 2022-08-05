@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.edit
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.DragAndDropDelegate
 import jp.co.soramitsu.common.utils.Event
@@ -10,8 +11,10 @@ import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AccountEditViewModel(
+@HiltViewModel
+class AccountEditViewModel @Inject constructor(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
     accountListingMixin: AccountListingMixin

@@ -1,7 +1,12 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.invoke
@@ -21,11 +26,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class CustomValidatorsSettingsViewModel(
+class CustomValidatorsSettingsViewModel @AssistedInject constructor(
     private val router: StakingRouter,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val tokenUseCase: TokenUseCase,
-    private val stakingType: Chain.Asset.StakingType,
+    @Assisted private val stakingType: Chain.Asset.StakingType,
     private val settingsStorage: SettingsStorage,
     private val setupStakingSharedState: SetupStakingSharedState
 ) : BaseViewModel() {
@@ -83,5 +88,22 @@ class CustomValidatorsSettingsViewModel(
 
     fun onSortingChecked(checkedSorting: SettingsSchema.Sorting) {
         settingsStorage.sortingSelected(checkedSorting.sorting)
+    }
+
+    @AssistedFactory
+    interface CustomValidatorsSettingsViewModelFactory {
+        fun create(stakingType: Chain.Asset.StakingType): CustomValidatorsSettingsViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: CustomValidatorsSettingsViewModelFactory,
+            stakingType: Chain.Asset.StakingType
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(stakingType) as T
+            }
+        }
     }
 }

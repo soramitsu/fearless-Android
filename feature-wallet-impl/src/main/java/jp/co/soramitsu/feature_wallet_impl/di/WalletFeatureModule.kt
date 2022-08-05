@@ -2,13 +2,14 @@ package jp.co.soramitsu.feature_wallet_impl.di
 
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -22,7 +23,6 @@ import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.feature_account_api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.feature_wallet_api.data.cache.AssetCache
-import jp.co.soramitsu.feature_wallet_api.di.Wallet
 import jp.co.soramitsu.feature_wallet_api.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
@@ -52,30 +52,23 @@ import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module
 class WalletFeatureModule {
 
     @Provides
-    @FeatureScope
     fun provideSubQueryApi(networkApiCreator: NetworkApiCreator): SubQueryOperationsApi {
         return networkApiCreator.create(SubQueryOperationsApi::class.java)
     }
 
     @Provides
-    @FeatureScope
-    fun provideCoingeckoApi(networkApiCreator: NetworkApiCreator): CoingeckoApi {
-        return networkApiCreator.create(CoingeckoApi::class.java)
-    }
-
-    @Provides
-    @FeatureScope
     fun provideRemoteConfigFetcher(networkApiCreator: NetworkApiCreator): RemoteConfigFetcher {
         return networkApiCreator.create(RemoteConfigFetcher::class.java)
     }
 
     @Provides
-    @FeatureScope
     fun provideAssetCache(
         tokenDao: TokenDao,
         assetDao: AssetDao,
@@ -86,17 +79,14 @@ class WalletFeatureModule {
     }
 
     @Provides
-    @FeatureScope
     fun providePhishingApi(networkApiCreator: NetworkApiCreator): PhishingApi {
         return networkApiCreator.create(PhishingApi::class.java)
     }
 
     @Provides
-    @FeatureScope
     fun provideHistoryFiltersProvider() = HistoryFiltersProvider()
 
     @Provides
-    @FeatureScope
     fun provideSubstrateSource(
         rpcCalls: RpcCalls,
         @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
@@ -108,7 +98,6 @@ class WalletFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideTokenRepository(
         tokenDao: TokenDao,
     ): TokenRepository = TokenRepositoryImpl(
@@ -116,11 +105,10 @@ class WalletFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideCursorStorage(preferences: Preferences) = TransferCursorStorage(preferences)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideWalletRepository(
         substrateSource: SubstrateRemoteSource,
         operationsDao: OperationDao,
@@ -154,7 +142,6 @@ class WalletFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideWalletInteractor(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
@@ -174,7 +161,6 @@ class WalletFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideBuyTokenIntegration(): BuyTokenRegistry {
         return BuyTokenRegistry(
             availableProviders = listOf(
@@ -191,11 +177,9 @@ class WalletFeatureModule {
     ): BuyMixin.Presentation = BuyMixinProvider(buyTokenRegistry, chainRegistry)
 
     @Provides
-    @FeatureScope
     fun provideTransferChecks(): TransferValidityChecks.Presentation = TransferValidityChecksProvider()
 
     @Provides
-    @FeatureScope
     fun providePaymentUpdaterFactory(
         remoteSource: SubstrateRemoteSource,
         assetCache: AssetCache,
@@ -213,8 +197,8 @@ class WalletFeatureModule {
     )
 
     @Provides
-    @Wallet
-    @FeatureScope
+    @Singleton
+    @Named("BalancesUpdateSystem")
     fun provideFeatureUpdaters(
         chainRegistry: ChainRegistry,
         paymentUpdaterFactory: PaymentUpdaterFactory,
@@ -226,21 +210,11 @@ class WalletFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideWalletConstants(
         chainRegistry: ChainRegistry,
     ): WalletConstants = RuntimeWalletConstants(chainRegistry)
 
     @Provides
-    @FeatureScope
     fun provideAccountAddressUseCase(accountRepository: AccountRepository, chainRegistry: ChainRegistry) =
         CurrentAccountAddressUseCase(accountRepository, chainRegistry)
-
-    @Provides
-    @FeatureScope
-    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
-
-    @Provides
-    @FeatureScope
-    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
 }

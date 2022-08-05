@@ -1,6 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.di
 
 import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.feature_staking_impl.di.validations.BondMoreValidationsModule
 import jp.co.soramitsu.feature_staking_impl.di.validations.MakePayoutValidationsModule
 import jp.co.soramitsu.feature_staking_impl.di.validations.RebondValidationsModule
@@ -9,6 +11,7 @@ import jp.co.soramitsu.feature_staking_impl.di.validations.RewardDestinationVali
 import jp.co.soramitsu.feature_staking_impl.di.validations.SetControllerValidationsModule
 import jp.co.soramitsu.feature_staking_impl.di.validations.UnbondValidationsModule
 
+@InstallIn(SingletonComponent::class)
 @Module(
     includes = [
         MakePayoutValidationsModule::class,

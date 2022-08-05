@@ -1,18 +1,20 @@
 package jp.co.soramitsu.feature_account_impl.presentation.about
 
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.createSendEmailIntent
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentAboutBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 
+@AndroidEntryPoint
 class AboutFragment : BaseFragment<AboutViewModel>(R.layout.fragment_about) {
 
     private val binding by viewBinding(FragmentAboutBinding::bind)
+
+    override val viewModel: AboutViewModel by viewModels()
 
     override fun initViews() {
         with(binding) {
@@ -31,13 +33,6 @@ class AboutFragment : BaseFragment<AboutViewModel>(R.layout.fragment_about) {
             termsWrapper.setOnClickListener { viewModel.termsClicked() }
             privacyWrapper.setOnClickListener { viewModel.privacyClicked() }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
-            .aboutComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: AboutViewModel) {

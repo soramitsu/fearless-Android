@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -32,7 +37,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class ConfirmRebondViewModel(
+class ConfirmRebondViewModel @AssistedInject constructor(
     private val router: StakingRouter,
     interactor: StakingInteractor,
     private val stakingScenarioInteractor: StakingScenarioInteractor,
@@ -43,7 +48,7 @@ class ConfirmRebondViewModel(
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
-    private val payload: ConfirmRebondPayload,
+    @Assisted private val payload: ConfirmRebondPayload,
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     FeeLoaderMixin by feeLoaderMixin,
@@ -162,5 +167,22 @@ class ConfirmRebondViewModel(
             .onFailure(::showError)
 
         _showNextProgress.value = false
+    }
+
+    @AssistedFactory
+    interface ConfirmRebondViewModelFactory {
+        fun create(payload: ConfirmRebondPayload): ConfirmRebondViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ConfirmRebondViewModelFactory,
+            payload: ConfirmRebondPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

@@ -2,18 +2,19 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
 import androidx.core.os.bundleOf
 import androidx.core.view.doOnNextLayout
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBalanceBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.ChooseRebondKindBottomSheet
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fragment_staking_balance) {
 
     companion object {
@@ -21,6 +22,18 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
 
         fun getBundle(address: String) = bundleOf(KEY_COLLATOR_ADDRESS to address)
     }
+
+    @Inject
+    lateinit var factory: StakingBalanceViewModel.StakingBalanceViewModelFactory
+
+    private val vm: StakingBalanceViewModel by viewModels {
+        StakingBalanceViewModel.provideFactory(
+            factory,
+            requireArguments().getString(KEY_COLLATOR_ADDRESS).orEmpty()
+        )
+    }
+    override val viewModel: StakingBalanceViewModel
+        get() = vm
 
     private val binding by viewBinding(FragmentStakingBalanceBinding::bind)
 
@@ -52,18 +65,6 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
             }
             stakingBalanceUnbondings.title.setText(R.string.staking_history_title)
         }
-    }
-
-    override fun inject() {
-        val collatorAddress = arguments?.getString(KEY_COLLATOR_ADDRESS)
-
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .stakingBalanceFactory()
-            .create(this, collatorAddress)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: StakingBalanceViewModel) {

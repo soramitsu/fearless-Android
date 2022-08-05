@@ -1,6 +1,11 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
@@ -8,20 +13,20 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
+import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.launch
 
 enum class AccountChosenNavDirection {
     BACK, MAIN
 }
 
-class AccountListViewModel(
+class AccountListViewModel @AssistedInject constructor(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
-    private val accountChosenNavDirection: AccountChosenNavDirection,
+    @Assisted private val accountChosenNavDirection: AccountChosenNavDirection,
     accountListingMixin: AccountListingMixin,
-    private val stakingSharedState: SingleAssetSharedState,
+    private val stakingSharedState: StakingSharedState,
 ) : BaseViewModel() {
 
     val openWalletOptionsEvent = MutableLiveData<Event<Long>>()
@@ -73,5 +78,22 @@ class AccountListViewModel(
 
     fun addAccountClicked() {
         accountRouter.openAddAccount()
+    }
+
+    @AssistedFactory
+    interface AccountListViewModelFactory {
+        fun create(accountChosenNavDirection: AccountChosenNavDirection): AccountListViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: AccountListViewModelFactory,
+            accountChosenNavDirection: AccountChosenNavDirection
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(accountChosenNavDirection) as T
+            }
+        }
     }
 }

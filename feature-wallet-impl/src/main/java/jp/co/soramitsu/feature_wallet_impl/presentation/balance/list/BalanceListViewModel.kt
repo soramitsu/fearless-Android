@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -35,10 +36,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
-class BalanceListViewModel(
+@HiltViewModel
+class BalanceListViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,

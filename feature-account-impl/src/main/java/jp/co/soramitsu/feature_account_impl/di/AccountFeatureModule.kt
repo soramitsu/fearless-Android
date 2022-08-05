@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_account_impl.di
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.data.OnboardingStoriesDataSource
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -11,7 +13,6 @@ import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.GetEducationalStoriesUseCase
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -48,12 +49,13 @@ import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.impl.Crypt
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
+import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module
 class AccountFeatureModule {
 
     @Provides
-    @FeatureScope
     fun provideExtrinsicService(
         accountRepository: AccountRepository,
         secretStoreV2: SecretStoreV2,
@@ -67,11 +69,9 @@ class AccountFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideJsonDecoder(jsonMapper: Gson) = JsonSeedDecoder(jsonMapper)
 
     @Provides
-    @FeatureScope
     fun provideJsonEncoder(
         jsonMapper: Gson,
     ) = JsonSeedEncoder(jsonMapper)
@@ -83,7 +83,6 @@ class AccountFeatureModule {
     ): CryptoTypeChooserMixin = CryptoTypeChooser(interactor, resourceManager)
 
     @Provides
-    @FeatureScope
     fun provideAccountRepository(
         accountDataSource: AccountDataSource,
         accountDao: AccountDao,
@@ -107,7 +106,6 @@ class AccountFeatureModule {
     }
 
     @Provides
-    @FeatureScope
     fun provideAccountInteractor(
         accountRepository: AccountRepository,
         fileProvider: FileProvider
@@ -116,7 +114,6 @@ class AccountFeatureModule {
     }
 
     @Provides
-    @FeatureScope
     fun provideAccountDataSource(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
@@ -143,7 +140,6 @@ class AccountFeatureModule {
     fun provideNodeHostValidator() = NodeHostValidator()
 
     @Provides
-    @FeatureScope
     fun provideAccountDataMigration(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences,
@@ -153,7 +149,6 @@ class AccountFeatureModule {
     }
 
     @Provides
-    @FeatureScope
     fun provideExternalAccountActions(
         clipboardManager: ClipboardManager,
         appLinksProvider: AppLinksProvider,
@@ -164,25 +159,21 @@ class AccountFeatureModule {
     }
 
     @Provides
-    @FeatureScope
     fun provideAccountUpdateScope(
         accountRepository: AccountRepository
     ) = AccountUpdateScope(accountRepository)
 
     @Provides
-    @FeatureScope
     fun provideAddressDisplayUseCase(
         accountRepository: AccountRepository
     ) = AddressDisplayUseCase(accountRepository)
 
     @Provides
-    @FeatureScope
     fun provideAccountUseCase(
         accountRepository: AccountRepository
     ) = SelectedAccountUseCase(accountRepository)
 
     @Provides
-    @FeatureScope
     fun provideAccountDetailsInteractor(
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
@@ -194,21 +185,19 @@ class AccountFeatureModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideCoingeckoApi(networkApiCreator: NetworkApiCreator): CoingeckoApi {
         return networkApiCreator.create(CoingeckoApi::class.java)
     }
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
 
     @Provides
-    @FeatureScope
     fun provideAssetNotNeedAccountUseCase(
         assetDao: AssetDao,
         tokenDao: TokenDao
@@ -217,11 +206,9 @@ class AccountFeatureModule {
     }
 
     @Provides
-    @FeatureScope
     fun provideStoriesDataSource() = OnboardingStoriesDataSource()
 
     @Provides
-    @FeatureScope
     fun provideShouldShowEducationalStories(
         preferences: Preferences
     ): ShouldShowEducationalStoriesUseCase {
@@ -229,7 +216,6 @@ class AccountFeatureModule {
     }
 
     @Provides
-    @FeatureScope
     fun provideGetEducationalStories(
         onboardingStoriesDataSource: OnboardingStoriesDataSource
     ): GetEducationalStoriesUseCase {

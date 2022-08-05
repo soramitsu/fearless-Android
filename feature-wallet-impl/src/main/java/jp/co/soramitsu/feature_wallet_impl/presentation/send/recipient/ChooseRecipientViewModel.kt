@@ -4,9 +4,14 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.distinctUntilChanged
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import androidx.lifecycle.distinctUntilChanged
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -42,13 +47,13 @@ enum class State {
 private const val INITIAL_QUERY = ""
 private const val DEBOUNCE_DURATION = 300L
 
-class ChooseRecipientViewModel(
+class ChooseRecipientViewModel @AssistedInject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val qrBitmapDecoder: QrBitmapDecoder,
-    private val payload: AssetPayload,
+    @Assisted private val payload: AssetPayload,
     private val phishingWarning: PhishingWarningMixin,
 ) : BaseViewModel(),
     PhishingWarningMixin by phishingWarning,
@@ -197,5 +202,22 @@ class ChooseRecipientViewModel(
 
     private suspend fun generateAddressModel(address: String, accountName: String? = null): AddressModel {
         return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP, accountName)
+    }
+
+    @AssistedFactory
+    interface ChooseRecipientViewModelFactory {
+        fun create(payload: AssetPayload): ChooseRecipientViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ChooseRecipientViewModelFactory,
+            payload: AssetPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

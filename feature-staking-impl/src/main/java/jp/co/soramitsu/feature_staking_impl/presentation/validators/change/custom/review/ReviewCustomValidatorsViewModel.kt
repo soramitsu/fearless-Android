@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.review
 
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -25,8 +26,10 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ReviewCustomValidatorsViewModel(
+@HiltViewModel
+class ReviewCustomValidatorsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,

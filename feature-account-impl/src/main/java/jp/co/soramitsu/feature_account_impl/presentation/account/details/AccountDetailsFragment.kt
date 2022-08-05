@@ -4,19 +4,19 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
@@ -24,16 +24,28 @@ import jp.co.soramitsu.feature_account_api.presentation.actions.copyAddressClick
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentAccountDetailsBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import javax.inject.Inject
 
 private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
+@AndroidEntryPoint
 class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(R.layout.fragment_account_details), ChainAccountsAdapter.Handler {
 
     @Inject lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentAccountDetailsBinding::bind)
+
+    @Inject
+    lateinit var factory: AccountDetailsViewModel.AccountDetailsViewModelFactory
+
+    private val vm: AccountDetailsViewModel by viewModels {
+        AccountDetailsViewModel.provideFactory(
+            factory,
+            argument(ACCOUNT_ID_KEY)
+        )
+    }
+    override val viewModel: AccountDetailsViewModel
+        get() = vm
 
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
         ChainAccountsAdapter(this, imageLoader)
@@ -58,18 +70,6 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(R.layout.fr
             accountDetailsChainAccounts.setHasFixedSize(true)
             accountDetailsChainAccounts.adapter = adapter
         }
-    }
-
-    override fun inject() {
-        val metaId = argument<Long>(ACCOUNT_ID_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .accountDetailsComponentFactory()
-            .create(this, metaId)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: AccountDetailsViewModel) {

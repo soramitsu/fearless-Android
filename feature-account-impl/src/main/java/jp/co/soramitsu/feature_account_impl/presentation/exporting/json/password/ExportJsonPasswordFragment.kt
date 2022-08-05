@@ -6,25 +6,37 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
-import jp.co.soramitsu.common.di.FeatureUtils
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.utils.setDrawableStart
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportJsonPasswordBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>() {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
 
     private lateinit var binding: FragmentExportJsonPasswordBinding
+
+    @Inject
+    lateinit var factory: ExportJsonPasswordViewModel.ExportJsonPasswordViewModelFactory
+
+    private val vm: ExportJsonPasswordViewModel by viewModels {
+        ExportJsonPasswordViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: ExportJsonPasswordViewModel
+        get() = vm
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -65,15 +77,6 @@ class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>()
             exportJsonPasswordNetworkInput.isEnabled = false
             exportJsonPasswordNetworkInput.isVisible = viewModel.isExportWallet.not()
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ExportJsonPasswordPayload>(PAYLOAD_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(requireContext(), AccountFeatureApi::class.java)
-            .exportJsonPasswordFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ExportJsonPasswordViewModel) {

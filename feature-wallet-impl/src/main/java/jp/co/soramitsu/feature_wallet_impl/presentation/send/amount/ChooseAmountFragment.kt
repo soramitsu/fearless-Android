@@ -5,21 +5,20 @@ import android.text.TextWatcher
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentChooseAmountBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
@@ -33,12 +32,26 @@ private const val QUICK_VALUE_75 = 0.75
 private const val QUICK_VALUE_50 = 0.5
 private const val QUICK_VALUE_25 = 0.25
 
+@AndroidEntryPoint
 class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>(R.layout.fragment_choose_amount) {
 
     @Inject
     lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentChooseAmountBinding::bind)
+
+    @Inject
+    lateinit var factory: ChooseAmountViewModel.ChooseAmountViewModelFactory
+
+    private val vm: ChooseAmountViewModel by viewModels {
+        ChooseAmountViewModel.provideFactory(
+            factory,
+            argument(KEY_ADDRESS),
+            argument(KEY_ASSET_PAYLOAD)
+        )
+    }
+    override val viewModel: ChooseAmountViewModel
+        get() = vm
 
     companion object {
         fun getBundle(recipientAddress: String, assetPayload: AssetPayload) =
@@ -72,19 +85,6 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>(R.layout.fragme
                 }
             })
         }
-    }
-
-    override fun inject() {
-        val address = argument<String>(KEY_ADDRESS)
-        val assetPayload = argument<AssetPayload>(KEY_ASSET_PAYLOAD)
-
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .chooseAmountComponentFactory()
-            .create(this, address, assetPayload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ChooseAmountViewModel) {

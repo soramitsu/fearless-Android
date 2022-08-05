@@ -1,6 +1,7 @@
 package jp.co.soramitsu.splash.presentation
 
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.domain.GetEducationalStoriesUseCase
 import jp.co.soramitsu.common.domain.ShouldShowEducationalStoriesUseCase
@@ -10,8 +11,10 @@ import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SplashViewModel(
+@HiltViewModel
+class SplashViewModel @Inject constructor(
     private val router: SplashRouter,
     private val repository: AccountRepository,
     shouldShowEducationalStoriesUseCase: ShouldShowEducationalStoriesUseCase,

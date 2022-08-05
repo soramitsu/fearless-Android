@@ -3,26 +3,38 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select
 import androidx.core.os.bundleOf
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSelectUnbondBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragment_select_unbond) {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
+
+    @Inject
+    lateinit var factory: SelectUnbondViewModel.SelectUnbondViewModelFactory
+
+    private val vm: SelectUnbondViewModel by viewModels {
+        SelectUnbondViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY)
+        )
+    }
+    override val viewModel: SelectUnbondViewModel
+        get() = vm
 
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -48,17 +60,6 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
             unbondConfirm.prepareForProgress(viewLifecycleOwner)
             unbondConfirm.setOnClickListener { viewModel.confirmClicked() }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<SelectUnbondPayload>(PAYLOAD_KEY)
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .selectUnbondFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: SelectUnbondViewModel) {

@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -41,12 +46,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class ConfirmPayoutViewModel(
+class ConfirmPayoutViewModel @AssistedInject constructor(
     private val interactor: StakingInteractor,
     private val relayChainInteractor: StakingRelayChainScenarioInteractor,
     private val payoutInteractor: PayoutInteractor,
     private val router: StakingRouter,
-    private val payload: ConfirmPayoutPayload,
+    @Assisted private val payload: ConfirmPayoutPayload,
     private val addressModelGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -197,5 +202,22 @@ class ConfirmPayoutViewModel(
         )
 
         externalAccountActions.showExternalActions(externalActionsPayload)
+    }
+
+    @AssistedFactory
+    interface ConfirmPayoutViewModelFactory {
+        fun create(payload: ConfirmPayoutPayload): ConfirmPayoutViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ConfirmPayoutViewModelFactory,
+            payload: ConfirmPayoutPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

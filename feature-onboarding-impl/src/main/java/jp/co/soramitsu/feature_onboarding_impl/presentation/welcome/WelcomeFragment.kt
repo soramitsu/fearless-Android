@@ -5,17 +5,18 @@ import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.View
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.utils.createSpannable
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.feature_onboarding_api.di.OnboardingFeatureApi
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.databinding.FragmentWelcomeBinding
-import jp.co.soramitsu.feature_onboarding_impl.di.OnboardingFeatureComponent
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome) {
 
     companion object {
@@ -30,6 +31,18 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
             )
         }
     }
+
+    @Inject
+    lateinit var factory: WelcomeViewModel.WelcomeViewModelFactory
+
+    private val vm: WelcomeViewModel by viewModels {
+        WelcomeViewModel.provideFactory(
+            factory,
+            argument(KEY_PAYLOAD)
+        )
+    }
+    override val viewModel: WelcomeViewModel
+        get() = vm
 
     private val binding by viewBinding(FragmentWelcomeBinding::bind)
 
@@ -62,15 +75,6 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
                 viewModel.privacyClicked()
             }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<WelcomeFragmentPayload>(KEY_PAYLOAD)
-
-        FeatureUtils.getFeature<OnboardingFeatureComponent>(context!!, OnboardingFeatureApi::class.java)
-            .welcomeComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: WelcomeViewModel) {

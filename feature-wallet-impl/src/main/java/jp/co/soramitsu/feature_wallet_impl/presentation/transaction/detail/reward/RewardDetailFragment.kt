@@ -2,9 +2,10 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.rewa
 
 import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.setTextColorRes
@@ -13,13 +14,13 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalActionsSheet
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalViewCallback
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentRewardSlashDetailsBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragment_reward_slash_details) {
     companion object {
         private const val KEY_PAYLOAD = "KEY_PAYLOAD"
@@ -28,6 +29,18 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragme
     }
 
     private val binding by viewBinding(FragmentRewardSlashDetailsBinding::bind)
+
+    @Inject
+    lateinit var factory: RewardDetailViewModel.RewardDetailViewModelFactory
+
+    private val vm: RewardDetailViewModel by viewModels {
+        RewardDetailViewModel.provideFactory(
+            factory,
+            argument(KEY_PAYLOAD)
+        )
+    }
+    override val viewModel: RewardDetailViewModel
+        get() = vm
 
     override fun initViews() {
         binding.rewardDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
@@ -39,18 +52,6 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragme
         binding.rewardDetailValidator.setWholeClickListener {
             viewModel.showExternalActionsClicked(ExternalActionsSource.VALIDATOR_ADDRESS)
         }
-    }
-
-    override fun inject() {
-        val payload = argument<RewardDetailsPayload>(KEY_PAYLOAD)
-
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .rewardDetailComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     private fun amountColorRes(operation: OperationParcelizeModel.Reward) = when {

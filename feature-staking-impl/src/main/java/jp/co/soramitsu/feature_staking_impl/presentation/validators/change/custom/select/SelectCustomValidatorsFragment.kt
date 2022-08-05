@@ -1,21 +1,21 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select
 
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSelectCustomValidatorsBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 
+@AndroidEntryPoint
 class SelectCustomValidatorsFragment :
     BaseFragment<SelectCustomValidatorsViewModel>(R.layout.fragment_select_custom_validators),
     ValidatorsAdapter.ItemHandler {
@@ -23,6 +23,8 @@ class SelectCustomValidatorsFragment :
     lateinit var adapter: ValidatorsAdapter
 
     private val binding by viewBinding(FragmentSelectCustomValidatorsBinding::bind)
+
+    override val viewModel: SelectCustomValidatorsViewModel by viewModels()
 
     override fun initViews() {
         adapter = ValidatorsAdapter(this)
@@ -63,16 +65,6 @@ class SelectCustomValidatorsFragment :
 
             selectCustomValidatorsNext.setOnClickListener { viewModel.nextClicked() }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .selectCustomValidatorsComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: SelectCustomValidatorsViewModel) {

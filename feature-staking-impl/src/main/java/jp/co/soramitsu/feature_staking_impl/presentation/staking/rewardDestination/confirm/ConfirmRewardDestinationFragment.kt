@@ -1,21 +1,22 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm
 
 import android.os.Bundle
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmRewardDestinationBinding
-import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
+import javax.inject.Inject
 
 private const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
+@AndroidEntryPoint
 class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationViewModel>(R.layout.fragment_confirm_reward_destination) {
 
     companion object {
@@ -24,6 +25,18 @@ class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationVi
             putParcelable(KEY_PAYLOAD, payload)
         }
     }
+
+    @Inject
+    lateinit var factory: ConfirmRewardDestinationViewModel.ConfirmRewardDestinationViewModelFactory
+
+    private val vm: ConfirmRewardDestinationViewModel by viewModels {
+        ConfirmRewardDestinationViewModel.provideFactory(
+            factory,
+            argument(KEY_PAYLOAD)
+        )
+    }
+    override val viewModel: ConfirmRewardDestinationViewModel
+        get() = vm
 
     private val binding by viewBinding(FragmentConfirmRewardDestinationBinding::bind)
 
@@ -46,18 +59,6 @@ class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationVi
 
             confirmRewardDestinationRewardDestination.setPayoutAccountClickListener { viewModel.payoutAccountClicked() }
         }
-    }
-
-    override fun inject() {
-        val payload = argument<ConfirmRewardDestinationPayload>(KEY_PAYLOAD)
-
-        FeatureUtils.getFeature<StakingFeatureComponent>(
-            requireContext(),
-            StakingFeatureApi::class.java
-        )
-            .confirmRewardDestinationFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ConfirmRewardDestinationViewModel) {

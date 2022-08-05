@@ -4,18 +4,19 @@ import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.databinding.FragmentStoryBinding
-import jp.co.soramitsu.app.root.di.RootApi
-import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.view.viewBinding
 import jp.shts.android.storiesprogressview.StoriesProgressView
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), StoriesProgressView.StoriesListener {
 
     companion object {
@@ -30,7 +31,16 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
         }
     }
 
+    @Inject
+    lateinit var factory: StoryViewModel.StoryViewModelFactory
+
     private val binding by viewBinding(FragmentStoryBinding::bind)
+
+    private val vm: StoryViewModel by viewModels {
+        StoryViewModel.provideFactory(factory, requireArguments().getParcelable<StoryGroupModel>(KEY_STORY) as StoryGroupModel)
+    }
+    override val viewModel: StoryViewModel
+        get() = vm
 
     private var lastActionDown = 0L
 
@@ -41,15 +51,6 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
         binding.stories.setStoriesListener(this)
 
         binding.storyContainer.setOnTouchListener(::handleStoryTouchEvent)
-    }
-
-    override fun inject() {
-        val stories = argument<StoryGroupModel>(KEY_STORY)
-
-        FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
-            .storyComponentFactory()
-            .create(this, stories)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: StoryViewModel) {

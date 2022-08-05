@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_account_impl.presentation.pincode
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -12,12 +17,12 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import kotlinx.coroutines.launch
 
-class PinCodeViewModel(
+class PinCodeViewModel @AssistedInject constructor(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val deviceVibrator: DeviceVibrator,
     private val resourceManager: ResourceManager,
-    val pinCodeAction: PinCodeAction
+    @Assisted val pinCodeAction: PinCodeAction
 ) : BaseViewModel() {
 
     sealed class ScreenState {
@@ -202,6 +207,23 @@ class PinCodeViewModel(
             interactor.setBiometricOff()
 
             authSuccess()
+        }
+    }
+
+    @AssistedFactory
+    interface PinCodeViewModelFactory {
+        fun create(pinCodeAction: PinCodeAction): PinCodeViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: PinCodeViewModelFactory,
+            pinCodeAction: PinCodeAction
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(pinCodeAction) as T
+            }
         }
     }
 }

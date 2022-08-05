@@ -2,8 +2,9 @@ package jp.co.soramitsu.feature_crowdloan_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
-import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_crowdloan_api.data.repository.CrowdloanRepository
@@ -19,12 +20,12 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.validations.Publ
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 
+@InstallIn(SingletonComponent::class)
 @Module
 class ContributeValidationsModule {
 
     @Provides
     @IntoSet
-    @FeatureScope
     fun provideFeesValidation(): ContributeValidation = ContributeEnoughToPayFeesValidation(
         feeExtractor = { it.fee },
         availableBalanceProducer = { it.asset.transferable },
@@ -34,19 +35,16 @@ class ContributeValidationsModule {
 
     @Provides
     @IntoSet
-    @FeatureScope
     fun provideMinContributionValidation(
         crowdloanRepository: CrowdloanRepository,
     ): ContributeValidation = MinContributionValidation(crowdloanRepository)
 
     @Provides
     @IntoSet
-    @FeatureScope
     fun provideCapExceededValidation(): ContributeValidation = CapExceededValidation()
 
     @Provides
     @IntoSet
-    @FeatureScope
     fun provideCrowdloanNotEndedValidation(
         chainStateRepository: ChainStateRepository,
         crowdloanRepository: CrowdloanRepository,
@@ -54,7 +52,6 @@ class ContributeValidationsModule {
 
     @Provides
     @IntoSet
-    @FeatureScope
     fun provideExistentialWarningValidation(
         walletConstants: WalletConstants,
     ): ContributeValidation = ContributeExistentialDepositValidation(
@@ -68,11 +65,9 @@ class ContributeValidationsModule {
 
     @Provides
     @IntoSet
-    @FeatureScope
     fun providePublicCrowdloanValidation(): ContributeValidation = PublicCrowdloanValidation()
 
     @Provides
-    @FeatureScope
     fun provideValidationSystem(
         contributeValidations: @JvmSuppressWildcards Set<ContributeValidation>
     ) = ContributeValidationSystem(

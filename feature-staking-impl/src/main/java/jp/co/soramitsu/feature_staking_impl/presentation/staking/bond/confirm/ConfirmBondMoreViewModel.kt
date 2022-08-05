@@ -2,7 +2,12 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -32,7 +37,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class ConfirmBondMoreViewModel(
+class ConfirmBondMoreViewModel @AssistedInject constructor(
     private val router: StakingRouter,
     interactor: StakingInteractor,
     private val bondMoreInteractor: BondMoreInteractor,
@@ -41,7 +46,7 @@ class ConfirmBondMoreViewModel(
     private val iconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val payload: ConfirmBondMorePayload,
+    @Assisted private val payload: ConfirmBondMorePayload,
     private val stakingScenarioInteractor: StakingScenarioInteractor
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
@@ -144,5 +149,22 @@ class ConfirmBondMoreViewModel(
     private fun finishFlow() = when {
         payload.overrideFinishAction != null -> payload.overrideFinishAction.invoke(router)
         else -> router.returnToStakingBalance()
+    }
+
+    @AssistedFactory
+    interface ConfirmBondMoreViewModelFactory {
+        fun create(payload: ConfirmBondMorePayload): ConfirmBondMoreViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ConfirmBondMoreViewModelFactory,
+            payload: ConfirmBondMorePayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

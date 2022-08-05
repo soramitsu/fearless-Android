@@ -2,7 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.di.scope.FeatureScope
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.EnoughToRebondValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.NotZeroRebondValidation
@@ -11,10 +12,10 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondVali
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 
+@InstallIn(SingletonComponent::class)
 @Module
 class RebondValidationsModule {
 
-    @FeatureScope
     @Provides
     fun provideFeeValidation() = RebondFeeValidation(
         feeExtractor = { it.fee },
@@ -22,18 +23,15 @@ class RebondValidationsModule {
         errorProducer = { RebondValidationFailure.CANNOT_PAY_FEE }
     )
 
-    @FeatureScope
     @Provides
     fun provideNotZeroUnbondValidation() = NotZeroRebondValidation(
         amountExtractor = { it.rebondAmount },
         errorProvider = { RebondValidationFailure.ZERO_AMOUNT }
     )
 
-    @FeatureScope
     @Provides
     fun provideEnoughToRebondValidation(stakingScenarioInteractor: StakingScenarioInteractor) = EnoughToRebondValidation(stakingScenarioInteractor)
 
-    @FeatureScope
     @Provides
     fun provideRebondValidationSystem(
         rebondFeeValidation: RebondFeeValidation,

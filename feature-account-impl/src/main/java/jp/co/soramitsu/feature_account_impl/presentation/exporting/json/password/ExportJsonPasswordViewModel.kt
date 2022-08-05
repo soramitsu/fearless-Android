@@ -1,7 +1,12 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireValue
@@ -18,11 +23,11 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class ExportJsonPasswordViewModel(
+class ExportJsonPasswordViewModel @AssistedInject constructor(
     private val router: AccountRouter,
     private val interactor: AccountInteractor,
     private val chainRegistry: ChainRegistry,
-    private val payload: ExportJsonPasswordPayload,
+    @Assisted private val payload: ExportJsonPasswordPayload,
     resourceManager: ResourceManager
 ) : ExportViewModel(interactor, resourceManager, chainRegistry, payload.metaId, payload.chainId, payload.isExportWallet, ExportSource.Json) {
 
@@ -126,5 +131,22 @@ class ExportJsonPasswordViewModel(
 
     fun resetProgress() {
         nextProgress.value = false
+    }
+
+    @AssistedFactory
+    interface ExportJsonPasswordViewModelFactory {
+        fun create(payload: ExportJsonPasswordPayload): ExportJsonPasswordViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ExportJsonPasswordViewModelFactory,
+            payload: ExportJsonPasswordPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

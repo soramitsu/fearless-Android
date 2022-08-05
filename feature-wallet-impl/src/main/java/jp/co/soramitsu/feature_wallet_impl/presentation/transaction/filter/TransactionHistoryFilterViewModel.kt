@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter
 
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.filterToSet
 import jp.co.soramitsu.common.utils.inBackground
@@ -11,8 +12,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TransactionHistoryFilterViewModel(
+@HiltViewModel
+class TransactionHistoryFilterViewModel @Inject constructor(
     private val router: WalletRouter,
     private val historyFiltersProvider: HistoryFiltersProvider
 ) : BaseViewModel() {

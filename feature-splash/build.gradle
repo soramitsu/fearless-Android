@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
@@ -51,6 +52,8 @@ dependencies {
 
     implementation viewModelKtxDep
     kapt lifecycleKapt
+
+    implementation fragmentKtxDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep

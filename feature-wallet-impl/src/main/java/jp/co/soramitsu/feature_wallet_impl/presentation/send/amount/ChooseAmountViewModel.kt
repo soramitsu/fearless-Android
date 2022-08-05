@@ -2,8 +2,13 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -69,15 +74,15 @@ enum class RetryReason(val reasonRes: Int) {
     LOAD_FEE(R.string.choose_amount_error_fee)
 }
 
-class ChooseAmountViewModel(
+class ChooseAmountViewModel @AssistedInject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val walletConstants: WalletConstants,
-    private val recipientAddress: String,
-    private val assetPayload: AssetPayload,
+    @Assisted private val recipientAddress: String,
+    @Assisted private val assetPayload: AssetPayload,
     private val phishingAddress: PhishingWarningMixin,
     private val chainRegistry: ChainRegistry
 ) : BaseViewModel(),
@@ -308,5 +313,23 @@ class ChooseAmountViewModel(
 
         val newAmount = quickAmountWithoutExtraPays.format()
         amountChanged(newAmount)
+    }
+
+    @AssistedFactory
+    interface ChooseAmountViewModelFactory {
+        fun create(recipientAddress: String, assetPayload: AssetPayload): ChooseAmountViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ChooseAmountViewModelFactory,
+            recipientAddress: String,
+            assetPayload: AssetPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(recipientAddress, assetPayload) as T
+            }
+        }
     }
 }

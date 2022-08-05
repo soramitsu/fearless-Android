@@ -2,7 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.di.validations
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.di.scope.FeatureScope
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.feature_staking_impl.domain.validations.NotZeroBalanceValidation
@@ -14,10 +15,10 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 
+@InstallIn(SingletonComponent::class)
 @Module
 class SetControllerValidationsModule {
 
-    @FeatureScope
     @Provides
     fun provideFeeValidation(): SetControllerFeeValidation {
         return EnoughToPayFeesValidation(
@@ -27,7 +28,6 @@ class SetControllerValidationsModule {
         )
     }
 
-    @FeatureScope
     @Provides
     fun provideControllerValidation(
         stakingScenarioInteractor: StakingScenarioInteractor
@@ -37,7 +37,6 @@ class SetControllerValidationsModule {
         stakingScenarioInteractor = stakingScenarioInteractor
     )
 
-    @FeatureScope
     @Provides
     fun provideZeroBalanceControllerValidation(
         stakingSharedState: StakingSharedState,
@@ -49,7 +48,6 @@ class SetControllerValidationsModule {
         )
     }
 
-    @FeatureScope
     @Provides
     fun provideSetControllerValidationSystem(
         enoughToPayFeesValidation: SetControllerFeeValidation,

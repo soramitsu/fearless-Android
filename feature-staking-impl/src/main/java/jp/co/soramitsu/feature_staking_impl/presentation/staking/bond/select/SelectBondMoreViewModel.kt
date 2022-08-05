@@ -3,6 +3,11 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -39,7 +44,7 @@ import kotlinx.coroutines.launch
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
-class SelectBondMoreViewModel(
+class SelectBondMoreViewModel @AssistedInject constructor(
     private val router: StakingRouter,
     interactor: StakingInteractor,
     private val stakingScenarioInteractor: StakingScenarioInteractor,
@@ -47,7 +52,7 @@ class SelectBondMoreViewModel(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
-    private val payload: SelectBondMorePayload,
+    @Assisted private val payload: SelectBondMorePayload,
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin {
@@ -187,5 +192,22 @@ class SelectBondMoreViewModel(
     private fun finishFlow() = when {
         payload.overrideFinishAction != null -> payload.overrideFinishAction.invoke(router)
         else -> router.returnToStakingBalance()
+    }
+
+    @AssistedFactory
+    interface SelectBondMoreViewModelFactory {
+        fun create(payload: SelectBondMorePayload): SelectBondMoreViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: SelectBondMoreViewModelFactory,
+            payload: SelectBondMorePayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

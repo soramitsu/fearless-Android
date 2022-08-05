@@ -73,6 +73,9 @@ buildscript {
         recyclerviewVersion = '1.2.1'
         lifecycleVersion = '2.4.1'
 
+        activityKtx = '1.1.0'
+        fragmentKtx = '1.4.1'
+
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
 
@@ -86,9 +89,11 @@ buildscript {
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
         materialDep = "com.google.android.material:material:$supportVersion"
         androidxCoreDep = "androidx.core:core-ktx:$androidxCoreVersion"
+        activityKtxDep = "androidx.activity:activity-ktx:$activityKtx"
+        fragmentKtxDep = "androidx.fragment:fragment-ktx:$fragmentKtx"
 
-        daggerDep = "com.google.dagger:dagger:$daggerVersion"
-        daggerKapt = "com.google.dagger:dagger-compiler:$daggerVersion"
+        daggerDep = "com.google.dagger:hilt-android:$daggerVersion"
+        daggerKapt = "com.google.dagger:hilt-compiler:$daggerVersion"
 
         lifecycleProcessDep = "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
 
@@ -164,6 +169,7 @@ buildscript {
         classpath 'com.google.gms:google-services:4.3.10'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
+        classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
     }
 }
 

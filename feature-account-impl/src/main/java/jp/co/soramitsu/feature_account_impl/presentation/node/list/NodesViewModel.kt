@@ -2,8 +2,13 @@ package jp.co.soramitsu.feature_account_impl.presentation.node.list
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -22,11 +27,11 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class NodesViewModel(
+class NodesViewModel @AssistedInject constructor(
     private val router: AccountRouter,
     private val nodeListingMixin: NodeListingMixin,
     private val resourceManager: ResourceManager,
-    private val chainId: ChainId,
+    @Assisted val chainId: ChainId,
     private val nodesSettingsScenario: NodesSettingsScenario,
     private val nodesSettingsStorage: NodesSettingsStorage,
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
@@ -37,7 +42,7 @@ class NodesViewModel(
     private val _deleteNodeEvent = MutableLiveData<Event<NodeModel>>()
     val deleteNodeEvent: LiveData<Event<NodeModel>> = _deleteNodeEvent
 
-    val hasCustomNodeModelsLiveData = groupedNodeModelsLiveData.map {
+    val hasCustomNodeModelsLiveData = groupedNodeModelsLiveData(chainId).map {
         it.any { (it as? NodeModel)?.isDefault == false }
     }
 
@@ -91,6 +96,23 @@ class NodesViewModel(
     fun confirmNodeDeletion(nodeModel: NodeModel) {
         viewModelScope.launch {
             nodesSettingsScenario.deleteNode(NodeId(chainId to nodeModel.link))
+        }
+    }
+
+    @AssistedFactory
+    interface NodesViewModelFactory {
+        fun create(chainId: ChainId): NodesViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: NodesViewModelFactory,
+            chainId: ChainId
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(chainId) as T
+            }
         }
     }
 }

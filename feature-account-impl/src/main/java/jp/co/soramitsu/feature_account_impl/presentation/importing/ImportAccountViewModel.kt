@@ -4,6 +4,11 @@ import android.content.Intent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -30,15 +35,15 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
 import kotlinx.coroutines.launch
 
-class ImportAccountViewModel(
+class ImportAccountViewModel @AssistedInject constructor(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val resourceManager: ResourceManager,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
     private val clipboardManager: ClipboardManager,
     private val fileReader: FileReader,
-    initialBlockchainType: ImportAccountType?,
-    private val chainCreateAccountData: ChainAccountCreatePayload?
+    @Assisted initialBlockchainType: ImportAccountType?,
+    @Assisted private val chainCreateAccountData: ChainAccountCreatePayload?
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
@@ -98,7 +103,7 @@ class ImportAccountViewModel(
                 val importAccountType = interactor.getChain(chainCreateAccountData.chainId).importAccountType
                 _blockchainTypeLiveData.value = importAccountType
             }
-            initialBlockchainType != null -> _blockchainTypeLiveData.value = initialBlockchainType
+            initialBlockchainType != null -> _blockchainTypeLiveData.value = initialBlockchainType!!
         }
     }
 
@@ -331,5 +336,26 @@ class ImportAccountViewModel(
 
     fun onAddEthAccountDeclined() {
         import(false)
+    }
+
+    @AssistedFactory
+    interface ImportAccountViewModelFactory {
+        fun create(
+            initialBlockchainType: ImportAccountType?,
+            chainCreateAccountData: ChainAccountCreatePayload?
+        ): ImportAccountViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: ImportAccountViewModelFactory,
+            initialBlockchainType: ImportAccountType?,
+            chainCreateAccountData: ChainAccountCreatePayload?
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(initialBlockchainType, chainCreateAccountData) as T
+            }
+        }
     }
 }

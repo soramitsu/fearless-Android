@@ -2,19 +2,22 @@ package jp.co.soramitsu.feature_crowdloan_impl.di
 
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.common.di.scope.FeatureScope
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
 import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
+import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module
 class CrowdloanUpdatersModule {
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideBlockNumberUpdater(
         chainRegistry: ChainRegistry,
         crowdloanSharedState: CrowdloanSharedState,
@@ -22,7 +25,6 @@ class CrowdloanUpdatersModule {
     ) = BlockNumberUpdater(chainRegistry, crowdloanSharedState, storageCache)
 
     @Provides
-    @FeatureScope
     fun provideCrowdloanUpdateSystem(
         chainRegistry: ChainRegistry,
         crowdloanSharedState: CrowdloanSharedState,

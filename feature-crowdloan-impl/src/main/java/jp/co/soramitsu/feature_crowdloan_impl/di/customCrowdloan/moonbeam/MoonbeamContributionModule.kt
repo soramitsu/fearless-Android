@@ -3,10 +3,11 @@ package jp.co.soramitsu.feature_crowdloan_impl.di.customCrowdloan.moonbeam
 import com.google.gson.FieldNamingPolicy
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
-import jp.co.soramitsu.common.di.scope.FeatureScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
@@ -18,18 +19,17 @@ import jp.co.soramitsu.feature_crowdloan_impl.domain.contribute.custom.moonbeam.
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.moonbeam.MoonbeamContributeSubmitter
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
+@InstallIn(SingletonComponent::class)
 @Module
 class MoonbeamContributionModule {
 
     @Provides
-    @FeatureScope
     fun provideMoonbeamApi(networkApiCreator: NetworkApiCreator): MoonbeamApi = networkApiCreator.create(
         service = MoonbeamApi::class.java,
         customFieldNamingPolicy = FieldNamingPolicy.LOWER_CASE_WITH_DASHES
     )
 
     @Provides
-    @FeatureScope
     fun provideMoonbeamInteractor(
         moonbeamApi: MoonbeamApi,
         httpExceptionHandler: HttpExceptionHandler,
@@ -49,13 +49,11 @@ class MoonbeamContributionModule {
     )
 
     @Provides
-    @FeatureScope
     fun provideMoonbeamSubmitter(
         interactor: MoonbeamContributeInteractor
     ) = MoonbeamContributeSubmitter(interactor)
 
     @Provides
-    @FeatureScope
     @IntoSet
     fun provideMoonbeamFactory(
         submitter: MoonbeamContributeSubmitter,

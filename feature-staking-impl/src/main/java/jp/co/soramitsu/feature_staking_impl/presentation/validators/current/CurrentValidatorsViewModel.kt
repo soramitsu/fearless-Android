@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.current
 
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -38,8 +39,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class CurrentValidatorsViewModel(
+@HiltViewModel
+class CurrentValidatorsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val stakingInteractor: StakingInteractor,

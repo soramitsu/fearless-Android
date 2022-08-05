@@ -4,27 +4,28 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.zxing.integration.android.IntentIntegrator
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.onDoneClicked
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentChooseRecipientBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.askPermissionsSafely
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val INDEX_WELCOME = 0
 private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
 private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
+@AndroidEntryPoint
 class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(R.layout.fragment_choose_recipient), ChooseRecipientAdapter.RecipientItemHandler {
 
     companion object {
@@ -37,6 +38,18 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(R.layout.
     private lateinit var adapter: ChooseRecipientAdapter
 
     private val binding by viewBinding(FragmentChooseRecipientBinding::bind)
+
+    @Inject
+    lateinit var factory: ChooseRecipientViewModel.ChooseRecipientViewModelFactory
+
+    private val vm: ChooseRecipientViewModel by viewModels {
+        ChooseRecipientViewModel.provideFactory(
+            factory,
+            argument(KEY_ASSET_PAYLOAD)
+        )
+    }
+    override val viewModel: ChooseRecipientViewModel
+        get() = vm
 
     override fun initViews() {
         adapter = ChooseRecipientAdapter(this)
@@ -55,18 +68,6 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(R.layout.
         binding.searchRecipientField.onDoneClicked {
             viewModel.enterClicked()
         }
-    }
-
-    override fun inject() {
-        val payload = arguments!![KEY_ASSET_PAYLOAD] as AssetPayload
-
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .chooseRecipientComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: ChooseRecipientViewModel) {

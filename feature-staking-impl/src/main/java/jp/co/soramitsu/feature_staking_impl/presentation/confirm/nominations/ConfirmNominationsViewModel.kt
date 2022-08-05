@@ -3,6 +3,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -21,8 +22,10 @@ import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ConfirmNominationsViewModel(
+@HiltViewModel
+class ConfirmNominationsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,

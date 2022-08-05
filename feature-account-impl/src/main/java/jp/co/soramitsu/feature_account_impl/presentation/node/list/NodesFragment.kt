@@ -5,19 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentNodesBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.node.model.NodeModel
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
 
     private lateinit var adapter: NodesAdapter
@@ -32,6 +32,18 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     lateinit var imageLoader: ImageLoader
 
     private lateinit var binding: FragmentNodesBinding
+
+    @Inject
+    lateinit var factory: NodesViewModel.NodesViewModelFactory
+
+    private val vm: NodesViewModel by viewModels {
+        NodesViewModel.provideFactory(
+            factory,
+            argument(CHAIN_ID_KEY)
+        )
+    }
+    override val viewModel: NodesViewModel
+        get() = vm
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,20 +77,8 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
         }
     }
 
-    override fun inject() {
-        val chainId = argument<String>(CHAIN_ID_KEY)
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .connectionsComponentFactory()
-            .create(this, chainId)
-            .inject(this)
-    }
-
     override fun subscribe(viewModel: NodesViewModel) {
-        viewModel.groupedNodeModelsLiveData.observe(adapter::submitList)
+        viewModel.groupedNodeModelsLiveData(argument(CHAIN_ID_KEY)).observe(adapter::submitList)
 
         viewModel.editMode.observe(adapter::switchToEdit)
 

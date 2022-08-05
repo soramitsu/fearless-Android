@@ -12,17 +12,17 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class NodeListingProvider(
+class NodeListingProvider @Inject constructor(
     private val nodesSettingsScenario: NodesSettingsScenario,
-    private val resourceManager: ResourceManager,
-    private val chainId: ChainId
+    private val resourceManager: ResourceManager
 ) : NodeListingMixin {
 
-    override val groupedNodeModelsLiveData = getGroupedNodes()
+    override fun groupedNodeModelsLiveData(chainId: ChainId) = getGroupedNodes(chainId)
         .asLiveData()
 
-    private fun getGroupedNodes() = nodesSettingsScenario.nodesFlow(chainId)
+    private fun getGroupedNodes(chainId: ChainId) = nodesSettingsScenario.nodesFlow(chainId)
         .map(::transformToModels)
         .flowOn(Dispatchers.Default)
 

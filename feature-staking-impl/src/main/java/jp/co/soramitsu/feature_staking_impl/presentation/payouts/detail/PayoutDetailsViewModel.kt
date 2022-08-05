@@ -1,5 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -22,10 +27,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class PayoutDetailsViewModel(
+class PayoutDetailsViewModel @AssistedInject constructor(
     private val interactor: StakingInteractor,
     private val router: StakingRouter,
-    private val payout: PendingPayoutParcelable,
+    @Assisted private val payout: PendingPayoutParcelable,
     private val addressModelGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -81,5 +86,22 @@ class PayoutDetailsViewModel(
             reward = rewardAmount.formatTokenAmount(tokenType),
             rewardFiat = asset.token.fiatAmount(rewardAmount)?.formatAsCurrency(asset.token.fiatSymbol)
         )
+    }
+
+    @AssistedFactory
+    interface PayoutDetailsViewModelFactory {
+        fun create(payload: PendingPayoutParcelable): PayoutDetailsViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: PayoutDetailsViewModelFactory,
+            payload: PendingPayoutParcelable
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

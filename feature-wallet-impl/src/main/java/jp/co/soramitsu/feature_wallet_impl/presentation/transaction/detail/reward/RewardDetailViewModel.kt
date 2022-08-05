@@ -2,7 +2,12 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.rewa
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -24,8 +29,8 @@ enum class ExternalActionsSource {
     TRANSACTION_HASH, VALIDATOR_ADDRESS
 }
 
-class RewardDetailViewModel(
-    val payload: RewardDetailsPayload,
+class RewardDetailViewModel @AssistedInject constructor(
+    @Assisted val payload: RewardDetailsPayload,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
@@ -72,5 +77,22 @@ class RewardDetailViewModel(
 
     fun backClicked() {
         router.back()
+    }
+
+    @AssistedFactory
+    interface RewardDetailViewModelFactory {
+        fun create(payload: RewardDetailsPayload): RewardDetailViewModel
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    companion object {
+        fun provideFactory(
+            factory: RewardDetailViewModelFactory,
+            payload: RewardDetailsPayload
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return factory.create(payload) as T
+            }
+        }
     }
 }

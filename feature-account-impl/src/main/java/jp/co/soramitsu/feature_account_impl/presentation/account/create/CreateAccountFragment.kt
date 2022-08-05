@@ -1,20 +1,21 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.create
 
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.showSoftKeyboard
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentCreateAccountBinding
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.fragment_create_account) {
     companion object {
         private const val PAYLOAD_KEY = "PAYLOAD_KEY"
@@ -23,6 +24,18 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.frag
     }
 
     private val binding by viewBinding(FragmentCreateAccountBinding::bind)
+
+    @Inject
+    lateinit var factory: CreateAccountViewModel.CreateAccountViewModelFactory
+
+    private val vm: CreateAccountViewModel by viewModels {
+        CreateAccountViewModel.provideFactory(
+            factory,
+            argument(PAYLOAD_KEY) as? ChainAccountCreatePayload
+        )
+    }
+    override val viewModel: CreateAccountViewModel
+        get() = vm
 
     override fun initViews() {
         with(binding) {
@@ -41,15 +54,6 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.frag
             accountNameInput.content.requestFocus()
             accountNameInput.content.showSoftKeyboard()
         }
-    }
-
-    override fun inject() {
-        val payload: ChainAccountCreatePayload? = arguments?.get(PAYLOAD_KEY) as? ChainAccountCreatePayload
-
-        FeatureUtils.getFeature<AccountFeatureComponent>(context!!, AccountFeatureApi::class.java)
-            .createAccountComponentFactory()
-            .create(this, payload)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: CreateAccountViewModel) {

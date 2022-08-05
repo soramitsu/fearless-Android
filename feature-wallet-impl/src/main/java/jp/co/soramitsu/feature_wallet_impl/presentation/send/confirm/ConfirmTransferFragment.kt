@@ -2,32 +2,44 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.viewModels
 import coil.ImageLoader
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentConfirmTransferBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import javax.inject.Inject
 
 private const val KEY_DRAFT = "KEY_DRAFT"
 
+@AndroidEntryPoint
 class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>(R.layout.fragment_confirm_transfer) {
 
     @Inject
     lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentConfirmTransferBinding::bind)
+
+    @Inject
+    lateinit var factory: ConfirmTransferViewModel.ConfirmTransferViewModelFactory
+
+    private val vm: ConfirmTransferViewModel by viewModels {
+        ConfirmTransferViewModel.provideFactory(
+            factory,
+            argument(KEY_DRAFT)
+        )
+    }
+    override val viewModel: ConfirmTransferViewModel
+        get() = vm
 
     companion object {
         fun getBundle(transferDraft: TransferDraft) = Bundle().apply {
@@ -42,18 +54,6 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>(R.layout.
 
         binding.confirmTransferSubmit.setOnClickListener { viewModel.submitClicked() }
         binding.confirmTransferSubmit.prepareForProgress(viewLifecycleOwner)
-    }
-
-    override fun inject() {
-        val transferDraft = argument<TransferDraft>(KEY_DRAFT)
-
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .confirmTransferComponentFactory()
-            .create(this, transferDraft)
-            .inject(this)
     }
 
     override fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {

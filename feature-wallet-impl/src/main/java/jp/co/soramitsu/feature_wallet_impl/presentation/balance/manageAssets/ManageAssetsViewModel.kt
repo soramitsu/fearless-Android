@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.manageAssets
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.DragAndDropTouchHelperCallback
 import jp.co.soramitsu.common.utils.Event
@@ -16,8 +17,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ManageAssetsViewModel(
+@HiltViewModel
+class ManageAssetsViewModel @Inject constructor(
     private val walletInteractor: WalletInteractor,
     private val walletRouter: WalletRouter,
     private val assetNotNeedAccountUseCase: AssetNotNeedAccountUseCase,

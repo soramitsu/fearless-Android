@@ -1,21 +1,23 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter
 
 import android.widget.CompoundButton
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bindFromMap
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentTransactionsFilterBinding
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
 
+@AndroidEntryPoint
 class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterViewModel>(R.layout.fragment_transactions_filter) {
 
     private val binding by viewBinding(FragmentTransactionsFilterBinding::bind)
+
+    override val viewModel: TransactionHistoryFilterViewModel by viewModels()
 
     override fun initViews() {
         with(binding) {
@@ -31,15 +33,6 @@ class TransactionHistoryFilterFragment : BaseFragment<TransactionHistoryFilterVi
 
             transactionFilterApplyBtn.setOnClickListener { viewModel.applyClicked() }
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        ).transactionHistoryComponentFactory()
-            .create(this)
-            .inject(this)
     }
 
     override fun subscribe(viewModel: TransactionHistoryFilterViewModel) {
