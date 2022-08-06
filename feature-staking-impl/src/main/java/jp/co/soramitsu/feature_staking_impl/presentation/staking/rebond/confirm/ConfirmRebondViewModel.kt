@@ -19,7 +19,6 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.rebondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
@@ -40,7 +39,6 @@ class ConfirmRebondViewModel(
     private val rebondInteractor: RebondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    private val validationSystem: RebondValidationSystem,
     private val iconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -140,7 +138,7 @@ class ConfirmRebondViewModel(
             )
 
             validationExecutor.requireValid(
-                validationSystem = validationSystem,
+                validationSystem = stakingScenarioInteractor.getRebondValidationSystem(),
                 payload = payload,
                 validationFailureTransformer = { rebondValidationFailure(it, resourceManager) },
                 progressConsumer = _showNextProgress.progressConsumer(),

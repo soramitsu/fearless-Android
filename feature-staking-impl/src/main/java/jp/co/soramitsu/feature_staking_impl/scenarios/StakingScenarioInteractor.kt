@@ -1,5 +1,8 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.Optional
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -9,24 +12,21 @@ import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
 import jp.co.soramitsu.feature_staking_impl.domain.model.NetworkInfo
 import jp.co.soramitsu.feature_staking_impl.domain.model.Unbonding
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Optional
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
-import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
-import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
-import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
-import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 
 interface StakingScenarioInteractor {
 
@@ -65,8 +65,10 @@ interface StakingScenarioInteractor {
         amountInPlanks: BigInteger,
         stashState: StakingState,
         currentBondedBalance: BigInteger,
-        candidate: String? = null
+        candidate: String? = null,
+        chilled: Boolean = true
     )
+
     suspend fun confirmRevoke(extrinsicBuilder: ExtrinsicBuilder, candidate: String?, stashState: StakingState)
 
     suspend fun overrideUnbondHint(): String?

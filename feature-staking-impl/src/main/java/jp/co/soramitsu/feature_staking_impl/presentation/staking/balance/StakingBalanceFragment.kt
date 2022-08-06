@@ -99,6 +99,9 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
         }
         viewModel.shouldBlockActionButtons.observe {
             binding.stakingBalanceActions.bondMore.isEnabled = it.not()
+        }
+
+        viewModel.shouldBlockUnstake.observe {
             binding.stakingBalanceActions.unbond.isEnabled = it.not()
         }
 

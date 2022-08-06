@@ -27,6 +27,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPa
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.Flow
@@ -70,6 +71,14 @@ class StakingBalanceViewModel(
     val shouldBlockActionButtons = stakingBalanceModelLiveData.map {
         val isParachain = assetFlow.first().token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
         (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
+    }.onStart { emit(true) }.asLiveData()
+
+    val shouldBlockUnstake = stakingBalanceModelLiveData.map {
+        val asset = assetFlow.first()
+        val isParachain = asset.token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
+        hashCode()
+        if (asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO) return@map true else
+            (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
     }.onStart { emit(true) }.asLiveData()
 
     val unbondingModelsLiveData = unbondingsFlow

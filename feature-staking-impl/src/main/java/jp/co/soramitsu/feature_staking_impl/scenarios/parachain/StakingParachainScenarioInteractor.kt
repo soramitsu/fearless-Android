@@ -55,7 +55,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreVali
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.NotZeroBondValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.EnoughToRebondValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.NotZeroRebondValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationFailure
@@ -300,7 +299,8 @@ class StakingParachainScenarioInteractor(
         amountInPlanks: BigInteger,
         stashState: StakingState,
         currentBondedBalance: BigInteger,
-        candidate: String?
+        candidate: String?,
+        chilled: Boolean
     ) {
         require(stashState is StakingState.Parachain)
         require(candidate != null) {
@@ -633,7 +633,7 @@ class StakingParachainScenarioInteractor(
                     amountExtractor = { it.rebondAmount },
                     errorProvider = { RebondValidationFailure.ZERO_AMOUNT }
                 ),
-                EnoughToRebondValidation(this)
+//                EnoughToRebondValidation(this)
             )
         )
     )
