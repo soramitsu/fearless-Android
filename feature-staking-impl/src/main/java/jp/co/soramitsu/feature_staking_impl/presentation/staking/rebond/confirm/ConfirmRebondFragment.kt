@@ -1,9 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
@@ -11,50 +8,40 @@ import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmRebondBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondAmount
-import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondConfirm
-import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondFee
-import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondOriginAccount
-import kotlinx.android.synthetic.main.fragment_confirm_rebond.confirmRebondToolbar
 import javax.inject.Inject
 
-private const val PAYLOAD_KEY = "PAYLOAD_KEY"
-
-class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>() {
+class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>(R.layout.fragment_confirm_rebond) {
 
     @Inject protected lateinit var imageLoader: ImageLoader
 
+    private val binding by viewBinding(FragmentConfirmRebondBinding::bind)
+
     companion object {
+        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
-        fun getBundle(payload: ConfirmRebondPayload) = Bundle().apply {
-            putParcelable(PAYLOAD_KEY, payload)
-        }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_confirm_rebond, container, false)
+        fun getBundle(payload: ConfirmRebondPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     override fun initViews() {
-        confirmRebondToolbar.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            confirmRebondToolbar.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
             }
+
+            confirmRebondOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
+
+            confirmRebondToolbar.setHomeButtonListener { viewModel.backClicked() }
+            confirmRebondConfirm.prepareForProgress(viewLifecycleOwner)
+            confirmRebondConfirm.setOnClickListener { viewModel.confirmClicked() }
         }
-
-        confirmRebondOriginAccount.setWholeClickListener { viewModel.originAccountClicked() }
-
-        confirmRebondToolbar.setHomeButtonListener { viewModel.backClicked() }
-        confirmRebondConfirm.prepareForProgress(viewLifecycleOwner)
-        confirmRebondConfirm.setOnClickListener { viewModel.confirmClicked() }
     }
 
     override fun inject() {
@@ -74,25 +61,25 @@ class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>() {
         setupExternalActions(viewModel)
         observeRetries(viewModel)
 
-        viewModel.showNextProgress.observe(confirmRebondConfirm::setProgress)
+        viewModel.showNextProgress.observe(binding.confirmRebondConfirm::setProgress)
 
         viewModel.assetModelFlow.observe {
-            confirmRebondAmount.setAssetBalance(it.assetBalance)
-            confirmRebondAmount.setAssetName(it.tokenName)
-            confirmRebondAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+            binding.confirmRebondAmount.setAssetBalance(it.assetBalance)
+            binding.confirmRebondAmount.setAssetName(it.tokenName)
+            binding.confirmRebondAmount.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
-        confirmRebondAmount.amountInput.setText(viewModel.amount)
+        binding.confirmRebondAmount.amountInput.setText(viewModel.amount)
 
         viewModel.amountFiatFLow.observe {
-            it?.let(confirmRebondAmount::setAssetBalanceFiatAmount)
+            it?.let(binding.confirmRebondAmount::setAssetBalanceFiatAmount)
         }
 
-        viewModel.feeLiveData.observe(confirmRebondFee::setFeeStatus)
+        viewModel.feeLiveData.observe(binding.confirmRebondFee::setFeeStatus)
 
         viewModel.originAddressModelLiveData.observe {
-            confirmRebondOriginAccount.setMessage(it.nameOrAddress)
-            confirmRebondOriginAccount.setTextIcon(it.image)
+            binding.confirmRebondOriginAccount.setMessage(it.nameOrAddress)
+            binding.confirmRebondOriginAccount.setTextIcon(it.image)
         }
     }
 }

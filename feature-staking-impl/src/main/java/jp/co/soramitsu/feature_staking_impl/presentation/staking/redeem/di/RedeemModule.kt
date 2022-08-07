@@ -14,10 +14,10 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.redeem.RedeemInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
@@ -29,11 +29,11 @@ class RedeemModule {
     @ViewModelKey(RedeemViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        stakingScenarioInteractor: StakingScenarioInteractor,
         router: StakingRouter,
         redeemInteractor: RedeemInteractor,
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
-        validationSystem: RedeemValidationSystem,
         iconGenerator: AddressIconGenerator,
         chainRegistry: ChainRegistry,
         externalAccountActions: ExternalAccountActions.Presentation,
@@ -42,11 +42,11 @@ class RedeemModule {
     ): ViewModel {
         return RedeemViewModel(
             router,
+            stakingScenarioInteractor,
             interactor,
             redeemInteractor,
             resourceManager,
             validationExecutor,
-            validationSystem,
             iconGenerator,
             chainRegistry,
             feeLoaderMixin,

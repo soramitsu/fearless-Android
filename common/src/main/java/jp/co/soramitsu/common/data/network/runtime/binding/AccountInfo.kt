@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
 import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
@@ -49,11 +50,11 @@ class AccountInfo(
 }
 
 @HelperBinding
-fun bindAccountData(dynamicInstance: Struct.Instance) = AccountData(
-    free = bindNumber(dynamicInstance["free"]),
-    reserved = bindNumber(dynamicInstance["reserved"]),
-    miscFrozen = bindNumber(dynamicInstance["miscFrozen"]),
-    feeFrozen = bindNumber(dynamicInstance["feeFrozen"]),
+fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
+    free = (dynamicInstance?.get("free") as? BigInteger).orZero(),
+    reserved = (dynamicInstance?.get("reserved") as? BigInteger).orZero(),
+    miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger).orZero(),
+    feeFrozen = (dynamicInstance?.get("feeFrozen") as? BigInteger).orZero(),
 )
 
 @HelperBinding
@@ -69,7 +70,7 @@ fun bindAccountInfo(scale: String, runtime: RuntimeSnapshot): AccountInfo {
 
     return AccountInfo(
         nonce = bindNonce(dynamicInstance["nonce"]),
-        data = bindAccountData(dynamicInstance.getTyped("data"))
+        data = bindAccountData(dynamicInstance["data"])
     )
 }
 

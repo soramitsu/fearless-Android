@@ -3,8 +3,8 @@ import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
 apply plugin: 'com.google.firebase.appdistribution'
 apply plugin: "com.github.triplet.play"
 apply from: "../scripts/versions.gradle"
@@ -63,6 +63,23 @@ android {
               groups = localFirebaseGroup
             }
         }
+        pr {
+            signingConfig signingConfigs.ci
+            matchingFallbacks = ['debug']
+            versionNameSuffix '-pr'
+            applicationIdSuffix '.dev'
+            //Init firebase
+            def localReleaseNotes = releaseNotes()
+            def localFirebaseGroup = firebaseGroup()
+            firebaseAppDistribution {
+              releaseNotes = localReleaseNotes
+              groups = localFirebaseGroup
+            }
+        }
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 
     bundle {
@@ -81,6 +98,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.app'
 }
 
 play {
@@ -129,7 +147,7 @@ dependencies {
     implementation daggerDep
     kapt daggerKapt
 
-    implementation lifecycleDep
+    implementation lifecycleProcessDep
     kapt lifecycleKapt
 
     implementation lifeCycleKtxDep

@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -21,6 +20,10 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
@@ -31,6 +34,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.splash'
 }
 
 dependencies {
@@ -45,11 +49,12 @@ dependencies {
     implementation daggerDep
     kapt daggerKapt
 
-    implementation lifecycleDep
+    implementation viewModelKtxDep
     kapt lifecycleKapt
 
     testImplementation jUnitDep
     testImplementation mockitoDep
+    implementation gsonConvertedDep
 
     implementation coroutinesDep
     implementation coroutinesAndroidDep

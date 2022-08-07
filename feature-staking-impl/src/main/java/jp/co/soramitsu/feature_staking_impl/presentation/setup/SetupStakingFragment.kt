@@ -1,9 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.setup
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dev.chrisbanes.insetter.applyInsetter
@@ -16,48 +13,40 @@ import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.setProgress
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSetupStakingBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.observeRewardDestinationChooser
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.displayFeeStatus
-import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingAmountField
-import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingContainer
-import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeFiat
-import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeProgress
-import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingFeeToken
-import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingNext
-import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingRewardDestinationChooser
-import kotlinx.android.synthetic.main.fragment_setup_staking.setupStakingToolbar
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
-class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
+class SetupStakingFragment : BaseFragment<SetupStakingViewModel>(R.layout.fragment_setup_staking) {
 
     @Inject
     protected lateinit var imageLoader: ImageLoader
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_setup_staking, container, false)
-    }
+    private val binding by viewBinding(FragmentSetupStakingBinding::bind)
 
     override fun initViews() {
-        setupStakingContainer.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            setupStakingContainer.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
+
+                consume(true)
             }
 
-            consume(true)
+            setupStakingToolbar.setHomeButtonListener { viewModel.backClicked() }
+            onBackPressed { viewModel.backClicked() }
+
+            setupStakingNext.prepareForProgress(viewLifecycleOwner)
+            setupStakingNext.setOnClickListener { viewModel.nextClicked() }
+            setupStakingPayoutViewer.setOnViewMoreClickListener { viewModel.learnMoreClicked(viewModel) }
         }
-
-        setupStakingToolbar.setHomeButtonListener { viewModel.backClicked() }
-        onBackPressed { viewModel.backClicked() }
-
-        setupStakingNext.prepareForProgress(viewLifecycleOwner)
-        setupStakingNext.setOnClickListener { viewModel.nextClicked() }
     }
 
     override fun inject() {
@@ -74,26 +63,30 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
         observeRetries(viewModel)
         observeValidations(viewModel)
         observeBrowserEvents(viewModel)
-        observeRewardDestinationChooser(viewModel, setupStakingRewardDestinationChooser)
+        observeRewardDestinationChooser(viewModel, binding.setupStakingRewardDestinationChooser)
 
-        viewModel.showNextProgress.observe(setupStakingNext::setProgress)
+        viewModel.showNextProgress.observe(binding.setupStakingNext::setProgress)
 
         viewModel.assetModelsFlow.observe {
-            setupStakingAmountField.setAssetBalance(it.assetBalance)
-            setupStakingAmountField.setAssetName(it.tokenName)
-            setupStakingAmountField.setAssetImageUrl(it.imageUrl, imageLoader)
+            binding.setupStakingAmountField.setAssetBalance(it.assetBalance)
+            binding.setupStakingAmountField.setAssetName(it.tokenName)
+            binding.setupStakingAmountField.setAssetImageUrl(it.imageUrl, imageLoader)
         }
 
-        setupStakingAmountField.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
+        binding.setupStakingAmountField.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)
 
         viewModel.enteredFiatAmountFlow.observe {
-            it?.let(setupStakingAmountField::setAssetBalanceFiatAmount)
+            it?.let(binding.setupStakingAmountField::setAssetBalanceFiatAmount)
         }
 
         viewModel.feeLiveData.observe {
             displayFeeStatus(
                 it,
-                FeeViews(setupStakingFeeProgress, setupStakingFeeFiat, setupStakingFeeToken)
+                FeeViews(
+                    binding.setupStakingFeeProgress,
+                    binding.setupStakingFeeFiat,
+                    binding.setupStakingFeeToken
+                )
             )
         }
 
@@ -105,6 +98,19 @@ class SetupStakingFragment : BaseFragment<SetupStakingViewModel>() {
                 .callback { viewModel.minimumStakeConfirmed() }
                 .build()
                 .show()
+        }
+
+        viewModel.currentAccountAddressModel.observe {
+            binding.setupStakingPayoutViewer.setAccountInfo(it)
+        }
+
+        viewModel.rewardReturnsLiveData.observe {
+            binding.setupStakingPayoutViewer.setRewardEstimation(it.payout)
+        }
+
+        viewModel.currentStakingType.observe {
+            binding.setupStakingRewardDestinationChooser.isVisible = it == Chain.Asset.StakingType.RELAYCHAIN
+            binding.setupStakingPayoutViewer.isVisible = it == Chain.Asset.StakingType.PARACHAIN
         }
     }
 }

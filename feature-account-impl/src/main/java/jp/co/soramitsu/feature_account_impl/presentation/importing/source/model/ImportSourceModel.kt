@@ -130,7 +130,7 @@ class JsonImportSource(
         val cryptoModel = mapCryptoTypeToCryptoTypeModel(resourceManager, importJsonData.encryptionType)
         cryptoTypeLiveData.value = cryptoModel
 
-        nameLiveData.value = importJsonData.name
+        importJsonData.name?.let { nameLiveData.value = it }
     }
 }
 

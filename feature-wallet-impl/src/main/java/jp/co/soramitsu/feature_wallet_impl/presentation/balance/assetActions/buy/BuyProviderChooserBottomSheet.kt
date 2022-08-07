@@ -3,6 +3,8 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.bu
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -12,8 +14,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ReferentialEqualityD
 import jp.co.soramitsu.feature_wallet_api.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import kotlinx.android.synthetic.main.item_sheet_buy_provider.view.itemSheetBuyProviderImage
-import kotlinx.android.synthetic.main.item_sheet_buy_provider.view.itemSheetBuyProviderText
 
 typealias BuyProvider = BuyTokenRegistry.Provider<*>
 
@@ -47,9 +47,10 @@ private class BuyProviderHolder(
     override fun bind(item: BuyProvider, isSelected: Boolean, handler: DynamicListSheetAdapter.Handler<BuyProvider>) {
         super.bind(item, isSelected, handler)
 
-        with(itemView) {
-            itemSheetBuyProviderText.text = item.name
-            itemSheetBuyProviderImage.setImageResource(item.icon)
-        }
+        val text = itemView.findViewById<TextView>(R.id.itemSheetBuyProviderText)
+        val image = itemView.findViewById<ImageView>(R.id.itemSheetBuyProviderImage)
+
+        text.text = item.name
+        image.setImageResource(item.icon)
     }
 }

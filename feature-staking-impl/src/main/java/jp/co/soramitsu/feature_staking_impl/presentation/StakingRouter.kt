@@ -11,11 +11,19 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 
 interface StakingRouter {
 
     fun openSetupStaking()
+
+    fun openStartChangeCollators()
+
+    fun openRecommendedCollators()
+
+    fun openSelectCustomCollators()
 
     fun openStartChangeValidators()
 
@@ -23,13 +31,19 @@ interface StakingRouter {
 
     fun openSelectCustomValidators()
 
-    fun openCustomValidatorsSettings()
+    fun openCustomValidatorsSettingsFromValidator()
+
+    fun openCustomValidatorsSettingsFromCollator()
 
     fun openSearchCustomValidators()
+
+    fun openSearchCustomCollators()
 
     fun openReviewCustomValidators()
 
     fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel)
+
+    fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel)
 
     fun openConfirmStaking()
 
@@ -47,7 +61,7 @@ interface StakingRouter {
 
     fun openConfirmPayout(payload: ConfirmPayoutPayload)
 
-    fun openStakingBalance()
+    fun openStakingBalance(collatorAddress: String? = null)
 
     fun openBondMore(payload: SelectBondMorePayload)
 
@@ -55,7 +69,7 @@ interface StakingRouter {
 
     fun returnToStakingBalance()
 
-    fun openSelectUnbond()
+    fun openSelectUnbond(payload: SelectUnbondPayload)
 
     fun openConfirmUnbond(payload: ConfirmUnbondPayload)
 

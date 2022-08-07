@@ -18,6 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.select.SelectRewardDestinationViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class SelectRewardDestinationModule {
@@ -27,6 +28,7 @@ class SelectRewardDestinationModule {
     @ViewModelKey(SelectRewardDestinationViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         router: StakingRouter,
         rewardCalculatorFactory: RewardCalculatorFactory,
         resourceManager: ResourceManager,
@@ -39,6 +41,7 @@ class SelectRewardDestinationModule {
         return SelectRewardDestinationViewModel(
             router,
             interactor,
+            stakingRelayChainScenarioInteractor,
             rewardCalculatorFactory,
             resourceManager,
             changeRewardDestinationInteractor,

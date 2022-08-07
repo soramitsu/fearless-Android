@@ -19,9 +19,9 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.bondMoreValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
@@ -39,10 +39,10 @@ class ConfirmBondMoreViewModel(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     private val iconGenerator: AddressIconGenerator,
-    private val validationSystem: BondMoreValidationSystem,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val payload: ConfirmBondMorePayload,
+    private val stakingScenarioInteractor: StakingScenarioInteractor
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     Validatable by validationExecutor {
@@ -50,7 +50,7 @@ class ConfirmBondMoreViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val assetFlow = interactor.assetFlow(payload.stashAddress)
+    private val assetFlow = interactor.currentAssetFlow()
         .share()
 
     val assetModelFlow = assetFlow
@@ -113,7 +113,7 @@ class ConfirmBondMoreViewModel(
         )
 
         validationExecutor.requireValid(
-            validationSystem = validationSystem,
+            validationSystem = stakingScenarioInteractor.provideBondMoreValidationSystem(),
             payload = payload,
             validationFailureTransformer = { bondMoreValidationFailure(it, resourceManager) },
             progressConsumer = _showNextProgress.progressConsumer()
@@ -126,7 +126,9 @@ class ConfirmBondMoreViewModel(
         val token = assetFlow.first().token
         val amountInPlanks = token.planksFromAmount(payload.amount)
 
-        val result = bondMoreInteractor.bondMore(payload.stashAddress, amountInPlanks)
+        val result = bondMoreInteractor.bondMore(payload.stashAddress) {
+            stakingScenarioInteractor.stakeMore(this, amountInPlanks, payload.collatorAddress)
+        }
 
         _showNextProgress.value = false
 

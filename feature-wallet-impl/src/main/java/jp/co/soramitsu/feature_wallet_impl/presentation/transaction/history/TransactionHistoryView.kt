@@ -19,11 +19,8 @@ import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.bottomSheet.LockBottomSheetBehavior
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.databinding.ViewTransferHistoryBinding
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
-import kotlinx.android.synthetic.main.view_transfer_history.view.placeholder
-import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryFilter
-import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryList
-import kotlinx.android.synthetic.main.view_transfer_history.view.transactionHistoryProgress
 
 typealias ScrollingListener = (position: Int) -> Unit
 typealias SlidingStateListener = (Int) -> Unit
@@ -40,6 +37,8 @@ class TransferHistorySheet @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), TransactionHistoryAdapter.Handler {
+
+    private val binding: ViewTransferHistoryBinding
 
     private var bottomSheetBehavior: LockBottomSheetBehavior<View>? = null
 
@@ -62,7 +61,8 @@ class TransferHistorySheet @JvmOverloads constructor(
     }
 
     init {
-        View.inflate(context, R.layout.view_transfer_history, this)
+        inflate(context, R.layout.view_transfer_history, this)
+        binding = ViewTransferHistoryBinding.bind(this)
 
         setBackgroundResource(R.drawable.bg_transfers)
 
@@ -73,15 +73,15 @@ class TransferHistorySheet @JvmOverloads constructor(
 
     fun provideImageLoader(imageLoader: ImageLoader) {
         adapter = TransactionHistoryAdapter(this, imageLoader)
-        transactionHistoryList.adapter = adapter
-        transactionHistoryList.setHasFixedSize(true)
-        adapterDataObserver = transactionHistoryList.enableShowingNewlyAddedTopElements()
+        binding.transactionHistoryList.adapter = adapter
+        binding.transactionHistoryList.setHasFixedSize(true)
+        adapterDataObserver = binding.transactionHistoryList.enableShowingNewlyAddedTopElements()
     }
 
     fun showProgress() {
-        placeholder.makeGone()
-        transactionHistoryProgress.makeVisible()
-        transactionHistoryList.makeGone()
+        binding.placeholder.makeGone()
+        binding.transactionHistoryProgress.makeVisible()
+        binding.transactionHistoryList.makeGone()
 
         adapter?.submitList(emptyList())
 
@@ -89,11 +89,11 @@ class TransferHistorySheet @JvmOverloads constructor(
     }
 
     fun showPlaceholder(message: String? = null) {
-        placeholder.makeVisible()
+        binding.placeholder.makeVisible()
         message?.let { findViewById<TextView>(R.id.placeholderText)?.text = it }
 
-        transactionHistoryProgress.makeGone()
-        transactionHistoryList.makeGone()
+        binding.transactionHistoryProgress.makeGone()
+        binding.transactionHistoryList.makeGone()
 
         adapter?.submitList(emptyList())
 
@@ -101,9 +101,9 @@ class TransferHistorySheet @JvmOverloads constructor(
     }
 
     fun showTransactions(transactions: List<Any>) {
-        placeholder.makeGone()
-        transactionHistoryProgress.makeGone()
-        transactionHistoryList.makeVisible()
+        binding.placeholder.makeGone()
+        binding.transactionHistoryProgress.makeGone()
+        binding.transactionHistoryList.makeVisible()
 
         bottomSheetBehavior?.isDraggable = true
 
@@ -145,7 +145,7 @@ class TransferHistorySheet @JvmOverloads constructor(
     }
 
     fun setFilterClickListener(clickListener: OnClickListener) {
-        transactionHistoryFilter.setOnClickListener(clickListener)
+        binding.transactionHistoryFilter.setOnClickListener(clickListener)
     }
 
     fun initializeBehavior(anchorView: View) {
@@ -191,7 +191,7 @@ class TransferHistorySheet @JvmOverloads constructor(
             }
         }
 
-        transactionHistoryList.addOnScrollListener(scrollListener)
+        binding.transactionHistoryList.addOnScrollListener(scrollListener)
     }
 
     private fun removeLayoutListener() {

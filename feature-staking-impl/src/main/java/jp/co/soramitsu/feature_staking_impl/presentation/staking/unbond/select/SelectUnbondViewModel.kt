@@ -2,73 +2,87 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
+import java.math.BigDecimal
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.feature_staking_api.domain.model.StakingState
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
-import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondPayloadAutoFix
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.unbondValidationFailure
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
 
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
 class SelectUnbondViewModel(
     private val router: StakingRouter,
-    private val interactor: StakingInteractor,
+    interactor: StakingInteractor,
+    private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val unbondInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    private val validationSystem: UnbondValidationSystem,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    private val payload: SelectUnbondPayload,
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin {
 
+    val oneScreenConfirmation = payload.oneScreenConfirmation
+
+    val unbondHint: LiveData<String> = MutableLiveData<String>().apply {
+        launch {
+            stakingScenarioInteractor.overrideUnbondHint()?.let { postValue(it) }
+        }
+    }
+
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val accountStakingFlow = interactor.selectedAccountStakingStateFlow()
-        .filterIsInstance<StakingState.Stash>()
+    private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow
         .share()
 
-    private val assetFlow = accountStakingFlow
-        .flatMapLatest { interactor.assetFlow(it.controllerAddress) }
+    private val assetFlow = interactor.currentAssetFlow()
         .share()
 
     val assetModelFlow = assetFlow
-        .map { mapAssetToAssetModel(it, resourceManager, Asset::bonded, R.string.staking_bonded_format) }
+        .map {
+            val patternId = stakingScenarioInteractor.overrideUnbondAvailableLabel() ?: R.string.common_available_format
+            val retrieveAmount = stakingScenarioInteractor.getUnstakeAvailableAmount(it, payload.collatorAddress?.fromHex())
+            mapAssetToAssetModel(
+                asset = it,
+                resourceManager = resourceManager,
+                retrieveAmount = { retrieveAmount },
+                patternId = patternId
+            )
+        }
         .inBackground()
         .asLiveData()
 
@@ -82,30 +96,43 @@ class SelectUnbondViewModel(
         .inBackground()
         .asLiveData()
 
-    val lockupPeriodLiveData = liveData {
-        val lockupPeriod = interactor.getLockupPeriodInDays()
-
-        val formatted = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, lockupPeriod, lockupPeriod)
-
-        emit(formatted)
+    val lockupPeriodLiveData = MutableLiveData<String>().apply {
+        launch {
+            val networkInfo = stakingScenarioInteractor.observeNetworkInfoState().first()
+            val lockupPeriod = networkInfo.lockupPeriodInDays
+            val quantityString = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, lockupPeriod, lockupPeriod)
+            postValue(quantityString)
+        }
     }
+
+    val accountLiveData = stakingScenarioInteractor.getSelectedAccountAddress()
+        .inBackground()
+        .asLiveData()
+
+    val collatorLiveData = stakingScenarioInteractor.getCollatorAddress(payload.collatorAddress)
+        .inBackground()
+        .asLiveData()
 
     init {
         listenFee()
     }
 
     fun nextClicked() {
-        maybeGoToNext()
+        maybeGoToNext(::openConfirm)
+    }
+
+    fun confirmClicked() {
+        maybeGoToNext(::sendTransaction)
     }
 
     fun backClicked() {
         router.back()
     }
 
-    @OptIn(ExperimentalTime::class)
+    @OptIn(FlowPreview::class)
     private fun listenFee() {
         parsedAmountFlow
-            .debounce(DEBOUNCE_DURATION_MILLIS.milliseconds)
+            .debounce(DEBOUNCE_DURATION_MILLIS.toDuration(DurationUnit.MILLISECONDS))
             .onEach { loadFee(it) }
             .launchIn(viewModelScope)
     }
@@ -117,7 +144,10 @@ class SelectUnbondViewModel(
                 val amountInPlanks = token.planksFromAmount(amount)
                 val asset = assetFlow.first()
 
-                unbondInteractor.estimateFee(accountStakingFlow.first(), asset.bondedInPlanks.orZero(), amountInPlanks)
+                val stashState = accountStakingFlow.first()
+                unbondInteractor.estimateFee(stashState) {
+                    stakingScenarioInteractor.stakeLess(this, amountInPlanks, stashState, asset.bondedInPlanks.orZero(), payload.collatorAddress)
+                }
             },
             onRetryCancelled = ::backClicked
         )
@@ -128,7 +158,7 @@ class SelectUnbondViewModel(
         onError = { title, message -> showError(title, message) }
     )
 
-    private fun maybeGoToNext() = requireFee { fee ->
+    private fun maybeGoToNext(action: (payload: UnbondValidationPayload) -> Unit) = requireFee { fee ->
         launch {
             val asset = assetFlow.first()
 
@@ -137,18 +167,22 @@ class SelectUnbondViewModel(
                 asset = asset,
                 fee = fee,
                 amount = parsedAmountFlow.first(),
+                collatorAddress = payload.collatorAddress
             )
 
             validationExecutor.requireValid(
-                validationSystem = validationSystem,
+                validationSystem = stakingScenarioInteractor.getUnbondValidationSystem(),
                 payload = payload,
                 validationFailureTransformer = { unbondValidationFailure(it, resourceManager) },
                 autoFixPayload = ::unbondPayloadAutoFix,
                 progressConsumer = _showNextProgress.progressConsumer()
             ) { correctPayload ->
+                if (correctPayload.shouldChillBeforeUnbond) {
+                    sendTransaction(correctPayload, false)
+                }
                 _showNextProgress.value = false
 
-                openConfirm(correctPayload)
+                action.invoke(correctPayload)
             }
         }
     }
@@ -156,9 +190,37 @@ class SelectUnbondViewModel(
     private fun openConfirm(validationPayload: UnbondValidationPayload) {
         val confirmUnbondPayload = ConfirmUnbondPayload(
             amount = validationPayload.amount,
-            fee = validationPayload.fee
+            fee = validationPayload.fee,
+            collatorAddress = validationPayload.collatorAddress
         )
 
         router.openConfirmUnbond(confirmUnbondPayload)
+    }
+
+    private fun sendTransaction(validPayload: UnbondValidationPayload, chilled: Boolean = true) = launch {
+        val amountInPlanks = validPayload.asset.token.configuration.planksFromAmount(validPayload.amount)
+
+        val result = unbondInteractor.unbond(validPayload.stash/*, validPayload.asset.bondedInPlanks.orZero(), amountInPlanks*/) {
+            stakingScenarioInteractor.stakeLess(
+                this,
+                amountInPlanks,
+                validPayload.stash,
+                validPayload.asset.bondedInPlanks.orZero(),
+                payload.collatorAddress,
+                chilled
+            )
+        }
+
+        _showNextProgress.value = false
+        if (chilled.not()) {
+            return@launch
+        }
+        if (result.isSuccess) {
+            showMessage(resourceManager.getString(R.string.common_transaction_submitted))
+
+            router.returnToStakingBalance()
+        } else {
+            showError(result.requireException())
+        }
     }
 }

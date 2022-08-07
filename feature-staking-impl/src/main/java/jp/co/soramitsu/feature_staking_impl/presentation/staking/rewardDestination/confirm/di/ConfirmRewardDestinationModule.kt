@@ -19,6 +19,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
@@ -29,6 +30,7 @@ class ConfirmRewardDestinationModule {
     @ViewModelKey(ConfirmRewardDestinationViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         router: StakingRouter,
         addressIconGenerator: AddressIconGenerator,
         resourceManager: ResourceManager,
@@ -43,6 +45,7 @@ class ConfirmRewardDestinationModule {
         return ConfirmRewardDestinationViewModel(
             router,
             interactor,
+            stakingRelayChainScenarioInteractor,
             addressIconGenerator,
             resourceManager,
             validationSystem,

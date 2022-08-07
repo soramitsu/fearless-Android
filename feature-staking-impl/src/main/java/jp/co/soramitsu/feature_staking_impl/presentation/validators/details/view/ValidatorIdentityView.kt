@@ -2,15 +2,10 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details.vie
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.LinearLayout
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.ViewValidatorIdentityBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.IdentityModel
-import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityEmailView
-import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityLegalNameView
-import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityRiotNameView
-import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityTwitterView
-import kotlinx.android.synthetic.main.view_validator_identity.view.validatorIdentityWebView
 
 class ValidatorIdentityView @JvmOverloads constructor(
     context: Context,
@@ -18,29 +13,32 @@ class ValidatorIdentityView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : LinearLayout(context, attrs, defStyle) {
 
+    private val binding: ViewValidatorIdentityBinding
+
     init {
-        View.inflate(context, R.layout.view_validator_identity, this)
+        inflate(context, R.layout.view_validator_identity, this)
+        binding = ViewValidatorIdentityBinding.bind(this)
 
         orientation = VERTICAL
     }
 
     fun populateIdentity(identity: IdentityModel) {
-        validatorIdentityLegalNameView.setBodyOrHide(identity.legal)
-        validatorIdentityEmailView.setBodyOrHide(identity.email)
-        validatorIdentityWebView.setBodyOrHide(identity.web)
-        validatorIdentityTwitterView.setBodyOrHide(identity.twitter)
-        validatorIdentityRiotNameView.setBodyOrHide(identity.riot)
+        binding.validatorIdentityLegalNameView.setBodyOrHide(identity.legal)
+        binding.validatorIdentityEmailView.setBodyOrHide(identity.email)
+        binding.validatorIdentityWebView.setBodyOrHide(identity.web)
+        binding.validatorIdentityTwitterView.setBodyOrHide(identity.twitter)
+        binding.validatorIdentityRiotNameView.setBodyOrHide(identity.riot)
     }
 
     fun setWebClickListener(clickListener: () -> Unit) {
-        validatorIdentityWebView.setOnClickListener { clickListener() }
+        binding.validatorIdentityWebView.setOnClickListener { clickListener() }
     }
 
     fun setEmailClickListener(clickListener: () -> Unit) {
-        validatorIdentityEmailView.setOnClickListener { clickListener() }
+        binding.validatorIdentityEmailView.setOnClickListener { clickListener() }
     }
 
     fun setTwitterClickListener(clickListener: () -> Unit) {
-        validatorIdentityTwitterView.setOnClickListener { clickListener() }
+        binding.validatorIdentityTwitterView.setOnClickListener { clickListener() }
     }
 }

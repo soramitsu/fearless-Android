@@ -2,11 +2,10 @@ package jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import jp.co.soramitsu.feature_account_impl.R
-import kotlinx.android.synthetic.main.view_mnemonic.view.mnemonicViewerList
+import jp.co.soramitsu.feature_account_impl.databinding.ViewMnemonicBinding
 
 class MnemonicViewer @JvmOverloads constructor(
     context: Context,
@@ -15,14 +14,17 @@ class MnemonicViewer @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
     private val adapter = MnemonicWordsAdapter()
 
-    init {
-        View.inflate(context, R.layout.view_mnemonic, this)
+    private val binding: ViewMnemonicBinding
 
-        mnemonicViewerList.adapter = adapter
+    init {
+        inflate(context, R.layout.view_mnemonic, this)
+        binding = ViewMnemonicBinding.bind(this)
+
+        binding.mnemonicViewerList.adapter = adapter
     }
 
     fun submitList(list: List<MnemonicWordModel>) {
-        val manager = mnemonicViewerList.layoutManager as GridLayoutManager
+        val manager = binding.mnemonicViewerList.layoutManager as GridLayoutManager
 
         manager.spanCount = list.size / 2
 

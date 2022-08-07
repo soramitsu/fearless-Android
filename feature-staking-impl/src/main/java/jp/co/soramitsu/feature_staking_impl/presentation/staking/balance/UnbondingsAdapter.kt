@@ -2,6 +2,7 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -9,11 +10,6 @@ import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.view.startTimer
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
-import kotlinx.android.extensions.LayoutContainer
-import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionLeft
-import kotlinx.android.synthetic.main.item_list_default.view.itemListElementDescriptionRight
-import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleLeft
-import kotlinx.android.synthetic.main.item_list_default.view.itemListElementTitleRight
 
 class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(UnbondingModelDiffCallback()) {
 
@@ -30,15 +26,15 @@ class UnbondingsAdapter : ListAdapter<UnbondingModel, UnbondingsHolder>(Unbondin
     }
 }
 
-class UnbondingsHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+class UnbondingsHolder(val containerView: View) : RecyclerView.ViewHolder(containerView) {
 
     fun bind(unbonding: UnbondingModel) = with(containerView) {
         with(unbonding) {
-            itemListElementDescriptionLeft.startTimer(timeLeft, calculatedAt)
+            findViewById<TextView>(R.id.itemListElementDescriptionLeft).startTimer(timeLeft, calculatedAt)
 
-            itemListElementTitleLeft.text = context.getString(R.string.staking_unbond_v1_9_0)
-            itemListElementTitleRight.text = unbonding.amountModel.token
-            itemListElementDescriptionRight.text = unbonding.amountModel.fiat
+            findViewById<TextView>(R.id.itemListElementTitleLeft).text = unbonding.amountModel.titleResId?.let { context.getString(it) }
+            findViewById<TextView>(R.id.itemListElementTitleRight).text = unbonding.amountModel.token
+            findViewById<TextView>(R.id.itemListElementDescriptionRight).text = unbonding.amountModel.fiat
         }
     }
 }

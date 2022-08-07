@@ -12,10 +12,9 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentPincodeBinding
 import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
-import kotlinx.android.synthetic.main.fragment_pincode.pinCodeView
-import kotlinx.android.synthetic.main.fragment_pincode.toolbar
 import javax.inject.Inject
 
 class PincodeFragment : BaseFragment<PinCodeViewModel>() {
@@ -28,14 +27,17 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     @Inject lateinit var fingerprintWrapper: FingerprintWrapper
 
+    private lateinit var binding: FragmentPincodeBinding
+
     private val backCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             viewModel.backPressed()
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_pincode, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        binding = FragmentPincodeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun inject() {
@@ -50,11 +52,11 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     override fun initViews() {
         requireActivity().onBackPressedDispatcher.addCallback(this, backCallback)
 
-        toolbar.setHomeButtonListener { viewModel.backPressed() }
+        binding.toolbar.setHomeButtonListener { viewModel.backPressed() }
 
         viewModel.fingerprintScannerAvailable(fingerprintWrapper.isAuthReady())
 
-        with(pinCodeView) {
+        with(binding.pinCodeView) {
             pinCodeEnteredListener = { viewModel.pinCodeEntered(it) }
             fingerprintClickListener = { fingerprintWrapper.toggleScanner() }
         }
@@ -62,7 +64,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     override fun subscribe(viewModel: PinCodeViewModel) {
         viewModel.pinCodeAction.toolbarConfiguration.titleRes?.let {
-            toolbar.setTitle(getString(it))
+            binding.toolbar.setTitle(getString(it))
         }
 
         viewModel.startFingerprintScannerEventLiveData.observeEvent {
@@ -76,22 +78,22 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         }
 
         viewModel.showFingerPrintEvent.observeEvent {
-            pinCodeView.changeFingerPrintButtonVisibility(fingerprintWrapper.isAuthReady())
+            binding.pinCodeView.changeFingerPrintButtonVisibility(fingerprintWrapper.isAuthReady())
         }
 
         viewModel.fingerPrintErrorEvent.observeEvent {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
 
-        viewModel.homeButtonVisibilityLiveData.observe(toolbar::setHomeButtonVisibility)
+        viewModel.homeButtonVisibilityLiveData.observe(binding.toolbar::setHomeButtonVisibility)
 
         viewModel.matchingPincodeErrorEvent.observeEvent {
-            pinCodeView.pinCodeMatchingError()
+            binding.pinCodeView.pinCodeMatchingError()
         }
 
         viewModel.resetInputEvent.observeEvent {
-            pinCodeView.resetInput()
-            pinCodeView.setTitle(it)
+            binding.pinCodeView.resetInput()
+            binding.pinCodeView.setTitle(it)
         }
 
         viewModel.startAuth()

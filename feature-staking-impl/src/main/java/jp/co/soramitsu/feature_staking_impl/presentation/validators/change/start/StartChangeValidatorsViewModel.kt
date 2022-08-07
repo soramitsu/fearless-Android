@@ -6,17 +6,15 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.retractValidators
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 
@@ -38,30 +36,30 @@ class StartChangeValidatorsViewModel(
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val resourceManager: ResourceManager,
-    private val interactor: StakingInteractor,
+    private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
 ) : BaseViewModel(), Browserable {
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
     private val maxValidatorsPerNominator = flowOf {
-        interactor.maxValidatorsPerNominator()
+        stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
     }.share()
 
     val validatorsLoading = MutableStateFlow(true)
 
     val customValidatorsTexts = setupStakingSharedState.setupStakingProcess.transform {
         when {
-            it is SetupStakingProcess.ReadyToSubmit && it.payload.validators.isNotEmpty() -> emit(
+            it is SetupStakingProcess.ReadyToSubmit<*> && it.payload.blockProducers.isNotEmpty() -> emit(
                 CustomValidatorsTexts(
                     title = resourceManager.getString(R.string.staking_custom_validators_update_list),
                     badge = resourceManager.getString(
                         R.string.staking_max_format,
-                        it.payload.validators.size,
+                        it.payload.blockProducers.size,
                         maxValidatorsPerNominator.first()
                     )
                 )
             )
-            it is SetupStakingProcess.Validators -> emit(
+            it is SetupStakingProcess.SelectBlockProducersStep -> emit(
                 CustomValidatorsTexts(
                     title = resourceManager.getString(R.string.staking_select_custom),
                     badge = null
@@ -70,21 +68,11 @@ class StartChangeValidatorsViewModel(
         }
     }
 
-    val recommendedFeaturesText = flow {
-        val texts = RECOMMENDED_FEATURES_IDS.joinToString(separator = "\n") {
-            val text = resourceManager.getString(it)
-
-            "✅  $text"
-        }
-
-        emit(texts)
-    }
-        .inBackground()
-        .share()
+    fun getRecommendedFeaturesIds() = RECOMMENDED_FEATURES_IDS
 
     init {
         launch {
-            validatorRecommendatorFactory.awaitValidatorLoading(router.currentStackEntryLifecycle)
+            validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
 
             validatorsLoading.value = false
         }

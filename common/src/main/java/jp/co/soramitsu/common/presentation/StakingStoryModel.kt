@@ -3,7 +3,7 @@ package jp.co.soramitsu.common.presentation
 import android.os.Parcelable
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class StakingStoryModel(
@@ -24,7 +24,7 @@ sealed class StoryElement(
     data class Staking(
         @StringRes override val titleRes: Int,
         @StringRes override val bodyRes: Int,
-        val url: String
+        val url: String?
     ) : StoryElement(titleRes, bodyRes)
 
     @Parcelize

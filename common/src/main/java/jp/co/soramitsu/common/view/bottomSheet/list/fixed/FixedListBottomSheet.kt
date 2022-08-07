@@ -3,6 +3,8 @@ package jp.co.soramitsu.common.view.bottomSheet.list.fixed
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
@@ -11,9 +13,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setDrawableStart
-import kotlinx.android.synthetic.main.bottom_sheeet_fixed_list.fixedListSheetItemContainer
-import kotlinx.android.synthetic.main.bottom_sheeet_fixed_list.fixedListSheetTitle
-import kotlinx.android.synthetic.main.item_sheet_iconic_label.view.itemExternalActionContent
 
 abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(context, R.style.BottomSheetDialog) {
 
@@ -32,25 +31,25 @@ abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(contex
     }
 
     override fun setTitle(@StringRes titleRes: Int) {
-        fixedListSheetTitle.setText(titleRes)
+        findViewById<TextView>(R.id.fixedListSheetTitle)?.setText(titleRes)
     }
 
     override fun setTitle(title: CharSequence?) {
-        fixedListSheetTitle.text = title
+        findViewById<TextView>(R.id.fixedListSheetTitle)?.text = title
     }
 
     fun item(@LayoutRes layoutRes: Int, builder: (View) -> Unit) {
-        val view = fixedListSheetItemContainer.inflateChild(layoutRes)
+        val view = findViewById<LinearLayout>(R.id.fixedListSheetItemContainer)?.inflateChild(layoutRes)
 
-        builder.invoke(view)
+        view?.let { builder.invoke(it) }
 
-        fixedListSheetItemContainer.addView(view)
+        findViewById<LinearLayout>(R.id.fixedListSheetItemContainer)?.addView(view)
     }
 
     fun <T : View> item(view: T, builder: (T) -> Unit) {
         builder.invoke(view)
 
-        fixedListSheetItemContainer.addView(view)
+        findViewById<LinearLayout>(R.id.fixedListSheetItemContainer)?.addView(view)
     }
 
     inline fun View.setDismissingClickListener(crossinline listener: (View) -> Unit) {
@@ -67,8 +66,8 @@ fun FixedListBottomSheet.item(@DrawableRes icon: Int, @StringRes titleRes: Int, 
 
 fun FixedListBottomSheet.item(@DrawableRes icon: Int, title: String, onClick: (View) -> Unit) {
     item(R.layout.item_sheet_iconic_label) { view ->
-        view.itemExternalActionContent.text = title
-        view.itemExternalActionContent.setDrawableStart(icon, widthInDp = 24, tint = R.color.white)
+        view.findViewById<TextView>(R.id.itemExternalActionContent).text = title
+        view.findViewById<TextView>(R.id.itemExternalActionContent).setDrawableStart(icon, widthInDp = 24, tint = R.color.white)
 
         view.setDismissingClickListener(onClick)
     }
@@ -76,7 +75,7 @@ fun FixedListBottomSheet.item(@DrawableRes icon: Int, title: String, onClick: (V
 
 fun FixedListBottomSheet.textItem(@StringRes titleRes: Int, onClick: (View) -> Unit) {
     item(R.layout.item_sheet_label) { view ->
-        view.itemExternalActionContent.text = context.resources.getString(titleRes)
+        view.findViewById<TextView>(R.id.itemExternalActionContent).text = context.resources.getString(titleRes)
 
         view.setDismissingClickListener(onClick)
     }

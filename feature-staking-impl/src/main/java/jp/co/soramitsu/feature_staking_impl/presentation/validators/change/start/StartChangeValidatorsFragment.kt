@@ -1,43 +1,33 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.start
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.widget.TextView
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStartChangeValidatorsBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
-import kotlinx.android.synthetic.main.fragment_start_change_validators.startChangeValidatorsContainer
-import kotlinx.android.synthetic.main.fragment_start_change_validators.startChangeValidatorsCustom
-import kotlinx.android.synthetic.main.fragment_start_change_validators.startChangeValidatorsRecommended
-import kotlinx.android.synthetic.main.fragment_start_change_validators.startChangeValidatorsRecommendedFeatures
-import kotlinx.android.synthetic.main.fragment_start_change_validators.startChangeValidatorsToolbar
 
-class StartChangeValidatorsFragment : BaseFragment<StartChangeValidatorsViewModel>() {
+class StartChangeValidatorsFragment : BaseFragment<StartChangeValidatorsViewModel>(R.layout.fragment_start_change_validators) {
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_start_change_validators, container, false)
-    }
+    private val binding by viewBinding(FragmentStartChangeValidatorsBinding::bind)
 
     override fun initViews() {
-        startChangeValidatorsContainer.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            startChangeValidatorsContainer.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
             }
+
+            startChangeValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
+            onBackPressed { viewModel.backClicked() }
+
+            startChangeValidatorsRecommended.setOnClickListener { viewModel.goToRecommendedClicked() }
+            startChangeValidatorsCustom.setOnClickListener { viewModel.goToCustomClicked() }
         }
-
-        startChangeValidatorsToolbar.setHomeButtonListener { viewModel.backClicked() }
-        onBackPressed { viewModel.backClicked() }
-
-        startChangeValidatorsRecommended.setOnClickListener { viewModel.goToRecommendedClicked() }
-        startChangeValidatorsCustom.setOnClickListener { viewModel.goToCustomClicked() }
     }
 
     override fun inject() {
@@ -52,15 +42,20 @@ class StartChangeValidatorsFragment : BaseFragment<StartChangeValidatorsViewMode
 
     override fun subscribe(viewModel: StartChangeValidatorsViewModel) {
         viewModel.validatorsLoading.observe {
-            startChangeValidatorsRecommended.setInProgress(it)
-            startChangeValidatorsCustom.setInProgress(it)
+            binding.startChangeValidatorsRecommended.setInProgress(it)
+            binding.startChangeValidatorsCustom.setInProgress(it)
         }
 
-        viewModel.recommendedFeaturesText.observe(startChangeValidatorsRecommendedFeatures::setText)
+        viewModel.getRecommendedFeaturesIds().map { resId ->
+            (layoutInflater.inflate(R.layout.item_algorithm_criteria, binding.startChangeValidatorsRecommendedFeatures, false) as? TextView)?.also {
+                it.text = getString(resId)
+                binding.startChangeValidatorsRecommendedFeatures.addView(it)
+            }
+        }
 
         viewModel.customValidatorsTexts.observe {
-            startChangeValidatorsCustom.title.text = it.title
-            startChangeValidatorsCustom.setBadgeText(it.badge)
+            binding.startChangeValidatorsCustom.title.text = it.title
+            binding.startChangeValidatorsCustom.setBadgeText(it.badge)
         }
     }
 }

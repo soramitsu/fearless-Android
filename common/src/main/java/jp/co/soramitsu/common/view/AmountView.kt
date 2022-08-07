@@ -10,16 +10,12 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.databinding.ViewStakingAmountBinding
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
-import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAmountInput
-import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetBalance
-import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetFiatAmount
-import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetImage
-import kotlinx.android.synthetic.main.view_staking_amount.view.stakingAssetToken
 
 class AmountView @JvmOverloads constructor(
     context: Context,
@@ -27,11 +23,14 @@ class AmountView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyle) {
 
+    private val binding: ViewStakingAmountBinding
+
     val amountInput: EditText
-        get() = stakingAmountInput
+        get() = binding.stakingAmountInput
 
     init {
-        View.inflate(context, R.layout.view_staking_amount, this)
+        inflate(context, R.layout.view_staking_amount, this)
+        binding = ViewStakingAmountBinding.bind(this)
 
         setBackground()
 
@@ -85,34 +84,34 @@ class AmountView @JvmOverloads constructor(
     }
 
     fun setAssetImage(image: Drawable) {
-        stakingAssetImage.setImageDrawable(image)
+        binding.stakingAssetImage.setImageDrawable(image)
     }
 
     fun setAssetImageResource(imageRes: Int) {
-        stakingAssetImage.setImageResource(imageRes)
+        binding.stakingAssetImage.setImageResource(imageRes)
     }
 
     fun setAssetImageUrl(imageUrl: String, imageLoader: ImageLoader) {
-        stakingAssetImage.load(imageUrl, imageLoader)
+        binding.stakingAssetImage.load(imageUrl, imageLoader)
     }
 
     fun setAssetName(name: String) {
-        stakingAssetToken.text = name
+        binding.stakingAssetToken.text = name
     }
 
     fun setAssetBalance(balance: String) {
-        stakingAssetBalance.text = balance
+        binding.stakingAssetBalance.text = balance
     }
 
     fun setAssetBalanceFiatAmount(fiatAmount: String?) {
-        stakingAssetFiatAmount.setTextOrHide(fiatAmount)
+        binding.stakingAssetFiatAmount.setTextOrHide(fiatAmount)
     }
 
     fun hideAssetFiatAmount() {
-        stakingAssetFiatAmount.makeGone()
+        binding.stakingAssetFiatAmount.makeGone()
     }
 
     fun showAssetFiatAmount() {
-        stakingAssetFiatAmount.makeVisible()
+        binding.stakingAssetFiatAmount.makeVisible()
     }
 }

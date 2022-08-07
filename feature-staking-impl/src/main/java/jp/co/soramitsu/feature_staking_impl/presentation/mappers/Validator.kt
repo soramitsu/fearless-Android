@@ -1,5 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.mappers
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -12,10 +14,7 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_api.domain.model.NominatedValidator
 import jp.co.soramitsu.feature_staking_api.domain.model.Validator
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.model.ValidatorStakeModel
@@ -30,9 +29,8 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import java.math.BigInteger
 
-private val PERCENT_MULTIPLIER = 100.toBigDecimal()
+val PERCENT_MULTIPLIER = 100.toBigDecimal()
 
 private const val ICON_SIZE_DP = 24
 private const val ICON_DETAILS_SIZE_DP = 32
@@ -43,7 +41,7 @@ suspend fun mapValidatorToValidatorModel(
     iconGenerator: AddressIconGenerator,
     token: Token,
     isChecked: Boolean? = null,
-    sorting: RecommendationSorting = APYSorting,
+    sorting: BlockProducersSorting<Validator> = BlockProducersSorting.ValidatorSorting.APYSorting,
 ) = mapValidatorToValidatorModel(
     chain,
     validator,
@@ -59,27 +57,13 @@ suspend fun mapValidatorToValidatorModel(
     createIcon: suspend (address: String) -> AddressModel,
     token: Token,
     isChecked: Boolean? = null,
-    sorting: RecommendationSorting = APYSorting,
+    sorting: BlockProducersSorting<Validator> = BlockProducersSorting.ValidatorSorting.APYSorting,
 ): ValidatorModel {
     val address = chain.addressOf(validator.accountIdHex.fromHex())
     val addressModel = createIcon(address)
 
     return with(validator) {
-        val scoring = when (sorting) {
-            APYSorting -> {
-                electedInfo?.apy?.let {
-                    val apyPercentage = it.fractionToPercentage().formatAsPercentage()
-
-                    ValidatorModel.Scoring.OneField(apyPercentage)
-                }
-            }
-
-            TotalStakeSorting -> stakeToScoring(electedInfo?.totalStake, token)
-
-            ValidatorOwnStakeSorting -> stakeToScoring(electedInfo?.ownStake, token)
-
-            else -> throw NotImplementedError("Unsupported sorting: $sorting")
-        }
+        val scoring = sorting.toScoring(this, token)
 
         ValidatorModel(
             accountIdHex = accountIdHex,
@@ -92,17 +76,6 @@ suspend fun mapValidatorToValidatorModel(
             validator = validator
         )
     }
-}
-
-private fun stakeToScoring(stakeInPlanks: BigInteger?, token: Token): ValidatorModel.Scoring.TwoFields? {
-    if (stakeInPlanks == null) return null
-
-    val stake = token.amountFromPlanks(stakeInPlanks)
-
-    return ValidatorModel.Scoring.TwoFields(
-        primary = stake.formatTokenAmount(token.configuration),
-        secondary = token.fiatAmount(stake)?.formatAsCurrency(token.fiatSymbol)
-    )
 }
 
 fun mapValidatorToValidatorDetailsParcelModel(
@@ -219,5 +192,29 @@ suspend fun mapValidatorDetailsParcelToValidatorDetailsModel(
             addressImage.image,
             identity
         )
+    }
+}
+
+fun BlockProducersSorting<Validator>.toScoring(validator: Validator, token: Token): ValidatorModel.Scoring {
+    return when (this) {
+        BlockProducersSorting.ValidatorSorting.APYSorting -> {
+            val apy = validator.electedInfo?.apy ?: BigDecimal.ZERO
+            ValidatorModel.Scoring.OneField(apy.fractionToPercentage().formatAsPercentage())
+        }
+        BlockProducersSorting.ValidatorSorting.TotalStakeSorting -> {
+            val totalCountedFormatted = token.amountFromPlanks(validator.electedInfo?.totalStake ?: BigInteger.ZERO)
+            ValidatorModel.Scoring.TwoFields(
+                totalCountedFormatted.formatTokenAmount(token.configuration),
+                token.fiatAmount(totalCountedFormatted)?.formatAsCurrency(token.fiatSymbol)
+            )
+        }
+        BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> {
+            val totalCountedFormatted = token.amountFromPlanks(validator.electedInfo?.ownStake ?: BigInteger.ZERO)
+            ValidatorModel.Scoring.TwoFields(
+                totalCountedFormatted.formatTokenAmount(token.configuration),
+                token.fiatAmount(totalCountedFormatted)?.formatAsCurrency(token.fiatSymbol)
+            )
+        }
+        else -> error("Wrong sorting type")
     }
 }

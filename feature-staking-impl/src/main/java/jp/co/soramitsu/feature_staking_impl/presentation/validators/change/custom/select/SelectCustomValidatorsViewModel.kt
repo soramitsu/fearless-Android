@@ -1,6 +1,7 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select
 
 import androidx.lifecycle.viewModelScope
+import java.math.BigInteger
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -17,9 +18,8 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.APYSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.TotalStakeSorting
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.ValidatorOwnStakeSorting
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.SettingsStorage
+import jp.co.soramitsu.feature_staking_impl.domain.recommendations.settings.sortings.BlockProducersSorting
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
@@ -28,8 +28,10 @@ import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToV
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.select.model.ContinueButtonState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.model.Token
+import jp.co.soramitsu.feature_wallet_api.domain.model.planksFromAmount
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -48,17 +50,21 @@ class SelectCustomValidatorsViewModel(
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val addressIconGenerator: AddressIconGenerator,
     private val interactor: StakingInteractor,
+    stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val tokenUseCase: TokenUseCase,
+    private val settingsStorage: SettingsStorage
 ) : BaseViewModel() {
+
+    val state = setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()
 
     private val validatorRecommendator by lazyAsync {
         validatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
     }
 
     private val recommendationSettingsProvider by lazyAsync {
-        recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle)
+        recommendationSettingsProviderFactory.createRelayChain(router.currentStackEntryLifecycle)
     }
 
     private val recommendationSettingsFlow = flow {
@@ -76,7 +82,7 @@ class SelectCustomValidatorsViewModel(
     private val selectedValidators = MutableStateFlow(emptySet<Validator>())
 
     private val maxSelectedValidatorsFlow = flowOf {
-        interactor.maxValidatorsPerNominator()
+        stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
     }.share()
 
     private val iconsCache: MutableMap<String, AddressModel> = mutableMapOf()
@@ -115,9 +121,9 @@ class SelectCustomValidatorsViewModel(
 
     val scoringHeader = recommendationSettingsFlow.map {
         when (it.sorting) {
-            APYSorting -> resourceManager.getString(R.string.staking_rewards_apy)
-            TotalStakeSorting -> resourceManager.getString(R.string.staking_validator_total_stake)
-            ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)
+            BlockProducersSorting.ValidatorSorting.APYSorting -> resourceManager.getString(R.string.staking_rewards_apy)
+            BlockProducersSorting.ValidatorSorting.TotalStakeSorting -> resourceManager.getString(R.string.staking_validator_total_stake)
+            BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)
             else -> throw IllegalArgumentException("Unknown sorting: ${it.sorting}")
         }
     }.inBackground().share()
@@ -133,6 +139,29 @@ class SelectCustomValidatorsViewModel(
 
     init {
         observeExternalSelectionChanges()
+
+        setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()?.sortingSet
+            ?: setupStakingSharedState.getOrNull<SetupStakingProcess.ReadyToSubmit.Stash>()?.sortingSet?.let {
+                settingsStorage.currentSortingSet.value = it
+            }
+        setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()?.filtersSet
+            ?: setupStakingSharedState.getOrNull<SetupStakingProcess.ReadyToSubmit.Stash>()?.filtersSet?.let {
+                settingsStorage.currentFiltersSet.value = it
+            }
+        setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()?.quickFilters
+            ?: setupStakingSharedState.getOrNull<SetupStakingProcess.ReadyToSubmit.Stash>()?.quickFilters?.let {
+                settingsStorage.quickFilters = it
+            }
+
+        launch {
+            settingsStorage.schema.collect {
+                val state = setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()
+                val payload = state?.payload as? SetupStakingProcess.SelectBlockProducersStep.Payload.Full
+                val amount = payload?.amount
+                val amountInPlanks = amount?.let { tokenUseCase.currentToken().configuration.planksFromAmount(amount) }
+                recommendationSettingsProvider().settingsChanged(it, amountInPlanks ?: BigInteger.ZERO)
+            }
+        }
     }
 
     fun backClicked() {
@@ -158,7 +187,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun settingsClicked() {
-        router.openCustomValidatorsSettings()
+        router.openCustomValidatorsSettingsFromValidator()
     }
 
     fun searchClicked() {
@@ -172,14 +201,7 @@ class SelectCustomValidatorsViewModel(
     }
 
     fun clearFilters() {
-        launch {
-            val settings = recommendationSettingsProvider().createModifiedCustomValidatorsSettings(
-                filterIncluder = { false },
-                postProcessorIncluder = { false }
-            )
-
-            recommendationSettingsProvider().setCustomValidatorsSettings(settings)
-        }
+        settingsStorage.resetFilters()
     }
 
     fun deselectAll() {
@@ -199,8 +221,8 @@ class SelectCustomValidatorsViewModel(
 
     private fun observeExternalSelectionChanges() {
         setupStakingSharedState.setupStakingProcess
-            .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
-            .onEach { selectedValidators.value = it.payload.validators.toSet() }
+            .filterIsInstance<SetupStakingProcess.ReadyToSubmit.Stash>()
+            .onEach { selectedValidators.value = it.payload.blockProducers.toSet() }
             .launchIn(viewModelScope)
     }
 

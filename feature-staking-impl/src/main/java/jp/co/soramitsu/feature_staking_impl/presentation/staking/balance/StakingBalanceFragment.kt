@@ -1,92 +1,112 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.core.view.doOnNextLayout
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.utils.updatePadding
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBalanceBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.ChooseRebondKindBottomSheet
-import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceActions
-import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceInfo
-import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceScrollingArea
-import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceToolbar
-import kotlinx.android.synthetic.main.fragment_staking_balance.stakingBalanceUnbondings
 
-class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>() {
+class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fragment_staking_balance) {
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View? {
-        return inflater.inflate(R.layout.fragment_staking_balance, container, false)
+    companion object {
+        private const val KEY_COLLATOR_ADDRESS = "collator_address"
+
+        fun getBundle(address: String) = bundleOf(KEY_COLLATOR_ADDRESS to address)
     }
 
+    private val binding by viewBinding(FragmentStakingBalanceBinding::bind)
+
     override fun initViews() {
-        stakingBalanceToolbar.applyInsetter {
-            type(statusBars = true) {
-                padding()
+        with(binding) {
+            stakingBalanceToolbar.applyInsetter {
+                type(statusBars = true) {
+                    padding()
+                }
             }
-        }
 
-        stakingBalanceToolbar.setHomeButtonListener { viewModel.backClicked() }
+            stakingBalanceToolbar.setHomeButtonListener { viewModel.backClicked() }
 
-        stakingBalanceActions.bondMore.setOnClickListener { viewModel.bondMoreClicked() }
-        stakingBalanceActions.unbond.setOnClickListener { viewModel.unbondClicked() }
-        stakingBalanceActions.redeem.setOnClickListener { viewModel.redeemClicked() }
+            stakingBalanceActions.bondMore.setOnClickListener { viewModel.bondMoreClicked() }
+            stakingBalanceActions.unbond.setOnClickListener { viewModel.unbondClicked() }
+            stakingBalanceActions.redeem.setOnClickListener { viewModel.redeemClicked() }
 
-        // set padding dynamically so initially scrolling area in under toolbar
-        stakingBalanceToolbar.doOnNextLayout {
-            stakingBalanceScrollingArea.updatePadding(top = it.height + 8.dp)
-        }
+            // set padding dynamically so initially scrolling area in under toolbar
+            stakingBalanceToolbar.doOnNextLayout {
+                stakingBalanceSwipeRefresh.updatePadding(top = it.height + 8.dp)
+            }
 
-        stakingBalanceUnbondings.setMoreActionClickListener {
-            viewModel.unbondingsMoreClicked()
+            stakingBalanceSwipeRefresh.setOnRefreshListener {
+                viewModel.refresh()
+            }
+
+            stakingBalanceUnbondings.setMoreActionClickListener {
+                viewModel.unbondingsMoreClicked()
+            }
+            stakingBalanceUnbondings.title.setText(R.string.staking_history_title)
         }
     }
 
     override fun inject() {
+        val collatorAddress = arguments?.getString(KEY_COLLATOR_ADDRESS)
+
         FeatureUtils.getFeature<StakingFeatureComponent>(
             requireContext(),
             StakingFeatureApi::class.java
         )
             .stakingBalanceFactory()
-            .create(this)
+            .create(this, collatorAddress)
             .inject(this)
     }
 
     override fun subscribe(viewModel: StakingBalanceViewModel) {
         observeValidations(viewModel)
 
+        viewModel.redeemTitle?.let { binding.stakingBalanceActions.redeem.setText(it) }
+
         viewModel.stakingBalanceModelLiveData.observe {
-            with(stakingBalanceInfo) {
-                bonded.setTokenAmount(it.bonded.token)
-                bonded.setFiatAmount(it.bonded.fiat)
+            binding.stakingBalanceSwipeRefresh.isRefreshing = false
 
-                unbonding.setTokenAmount(it.unbonding.token)
-                unbonding.setFiatAmount(it.unbonding.fiat)
+            with(binding.stakingBalanceInfo) {
+                it.staked.titleResId?.let { bonded.setTitle(it) }
+                bonded.setTokenAmount(it.staked.token)
+                bonded.setFiatAmount(it.staked.fiat)
 
+                it.unstaking.titleResId?.let { unbonding.setTitle(it) }
+                unbonding.setTokenAmount(it.unstaking.token)
+                unbonding.setFiatAmount(it.unstaking.fiat)
+
+                it.redeemable.titleResId?.let { redeemable.setTitle(it) }
                 redeemable.setTokenAmount(it.redeemable.token)
                 redeemable.setFiatAmount(it.redeemable.fiat)
             }
         }
 
-        viewModel.unbondingModelsLiveData.observe(stakingBalanceUnbondings::submitList)
+        viewModel.unbondingModelsLiveData.observe(binding.stakingBalanceUnbondings::submitList)
+        viewModel.unbondingEnabledLiveData.observe {
+            binding.stakingBalanceUnbondings.unbondingsMoreAction.isEnabled = it
+        }
 
         viewModel.redeemEnabledLiveData.observe {
-            stakingBalanceActions.redeem.isEnabled = it
+            binding.stakingBalanceActions.redeem.isEnabled = it
+        }
+        viewModel.shouldBlockActionButtons.observe {
+            binding.stakingBalanceActions.bondMore.isEnabled = it.not()
+        }
+
+        viewModel.shouldBlockUnstake.observe {
+            binding.stakingBalanceActions.unbond.isEnabled = it.not()
         }
 
         viewModel.showRebondActionsEvent.observeEvent {
-            ChooseRebondKindBottomSheet(requireContext(), viewModel::rebondKindChosen)
+            ChooseRebondKindBottomSheet(requireContext(), viewModel::rebondKindChosen, it)
                 .show()
         }
     }

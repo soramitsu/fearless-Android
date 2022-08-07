@@ -1,65 +1,58 @@
-@file:OptIn(ExperimentalTime::class)
-
 package jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.search
 
-import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.AddressIconGenerator.Companion.SIZE_MEDIUM
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
-import jp.co.soramitsu.common.utils.toggle
 import jp.co.soramitsu.common.utils.withLoadingSingle
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
-import jp.co.soramitsu.feature_staking_impl.domain.recommendations.ValidatorRecommendatorFactory
-import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomValidatorsInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.BlockedValidatorException
+import jp.co.soramitsu.feature_staking_impl.domain.validators.current.search.SearchCustomBlockProducerInteractor
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorDetailsParcelModel
-import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorToValidatorModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
-import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.setCustomValidators
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorStakeParcelModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.IdentityParcelModel
 import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlin.time.ExperimentalTime
 
-sealed class SearchValidatorsState {
-    object NoInput : SearchValidatorsState()
+sealed class SearchBlockProducersState {
+    object NoInput : SearchBlockProducersState()
 
-    object Loading : SearchValidatorsState()
+    object Loading : SearchBlockProducersState()
 
-    object NoResults : SearchValidatorsState()
+    object NoResults : SearchBlockProducersState()
 
-    class Success(val validators: List<ValidatorModel>, val headerTitle: String) : SearchValidatorsState()
+    class Success(val blockProducers: List<SearchBlockProducerModel>, val headerTitle: String) : SearchBlockProducersState()
 }
 
 class SearchCustomValidatorsViewModel(
     private val router: StakingRouter,
-    private val addressIconGenerator: AddressIconGenerator,
-    private val interactor: SearchCustomValidatorsInteractor,
-    private val stakingInteractor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
-    private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     tokenUseCase: TokenUseCase,
+    private val searchCustomBlockProducerInteractor: SearchCustomBlockProducerInteractor
 ) : BaseViewModel() {
 
     private val confirmSetupState = sharedStateSetup.setupStakingProcess
-        .filterIsInstance<SetupStakingProcess.ReadyToSubmit>()
+        .filterIsInstance<SetupStakingProcess.ReadyToSubmit<*>>()
         .share()
 
-    private val selectedValidators = confirmSetupState
-        .map { it.payload.validators.toSet() }
+    private val selectedBlockProducers = confirmSetupState
+        .map { it.payload.blockProducers.map { producer -> producer.address }.toSet() }
         .inBackground()
         .share()
 
@@ -68,14 +61,17 @@ class SearchCustomValidatorsViewModel(
 
     val enteredQuery = MutableStateFlow("")
 
-    private val allElectedValidators by lazy {
-        async { validatorRecommendatorFactory.create(router.currentStackEntryLifecycle).availableValidators.toSet() }
+    private val allBlockProducers by lazy {
+        async { searchCustomBlockProducerInteractor.getBlockProducers(router.currentStackEntryLifecycle).toSet() }
     }
 
-    private val foundValidatorsState = enteredQuery
-        .withLoadingSingle {
-            if (it.isNotEmpty()) {
-                interactor.searchValidator(it, allElectedValidators() + selectedValidators.first())
+    private val foundBlockProducersState = enteredQuery
+        .withLoadingSingle { query ->
+            if (query.isNotEmpty()) {
+                searchCustomBlockProducerInteractor.searchBlockProducer(
+                    query,
+                    allBlockProducers.invoke()
+                )
             } else {
                 null
             }
@@ -83,56 +79,43 @@ class SearchCustomValidatorsViewModel(
         .inBackground()
         .share()
 
-    private val selectedValidatorModelsState = combine(
-        selectedValidators,
-        foundValidatorsState,
-        currentTokenFlow
-    ) { selectedValidators, foundValidatorsState, token ->
-        val chain = stakingInteractor.getSelectedChain()
-
-        foundValidatorsState.map { validators ->
-            validators?.map { validator ->
-                mapValidatorToValidatorModel(
-                    chain = chain,
-                    validator = validator,
-                    iconGenerator = addressIconGenerator,
-                    token = token,
-                    isChecked = validator in selectedValidators
-                )
+    private val selectedBlockProducersModelsState = combine(
+        selectedBlockProducers,
+        foundBlockProducersState
+    ) { selectedBlockProducers, foundBlockProducersState ->
+        foundBlockProducersState.map { blockProducers ->
+            blockProducers?.map { blockProducer ->
+                blockProducer.toModel(blockProducer.address in selectedBlockProducers)
             }
         }
     }
         .inBackground()
         .share()
 
-    val screenState = selectedValidatorModelsState.map { validatorsState ->
+    val screenState = selectedBlockProducersModelsState.map { blockProducersState ->
         when {
-            validatorsState is LoadingState.Loading -> SearchValidatorsState.Loading
-            validatorsState is LoadingState.Loaded && validatorsState.data == null -> SearchValidatorsState.NoInput
+            blockProducersState is LoadingState.Loading -> SearchBlockProducersState.Loading
+            blockProducersState is LoadingState.Loaded && blockProducersState.data == null -> SearchBlockProducersState.NoInput
 
-            validatorsState is LoadingState.Loaded && validatorsState.data.isNullOrEmpty().not() -> {
-                val validators = validatorsState.data!!
+            blockProducersState is LoadingState.Loaded && blockProducersState.data.isNullOrEmpty().not() -> {
+                val blockProducers = blockProducersState.data!!
 
-                SearchValidatorsState.Success(
-                    validators = validators,
-                    headerTitle = resourceManager.getString(R.string.common_search_results_number, validators.size)
+                SearchBlockProducersState.Success(
+                    blockProducers = blockProducers,
+                    headerTitle = resourceManager.getString(R.string.common_search_results_number, blockProducers.size)
                 )
             }
 
-            else -> SearchValidatorsState.NoResults
+            else -> SearchBlockProducersState.NoResults
         }
     }.share()
 
-    fun validatorClicked(validatorModel: ValidatorModel) {
-        if (validatorModel.validator.prefs!!.blocked) {
-            showError(resourceManager.getString(R.string.staking_custom_blocked_warning))
-            return
-        }
-
+    fun blockProducerClicked(validatorModel: SearchBlockProducerModel) {
         launch {
-            val newSelected = selectedValidators.first().toggle(validatorModel.validator)
-
-            sharedStateSetup.setCustomValidators(newSelected.toList())
+            val result = searchCustomBlockProducerInteractor.blockProducerSelected(validatorModel.address, sharedStateSetup, router.currentStackEntryLifecycle)
+            if (result.isFailure && result.exceptionOrNull() is BlockedValidatorException) {
+                showError(resourceManager.getString(R.string.staking_custom_blocked_warning))
+            }
         }
     }
 
@@ -144,7 +127,48 @@ class SearchCustomValidatorsViewModel(
         router.back()
     }
 
-    fun validatorInfoClicked(validatorModel: ValidatorModel) {
-        router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(validatorModel.validator))
+    fun blockProducerInfoClicked(validatorModel: SearchBlockProducerModel) {
+        launch {
+            searchCustomBlockProducerInteractor.navigateBlockProducerInfo(
+                validatorModel.address, router.currentStackEntryLifecycle,
+                {
+                    router.openCollatorDetails(
+                        CollatorDetailsParcelModel(
+                            it.address.requireHexPrefix().fromHex().toHexString(true),
+                            CollatorStakeParcelModel(
+                                status = it.status,
+                                selfBonded = it.bond,
+                                delegations = it.delegationCount.toInt(),
+                                totalStake = it.totalCounted,
+                                minBond = it.lowestTopDelegationAmount,
+                                estimatedRewards = it.apy,
+                            ),
+                            it.identity?.let { identity ->
+                                IdentityParcelModel(
+                                    display = identity.display,
+                                    legal = identity.legal,
+                                    web = identity.web,
+                                    riot = identity.riot,
+                                    email = identity.email,
+                                    pgpFingerprint = identity.pgpFingerprint,
+                                    image = identity.image,
+                                    twitter = identity.twitter,
+                                )
+                            },
+                            it.request.orEmpty(),
+                        )
+                    )
+                },
+                {
+                    router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(it))
+                }
+            )
+        }
+    }
+
+    private suspend fun SearchCustomBlockProducerInteractor.BlockProducer.toModel(
+        selected: Boolean
+    ): SearchBlockProducerModel {
+        return SearchBlockProducerModel(name, address, selected, rewardsPercent, searchCustomBlockProducerInteractor.getIcon(address, SIZE_MEDIUM))
     }
 }

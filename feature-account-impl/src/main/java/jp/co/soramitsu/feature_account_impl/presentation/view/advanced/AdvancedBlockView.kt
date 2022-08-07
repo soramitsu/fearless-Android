@@ -13,14 +13,7 @@ import jp.co.soramitsu.common.view.InputField
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.feature_account_api.presentation.importing.ImportAccountType
 import jp.co.soramitsu.feature_account_impl.R
-import kotlinx.android.synthetic.main.view_advanced_block.view.advancedTv
-import kotlinx.android.synthetic.main.view_advanced_block.view.advancedView
-import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumDerivationPathHint
-import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumDerivationPathInput
-import kotlinx.android.synthetic.main.view_advanced_block.view.ethereumEncryptionTypeInput
-import kotlinx.android.synthetic.main.view_advanced_block.view.substrateDerivationPathHint
-import kotlinx.android.synthetic.main.view_advanced_block.view.substrateDerivationPathInput
-import kotlinx.android.synthetic.main.view_advanced_block.view.substrateEncryptionTypeInput
+import jp.co.soramitsu.feature_account_impl.databinding.ViewAdvancedBlockBinding
 
 class AdvancedBlockView @JvmOverloads constructor(
     context: Context,
@@ -56,39 +49,43 @@ class AdvancedBlockView @JvmOverloads constructor(
         toggle()
     }
 
+    private val binding: ViewAdvancedBlockBinding
+
     init {
-        View.inflate(context, R.layout.view_advanced_block, this)
+        inflate(context, R.layout.view_advanced_block, this)
+        binding = ViewAdvancedBlockBinding.bind(this)
+
         orientation = VERTICAL
 
-        advancedTv.setOnClickListener(showClickListener)
+        binding.advancedTv.setOnClickListener(showClickListener)
     }
 
     val substrateDerivationPathEditText: EditText
-        get() = substrateDerivationPathInput.content
+        get() = binding.substrateDerivationPathInput.content
 
     val substrateDerivationPathField: InputField
-        get() = substrateDerivationPathInput
+        get() = binding.substrateDerivationPathInput
 
     val substrateEncryptionTypeField: LabeledTextView
-        get() = substrateEncryptionTypeInput
+        get() = binding.substrateEncryptionTypeInput
 
     val ethereumDerivationPathEditText: EditText
-        get() = ethereumDerivationPathInput.content
+        get() = binding.ethereumDerivationPathInput.content
 
     val ethereumDerivationPathField: InputField
-        get() = ethereumDerivationPathInput
+        get() = binding.ethereumDerivationPathInput
 
     val ethereumEncryptionTypeField: LabeledTextView
-        get() = ethereumEncryptionTypeInput
+        get() = binding.ethereumEncryptionTypeInput
 
     val substrateDerivationPathHintView: TextView
-        get() = substrateDerivationPathHint
+        get() = binding.substrateDerivationPathHint
 
     val ethereumDerivationPathHintView: TextView
-        get() = ethereumDerivationPathHint
+        get() = binding.ethereumDerivationPathHint
 
     fun toggle() {
-        if (advancedView.visibility == View.VISIBLE) {
+        if (binding.advancedView.visibility == View.VISIBLE) {
             collapse()
         } else {
             expand()
@@ -96,18 +93,18 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun expand() {
-        advancedView.makeVisible()
-        advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_minus_24, 0)
+        binding.advancedView.makeVisible()
+        binding.advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_minus_24, 0)
     }
 
     fun collapse() {
-        advancedView.makeGone()
-        advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus_white_24, 0)
+        binding.advancedView.makeGone()
+        binding.advancedTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_plus_white_24, 0)
     }
 
     fun setOnSubstrateEncryptionTypeClickListener(clickListener: () -> Unit) {
-        substrateEncryptionTypeInput.setWholeClickListener {
-            maybeCallSelectorListener(substrateEncryptionTypeInput, clickListener)
+        binding.substrateEncryptionTypeInput.setWholeClickListener {
+            maybeCallSelectorListener(binding.substrateEncryptionTypeInput, clickListener)
         }
     }
 
@@ -120,7 +117,7 @@ class AdvancedBlockView @JvmOverloads constructor(
     }
 
     fun setSubstrateEncryption(encryption: String) {
-        substrateEncryptionTypeInput.setMessage(encryption)
+        binding.substrateEncryptionTypeInput.setMessage(encryption)
     }
 
     fun getEthereumDerivationPath(): String {

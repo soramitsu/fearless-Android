@@ -6,15 +6,12 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.databinding.ViewAccountInfoBinding
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
-import kotlinx.android.synthetic.main.view_account_info.view.accountAction
-import kotlinx.android.synthetic.main.view_account_info.view.accountAddressText
-import kotlinx.android.synthetic.main.view_account_info.view.accountIcon
-import kotlinx.android.synthetic.main.view_account_info.view.accountTitle
 
 class AccountInfoView @JvmOverloads constructor(
     context: Context,
@@ -22,8 +19,11 @@ class AccountInfoView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
+    private val binding: ViewAccountInfoBinding
+
     init {
-        View.inflate(context, R.layout.view_account_info, this)
+        inflate(context, R.layout.view_account_info, this)
+        binding = ViewAccountInfoBinding.bind(this)
 
         background = with(context) { addRipple(getCutCornersStateDrawable()) }
 
@@ -41,7 +41,7 @@ class AccountInfoView @JvmOverloads constructor(
             actionIcon?.let(::setActionIcon)
 
             val textVisible = typedArray.getBoolean(R.styleable.AccountInfoView_textVisible, true)
-            accountAddressText.visibility = if (textVisible) View.VISIBLE else View.GONE
+            binding.accountAddressText.visibility = if (textVisible) View.VISIBLE else View.GONE
 
             val enabled = typedArray.getBoolean(R.styleable.AccountInfoView_enabled, true)
             isEnabled = enabled
@@ -53,15 +53,15 @@ class AccountInfoView @JvmOverloads constructor(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
 
-        accountAction.setVisible(enabled)
+        binding.accountAction.setVisible(enabled)
     }
 
     fun setActionIcon(icon: Drawable) {
-        accountAction.setImageDrawable(icon)
+        binding.accountAction.setImageDrawable(icon)
     }
 
     fun setActionListener(clickListener: (View) -> Unit) {
-        accountAction.setOnClickListener(clickListener)
+        binding.accountAction.setOnClickListener(clickListener)
     }
 
     fun setWholeClickListener(listener: (View) -> Unit) {
@@ -71,22 +71,22 @@ class AccountInfoView @JvmOverloads constructor(
     }
 
     fun setTitle(accountName: String) {
-        accountTitle.text = accountName
+        binding.accountTitle.text = accountName
     }
 
     fun setText(address: String) {
-        accountAddressText.text = address
+        binding.accountAddressText.text = address
     }
 
     fun setAccountIcon(icon: Drawable) {
-        accountIcon.setImageDrawable(icon)
+        binding.accountIcon.setImageDrawable(icon)
     }
 
     fun hideBody() {
-        accountAddressText.makeGone()
+        binding.accountAddressText.makeGone()
     }
 
     fun showBody() {
-        accountAddressText.makeVisible()
+        binding.accountAddressText.makeVisible()
     }
 }

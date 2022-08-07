@@ -14,10 +14,10 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
@@ -28,11 +28,11 @@ class ConfirmUnbondModule {
     @ViewModelKey(ConfirmUnbondViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         router: StakingRouter,
         unbondInteractor: UnbondInteractor,
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
-        validationSystem: UnbondValidationSystem,
         iconGenerator: AddressIconGenerator,
         chainRegistry: ChainRegistry,
         externalAccountActions: ExternalAccountActions.Presentation,
@@ -41,12 +41,12 @@ class ConfirmUnbondModule {
         return ConfirmUnbondViewModel(
             router,
             interactor,
+            stakingRelayChainScenarioInteractor,
             unbondInteractor,
             resourceManager,
             validationExecutor,
             iconGenerator,
             chainRegistry,
-            validationSystem,
             externalAccountActions,
             payload
         )

@@ -1,38 +1,28 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.confirm.nominations
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.di.FeatureUtils
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_api.di.StakingFeatureApi
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmNominationsBinding
 import jp.co.soramitsu.feature_staking_impl.di.StakingFeatureComponent
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.ValidatorsAdapter
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.ValidatorModel
-import kotlinx.android.synthetic.main.fragment_confirm_nominations.confirmNominationsList
-import kotlinx.android.synthetic.main.fragment_confirm_nominations.confirmNominationsToolbar
 
-class ConfirmNominationsFragment : BaseFragment<ConfirmNominationsViewModel>(), ValidatorsAdapter.ItemHandler {
+class ConfirmNominationsFragment : BaseFragment<ConfirmNominationsViewModel>(R.layout.fragment_confirm_nominations), ValidatorsAdapter.ItemHandler {
 
     lateinit var adapter: ValidatorsAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_confirm_nominations, container, false)
-    }
+    private val binding by viewBinding(FragmentConfirmNominationsBinding::bind)
 
     override fun initViews() {
         adapter = ValidatorsAdapter(this)
-        confirmNominationsList.adapter = adapter
+        binding.confirmNominationsList.adapter = adapter
 
-        confirmNominationsList.setHasFixedSize(true)
+        binding.confirmNominationsList.setHasFixedSize(true)
 
-        confirmNominationsToolbar.setHomeButtonListener {
+        binding.confirmNominationsToolbar.setHomeButtonListener {
             viewModel.backClicked()
         }
     }
@@ -50,7 +40,7 @@ class ConfirmNominationsFragment : BaseFragment<ConfirmNominationsViewModel>(), 
     override fun subscribe(viewModel: ConfirmNominationsViewModel) {
         viewModel.selectedValidatorsLiveData.observe(adapter::submitList)
 
-        viewModel.toolbarTitle.observe(confirmNominationsToolbar::setTitle)
+        viewModel.toolbarTitle.observe(binding.confirmNominationsToolbar::setTitle)
     }
 
     override fun validatorInfoClicked(validatorModel: ValidatorModel) {

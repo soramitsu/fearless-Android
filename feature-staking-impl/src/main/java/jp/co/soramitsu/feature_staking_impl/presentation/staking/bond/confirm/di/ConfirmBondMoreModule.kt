@@ -14,10 +14,10 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.bond.BondMoreInteractor
-import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 
 @Module(includes = [ViewModelModule::class])
@@ -32,11 +32,11 @@ class ConfirmBondMoreModule {
         bondMoreInteractor: BondMoreInteractor,
         resourceManager: ResourceManager,
         validationExecutor: ValidationExecutor,
-        validationSystem: BondMoreValidationSystem,
         chainRegistry: ChainRegistry,
         iconGenerator: AddressIconGenerator,
         externalAccountActions: ExternalAccountActions.Presentation,
         payload: ConfirmBondMorePayload,
+        stakingScenarioInteractor: StakingScenarioInteractor
     ): ViewModel {
         return ConfirmBondMoreViewModel(
             router,
@@ -45,10 +45,10 @@ class ConfirmBondMoreModule {
             resourceManager,
             validationExecutor,
             iconGenerator,
-            validationSystem,
             chainRegistry,
             externalAccountActions,
-            payload
+            payload,
+            stakingScenarioInteractor
         )
     }
 

@@ -15,6 +15,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.validators.current.CurrentVal
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.current.CurrentValidatorsViewModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 
 @Module(includes = [ViewModelModule::class])
 class CurrentValidatorsModule {
@@ -24,6 +25,7 @@ class CurrentValidatorsModule {
     @ViewModelKey(CurrentValidatorsViewModel::class)
     fun provideViewModel(
         stakingInteractor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         resourceManager: ResourceManager,
         iconGenerator: AddressIconGenerator,
         currentValidatorsInteractor: CurrentValidatorsInteractor,
@@ -34,6 +36,7 @@ class CurrentValidatorsModule {
             router,
             resourceManager,
             stakingInteractor,
+            stakingRelayChainScenarioInteractor,
             iconGenerator,
             currentValidatorsInteractor,
             setupStakingSharedState

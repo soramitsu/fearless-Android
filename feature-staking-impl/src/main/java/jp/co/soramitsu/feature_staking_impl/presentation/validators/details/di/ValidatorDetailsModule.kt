@@ -13,10 +13,53 @@ import jp.co.soramitsu.common.di.viewmodel.ViewModelModule
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
+import jp.co.soramitsu.feature_staking_impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.CollatorDetailsViewModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsViewModel
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+
+@Module(includes = [ViewModelModule::class])
+class CollatorDetailsModule {
+
+    @Provides
+    @IntoMap
+    @ViewModelKey(CollatorDetailsViewModel::class)
+    fun provideCollatorViewModel(
+        interactor: StakingInteractor,
+        router: StakingRouter,
+        collator: CollatorDetailsParcelModel,
+        addressIconGenerator: AddressIconGenerator,
+        externalAccountActions: ExternalAccountActions.Presentation,
+        appLinksProvider: AppLinksProvider,
+        resourceManager: ResourceManager,
+        chainRegistry: ChainRegistry,
+        rewardCalculatorFactory: RewardCalculatorFactory
+    ): ViewModel {
+        return CollatorDetailsViewModel(
+            interactor,
+            router,
+            collator,
+            addressIconGenerator,
+            externalAccountActions,
+            appLinksProvider,
+            resourceManager,
+            chainRegistry,
+            rewardCalculatorFactory
+        )
+    }
+
+    @Provides
+    fun provideCollatorViewModelCreator(
+        fragment: Fragment,
+        viewModelFactory: ViewModelProvider.Factory
+    ): CollatorDetailsViewModel {
+        return ViewModelProvider(fragment, viewModelFactory).get(CollatorDetailsViewModel::class.java)
+    }
+}
 
 @Module(includes = [ViewModelModule::class])
 class ValidatorDetailsModule {
@@ -26,6 +69,7 @@ class ValidatorDetailsModule {
     @ViewModelKey(ValidatorDetailsViewModel::class)
     fun provideViewModel(
         interactor: StakingInteractor,
+        stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
         router: StakingRouter,
         validator: ValidatorDetailsParcelModel,
         addressIconGenerator: AddressIconGenerator,
@@ -36,6 +80,7 @@ class ValidatorDetailsModule {
     ): ViewModel {
         return ValidatorDetailsViewModel(
             interactor,
+            stakingRelayChainScenarioInteractor,
             router,
             validator,
             addressIconGenerator,

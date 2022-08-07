@@ -53,6 +53,7 @@ import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.Confirm
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.detail.PayoutDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.StakingBalanceFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.bond.select.SelectBondMoreFragment
@@ -67,7 +68,12 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.select.SelectUnbondPayload
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.CollatorDetailsFragment
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
@@ -83,11 +89,12 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.extri
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.transfer.TransferDetailFragment
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
-import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class NavComponentDelayedNavigation(val globalActionId: Int, val extras: Bundle? = null) : DelayedNavigation
@@ -163,10 +170,10 @@ class Navigator :
 
         val navOptions = NavOptions.Builder()
             .setPopUpTo(R.id.pincodeFragment, true)
-            .setEnterAnim(R.anim.fragment_open_enter)
-            .setExitAnim(R.anim.fragment_open_exit)
-            .setPopEnterAnim(R.anim.fragment_close_enter)
-            .setPopExitAnim(R.anim.fragment_close_exit)
+            .setEnterAnim(R.animator.fragment_open_enter)
+            .setExitAnim(R.animator.fragment_open_exit)
+            .setPopEnterAnim(R.animator.fragment_close_enter)
+            .setPopExitAnim(R.animator.fragment_close_exit)
             .build()
 
         navController?.navigate(delayedNavigation.globalActionId, delayedNavigation.extras, navOptions)
@@ -225,6 +232,10 @@ class Navigator :
         navController?.navigate(R.id.openStartChangeValidatorsFragment)
     }
 
+    override fun openStartChangeCollators() {
+        navController?.navigate(R.id.openStartChangeCollatorsFragment)
+    }
+
     override fun openStory(story: StoryGroupModel) {
         navController?.navigate(R.id.open_staking_story, StoryFragment.getBundle(story))
     }
@@ -241,8 +252,9 @@ class Navigator :
         navController?.navigate(R.id.action_open_confirm_payout, ConfirmPayoutFragment.getBundle(payload))
     }
 
-    override fun openStakingBalance() {
-        navController?.navigate(R.id.action_mainFragment_to_stakingBalanceFragment)
+    override fun openStakingBalance(collatorAddress: String?) {
+        val bundle = collatorAddress?.let { StakingBalanceFragment.getBundle(it) }
+        navController?.navigate(R.id.action_mainFragment_to_stakingBalanceFragment, bundle)
     }
 
     override fun openBondMore(payload: SelectBondMorePayload) {
@@ -257,8 +269,8 @@ class Navigator :
         navController?.navigate(R.id.action_return_to_staking_balance)
     }
 
-    override fun openSelectUnbond() {
-        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment)
+    override fun openSelectUnbond(payload: SelectUnbondPayload) {
+        navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment, SelectUnbondFragment.getBundle(payload))
     }
 
     override fun openConfirmUnbond(payload: ConfirmUnbondPayload) {
@@ -351,6 +363,14 @@ class Navigator :
         )
     }
 
+    override fun openRecommendedCollators() {
+        navController?.navigate(R.id.action_startChangeCollatorsFragment_to_recommendedCollatorsFragment)
+    }
+
+    override fun openSelectCustomCollators() {
+        navController?.navigate(R.id.action_startChangeCollatorsFragment_to_selectCustomCollatorsFragment)
+    }
+
     override fun openRecommendedValidators() {
         navController?.navigate(R.id.action_startChangeValidatorsFragment_to_recommendedValidatorsFragment)
     }
@@ -359,12 +379,22 @@ class Navigator :
         navController?.navigate(R.id.action_startChangeValidatorsFragment_to_selectCustomValidatorsFragment)
     }
 
-    override fun openCustomValidatorsSettings() {
-        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_settingsCustomValidatorsFragment)
+    override fun openCustomValidatorsSettingsFromValidator() {
+        val bundle = CustomValidatorsSettingsFragment.getBundle(Chain.Asset.StakingType.RELAYCHAIN)
+        navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_settingsCustomValidatorsFragment, bundle)
+    }
+
+    override fun openCustomValidatorsSettingsFromCollator() {
+        val bundle = CustomValidatorsSettingsFragment.getBundle(Chain.Asset.StakingType.PARACHAIN)
+        navController?.navigate(R.id.action_selectCustomCollatorsFragment_to_settingsCustomValidatorsFragment, bundle)
     }
 
     override fun openSearchCustomValidators() {
         navController?.navigate(R.id.action_selectCustomValidatorsFragment_to_searchCustomValidatorsFragment)
+    }
+
+    override fun openSearchCustomCollators() {
+        navController?.navigate(R.id.action_selectCustomCollatorsFragment_to_searchCustomValidatorsFragment)
     }
 
     override fun openReviewCustomValidators() {
@@ -385,6 +415,10 @@ class Navigator :
 
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
         navController?.navigate(R.id.open_validator_details, ValidatorDetailsFragment.getBundle(validatorDetails))
+    }
+
+    override fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel) {
+        navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
     override fun openChooseRecipient(assetPayload: AssetPayload) {
