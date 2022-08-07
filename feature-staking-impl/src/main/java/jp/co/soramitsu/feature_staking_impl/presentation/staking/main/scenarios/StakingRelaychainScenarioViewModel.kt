@@ -176,7 +176,7 @@ class StakingRelaychainScenarioViewModel(
                 WARNING_ICON,
                 resourceManager.getString(R.string.staking_set_validators_title),
                 resourceManager.getString(R.string.staking_set_validators_message),
-                AlertModel.Type.CallToAction { baseViewModel.openCurrentValidators() }
+                AlertModel.Type.CallToAction { baseViewModel.openChangeValidators() }
             )
             else -> error("Wrong alert type")
         }

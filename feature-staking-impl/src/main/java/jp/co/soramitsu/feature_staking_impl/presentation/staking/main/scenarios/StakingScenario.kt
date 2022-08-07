@@ -75,6 +75,7 @@ class StakingScenario(
 interface BaseStakingViewModel {
     val stakingStateScope: CoroutineScope
     fun openCurrentValidators()
+    fun openChangeValidators()
     fun redeemAlertClicked()
     fun bondMoreAlertClicked()
     fun showError(throwable: Throwable)

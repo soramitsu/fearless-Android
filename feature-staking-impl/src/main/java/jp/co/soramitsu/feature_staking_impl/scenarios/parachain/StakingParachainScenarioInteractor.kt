@@ -508,7 +508,7 @@ class StakingParachainScenarioInteractor(
         return stakingParachainScenarioRepository.getBottomDelegations(chainId, addresses20)
     }
 
-    override fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure> {
+    override suspend fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure> {
         return ValidationSystem(
             CompositeValidation(
                 listOf(

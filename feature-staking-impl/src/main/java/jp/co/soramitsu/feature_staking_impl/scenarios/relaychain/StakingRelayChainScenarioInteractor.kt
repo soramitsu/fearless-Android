@@ -509,7 +509,7 @@ class StakingRelayChainScenarioInteractor(
         return getEraHoursLength()
     }
 
-    override fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure> {
+    override suspend fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure> {
         return ValidationSystem(
             CompositeValidation(
                 listOf(

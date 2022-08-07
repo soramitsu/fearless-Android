@@ -21,7 +21,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
-import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -137,16 +136,12 @@ class StakingInteractor(
         return chainRegistry.getChain(chainId)
     }
 
-    fun feeValidation(): SetupStakingFeeValidation {
+    suspend fun feeValidation(): SetupStakingFeeValidation {
+        val asset = currentAssetFlow().first()
+
         return EnoughToPayFeesValidation(
             feeExtractor = { it.maxFee },
-            availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
-                accountRepository,
-                walletRepository,
-                originAddressExtractor = { it.controllerAddress },
-                chainAssetExtractor = { it.asset.token.configuration },
-                stakingSharedState = stakingSharedState
-            ),
+            availableBalanceProducer = { asset.transferable },
             errorProducer = { SetupStakingValidationFailure.CannotPayFee },
             extraAmountExtractor = { it.bondAmount ?: BigDecimal.ZERO }
         )

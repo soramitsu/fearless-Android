@@ -52,7 +52,7 @@ interface StakingScenarioInteractor {
     // round for parachain
     suspend fun stakePeriodInHours(): Int
     suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination
-    fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>
+    suspend fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure>
     fun getRedeemValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
     fun getBondMoreValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
     fun getUnbondingValidation(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>

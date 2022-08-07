@@ -147,6 +147,11 @@ class StakingViewModel(
         router.openCurrentValidators()
     }
 
+    override fun openChangeValidators() {
+        setupStakingSharedState.set(SetupStakingProcess.SelectBlockProducersStep.Validators(SetupStakingProcess.SelectBlockProducersStep.Payload.ExistingStash))
+        router.openStartChangeValidators()
+    }
+
     override fun bondMoreAlertClicked() {
         stakingStateScope.launch {
             val vm = scenarioViewModelFlow.first()
