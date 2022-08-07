@@ -227,7 +227,12 @@ class ConfirmStakingViewModel(
                     is SetupStakingProcess.ReadyToSubmit.Parachain -> {
                         val collator = currentProcessState.payload.blockProducers.first()
                         val amount = bondPayload?.amount ?: error("Amount cant be null")
-                        val delegationCount = (scenarioInteractor.stakingStateFlow.first() as StakingState.Parachain.Delegator).delegations.size
+                        val delegationCount = when (val state = scenarioInteractor.stakingStateFlow.first()) {
+                            is StakingState.Parachain.Delegator -> state.delegations.size
+                            is StakingState.Parachain.Collator -> 0 // todo add collators support
+                            is StakingState.Parachain.None -> 0
+                            else -> 0
+                        }
                         setupStakingInteractor.estimateFinalParachainFee(collator, it.planksFromAmount(amount), delegationCount)
                     }
                 }
@@ -287,7 +292,12 @@ class ConfirmStakingViewModel(
                 val token = controllerAssetFlow.first().token
                 val collator = currentProcessState.payload.blockProducers.first()
                 val amount = bondPayload?.amount ?: error("Amount cant be null")
-                val delegationCount = (scenarioInteractor.stakingStateFlow.first() as StakingState.Parachain.Delegator).delegations.size
+                val delegationCount = when (val state = scenarioInteractor.stakingStateFlow.first()) {
+                    is StakingState.Parachain.Delegator -> state.delegations.size
+                    is StakingState.Parachain.Collator -> 0 // todo add collators support
+                    is StakingState.Parachain.None -> 0
+                    else -> 0
+                }
                 val accountAddress = (scenarioInteractor.stakingStateFlow.first() as StakingState.Parachain).accountAddress
                 setupStakingInteractor.setupStaking(collator, token.planksFromAmount(amount), delegationCount, accountAddress)
             }

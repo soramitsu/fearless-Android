@@ -66,6 +66,7 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
         observeValidations(viewModel)
 
         viewModel.showNextProgress.observe(binding.unbondContinue::setProgress)
+        viewModel.showNextProgress.observe(binding.unbondConfirm::setProgress)
 
         viewModel.assetModelFlow.observe {
             binding.unbondAmount.setAssetBalance(it.assetBalance)

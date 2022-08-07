@@ -68,6 +68,8 @@ class StakingBalanceViewModel(
         it.redeemable.amount > BigDecimal.ZERO
     }.asLiveData()
 
+    val pendingAction = MutableLiveData(false)
+
     val shouldBlockActionButtons = stakingBalanceModelLiveData.map {
         val isParachain = assetFlow.first().token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
         (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
@@ -167,10 +169,16 @@ class StakingBalanceViewModel(
         block: (ManageStakingValidationPayload) -> Unit,
     ) {
         launch {
+            pendingAction.value = true
             val stakingState = stakingScenarioInteractor.getSelectedAccountStakingState()
             validationExecutor.requireValid(
                 validationSystem,
                 ManageStakingValidationPayload(stakingState as? StakingState.Stash),
+                progressConsumer = {
+                    if (it.not()) {
+                        pendingAction.value = false
+                    }
+                },
                 validationFailureTransformer = { manageStakingActionValidationFailure(it, resourceManager) },
                 block = block
             )
