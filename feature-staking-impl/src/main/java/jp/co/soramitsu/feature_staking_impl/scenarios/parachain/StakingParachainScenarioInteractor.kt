@@ -650,7 +650,7 @@ class StakingParachainScenarioInteractor(
         )
     )
 
-    override fun provideBondMoreValidationSystem() = BondMoreValidationSystem(
+    override suspend fun provideBondMoreValidationSystem() = BondMoreValidationSystem(
         validation = CompositeValidation(
             validations = listOf(
                 EnoughToPayFeesValidation(

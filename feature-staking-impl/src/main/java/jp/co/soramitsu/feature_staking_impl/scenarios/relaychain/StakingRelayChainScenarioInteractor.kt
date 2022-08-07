@@ -67,7 +67,6 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemFee
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
-import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
@@ -87,7 +86,6 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
-import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -658,28 +656,26 @@ class StakingRelayChainScenarioInteractor(
         )
     )
 
-    override fun provideBondMoreValidationSystem() = BondMoreValidationSystem(
-        validation = CompositeValidation(
-            validations = listOf(
-                EnoughToPayFeesValidation(
-                    feeExtractor = { it.fee },
-                    availableBalanceProducer = SetupStakingFeeValidation.assetBalanceProducer(
-                        accountRepository,
-                        walletRepository,
-                        originAddressExtractor = { it.stashAddress },
-                        chainAssetExtractor = { it.chainAsset },
-                        stakingSharedState = stakingSharedState
+    override suspend fun provideBondMoreValidationSystem(): BondMoreValidationSystem {
+        val asset = stakingInteractor.currentAssetFlow().first()
+
+        return BondMoreValidationSystem(
+            validation = CompositeValidation(
+                validations = listOf(
+                    EnoughToPayFeesValidation(
+                        feeExtractor = { it.fee },
+                        availableBalanceProducer = { asset.transferable },
+                        errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
+                        extraAmountExtractor = { it.amount }
                     ),
-                    errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
-                    extraAmountExtractor = { it.amount }
-                ),
-                NotZeroBondValidation(
-                    amountExtractor = BondMoreValidationPayload::amount,
-                    errorProvider = { BondMoreValidationFailure.ZERO_BOND }
+                    NotZeroBondValidation(
+                        amountExtractor = BondMoreValidationPayload::amount,
+                        errorProvider = { BondMoreValidationFailure.ZERO_BOND }
+                    )
                 )
             )
         )
-    )
+    }
 }
 
 class EraRelativeInfo(

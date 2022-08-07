@@ -76,7 +76,6 @@ class StakingBalanceViewModel(
     val shouldBlockUnstake = stakingBalanceModelLiveData.map {
         val asset = assetFlow.first()
         val isParachain = asset.token.configuration.staking == Chain.Asset.StakingType.PARACHAIN
-        hashCode()
         if (asset.token.planksFromAmount(it.staked.amount) == BigInteger.ZERO) return@map true else
             (it.redeemable.amount + it.unstaking.amount > BigDecimal.ZERO).and(isParachain)
     }.onStart { emit(true) }.asLiveData()

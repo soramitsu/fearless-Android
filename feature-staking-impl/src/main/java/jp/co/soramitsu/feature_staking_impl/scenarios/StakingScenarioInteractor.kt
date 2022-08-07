@@ -84,5 +84,5 @@ interface StakingScenarioInteractor {
     fun getUnbondValidationSystem(): UnbondValidationSystem
     fun getRebondValidationSystem(): RebondValidationSystem
     fun provideRedeemValidationSystem(): RedeemValidationSystem
-    fun provideBondMoreValidationSystem(): BondMoreValidationSystem
+    suspend fun provideBondMoreValidationSystem(): BondMoreValidationSystem
 }
