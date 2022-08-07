@@ -115,10 +115,6 @@ sealed class StakeViewState<S>(
     private val availableManageActions: Set<ManageStakeAction>
 ) : StakingViewState() {
 
-    init {
-        syncStakingRewards()
-    }
-
     val manageStakingActionsButtonVisible = availableManageActions.isNotEmpty()
 
     private val _showManageActionsEvent = MutableLiveData<Event<ManageStakingBottomSheet.Payload>>()
@@ -156,7 +152,7 @@ sealed class StakeViewState<S>(
         _showStatusAlertEvent.value = Event(titleAndMessage)
     }
 
-    private fun syncStakingRewards() {
+    protected fun syncStakingRewards() {
         scope.launch {
             val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.rewardsAddress)
 
@@ -207,7 +203,11 @@ class ValidatorViewState(
     summaryFlowProvider = { relayChainScenarioInteractor.observeValidatorSummary(validatorState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
-)
+) {
+    init {
+        syncStakingRewards()
+    }
+}
 
 private fun getValidatorStatusTitleAndMessage(
     resourceManager: ResourceManager,
@@ -237,7 +237,11 @@ class StashNoneViewState(
     summaryFlowProvider = { relayChainScenarioInteractor.observeStashSummary(stashState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getStashStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.PAYOUTS
-)
+) {
+    init {
+        syncStakingRewards()
+    }
+}
 
 private fun getStashStatusTitleAndMessage(
     resourceManager: ResourceManager,
@@ -265,7 +269,11 @@ class NominatorViewState(
     summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet()
-)
+) {
+    init {
+        syncStakingRewards()
+    }
+}
 
 private fun getNominatorStatusTitleAndMessage(
     resourceManager: ResourceManager,
