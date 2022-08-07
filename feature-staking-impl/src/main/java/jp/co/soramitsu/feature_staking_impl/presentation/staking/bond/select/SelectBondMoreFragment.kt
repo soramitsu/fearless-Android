@@ -67,6 +67,7 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fr
         observeValidations(viewModel)
 
         viewModel.showNextProgress.observe(binding.bondMoreContinue::setProgress)
+        viewModel.showNextProgress.observe(binding.bondMoreConfirm::setProgress)
 
         viewModel.assetModelFlow.observe {
             binding.bondMoreAmount.setAssetBalance(it.assetBalance)
