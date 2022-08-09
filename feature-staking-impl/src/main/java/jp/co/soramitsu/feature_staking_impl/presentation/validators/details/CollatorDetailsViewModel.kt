@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import java.math.BigDecimal
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
