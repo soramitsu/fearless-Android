@@ -1,18 +1,21 @@
 package jp.co.soramitsu.feature_account_impl.presentation.about
 
 import android.content.Context
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
-import javax.inject.Inject
 
 @HiltViewModel
 class AboutViewModel @Inject constructor(
@@ -21,6 +24,10 @@ class AboutViewModel @Inject constructor(
     private val appLinksProvider: AppLinksProvider,
     resourceManager: ResourceManager
 ) : BaseViewModel(), Browserable {
+
+    private val _uiState = mutableStateOf<LoadingState<AboutState>>(LoadingState.Loading())
+    val uiState: State<LoadingState<AboutState>>
+        get() = _uiState
 
     private val _websiteLiveData = MutableLiveData<String>()
     val websiteLiveData: LiveData<String> = _websiteLiveData
