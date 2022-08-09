@@ -50,6 +50,7 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
             stakingBalanceUnbondings.setMoreActionClickListener {
                 viewModel.unbondingsMoreClicked()
             }
+            stakingBalanceUnbondings.title.setText(R.string.staking_history_title)
         }
     }
 
@@ -93,11 +94,20 @@ class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fr
             binding.stakingBalanceUnbondings.unbondingsMoreAction.isEnabled = it
         }
 
+        viewModel.pendingAction.observe {
+            binding.stakingBalanceActions.bondMore.isEnabled = it.not()
+            binding.stakingBalanceActions.unbond.isEnabled = it.not()
+            binding.stakingBalanceActions.redeem.isEnabled = it.not()
+        }
+
         viewModel.redeemEnabledLiveData.observe {
             binding.stakingBalanceActions.redeem.isEnabled = it
         }
-        viewModel.hasScheduledRequestsLiveData.observe {
+        viewModel.shouldBlockActionButtons.observe {
             binding.stakingBalanceActions.bondMore.isEnabled = it.not()
+        }
+
+        viewModel.shouldBlockUnstake.observe {
             binding.stakingBalanceActions.unbond.isEnabled = it.not()
         }
 

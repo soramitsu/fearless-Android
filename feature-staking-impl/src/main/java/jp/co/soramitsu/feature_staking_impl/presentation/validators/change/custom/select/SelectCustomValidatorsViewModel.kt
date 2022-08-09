@@ -57,6 +57,8 @@ class SelectCustomValidatorsViewModel(
     private val settingsStorage: SettingsStorage
 ) : BaseViewModel() {
 
+    val state = setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()
+
     private val validatorRecommendator by lazyAsync {
         validatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
     }
@@ -137,6 +139,19 @@ class SelectCustomValidatorsViewModel(
 
     init {
         observeExternalSelectionChanges()
+
+        setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()?.sortingSet
+            ?: setupStakingSharedState.getOrNull<SetupStakingProcess.ReadyToSubmit.Stash>()?.sortingSet?.let {
+                settingsStorage.currentSortingSet.value = it
+            }
+        setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()?.filtersSet
+            ?: setupStakingSharedState.getOrNull<SetupStakingProcess.ReadyToSubmit.Stash>()?.filtersSet?.let {
+                settingsStorage.currentFiltersSet.value = it
+            }
+        setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()?.quickFilters
+            ?: setupStakingSharedState.getOrNull<SetupStakingProcess.ReadyToSubmit.Stash>()?.quickFilters?.let {
+                settingsStorage.quickFilters = it
+            }
 
         launch {
             settingsStorage.schema.collect {

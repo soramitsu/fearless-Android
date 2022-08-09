@@ -53,12 +53,31 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAc
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceUnlockingLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.BondMoreValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.bond.NotZeroBondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.EnoughToRebondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.NotZeroRebondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondFeeValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemFeeValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.MinimumAmountValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingMaximumNominatorsValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakingValidationFailure
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.CrossExistentialValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.EnoughToUnbondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.NotZeroUnbondValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondFeeValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondLimitValidation
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationPayload
+import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
@@ -66,6 +85,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
 import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
+import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -76,6 +96,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -171,7 +192,7 @@ class StakingRelayChainScenarioInteractor(
             isNominationActive(nominatorState.stashId, it.eraStakers.values, it.rewardedNominatorsPerValidator) -> NominatorStatus.Active
 
             nominatorState.nominations.isWaiting(it.activeEraIndex) -> NominatorStatus.Waiting(
-                timeLeft = getCalculator().calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
+                timeLeft = getCalculator(chainId).calculate(nominatorState.nominations.submittedInEra + ERA_OFFSET).toLong()
             )
 
             else -> {
@@ -224,8 +245,8 @@ class StakingRelayChainScenarioInteractor(
         return stashIdHex in exposures.keys
     }
 
-    private suspend fun getCalculator(): EraTimeCalculator {
-        return factory.create(stakingSharedState.chainId())
+    private suspend fun getCalculator(chainId: String): EraTimeCalculator {
+        return factory.create(chainId)
     }
 
     fun selectedAccountStakingStateFlow(
@@ -260,10 +281,11 @@ class StakingRelayChainScenarioInteractor(
         amountInPlanks: BigInteger,
         stashState: StakingState,
         currentBondedBalance: BigInteger,
-        candidate: String?
+        candidate: String?,
+        chilled: Boolean
     ) {
         require(stashState is StakingState.Stash)
-        extrinsicBuilder.constructUnbondExtrinsic(stashState, currentBondedBalance, amountInPlanks)
+        extrinsicBuilder.constructUnbondExtrinsic(stashState, currentBondedBalance, amountInPlanks, chilled)
     }
 
     override suspend fun confirmRevoke(
@@ -349,7 +371,7 @@ class StakingRelayChainScenarioInteractor(
             val allValidatorAddresses = payouts.map(Payout::validatorAddress).distinct()
             val identityMapping = identityRepository.getIdentitiesFromAddresses(currentStakingState.chain, allValidatorAddresses)
 
-            val calculator = getCalculator()
+            val calculator = getCalculator(chainId)
             val pendingPayouts = payouts.map {
                 val relativeInfo = eraRelativeInfo(it.era, activeEraIndex, historyDepth, erasPerDay)
 
@@ -413,7 +435,7 @@ class StakingRelayChainScenarioInteractor(
     }
 
     override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
-        val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainId).first().values
+        val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainId).firstOrNull()?.values ?: emptyList()
         val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainId)
         return minimumStake(exposures, minimumNominatorBond)
     }
@@ -431,7 +453,7 @@ class StakingRelayChainScenarioInteractor(
         return selectedAccountStakingStateFlow()
             .filterIsInstance<StakingState.Stash>()
             .flatMapLatest { stash ->
-                val calculator = getCalculator()
+                val calculator = getCalculator(stash.chain.id)
 
                 combine(
                     stakingRelayChainScenarioRepository.ledgerFlow(stash),
@@ -487,7 +509,7 @@ class StakingRelayChainScenarioInteractor(
         return getEraHoursLength()
     }
 
-    override fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure> {
+    override suspend fun getSetupStakingValidationSystem(): ValidationSystem<SetupStakingPayload, SetupStakingValidationFailure> {
         return ValidationSystem(
             CompositeValidation(
                 listOf(
@@ -567,17 +589,93 @@ class StakingRelayChainScenarioInteractor(
     private suspend fun ExtrinsicBuilder.constructUnbondExtrinsic(
         stashState: StakingState.Stash,
         currentBondedBalance: BigInteger,
-        unbondAmount: BigInteger
-    ) = // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
+        unbondAmount: BigInteger,
+        chilled: Boolean = true
+    ): ExtrinsicBuilder {
+        // see https://github.com/paritytech/substrate/blob/master/frame/staking/src/lib.rs#L1614
         // if account is nominating
-        if (stashState is StakingState.Stash.Nominator &&
+        return if (stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
-            currentBondedBalance - unbondAmount < stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.id)
+            currentBondedBalance - unbondAmount < stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.id) &&
+            chilled.not()
         ) {
             chill()
         } else {
             unbond(unbondAmount)
         }
+    }
+
+    override fun getUnbondValidationSystem() = UnbondValidationSystem(
+        CompositeValidation(
+            validations = listOf(
+                UnbondFeeValidation(
+                    feeExtractor = { it.fee },
+                    availableBalanceProducer = { it.asset.transferable },
+                    errorProducer = { UnbondValidationFailure.CannotPayFees }
+                ),
+                NotZeroUnbondValidation(
+                    amountExtractor = { it.amount },
+                    errorProvider = { UnbondValidationFailure.ZeroUnbond }
+                ),
+                UnbondLimitValidation(
+                    stakingScenarioInteractor = this,
+                    errorProducer = UnbondValidationFailure::UnbondLimitReached
+                ),
+                EnoughToUnbondValidation(this),
+                CrossExistentialValidation(this)
+            )
+        )
+    )
+
+    override fun getRebondValidationSystem() = RebondValidationSystem(
+        CompositeValidation(
+            validations = listOf(
+                RebondFeeValidation(
+                    feeExtractor = { it.fee },
+                    availableBalanceProducer = { it.controllerAsset.transferable },
+                    errorProducer = { RebondValidationFailure.CANNOT_PAY_FEE }
+                ),
+                NotZeroRebondValidation(
+                    amountExtractor = { it.rebondAmount },
+                    errorProvider = { RebondValidationFailure.ZERO_AMOUNT }
+                ),
+                EnoughToRebondValidation(this)
+            )
+        )
+    )
+
+    override fun provideRedeemValidationSystem() = RedeemValidationSystem(
+        CompositeValidation(
+            validations = listOf(
+                RedeemFeeValidation(
+                    feeExtractor = { it.fee },
+                    availableBalanceProducer = { it.asset.transferable },
+                    errorProducer = { RedeemValidationFailure.CANNOT_PAY_FEES }
+                )
+            )
+        )
+    )
+
+    override suspend fun provideBondMoreValidationSystem(): BondMoreValidationSystem {
+        val asset = stakingInteractor.currentAssetFlow().first()
+
+        return BondMoreValidationSystem(
+            validation = CompositeValidation(
+                validations = listOf(
+                    EnoughToPayFeesValidation(
+                        feeExtractor = { it.fee },
+                        availableBalanceProducer = { asset.transferable },
+                        errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
+                        extraAmountExtractor = { it.amount }
+                    ),
+                    NotZeroBondValidation(
+                        amountExtractor = BondMoreValidationPayload::amount,
+                        errorProvider = { BondMoreValidationFailure.ZERO_BOND }
+                    )
+                )
+            )
+        )
+    }
 }
 
 class EraRelativeInfo(

@@ -1,6 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
-import jp.co.soramitsu.common.utils.parachainStaking
+import jp.co.soramitsu.common.utils.parachainStakingOrNull
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
@@ -23,7 +23,7 @@ class DelegatorStateUpdater(
 
     override suspend fun storageKey(runtime: RuntimeSnapshot): String? {
         val accountId = scope.getAccountId() ?: return null
-        return runtime.metadata.parachainStaking().storage("DelegatorState").storageKey(runtime, accountId)
+        return runtime.metadata.parachainStakingOrNull()?.storage("DelegatorState")?.storageKey(runtime, accountId)
     }
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {

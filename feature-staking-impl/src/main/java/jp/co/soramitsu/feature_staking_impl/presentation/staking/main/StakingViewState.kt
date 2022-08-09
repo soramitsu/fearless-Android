@@ -115,10 +115,6 @@ sealed class StakeViewState<S>(
     private val availableManageActions: Set<ManageStakeAction>
 ) : StakingViewState() {
 
-    init {
-        syncStakingRewards()
-    }
-
     val manageStakingActionsButtonVisible = availableManageActions.isNotEmpty()
 
     private val _showManageActionsEvent = MutableLiveData<Event<ManageStakingBottomSheet.Payload>>()
@@ -156,7 +152,7 @@ sealed class StakeViewState<S>(
         _showStatusAlertEvent.value = Event(titleAndMessage)
     }
 
-    private fun syncStakingRewards() {
+    protected fun syncStakingRewards() {
         scope.launch {
             val syncResult = stakingInteractor.syncStakingRewards(stakeState.chain.id, stakeState.rewardsAddress)
 
@@ -204,10 +200,14 @@ class ValidatorViewState(
 ) : StakeViewState<ValidatorStatus>(
     validatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { relayChainScenarioInteractor.observeValidatorSummary(validatorState) },
+    summaryFlowProvider = { relayChainScenarioInteractor.observeValidatorSummary(validatorState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getValidatorStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.VALIDATORS
-)
+) {
+    init {
+        syncStakingRewards()
+    }
+}
 
 private fun getValidatorStatusTitleAndMessage(
     resourceManager: ResourceManager,
@@ -234,10 +234,14 @@ class StashNoneViewState(
 ) : StakeViewState<StashNoneStatus>(
     stashState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { relayChainScenarioInteractor.observeStashSummary(stashState) },
+    summaryFlowProvider = { relayChainScenarioInteractor.observeStashSummary(stashState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getStashStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet() - ManageStakeAction.PAYOUTS
-)
+) {
+    init {
+        syncStakingRewards()
+    }
+}
 
 private fun getStashStatusTitleAndMessage(
     resourceManager: ResourceManager,
@@ -262,10 +266,14 @@ class NominatorViewState(
 ) : StakeViewState<NominatorStatus>(
     nominatorState, currentAssetFlow, stakingInteractor,
     resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState) },
+    summaryFlowProvider = { relayChainScenarioInteractor.observeNominatorSummary(nominatorState).shareIn(scope, SharingStarted.Eagerly, replay = 1) },
     statusMessageProvider = { getNominatorStatusTitleAndMessage(resourceManager, it) },
     availableManageActions = ManageStakeAction.values().toSet()
-)
+) {
+    init {
+        syncStakingRewards()
+    }
+}
 
 private fun getNominatorStatusTitleAndMessage(
     resourceManager: ResourceManager,
@@ -372,9 +380,9 @@ class RelaychainWelcomeViewState(
     validationSystem,
     validationExecutor
 ) {
-    val chainId = currentAssetFlow.map { it.token.configuration.chainId }
+    val chainId = currentAssetFlow.filter { it.token.configuration.staking == Chain.Asset.StakingType.RELAYCHAIN }.map { it.token.configuration.chainId }
 
-    override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual() }
+    override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual(chainId.first()) }
 
     override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
         val chainId = asset.token.configuration.chainId
@@ -385,7 +393,7 @@ class RelaychainWelcomeViewState(
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
-    }.cancellable()
+    }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     override fun infoActionClicked() {
         scope.launch {
@@ -459,7 +467,7 @@ class ParachainWelcomeViewState(
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
 
         ReturnsModel(monthlyEstimation, yearlyEstimation)
-    }.distinctUntilChanged().cancellable()
+    }.distinctUntilChanged().cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     override fun infoActionClicked() {
         scope.launch {

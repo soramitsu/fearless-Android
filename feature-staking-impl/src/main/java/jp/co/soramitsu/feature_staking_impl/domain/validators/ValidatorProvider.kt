@@ -48,7 +48,7 @@ class ValidatorProvider(
         val identities = identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds)
         val slashes = stakingRepository.getSlashes(chainId, requestedValidatorIds)
 
-        val rewardCalculator = rewardCalculatorFactory.createManual(electedValidatorExposures, validatorPrefs)
+        val rewardCalculator = rewardCalculatorFactory.createManual(electedValidatorExposures, validatorPrefs, chainId)
         val maxNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
 
         return requestedValidatorIds.map { accountIdHex ->

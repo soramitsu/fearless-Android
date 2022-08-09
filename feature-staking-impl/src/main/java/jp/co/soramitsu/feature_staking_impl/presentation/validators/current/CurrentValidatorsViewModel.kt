@@ -148,16 +148,29 @@ class CurrentValidatorsViewModel(
 
     fun changeClicked() {
         launch {
-            val currentState = setupStakingSharedState.get<SetupStakingProcess.Initial>()
+            val currentStateInitial = setupStakingSharedState.getOrNull<SetupStakingProcess.Initial>()
+            val currentStateValidators = setupStakingSharedState.getOrNull<SetupStakingProcess.SelectBlockProducersStep.Validators>()
+            when {
+                currentStateInitial != null -> {
+                    val currentValidators = flattenCurrentValidators.first().map(NominatedValidator::validator)
 
-            val currentValidators = flattenCurrentValidators.first().map(NominatedValidator::validator)
+                    val newState = currentStateInitial.changeValidatorsFlow()
+                        .next(currentValidators, SelectionMethod.CUSTOM)
 
-            val newState = currentState.changeValidatorsFlow()
-                .next(currentValidators, SelectionMethod.CUSTOM)
+                    setupStakingSharedState.set(newState)
 
-            setupStakingSharedState.set(newState)
+                    router.openStartChangeValidators()
+                }
+                currentStateValidators != null -> {
+                    val currentValidators = flattenCurrentValidators.first().map(NominatedValidator::validator)
 
-            router.openStartChangeValidators()
+                    val newState = currentStateValidators.next(currentValidators, SelectionMethod.CUSTOM)
+
+                    setupStakingSharedState.set(newState)
+
+                    router.openStartChangeValidators()
+                }
+            }
         }
     }
 

@@ -1,10 +1,12 @@
 package jp.co.soramitsu.feature_staking_impl.scenarios.parachain
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.getList
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.parachainStaking
+import jp.co.soramitsu.common.utils.parachainStakingOrNull
 import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -32,8 +34,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 
 class StakingParachainScenarioRepository(
     private val remoteStorage: StorageDataSource,
@@ -49,25 +51,25 @@ class StakingParachainScenarioRepository(
                 null -> StakingState.Parachain.None(chain, accountId)
                 else -> StakingState.Parachain.Delegator(chain, accountId, it.toDelegations(), it.total.toBigDecimal())
             }
-        }
+        }.runCatching { this }.getOrDefault(emptyFlow())
     }
 
     private fun getDelegatorStateFlow(chainId: ChainId, accountId: AccountId): Flow<DelegatorState?> {
         return remoteStorage.observe(
             chainId = chainId,
             keyBuilder = {
-                it.metadata.parachainStaking().storage("DelegatorState").storageKey(it, accountId)
+                it.metadata.parachainStakingOrNull()?.storage("DelegatorState")?.storageKey(it, accountId)
             },
             binder = { scale, runtime ->
                 scale?.let { bindDelegatorState(it, runtime) }
             }
-        )
+        ).runCatching { this }.getOrDefault(emptyFlow())
     }
 
     suspend fun getDelegatorState(chainId: ChainId, accountId: AccountId) = localStorage.query(
         chainId = chainId,
         keyBuilder = {
-            it.metadata.parachainStaking().storage("DelegatorState").storageKey(it, accountId)
+            it.metadata.parachainStakingOrNull()?.storage("DelegatorState")?.storageKey(it, accountId)
         },
         binding = { scale, runtime ->
             scale?.let { bindDelegatorState(it, runtime) }
@@ -78,8 +80,8 @@ class StakingParachainScenarioRepository(
         return remoteStorage.query(
             chainId = chainId,
             keyBuilder = { runtime ->
-                val storage = runtime.metadata.parachainStaking().storage("AtStake")
-                storage.storageKey(runtime, currentRound, collatorId)
+                val storage = runtime.metadata.parachainStakingOrNull()?.storage("AtStake")
+                storage?.storageKey(runtime, currentRound, collatorId)
             },
             binding = { scale, runtime ->
                 scale?.let { bindAtStakeOfCollator(it, runtime) } ?: incompatible()
@@ -91,8 +93,8 @@ class StakingParachainScenarioRepository(
         return remoteStorage.query(
             chainId = chainId,
             keyBuilder = { runtime ->
-                val storage = runtime.metadata.parachainStaking().storage("Staked")
-                storage.storageKey(runtime, currentRound)
+                val storage = runtime.metadata.parachainStakingOrNull()?.storage("Staked")
+                storage?.storageKey(runtime, currentRound)
             },
             binding = { scale, runtime ->
                 scale?.let { bindStaked(it, runtime) } ?: incompatible()
@@ -111,19 +113,18 @@ class StakingParachainScenarioRepository(
                     singleMapArguments = addresses20,
                     argumentTransform = { it.toHexString() }
                 )
-            },
-            binding = { scale, runtime ->
-                scale?.let { bindCandidateInfo(it, runtime) } ?: incompatible()
             }
-        )
+        ) { scale, runtime ->
+            scale?.let { bindCandidateInfo(it, runtime) } ?: incompatible()
+        }
     }
 
     suspend fun getCandidateInfo(chainId: ChainId, collatorId: ByteArray): CandidateInfo {
         return remoteStorage.query(
             chainId = chainId,
             keyBuilder = { runtime ->
-                val storage = runtime.metadata.parachainStaking().storage("CandidateInfo")
-                storage.storageKey(
+                val storage = runtime.metadata.parachainStakingOrNull()?.storage("CandidateInfo")
+                storage?.storageKey(
                     runtime = runtime, collatorId
                 )
             },
@@ -137,7 +138,7 @@ class StakingParachainScenarioRepository(
         return remoteStorage.query(
             chainId,
             keyBuilder = { runtime ->
-                runtime.metadata.parachainStaking().storage("Round").storageKey()
+                runtime.metadata.parachainStakingOrNull()?.storage("Round")?.storageKey()
             },
             binding = { scale, runtime ->
                 scale?.let { bindRound(it, runtime) } ?: incompatible()
@@ -157,14 +158,14 @@ class StakingParachainScenarioRepository(
             runtime.metadata.parachainStaking().storage("DelegationScheduledRequests").storageKey(runtime, accountId)
         },
         binding = { scale, runtime ->
-            scale?.let { bindDelegationScheduledRequests(it, runtime) }
+            scale?.let { bindDelegationScheduledRequests(it, runtime) }.orEmpty()
         }
     )
 
     fun getDelegationScheduledRequestsFlow(chainId: ChainId, collatorId: AccountId) = remoteStorage.observe(
         chainId,
         keyBuilder = { runtime ->
-            runtime.metadata.parachainStaking().storage("DelegationScheduledRequests").storageKey(runtime, collatorId)
+            runtime.metadata.parachainStakingOrNull()?.storage("DelegationScheduledRequests")?.storageKey(runtime, collatorId)
         },
         binder = { scale, runtime ->
             scale?.let { bindDelegationScheduledRequests(it, runtime) }.orEmpty()
@@ -176,11 +177,10 @@ class StakingParachainScenarioRepository(
         keysBuilder = { runtime ->
             val storage = runtime.metadata.parachainStaking().storage("DelegationScheduledRequests")
             storage.storageKeys(runtime, singleMapArguments = collatorIds, argumentTransform = { it.toHexString() })
-        },
-        binding = { scale, runtime ->
-            scale?.let { bindDelegationScheduledRequests(it, runtime) }
         }
-    )
+    ) { scale, runtime ->
+        scale?.let { bindDelegationScheduledRequests(it, runtime) }.orEmpty()
+    }
 
     suspend fun getBottomDelegations(chainId: ChainId, addresses20: List<ByteArray>): AccountIdMap<List<Delegation>> {
         return remoteStorage.queryKeys(
@@ -192,18 +192,17 @@ class StakingParachainScenarioRepository(
                     singleMapArguments = addresses20,
                     argumentTransform = { it.toHexString() }
                 )
-            },
-            binding = { scale, runtime ->
-                scale?.let { bindDelegations(it, runtime) } ?: incompatible()
             }
-        )
+        ) { scale, runtime ->
+            scale?.let { bindDelegations(it, runtime) }.orEmpty()
+        }
     }
 }
 
 fun bindDelegations(scale: String, runtime: RuntimeSnapshot): List<Delegation> {
-    val type = runtime.metadata.parachainStaking().storage("BottomDelegations").returnType()
+    val type = runtime.metadata.parachainStakingOrNull()?.storage("BottomDelegations")?.returnType()
 
-    val dynamicInstance = type.fromHexOrNull(runtime, scale) ?: return emptyList()
+    val dynamicInstance = type?.fromHexOrNull(runtime, scale) ?: return emptyList()
     requireType<Struct.Instance>(dynamicInstance)
 
     return (dynamicInstance.getList("delegations")).map { it as Struct.Instance }
