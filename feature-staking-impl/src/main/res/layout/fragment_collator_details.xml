@@ -49,13 +49,13 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <jp.co.soramitsu.featurestakingimpl.presentation.validators.details.view.CollatorInfoView
+            <jp.co.soramitsu.staking.impl.presentation.validators.details.view.CollatorInfoView
                 android:id="@+id/collatorInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
 
-            <jp.co.soramitsu.featurestakingimpl.presentation.validators.details.view.ValidatorIdentityView
+            <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorIdentityView
                 android:id="@+id/collatorIdentity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

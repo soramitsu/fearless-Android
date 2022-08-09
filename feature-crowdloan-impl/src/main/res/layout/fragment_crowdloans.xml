@@ -19,7 +19,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:titleText="@string/parachain_crowdloans" />
 
-    <jp.co.soramitsu.featurewalletapi.presentation.view.AssetSelectorView
+    <jp.co.soramitsu.wallet.api.presentation.view.AssetSelectorView
         android:id="@+id/crowdloanAssetSelector"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

@@ -90,7 +90,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/balanceListTotalTitle" />
 
-        <jp.co.soramitsu.featurewalletimpl.presentation.balance.assetActions.AssetManageView
+        <jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.AssetManageView
             android:id="@+id/manageAssets"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

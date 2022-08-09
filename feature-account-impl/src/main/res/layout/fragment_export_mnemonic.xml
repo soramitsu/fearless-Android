@@ -36,7 +36,7 @@
                 app:label="@string/recovery_source_type"
                 app:message="@string/recovery_passphrase" />
 
-            <jp.co.soramitsu.featureaccountimpl.presentation.view.mnemonic.MnemonicViewer
+            <jp.co.soramitsu.account.impl.presentation.view.mnemonic.MnemonicViewer
                 android:id="@+id/exportMnemonicViewer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
                 android:layout_marginTop="18dp"
                 android:layout_marginEnd="16dp" />
 
-            <jp.co.soramitsu.featureaccountimpl.presentation.view.advanced.AdvancedBlockView
+            <jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/exportMnemonicAdvanced"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />

@@ -42,7 +42,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <jp.co.soramitsu.featurestakingimpl.presentation.staking.main.view.StakingInfoView
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/parachainMinimumStakeView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
             app:startWithLoading="true"
             app:titleText="@string/staking_main_minimum_stake_title" />
 
-        <jp.co.soramitsu.featurestakingimpl.presentation.staking.main.view.StakingInfoView
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/parachainLockUpPeriodView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

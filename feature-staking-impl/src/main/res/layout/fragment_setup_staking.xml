@@ -103,12 +103,12 @@
                 android:text="@string/staking_setup_reward_destination_section_title"
                 android:textColor="@color/white" />
 
-            <jp.co.soramitsu.featurestakingimpl.presentation.view.RewardDestinationChooserView
+            <jp.co.soramitsu.staking.impl.presentation.view.RewardDestinationChooserView
                 android:id="@+id/setupStakingRewardDestinationChooser"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <jp.co.soramitsu.featurestakingimpl.presentation.view.PayoutViewerView
+            <jp.co.soramitsu.staking.impl.presentation.view.PayoutViewerView
                 android:id="@+id/setupStakingPayoutViewer"
                 android:layout_width="match_parent"
                 android:visibility="gone"
