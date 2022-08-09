@@ -1,5 +1,6 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.calls
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -7,7 +8,6 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_api.domain.model.RewardDestination
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindRewardDestination
-import java.math.BigInteger
 
 fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBuilder {
     return call(
@@ -116,11 +116,11 @@ fun ExtrinsicBuilder.parachainScheduleDelegatorBondLess(candidate: String, amoun
     )
 }
 
-fun ExtrinsicBuilder.parachainScheduleRevokeDelegation(candidate: String): ExtrinsicBuilder {
+fun ExtrinsicBuilder.parachainScheduleRevokeDelegation(collator: String): ExtrinsicBuilder {
     return call(
         "ParachainStaking", "schedule_revoke_delegation",
         mapOf(
-            "candidate" to candidate.fromHex()
+            "collator" to collator.fromHex()
         )
     )
 }

@@ -3,24 +3,29 @@ package jp.co.soramitsu.feature_staking_impl.scenarios.relaychain
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.accountIdFromMapKey
 import jp.co.soramitsu.common.utils.babe
 import jp.co.soramitsu.common.utils.constant
+import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.common.utils.stakingOrNull
 import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.core_db.dao.AccountStakingDao
 import jp.co.soramitsu.core_db.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.feature_staking_api.domain.api.AccountIdMap
 import jp.co.soramitsu.feature_staking_api.domain.model.EraIndex
+import jp.co.soramitsu.feature_staking_api.domain.model.Exposure
 import jp.co.soramitsu.feature_staking_api.domain.model.Nominations
 import jp.co.soramitsu.feature_staking_api.domain.model.SlashingSpans
 import jp.co.soramitsu.feature_staking_api.domain.model.StakingLedger
@@ -42,7 +47,7 @@ import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bind
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindSlashingSpans
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.bindings.bindValidatorPrefs
-import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKey
+import jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters.activeEraStorageKeyOrNull
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -58,8 +63,9 @@ import kotlin.time.toDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
@@ -119,7 +125,7 @@ class StakingRelayChainScenarioRepository(
     }
 
     suspend fun getActiveEraIndex(chainId: ChainId): EraIndex = localStorage.queryNonNull(
-        keyBuilder = { it.metadata.activeEraStorageKey() },
+        keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
         binding = ::bindActiveEra,
         chainId = chainId
     )
@@ -139,24 +145,23 @@ class StakingRelayChainScenarioRepository(
     fun observeActiveEraIndex(chainId: String): Flow<BigInteger> {
         return localStorage.observeNonNull(
             chainId = chainId,
-            keyBuilder = { it.metadata.activeEraStorageKey() },
+            keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
             binding = { scale, runtime -> bindActiveEra(scale, runtime) }
         )
     }
 
     fun electedExposuresInActiveEra(chainId: ChainId) = observeActiveEraIndex(chainId).mapLatest {
         getElectedValidatorsExposure(chainId, it)
-    }
+    }.runCatching { this }.getOrDefault(emptyFlow())
 
-    suspend fun getElectedValidatorsExposure(chainId: ChainId, eraIndex: EraIndex) = localStorage.queryByPrefix(
+    private suspend fun getElectedValidatorsExposure(chainId: ChainId, eraIndex: EraIndex): Map<String, Exposure> = localStorage.queryByPrefix(
         chainId = chainId,
-        prefixKeyBuilder = { it.metadata.staking().storage("ErasStakers").storageKey(it, eraIndex) },
-        keyExtractor = { it.accountIdFromMapKey() },
-        binding = { scale, runtime, _ ->
-            val storageType = runtime.metadata.staking().storage("ErasStakers").returnType()
-            bindExposure(scale!!, runtime, storageType)
-        }
-    )
+        prefixKeyBuilder = { it.metadata.moduleOrNull(Modules.STAKING)?.storage("ErasStakers")?.storageKey(it, eraIndex) },
+        keyExtractor = { it.accountIdFromMapKey() }
+    ) { scale, runtime, _ ->
+        val storageType = runtime.metadata.staking().storage("ErasStakers").returnType()
+        bindExposure(scale!!, runtime, storageType)
+    }.mapValuesNotNull { it.value }
 
     suspend fun getValidatorPrefs(
         chainId: ChainId,
@@ -164,7 +169,7 @@ class StakingRelayChainScenarioRepository(
     ): AccountIdMap<ValidatorPrefs?> {
         return remoteStorage.queryKeys(
             keysBuilder = { runtime ->
-                val storage = runtime.metadata.staking().storage("Validators")
+                val storage = runtime.metadata.stakingOrNull()?.storage("Validators") ?: return@queryKeys emptyMap()
 
                 accountIdsHex.associateBy { accountIdHex -> storage.storageKey(runtime, accountIdHex.fromHex()) }
             },
@@ -363,4 +368,5 @@ suspend fun StakingRelayChainScenarioRepository.erasPerDay(chainId: ChainId): In
     return floor(dayDuration / eraDuration).toInt()
 }
 
-suspend fun StakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId: ChainId) = electedExposuresInActiveEra(chainId).first()
+suspend fun StakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId: ChainId) =
+    electedExposuresInActiveEra(chainId).firstOrNull() ?: emptyMap()

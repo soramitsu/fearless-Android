@@ -736,4 +736,7 @@
     <string name="collator_details_delegators">Делегаторы</string>
     <string name="select_collator_having_identity">Идентифицирован в сети</string>
     <string name="select_collator_having_relevant_minimum_bond">Релевантный минимальный стейк</string>
+
+    <string name="staking_history_title">История стейкинга</string>
+    <string name="parachain_staking_request_finished">Завершен</string>
 </resources>

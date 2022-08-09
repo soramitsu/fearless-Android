@@ -25,8 +25,10 @@ import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinati
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.RewardDestinationParcelModel
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -54,7 +56,10 @@ class SelectRewardDestinationViewModel(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.createManual() }
+    private val chainId = interactor.currentAssetFlow().filter { it.token.configuration.staking == Chain.Asset.StakingType.RELAYCHAIN }
+        .map { it.token.configuration.chainId }
+
+    private val rewardCalculator = viewModelScope.async { rewardCalculatorFactory.createManual(chainId.first()) }
 
     private val rewardDestinationFlow = rewardDestinationMixin.rewardDestinationModelFlow
         .map { mapRewardDestinationModelToRewardDestination(it) }

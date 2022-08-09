@@ -6,7 +6,8 @@ class StakingDelegatorHistoryRequest(delegatorAddress: String, collatorAddress: 
     val query = """
     query {
         delegatorHistoryElements(
-        last: 20,
+        orderBy: TIMESTAMP_DESC,
+        last: 10,
         filter: {
             delegatorId: { equalToInsensitive: "${delegatorAddress.requireHexPrefix()}"},
             collatorId: { equalToInsensitive: "${collatorAddress.requireHexPrefix()}"} }

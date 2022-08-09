@@ -17,6 +17,7 @@
         app:titleText="@string/profile_settings_title" />
 
     <TextView
+        android:id="@+id/filtersTitle"
         style="@style/TextAppearance.Soramitsu.Header3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

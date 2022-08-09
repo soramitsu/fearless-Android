@@ -1,9 +1,10 @@
 package jp.co.soramitsu.feature_staking_impl.data.network.blockhain.updaters
 
-import jp.co.soramitsu.common.utils.staking
+import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.GlobalScope
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
 import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
@@ -18,6 +19,6 @@ class CounterForNominatorsUpdater(
 ) : SingleStorageKeyUpdater<GlobalScope>(GlobalScope, stakingSharedState, chainRegistry, storageCache), StakingUpdater {
 
     override suspend fun storageKey(runtime: RuntimeSnapshot): String? {
-        return runtime.metadata.staking().storageOrNull("CounterForNominators")?.storageKey()
+        return runtime.metadata.moduleOrNull(Modules.STAKING)?.storageOrNull("CounterForNominators")?.storageKey()
     }
 }

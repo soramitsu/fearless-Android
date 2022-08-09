@@ -93,7 +93,11 @@ fun Module.constantOrNull(name: String) = constants[name]
 
 fun RuntimeMetadata.staking() = module(Modules.STAKING)
 
+fun RuntimeMetadata.stakingOrNull() = moduleOrNull(Modules.STAKING)
+
 fun RuntimeMetadata.parachainStaking() = module(Modules.PARACHAIN_STAKING)
+
+fun RuntimeMetadata.parachainStakingOrNull() = moduleOrNull(Modules.PARACHAIN_STAKING)
 
 fun RuntimeMetadata.system() = module(Modules.SYSTEM)
 
