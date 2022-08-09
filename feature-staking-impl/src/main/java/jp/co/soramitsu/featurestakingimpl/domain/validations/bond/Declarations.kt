@@ -1,0 +1,10 @@
+package jp.co.soramitsu.featurestakingimpl.domain.validations.bond
+
+import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.featurestakingimpl.domain.validations.NotZeroAmountValidation
+import jp.co.soramitsu.featurewalletapi.domain.validation.EnoughToPayFeesValidation
+
+typealias BondMoreFeeValidation = EnoughToPayFeesValidation<BondMoreValidationPayload, BondMoreValidationFailure>
+typealias NotZeroBondValidation = NotZeroAmountValidation<BondMoreValidationPayload, BondMoreValidationFailure>
+
+typealias BondMoreValidationSystem = ValidationSystem<BondMoreValidationPayload, BondMoreValidationFailure>

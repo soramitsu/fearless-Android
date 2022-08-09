@@ -54,7 +54,7 @@
         app:layout_constraintStart_toEndOf="@id/ivMoonbeamRegistration"
         app:layout_constraintTop_toBottomOf="@id/tvMoonbeamRegistrationAccount" />
 
-    <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+    <jp.co.soramitsu.featurewalletapi.presentation.view.FeeView
         android:id="@+id/moonbeamRegistrationFee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

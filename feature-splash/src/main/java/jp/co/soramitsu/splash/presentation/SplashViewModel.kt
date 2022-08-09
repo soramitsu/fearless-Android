@@ -8,7 +8,7 @@ import jp.co.soramitsu.common.domain.ShouldShowEducationalStoriesUseCase
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.featureaccountapi.domain.interfaces.AccountRepository
 import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.coroutines.launch
 import javax.inject.Inject

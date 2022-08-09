@@ -1,12 +1,12 @@
 package jp.co.soramitsu.common.utils.formatting
 
-import jp.co.soramitsu.common.utils.decimalFormatterFor
-import jp.co.soramitsu.common.utils.patternWith
 import java.lang.Integer.max
 import java.math.BigDecimal
+import jp.co.soramitsu.common.utils.decimalFormatterFor
+import jp.co.soramitsu.common.utils.patternWith
 
 class DynamicPrecisionFormatter(
-    private val minPrecision: Int,
+    private val minPrecision: Int
 ) : NumberFormatter {
 
     override fun format(number: BigDecimal): String {

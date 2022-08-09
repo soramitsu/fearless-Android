@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.map
 
 class LocalStorageSource(
     chainRegistry: ChainRegistry,
-    private val storageCache: StorageCache,
+    private val storageCache: StorageCache
 ) : BaseStorageSource(chainRegistry) {
 
     override suspend fun query(key: String, chainId: String, at: BlockHash?): String? {

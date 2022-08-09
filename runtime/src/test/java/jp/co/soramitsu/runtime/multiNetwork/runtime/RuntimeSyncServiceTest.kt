@@ -2,8 +2,8 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import com.google.gson.Gson
 import jp.co.soramitsu.common.utils.md5
-import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
@@ -11,9 +11,9 @@ import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
-import jp.co.soramitsu.test_shared.any
-import jp.co.soramitsu.test_shared.eq
-import jp.co.soramitsu.test_shared.whenever
+import jp.co.soramitsu.testshared.any
+import jp.co.soramitsu.testshared.eq
+import jp.co.soramitsu.testshared.whenever
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first

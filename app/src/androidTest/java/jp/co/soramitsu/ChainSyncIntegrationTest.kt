@@ -7,7 +7,7 @@ import dagger.Component
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.di.CommonApi
 import jp.co.soramitsu.common.di.FeatureContainer
-import jp.co.soramitsu.core_db.AppDatabase
+import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.runBlocking

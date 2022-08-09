@@ -1,0 +1,10 @@
+package jp.co.soramitsu.featurestakingimpl.domain.validations.controller
+
+import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.featurestakingimpl.domain.validations.AccountIsNotControllerValidation
+import jp.co.soramitsu.featurewalletapi.domain.validation.EnoughToPayFeesValidation
+
+typealias SetControllerFeeValidation = EnoughToPayFeesValidation<SetControllerValidationPayload, SetControllerValidationFailure>
+typealias IsNotControllerAccountValidation = AccountIsNotControllerValidation<SetControllerValidationPayload, SetControllerValidationFailure>
+
+typealias SetControllerValidationSystem = ValidationSystem<SetControllerValidationPayload, SetControllerValidationFailure>

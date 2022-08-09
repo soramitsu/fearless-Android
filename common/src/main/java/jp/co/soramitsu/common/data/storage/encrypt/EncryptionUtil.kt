@@ -5,8 +5,6 @@ import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import org.bouncycastle.util.Arrays
-import org.bouncycastle.util.encoders.Base64
 import java.math.BigInteger
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
@@ -29,6 +27,8 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 import javax.security.auth.x500.X500Principal
+import org.bouncycastle.util.Arrays
+import org.bouncycastle.util.encoders.Base64
 
 class EncryptionUtil @Inject constructor(
     private val context: Context
@@ -186,8 +186,10 @@ class EncryptionUtil @Inject constructor(
     private fun decrypt(key: ByteArray, encrypted: ByteArray): ByteArray {
         val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
         cipher.init(
-            Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"),
-            IvParameterSpec(Arrays.copyOfRange(encrypted, 0, BLOCK_SIZE)), secureRandom
+            Cipher.DECRYPT_MODE,
+            SecretKeySpec(key, "AES"),
+            IvParameterSpec(Arrays.copyOfRange(encrypted, 0, BLOCK_SIZE)),
+            secureRandom
         )
         return cipher.doFinal(Arrays.copyOfRange(encrypted, BLOCK_SIZE, encrypted.size))
     }

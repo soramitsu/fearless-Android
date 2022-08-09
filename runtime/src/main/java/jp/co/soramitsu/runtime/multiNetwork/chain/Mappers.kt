@@ -2,11 +2,11 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
-import jp.co.soramitsu.core_db.model.chain.ChainExplorerLocal
-import jp.co.soramitsu.core_db.model.chain.ChainLocal
-import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
-import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
+import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
+import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
+import jp.co.soramitsu.coredb.model.chain.ChainLocal
+import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
+import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote

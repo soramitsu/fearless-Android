@@ -19,7 +19,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceItemView
+    <jp.co.soramitsu.featurestakingimpl.presentation.staking.balance.view.StakingBalanceItemView
         android:id="@+id/stakingBalanceBonded"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
         app:layout_constraintStart_toStartOf="@id/stakingBalanceBonded"
         app:layout_constraintTop_toBottomOf="@id/stakingBalanceBonded" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceItemView
+    <jp.co.soramitsu.featurestakingimpl.presentation.staking.balance.view.StakingBalanceItemView
         android:id="@+id/stakingBalanceUnbonding"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -63,7 +63,7 @@
         app:layout_constraintStart_toStartOf="@id/stakingBalanceUnbonding"
         app:layout_constraintTop_toBottomOf="@id/stakingBalanceUnbonding" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.view.StakingBalanceItemView
+    <jp.co.soramitsu.featurestakingimpl.presentation.staking.balance.view.StakingBalanceItemView
         android:id="@+id/stakingBalanceRedeemable"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

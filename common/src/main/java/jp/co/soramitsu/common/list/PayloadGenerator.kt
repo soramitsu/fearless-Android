@@ -20,7 +20,7 @@ fun <T, VH : RecyclerView.ViewHolder> ListAdapter<T, VH>.resolvePayload(
     position: Int,
     payloads: List<Any>,
     onUnknownPayload: UnknownPayloadHandler? = null,
-    onDiffCheck: (DiffCheck<T, *>) -> Unit,
+    onDiffCheck: (DiffCheck<T, *>) -> Unit
 ) {
     if (payloads.isEmpty()) {
         onBindViewHolder(holder, position)

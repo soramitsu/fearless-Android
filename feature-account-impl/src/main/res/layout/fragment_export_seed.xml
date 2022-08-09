@@ -88,7 +88,7 @@
                     android:src="@drawable/ic_copy_24" />
             </FrameLayout>
 
-            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
+            <jp.co.soramitsu.featureaccountimpl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/exportSeedAdvanced"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />

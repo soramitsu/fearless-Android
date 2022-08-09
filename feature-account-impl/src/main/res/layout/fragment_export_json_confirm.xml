@@ -71,7 +71,7 @@
                 tools:message="Kusama"
                 tools:textIcon="@drawable/ic_plus_circle" />
 
-            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
+            <jp.co.soramitsu.featureaccountimpl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/exportJsonConfirmAdvanced"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />

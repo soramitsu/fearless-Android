@@ -4,8 +4,8 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.model.toDomain
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
-import jp.co.soramitsu.feature_wallet_impl.data.buyToken.ExternalProvider
+import jp.co.soramitsu.featurewalletapi.domain.interfaces.WalletRepository
+import jp.co.soramitsu.featurewalletimpl.data.buyToken.ExternalProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 

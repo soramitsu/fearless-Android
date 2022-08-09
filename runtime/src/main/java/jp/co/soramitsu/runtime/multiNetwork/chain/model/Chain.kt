@@ -30,7 +30,7 @@ data class Chain(
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
-    val parentId: String?,
+    val parentId: String?
 ) {
 
     val assetsBySymbol = assets.associateBy(Asset::symbol)
@@ -41,7 +41,7 @@ data class Chain(
 
     data class Types(
         val url: String,
-        val overridesCommon: Boolean,
+        val overridesCommon: Boolean
     )
 
     data class Asset(

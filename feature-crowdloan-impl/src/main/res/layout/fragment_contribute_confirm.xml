@@ -108,7 +108,7 @@
         android:background="@color/black4"
         android:orientation="vertical">
 
-        <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+        <jp.co.soramitsu.featurewalletapi.presentation.view.FeeView
             android:id="@+id/confirmContributeFee"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

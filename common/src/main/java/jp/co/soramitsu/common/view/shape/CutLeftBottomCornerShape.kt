@@ -8,7 +8,7 @@ import android.graphics.drawable.shapes.Shape
 class CutLeftBottomCornerShape(
     private val cornerSizeXPx: Float,
     private val cornerSizeYPx: Float,
-    private val fillColor: Int,
+    private val fillColor: Int
 ) : Shape() {
     private val drawingPaint = createPaint()
 
