@@ -1,0 +1,7 @@
+package jp.co.soramitsu.staking.impl.domain.validations.balance
+
+import jp.co.soramitsu.staking.impl.domain.validations.AccountRequiredValidation
+import jp.co.soramitsu.staking.impl.domain.validations.UnbondingRequestsLimitValidation
+
+typealias BalanceAccountRequiredValidation = AccountRequiredValidation<ManageStakingValidationPayload, ManageStakingValidationFailure>
+typealias BalanceUnlockingLimitValidation = UnbondingRequestsLimitValidation<ManageStakingValidationPayload, ManageStakingValidationFailure>

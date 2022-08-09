@@ -5,11 +5,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
-import jp.co.soramitsu.featureaccountimpl.presentation.AccountRouter
-import jp.co.soramitsu.featurecrowdloanimpl.presentation.CrowdloanRouter
-import jp.co.soramitsu.featureonboardingimpl.OnboardingRouter
-import jp.co.soramitsu.featurestakingimpl.presentation.StakingRouter
-import jp.co.soramitsu.featurewalletimpl.presentation.WalletRouter
+import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.crowdloan.impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.onboarding.impl.OnboardingRouter
+import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.splash.SplashRouter
 import javax.inject.Singleton
 

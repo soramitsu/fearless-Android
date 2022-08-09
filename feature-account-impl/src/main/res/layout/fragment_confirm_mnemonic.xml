@@ -18,7 +18,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:titleText="@string/account_confirmation_title" />
 
-    <jp.co.soramitsu.featureaccountimpl.presentation.mnemonic.confirm.view.MnemonicContainerView
+    <jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.view.MnemonicContainerView
         android:id="@+id/confirmationMnemonicView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
         app:layout_constraintStart_toStartOf="@+id/confirmationMnemonicView"
         app:layout_constraintTop_toBottomOf="@+id/confirmationMnemonicView" />
 
-    <jp.co.soramitsu.featureaccountimpl.presentation.mnemonic.confirm.view.MnemonicContainerView
+    <jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.view.MnemonicContainerView
         android:id="@+id/wordsMnemonicView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

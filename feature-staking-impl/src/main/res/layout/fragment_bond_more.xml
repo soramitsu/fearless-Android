@@ -65,7 +65,7 @@
         app:drawableLeftCompat="@drawable/ic_reward_24"
         tools:drawableLeft="@drawable/ic_reward_24" />
 
-    <jp.co.soramitsu.featurewalletapi.presentation.view.FeeView
+    <jp.co.soramitsu.wallet.api.presentation.view.FeeView
         android:id="@+id/bondMoreFee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -85,7 +85,7 @@
         android:background="@color/black4"
         android:orientation="vertical">
 
-        <jp.co.soramitsu.featurewalletapi.presentation.view.FeeView
+        <jp.co.soramitsu.wallet.api.presentation.view.FeeView
             android:id="@+id/bondMoreConfirmFee"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

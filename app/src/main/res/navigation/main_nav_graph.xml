@@ -245,13 +245,13 @@
 
     <fragment
         android:id="@+id/aboutFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.about.AboutFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.about.AboutFragment"
         android:label="fragment_about"
         tools:layout="@layout/fragment_about" />
 
     <fragment
         android:id="@+id/accountsFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.account.list.AccountListFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.list.AccountListFragment"
         android:label="AccountsFragment"
         tools:layout="@layout/fragment_accounts">
 
@@ -263,7 +263,7 @@
 
     <fragment
         android:id="@+id/nodesFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.node.list.NodesFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment"
         android:label="NodesFragment"
         tools:layout="@layout/fragment_nodes">
 
@@ -295,37 +295,37 @@
 
     <fragment
         android:id="@+id/nodeDetailsFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.node.details.NodeDetailsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment"
         android:label="NodeDetailsFragment"
         tools:layout="@layout/fragment_node_details" />
 
     <fragment
         android:id="@+id/addNodeFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.node.add.AddNodeFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment"
         android:label="AddNodeFragment"
         tools:layout="@layout/fragment_node_add" />
 
     <fragment
         android:id="@+id/languagesFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.language.LanguagesFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.language.LanguagesFragment"
         android:label="LanguagesFragment"
         tools:layout="@layout/fragment_languages" />
 
     <fragment
         android:id="@+id/accountDetailsFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.account.details.AccountDetailsFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment"
         android:label="AccountDetailsFragment"
         tools:layout="@layout/fragment_account_details" />
 
     <fragment
         android:id="@+id/walletExportFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.account.export.WalletExportFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment"
         android:label="WalletExportFragment"
         tools:layout="@layout/fragment_wallet_export" />
 
     <fragment
         android:id="@+id/accountsForExportFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.account.exportaccounts.AccountsForExportFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment"
         android:label="AccountsForExportFragment"
         tools:layout="@layout/fragment_accounts_for_export" />
 
@@ -339,7 +339,7 @@
 
     <fragment
         android:id="@+id/editAccountsFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.account.edit.AccountEditFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.edit.AccountEditFragment"
         android:label="EditAccountsFragment"
         tools:layout="@layout/fragment_edit_accounts">
 
@@ -355,31 +355,31 @@
 
     <fragment
         android:id="@+id/balanceDetailFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.balance.detail.BalanceDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment"
         android:label="BalanceDetailFragment"
         tools:layout="@layout/fragment_balance_detail" />
 
     <fragment
         android:id="@+id/manageAssetsFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.balance.manageAssets.ManageAssetsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.manageAssets.ManageAssetsFragment"
         android:label="ManageAssetsFragment"
         tools:layout="@layout/fragment_manage_assets" />
 
     <fragment
         android:id="@+id/transferDetailFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.transaction.detail.transfer.TransferDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment"
         android:label="TransferDetailFragment"
         tools:layout="@layout/fragment_transfer_details" />
 
     <fragment
         android:id="@+id/extrinsicDetailFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment"
         android:label="ExtrinsicDetailFragment"
         tools:layout="@layout/fragment_extrinsic_details" />
 
     <fragment
         android:id="@+id/rewardDetailFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.transaction.detail.reward.RewardDetailFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment"
         android:label="RewardDetailFragment"
         tools:layout="@layout/fragment_reward_slash_details" />
 
@@ -393,7 +393,7 @@
 
     <fragment
         android:id="@+id/chooseRecipientFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.send.recipient.ChooseRecipientFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.recipient.ChooseRecipientFragment"
         android:label="ChooseRecipientFragment"
         tools:layout="@layout/fragment_choose_recipient">
 
@@ -408,13 +408,13 @@
 
     <fragment
         android:id="@+id/receiveFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.receive.ReceiveFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment"
         android:label="ReceiveFragment"
         tools:layout="@layout/fragment_receive" />
 
     <fragment
         android:id="@+id/chooseAmountFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.send.amount.ChooseAmountFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment"
         android:label="ChooseAmountFragment"
         tools:layout="@layout/fragment_choose_amount">
 
@@ -437,12 +437,12 @@
 
     <fragment
         android:id="@+id/transactionHistoryFilterFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.transaction.filter.TransactionHistoryFilterFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.filter.TransactionHistoryFilterFragment"
         android:label="TransactionHistoryFilterFragment" />
 
     <fragment
         android:id="@+id/confirmTransferFragment"
-        android:name="jp.co.soramitsu.featurewalletimpl.presentation.send.confirm.ConfirmTransferFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmTransferFragment"
         android:label="ConfirmTransferFragment"
         tools:layout="@layout/fragment_confirm_transfer">
 
@@ -457,7 +457,7 @@
 
     <fragment
         android:id="@+id/exportMnemonicFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.exporting.mnemonic.ExportMnemonicFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment"
         android:label="ExportMnemonicFragment"
         tools:layout="@layout/fragment_export_mnemonic">
 
@@ -472,19 +472,19 @@
 
     <fragment
         android:id="@+id/confirmExportMnemonicFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
         android:label="ConfirmMnemonicFragment"
         tools:layout="@layout/fragment_confirm_mnemonic" />
 
     <fragment
         android:id="@+id/exportSeedFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.exporting.seed.ExportSeedFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.exporting.seed.ExportSeedFragment"
         android:label="ExportSeedFragment"
         tools:layout="@layout/fragment_export_seed" />
 
     <fragment
         android:id="@+id/exportJsonPasswordFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.exporting.json.password.ExportJsonPasswordFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJsonPasswordFragment"
         android:label="ExportJsonPasswordFragment"
         tools:layout="@layout/fragment_export_json_password">
 
@@ -500,19 +500,19 @@
 
     <fragment
         android:id="@+id/exportJsonConfirmFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.exporting.json.confirm.ExportJsonConfirmFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment"
         android:label="ExportJsonConfirmFragment"
         tools:layout="@layout/fragment_export_json_confirm" />
 
     <fragment
         android:id="@+id/pincodeFragment"
-        android:name="jp.co.soramitsu.featureaccountimpl.presentation.pincode.PincodeFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment"
         android:label="fragment_pincode"
         tools:layout="@layout/fragment_pincode" />
 
     <fragment
         android:id="@+id/setupStakingFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.setup.SetupStakingFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingFragment"
         android:label="setupStakingFragment"
         tools:layout="@layout/fragment_setup_staking" />
 
@@ -534,7 +534,7 @@
 
     <fragment
         android:id="@+id/startChangeValidatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.change.start.StartChangeValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.start.StartChangeValidatorsFragment"
         android:label="startChangeValidatorsFragment"
         tools:layout="@layout/fragment_start_change_validators">
 
@@ -557,7 +557,7 @@
 
     <fragment
         android:id="@+id/startChangeCollatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.change.start.StartChangeCollatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.start.StartChangeCollatorsFragment"
         android:label="startChangeValidatorsFragment"
         tools:layout="@layout/fragment_start_change_validators">
 
@@ -580,7 +580,7 @@
 
     <fragment
         android:id="@+id/selectCustomCollatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.collators.change.custom.select.SelectCustomCollatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.collators.change.custom.select.SelectCustomCollatorsFragment"
         android:label="selectCustomCollatorsFragment"
         tools:layout="@layout/fragment_select_custom_validators">
         <action
@@ -603,7 +603,7 @@
 
     <fragment
         android:id="@+id/selectCustomValidatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.change.custom.select.SelectCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.SelectCustomValidatorsFragment"
         android:label="selectCustomValidatorsFragment"
         tools:layout="@layout/fragment_select_custom_validators">
 
@@ -634,19 +634,19 @@
 
     <fragment
         android:id="@+id/settingsCustomValidatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings.CustomValidatorsSettingsFragment"
         android:label="settingsCustomValidatorsFragment"
         tools:layout="@layout/fragment_custom_validators_settings" />
 
     <fragment
         android:id="@+id/searchCustomValidatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.change.custom.search.SearchCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.search.SearchCustomValidatorsFragment"
         android:label="searchCustomValidatorsFragment"
         tools:layout="@layout/fragment_search_custom_validators" />
 
     <fragment
         android:id="@+id/reviewCustomValidatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.change.custom.review.ReviewCustomValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.custom.review.ReviewCustomValidatorsFragment"
         android:label="reviewCustomValidatorsFragment"
         tools:layout="@layout/fragment_select_custom_validators" />
 
@@ -660,13 +660,13 @@
 
     <fragment
         android:id="@+id/recommendedValidatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.change.recommended.RecommendedValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.recommended.RecommendedValidatorsFragment"
         android:label="recommendedValidatorsFragment"
         tools:layout="@layout/fragment_recommended_validators" />
 
     <fragment
         android:id="@+id/recommendedCollatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.change.recommended.RecommendedCollatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.change.recommended.RecommendedCollatorsFragment"
         android:label="recommendedValidatorsFragment"
         tools:layout="@layout/fragment_recommended_validators" />
 
@@ -680,7 +680,7 @@
 
     <fragment
         android:id="@+id/confirmStakingFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.confirm.ConfirmStakingFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.ConfirmStakingFragment"
         android:label="confirmStakingFragment"
         tools:layout="@layout/fragment_confirm_stake">
         <action
@@ -703,7 +703,7 @@
 
     <fragment
         android:id="@+id/confirmNominationsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.confirm.nominations.ConfirmNominationsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.nominations.ConfirmNominationsFragment"
         android:label="ConfirmNominationsFragment"
         tools:layout="@layout/fragment_confirm_nominations" />
 
@@ -725,13 +725,13 @@
 
     <fragment
         android:id="@+id/validatorDetailsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.details.ValidatorDetailsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment"
         android:label="validatorDetailsFragment"
         tools:layout="@layout/fragment_validator_details" />
 
     <fragment
         android:id="@+id/collatorDetailsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.details.CollatorDetailsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDetailsFragment"
         android:label="collatorDetailsFragment"
         tools:layout="@layout/fragment_collator_details" />
 
@@ -751,7 +751,7 @@
 
     <fragment
         android:id="@+id/payoutsListFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.payouts.list.PayoutsListFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.payouts.list.PayoutsListFragment"
         android:label="PayoutsListFragment"
         tools:layout="@layout/fragment_payouts_list">
 
@@ -766,7 +766,7 @@
 
     <fragment
         android:id="@+id/payoutDetailsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.payouts.detail.PayoutDetailsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.payouts.detail.PayoutDetailsFragment"
         android:label="PayoutDetailsFragment"
         tools:layout="@layout/fragment_payout_details" />
 
@@ -780,13 +780,13 @@
 
     <fragment
         android:id="@+id/confirmPayoutFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.payouts.confirm.ConfirmPayoutFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.payouts.confirm.ConfirmPayoutFragment"
         android:label="ConfirmPayoutFragment"
         tools:layout="@layout/fragment_confirm_payout" />
 
     <fragment
         android:id="@+id/stakingBalanceFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.balance.StakingBalanceFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.balance.StakingBalanceFragment"
         android:label="StakingBalanceFragment"
         tools:layout="@layout/fragment_staking_balance">
 
@@ -810,7 +810,7 @@
 
     <fragment
         android:id="@+id/setControllerAccountFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.controller.set.SetControllerFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.controller.set.SetControllerFragment"
         android:label="SelectBondMoreFragment"
         tools:layout="@layout/fragment_set_controller_account">
 
@@ -825,7 +825,7 @@
 
     <fragment
         android:id="@+id/confirmSetControllerAccount"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.controller.confirm.ConfirmSetControllerFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.controller.confirm.ConfirmSetControllerFragment"
         android:label="ConfirmSetControllerFragment"
         tools:layout="@layout/fragment_confirm_set_controller" />
 
@@ -839,7 +839,7 @@
 
     <fragment
         android:id="@+id/selectBondMoreFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.bond.select.SelectBondMoreFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.select.SelectBondMoreFragment"
         android:label="SelectBondMoreFragment"
         tools:layout="@layout/fragment_bond_more">
 
@@ -862,12 +862,12 @@
 
     <fragment
         android:id="@+id/confirmBondMoreFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.bond.confirm.ConfirmBondMoreFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment"
         android:label="ConfirmBondMoreFragment"
         tools:layout="@layout/fragment_confirm_bond_more" />
     <fragment
         android:id="@+id/selectUnbondFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.unbond.select.SelectUnbondFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondFragment"
         android:label="SelectUnbondFragment"
         tools:layout="@layout/fragment_select_unbond">
 
@@ -882,7 +882,7 @@
 
     <fragment
         android:id="@+id/confirmUnbondFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.unbond.confirm.ConfirmUnbondFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment"
         android:label="ConfirmUnbondFragment" />
 
     <action
@@ -895,7 +895,7 @@
 
     <fragment
         android:id="@+id/redeemFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.redeem.RedeemFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemFragment"
         android:label="RedeemFragment" />
 
     <action
@@ -908,26 +908,26 @@
 
     <fragment
         android:id="@+id/confirmRebondFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.rebond.confirm.ConfirmRebondFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.rebond.confirm.ConfirmRebondFragment"
         android:label="ConfirmRebondFragment"
         tools:layout="@layout/fragment_confirm_rebond" />
 
 
     <fragment
         android:id="@+id/customRebondFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.rebond.custom.CustomRebondFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.rebond.custom.CustomRebondFragment"
         android:label="CustomRebondFragment"
         tools:layout="@layout/fragment_rebond_custom" />
 
     <fragment
         android:id="@+id/currentValidatorsFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.validators.current.CurrentValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.current.CurrentValidatorsFragment"
         android:label="CurrentValidatorsFragment"
         tools:layout="@layout/fragment_current_validators" />
 
     <fragment
         android:id="@+id/selectRewardDestinationFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.rewardDestination.select.SelectRewardDestinationFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.select.SelectRewardDestinationFragment"
         android:label="SelectRewardDestinationFragment"
         tools:layout="@layout/fragment_select_reward_destination">
 
@@ -942,12 +942,12 @@
 
     <fragment
         android:id="@+id/confirmRewardDestinationFragment"
-        android:name="jp.co.soramitsu.featurestakingimpl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment"
         android:label="ConfirmRewardDestinationFragment" />
 
     <fragment
         android:id="@+id/crowdloanContributeFragment"
-        android:name="jp.co.soramitsu.featurecrowdloanimpl.presentation.contribute.select.CrowdloanContributeFragment"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment"
         android:label="CrowdloanContributeFragment"
         tools:layout="@layout/fragment_contribute">
 
@@ -970,13 +970,13 @@
 
     <fragment
         android:id="@+id/confirmContributeFragment"
-        android:name="jp.co.soramitsu.featurecrowdloanimpl.presentation.contribute.confirm.ConfirmContributeFragment"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.ConfirmContributeFragment"
         android:label="ConfirmContributeFragment"
         tools:layout="@layout/fragment_contribute_confirm" />
 
     <fragment
         android:id="@+id/customContributeFragment"
-        android:name="jp.co.soramitsu.featurecrowdloanimpl.presentation.contribute.custom.CustomContributeFragment"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContributeFragment"
         android:label="CustomContributeFragment"
         tools:layout="@layout/fragment_custom_contribute">
 

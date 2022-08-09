@@ -1,3 +1,0 @@
-package jp.co.soramitsu.featurestakingimpl.domain.validations.welcome
-
-class WelcomeStakingValidationPayload

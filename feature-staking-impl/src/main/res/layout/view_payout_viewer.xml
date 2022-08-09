@@ -8,7 +8,7 @@
     tools:background="@color/black"
     tools:parentTag="android.widget.LinearLayout">
 
-    <jp.co.soramitsu.featurestakingimpl.presentation.view.RewardDestinationView
+    <jp.co.soramitsu.staking.impl.presentation.view.RewardDestinationView
         android:id="@+id/payoutViewerInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
