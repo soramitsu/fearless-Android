@@ -1,0 +1,15 @@
+package jp.co.soramitsu.featurecrowdloanimpl.presentation.contribute.custom.interlay
+
+import java.math.BigDecimal
+import jp.co.soramitsu.featurecrowdloanapi.data.network.blockhain.binding.ParaId
+import jp.co.soramitsu.featurecrowdloanimpl.presentation.contribute.custom.referral.ReferralCodePayload
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
+class InterlayBonusPayload(
+    override val referralCode: String,
+    val parachainId: ParaId
+) : ReferralCodePayload {
+
+    override fun calculateBonus(amount: BigDecimal): BigDecimal? = null
+}

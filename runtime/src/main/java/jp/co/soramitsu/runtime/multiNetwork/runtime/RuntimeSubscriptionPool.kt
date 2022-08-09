@@ -1,6 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
-import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
 import kotlinx.coroutines.cancel

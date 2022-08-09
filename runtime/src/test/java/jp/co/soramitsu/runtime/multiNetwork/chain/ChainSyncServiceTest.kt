@@ -1,15 +1,15 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
-import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainLocal
-import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainLocal
+import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
-import jp.co.soramitsu.test_shared.argThat
-import jp.co.soramitsu.test_shared.eq
+import jp.co.soramitsu.testshared.argThat
+import jp.co.soramitsu.testshared.eq
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test

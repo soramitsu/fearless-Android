@@ -1,0 +1,13 @@
+package jp.co.soramitsu.featurecrowdloanimpl.domain.contribute.validations
+
+import jp.co.soramitsu.common.validation.Validation
+import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.featurewalletapi.domain.validation.EnoughToPayFeesValidation
+import jp.co.soramitsu.featurewalletapi.domain.validation.ExistentialDepositValidation
+
+typealias ContributeValidation = Validation<ContributeValidationPayload, ContributeValidationFailure>
+
+typealias ContributeEnoughToPayFeesValidation = EnoughToPayFeesValidation<ContributeValidationPayload, ContributeValidationFailure>
+typealias ContributeExistentialDepositValidation = ExistentialDepositValidation<ContributeValidationPayload, ContributeValidationFailure>
+
+typealias ContributeValidationSystem = ValidationSystem<ContributeValidationPayload, ContributeValidationFailure>

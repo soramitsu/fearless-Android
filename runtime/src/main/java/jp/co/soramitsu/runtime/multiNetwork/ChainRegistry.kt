@@ -1,12 +1,13 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
+import javax.inject.Inject
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class ChainService(
     val runtimeProvider: RuntimeProvider,
@@ -45,7 +45,7 @@ class ChainRegistry @Inject constructor(
     private val chainSyncService: ChainSyncService,
     private val baseTypeSynchronizer: BaseTypeSynchronizer,
     private val runtimeSyncService: RuntimeSyncService,
-    private val updatesMixin: UpdatesMixin,
+    private val updatesMixin: UpdatesMixin
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
     val currentChains = chainDao.joinChainInfoFlow()

@@ -17,7 +17,7 @@ import jp.co.soramitsu.common.view.shape.getSelectedDrawable
 class AmountsWithOneKeyView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyle: Int = 0,
+    defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
 
     private val binding: ViewAccountsWithOneKeyBinding

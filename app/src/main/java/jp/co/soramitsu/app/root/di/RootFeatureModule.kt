@@ -7,7 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.core.updater.UpdateSystem
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
+import jp.co.soramitsu.featurewalletapi.domain.interfaces.WalletRepository
 import javax.inject.Named
 
 @InstallIn(SingletonComponent::class)

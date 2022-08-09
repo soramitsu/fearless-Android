@@ -6,6 +6,7 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.databinding.FragmentStoryBinding
 import jp.co.soramitsu.common.base.BaseFragment
@@ -37,7 +38,6 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
     private var lastActionDown = 0L
 
     override fun initViews() {
-
         binding.storyCloseIcon.setOnClickListener { viewModel.backClicked() }
 
         binding.stories.setStoriesListener(this)

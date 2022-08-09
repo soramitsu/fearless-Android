@@ -1,0 +1,7 @@
+package jp.co.soramitsu.featurestakingimpl.domain.validations.setup
+
+import jp.co.soramitsu.featurestakingimpl.domain.validations.MaxNominatorsReachedValidation
+import jp.co.soramitsu.featurewalletapi.domain.validation.EnoughToPayFeesValidation
+
+typealias SetupStakingFeeValidation = EnoughToPayFeesValidation<SetupStakingPayload, SetupStakingValidationFailure>
+typealias SetupStakingMaximumNominatorsValidation = MaxNominatorsReachedValidation<SetupStakingPayload, SetupStakingValidationFailure>

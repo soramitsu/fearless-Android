@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class BaseTypeSynchronizer(
     private val runtimeFilesCache: RuntimeFilesCache,
-    private val typesFetcher: TypesFetcher,
+    private val typesFetcher: TypesFetcher
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     @Volatile

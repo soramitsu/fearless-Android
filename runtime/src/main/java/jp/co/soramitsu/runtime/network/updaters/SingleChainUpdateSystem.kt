@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.onCompletion
 class SingleChainUpdateSystem(
     private val updaters: List<Updater>,
     private val chainRegistry: ChainRegistry,
-    private val singleAssetSharedState: SingleAssetSharedState,
+    private val singleAssetSharedState: SingleAssetSharedState
 ) : UpdateSystem {
 
     override fun start(): Flow<Updater.SideEffect> = singleAssetSharedState.selectedChainFlow().flatMapLatest { chain ->

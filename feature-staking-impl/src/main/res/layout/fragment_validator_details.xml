@@ -40,13 +40,13 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoView
+        <jp.co.soramitsu.featurestakingimpl.presentation.validators.details.view.ValidatorInfoView
             android:id="@+id/validatorInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorIdentityView
+        <jp.co.soramitsu.featurestakingimpl.presentation.validators.details.view.ValidatorIdentityView
             android:id="@+id/validatorIdentity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

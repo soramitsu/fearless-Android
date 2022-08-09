@@ -5,12 +5,14 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Provider
+import javax.inject.Singleton
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
-import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
@@ -26,8 +28,6 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import kotlinx.coroutines.flow.MutableStateFlow
-import javax.inject.Provider
-import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -41,7 +41,7 @@ class ChainRegistryModule {
     @Singleton
     fun provideChainSyncService(
         dao: ChainDao,
-        chainFetcher: ChainFetcher,
+        chainFetcher: ChainFetcher
     ) = ChainSyncService(dao, chainFetcher)
 
     @Provides
@@ -49,7 +49,7 @@ class ChainRegistryModule {
     fun provideRuntimeFactory(
         runtimeFilesCache: RuntimeFilesCache,
         chainDao: ChainDao,
-        gson: Gson,
+        gson: Gson
     ): RuntimeFactory {
         return RuntimeFactory(runtimeFilesCache, chainDao, gson)
     }
@@ -57,13 +57,13 @@ class ChainRegistryModule {
     @Provides
     @Singleton
     fun provideRuntimeFilesCache(
-        fileProvider: FileProvider,
+        fileProvider: FileProvider
     ) = RuntimeFilesCache(fileProvider)
 
     @Provides
     @Singleton
     fun provideTypesFetcher(
-        networkApiCreator: NetworkApiCreator,
+        networkApiCreator: NetworkApiCreator
     ) = networkApiCreator.create(TypesFetcher::class.java)
 
     @Provides
@@ -84,7 +84,7 @@ class ChainRegistryModule {
     @Singleton
     fun provideBaseTypeSynchronizer(
         typesFetcher: TypesFetcher,
-        runtimeFilesCache: RuntimeFilesCache,
+        runtimeFilesCache: RuntimeFilesCache
     ) = BaseTypeSynchronizer(runtimeFilesCache, typesFetcher)
 
     @Provides
@@ -92,7 +92,7 @@ class ChainRegistryModule {
     fun provideRuntimeProviderPool(
         runtimeFactory: RuntimeFactory,
         runtimeSyncService: RuntimeSyncService,
-        baseTypeSynchronizer: BaseTypeSynchronizer,
+        baseTypeSynchronizer: BaseTypeSynchronizer
     ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService, baseTypeSynchronizer)
 
     @Provides
@@ -112,7 +112,7 @@ class ChainRegistryModule {
     @Singleton
     fun provideRuntimeVersionSubscriptionPool(
         chainDao: ChainDao,
-        runtimeSyncService: RuntimeSyncService,
+        runtimeSyncService: RuntimeSyncService
     ) = RuntimeSubscriptionPool(chainDao, runtimeSyncService)
 
     @Provides

@@ -11,7 +11,7 @@ buildscript {
 
         kotlinVersion = '1.7.10'
 
-        ktlintPinterestVersion = '0.40.0'
+        ktlintPinterestVersion = '0.46.1'
 
         supportVersion = '1.6.1'
         cardViewVersion = '1.0.0'
@@ -211,7 +211,13 @@ task clean(type: Delete) {
 }
 
 dependencies {
-    ktlint "com.pinterest:ktlint:$ktlintPinterestVersion"
+
+    ktlint("com.pinterest:ktlint:$ktlintPinterestVersion") {
+//    ktlint("com.pinterest:ktlint:0.46.1") {
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, getObjects().named(Bundling, Bundling.EXTERNAL))
+        }
+    }
 }
 
 task ktlint(type: JavaExec, group: "verification") {

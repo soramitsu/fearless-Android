@@ -22,9 +22,7 @@ class FiatCurrenciesChooserBottomSheetDialog(
     payload: Payload<FiatCurrency>,
     clickHandler: ClickHandler<FiatCurrency>
 ) :
-    DynamicListBottomSheet<FiatCurrency>(
-        context, payload, FiatCurrencyDiffCallback, clickHandler
-    ) {
+    DynamicListBottomSheet<FiatCurrency>(context, payload, FiatCurrencyDiffCallback, clickHandler) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

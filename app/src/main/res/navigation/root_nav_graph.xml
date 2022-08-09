@@ -50,7 +50,7 @@
 
     <fragment
         android:id="@+id/pincodeFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
+        android:name="jp.co.soramitsu.featureaccountimpl.presentation.pincode.PincodeFragment"
         android:label="fragment_pincode"
         tools:layout="@layout/fragment_pincode" />
 

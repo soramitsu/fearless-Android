@@ -1,0 +1,10 @@
+package jp.co.soramitsu.featurestakingimpl.domain.validations.rewardDestination
+
+import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.featurestakingimpl.domain.validations.AccountRequiredValidation
+import jp.co.soramitsu.featurewalletapi.domain.validation.EnoughToPayFeesValidation
+
+typealias RewardDestinationFeeValidation = EnoughToPayFeesValidation<RewardDestinationValidationPayload, RewardDestinationValidationFailure>
+typealias RewardDestinationControllerRequiredValidation = AccountRequiredValidation<RewardDestinationValidationPayload, RewardDestinationValidationFailure>
+
+typealias RewardDestinationValidationSystem = ValidationSystem<RewardDestinationValidationPayload, RewardDestinationValidationFailure>

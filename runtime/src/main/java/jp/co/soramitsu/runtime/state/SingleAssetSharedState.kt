@@ -24,7 +24,7 @@ abstract class SingleAssetSharedState(
 
     data class AssetWithChain(
         val chain: Chain,
-        val asset: Chain.Asset,
+        val asset: Chain.Asset
     )
 
     val assetWithChain: Flow<AssetWithChain> = preferences.stringFlow(
