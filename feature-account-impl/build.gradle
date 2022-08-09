@@ -25,6 +25,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose true
     }
 
     compileOptions {
@@ -36,6 +37,10 @@ android {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = '1.8'
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+        kotlinCompilerVersion kotlinVersion
     }
     namespace 'jp.co.soramitsu.feature_account_impl'
 }
@@ -79,6 +84,21 @@ dependencies {
     kapt roomKapt
 
     kapt lifecycleKapt
+
+    implementation navigationComposeDep
+    implementation hiltNavComposeDep
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeAnimationDep
+    implementation composeActivityDep
+    implementation composeViewModelDep
+    implementation composeToolingPreviewDep
+    debugImplementation composeToolingDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep
