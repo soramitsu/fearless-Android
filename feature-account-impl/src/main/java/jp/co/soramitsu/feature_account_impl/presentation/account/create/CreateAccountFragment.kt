@@ -13,29 +13,18 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentCreateAccountBinding
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.fragment_create_account) {
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(payload: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     private val binding by viewBinding(FragmentCreateAccountBinding::bind)
 
-    @Inject
-    lateinit var factory: CreateAccountViewModel.CreateAccountViewModelFactory
-
-    private val vm: CreateAccountViewModel by viewModels {
-        CreateAccountViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY) as? ChainAccountCreatePayload
-        )
-    }
-    override val viewModel: CreateAccountViewModel
-        get() = vm
+    override val viewModel: CreateAccountViewModel by viewModels()
 
     override fun initViews() {
         with(binding) {
