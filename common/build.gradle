@@ -53,6 +53,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
     }
 
     compileOptions {
@@ -64,6 +65,10 @@ android {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = '1.8'
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+        kotlinCompilerVersion kotlinVersion
     }
     namespace 'jp.co.soramitsu.common'
 }
@@ -109,6 +114,13 @@ dependencies {
     implementation progressButtonDep
 
     implementation wsDep
+
+    implementation navigationComposeDep
+    implementation composeUiDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeToolingPreviewDep
+    debugImplementation composeToolingDep
 
     api coilDep
     api coilSvg

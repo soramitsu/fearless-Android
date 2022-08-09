@@ -31,7 +31,7 @@ class AmountsWithOneKeyView @JvmOverloads constructor(
         applyAttributes(attrs)
     }
 
-    override fun childDrawableStateChanged(child: View?) {
+    override fun childDrawableStateChanged(child: View) {
         refreshDrawableState()
     }
 
