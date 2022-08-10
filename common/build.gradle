@@ -116,6 +116,8 @@ dependencies {
     implementation wsDep
 
     implementation navigationComposeDep
+    implementation composeRuntimeDep
+    implementation composeLiveDataDep
     implementation composeUiDep
     implementation composeFoundationDep
     implementation composeMaterialDep

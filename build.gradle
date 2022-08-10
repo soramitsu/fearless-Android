@@ -113,6 +113,10 @@ buildscript {
         composeActivityDep = "androidx.activity:activity-compose:1.5.1"
         composeViewModelDep = "androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1"
 
+        //fix compose preview https://stackoverflow.com/a/71830120
+        customviewDep = "androidx.customview:customview:1.2.0-alpha01"
+        customviewPoolingcontainerDep = "androidx.customview:customview-poolingcontainer:1.0.0"
+
         lifecycleProcessDep = "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
 
         lifecycleKapt = "androidx.lifecycle:lifecycle-compiler:$architectureComponentVersion"
