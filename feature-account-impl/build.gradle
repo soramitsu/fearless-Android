@@ -99,6 +99,8 @@ dependencies {
     implementation composeViewModelDep
     implementation composeToolingPreviewDep
     debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep
