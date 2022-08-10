@@ -2,11 +2,8 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -52,8 +49,10 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ConfirmContributeViewModel @AssistedInject constructor(
+@HiltViewModel
+class ConfirmContributeViewModel @Inject constructor(
     private val router: CrowdloanRouter,
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
@@ -62,15 +61,17 @@ class ConfirmContributeViewModel @AssistedInject constructor(
     accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
     private val validationExecutor: ValidationExecutor,
-    @Assisted private val payload: ConfirmContributePayload,
     private val validationSystem: ContributeValidationSystem,
     private val customContributeManager: CustomContributeManager,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
+
+    private val payload = savedStateHandle.getLiveData<ConfirmContributePayload>(KEY_PAYLOAD).value!!
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -278,22 +279,5 @@ class ConfirmContributeViewModel @AssistedInject constructor(
             openBrowserEvent.postValue(Event(bonusUrl))
         }
         else -> Unit
-    }
-
-    @AssistedFactory
-    interface ConfirmContributeViewModelFactory {
-        fun create(payload: ConfirmContributePayload): ConfirmContributeViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ConfirmContributeViewModelFactory,
-            payload: ConfirmContributePayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

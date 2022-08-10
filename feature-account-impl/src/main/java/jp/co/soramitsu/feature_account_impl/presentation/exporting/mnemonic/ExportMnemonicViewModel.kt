@@ -1,11 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -21,24 +18,29 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.mnemonic.ExportMnemonicFragment.Companion.PAYLOAD_KEY
 import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import javax.inject.Inject
 
-class ExportMnemonicViewModel @AssistedInject constructor(
+@HiltViewModel
+class ExportMnemonicViewModel @Inject constructor(
     private val router: AccountRouter,
     resourceManager: ResourceManager,
     accountInteractor: AccountInteractor,
     chainRegistry: ChainRegistry,
-    @Assisted payload: ExportMnemonicPayload
+    private val savedStateHandle: SavedStateHandle
 ) : ExportViewModel(
     accountInteractor,
     resourceManager,
     chainRegistry,
-    payload.metaId,
-    payload.chainId,
-    payload.isExportWallet,
+    savedStateHandle.getLiveData<ExportMnemonicPayload>(PAYLOAD_KEY).value!!.metaId,
+    savedStateHandle.getLiveData<ExportMnemonicPayload>(PAYLOAD_KEY).value!!.chainId,
+    savedStateHandle.getLiveData<ExportMnemonicPayload>(PAYLOAD_KEY).value!!.isExportWallet,
     ExportSource.Mnemonic
 ) {
+
+    private val payload = savedStateHandle.getLiveData<ExportMnemonicPayload>(PAYLOAD_KEY).value!!
 
     private val isChainEthereumBased = chainLiveData.map { it.isEthereumBased }
 
@@ -116,22 +118,5 @@ class ExportMnemonicViewModel @AssistedInject constructor(
 
     override fun securityWarningCancel() {
         back()
-    }
-
-    @AssistedFactory
-    interface ExportMnemonicViewModelFactory {
-        fun create(payload: ExportMnemonicPayload): ExportMnemonicViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ExportMnemonicViewModelFactory,
-            payload: ExportMnemonicPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

@@ -18,29 +18,18 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentRewardSlashDetailsBinding
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragment_reward_slash_details) {
     companion object {
-        private const val KEY_PAYLOAD = "KEY_PAYLOAD"
+        const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
         fun getBundle(payload: RewardDetailsPayload) = bundleOf(KEY_PAYLOAD to payload)
     }
 
     private val binding by viewBinding(FragmentRewardSlashDetailsBinding::bind)
 
-    @Inject
-    lateinit var factory: RewardDetailViewModel.RewardDetailViewModelFactory
-
-    private val vm: RewardDetailViewModel by viewModels {
-        RewardDetailViewModel.provideFactory(
-            factory,
-            argument(KEY_PAYLOAD)
-        )
-    }
-    override val viewModel: RewardDetailViewModel
-        get() = vm
+    override val viewModel: RewardDetailViewModel by viewModels()
 
     override fun initViews() {
         binding.rewardDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
@@ -60,7 +49,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragme
     }
 
     override fun subscribe(viewModel: RewardDetailViewModel) {
-        with(viewModel.payload.operation) {
+        with(viewModel.payload!!.operation) {
             binding.rewardDetailHash.setMessage(eventId)
             binding.rewardDetailDate.text = time.formatDateTime(requireContext())
             binding.rewardDetailReward.text = amount
@@ -92,7 +81,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragme
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
-        val transaction = viewModel.payload.operation
+        val transaction = viewModel.payload!!.operation
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalEventActions()
@@ -109,8 +98,8 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragme
 
     private fun showExternalEventActions() = showExternalActionsSheet(
         copyLabelRes = R.string.common_copy_id,
-        value = viewModel.payload.operation.eventId,
-        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EVENT, viewModel.payload.operation.eventId),
+        value = viewModel.payload!!.operation.eventId,
+        explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EVENT, viewModel.payload!!.operation.eventId),
         externalViewCallback = viewModel::openUrl
     )
 
@@ -124,7 +113,7 @@ class RewardDetailFragment : BaseFragment<RewardDetailViewModel>(R.layout.fragme
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                chainId = viewModel.payload.chainId,
+                chainId = viewModel.payload!!.chainId,
                 explorers = explorers
             )
         )

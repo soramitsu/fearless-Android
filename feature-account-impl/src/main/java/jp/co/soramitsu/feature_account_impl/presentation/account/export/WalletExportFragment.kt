@@ -13,7 +13,7 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentWalletExportBind
 import jp.co.soramitsu.feature_account_impl.domain.account.details.AccountInChain
 import javax.inject.Inject
 
-private const val META_ID_KEY = "META_ID_KEY"
+const val META_ID_KEY = "META_ID_KEY"
 
 @AndroidEntryPoint
 class WalletExportFragment : BaseFragment<WalletExportViewModel>() {
@@ -23,17 +23,7 @@ class WalletExportFragment : BaseFragment<WalletExportViewModel>() {
 
     private lateinit var binding: FragmentWalletExportBinding
 
-    @Inject
-    lateinit var factory: WalletExportViewModel.WalletExportViewModelFactory
-
-    private val vm: WalletExportViewModel by viewModels {
-        WalletExportViewModel.provideFactory(
-            factory,
-            argument(META_ID_KEY)
-        )
-    }
-    override val viewModel: WalletExportViewModel
-        get() = vm
+    override val viewModel: WalletExportViewModel by viewModels()
 
     companion object {
         fun getBundle(metaAccountId: Long) = bundleOf(META_ID_KEY to metaAccountId)

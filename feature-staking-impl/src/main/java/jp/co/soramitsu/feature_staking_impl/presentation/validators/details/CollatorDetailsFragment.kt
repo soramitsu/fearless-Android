@@ -13,13 +13,12 @@ import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalAct
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentCollatorDetailsBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.CollatorDetailsParcelModel
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class CollatorDetailsFragment : BaseFragment<CollatorDetailsViewModel>(R.layout.fragment_collator_details) {
 
     companion object {
-        private const val KEY_COLLATOR = "collator"
+        const val KEY_COLLATOR = "collator"
 
         fun getBundle(collator: CollatorDetailsParcelModel): Bundle {
             return Bundle().apply {
@@ -28,17 +27,7 @@ class CollatorDetailsFragment : BaseFragment<CollatorDetailsViewModel>(R.layout.
         }
     }
 
-    @Inject
-    lateinit var factory: CollatorDetailsViewModel.CollatorDetailsViewModelFactory
-
-    private val vm: CollatorDetailsViewModel by viewModels {
-        CollatorDetailsViewModel.provideFactory(
-            factory,
-            argument(KEY_COLLATOR)
-        )
-    }
-    override val viewModel: CollatorDetailsViewModel
-        get() = vm
+    override val viewModel: CollatorDetailsViewModel by viewModels()
 
     private val binding by viewBinding(FragmentCollatorDetailsBinding::bind)
 

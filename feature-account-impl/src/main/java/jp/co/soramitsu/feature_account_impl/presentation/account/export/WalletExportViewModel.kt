@@ -2,11 +2,8 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.export
 
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -25,16 +22,20 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class WalletExportViewModel @AssistedInject constructor(
+@HiltViewModel
+class WalletExportViewModel @Inject constructor(
     private val interactor: AccountDetailsInteractor,
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    @Assisted private val metaId: Long,
     getTotalBalance: GetTotalBalanceUseCase,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+
+    private val metaId = savedStateHandle.getLiveData<Long>(META_ID_KEY).value!!
 
     val accountNameLiveData = MutableLiveData<String>()
     val accountIconLiveData = MutableLiveData<Drawable>()
@@ -71,22 +72,5 @@ class WalletExportViewModel @AssistedInject constructor(
 
     fun continueClicked(from: AccountInChain.From) {
         accountRouter.openAccountsForExport(metaId, from)
-    }
-
-    @AssistedFactory
-    interface WalletExportViewModelFactory {
-        fun create(metaId: Long): WalletExportViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: WalletExportViewModelFactory,
-            metaId: Long
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(metaId) as T
-            }
-        }
     }
 }

@@ -18,7 +18,7 @@ import javax.inject.Inject
 class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     companion object {
-        private const val PAYLOAD_KEY = "payload"
+        const val PAYLOAD_KEY = "payload"
 
         fun getBundle(payload: NodeDetailsPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
@@ -28,17 +28,7 @@ class NodeDetailsFragment : BaseFragment<NodeDetailsViewModel>() {
 
     private lateinit var binding: FragmentNodeDetailsBinding
 
-    @Inject
-    lateinit var factory: NodeDetailsViewModel.NodeDetailsViewModelFactory
-
-    private val vm: NodeDetailsViewModel by viewModels {
-        NodeDetailsViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: NodeDetailsViewModel
-        get() = vm
+    override val viewModel: NodeDetailsViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

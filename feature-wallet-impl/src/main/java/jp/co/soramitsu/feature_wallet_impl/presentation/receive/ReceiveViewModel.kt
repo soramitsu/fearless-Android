@@ -2,13 +2,10 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.receive
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -33,21 +30,25 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val AVATAR_SIZE_DP = 32
 private const val QR_TEMP_IMAGE_NAME = "address.png"
 
-class ReceiveViewModel @AssistedInject constructor(
+@HiltViewModel
+class ReceiveViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val qrCodeGenerator: QrCodeGenerator,
     private val addressIconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    @Assisted private val assetPayload: AssetPayload,
     private val router: WalletRouter,
     private val chainRegistry: ChainRegistry,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+
+    private val assetPayload = savedStateHandle.getLiveData<AssetPayload>(KEY_ASSET_PAYLOAD).value!!
 
     val assetSymbol = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbol
 
@@ -117,22 +118,5 @@ class ReceiveViewModel @AssistedInject constructor(
             chain.name,
             asset?.symbol
         ) + " " + address
-    }
-
-    @AssistedFactory
-    interface ReceiveViewModelFactory {
-        fun create(assetPayload: AssetPayload): ReceiveViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ReceiveViewModelFactory,
-            assetPayload: AssetPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(assetPayload) as T
-            }
-        }
     }
 }

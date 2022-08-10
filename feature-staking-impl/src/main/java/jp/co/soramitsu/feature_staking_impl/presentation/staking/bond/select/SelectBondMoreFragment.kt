@@ -18,7 +18,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentBondMoreBinding
 import javax.inject.Inject
 
-private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 @AndroidEntryPoint
 class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fragment_bond_more) {
@@ -27,17 +27,7 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fr
 
     private val binding by viewBinding(FragmentBondMoreBinding::bind)
 
-    @Inject
-    lateinit var factory: SelectBondMoreViewModel.SelectBondMoreViewModelFactory
-
-    private val vm: SelectBondMoreViewModel by viewModels {
-        SelectBondMoreViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: SelectBondMoreViewModel
-        get() = vm
+    override val viewModel: SelectBondMoreViewModel by viewModels()
 
     companion object {
 

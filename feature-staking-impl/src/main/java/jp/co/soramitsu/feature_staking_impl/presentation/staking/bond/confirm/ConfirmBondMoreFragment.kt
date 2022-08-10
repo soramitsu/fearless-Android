@@ -14,24 +14,14 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmBondMoreBinding
 import javax.inject.Inject
 
-private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 @AndroidEntryPoint
 class ConfirmBondMoreFragment : BaseFragment<ConfirmBondMoreViewModel>(R.layout.fragment_confirm_bond_more) {
 
     @Inject protected lateinit var imageLoader: ImageLoader
 
-    @Inject
-    lateinit var factory: ConfirmBondMoreViewModel.ConfirmBondMoreViewModelFactory
-
-    private val vm: ConfirmBondMoreViewModel by viewModels {
-        ConfirmBondMoreViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ConfirmBondMoreViewModel
-        get() = vm
+    override val viewModel: ConfirmBondMoreViewModel by viewModels()
 
     private val binding by viewBinding(FragmentConfirmBondMoreBinding::bind)
 

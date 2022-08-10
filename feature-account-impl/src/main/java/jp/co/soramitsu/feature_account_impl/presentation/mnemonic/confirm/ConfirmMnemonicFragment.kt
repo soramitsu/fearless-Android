@@ -14,13 +14,12 @@ import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentConfirmMnemonicBinding
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.view.MnemonicWordView
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     companion object {
-        private const val KEY_PAYLOAD = "confirm_payload"
+        const val KEY_PAYLOAD = "confirm_payload"
 
         fun getBundle(payload: ConfirmMnemonicPayload): Bundle {
 
@@ -30,17 +29,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
         }
     }
 
-    @Inject
-    lateinit var factory: ConfirmMnemonicViewModel.ConfirmMnemonicViewModelFactory
-
-    private val vm: ConfirmMnemonicViewModel by viewModels {
-        ConfirmMnemonicViewModel.provideFactory(
-            factory,
-            argument(KEY_PAYLOAD)
-        )
-    }
-    override val viewModel: ConfirmMnemonicViewModel
-        get() = vm
+    override val viewModel: ConfirmMnemonicViewModel by viewModels()
 
     private lateinit var binding: FragmentConfirmMnemonicBinding
 

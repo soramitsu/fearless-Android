@@ -17,13 +17,12 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportSeedBindin
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(metaId: Long, chainId: ChainId, isExportWallet: Boolean = false) =
             bundleOf(PAYLOAD_KEY to ExportSeedPayload(metaId, chainId, isExportWallet))
@@ -31,17 +30,7 @@ class ExportSeedFragment : ExportFragment<ExportSeedViewModel>() {
 
     private lateinit var binding: FragmentExportSeedBinding
 
-    @Inject
-    lateinit var factory: ExportSeedViewModel.ExportSeedViewModelFactory
-
-    private val vm: ExportSeedViewModel by viewModels {
-        ExportSeedViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ExportSeedViewModel
-        get() = vm
+    override val viewModel: ExportSeedViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentExportSeedBinding.inflate(inflater, container, false)

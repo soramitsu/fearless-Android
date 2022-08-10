@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentRedeemBinding
 import javax.inject.Inject
 
-private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 @AndroidEntryPoint
 class RedeemFragment : BaseFragment<RedeemViewModel>(R.layout.fragment_redeem) {
@@ -25,17 +25,7 @@ class RedeemFragment : BaseFragment<RedeemViewModel>(R.layout.fragment_redeem) {
 
     private val binding by viewBinding(FragmentRedeemBinding::bind)
 
-    @Inject
-    lateinit var factory: RedeemViewModel.RedeemViewModelFactory
-
-    private val vm: RedeemViewModel by viewModels {
-        RedeemViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: RedeemViewModel
-        get() = vm
+    override val viewModel: RedeemViewModel by viewModels()
 
     companion object {
 

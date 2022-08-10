@@ -18,13 +18,12 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentPincodeBinding
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintCallback
 import jp.co.soramitsu.feature_account_impl.presentation.pincode.fingerprint.FingerprintWrapper
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     companion object {
-        private const val KEY_PINCODE_ACTION = "pincode_action"
+        const val KEY_PINCODE_ACTION = "pincode_action"
 
         fun getPinCodeBundle(pinCodeAction: PinCodeAction) = bundleOf(KEY_PINCODE_ACTION to pinCodeAction)
     }
@@ -46,17 +45,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     private lateinit var binding: FragmentPincodeBinding
 
-    @Inject
-    lateinit var factory: PinCodeViewModel.PinCodeViewModelFactory
-
-    private val vm: PinCodeViewModel by viewModels {
-        PinCodeViewModel.provideFactory(
-            factory,
-            argument(KEY_PINCODE_ACTION)
-        )
-    }
-    override val viewModel: PinCodeViewModel
-        get() = vm
+    override val viewModel: PinCodeViewModel by viewModels()
 
     private val backCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {

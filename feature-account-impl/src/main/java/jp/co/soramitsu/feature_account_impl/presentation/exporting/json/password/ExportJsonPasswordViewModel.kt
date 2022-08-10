@@ -1,12 +1,9 @@
 package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireValue
@@ -17,20 +14,32 @@ import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
+import jp.co.soramitsu.feature_account_impl.presentation.exporting.json.password.ExportJsonPasswordFragment.Companion.PAYLOAD_KEY
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ExportJsonPasswordViewModel @AssistedInject constructor(
+@HiltViewModel
+class ExportJsonPasswordViewModel @Inject constructor(
     private val router: AccountRouter,
     private val interactor: AccountInteractor,
     private val chainRegistry: ChainRegistry,
-    @Assisted private val payload: ExportJsonPasswordPayload,
-    resourceManager: ResourceManager
-) : ExportViewModel(interactor, resourceManager, chainRegistry, payload.metaId, payload.chainId, payload.isExportWallet, ExportSource.Json) {
+    resourceManager: ResourceManager,
+    private val savedStateHandle: SavedStateHandle
+) : ExportViewModel(
+    interactor,
+    resourceManager,
+    chainRegistry,
+    savedStateHandle.getLiveData<ExportJsonPasswordPayload>(PAYLOAD_KEY).value!!.metaId,
+    savedStateHandle.getLiveData<ExportJsonPasswordPayload>(PAYLOAD_KEY).value!!.chainId,
+    savedStateHandle.getLiveData<ExportJsonPasswordPayload>(PAYLOAD_KEY).value!!.isExportWallet,
+    ExportSource.Json
+) {
 
+    private val payload = savedStateHandle.getLiveData<ExportJsonPasswordPayload>(PAYLOAD_KEY).value!!
     val isExportWallet = payload.isExportWallet
     val passwordLiveData = MutableLiveData<String>()
     val passwordConfirmationLiveData = MutableLiveData<String>()
@@ -131,22 +140,5 @@ class ExportJsonPasswordViewModel @AssistedInject constructor(
 
     fun resetProgress() {
         nextProgress.value = false
-    }
-
-    @AssistedFactory
-    interface ExportJsonPasswordViewModelFactory {
-        fun create(payload: ExportJsonPasswordPayload): ExportJsonPasswordViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ExportJsonPasswordViewModelFactory,
-            payload: ExportJsonPasswordPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

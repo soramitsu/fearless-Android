@@ -1,12 +1,9 @@
 package jp.co.soramitsu.feature_staking_impl.presentation.staking.controller.confirm
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -30,21 +27,25 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ConfirmSetControllerViewModel @AssistedInject constructor(
+@HiltViewModel
+class ConfirmSetControllerViewModel @Inject constructor(
     private val router: StakingRouter,
     private val controllerInteractor: ControllerInteractor,
     private val addressIconGenerator: AddressIconGenerator,
-    @Assisted private val payload: ConfirmSetControllerPayload,
     private val interactor: StakingInteractor,
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
     private val externalActions: ExternalAccountActions.Presentation,
     private val validationExecutor: ValidationExecutor,
-    private val validationSystem: SetControllerValidationSystem
+    private val validationSystem: SetControllerValidationSystem,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     ExternalAccountActions by externalActions {
+
+    private val payload = savedStateHandle.getLiveData<ConfirmSetControllerPayload>(PAYLOAD_KEY).value!!
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()
@@ -140,22 +141,5 @@ class ConfirmSetControllerViewModel @AssistedInject constructor(
 
     fun back() {
         router.back()
-    }
-
-    @AssistedFactory
-    interface ConfirmSetControllerViewModelFactory {
-        fun create(payload: ConfirmSetControllerPayload): ConfirmSetControllerViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ConfirmSetControllerViewModelFactory,
-            payload: ConfirmSetControllerPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

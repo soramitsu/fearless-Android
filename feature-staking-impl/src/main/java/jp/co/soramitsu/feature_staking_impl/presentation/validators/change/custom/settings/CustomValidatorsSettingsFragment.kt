@@ -10,14 +10,13 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentCustomValidatorsSettingsBinding
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class CustomValidatorsSettingsFragment :
     BaseFragment<CustomValidatorsSettingsViewModel>(R.layout.fragment_custom_validators_settings) {
 
     companion object {
-        private const val STAKING_TYPE_KEY = "stakingType"
+        const val STAKING_TYPE_KEY = "stakingType"
         fun getBundle(stakingType: Chain.Asset.StakingType) = bundleOf(STAKING_TYPE_KEY to stakingType)
     }
 
@@ -25,17 +24,7 @@ class CustomValidatorsSettingsFragment :
     private val sortingAdapter by lazy { SettingsSortingAdapter(viewModel::onSortingChecked) }
     private val binding by viewBinding(FragmentCustomValidatorsSettingsBinding::bind)
 
-    @Inject
-    lateinit var factory: CustomValidatorsSettingsViewModel.CustomValidatorsSettingsViewModelFactory
-
-    private val vm: CustomValidatorsSettingsViewModel by viewModels {
-        CustomValidatorsSettingsViewModel.provideFactory(
-            factory,
-            argument(STAKING_TYPE_KEY)
-        )
-    }
-    override val viewModel: CustomValidatorsSettingsViewModel
-        get() = vm
+    override val viewModel: CustomValidatorsSettingsViewModel by viewModels()
 
     override fun initViews() {
         with(binding) {

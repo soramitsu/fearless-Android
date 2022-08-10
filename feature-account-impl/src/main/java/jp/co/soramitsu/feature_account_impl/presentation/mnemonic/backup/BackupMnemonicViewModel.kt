@@ -1,13 +1,10 @@
 package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.LiveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
@@ -20,14 +17,18 @@ import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.MnemonicW
 import jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.mapMnemonicToMnemonicWords
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class BackupMnemonicViewModel @AssistedInject constructor(
+@HiltViewModel
+class BackupMnemonicViewModel @Inject constructor(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
-    @Assisted private val payload: BackupMnemonicPayload,
-    private val cryptoTypeChooserMixin: CryptoTypeChooserMixin
+    private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
+
+    private val payload = savedStateHandle.getLiveData<BackupMnemonicPayload>(BackupMnemonicFragment.PAYLOAD_KEY).value!!
 
     val mnemonicLiveData = liveData {
         emit(generateMnemonic())
@@ -97,23 +98,6 @@ class BackupMnemonicViewModel @AssistedInject constructor(
 
         return withContext(Dispatchers.Default) {
             mapMnemonicToMnemonicWords(mnemonic)
-        }
-    }
-
-    @AssistedFactory
-    interface BackupMnemonicViewModelFactory {
-        fun create(payload: BackupMnemonicPayload): BackupMnemonicViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: BackupMnemonicViewModelFactory,
-            payload: BackupMnemonicPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
         }
     }
 }

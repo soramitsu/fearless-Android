@@ -12,13 +12,12 @@ import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalAct
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentValidatorDetailsBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>(R.layout.fragment_validator_details) {
 
     companion object {
-        private const val KEY_VALIDATOR = "validator"
+        const val KEY_VALIDATOR = "validator"
 
         fun getBundle(validator: ValidatorDetailsParcelModel): Bundle {
             return Bundle().apply {
@@ -27,17 +26,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>(R.layou
         }
     }
 
-    @Inject
-    lateinit var factory: ValidatorDetailsViewModel.ValidatorDetailsViewModelFactory
-
-    private val vm: ValidatorDetailsViewModel by viewModels {
-        ValidatorDetailsViewModel.provideFactory(
-            factory,
-            argument(KEY_VALIDATOR)
-        )
-    }
-    override val viewModel: ValidatorDetailsViewModel
-        get() = vm
+    override val viewModel: ValidatorDetailsViewModel by viewModels()
 
     private val binding by viewBinding(FragmentValidatorDetailsBinding::bind)
 

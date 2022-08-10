@@ -15,29 +15,18 @@ import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalViewCall
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentExtrinsicDetailsBinding
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ExtrinsicDetailFragment : BaseFragment<ExtrinsicDetailViewModel>(R.layout.fragment_extrinsic_details) {
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(payload: ExtrinsicDetailsPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
 
     private val binding by viewBinding(FragmentExtrinsicDetailsBinding::bind)
 
-    @Inject
-    lateinit var factory: ExtrinsicDetailViewModel.ExtrinsicDetailViewModelFactory
-
-    private val vm: ExtrinsicDetailViewModel by viewModels {
-        ExtrinsicDetailViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ExtrinsicDetailViewModel
-        get() = vm
+    override val viewModel: ExtrinsicDetailViewModel by viewModels()
 
     override fun initViews() {
         binding.extrinsicDetailToolbar.setHomeButtonListener { viewModel.backClicked() }

@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.MediatorLiveData
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.mixin.api.Validatable
@@ -69,6 +66,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
@@ -83,20 +81,23 @@ sealed class CustomContributionState {
     object Inactive : CustomContributionState()
 }
 
-class CrowdloanContributeViewModel @AssistedInject constructor(
+@HiltViewModel
+class CrowdloanContributeViewModel @Inject constructor(
     private val router: CrowdloanRouter,
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
     assetUseCase: AssetUseCase,
     private val validationExecutor: ValidationExecutor,
     private val feeLoaderMixin: FeeLoaderMixin.Presentation,
-    @Assisted private val payload: ContributePayload,
     private val validationSystem: ContributeValidationSystem,
-    private val customContributeManager: CustomContributeManager
+    private val customContributeManager: CustomContributeManager,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     Browserable,
     FeeLoaderMixin by feeLoaderMixin {
+
+    private val payload = savedStateHandle.getLiveData<ContributePayload>(KEY_PAYLOAD).value!!
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -388,22 +389,5 @@ class CrowdloanContributeViewModel @AssistedInject constructor(
     fun termsClicked() {
         val termsLink = parachainMetadata?.flow?.data?.getString(FLOW_TERMS_URL) ?: return
         openBrowserEvent.value = Event(termsLink)
-    }
-
-    @AssistedFactory
-    interface CrowdloanContributeViewModelFactory {
-        fun create(payload: ContributePayload): CrowdloanContributeViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: CrowdloanContributeViewModelFactory,
-            payload: ContributePayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

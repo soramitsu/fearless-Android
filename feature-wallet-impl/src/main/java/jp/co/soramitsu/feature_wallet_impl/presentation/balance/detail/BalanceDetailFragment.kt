@@ -28,7 +28,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.showState
 import javax.inject.Inject
 
-private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 @AndroidEntryPoint
 class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.fragment_balance_detail) {
@@ -39,17 +39,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.frag
 
     private val binding by viewBinding(FragmentBalanceDetailBinding::bind)
 
-    @Inject
-    lateinit var factory: BalanceDetailViewModel.BalanceDetailViewModelFactory
-
-    private val vm: BalanceDetailViewModel by viewModels {
-        BalanceDetailViewModel.provideFactory(
-            factory,
-            argument(KEY_ASSET_PAYLOAD)
-        )
-    }
-    override val viewModel: BalanceDetailViewModel
-        get() = vm
+    override val viewModel: BalanceDetailViewModel by viewModels()
 
     @Inject
     lateinit var imageLoader: ImageLoader

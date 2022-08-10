@@ -12,9 +12,8 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentReceiveBinding
 import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.receive.model.QrSharingPayload
-import javax.inject.Inject
 
-private const val KEY_ASSET_PAYLOAD = "assetPayload"
+const val KEY_ASSET_PAYLOAD = "assetPayload"
 
 @AndroidEntryPoint
 class ReceiveFragment : BaseFragment<ReceiveViewModel>(R.layout.fragment_receive) {
@@ -24,17 +23,7 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>(R.layout.fragment_receive
 
     private val binding by viewBinding(FragmentReceiveBinding::bind)
 
-    @Inject
-    lateinit var factory: ReceiveViewModel.ReceiveViewModelFactory
-
-    private val vm: ReceiveViewModel by viewModels {
-        ReceiveViewModel.provideFactory(
-            factory,
-            argument(KEY_ASSET_PAYLOAD)
-        )
-    }
-    override val viewModel: ReceiveViewModel
-        get() = vm
+    override val viewModel: ReceiveViewModel by viewModels()
 
     override fun initViews() {
         binding.accountView.setWholeClickListener { viewModel.recipientClicked() }

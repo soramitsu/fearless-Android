@@ -22,10 +22,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import javax.inject.Inject
 
-private const val KEY_TRANSACTION = "KEY_DRAFT"
-private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+const val KEY_TRANSACTION = "KEY_DRAFT"
+const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 @AndroidEntryPoint
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout.fragment_transfer_details) {
@@ -37,18 +36,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
 
     private val binding by viewBinding(FragmentTransferDetailsBinding::bind)
 
-    @Inject
-    lateinit var factory: TransactionDetailViewModel.TransactionDetailViewModelFactory
-
-    private val vm: TransactionDetailViewModel by viewModels {
-        TransactionDetailViewModel.provideFactory(
-            factory,
-            argument(KEY_TRANSACTION),
-            argument(KEY_ASSET_PAYLOAD)
-        )
-    }
-    override val viewModel: TransactionDetailViewModel
-        get() = vm
+    override val viewModel: TransactionDetailViewModel by viewModels()
 
     override fun initViews() {
         binding.transactionDetailToolbar.setHomeButtonListener { viewModel.backClicked() }
@@ -77,7 +65,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
     }
 
     override fun subscribe(viewModel: TransactionDetailViewModel) {
-        with(viewModel.operation) {
+        with(viewModel.operation.value!!) {
             binding.transactionDetailStatus.setText(statusAppearance.labelRes)
             binding.transactionDetailStatusIcon.setImageResource(statusAppearance.icon)
 
@@ -150,7 +138,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
-        val transaction = viewModel.operation
+        val transaction = viewModel.operation.value!!
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
@@ -166,7 +154,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
         externalViewCallback = viewModel::openUrl
     )
 
-    private fun showExternalTransactionActions() = viewModel.operation.hash?.let { hash ->
+    private fun showExternalTransactionActions() = viewModel.operation.value!!.hash?.let { hash ->
         showExternalActionsSheet(
             copyLabelRes = R.string.transaction_details_copy_hash,
             value = hash,
@@ -185,7 +173,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                chainId = viewModel.assetPayload.chainId,
+                chainId = viewModel.assetPayload.value!!.chainId,
                 explorers = explorers
             )
         )

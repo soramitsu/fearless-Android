@@ -14,13 +14,12 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.feature_onboarding_impl.databinding.FragmentWelcomeBinding
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome) {
 
     companion object {
-        private const val KEY_PAYLOAD = "key_payload"
+        const val KEY_PAYLOAD = "key_payload"
 
         fun getBundle(
             displayBack: Boolean,
@@ -32,17 +31,7 @@ class WelcomeFragment : BaseFragment<WelcomeViewModel>(R.layout.fragment_welcome
         }
     }
 
-    @Inject
-    lateinit var factory: WelcomeViewModel.WelcomeViewModelFactory
-
-    private val vm: WelcomeViewModel by viewModels {
-        WelcomeViewModel.provideFactory(
-            factory,
-            argument(KEY_PAYLOAD)
-        )
-    }
-    override val viewModel: WelcomeViewModel
-        get() = vm
+    override val viewModel: WelcomeViewModel by viewModels()
 
     private val binding by viewBinding(FragmentWelcomeBinding::bind)
 

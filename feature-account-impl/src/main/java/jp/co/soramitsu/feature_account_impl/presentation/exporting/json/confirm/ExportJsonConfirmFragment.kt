@@ -26,20 +26,10 @@ class ExportJsonConfirmFragment : ExportFragment<ExportJsonConfirmViewModel>() {
 
     private lateinit var binding: FragmentExportJsonConfirmBinding
 
-    @Inject
-    lateinit var factory: ExportJsonConfirmViewModel.ExportJsonConfirmViewModelFactory
-
-    private val vm: ExportJsonConfirmViewModel by viewModels {
-        ExportJsonConfirmViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ExportJsonConfirmViewModel
-        get() = vm
+    override val viewModel: ExportJsonConfirmViewModel by viewModels()
 
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(payload: ExportJsonConfirmPayload) = bundleOf(PAYLOAD_KEY to payload)
     }

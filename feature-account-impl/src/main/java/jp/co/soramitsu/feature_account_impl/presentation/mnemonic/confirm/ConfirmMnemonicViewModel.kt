@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -19,15 +16,20 @@ import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
+import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment.Companion.KEY_PAYLOAD
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ConfirmMnemonicViewModel @AssistedInject constructor(
+@HiltViewModel
+class ConfirmMnemonicViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val deviceVibrator: DeviceVibrator,
-    @Assisted private val payload: ConfirmMnemonicPayload
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
+
+    private val payload = savedStateHandle.getLiveData<ConfirmMnemonicPayload>(KEY_PAYLOAD).value!!
 
     private val originMnemonic = payload.mnemonic
 
@@ -166,22 +168,5 @@ class ConfirmMnemonicViewModel @AssistedInject constructor(
 
     fun skipClicked() {
         proceed()
-    }
-
-    @AssistedFactory
-    interface ConfirmMnemonicViewModelFactory {
-        fun create(payload: ConfirmMnemonicPayload): ConfirmMnemonicViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ConfirmMnemonicViewModelFactory,
-            payload: ConfirmMnemonicPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

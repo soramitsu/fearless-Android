@@ -37,7 +37,7 @@ import jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-private const val KEY_PAYLOAD = "KEY_PAYLOAD"
+const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
 @AndroidEntryPoint
 class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
@@ -52,17 +52,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
     private val payload by lazy { argument<CustomContributePayload>(KEY_PAYLOAD) }
 
-    @Inject
-    lateinit var factory: CustomContributeViewModel.CustomContributeViewModelFactory
-
-    private val vm: CustomContributeViewModel by viewModels {
-        CustomContributeViewModel.provideFactory(
-            factory,
-            argument(KEY_PAYLOAD)
-        )
-    }
-    override val viewModel: CustomContributeViewModel
-        get() = vm
+    override val viewModel: CustomContributeViewModel by viewModels()
 
     companion object {
 

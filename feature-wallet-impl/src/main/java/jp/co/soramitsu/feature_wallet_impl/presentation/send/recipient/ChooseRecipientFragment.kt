@@ -18,12 +18,11 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.common.askPermissionsSafely
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val INDEX_WELCOME = 0
 private const val INDEX_CONTENT = 1
 private const val INDEX_EMPTY = 2
-private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 @AndroidEntryPoint
 class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(R.layout.fragment_choose_recipient), ChooseRecipientAdapter.RecipientItemHandler {
@@ -39,17 +38,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(R.layout.
 
     private val binding by viewBinding(FragmentChooseRecipientBinding::bind)
 
-    @Inject
-    lateinit var factory: ChooseRecipientViewModel.ChooseRecipientViewModelFactory
-
-    private val vm: ChooseRecipientViewModel by viewModels {
-        ChooseRecipientViewModel.provideFactory(
-            factory,
-            argument(KEY_ASSET_PAYLOAD)
-        )
-    }
-    override val viewModel: ChooseRecipientViewModel
-        get() = vm
+    override val viewModel: ChooseRecipientViewModel by viewModels()
 
     override fun initViews() {
         adapter = ChooseRecipientAdapter(this)

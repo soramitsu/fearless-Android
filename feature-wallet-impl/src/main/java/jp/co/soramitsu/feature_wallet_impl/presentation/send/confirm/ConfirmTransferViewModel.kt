@@ -2,13 +2,10 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -38,10 +35,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 private const val ICON_IN_DP = 24
 
-class ConfirmTransferViewModel @AssistedInject constructor(
+@HiltViewModel
+class ConfirmTransferViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
@@ -49,10 +48,12 @@ class ConfirmTransferViewModel @AssistedInject constructor(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val walletConstants: WalletConstants,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    @Assisted val transferDraft: TransferDraft
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
+
+    val transferDraft = savedStateHandle.getLiveData<TransferDraft>(KEY_DRAFT).value!!
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
     val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
@@ -153,23 +154,6 @@ class ConfirmTransferViewModel @AssistedInject constructor(
                 amount = amount,
                 chainAsset = token
             )
-        }
-    }
-
-    @AssistedFactory
-    interface ConfirmTransferViewModelFactory {
-        fun create(transferDraft: TransferDraft): ConfirmTransferViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ConfirmTransferViewModelFactory,
-            transferDraft: TransferDraft
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(transferDraft) as T
-            }
         }
     }
 }

@@ -13,30 +13,19 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportMnemonicBi
 import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportFragment
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ExportMnemonicFragment : ExportFragment<ExportMnemonicViewModel>() {
 
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(metaId: Long, chainId: ChainId, isExportWallet: Boolean) = bundleOf(
             PAYLOAD_KEY to ExportMnemonicPayload(metaId, chainId, isExportWallet)
         )
     }
 
-    @Inject
-    lateinit var factory: ExportMnemonicViewModel.ExportMnemonicViewModelFactory
-
-    private val vm: ExportMnemonicViewModel by viewModels {
-        ExportMnemonicViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ExportMnemonicViewModel
-        get() = vm
+    override val viewModel: ExportMnemonicViewModel by viewModels()
 
     private lateinit var binding: FragmentExportMnemonicBinding
 

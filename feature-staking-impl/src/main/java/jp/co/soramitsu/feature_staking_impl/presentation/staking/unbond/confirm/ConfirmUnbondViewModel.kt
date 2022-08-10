@@ -2,11 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.unbond.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -38,8 +35,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ConfirmUnbondViewModel @AssistedInject constructor(
+@HiltViewModel
+class ConfirmUnbondViewModel @Inject constructor(
     private val router: StakingRouter,
     interactor: StakingInteractor,
     private val stakingScenarioInteractor: StakingScenarioInteractor,
@@ -49,10 +48,12 @@ class ConfirmUnbondViewModel @AssistedInject constructor(
     private val iconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    @Assisted private val payload: ConfirmUnbondPayload,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     Validatable by validationExecutor {
+
+    private val payload = savedStateHandle.getLiveData<ConfirmUnbondPayload>(PAYLOAD_KEY).value!!
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -155,23 +156,6 @@ class ConfirmUnbondViewModel @AssistedInject constructor(
             router.returnToStakingBalance()
         } else {
             showError(result.requireException())
-        }
-    }
-
-    @AssistedFactory
-    interface ConfirmUnbondViewModelFactory {
-        fun create(payload: ConfirmUnbondPayload): ConfirmUnbondViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ConfirmUnbondViewModelFactory,
-            payload: ConfirmUnbondPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
         }
     }
 }

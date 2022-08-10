@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.detail.tran
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -25,6 +22,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelize
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
 private const val ICON_SIZE_DP = 32
 
@@ -32,7 +30,8 @@ enum class ExternalActionsSource {
     TRANSACTION_HASH, FROM_ADDRESS, TO_ADDRESS
 }
 
-class TransactionDetailViewModel @AssistedInject constructor(
+@HiltViewModel
+class TransactionDetailViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
@@ -40,9 +39,11 @@ class TransactionDetailViewModel @AssistedInject constructor(
     private val clipboardManager: ClipboardManager,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val chainRegistry: ChainRegistry,
-    @Assisted val operation: OperationParcelizeModel.Transfer,
-    @Assisted val assetPayload: AssetPayload
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), Browserable {
+
+    val operation = savedStateHandle.getLiveData<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)
+    val assetPayload = savedStateHandle.getLiveData<AssetPayload>(KEY_ASSET_PAYLOAD)
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalTransactionActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
@@ -50,19 +51,19 @@ class TransactionDetailViewModel @AssistedInject constructor(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val recipientAddressModelLiveData = liveData {
-        emit(getIcon(operation.receiver))
+        emit(getIcon(operation.value!!.receiver))
     }
 
     val senderAddressModelLiveData = liveData {
-        emit(getIcon(operation.sender))
+        emit(getIcon(operation.value!!.sender))
     }
 
-    private val chainExplorers = flow { emit(chainRegistry.getChain(assetPayload.chainId).explorers) }.share()
+    private val chainExplorers = flow { emit(chainRegistry.getChain(assetPayload.value!!.chainId).explorers) }.share()
 
     fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
         chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
 
-    val retryAddressModelLiveData = if (operation.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
+    val retryAddressModelLiveData = if (operation.value!!.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
 
     fun copyStringClicked(address: String) {
         clipboardManager.addToClipboard(address)
@@ -77,7 +78,7 @@ class TransactionDetailViewModel @AssistedInject constructor(
     fun repeatTransaction() {
         val retryAddress = retryAddressModelLiveData.value?.address ?: return
 
-        router.openRepeatTransaction(retryAddress, assetPayload)
+        router.openRepeatTransaction(retryAddress, assetPayload.value!!)
     }
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))
@@ -88,23 +89,5 @@ class TransactionDetailViewModel @AssistedInject constructor(
 
     fun openUrl(url: String) {
         openBrowserEvent.value = Event(url)
-    }
-
-    @AssistedFactory
-    interface TransactionDetailViewModelFactory {
-        fun create(operation: OperationParcelizeModel.Transfer, assetPayload: AssetPayload): TransactionDetailViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: TransactionDetailViewModelFactory,
-            operation: OperationParcelizeModel.Transfer,
-            assetPayload: AssetPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(operation, assetPayload) as T
-            }
-        }
     }
 }

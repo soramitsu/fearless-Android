@@ -12,28 +12,17 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBalanceBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.ChooseRebondKindBottomSheet
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class StakingBalanceFragment : BaseFragment<StakingBalanceViewModel>(R.layout.fragment_staking_balance) {
 
     companion object {
-        private const val KEY_COLLATOR_ADDRESS = "collator_address"
+        const val KEY_COLLATOR_ADDRESS = "collator_address"
 
         fun getBundle(address: String) = bundleOf(KEY_COLLATOR_ADDRESS to address)
     }
 
-    @Inject
-    lateinit var factory: StakingBalanceViewModel.StakingBalanceViewModelFactory
-
-    private val vm: StakingBalanceViewModel by viewModels {
-        StakingBalanceViewModel.provideFactory(
-            factory,
-            requireArguments().getString(KEY_COLLATOR_ADDRESS).orEmpty()
-        )
-    }
-    override val viewModel: StakingBalanceViewModel
-        get() = vm
+    override val viewModel: StakingBalanceViewModel by viewModels()
 
     private val binding by viewBinding(FragmentStakingBalanceBinding::bind)
 

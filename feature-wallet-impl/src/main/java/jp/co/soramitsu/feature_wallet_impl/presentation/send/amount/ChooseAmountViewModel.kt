@@ -2,13 +2,10 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.send.amount
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -60,6 +57,7 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
+import javax.inject.Inject
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -74,22 +72,25 @@ enum class RetryReason(val reasonRes: Int) {
     LOAD_FEE(R.string.choose_amount_error_fee)
 }
 
-class ChooseAmountViewModel @AssistedInject constructor(
+@HiltViewModel
+class ChooseAmountViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val walletConstants: WalletConstants,
-    @Assisted private val recipientAddress: String,
-    @Assisted private val assetPayload: AssetPayload,
     private val phishingAddress: PhishingWarningMixin,
-    private val chainRegistry: ChainRegistry
+    private val chainRegistry: ChainRegistry,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
     PhishingWarningMixin by phishingAddress,
     PhishingWarningPresentation {
+
+    private val recipientAddress = savedStateHandle.getLiveData<String>(KEY_ADDRESS).value!!
+    private val assetPayload = savedStateHandle.getLiveData<AssetPayload>(KEY_ASSET_PAYLOAD).value!!
 
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))
@@ -313,23 +314,5 @@ class ChooseAmountViewModel @AssistedInject constructor(
 
         val newAmount = quickAmountWithoutExtraPays.format()
         amountChanged(newAmount)
-    }
-
-    @AssistedFactory
-    interface ChooseAmountViewModelFactory {
-        fun create(recipientAddress: String, assetPayload: AssetPayload): ChooseAmountViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ChooseAmountViewModelFactory,
-            recipientAddress: String,
-            assetPayload: AssetPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(recipientAddress, assetPayload) as T
-            }
-        }
     }
 }

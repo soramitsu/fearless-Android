@@ -22,20 +22,10 @@ class ConfirmRebondFragment : BaseFragment<ConfirmRebondViewModel>(R.layout.frag
 
     private val binding by viewBinding(FragmentConfirmRebondBinding::bind)
 
-    @Inject
-    lateinit var factory: ConfirmRebondViewModel.ConfirmRebondViewModelFactory
-
-    private val vm: ConfirmRebondViewModel by viewModels {
-        ConfirmRebondViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ConfirmRebondViewModel
-        get() = vm
+    override val viewModel: ConfirmRebondViewModel by viewModels()
 
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(payload: ConfirmRebondPayload) = bundleOf(PAYLOAD_KEY to payload)
     }
