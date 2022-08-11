@@ -26,6 +26,4 @@ interface TransactionHistoryMixin : TransactionHistoryUi, CoroutineScope {
     suspend fun syncFirstOperationsPage(): Result<*>
 
     fun scrolled(currentIndex: Int)
-
-    fun setAssetPayload(asset: AssetPayload)
 }

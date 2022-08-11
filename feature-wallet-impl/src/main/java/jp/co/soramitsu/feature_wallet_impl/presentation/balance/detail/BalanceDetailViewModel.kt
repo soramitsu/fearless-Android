@@ -5,8 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
@@ -18,7 +22,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.async
@@ -27,22 +33,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val buyMixin: BuyMixin.Presentation,
-    private val transactionHistoryMixin: TransactionHistoryMixin,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    addressIconGenerator: AddressIconGenerator,
+    resourceManager: ResourceManager,
+    addressDisplayUseCase: AddressDisplayUseCase
 ) : BaseViewModel(),
-    TransactionHistoryUi by transactionHistoryMixin,
+    TransactionHistoryUi,
     ExternalAccountActions by externalAccountActions,
     BuyMixin by buyMixin {
 
-    private val assetPayload = savedStateHandle.getLiveData<AssetPayload>(KEY_ASSET_PAYLOAD)
+    private val assetPayload: AssetPayload = savedStateHandle[KEY_ASSET_PAYLOAD]!!
 
     private val _showAccountOptions = MutableLiveData<Event<String>>()
     val showAccountOptions: LiveData<Event<String>> = _showAccountOptions
@@ -58,11 +65,19 @@ class BalanceDetailViewModel @Inject constructor(
 
     val assetLiveData = currentAssetFlow().asLiveData()
 
-    val buyEnabled = buyMixin.isBuyEnabled(assetPayload.value!!.chainId, assetPayload.value!!.chainAssetId)
+    val buyEnabled = buyMixin.isBuyEnabled(assetPayload.chainId, assetPayload.chainAssetId)
 
-    init {
-        transactionHistoryMixin.setAssetPayload(assetPayload.value!!)
-    }
+    private val transactionHistoryMixin = TransactionHistoryProvider(
+        interactor,
+        addressIconGenerator,
+        router,
+        HistoryFiltersProvider(),
+        resourceManager,
+        addressDisplayUseCase,
+        savedStateHandle[KEY_ASSET_PAYLOAD]!!
+    )
+
+    override val state: Flow<TransactionHistoryUi.State> = transactionHistoryMixin.state
 
     override fun onCleared() {
         super.onCleared()
@@ -94,23 +109,23 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     fun sendClicked() {
-        router.openChooseRecipient(assetPayload.value!!)
+        router.openChooseRecipient(assetPayload)
     }
 
     fun receiveClicked() {
-        router.openReceive(assetPayload.value!!)
+        router.openReceive(assetPayload)
     }
 
     fun accountOptionsClicked() = launch {
-        interactor.getChainAddressForSelectedMetaAccount(assetPayload.value!!.chainId)?.let { address ->
+        interactor.getChainAddressForSelectedMetaAccount(assetPayload.chainId)?.let { address ->
             _showAccountOptions.postValue(Event(address))
         }
     }
 
     fun buyClicked() {
         viewModelScope.launch {
-            interactor.selectedAccountFlow(assetPayload.value!!.chainId).firstOrNull()?.let { wallet ->
-                buyMixin.buyClicked(assetPayload.value!!.chainId, assetPayload.value!!.chainAssetId, wallet.address)
+            interactor.selectedAccountFlow(assetPayload.chainId).firstOrNull()?.let { wallet ->
+                buyMixin.buyClicked(assetPayload.chainId, assetPayload.chainAssetId, wallet.address)
             }
         }
     }
@@ -122,19 +137,19 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     private fun currentAssetFlow(): Flow<AssetModel> {
-        return interactor.assetFlow(assetPayload.value!!.chainId, assetPayload.value!!.chainAssetId)
+        return interactor.assetFlow(assetPayload.chainId, assetPayload.chainAssetId)
             .map { mapAssetToAssetModel(it) }
     }
 
     fun switchNode() {
-        router.openNodes(assetPayload.value!!.chainId)
+        router.openNodes(assetPayload.chainId)
     }
 
     fun exportClicked() {
         viewModelScope.launch {
-            val isEthereumBased = interactor.getChain(assetPayload.value!!.chainId).isEthereumBased
+            val isEthereumBased = interactor.getChain(assetPayload.chainId).isEthereumBased
             val sources = interactor.getMetaAccountSecrets().buildExportSourceTypes(isEthereumBased)
-            _showExportSourceChooser.value = Event(ExportSourceChooserPayload(assetPayload.value!!.chainId, sources))
+            _showExportSourceChooser.value = Event(ExportSourceChooserPayload(assetPayload.chainId, sources))
         }
     }
 
@@ -149,5 +164,9 @@ class BalanceDetailViewModel @Inject constructor(
 
             router.withPinCodeCheckRequired(destination, pinCodeTitleRes = R.string.account_export)
         }
+    }
+
+    override fun transactionClicked(transactionModel: OperationModel) {
+        transactionHistoryMixin.transactionClicked(transactionModel)
     }
 }

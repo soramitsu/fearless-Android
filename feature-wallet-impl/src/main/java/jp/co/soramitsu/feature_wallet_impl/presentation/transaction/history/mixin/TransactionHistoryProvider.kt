@@ -1,7 +1,7 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin
 
+import android.util.Log
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.inBackground
@@ -24,17 +24,15 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixi
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.model.DayHeader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -47,30 +45,22 @@ class TransactionHistoryProvider(
     private val historyFiltersProvider: HistoryFiltersProvider,
     private val resourceManager: ResourceManager,
     private val addressDisplayUseCase: AddressDisplayUseCase,
+    private val assetPayload: AssetPayload
 ) : TransactionHistoryMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val domainState = MutableStateFlow<State>(
         State.EmptyProgress(filters = historyFiltersProvider.currentFilters())
     )
 
-    private val assetPayload = MutableSharedFlow<AssetPayload>()
-
-    override fun setAssetPayload(asset: AssetPayload) {
-        launch {
-            assetPayload.emit(asset)
-        }
-    }
-
     override val state = domainState.map(::mapOperationHistoryStateToUi)
         .inBackground()
         .shareIn(this, started = SharingStarted.Eagerly, replay = 1)
 
-    private val cachedPage = flow<CursorPage<Operation>> {
-        walletInteractor.operationsFirstPageFlow(assetPayload.first().chainId, assetPayload.first().chainAssetId)
-            .distinctUntilChangedBy { it.cursorPage }
-            .onEach { performTransition(Action.CachePageArrived(it.cursorPage, it.accountChanged)) }
-            .map { it.cursorPage }
-    }.inBackground().shareIn(this, SharingStarted.Eagerly, replay = 1)
+    private val cachedPage = walletInteractor.operationsFirstPageFlow(assetPayload.chainId, assetPayload.chainAssetId)
+        .distinctUntilChangedBy { it.cursorPage }
+        .onEach { performTransition(Action.CachePageArrived(it.cursorPage, it.accountChanged)) }
+        .map { it.cursorPage }
+        .inBackground().shareIn(this, SharingStarted.Eagerly, replay = 1)
 
     init {
         historyFiltersProvider.filtersFlow()
@@ -85,8 +75,8 @@ class TransactionHistoryProvider(
 
     override suspend fun syncFirstOperationsPage(): Result<*> {
         return walletInteractor.syncOperationsFirstPage(
-            chainId = assetPayload.first().chainId,
-            chainAssetId = assetPayload.first().chainAssetId,
+            chainId = assetPayload.chainId,
+            chainAssetId = assetPayload.chainAssetId,
             pageSize = TransactionStateMachine.PAGE_SIZE,
             filters = historyFiltersProvider.allFilters
         ).onFailure { throwable ->
@@ -107,15 +97,15 @@ class TransactionHistoryProvider(
             withContext(Dispatchers.Main) {
                 when (val operation = mapOperationToParcel(clickedOperation, resourceManager)) {
                     is OperationParcelizeModel.Transfer -> {
-                        router.openTransferDetail(operation, assetPayload.first())
+                        router.openTransferDetail(operation, assetPayload)
                     }
 
                     is OperationParcelizeModel.Extrinsic -> {
-                        router.openExtrinsicDetail(ExtrinsicDetailsPayload(operation, assetPayload.first().chainId))
+                        router.openExtrinsicDetail(ExtrinsicDetailsPayload(operation, assetPayload.chainId))
                     }
 
                     is OperationParcelizeModel.Reward -> {
-                        router.openRewardDetail(RewardDetailsPayload(operation, assetPayload.first().chainId))
+                        router.openRewardDetail(RewardDetailsPayload(operation, assetPayload.chainId))
                     }
                 }
             }
@@ -132,7 +122,7 @@ class TransactionHistoryProvider(
                 TransactionStateMachine.SideEffect.TriggerCache -> triggerCache()
             }
         }
-
+        Log.d("&&&", newState.toString())
         domainState.value = newState
     }
 
@@ -147,8 +137,8 @@ class TransactionHistoryProvider(
     private fun loadNewPage(sideEffect: TransactionStateMachine.SideEffect.LoadPage) {
         launch {
             walletInteractor.getOperations(
-                assetPayload.first().chainId,
-                assetPayload.first().chainAssetId,
+                assetPayload.chainId,
+                assetPayload.chainAssetId,
                 sideEffect.pageSize,
                 sideEffect.nextCursor,
                 sideEffect.filters
