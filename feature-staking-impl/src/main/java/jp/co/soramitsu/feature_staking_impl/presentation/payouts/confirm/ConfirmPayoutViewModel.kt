@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class ConfirmPayoutViewModel @Inject constructor(
@@ -53,7 +54,7 @@ class ConfirmPayoutViewModel @Inject constructor(
     private val addressModelGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val validationSystem: ValidationSystem<MakePayoutPayload, PayoutValidationFailure>,
     private val validationExecutor: ValidationExecutor,
@@ -64,7 +65,7 @@ class ConfirmPayoutViewModel @Inject constructor(
     FeeLoaderMixin by feeLoaderMixin,
     Validatable by validationExecutor {
 
-    private val payload = savedStateHandle.getLiveData<ConfirmPayoutPayload>(ConfirmPayoutFragment.KEY_PAYOUTS).value!!
+    private val payload = savedStateHandle.get<ConfirmPayoutPayload>(ConfirmPayoutFragment.KEY_PAYOUTS)!!
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()

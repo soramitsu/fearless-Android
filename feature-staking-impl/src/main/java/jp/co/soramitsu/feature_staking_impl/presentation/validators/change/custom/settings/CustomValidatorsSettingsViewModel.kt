@@ -23,18 +23,19 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class CustomValidatorsSettingsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
-    private val tokenUseCase: TokenUseCase,
+    @Named("StakingTokenUseCase") private val tokenUseCase: TokenUseCase,
     private val settingsStorage: SettingsStorage,
     private val setupStakingSharedState: SetupStakingSharedState,
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
-    private val stakingType = savedStateHandle.getLiveData<Chain.Asset.StakingType>(CustomValidatorsSettingsFragment.STAKING_TYPE_KEY).value!!
+    private val stakingType = savedStateHandle.get<Chain.Asset.StakingType>(CustomValidatorsSettingsFragment.STAKING_TYPE_KEY)!!
 
     private val recommendationSettingsProvider by lazyAsync {
         recommendationSettingsProviderFactory.create(router.currentStackEntryLifecycle, stakingType)

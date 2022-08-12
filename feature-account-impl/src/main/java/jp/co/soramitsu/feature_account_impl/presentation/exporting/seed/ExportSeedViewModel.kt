@@ -37,13 +37,13 @@ class ExportSeedViewModel @Inject constructor(
     accountInteractor,
     resourceManager,
     chainRegistry,
-    savedStateHandle.getLiveData<ExportSeedPayload>(ExportSeedFragment.PAYLOAD_KEY).value!!.metaId,
-    savedStateHandle.getLiveData<ExportSeedPayload>(ExportSeedFragment.PAYLOAD_KEY).value!!.chainId,
-    savedStateHandle.getLiveData<ExportSeedPayload>(ExportSeedFragment.PAYLOAD_KEY).value!!.isExportWallet,
+    savedStateHandle.get<ExportSeedPayload>(ExportSeedFragment.PAYLOAD_KEY)!!.metaId,
+    savedStateHandle.get<ExportSeedPayload>(ExportSeedFragment.PAYLOAD_KEY)!!.chainId,
+    savedStateHandle.get<ExportSeedPayload>(ExportSeedFragment.PAYLOAD_KEY)!!.isExportWallet,
     ExportSource.Seed
 ) {
 
-    val payload = savedStateHandle.getLiveData<ExportSeedPayload>(ExportSeedFragment.PAYLOAD_KEY).value!!
+    val payload = savedStateHandle.get<ExportSeedPayload>(ExportSeedFragment.PAYLOAD_KEY)!!
 
     val seedLiveData = isChainAccountLiveData.switchMap { isChainAccount ->
         when {

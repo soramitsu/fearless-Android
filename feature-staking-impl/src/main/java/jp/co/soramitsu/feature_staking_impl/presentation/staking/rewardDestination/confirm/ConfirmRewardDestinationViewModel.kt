@@ -61,7 +61,7 @@ class ConfirmRewardDestinationViewModel @Inject constructor(
     Validatable by validationExecutor,
     ExternalAccountActions by externalAccountActions {
 
-    private val payload = savedStateHandle.getLiveData<ConfirmRewardDestinationPayload>(KEY_PAYLOAD).value!!
+    private val payload = savedStateHandle.get<ConfirmRewardDestinationPayload>(KEY_PAYLOAD)!!
 
     private val stashFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()

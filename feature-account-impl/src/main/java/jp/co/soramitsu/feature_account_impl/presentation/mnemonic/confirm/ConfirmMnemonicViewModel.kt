@@ -29,7 +29,7 @@ class ConfirmMnemonicViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
-    private val payload = savedStateHandle.getLiveData<ConfirmMnemonicPayload>(KEY_PAYLOAD).value!!
+    private val payload = savedStateHandle.get<ConfirmMnemonicPayload>(KEY_PAYLOAD)!!
 
     private val originMnemonic = payload.mnemonic
 

@@ -35,7 +35,7 @@ class WalletExportViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
-    private val metaId = savedStateHandle.getLiveData<Long>(META_ID_KEY).value!!
+    private val metaId = savedStateHandle.get<Long>(META_ID_KEY)!!
 
     val accountNameLiveData = MutableLiveData<String>()
     val accountIconLiveData = MutableLiveData<Drawable>()

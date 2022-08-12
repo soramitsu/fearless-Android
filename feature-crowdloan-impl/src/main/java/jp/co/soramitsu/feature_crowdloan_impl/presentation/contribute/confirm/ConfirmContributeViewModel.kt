@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class ConfirmContributeViewModel @Inject constructor(
@@ -57,7 +58,7 @@ class ConfirmContributeViewModel @Inject constructor(
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
-    assetUseCase: AssetUseCase,
+    @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
     accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
     private val validationExecutor: ValidationExecutor,
@@ -71,7 +72,7 @@ class ConfirmContributeViewModel @Inject constructor(
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
 
-    private val payload = savedStateHandle.getLiveData<ConfirmContributePayload>(KEY_PAYLOAD).value!!
+    private val payload = savedStateHandle.get<ConfirmContributePayload>(KEY_PAYLOAD)!!
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 

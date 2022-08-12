@@ -23,6 +23,7 @@ import jp.co.soramitsu.feature_wallet_api.domain.model.Token
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class ConfirmNominationsViewModel @Inject constructor(
@@ -31,7 +32,7 @@ class ConfirmNominationsViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
     private val interactor: StakingInteractor,
-    private val tokenUseCase: TokenUseCase
+    @Named("StakingTokenUseCase") private val tokenUseCase: TokenUseCase
 ) : BaseViewModel() {
 
     private val currentSetupStakingProcess = sharedStateSetup.get<SetupStakingProcess.ReadyToSubmit<Validator>>()

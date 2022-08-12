@@ -53,7 +53,7 @@ class ConfirmUnbondViewModel @Inject constructor(
     ExternalAccountActions by externalAccountActions,
     Validatable by validationExecutor {
 
-    private val payload = savedStateHandle.getLiveData<ConfirmUnbondPayload>(PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<ConfirmUnbondPayload>(PAYLOAD_KEY)!!
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress

@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class ReviewCustomValidatorsViewModel @Inject constructor(
@@ -36,7 +37,7 @@ class ReviewCustomValidatorsViewModel @Inject constructor(
     stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
-    tokenUseCase: TokenUseCase,
+    @Named("StakingTokenUseCase") tokenUseCase: TokenUseCase,
 ) : BaseViewModel() {
 
     private val confirmSetupState = sharedStateSetup.setupStakingProcess

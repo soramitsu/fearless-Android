@@ -65,10 +65,16 @@ import jp.co.soramitsu.feature_staking_impl.scenarios.parachain.StakingParachain
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.feature_staking_impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.feature_wallet_api.domain.AssetUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.TokenUseCase
+import jp.co.soramitsu.feature_wallet_api.domain.implementations.AssetUseCaseImpl
+import jp.co.soramitsu.feature_wallet_api.domain.implementations.TokenUseCaseImpl
+import jp.co.soramitsu.feature_wallet_api.domain.interfaces.TokenRepository
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletConstants
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorFactory
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.assetSelector.AssetSelectorMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -82,9 +88,45 @@ import javax.inject.Singleton
 class StakingFeatureModule {
 
     @Provides
+    @Singleton
+    @Named("StakingTokenUseCase")
+    fun provideTokenUseCase(
+        tokenRepository: TokenRepository,
+        sharedState: StakingSharedState,
+    ): TokenUseCase = TokenUseCaseImpl(
+        tokenRepository,
+        sharedState
+    )
+
+    @Provides
+    @Singleton
+    @Named("StakingFeeLoader")
+    fun provideFeeLoaderMixin(
+        resourceManager: ResourceManager,
+        @Named("StakingTokenUseCase") tokenUseCase: TokenUseCase,
+    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(
+        resourceManager,
+        tokenUseCase
+    )
+
+    @Provides
+    @Singleton
+    @Named("StakingAssetUseCase")
+    fun provideAssetUseCase(
+        walletRepository: WalletRepository,
+        accountRepository: AccountRepository,
+        sharedState: StakingSharedState,
+    ): AssetUseCase = AssetUseCaseImpl(
+        walletRepository,
+        accountRepository,
+        sharedState
+    )
+
+    @Provides
+    @Singleton
     @Named("StakingAssetSelector")
     fun provideAssetSelectorMixinFactory(
-        assetUseCase: AssetUseCase,
+        @Named("StakingAssetUseCase") assetUseCase: AssetUseCase,
         singleAssetSharedState: StakingSharedState,
         resourceManager: ResourceManager
     ): AssetSelectorMixin.Presentation.Factory = AssetSelectorFactory(
@@ -187,7 +229,7 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
         stakingSharedState: StakingSharedState,
-        assetUseCase: AssetUseCase,
+        @Named("StakingAssetUseCase") assetUseCase: AssetUseCase,
         chainStateRepository: ChainStateRepository,
         chainRegistry: ChainRegistry,
         addressIconGenerator: AddressIconGenerator

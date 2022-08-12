@@ -8,12 +8,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceAc
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.BalanceUnlockingLimitValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class StakingBalanceValidationsModule {
 
     @Provides
+    @Singleton
     fun provideControllerValidation(
         stakingScenarioInteractor: StakingScenarioInteractor,
     ) = BalanceAccountRequiredValidation(
@@ -23,6 +25,7 @@ class StakingBalanceValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun provideStashValidation(
         stakingScenarioInteractor: StakingScenarioInteractor,
     ) = BalanceAccountRequiredValidation(
@@ -32,6 +35,7 @@ class StakingBalanceValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun provideUnbondingLimitValidation(
         stakingScenarioInteractor: StakingScenarioInteractor,
     ) = BalanceUnlockingLimitValidation(

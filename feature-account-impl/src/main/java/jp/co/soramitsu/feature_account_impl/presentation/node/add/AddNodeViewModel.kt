@@ -26,7 +26,7 @@ class AddNodeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : NodeDetailsRootViewModel(resourceManager) {
 
-    private val chainId = savedStateHandle.getLiveData<String>(CHAIN_ID_KEY).value!!
+    private val chainId = savedStateHandle.get<String>(CHAIN_ID_KEY)!!
 
     val nodeNameInputLiveData = MutableLiveData("")
     val nodeHostInputLiveData = MutableLiveData("")

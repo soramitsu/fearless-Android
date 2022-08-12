@@ -52,7 +52,7 @@ class ValidatorDetailsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
-    private val validator = savedStateHandle.getLiveData<ValidatorDetailsParcelModel>(KEY_VALIDATOR).value!!
+    private val validator = savedStateHandle.get<ValidatorDetailsParcelModel>(KEY_VALIDATOR)!!
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()

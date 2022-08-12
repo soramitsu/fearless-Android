@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class ConfirmRebondViewModel @Inject constructor(
@@ -47,14 +48,14 @@ class ConfirmRebondViewModel @Inject constructor(
     private val iconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     FeeLoaderMixin by feeLoaderMixin,
     Validatable by validationExecutor {
 
-    private val payload = savedStateHandle.getLiveData<ConfirmRebondPayload>(PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<ConfirmRebondPayload>(PAYLOAD_KEY)!!
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress

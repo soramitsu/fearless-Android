@@ -42,8 +42,8 @@ class TransactionDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), Browserable {
 
-    val operation = savedStateHandle.getLiveData<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)
-    val assetPayload = savedStateHandle.getLiveData<AssetPayload>(KEY_ASSET_PAYLOAD)
+    val operation = savedStateHandle.get<OperationParcelizeModel.Transfer>(KEY_TRANSACTION)!!
+    val assetPayload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalTransactionActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent
@@ -51,19 +51,19 @@ class TransactionDetailViewModel @Inject constructor(
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
     val recipientAddressModelLiveData = liveData {
-        emit(getIcon(operation.value!!.receiver))
+        emit(getIcon(operation.receiver))
     }
 
     val senderAddressModelLiveData = liveData {
-        emit(getIcon(operation.value!!.sender))
+        emit(getIcon(operation.sender))
     }
 
-    private val chainExplorers = flow { emit(chainRegistry.getChain(assetPayload.value!!.chainId).explorers) }.share()
+    private val chainExplorers = flow { emit(chainRegistry.getChain(assetPayload.chainId).explorers) }.share()
 
     fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
         chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
 
-    val retryAddressModelLiveData = if (operation.value!!.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
+    val retryAddressModelLiveData = if (operation.isIncome) senderAddressModelLiveData else recipientAddressModelLiveData
 
     fun copyStringClicked(address: String) {
         clipboardManager.addToClipboard(address)
@@ -78,7 +78,7 @@ class TransactionDetailViewModel @Inject constructor(
     fun repeatTransaction() {
         val retryAddress = retryAddressModelLiveData.value?.address ?: return
 
-        router.openRepeatTransaction(retryAddress, assetPayload.value!!)
+        router.openRepeatTransaction(retryAddress, assetPayload)
     }
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))

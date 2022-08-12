@@ -49,6 +49,7 @@ class CrowdloanFeatureModule {
 
     @Provides
     @Singleton
+    @Named("CrowdloanAssetUseCase")
     fun provideAssetUseCase(
         walletRepository: WalletRepository,
         accountRepository: AccountRepository,
@@ -62,7 +63,7 @@ class CrowdloanFeatureModule {
     @Provides
     @Named("CrowdloanAssetSelector")
     fun provideAssetSelectorMixinFactory(
-        assetUseCase: AssetUseCase,
+        @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
         singleAssetSharedState: CrowdloanSharedState,
         resourceManager: ResourceManager
     ): AssetSelectorMixin.Presentation.Factory = AssetSelectorFactory(
@@ -73,6 +74,7 @@ class CrowdloanFeatureModule {
 
     @Provides
     @Singleton
+    @Named("CrowdloanTokenUseCase")
     fun provideTokenUseCase(
         tokenRepository: TokenRepository,
         sharedState: CrowdloanSharedState,
@@ -83,9 +85,10 @@ class CrowdloanFeatureModule {
 
     @Provides
     @Singleton
+    @Named("CrowdloanFeeLoader")
     fun provideFeeLoaderMixin(
         resourceManager: ResourceManager,
-        tokenUseCase: TokenUseCase,
+        @Named("CrowdloanTokenUseCase") tokenUseCase: TokenUseCase,
     ): FeeLoaderMixin.Presentation = FeeLoaderProvider(
         resourceManager,
         tokenUseCase

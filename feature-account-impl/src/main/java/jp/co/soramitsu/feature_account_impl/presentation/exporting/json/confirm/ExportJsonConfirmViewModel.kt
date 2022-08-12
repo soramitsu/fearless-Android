@@ -31,13 +31,13 @@ class ExportJsonConfirmViewModel @Inject constructor(
     accountInteractor,
     resourceManager,
     chainRegistry,
-    savedStateHandle.getLiveData<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY).value!!.metaId,
-    savedStateHandle.getLiveData<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY).value!!.chainId,
-    savedStateHandle.getLiveData<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY).value!!.isExportWallet,
+    savedStateHandle.get<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY)!!.metaId,
+    savedStateHandle.get<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY)!!.chainId,
+    savedStateHandle.get<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY)!!.isExportWallet,
     ExportSource.Json
 ) {
 
-    private val payload = savedStateHandle.getLiveData<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY)!!
 
     private val _shareEvent = MutableLiveData<Event<File>>()
     val shareEvent: LiveData<Event<File>> = _shareEvent

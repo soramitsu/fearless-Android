@@ -54,7 +54,7 @@ class StakingBalanceViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), Validatable by validationExecutor {
 
-    private val collatorAddress = savedStateHandle.getLiveData<String>(KEY_COLLATOR_ADDRESS).value!!
+    private val collatorAddress = savedStateHandle.get<String?>(KEY_COLLATOR_ADDRESS)
 
     private val refresh = MutableStateFlow(Event(Unit))
 

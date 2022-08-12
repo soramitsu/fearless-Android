@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 sealed class SearchBlockProducersState {
     object NoInput : SearchBlockProducersState()
@@ -46,7 +47,7 @@ class SearchCustomValidatorsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
-    tokenUseCase: TokenUseCase,
+    @Named("StakingTokenUseCase") tokenUseCase: TokenUseCase,
     private val searchCustomBlockProducerInteractor: SearchCustomBlockProducerInteractor
 ) : BaseViewModel() {
 

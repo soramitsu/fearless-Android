@@ -56,6 +56,15 @@ class StakingUpdatersModule {
 
     @Provides
     @Singleton
+    @Named("StakingBlockNumberUpdater")
+    fun provideBlockNumberUpdater(
+        chainRegistry: ChainRegistry,
+        stakingSharedState: StakingSharedState,
+        storageCache: StorageCache,
+    ) = BlockNumberUpdater(chainRegistry, stakingSharedState, storageCache)
+
+    @Provides
+    @Singleton
     fun provideActiveEraUpdater(
         sharedState: StakingSharedState,
         chainRegistry: ChainRegistry,
@@ -286,7 +295,7 @@ class StakingUpdatersModule {
         maxNominatorsUpdater: MaxNominatorsUpdater,
         counterForNominatorsUpdater: CounterForNominatorsUpdater,
         delegatorStateUpdater: DelegatorStateUpdater,
-        blockNumberUpdater: BlockNumberUpdater,
+        @Named("StakingBlockNumberUpdater") blockNumberUpdater: BlockNumberUpdater,
 
         chainRegistry: ChainRegistry,
         stakingSharedState: StakingSharedState

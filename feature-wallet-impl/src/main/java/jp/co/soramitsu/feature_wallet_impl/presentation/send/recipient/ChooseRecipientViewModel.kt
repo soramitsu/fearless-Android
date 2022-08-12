@@ -58,7 +58,7 @@ class ChooseRecipientViewModel @Inject constructor(
     PhishingWarningMixin by phishingWarning,
     PhishingWarningPresentation {
 
-    private val payload = savedStateHandle.getLiveData<AssetPayload>(KEY_ASSET_PAYLOAD).value!!
+    private val payload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
 
     private val searchEvents = MutableStateFlow(INITIAL_QUERY)
 

@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 private const val DEFAULT_AMOUNT = 1
 private const val DEBOUNCE_DURATION_MILLIS = 500
@@ -50,13 +51,13 @@ class SelectBondMoreViewModel @Inject constructor(
     private val bondMoreInteractor: BondMoreInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin {
 
-    private val payload = savedStateHandle.getLiveData<SelectBondMorePayload>(PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<SelectBondMorePayload>(PAYLOAD_KEY)!!
 
     val oneScreenConfirmation = payload.oneScreenConfirmation
 

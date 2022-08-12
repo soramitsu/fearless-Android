@@ -53,7 +53,7 @@ class CollatorDetailsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
-    private val collator = savedStateHandle.getLiveData<CollatorDetailsParcelModel>(KEY_COLLATOR).value!!
+    private val collator = savedStateHandle.get<CollatorDetailsParcelModel>(KEY_COLLATOR)!!
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()

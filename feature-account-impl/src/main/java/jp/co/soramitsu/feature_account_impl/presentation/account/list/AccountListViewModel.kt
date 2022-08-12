@@ -28,7 +28,7 @@ class AccountListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
-    private val accountChosenNavDirection = savedStateHandle.getLiveData<AccountChosenNavDirection>(ARG_DIRECTION).value!!
+    private val accountChosenNavDirection = savedStateHandle.get<AccountChosenNavDirection>(ARG_DIRECTION)!!
 
     val openWalletOptionsEvent = MutableLiveData<Event<Long>>()
 

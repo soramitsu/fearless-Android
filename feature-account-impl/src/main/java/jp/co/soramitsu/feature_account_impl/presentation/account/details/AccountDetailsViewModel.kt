@@ -55,7 +55,7 @@ class AccountDetailsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
-    private val metaId = savedStateHandle.getLiveData<Long>(ACCOUNT_ID_KEY).value!!
+    private val metaId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
 
     private val _showAddAccountChooser = MutableLiveData<Event<AddAccountBottomSheet.Payload>>()
     val showAddAccountChooser: LiveData<Event<AddAccountBottomSheet.Payload>> = _showAddAccountChooser

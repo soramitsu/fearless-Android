@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
@@ -59,7 +60,7 @@ class RedeemViewModel @Inject constructor(
     private val validationExecutor: ValidationExecutor,
     private val iconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
@@ -67,7 +68,7 @@ class RedeemViewModel @Inject constructor(
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
 
-    private val payload = savedStateHandle.getLiveData<RedeemPayload>(PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<RedeemPayload>(PAYLOAD_KEY)!!
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress

@@ -36,7 +36,7 @@ class PayoutDetailsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
 
-    private val payout = savedStateHandle.getLiveData<PendingPayoutParcelable>(PayoutDetailsFragment.KEY_PAYOUT).value!!
+    private val payout = savedStateHandle.get<PendingPayoutParcelable>(PayoutDetailsFragment.KEY_PAYOUT)!!
 
     private val assetFlow = interactor.currentAssetFlow()
 

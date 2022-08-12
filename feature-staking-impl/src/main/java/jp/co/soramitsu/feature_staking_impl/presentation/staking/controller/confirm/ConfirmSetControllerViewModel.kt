@@ -45,7 +45,7 @@ class ConfirmSetControllerViewModel @Inject constructor(
     Validatable by validationExecutor,
     ExternalAccountActions by externalActions {
 
-    private val payload = savedStateHandle.getLiveData<ConfirmSetControllerPayload>(PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<ConfirmSetControllerPayload>(PAYLOAD_KEY)!!
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()

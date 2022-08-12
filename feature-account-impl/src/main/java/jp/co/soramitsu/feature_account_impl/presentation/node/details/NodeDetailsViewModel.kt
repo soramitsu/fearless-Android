@@ -29,7 +29,7 @@ class NodeDetailsViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : NodeDetailsRootViewModel(resourceManager) {
 
-    private val payload = savedStateHandle.getLiveData<NodeDetailsPayload>(NodeDetailsFragment.PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<NodeDetailsPayload>(NodeDetailsFragment.PAYLOAD_KEY)!!
 
     val nodeModelLiveData = liveData {
         emit(nodesSettingsScenario.getNode(NodeId(payload.chainId to payload.nodeUrl)))

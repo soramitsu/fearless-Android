@@ -89,8 +89,8 @@ class ChooseAmountViewModel @Inject constructor(
     PhishingWarningMixin by phishingAddress,
     PhishingWarningPresentation {
 
-    private val recipientAddress = savedStateHandle.getLiveData<String>(KEY_ADDRESS).value!!
-    private val assetPayload = savedStateHandle.getLiveData<AssetPayload>(KEY_ASSET_PAYLOAD).value!!
+    private val recipientAddress = savedStateHandle.get<String>(KEY_ADDRESS)!!
+    private val assetPayload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
 
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))

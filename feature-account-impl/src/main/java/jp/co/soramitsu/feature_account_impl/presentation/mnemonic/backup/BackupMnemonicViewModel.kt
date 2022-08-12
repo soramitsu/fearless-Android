@@ -28,7 +28,7 @@ class BackupMnemonicViewModel @Inject constructor(
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
-    private val payload = savedStateHandle.getLiveData<BackupMnemonicPayload>(BackupMnemonicFragment.PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<BackupMnemonicPayload>(BackupMnemonicFragment.PAYLOAD_KEY)!!
 
     val mnemonicLiveData = liveData {
         emit(generateMnemonic())

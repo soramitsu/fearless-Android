@@ -39,7 +39,7 @@ class ExtrinsicDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), Browserable {
 
-    val payload = savedStateHandle.getLiveData<ExtrinsicDetailsPayload>(PAYLOAD_KEY).value!!
+    val payload = savedStateHandle.get<ExtrinsicDetailsPayload>(PAYLOAD_KEY)!!
 
     private val _showExternalViewEvent = MutableLiveData<Event<ExternalActionsSource>>()
     val showExternalExtrinsicActionsEvent: LiveData<Event<ExternalActionsSource>> = _showExternalViewEvent

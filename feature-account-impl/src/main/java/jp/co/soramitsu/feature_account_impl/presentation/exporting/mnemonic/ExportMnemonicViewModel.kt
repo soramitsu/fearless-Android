@@ -34,13 +34,11 @@ class ExportMnemonicViewModel @Inject constructor(
     accountInteractor,
     resourceManager,
     chainRegistry,
-    savedStateHandle.getLiveData<ExportMnemonicPayload>(PAYLOAD_KEY).value!!.metaId,
-    savedStateHandle.getLiveData<ExportMnemonicPayload>(PAYLOAD_KEY).value!!.chainId,
-    savedStateHandle.getLiveData<ExportMnemonicPayload>(PAYLOAD_KEY).value!!.isExportWallet,
+    savedStateHandle.get<ExportMnemonicPayload>(PAYLOAD_KEY)!!.metaId,
+    savedStateHandle.get<ExportMnemonicPayload>(PAYLOAD_KEY)!!.chainId,
+    savedStateHandle.get<ExportMnemonicPayload>(PAYLOAD_KEY)!!.isExportWallet,
     ExportSource.Mnemonic
 ) {
-
-    private val payload = savedStateHandle.getLiveData<ExportMnemonicPayload>(PAYLOAD_KEY).value!!
 
     private val isChainEthereumBased = chainLiveData.map { it.isEthereumBased }
 

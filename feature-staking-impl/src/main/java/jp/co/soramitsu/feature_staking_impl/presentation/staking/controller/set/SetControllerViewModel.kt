@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class SetControllerViewModel @Inject constructor(
@@ -46,7 +47,7 @@ class SetControllerViewModel @Inject constructor(
     private val relayChainInteractor: StakingRelayChainScenarioInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: StakingRouter,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalActions: ExternalAccountActions.Presentation,
     private val appLinksProvider: AppLinksProvider,
     private val resourceManager: ResourceManager,

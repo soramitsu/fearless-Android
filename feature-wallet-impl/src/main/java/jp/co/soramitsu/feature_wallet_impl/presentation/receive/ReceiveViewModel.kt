@@ -48,7 +48,7 @@ class ReceiveViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
 
-    private val assetPayload = savedStateHandle.getLiveData<AssetPayload>(KEY_ASSET_PAYLOAD).value!!
+    private val assetPayload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
 
     val assetSymbol = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbol
 

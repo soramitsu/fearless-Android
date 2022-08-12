@@ -71,6 +71,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class CustomContributeViewModel @Inject constructor(
@@ -80,8 +81,8 @@ class CustomContributeViewModel @Inject constructor(
     addressModelGenerator: AddressIconGenerator,
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
-    assetUseCase: AssetUseCase,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
+    @Named("CrowdloanFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: ContributeValidationSystem,
     private val savedStateHandle: SavedStateHandle
@@ -90,7 +91,7 @@ class CustomContributeViewModel @Inject constructor(
     Browserable,
     FeeLoaderMixin by feeLoaderMixin {
 
-    val payload = savedStateHandle.getLiveData<CustomContributePayload>(KEY_PAYLOAD).value!!
+    val payload = savedStateHandle.get<CustomContributePayload>(KEY_PAYLOAD)!!
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 

@@ -35,7 +35,7 @@ class AccountsForExportViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
-    private val payload = savedStateHandle.getLiveData<AccountsForExportPayload>(PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<AccountsForExportPayload>(PAYLOAD_KEY)!!
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser

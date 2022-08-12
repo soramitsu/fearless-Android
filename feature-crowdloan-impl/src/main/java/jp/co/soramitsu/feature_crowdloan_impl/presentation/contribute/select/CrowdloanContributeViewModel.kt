@@ -67,6 +67,7 @@ import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
 import javax.inject.Inject
+import javax.inject.Named
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
 
@@ -86,9 +87,9 @@ class CrowdloanContributeViewModel @Inject constructor(
     private val router: CrowdloanRouter,
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
-    assetUseCase: AssetUseCase,
+    @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
     private val validationExecutor: ValidationExecutor,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("CrowdloanFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val validationSystem: ContributeValidationSystem,
     private val customContributeManager: CustomContributeManager,
     private val savedStateHandle: SavedStateHandle
@@ -97,7 +98,7 @@ class CrowdloanContributeViewModel @Inject constructor(
     Browserable,
     FeeLoaderMixin by feeLoaderMixin {
 
-    private val payload = savedStateHandle.getLiveData<ContributePayload>(KEY_PAYLOAD).value!!
+    private val payload = savedStateHandle.get<ContributePayload>(KEY_PAYLOAD)!!
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 

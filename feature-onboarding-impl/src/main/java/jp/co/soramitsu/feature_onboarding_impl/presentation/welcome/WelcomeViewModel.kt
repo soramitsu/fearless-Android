@@ -21,7 +21,7 @@ class WelcomeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), Browserable {
 
-    private val payload = savedStateHandle.getLiveData<WelcomeFragmentPayload>(KEY_PAYLOAD).value!!
+    private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
 
     val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(payload.displayBack)
 

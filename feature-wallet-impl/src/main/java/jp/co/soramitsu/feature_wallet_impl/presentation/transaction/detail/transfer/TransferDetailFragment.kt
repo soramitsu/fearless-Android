@@ -65,7 +65,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
     }
 
     override fun subscribe(viewModel: TransactionDetailViewModel) {
-        with(viewModel.operation.value!!) {
+        with(viewModel.operation) {
             binding.transactionDetailStatus.setText(statusAppearance.labelRes)
             binding.transactionDetailStatusIcon.setImageResource(statusAppearance.icon)
 
@@ -138,7 +138,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
     }
 
     private fun showExternalActions(externalActionsSource: ExternalActionsSource) {
-        val transaction = viewModel.operation.value!!
+        val transaction = viewModel.operation
 
         when (externalActionsSource) {
             ExternalActionsSource.TRANSACTION_HASH -> showExternalTransactionActions()
@@ -154,7 +154,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
         externalViewCallback = viewModel::openUrl
     )
 
-    private fun showExternalTransactionActions() = viewModel.operation.value!!.hash?.let { hash ->
+    private fun showExternalTransactionActions() = viewModel.operation.hash?.let { hash ->
         showExternalActionsSheet(
             copyLabelRes = R.string.transaction_details_copy_hash,
             value = hash,
@@ -173,7 +173,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
             copyLabel = copyLabelRes,
             content = ExternalAccountActions.Payload(
                 value = value,
-                chainId = viewModel.assetPayload.value!!.chainId,
+                chainId = viewModel.assetPayload.chainId,
                 explorers = explorers
             )
         )

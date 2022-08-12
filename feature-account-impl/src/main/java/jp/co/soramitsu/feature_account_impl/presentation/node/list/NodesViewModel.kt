@@ -36,7 +36,7 @@ class NodesViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), NodeListingMixin by nodeListingMixin {
 
-    private val chainId = savedStateHandle.getLiveData<ChainId>(CHAIN_ID_KEY).value!!
+    private val chainId = savedStateHandle.get<ChainId>(CHAIN_ID_KEY)!!
 
     private val _editMode = MutableLiveData<Boolean>()
     val editMode: LiveData<Boolean> = _editMode

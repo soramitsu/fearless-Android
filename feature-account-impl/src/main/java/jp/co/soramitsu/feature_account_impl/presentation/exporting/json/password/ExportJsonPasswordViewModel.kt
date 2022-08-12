@@ -33,13 +33,13 @@ class ExportJsonPasswordViewModel @Inject constructor(
     interactor,
     resourceManager,
     chainRegistry,
-    savedStateHandle.getLiveData<ExportJsonPasswordPayload>(PAYLOAD_KEY).value!!.metaId,
-    savedStateHandle.getLiveData<ExportJsonPasswordPayload>(PAYLOAD_KEY).value!!.chainId,
-    savedStateHandle.getLiveData<ExportJsonPasswordPayload>(PAYLOAD_KEY).value!!.isExportWallet,
+    savedStateHandle.get<ExportJsonPasswordPayload>(PAYLOAD_KEY)!!.metaId,
+    savedStateHandle.get<ExportJsonPasswordPayload>(PAYLOAD_KEY)!!.chainId,
+    savedStateHandle.get<ExportJsonPasswordPayload>(PAYLOAD_KEY)!!.isExportWallet,
     ExportSource.Json
 ) {
 
-    private val payload = savedStateHandle.getLiveData<ExportJsonPasswordPayload>(PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<ExportJsonPasswordPayload>(PAYLOAD_KEY)!!
     val isExportWallet = payload.isExportWallet
     val passwordLiveData = MutableLiveData<String>()
     val passwordConfirmationLiveData = MutableLiveData<String>()

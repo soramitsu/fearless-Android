@@ -51,7 +51,7 @@ class ConfirmBondMoreViewModel @Inject constructor(
     ExternalAccountActions by externalAccountActions,
     Validatable by validationExecutor {
 
-    private val payload = savedStateHandle.getLiveData<ConfirmBondMorePayload>(PAYLOAD_KEY).value!!
+    private val payload = savedStateHandle.get<ConfirmBondMorePayload>(PAYLOAD_KEY)!!
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress

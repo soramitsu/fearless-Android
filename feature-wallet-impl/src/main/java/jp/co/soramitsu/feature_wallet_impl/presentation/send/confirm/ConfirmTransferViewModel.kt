@@ -53,7 +53,7 @@ class ConfirmTransferViewModel @Inject constructor(
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
 
-    val transferDraft = savedStateHandle.getLiveData<TransferDraft>(KEY_DRAFT).value!!
+    val transferDraft = savedStateHandle.get<TransferDraft>(KEY_DRAFT)!!
 
     private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
     val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent

@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import javax.inject.Inject
+import javax.inject.Named
 import kotlin.time.DurationUnit
 
 private const val DEFAULT_AMOUNT = 1
@@ -50,7 +51,7 @@ class CustomRebondViewModel @Inject constructor(
     private val rebondInteractor: RebondInteractor,
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
 ) : BaseViewModel(),
     FeeLoaderMixin by feeLoaderMixin,
     Validatable by validationExecutor {

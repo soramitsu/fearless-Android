@@ -19,7 +19,7 @@ class StoryViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), Browserable {
 
-    private val stories = savedStateHandle.getLiveData<StoryGroupModel>(StoryFragment.KEY_STORY).value!!.stories
+    private val stories = savedStateHandle.get<StoryGroupModel>(StoryFragment.KEY_STORY)!!.stories
 
     private val _storyLiveData = MutableLiveData(stories)
     val storyLiveData: LiveData<List<StoryElement>> = _storyLiveData

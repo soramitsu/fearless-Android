@@ -30,7 +30,7 @@ class PinCodeViewModel @Inject constructor(
         object Checking : ScreenState()
     }
 
-    val pinCodeAction = savedStateHandle.getLiveData<PinCodeAction>(PincodeFragment.KEY_PINCODE_ACTION).value!!
+    val pinCodeAction = savedStateHandle.get<PinCodeAction>(PincodeFragment.KEY_PINCODE_ACTION)!!
 
     private val _homeButtonVisibilityLiveData = MutableLiveData(pinCodeAction.toolbarConfiguration.backVisible)
     val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
