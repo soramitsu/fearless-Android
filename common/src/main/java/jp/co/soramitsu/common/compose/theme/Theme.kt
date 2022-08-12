@@ -16,6 +16,7 @@ fun FearlessTheme(
         FearlessTypography provides flwTypography
     ) {
         MaterialTheme(
+            colors = fearlessMaterialColors,
             content = content
         )
     }
