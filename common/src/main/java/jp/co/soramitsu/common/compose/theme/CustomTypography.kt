@@ -2,10 +2,11 @@ package jp.co.soramitsu.common.compose.theme
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import jp.co.soramitsu.common.compose.component.soraTextStyle
 
 @Stable
 data class CustomTypography(
@@ -19,67 +20,29 @@ data class CustomTypography(
     val body1: TextStyle,
     val body2: TextStyle,
     val body3: TextStyle,
+    val capsTitle: TextStyle,
+    val capsTitle2: TextStyle,
     val button: TextStyle
 )
 
+fun TextStyle.weight(fontWeight: FontWeight) = copy(fontWeight = fontWeight)
+fun TextStyle.bold() = copy(fontWeight = FontWeight.Bold)
+fun TextStyle.fontSize(fontSize: TextUnit) = copy(fontSize = fontSize)
+
 val flwTypography = CustomTypography(
-    header1 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 30.sp,
-        fontWeight = FontWeight.Bold
-    ),
-    header2 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 22.sp,
-        fontWeight = FontWeight.Bold
-    ),
-    header3 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Bold
-    ),
-    header4 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold
-    ),
-    header5 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Bold
-    ),
-    header6 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold
-    ),
-    body0 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 16.sp,
-        color = Color.White,
-        background = Color.Black,
-        fontWeight = FontWeight.Normal
-    ),
-    body1 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Normal
-    ),
-    body2 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Normal
-    ),
-    body3 = TextStyle(
-        fontFamily = Sora,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Normal
-    ),
-    button = TextStyle(
-        fontFamily = Sora,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Bold
-    )
+    header1 = soraTextStyle().bold().fontSize(30.sp),
+    header2 = soraTextStyle().bold().fontSize(22.sp),
+    header3 = soraTextStyle().bold().fontSize(18.sp),
+    header4 = soraTextStyle().weight(FontWeight.W700).fontSize(16.sp),
+    header5 = soraTextStyle().bold().fontSize(14.sp),
+    header6 = soraTextStyle().bold().fontSize(12.sp),
+    body0 = soraTextStyle().fontSize(16.sp).weight(FontWeight.Normal),
+    body1 = soraTextStyle().fontSize(14.sp).weight(FontWeight.Normal),
+    body2 = soraTextStyle().fontSize(12.sp).weight(FontWeight.Normal),
+    body3 = soraTextStyle().fontSize(10.sp).weight(FontWeight.Normal),
+    capsTitle = soraTextStyle().fontSize(12.sp).weight(FontWeight.W700),
+    capsTitle2 = soraTextStyle().fontSize(10.sp).weight(FontWeight.W700),
+    button = soraTextStyle().fontSize(14.sp).bold()
 )
 
 internal val FearlessTypography = staticCompositionLocalOf { flwTypography }

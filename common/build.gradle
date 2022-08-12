@@ -115,6 +115,7 @@ dependencies {
 
     implementation wsDep
 
+    implementation coilCompose
     implementation navigationComposeDep
     implementation composeRuntimeDep
     implementation composeLiveDataDep
@@ -123,6 +124,8 @@ dependencies {
     implementation composeMaterialDep
     implementation composeToolingPreviewDep
     debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 
     api coilDep
     api coilSvg
