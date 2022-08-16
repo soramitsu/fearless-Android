@@ -1,8 +1,8 @@
 package jp.co.soramitsu.common.compose.component
 
 import android.content.Context
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.MaterialTheme
@@ -28,34 +28,34 @@ fun AssetChainsBadge(
     urls: List<String>,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier) {
-        Row {
-            val iconsToShow = when {
-                urls.size > MAX_VISIBLE_ICONS -> MAX_VISIBLE_ICONS - 1
-                else -> urls.size
-            }
+    Row(modifier) {
+        val iconsToShow = when {
+            urls.size > MAX_VISIBLE_ICONS -> MAX_VISIBLE_ICONS - 1
+            else -> urls.size
+        }
 
-            urls.subList(0, iconsToShow).map {
-                AsyncImage(
-                    model = getImageRequest(LocalContext.current, it),
-                    contentDescription = null,
+        urls.subList(0, iconsToShow).map {
+            AsyncImage(
+                model = getImageRequest(LocalContext.current, it),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(16.dp)
+                    .padding(2.dp)
+                    .alpha(0.5f)
+            )
+        }
+
+        val iconsLeft = urls.size - iconsToShow
+        if (iconsLeft > 0) {
+            Surface(Modifier.height(16.dp)) {
+                Text(
+                    text = "+$iconsLeft".uppercase(),
+                    style = MaterialTheme.customTypography.capsTitle2,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .size(16.dp)
-                        .padding(2.dp)
-                        .alpha(0.5f)
+                        .alpha(0.33f)
+                        .padding(horizontal = 2.dp)
                 )
-            }
-
-            val iconsLeft = urls.size - iconsToShow
-            if (iconsLeft > 0) {
-                Surface(Modifier.size(16.dp)) {
-                    Text(
-                        text = "+$iconsLeft".uppercase(),
-                        style = MaterialTheme.customTypography.capsTitle2,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.alpha(0.33f)
-                    )
-                }
             }
         }
     }
@@ -72,11 +72,12 @@ private fun getImageRequest(context: Context, url: String): ImageRequest {
 @Composable
 fun PreviewAssetChainBadge() {
     val list = listOf(
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonbeam.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
         "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Statemine.svg",
+        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
         "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
+        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
+        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonbeam.svg",
+        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Statemine.svg",
         "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Rococo.svg"
     )
     FearlessTheme {

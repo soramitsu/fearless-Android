@@ -18,6 +18,7 @@ data class CustomColors(
     val grayDisabled: Color,
     val colorGreyText: Color,
     val green: Color,
+    val greenText: Color,
     val black: Color,
     val white: Color,
     val dividerGray: Color,
@@ -26,6 +27,7 @@ data class CustomColors(
     val blurColorDark: Color,
     val blurColor: Color,
     val blurColorLight: Color,
+    val backgroundBlurColor: Color,
     val accountIconLight: Color,
     val accountIconDark: Color,
     val errorRed: Color
@@ -44,6 +46,7 @@ val flwColors = CustomColors(
     grayDisabled = grayDisabled,
     colorGreyText = colorGreyText,
     green = green,
+    greenText = greenText,
     black = black,
     white = white,
     dividerGray = dividerGray,
@@ -52,6 +55,7 @@ val flwColors = CustomColors(
     blurColorDark = blurColorDark,
     blurColor = blurColor,
     blurColorLight = blurColorLight,
+    backgroundBlurColor = backgroundBlurColor,
     accountIconLight = accountIconLight,
     accountIconDark = accountIconDark,
     errorRed = errorRed
