@@ -13,30 +13,19 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentBackupMnemonicBinding
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.model.CryptoTypeModel
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fragment_backup_mnemonic) {
 
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(accountName: String, payload: ChainAccountCreatePayload?) = bundleOf(PAYLOAD_KEY to BackupMnemonicPayload(accountName, payload))
     }
 
     private val binding by viewBinding(FragmentBackupMnemonicBinding::bind)
 
-    @Inject
-    lateinit var factory: BackupMnemonicViewModel.BackupMnemonicViewModelFactory
-
-    private val vm: BackupMnemonicViewModel by viewModels {
-        BackupMnemonicViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: BackupMnemonicViewModel
-        get() = vm
+    override val viewModel: BackupMnemonicViewModel by viewModels()
 
     override fun initViews() {
         with(binding) {

@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class SelectRewardDestinationViewModel @Inject constructor(
@@ -48,7 +49,7 @@ class SelectRewardDestinationViewModel @Inject constructor(
     private val changeRewardDestinationInteractor: ChangeRewardDestinationInteractor,
     private val validationSystem: RewardDestinationValidationSystem,
     private val validationExecutor: ValidationExecutor,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val rewardDestinationMixin: RewardDestinationMixin.Presentation,
 ) : BaseViewModel(),
     Retriable,

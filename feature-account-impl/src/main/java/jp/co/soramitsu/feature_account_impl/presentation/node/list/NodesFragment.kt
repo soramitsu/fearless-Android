@@ -23,7 +23,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     private lateinit var adapter: NodesAdapter
 
     companion object {
-        private const val CHAIN_ID_KEY = "chainIdKey"
+        const val CHAIN_ID_KEY = "chainIdKey"
 
         fun getBundle(chainId: String) = bundleOf(CHAIN_ID_KEY to chainId)
     }
@@ -33,17 +33,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
 
     private lateinit var binding: FragmentNodesBinding
 
-    @Inject
-    lateinit var factory: NodesViewModel.NodesViewModelFactory
-
-    private val vm: NodesViewModel by viewModels {
-        NodesViewModel.provideFactory(
-            factory,
-            argument(CHAIN_ID_KEY)
-        )
-    }
-    override val viewModel: NodesViewModel
-        get() = vm
+    override val viewModel: NodesViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

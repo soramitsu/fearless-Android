@@ -67,13 +67,13 @@ private const val ICON_SIZE_DP = 40
 @HiltViewModel
 class CrowdloanViewModel @Inject constructor(
     private val interactor: CrowdloanInteractor,
-    private val assetUseCase: AssetUseCase,
+    @Named("CrowdloanAssetUseCase") private val assetUseCase: AssetUseCase,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val crowdloanSharedState: CrowdloanSharedState,
     private val router: CrowdloanRouter,
     private val sharedState: CrowdloanSharedState,
-    private val crowdloanUpdateSystem: UpdateSystem,
+    @Named("CrowdloanChainUpdateSystem") private val crowdloanUpdateSystem: UpdateSystem,
     @Named("CrowdloanAssetSelector") assetSelectorFactory: AssetSelectorMixin.Presentation.Factory,
     private val accountUseCase: SelectedAccountUseCase,
     private val clipboardManager: ClipboardManager,

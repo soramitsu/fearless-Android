@@ -1,13 +1,10 @@
 package jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.MediatorLiveData
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -73,23 +70,28 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
 
-class CustomContributeViewModel @AssistedInject constructor(
+@HiltViewModel
+class CustomContributeViewModel @Inject constructor(
     private val customContributeManager: CustomContributeManager,
-    @Assisted val payload: CustomContributePayload,
     private val router: CrowdloanRouter,
     accountUseCase: SelectedAccountUseCase,
     addressModelGenerator: AddressIconGenerator,
     private val contributionInteractor: CrowdloanContributeInteractor,
     private val resourceManager: ResourceManager,
-    assetUseCase: AssetUseCase,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("CrowdloanAssetUseCase") assetUseCase: AssetUseCase,
+    @Named("CrowdloanFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val validationExecutor: ValidationExecutor,
     private val validationSystem: ContributeValidationSystem,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     Browserable,
     FeeLoaderMixin by feeLoaderMixin {
+
+    val payload = savedStateHandle.get<CustomContributePayload>(KEY_PAYLOAD)!!
 
     override val openBrowserEvent = MutableLiveData<Event<String>>()
 
@@ -489,22 +491,5 @@ class CustomContributeViewModel @AssistedInject constructor(
     fun resetProgress() {
         _validationProgress.postValue(false)
         _applyingInProgress.postValue(false)
-    }
-
-    @AssistedFactory
-    interface CustomContributeViewModelFactory {
-        fun create(payload: CustomContributePayload): CustomContributeViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: CustomContributeViewModelFactory,
-            payload: CustomContributePayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

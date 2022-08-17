@@ -1,11 +1,8 @@
 package jp.co.soramitsu.feature_account_impl.presentation.account.list
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
@@ -16,18 +13,22 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMeta
 import jp.co.soramitsu.feature_staking_api.data.StakingSharedState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 enum class AccountChosenNavDirection {
     BACK, MAIN
 }
 
-class AccountListViewModel @AssistedInject constructor(
+@HiltViewModel
+class AccountListViewModel @Inject constructor(
     private val accountInteractor: AccountInteractor,
     private val accountRouter: AccountRouter,
-    @Assisted private val accountChosenNavDirection: AccountChosenNavDirection,
     accountListingMixin: AccountListingMixin,
     private val stakingSharedState: StakingSharedState,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
+
+    private val accountChosenNavDirection = savedStateHandle.get<AccountChosenNavDirection>(ARG_DIRECTION)!!
 
     val openWalletOptionsEvent = MutableLiveData<Event<Long>>()
 
@@ -78,22 +79,5 @@ class AccountListViewModel @AssistedInject constructor(
 
     fun addAccountClicked() {
         accountRouter.openAddAccount()
-    }
-
-    @AssistedFactory
-    interface AccountListViewModelFactory {
-        fun create(accountChosenNavDirection: AccountChosenNavDirection): AccountListViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: AccountListViewModelFactory,
-            accountChosenNavDirection: AccountChosenNavDirection
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(accountChosenNavDirection) as T
-            }
-        }
     }
 }

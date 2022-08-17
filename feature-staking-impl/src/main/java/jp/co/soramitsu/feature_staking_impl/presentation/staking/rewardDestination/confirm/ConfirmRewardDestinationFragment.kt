@@ -12,9 +12,8 @@ import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalAct
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmRewardDestinationBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
-import javax.inject.Inject
 
-private const val KEY_PAYLOAD = "KEY_PAYLOAD"
+const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
 @AndroidEntryPoint
 class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationViewModel>(R.layout.fragment_confirm_reward_destination) {
@@ -26,17 +25,7 @@ class ConfirmRewardDestinationFragment : BaseFragment<ConfirmRewardDestinationVi
         }
     }
 
-    @Inject
-    lateinit var factory: ConfirmRewardDestinationViewModel.ConfirmRewardDestinationViewModelFactory
-
-    private val vm: ConfirmRewardDestinationViewModel by viewModels {
-        ConfirmRewardDestinationViewModel.provideFactory(
-            factory,
-            argument(KEY_PAYLOAD)
-        )
-    }
-    override val viewModel: ConfirmRewardDestinationViewModel
-        get() = vm
+    override val viewModel: ConfirmRewardDestinationViewModel by viewModels()
 
     private val binding by viewBinding(FragmentConfirmRewardDestinationBinding::bind)
 

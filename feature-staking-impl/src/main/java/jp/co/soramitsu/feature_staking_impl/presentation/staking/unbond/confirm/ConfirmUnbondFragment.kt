@@ -14,7 +14,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmUnbondBinding
 import javax.inject.Inject
 
-private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 @AndroidEntryPoint
 class ConfirmUnbondFragment : BaseFragment<ConfirmUnbondViewModel>(R.layout.fragment_confirm_unbond) {
@@ -23,17 +23,7 @@ class ConfirmUnbondFragment : BaseFragment<ConfirmUnbondViewModel>(R.layout.frag
 
     private val binding by viewBinding(FragmentConfirmUnbondBinding::bind)
 
-    @Inject
-    lateinit var factory: ConfirmUnbondViewModel.ConfirmUnbondViewModelFactory
-
-    private val vm: ConfirmUnbondViewModel by viewModels {
-        ConfirmUnbondViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ConfirmUnbondViewModel
-        get() = vm
+    override val viewModel: ConfirmUnbondViewModel by viewModels()
 
     companion object {
 

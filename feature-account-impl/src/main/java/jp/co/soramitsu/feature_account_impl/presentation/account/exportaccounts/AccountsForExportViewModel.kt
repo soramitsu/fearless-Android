@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.exportaccounts
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.headers.TextHeader
@@ -27,14 +24,18 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AccountsForExportViewModel @AssistedInject constructor(
+@HiltViewModel
+class AccountsForExportViewModel @Inject constructor(
     private val interactor: AccountDetailsInteractor,
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
-    @Assisted private val payload: AccountsForExportPayload
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
+
+    private val payload = savedStateHandle.get<AccountsForExportPayload>(PAYLOAD_KEY)!!
 
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
@@ -101,23 +102,6 @@ class AccountsForExportViewModel @AssistedInject constructor(
         viewModelScope.launch {
             val sources = interactor.getMetaAccountSecrets(payload.metaId).buildExportSourceTypes(false)
             _showExportSourceChooser.value = Event(ExportSourceChooserPayload(chainId, sources))
-        }
-    }
-
-    @AssistedFactory
-    interface AccountsForExportViewModelFactory {
-        fun create(payload: AccountsForExportPayload): AccountsForExportViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: AccountsForExportViewModelFactory,
-            payload: AccountsForExportPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
         }
     }
 }

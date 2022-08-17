@@ -14,7 +14,6 @@ import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.view.viewBinding
 import jp.shts.android.storiesprogressview.StoriesProgressView
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), StoriesProgressView.StoriesListener {
@@ -31,16 +30,9 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
         }
     }
 
-    @Inject
-    lateinit var factory: StoryViewModel.StoryViewModelFactory
-
     private val binding by viewBinding(FragmentStoryBinding::bind)
 
-    private val vm: StoryViewModel by viewModels {
-        StoryViewModel.provideFactory(factory, requireArguments().getParcelable<StoryGroupModel>(KEY_STORY) as StoryGroupModel)
-    }
-    override val viewModel: StoryViewModel
-        get() = vm
+    override val viewModel: StoryViewModel by viewModels()
 
     private var lastActionDown = 0L
 

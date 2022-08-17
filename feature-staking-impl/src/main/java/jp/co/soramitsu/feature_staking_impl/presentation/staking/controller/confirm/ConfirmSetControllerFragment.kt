@@ -10,9 +10,8 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmSetControllerBinding
-import javax.inject.Inject
 
-private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 @AndroidEntryPoint
 class ConfirmSetControllerFragment : BaseFragment<ConfirmSetControllerViewModel>(R.layout.fragment_confirm_set_controller) {
@@ -22,17 +21,7 @@ class ConfirmSetControllerFragment : BaseFragment<ConfirmSetControllerViewModel>
         }
     }
 
-    @Inject
-    lateinit var factory: ConfirmSetControllerViewModel.ConfirmSetControllerViewModelFactory
-
-    private val vm: ConfirmSetControllerViewModel by viewModels {
-        ConfirmSetControllerViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ConfirmSetControllerViewModel
-        get() = vm
+    override val viewModel: ConfirmSetControllerViewModel by viewModels()
 
     private val binding by viewBinding(FragmentConfirmSetControllerBinding::bind)
 

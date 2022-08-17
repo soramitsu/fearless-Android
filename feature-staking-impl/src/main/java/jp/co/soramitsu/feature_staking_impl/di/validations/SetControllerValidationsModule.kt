@@ -14,12 +14,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.controller.SetCon
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class SetControllerValidationsModule {
 
     @Provides
+    @Singleton
     fun provideFeeValidation(): SetControllerFeeValidation {
         return EnoughToPayFeesValidation(
             feeExtractor = { it.fee },
@@ -29,6 +31,7 @@ class SetControllerValidationsModule {
     }
 
     @Provides
+    @Singleton
     fun provideControllerValidation(
         stakingScenarioInteractor: StakingScenarioInteractor
     ) = IsNotControllerAccountValidation(
@@ -38,6 +41,7 @@ class SetControllerValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun provideZeroBalanceControllerValidation(
         stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository
@@ -49,6 +53,7 @@ class SetControllerValidationsModule {
     }
 
     @Provides
+    @Singleton
     fun provideSetControllerValidationSystem(
         enoughToPayFeesValidation: SetControllerFeeValidation,
         isNotControllerAccountValidation: IsNotControllerAccountValidation,

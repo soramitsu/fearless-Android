@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.exporting.json.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -21,22 +18,26 @@ import jp.co.soramitsu.feature_account_impl.presentation.exporting.ExportViewMod
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.moonriverChainId
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ExportJsonConfirmViewModel @AssistedInject constructor(
+@HiltViewModel
+class ExportJsonConfirmViewModel @Inject constructor(
     private val router: AccountRouter,
     resourceManager: ResourceManager,
     accountInteractor: AccountInteractor,
     private val chainRegistry: ChainRegistry,
-    @Assisted payload: ExportJsonConfirmPayload
+    private val savedStateHandle: SavedStateHandle
 ) : ExportViewModel(
     accountInteractor,
     resourceManager,
     chainRegistry,
-    payload.metaId,
-    payload.chainId,
-    payload.isExportWallet,
+    savedStateHandle.get<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY)!!.metaId,
+    savedStateHandle.get<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY)!!.chainId,
+    savedStateHandle.get<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY)!!.isExportWallet,
     ExportSource.Json
 ) {
+
+    private val payload = savedStateHandle.get<ExportJsonConfirmPayload>(ExportJsonConfirmFragment.PAYLOAD_KEY)!!
 
     private val _shareEvent = MutableLiveData<Event<File>>()
     val shareEvent: LiveData<Event<File>> = _shareEvent
@@ -109,23 +110,6 @@ class ExportJsonConfirmViewModel @AssistedInject constructor(
             exportEthereumJsonAsFile()
         } else {
             exportSubstrateAsFile()
-        }
-    }
-
-    @AssistedFactory
-    interface ExportJsonConfirmViewModelFactory {
-        fun create(payload: ExportJsonConfirmPayload): ExportJsonConfirmViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ExportJsonConfirmViewModelFactory,
-            payload: ExportJsonConfirmPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
         }
     }
 }

@@ -14,13 +14,12 @@ import jp.co.soramitsu.feature_staking_impl.databinding.FragmentConfirmPayoutBin
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeViews
 import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.displayFeeStatus
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>(R.layout.fragment_confirm_payout) {
 
     companion object {
-        private const val KEY_PAYOUTS = "validator"
+        const val KEY_PAYOUTS = "validator"
 
         fun getBundle(payload: ConfirmPayoutPayload): Bundle {
             return Bundle().apply {
@@ -29,17 +28,7 @@ class ConfirmPayoutFragment : BaseFragment<ConfirmPayoutViewModel>(R.layout.frag
         }
     }
 
-    @Inject
-    lateinit var factory: ConfirmPayoutViewModel.ConfirmPayoutViewModelFactory
-
-    private val vm: ConfirmPayoutViewModel by viewModels {
-        ConfirmPayoutViewModel.provideFactory(
-            factory,
-            requireArguments().getParcelable<ConfirmPayoutPayload>(KEY_PAYOUTS) as ConfirmPayoutPayload
-        )
-    }
-    override val viewModel: ConfirmPayoutViewModel
-        get() = vm
+    override val viewModel: ConfirmPayoutViewModel by viewModels()
 
     private val binding by viewBinding(FragmentConfirmPayoutBinding::bind)
 

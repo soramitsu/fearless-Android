@@ -8,9 +8,8 @@ import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentAccountsBinding
 import jp.co.soramitsu.feature_account_impl.presentation.account.model.LightMetaAccountUi
-import javax.inject.Inject
 
-private const val ARG_DIRECTION = "ARG_DIRECTION"
+const val ARG_DIRECTION = "ARG_DIRECTION"
 
 @AndroidEntryPoint
 class AccountListFragment : BaseFragment<AccountListViewModel>(R.layout.fragment_accounts), AccountsAdapter.AccountItemHandler {
@@ -18,17 +17,7 @@ class AccountListFragment : BaseFragment<AccountListViewModel>(R.layout.fragment
 
     private val binding by viewBinding(FragmentAccountsBinding::bind)
 
-    @Inject
-    lateinit var factory: AccountListViewModel.AccountListViewModelFactory
-
-    private val vm: AccountListViewModel by viewModels {
-        AccountListViewModel.provideFactory(
-            factory,
-            argument(ARG_DIRECTION)
-        )
-    }
-    override val viewModel: AccountListViewModel
-        get() = vm
+    override val viewModel: AccountListViewModel by viewModels()
 
     companion object {
 

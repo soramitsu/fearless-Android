@@ -22,10 +22,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import javax.inject.Inject
 
-private const val KEY_TRANSACTION = "KEY_DRAFT"
-private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+const val KEY_TRANSACTION = "KEY_DRAFT"
+const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 @AndroidEntryPoint
 class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout.fragment_transfer_details) {
@@ -37,18 +36,7 @@ class TransferDetailFragment : BaseFragment<TransactionDetailViewModel>(R.layout
 
     private val binding by viewBinding(FragmentTransferDetailsBinding::bind)
 
-    @Inject
-    lateinit var factory: TransactionDetailViewModel.TransactionDetailViewModelFactory
-
-    private val vm: TransactionDetailViewModel by viewModels {
-        TransactionDetailViewModel.provideFactory(
-            factory,
-            argument(KEY_TRANSACTION),
-            argument(KEY_ASSET_PAYLOAD)
-        )
-    }
-    override val viewModel: TransactionDetailViewModel
-        get() = vm
+    override val viewModel: TransactionDetailViewModel by viewModels()
 
     override fun initViews() {
         binding.transactionDetailToolbar.setHomeButtonListener { viewModel.backClicked() }

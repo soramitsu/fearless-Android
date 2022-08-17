@@ -11,12 +11,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondFeeV
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class RebondValidationsModule {
 
     @Provides
+    @Singleton
     fun provideFeeValidation() = RebondFeeValidation(
         feeExtractor = { it.fee },
         availableBalanceProducer = { it.controllerAsset.transferable },
@@ -24,15 +26,18 @@ class RebondValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun provideNotZeroUnbondValidation() = NotZeroRebondValidation(
         amountExtractor = { it.rebondAmount },
         errorProvider = { RebondValidationFailure.ZERO_AMOUNT }
     )
 
     @Provides
+    @Singleton
     fun provideEnoughToRebondValidation(stakingScenarioInteractor: StakingScenarioInteractor) = EnoughToRebondValidation(stakingScenarioInteractor)
 
     @Provides
+    @Singleton
     fun provideRebondValidationSystem(
         rebondFeeValidation: RebondFeeValidation,
         notZeroRebondValidation: NotZeroRebondValidation,

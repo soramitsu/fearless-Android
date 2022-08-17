@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -25,6 +22,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.StakingInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.staking.rebond.RebondInteractor
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rebond.RebondValidationPayload
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.confirm.ConfirmRebondFragment.Companion.PAYLOAD_KEY
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.rebond.rebondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.feature_wallet_api.data.mappers.mapAssetToAssetModel
@@ -36,8 +34,11 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Named
 
-class ConfirmRebondViewModel @AssistedInject constructor(
+@HiltViewModel
+class ConfirmRebondViewModel @Inject constructor(
     private val router: StakingRouter,
     interactor: StakingInteractor,
     private val stakingScenarioInteractor: StakingScenarioInteractor,
@@ -47,12 +48,14 @@ class ConfirmRebondViewModel @AssistedInject constructor(
     private val iconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
-    @Assisted private val payload: ConfirmRebondPayload,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     FeeLoaderMixin by feeLoaderMixin,
     Validatable by validationExecutor {
+
+    private val payload = savedStateHandle.get<ConfirmRebondPayload>(PAYLOAD_KEY)!!
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -167,22 +170,5 @@ class ConfirmRebondViewModel @AssistedInject constructor(
             .onFailure(::showError)
 
         _showNextProgress.value = false
-    }
-
-    @AssistedFactory
-    interface ConfirmRebondViewModelFactory {
-        fun create(payload: ConfirmRebondPayload): ConfirmRebondViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ConfirmRebondViewModelFactory,
-            payload: ConfirmRebondPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

@@ -16,12 +16,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakin
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class BondMoreValidationsModule {
 
     @Provides
+    @Singleton
     fun provideFeeValidation(
         stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository,
@@ -42,12 +44,14 @@ class BondMoreValidationsModule {
     }
 
     @Provides
+    @Singleton
     fun provideNotZeroBondValidation() = NotZeroBondValidation(
         amountExtractor = BondMoreValidationPayload::amount,
         errorProvider = { BondMoreValidationFailure.ZERO_BOND }
     )
 
     @Provides
+    @Singleton
     fun provideBondMoreValidationSystem(
         bondMoreFeeValidation: BondMoreFeeValidation,
         notZeroBondValidation: NotZeroBondValidation,

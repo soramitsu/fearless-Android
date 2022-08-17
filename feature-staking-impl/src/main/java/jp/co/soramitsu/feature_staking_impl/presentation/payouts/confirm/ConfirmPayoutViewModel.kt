@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.presentation.payouts.confirm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -45,25 +42,30 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Named
 
-class ConfirmPayoutViewModel @AssistedInject constructor(
+@HiltViewModel
+class ConfirmPayoutViewModel @Inject constructor(
     private val interactor: StakingInteractor,
     private val relayChainInteractor: StakingRelayChainScenarioInteractor,
     private val payoutInteractor: PayoutInteractor,
     private val router: StakingRouter,
-    @Assisted private val payload: ConfirmPayoutPayload,
     private val addressModelGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val validationSystem: ValidationSystem<MakePayoutPayload, PayoutValidationFailure>,
     private val validationExecutor: ValidationExecutor,
     private val resourceManager: ResourceManager,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     ExternalAccountActions.Presentation by externalAccountActions,
     FeeLoaderMixin by feeLoaderMixin,
     Validatable by validationExecutor {
+
+    private val payload = savedStateHandle.get<ConfirmPayoutPayload>(ConfirmPayoutFragment.KEY_PAYOUTS)!!
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()
@@ -202,22 +204,5 @@ class ConfirmPayoutViewModel @AssistedInject constructor(
         )
 
         externalAccountActions.showExternalActions(externalActionsPayload)
-    }
-
-    @AssistedFactory
-    interface ConfirmPayoutViewModelFactory {
-        fun create(payload: ConfirmPayoutPayload): ConfirmPayoutViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ConfirmPayoutViewModelFactory,
-            payload: ConfirmPayoutPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

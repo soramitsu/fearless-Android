@@ -7,29 +7,18 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentNodeAddBinding
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddNodeFragment : BaseFragment<AddNodeViewModel>(R.layout.fragment_node_add) {
 
     companion object {
-        private const val CHAIN_ID_KEY = "chainIdKey"
+        const val CHAIN_ID_KEY = "chainIdKey"
         fun getBundle(chainId: String) = bundleOf(CHAIN_ID_KEY to chainId)
     }
 
     private val binding by viewBinding(FragmentNodeAddBinding::bind)
 
-    @Inject
-    lateinit var factory: AddNodeViewModel.AddNodeViewModelFactory
-
-    private val vm: AddNodeViewModel by viewModels {
-        AddNodeViewModel.provideFactory(
-            factory,
-            argument(CHAIN_ID_KEY)
-        )
-    }
-    override val viewModel: AddNodeViewModel
-        get() = vm
+    override val viewModel: AddNodeViewModel by viewModels()
 
     override fun initViews() {
         with(binding) {

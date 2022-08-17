@@ -19,7 +19,7 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBotto
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.TransferDraft
 import javax.inject.Inject
 
-private const val KEY_DRAFT = "KEY_DRAFT"
+const val KEY_DRAFT = "KEY_DRAFT"
 
 @AndroidEntryPoint
 class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>(R.layout.fragment_confirm_transfer) {
@@ -29,17 +29,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>(R.layout.
 
     private val binding by viewBinding(FragmentConfirmTransferBinding::bind)
 
-    @Inject
-    lateinit var factory: ConfirmTransferViewModel.ConfirmTransferViewModelFactory
-
-    private val vm: ConfirmTransferViewModel by viewModels {
-        ConfirmTransferViewModel.provideFactory(
-            factory,
-            argument(KEY_DRAFT)
-        )
-    }
-    override val viewModel: ConfirmTransferViewModel
-        get() = vm
+    override val viewModel: ConfirmTransferViewModel by viewModels()
 
     companion object {
         fun getBundle(transferDraft: TransferDraft) = Bundle().apply {

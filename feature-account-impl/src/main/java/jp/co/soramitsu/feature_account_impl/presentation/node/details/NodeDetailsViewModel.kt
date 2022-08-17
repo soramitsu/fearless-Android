@@ -1,14 +1,11 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.details
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
@@ -21,14 +18,18 @@ import jp.co.soramitsu.feature_account_impl.presentation.node.NodeDetailsRootVie
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class NodeDetailsViewModel @AssistedInject constructor(
+@HiltViewModel
+class NodeDetailsViewModel @Inject constructor(
     private val nodesSettingsScenario: NodesSettingsScenario,
     private val router: AccountRouter,
     private val clipboardManager: ClipboardManager,
     private val resourceManager: ResourceManager,
-    @Assisted private val payload: NodeDetailsPayload
+    private val savedStateHandle: SavedStateHandle
 ) : NodeDetailsRootViewModel(resourceManager) {
+
+    private val payload = savedStateHandle.get<NodeDetailsPayload>(NodeDetailsFragment.PAYLOAD_KEY)!!
 
     val nodeModelLiveData = liveData {
         emit(nodesSettingsScenario.getNode(NodeId(payload.chainId to payload.nodeUrl)))
@@ -79,22 +80,5 @@ class NodeDetailsViewModel @AssistedInject constructor(
 
     private fun mapNodeHostEditState(node: Chain.Node): Boolean {
         return !node.isDefault && !node.isActive
-    }
-
-    @AssistedFactory
-    interface NodeDetailsViewModelFactory {
-        fun create(payload: NodeDetailsPayload): NodeDetailsViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: NodeDetailsViewModelFactory,
-            payload: NodeDetailsPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

@@ -35,13 +35,12 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.view.S
 import jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.EthereumDerivationPathTransformer
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.feature_account_impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     companion object {
-        private const val BLOCKCHAIN_TYPE_KEY = "BLOCKCHAIN_TYPE_KEY"
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val BLOCKCHAIN_TYPE_KEY = "BLOCKCHAIN_TYPE_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(blockChainType: Int = 0) = bundleOf(BLOCKCHAIN_TYPE_KEY to blockChainType)
         fun getBundle(chainAccountData: ChainAccountCreatePayload) = bundleOf(PAYLOAD_KEY to chainAccountData)
@@ -49,20 +48,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     private lateinit var binding: FragmentImportAccountBinding
 
-    @Inject
-    lateinit var factory: ImportAccountViewModel.ImportAccountViewModelFactory
-
-    private val vm: ImportAccountViewModel by viewModels {
-        ImportAccountViewModel.provideFactory(
-            factory,
-            arguments?.getInt(BLOCKCHAIN_TYPE_KEY)?.let { int ->
-                ImportAccountType.values().getOrNull(int)
-            },
-            arguments?.get(PAYLOAD_KEY) as? ChainAccountCreatePayload
-        )
-    }
-    override val viewModel: ImportAccountViewModel
-        get() = vm
+    override val viewModel: ImportAccountViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

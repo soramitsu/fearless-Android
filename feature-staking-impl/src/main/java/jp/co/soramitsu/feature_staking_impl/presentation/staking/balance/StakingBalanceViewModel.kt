@@ -2,11 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.balance
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -23,6 +20,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.staking.unbond.UnbondInteract
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.feature_staking_impl.domain.validations.balance.ManageStakingValidationSystem
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
+import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.StakingBalanceFragment.Companion.KEY_COLLATOR_ADDRESS
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.model.UnbondingModel
 import jp.co.soramitsu.feature_staking_impl.presentation.staking.balance.rebond.RebondKind
@@ -43,16 +41,20 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class StakingBalanceViewModel @AssistedInject constructor(
+@HiltViewModel
+class StakingBalanceViewModel @Inject constructor(
     private val router: StakingRouter,
     private val validationExecutor: ValidationExecutor,
     private val unbondingInteractor: UnbondInteractor,
     private val resourceManager: ResourceManager,
     interactor: StakingInteractor,
     private val stakingScenarioInteractor: StakingScenarioInteractor,
-    @Assisted private val collatorAddress: String?
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), Validatable by validationExecutor {
+
+    private val collatorAddress = savedStateHandle.get<String?>(KEY_COLLATOR_ADDRESS)
 
     private val refresh = MutableStateFlow(Event(Unit))
 
@@ -192,22 +194,5 @@ class StakingBalanceViewModel @AssistedInject constructor(
 
     fun refresh() {
         refresh.tryEmit(Event(Unit))
-    }
-
-    @AssistedFactory
-    interface StakingBalanceViewModelFactory {
-        fun create(collatorAddress: String): StakingBalanceViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: StakingBalanceViewModelFactory,
-            collatorAddress: String
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(collatorAddress) as T
-            }
-        }
     }
 }

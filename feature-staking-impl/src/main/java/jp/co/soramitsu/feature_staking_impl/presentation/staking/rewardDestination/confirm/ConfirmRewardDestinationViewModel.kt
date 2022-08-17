@@ -2,11 +2,8 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.rewardDestinat
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -44,8 +41,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ConfirmRewardDestinationViewModel @AssistedInject constructor(
+@HiltViewModel
+class ConfirmRewardDestinationViewModel @Inject constructor(
     private val router: StakingRouter,
     private val interactor: StakingInteractor,
     stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
@@ -57,10 +56,12 @@ class ConfirmRewardDestinationViewModel @AssistedInject constructor(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val validationExecutor: ValidationExecutor,
-    @Assisted private val payload: ConfirmRewardDestinationPayload,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     ExternalAccountActions by externalAccountActions {
+
+    private val payload = savedStateHandle.get<ConfirmRewardDestinationPayload>(KEY_PAYLOAD)!!
 
     private val stashFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
         .filterIsInstance<StakingState.Stash>()
@@ -179,22 +180,5 @@ class ConfirmRewardDestinationViewModel @AssistedInject constructor(
 
     private suspend fun generateDestinationModel(account: StakingAccount): AddressModel {
         return addressIconGenerator.createAddressModel(account.address, AddressIconGenerator.SIZE_SMALL, account.name)
-    }
-
-    @AssistedFactory
-    interface ConfirmRewardDestinationViewModelFactory {
-        fun create(payload: ConfirmRewardDestinationPayload): ConfirmRewardDestinationViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ConfirmRewardDestinationViewModelFactory,
-            payload: ConfirmRewardDestinationPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

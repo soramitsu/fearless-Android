@@ -11,13 +11,12 @@ import jp.co.soramitsu.feature_account_api.presentation.actions.setupExternalAct
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentPayoutDetailsBinding
 import jp.co.soramitsu.feature_staking_impl.presentation.payouts.model.PendingPayoutParcelable
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class PayoutDetailsFragment : BaseFragment<PayoutDetailsViewModel>(R.layout.fragment_payout_details) {
 
     companion object {
-        private const val KEY_PAYOUT = "validator"
+        const val KEY_PAYOUT = "validator"
 
         fun getBundle(payout: PendingPayoutParcelable): Bundle {
             return Bundle().apply {
@@ -26,17 +25,7 @@ class PayoutDetailsFragment : BaseFragment<PayoutDetailsViewModel>(R.layout.frag
         }
     }
 
-    @Inject
-    lateinit var factory: PayoutDetailsViewModel.PayoutDetailsViewModelFactory
-
-    private val vm: PayoutDetailsViewModel by viewModels {
-        PayoutDetailsViewModel.provideFactory(
-            factory,
-            requireArguments().getParcelable<PendingPayoutParcelable>(KEY_PAYOUT) as PendingPayoutParcelable
-        )
-    }
-    override val viewModel: PayoutDetailsViewModel
-        get() = vm
+    override val viewModel: PayoutDetailsViewModel by viewModels()
 
     private val binding by viewBinding(FragmentPayoutDetailsBinding::bind)
 

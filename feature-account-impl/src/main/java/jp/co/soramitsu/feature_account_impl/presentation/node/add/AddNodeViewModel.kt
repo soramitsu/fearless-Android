@@ -1,12 +1,9 @@
 package jp.co.soramitsu.feature_account_impl.presentation.node.add
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.requireException
@@ -16,15 +13,20 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.domain.NodeHostValidator
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.node.NodeDetailsRootViewModel
+import jp.co.soramitsu.feature_account_impl.presentation.node.add.AddNodeFragment.Companion.CHAIN_ID_KEY
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AddNodeViewModel @AssistedInject constructor(
+@HiltViewModel
+class AddNodeViewModel @Inject constructor(
     private val nodesSettingsScenario: NodesSettingsScenario,
     private val router: AccountRouter,
     private val nodeHostValidator: NodeHostValidator,
     resourceManager: ResourceManager,
-    @Assisted private val chainId: String
+    private val savedStateHandle: SavedStateHandle
 ) : NodeDetailsRootViewModel(resourceManager) {
+
+    private val chainId = savedStateHandle.get<String>(CHAIN_ID_KEY)!!
 
     val nodeNameInputLiveData = MutableLiveData("")
     val nodeHostInputLiveData = MutableLiveData("")
@@ -65,23 +67,6 @@ class AddNodeViewModel @AssistedInject constructor(
             } else {
                 handleNodeException(result.requireException())
                 addingInProgressLiveData.postValue(false)
-            }
-        }
-    }
-
-    @AssistedFactory
-    interface AddNodeViewModelFactory {
-        fun create(chainId: String): AddNodeViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: AddNodeViewModelFactory,
-            chainId: String
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(chainId) as T
             }
         }
     }

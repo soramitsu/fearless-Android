@@ -16,7 +16,7 @@ import jp.co.soramitsu.feature_account_impl.presentation.account.details.Account
 import jp.co.soramitsu.feature_account_impl.presentation.account.details.ChainAccountsAdapter
 import javax.inject.Inject
 
-private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 @AndroidEntryPoint
 class AccountsForExportFragment : BaseFragment<AccountsForExportViewModel>(R.layout.fragment_accounts_for_export), ChainAccountsAdapter.Handler {
@@ -26,17 +26,7 @@ class AccountsForExportFragment : BaseFragment<AccountsForExportViewModel>(R.lay
 
     private val binding by viewBinding(FragmentAccountsForExportBinding::bind)
 
-    @Inject
-    lateinit var factory: AccountsForExportViewModel.AccountsForExportViewModelFactory
-
-    private val vm: AccountsForExportViewModel by viewModels {
-        AccountsForExportViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: AccountsForExportViewModel
-        get() = vm
+    override val viewModel: AccountsForExportViewModel by viewModels()
 
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
         ChainAccountsAdapter(this, imageLoader)

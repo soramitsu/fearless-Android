@@ -15,12 +15,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.setup.SetupStakin
 import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletRepository
 import jp.co.soramitsu.feature_wallet_api.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.feature_wallet_api.domain.validation.assetBalanceProducer
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class MakePayoutValidationsModule {
 
     @Provides
+    @Singleton
     fun provideFeeValidation(
         stakingSharedState: StakingSharedState,
         walletRepository: WalletRepository,
@@ -40,9 +42,11 @@ class MakePayoutValidationsModule {
     }
 
     @Provides
+    @Singleton
     fun provideProfitableValidation() = ProfitablePayoutValidation()
 
     @Provides
+    @Singleton
     fun provideValidationSystem(
         enoughToPayFeesValidation: PayoutFeeValidation,
         profitablePayoutValidation: ProfitablePayoutValidation,

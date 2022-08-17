@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class RecommendedValidatorsViewModel @Inject constructor(
@@ -41,7 +42,7 @@ class RecommendedValidatorsViewModel @Inject constructor(
     private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val sharedStateSetup: SetupStakingSharedState,
-    private val tokenUseCase: TokenUseCase,
+    @Named("StakingTokenUseCase") private val tokenUseCase: TokenUseCase,
 ) : BaseViewModel() {
 
     private val recommendedSettings by lazyAsync {

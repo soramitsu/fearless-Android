@@ -10,12 +10,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.rewardDestination.RewardDestinationValidationSystem
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class RewardDestinationValidationsModule {
 
     @Provides
+    @Singleton
     fun provideFeeValidation() = RewardDestinationFeeValidation(
         feeExtractor = { it.fee },
         availableBalanceProducer = { it.availableControllerBalance },
@@ -23,6 +25,7 @@ class RewardDestinationValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun controllerRequiredValidation(
         stakingScenarioInteractor: StakingScenarioInteractor
     ) = RewardDestinationControllerRequiredValidation(
@@ -32,6 +35,7 @@ class RewardDestinationValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun provideRedeemValidationSystem(
         feeValidation: RewardDestinationFeeValidation,
         controllerRequiredValidation: RewardDestinationControllerRequiredValidation,

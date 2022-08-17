@@ -24,8 +24,8 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.send.BalanceDetailsBotto
 import jp.co.soramitsu.feature_wallet_impl.presentation.send.phishing.observePhishingCheck
 import javax.inject.Inject
 
-private const val KEY_ADDRESS = "KEY_ADDRESS"
-private const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
+const val KEY_ADDRESS = "KEY_ADDRESS"
+const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 private const val QUICK_VALUE_MAX = 1.0
 private const val QUICK_VALUE_75 = 0.75
@@ -40,18 +40,7 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>(R.layout.fragme
 
     private val binding by viewBinding(FragmentChooseAmountBinding::bind)
 
-    @Inject
-    lateinit var factory: ChooseAmountViewModel.ChooseAmountViewModelFactory
-
-    private val vm: ChooseAmountViewModel by viewModels {
-        ChooseAmountViewModel.provideFactory(
-            factory,
-            argument(KEY_ADDRESS),
-            argument(KEY_ASSET_PAYLOAD)
-        )
-    }
-    override val viewModel: ChooseAmountViewModel
-        get() = vm
+    override val viewModel: ChooseAmountViewModel by viewModels()
 
     companion object {
         fun getBundle(recipientAddress: String, assetPayload: AssetPayload) =

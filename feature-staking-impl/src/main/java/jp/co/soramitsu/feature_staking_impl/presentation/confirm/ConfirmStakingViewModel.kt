@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class ConfirmStakingViewModel @Inject constructor(
@@ -63,7 +64,7 @@ class ConfirmStakingViewModel @Inject constructor(
     private val setupStakingSharedState: SetupStakingSharedState,
     private val setupStakingInteractor: SetupStakingInteractor,
     private val chainRegistry: ChainRegistry,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val validationExecutor: ValidationExecutor,
 ) : BaseViewModel(),

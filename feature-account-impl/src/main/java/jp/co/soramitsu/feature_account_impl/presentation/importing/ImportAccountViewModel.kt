@@ -3,12 +3,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.importing
 import android.content.Intent
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -27,6 +24,8 @@ import jp.co.soramitsu.feature_account_api.presentation.importing.importAccountT
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import jp.co.soramitsu.feature_account_impl.presentation.common.mixin.api.CryptoTypeChooserMixin
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment.Companion.BLOCKCHAIN_TYPE_KEY
+import jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment.Companion.PAYLOAD_KEY
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.ImportSource
@@ -34,20 +33,24 @@ import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.MnemonicImportSource
 import jp.co.soramitsu.feature_account_impl.presentation.importing.source.model.RawSeedImportSource
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ImportAccountViewModel @AssistedInject constructor(
+@HiltViewModel
+class ImportAccountViewModel @Inject constructor(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val resourceManager: ResourceManager,
     private val cryptoTypeChooserMixin: CryptoTypeChooserMixin,
     private val clipboardManager: ClipboardManager,
     private val fileReader: FileReader,
-    @Assisted initialBlockchainType: ImportAccountType?,
-    @Assisted private val chainCreateAccountData: ChainAccountCreatePayload?
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     CryptoTypeChooserMixin by cryptoTypeChooserMixin {
 
-    val isChainAccount = chainCreateAccountData != null
+    private val initialBlockchainType = savedStateHandle.getLiveData<Int>(BLOCKCHAIN_TYPE_KEY)
+    private val chainCreateAccountData = savedStateHandle.getLiveData<ChainAccountCreatePayload>(PAYLOAD_KEY)
+
+    val isChainAccount = chainCreateAccountData.value != null
 
     private val _showEthAccountsDialog = MutableLiveData<Event<Unit>>()
     val showEthAccountsDialog: LiveData<Event<Unit>> = _showEthAccountsDialog
@@ -99,11 +102,13 @@ class ImportAccountViewModel @AssistedInject constructor(
 
     init {
         when {
-            chainCreateAccountData != null -> launch {
-                val importAccountType = interactor.getChain(chainCreateAccountData.chainId).importAccountType
+            chainCreateAccountData.value != null -> launch {
+                val importAccountType = interactor.getChain(chainCreateAccountData.value!!.chainId).importAccountType
                 _blockchainTypeLiveData.value = importAccountType
             }
-            initialBlockchainType != null -> _blockchainTypeLiveData.value = initialBlockchainType!!
+            initialBlockchainType.value != null -> _blockchainTypeLiveData.value = initialBlockchainType.value?.let { int ->
+                ImportAccountType.values().getOrNull(int)
+            }!!
         }
     }
 
@@ -169,9 +174,16 @@ class ImportAccountViewModel @AssistedInject constructor(
         val name = if (isChainAccount) "" else nameLiveData.value!!
 
         viewModelScope.launch {
-            val result = when (chainCreateAccountData) {
+            val result = when (val chainCreateAccountData = chainCreateAccountData.value) {
                 null -> import(sourceType, name, substrateDerivationPath, ethereumDerivationPath, cryptoType, withEth)
-                else -> importForChain(sourceType, name, substrateDerivationPath, ethereumDerivationPath, cryptoType, chainCreateAccountData)
+                else -> importForChain(
+                    sourceType,
+                    name,
+                    substrateDerivationPath,
+                    ethereumDerivationPath,
+                    cryptoType,
+                    chainCreateAccountData
+                )
             }
             if (result.isSuccess) {
                 continueBasedOnCodeStatus()
@@ -336,26 +348,5 @@ class ImportAccountViewModel @AssistedInject constructor(
 
     fun onAddEthAccountDeclined() {
         import(false)
-    }
-
-    @AssistedFactory
-    interface ImportAccountViewModelFactory {
-        fun create(
-            initialBlockchainType: ImportAccountType?,
-            chainCreateAccountData: ChainAccountCreatePayload?
-        ): ImportAccountViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ImportAccountViewModelFactory,
-            initialBlockchainType: ImportAccountType?,
-            chainCreateAccountData: ChainAccountCreatePayload?
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(initialBlockchainType, chainCreateAccountData) as T
-            }
-        }
     }
 }

@@ -10,6 +10,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.data.CrowdloanSharedState
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
 import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
+import javax.inject.Named
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -18,6 +19,7 @@ class CrowdloanUpdatersModule {
 
     @Provides
     @Singleton
+    @Named("CrowdloanBlockNumberUpdater")
     fun provideBlockNumberUpdater(
         chainRegistry: ChainRegistry,
         crowdloanSharedState: CrowdloanSharedState,
@@ -25,10 +27,11 @@ class CrowdloanUpdatersModule {
     ) = BlockNumberUpdater(chainRegistry, crowdloanSharedState, storageCache)
 
     @Provides
+    @Named("CrowdloanChainUpdateSystem")
     fun provideCrowdloanUpdateSystem(
         chainRegistry: ChainRegistry,
         crowdloanSharedState: CrowdloanSharedState,
-        blockNumberUpdater: BlockNumberUpdater,
+        @Named("CrowdloanBlockNumberUpdater") blockNumberUpdater: BlockNumberUpdater,
     ): UpdateSystem = SingleChainUpdateSystem(
         updaters = listOf(
             blockNumberUpdater

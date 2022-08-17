@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.presentation.validators.details
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.AppLinksProvider
@@ -25,6 +22,7 @@ import jp.co.soramitsu.feature_staking_impl.domain.getSelectedChain
 import jp.co.soramitsu.feature_staking_impl.presentation.StakingRouter
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsParcelToValidatorDetailsModel
 import jp.co.soramitsu.feature_staking_impl.presentation.mappers.mapValidatorDetailsToErrors
+import jp.co.soramitsu.feature_staking_impl.presentation.validators.details.ValidatorDetailsFragment.Companion.KEY_VALIDATOR
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.NominatorParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.feature_staking_impl.presentation.validators.parcel.ValidatorStakeParcelModel
@@ -39,18 +37,22 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class ValidatorDetailsViewModel @AssistedInject constructor(
+@HiltViewModel
+class ValidatorDetailsViewModel @Inject constructor(
     private val interactor: StakingInteractor,
     private val stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val router: StakingRouter,
-    @Assisted private val validator: ValidatorDetailsParcelModel,
     private val iconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val appLinksProvider: AppLinksProvider,
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions.Presentation by externalAccountActions {
+
+    private val validator = savedStateHandle.get<ValidatorDetailsParcelModel>(KEY_VALIDATOR)!!
 
     private val assetFlow = interactor.currentAssetFlow()
         .share()
@@ -149,22 +151,5 @@ class ValidatorDetailsViewModel @AssistedInject constructor(
         )
 
         externalAccountActions.showExternalActions(externalActionsPayload)
-    }
-
-    @AssistedFactory
-    interface ValidatorDetailsViewModelFactory {
-        fun create(validator: ValidatorDetailsParcelModel): ValidatorDetailsViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ValidatorDetailsViewModelFactory,
-            validator: ValidatorDetailsParcelModel
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(validator) as T
-            }
-        }
     }
 }

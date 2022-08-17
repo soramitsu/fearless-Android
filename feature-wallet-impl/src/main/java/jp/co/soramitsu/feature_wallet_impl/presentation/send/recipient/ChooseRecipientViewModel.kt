@@ -4,14 +4,11 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.distinctUntilChanged
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -36,6 +33,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 
 private const val ICON_SIZE_IN_DP = 24
@@ -47,17 +45,20 @@ enum class State {
 private const val INITIAL_QUERY = ""
 private const val DEBOUNCE_DURATION = 300L
 
-class ChooseRecipientViewModel @AssistedInject constructor(
+@HiltViewModel
+class ChooseRecipientViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val qrBitmapDecoder: QrBitmapDecoder,
-    @Assisted private val payload: AssetPayload,
     private val phishingWarning: PhishingWarningMixin,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     PhishingWarningMixin by phishingWarning,
     PhishingWarningPresentation {
+
+    private val payload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
 
     private val searchEvents = MutableStateFlow(INITIAL_QUERY)
 
@@ -202,22 +203,5 @@ class ChooseRecipientViewModel @AssistedInject constructor(
 
     private suspend fun generateAddressModel(address: String, accountName: String? = null): AddressModel {
         return addressIconGenerator.createAddressModel(address, ICON_SIZE_IN_DP, accountName)
-    }
-
-    @AssistedFactory
-    interface ChooseRecipientViewModelFactory {
-        fun create(payload: AssetPayload): ChooseRecipientViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: ChooseRecipientViewModelFactory,
-            payload: AssetPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
-        }
     }
 }

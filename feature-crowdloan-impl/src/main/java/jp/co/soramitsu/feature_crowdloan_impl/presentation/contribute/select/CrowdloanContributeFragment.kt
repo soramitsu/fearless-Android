@@ -26,7 +26,7 @@ import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.custom.App
 import jp.co.soramitsu.feature_crowdloan_impl.presentation.contribute.select.parcel.ContributePayload
 import javax.inject.Inject
 
-private const val KEY_PAYLOAD = "KEY_PAYLOAD"
+const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
 @AndroidEntryPoint
 class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>(R.layout.fragment_contribute) {
@@ -35,17 +35,7 @@ class CrowdloanContributeFragment : BaseFragment<CrowdloanContributeViewModel>(R
 
     private val binding by viewBinding(FragmentContributeBinding::bind)
 
-    @Inject
-    lateinit var factory: CrowdloanContributeViewModel.CrowdloanContributeViewModelFactory
-
-    private val vm: CrowdloanContributeViewModel by viewModels {
-        CrowdloanContributeViewModel.provideFactory(
-            factory,
-            argument(KEY_PAYLOAD)
-        )
-    }
-    override val viewModel: CrowdloanContributeViewModel
-        get() = vm
+    override val viewModel: CrowdloanContributeViewModel by viewModels()
 
     companion object {
 

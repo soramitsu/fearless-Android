@@ -24,20 +24,10 @@ class SelectUnbondFragment : BaseFragment<SelectUnbondViewModel>(R.layout.fragme
     @Inject
     protected lateinit var imageLoader: ImageLoader
 
-    @Inject
-    lateinit var factory: SelectUnbondViewModel.SelectUnbondViewModelFactory
-
-    private val vm: SelectUnbondViewModel by viewModels {
-        SelectUnbondViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: SelectUnbondViewModel
-        get() = vm
+    override val viewModel: SelectUnbondViewModel by viewModels()
 
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(payload: SelectUnbondPayload) = bundleOf(PAYLOAD_KEY to payload)
     }

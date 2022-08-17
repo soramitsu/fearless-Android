@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_staking_impl.presentation.staking.redeem
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -48,10 +45,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Named
 
 private const val DEBOUNCE_DURATION_MILLIS = 500
 
-class RedeemViewModel @AssistedInject constructor(
+@HiltViewModel
+class RedeemViewModel @Inject constructor(
     private val router: StakingRouter,
     private val stakingScenarioInteractor: StakingScenarioInteractor,
     private val interactor: StakingInteractor,
@@ -60,13 +60,15 @@ class RedeemViewModel @AssistedInject constructor(
     private val validationExecutor: ValidationExecutor,
     private val iconGenerator: AddressIconGenerator,
     private val chainRegistry: ChainRegistry,
-    private val feeLoaderMixin: FeeLoaderMixin.Presentation,
+    @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    @Assisted private val payload: RedeemPayload
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(),
     Validatable by validationExecutor,
     FeeLoaderMixin by feeLoaderMixin,
     ExternalAccountActions by externalAccountActions {
+
+    private val payload = savedStateHandle.get<RedeemPayload>(PAYLOAD_KEY)!!
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -224,23 +226,6 @@ class RedeemViewModel @AssistedInject constructor(
             }
         } else {
             showError(result.requireException())
-        }
-    }
-
-    @AssistedFactory
-    interface RedeemViewModelFactory {
-        fun create(payload: RedeemPayload): RedeemViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: RedeemViewModelFactory,
-            payload: RedeemPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(payload) as T
-            }
         }
     }
 }

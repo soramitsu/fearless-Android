@@ -8,12 +8,14 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemFeeValidation
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.reedeem.RedeemValidationSystem
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class RedeemValidationsModule {
 
     @Provides
+    @Singleton
     fun provideFeeValidation() = RedeemFeeValidation(
         feeExtractor = { it.fee },
         availableBalanceProducer = { it.asset.transferable },
@@ -21,6 +23,7 @@ class RedeemValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun provideRedeemValidationSystem(
         feeValidation: RedeemFeeValidation,
     ) = RedeemValidationSystem(

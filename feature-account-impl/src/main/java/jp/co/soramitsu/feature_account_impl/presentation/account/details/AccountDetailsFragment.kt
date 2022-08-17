@@ -26,7 +26,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentAccountDetailsBinding
 import javax.inject.Inject
 
-private const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
+const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
 @AndroidEntryPoint
 class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(R.layout.fragment_account_details), ChainAccountsAdapter.Handler {
@@ -35,17 +35,7 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(R.layout.fr
 
     private val binding by viewBinding(FragmentAccountDetailsBinding::bind)
 
-    @Inject
-    lateinit var factory: AccountDetailsViewModel.AccountDetailsViewModelFactory
-
-    private val vm: AccountDetailsViewModel by viewModels {
-        AccountDetailsViewModel.provideFactory(
-            factory,
-            argument(ACCOUNT_ID_KEY)
-        )
-    }
-    override val viewModel: AccountDetailsViewModel
-        get() = vm
+    override val viewModel: AccountDetailsViewModel by viewModels()
 
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
         ChainAccountsAdapter(this, imageLoader)

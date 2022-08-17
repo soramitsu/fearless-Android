@@ -2,14 +2,15 @@ package jp.co.soramitsu.feature_wallet_impl.presentation.balance.detail
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.feature_account_api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.feature_account_api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSource
 import jp.co.soramitsu.feature_account_api.presentation.exporting.ExportSourceChooserPayload
@@ -21,7 +22,9 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.AssetPayload
 import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
 import jp.co.soramitsu.feature_wallet_impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
-import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryMixin
+import jp.co.soramitsu.feature_wallet_impl.presentation.model.OperationModel
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.filter.HistoryFiltersProvider
+import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryProvider
 import jp.co.soramitsu.feature_wallet_impl.presentation.transaction.history.mixin.TransactionHistoryUi
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.async
@@ -31,17 +34,22 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class BalanceDetailViewModel @AssistedInject constructor(
+@HiltViewModel
+class BalanceDetailViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val router: WalletRouter,
-    @Assisted private val assetPayload: AssetPayload,
     private val buyMixin: BuyMixin.Presentation,
-    private val transactionHistoryMixin: TransactionHistoryMixin,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val externalAccountActions: ExternalAccountActions.Presentation,
+    savedStateHandle: SavedStateHandle,
+    addressIconGenerator: AddressIconGenerator,
+    resourceManager: ResourceManager,
+    addressDisplayUseCase: AddressDisplayUseCase
 ) : BaseViewModel(),
-    TransactionHistoryUi by transactionHistoryMixin,
+    TransactionHistoryUi,
     ExternalAccountActions by externalAccountActions,
     BuyMixin by buyMixin {
+
+    private val assetPayload: AssetPayload = savedStateHandle[KEY_ASSET_PAYLOAD]!!
 
     private val _showAccountOptions = MutableLiveData<Event<String>>()
     val showAccountOptions: LiveData<Event<String>> = _showAccountOptions
@@ -59,9 +67,17 @@ class BalanceDetailViewModel @AssistedInject constructor(
 
     val buyEnabled = buyMixin.isBuyEnabled(assetPayload.chainId, assetPayload.chainAssetId)
 
-    init {
-        transactionHistoryMixin.setAssetPayload(assetPayload)
-    }
+    private val transactionHistoryMixin = TransactionHistoryProvider(
+        interactor,
+        addressIconGenerator,
+        router,
+        HistoryFiltersProvider(),
+        resourceManager,
+        addressDisplayUseCase,
+        savedStateHandle[KEY_ASSET_PAYLOAD]!!
+    )
+
+    override val state: Flow<TransactionHistoryUi.State> = transactionHistoryMixin.state
 
     override fun onCleared() {
         super.onCleared()
@@ -150,20 +166,7 @@ class BalanceDetailViewModel @AssistedInject constructor(
         }
     }
 
-    @AssistedFactory
-    interface BalanceDetailViewModelFactory {
-        fun create(assetPayload: AssetPayload): BalanceDetailViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: BalanceDetailViewModelFactory,
-            assetPayload: AssetPayload
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(assetPayload) as T
-            }
-        }
+    override fun transactionClicked(transactionModel: OperationModel) {
+        transactionHistoryMixin.transactionClicked(transactionModel)
     }
 }

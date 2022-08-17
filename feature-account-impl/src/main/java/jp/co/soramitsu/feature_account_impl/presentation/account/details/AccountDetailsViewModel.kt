@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.account.details
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -42,19 +39,23 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
-class AccountDetailsViewModel @AssistedInject constructor(
+@HiltViewModel
+class AccountDetailsViewModel @Inject constructor(
     private val interactor: AccountDetailsInteractor,
     private val accountRouter: AccountRouter,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     private val chainRegistry: ChainRegistry,
-    @Assisted private val metaId: Long,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val assetNotNeedAccount: AssetNotNeedAccountUseCase
+    private val assetNotNeedAccount: AssetNotNeedAccountUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
+
+    private val metaId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
 
     private val _showAddAccountChooser = MutableLiveData<Event<AddAccountBottomSheet.Payload>>()
     val showAddAccountChooser: LiveData<Event<AddAccountBottomSheet.Payload>> = _showAddAccountChooser
@@ -225,23 +226,6 @@ class AccountDetailsViewModel @AssistedInject constructor(
     fun noNeedAccount(chainId: ChainId, metaId: Long, symbol: String) {
         launch {
             assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, symbol = symbol)
-        }
-    }
-
-    @AssistedFactory
-    interface AccountDetailsViewModelFactory {
-        fun create(metaId: Long): AccountDetailsViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: AccountDetailsViewModelFactory,
-            metaId: Long
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(metaId) as T
-            }
         }
     }
 }

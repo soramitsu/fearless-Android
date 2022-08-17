@@ -13,12 +13,14 @@ import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondLimi
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationFailure
 import jp.co.soramitsu.feature_staking_impl.domain.validations.unbond.UnbondValidationSystem
 import jp.co.soramitsu.feature_staking_impl.scenarios.StakingScenarioInteractor
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 class UnbondValidationsModule {
 
     @Provides
+    @Singleton
     fun provideFeeValidation() = UnbondFeeValidation(
         feeExtractor = { it.fee },
         availableBalanceProducer = { it.asset.transferable },
@@ -26,12 +28,14 @@ class UnbondValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun provideNotZeroUnbondValidation() = NotZeroUnbondValidation(
         amountExtractor = { it.amount },
         errorProvider = { UnbondValidationFailure.ZeroUnbond }
     )
 
     @Provides
+    @Singleton
     fun provideUnbondLimitValidation(
         stakingScenarioInteractor: StakingScenarioInteractor,
     ) = UnbondLimitValidation(
@@ -40,16 +44,19 @@ class UnbondValidationsModule {
     )
 
     @Provides
+    @Singleton
     fun provideEnoughToUnbondValidation(
         stakingScenarioInteractor: StakingScenarioInteractor
     ) = EnoughToUnbondValidation(stakingScenarioInteractor)
 
     @Provides
+    @Singleton
     fun provideCrossExistentialValidation(
         stakingScenarioInteractor: StakingScenarioInteractor
     ) = CrossExistentialValidation(stakingScenarioInteractor)
 
     @Provides
+    @Singleton
     fun provideUnbondValidationSystem(
         unbondFeeValidation: UnbondFeeValidation,
         notZeroUnbondValidation: NotZeroUnbondValidation,

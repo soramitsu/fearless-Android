@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class SelectCustomValidatorsViewModel @Inject constructor(
@@ -56,7 +57,7 @@ class SelectCustomValidatorsViewModel @Inject constructor(
     stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val setupStakingSharedState: SetupStakingSharedState,
-    private val tokenUseCase: TokenUseCase,
+    @Named("StakingTokenUseCase") private val tokenUseCase: TokenUseCase,
     private val settingsStorage: SettingsStorage
 ) : BaseViewModel() {
 

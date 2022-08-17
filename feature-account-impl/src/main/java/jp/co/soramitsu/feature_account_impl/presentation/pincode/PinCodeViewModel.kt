@@ -2,12 +2,9 @@ package jp.co.soramitsu.feature_account_impl.presentation.pincode
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -16,13 +13,15 @@ import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.presentation.AccountRouter
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PinCodeViewModel @AssistedInject constructor(
+@HiltViewModel
+class PinCodeViewModel @Inject constructor(
     private val interactor: AccountInteractor,
     private val router: AccountRouter,
     private val deviceVibrator: DeviceVibrator,
     private val resourceManager: ResourceManager,
-    @Assisted val pinCodeAction: PinCodeAction
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
     sealed class ScreenState {
@@ -30,6 +29,8 @@ class PinCodeViewModel @AssistedInject constructor(
         data class Confirmation(val codeToConfirm: String) : ScreenState()
         object Checking : ScreenState()
     }
+
+    val pinCodeAction = savedStateHandle.get<PinCodeAction>(PincodeFragment.KEY_PINCODE_ACTION)!!
 
     private val _homeButtonVisibilityLiveData = MutableLiveData(pinCodeAction.toolbarConfiguration.backVisible)
     val homeButtonVisibilityLiveData: LiveData<Boolean> = _homeButtonVisibilityLiveData
@@ -207,23 +208,6 @@ class PinCodeViewModel @AssistedInject constructor(
             interactor.setBiometricOff()
 
             authSuccess()
-        }
-    }
-
-    @AssistedFactory
-    interface PinCodeViewModelFactory {
-        fun create(pinCodeAction: PinCodeAction): PinCodeViewModel
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    companion object {
-        fun provideFactory(
-            factory: PinCodeViewModelFactory,
-            pinCodeAction: PinCodeAction
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return factory.create(pinCodeAction) as T
-            }
         }
     }
 }

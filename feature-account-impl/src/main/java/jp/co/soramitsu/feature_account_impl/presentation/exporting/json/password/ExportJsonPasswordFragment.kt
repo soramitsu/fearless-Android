@@ -26,20 +26,10 @@ class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>()
 
     private lateinit var binding: FragmentExportJsonPasswordBinding
 
-    @Inject
-    lateinit var factory: ExportJsonPasswordViewModel.ExportJsonPasswordViewModelFactory
-
-    private val vm: ExportJsonPasswordViewModel by viewModels {
-        ExportJsonPasswordViewModel.provideFactory(
-            factory,
-            argument(PAYLOAD_KEY)
-        )
-    }
-    override val viewModel: ExportJsonPasswordViewModel
-        get() = vm
+    override val viewModel: ExportJsonPasswordViewModel by viewModels()
 
     companion object {
-        private const val PAYLOAD_KEY = "PAYLOAD_KEY"
+        const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
         fun getBundle(metaId: Long, chainId: ChainId, isExportWallet: Boolean) =
             bundleOf(PAYLOAD_KEY to ExportJsonPasswordPayload(metaId, chainId, isExportWallet))

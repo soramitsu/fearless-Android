@@ -21,7 +21,7 @@ import jp.co.soramitsu.feature_wallet_api.presentation.mixin.observeTransferChec
 import java.math.BigDecimal
 import javax.inject.Inject
 
-private const val KEY_PAYLOAD = "KEY_PAYLOAD"
+const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
 @AndroidEntryPoint
 class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
@@ -30,17 +30,7 @@ class ConfirmContributeFragment : BaseFragment<ConfirmContributeViewModel>() {
 
     private lateinit var binding: FragmentContributeConfirmBinding
 
-    @Inject
-    lateinit var factory: ConfirmContributeViewModel.ConfirmContributeViewModelFactory
-
-    private val vm: ConfirmContributeViewModel by viewModels {
-        ConfirmContributeViewModel.provideFactory(
-            factory,
-            argument(KEY_PAYLOAD)
-        )
-    }
-    override val viewModel: ConfirmContributeViewModel
-        get() = vm
+    override val viewModel: ConfirmContributeViewModel by viewModels()
 
     companion object {
 
