@@ -11,15 +11,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.makeGone
-import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.utils.mediateWith
-import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
-import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.databinding.FragmentImportAccountBinding
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.api.presentation.importing.ImportAccountType
@@ -36,6 +27,14 @@ import jp.co.soramitsu.account.impl.presentation.importing.source.view.SeedImpor
 import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.EthereumDerivationPathTransformer
 import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
+import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.utils.bindTo
+import jp.co.soramitsu.common.utils.makeGone
+import jp.co.soramitsu.common.utils.makeVisible
+import jp.co.soramitsu.common.utils.mediateWith
+import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentImportAccountBinding
 
 @AndroidEntryPoint
 class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {

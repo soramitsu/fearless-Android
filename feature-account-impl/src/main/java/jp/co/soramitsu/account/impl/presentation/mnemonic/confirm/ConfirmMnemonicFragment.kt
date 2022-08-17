@@ -9,13 +9,12 @@ import android.view.animation.AnimationUtils
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.view.MnemonicWordView
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.doOnGlobalLayout
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentConfirmMnemonicBinding
-import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.view.MnemonicWordView
 
 @AndroidEntryPoint
 class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
