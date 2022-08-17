@@ -34,6 +34,8 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.SubQueryValidatorSetFe
 import jp.co.soramitsu.staking.impl.data.repository.IdentityRepositoryImpl
 import jp.co.soramitsu.staking.impl.data.repository.PayoutRepository
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
+import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
+import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
@@ -561,4 +563,30 @@ class StakingFeatureModule {
     @Provides
     @Singleton
     fun provideSettingsStorage() = SettingsStorage()
+
+    @Provides
+    @Singleton
+    fun provideStakingPoolDataSource(
+        @Named(REMOTE_STORAGE_SOURCE)
+        remoteStorage: StorageDataSource,
+        @Named(LOCAL_STORAGE_SOURCE)
+        localStorage: StorageDataSource,
+        chainRegistry: ChainRegistry,
+        walletConstants: WalletConstants
+    ) = StakingPoolDataSource(
+        remoteStorage,
+        localStorage,
+        chainRegistry,
+        walletConstants
+    )
+
+    @Provides
+    @Singleton
+    fun provideStakingPoolApi(
+        extrinsicService: ExtrinsicService,
+        stakingSharedState: StakingSharedState
+    ) = StakingPoolApi(
+        extrinsicService,
+        stakingSharedState
+    )
 }

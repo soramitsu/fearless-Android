@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.MultiAddress
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardDestination
@@ -200,6 +201,88 @@ fun ExtrinsicBuilder.setPayee(rewardDestination: RewardDestination): ExtrinsicBu
         "set_payee",
         mapOf(
             "payee" to bindRewardDestination(rewardDestination)
+        )
+    )
+}
+
+fun ExtrinsicBuilder.joinPool(amount: BigInteger, poolId: BigInteger): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "join",
+        mapOf(
+            "amount" to amount,
+            "pool_id" to poolId
+        )
+    )
+}
+
+fun ExtrinsicBuilder.createPool(amount: BigInteger, root: AccountId, nominator: AccountId, stateToggler: AccountId): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "create",
+        mapOf(
+            "amount" to amount,
+            "root" to root,
+            "nominator" to nominator,
+            "state_toggler" to stateToggler
+        )
+    )
+}
+
+fun ExtrinsicBuilder.setPoolMetadata(poolId: BigInteger, poolName: ByteArray): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "set_metadata",
+        mapOf(
+            "pool_id" to poolId,
+            "metadata" to poolName
+        )
+    )
+}
+
+fun ExtrinsicBuilder.nominatePool(poolId: BigInteger, validators: List<AccountId>): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "nominate",
+        mapOf(
+            "pool_id" to poolId,
+            "validators" to validators
+        )
+    )
+}
+
+fun ExtrinsicBuilder.claimPayout(): ExtrinsicBuilder {
+    return call("NominationPools", "claim_payout", emptyMap())
+}
+
+fun ExtrinsicBuilder.withdrawUnbondedFromPool(memberAccountId: AccountId, numSlashingSpans: BigInteger = BigInteger.ZERO): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "withdraw_unbonded",
+        mapOf(
+            "member_account" to memberAccountId,
+            "num_slashing_spans" to numSlashingSpans
+        )
+    )
+}
+
+fun ExtrinsicBuilder.unbondFromPool(memberAccountId: AccountId, unbondingPoints: BigInteger): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "unbond",
+        mapOf(
+            "member_account" to memberAccountId,
+            "unbonding_points" to unbondingPoints
+        )
+    )
+}
+
+fun ExtrinsicBuilder.bondExtra(amount: BigInteger): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "bond_extra",
+        mapOf(
+            "extra" to DictEnum.Entry("FreeBalance", amount)
         )
     )
 }
