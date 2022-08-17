@@ -6,13 +6,16 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import javax.inject.Singleton
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
+import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.AccountNominationsUpdater
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.AccountRewardDestinationUpdater
@@ -34,9 +37,6 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.historical.H
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
-import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -60,7 +60,7 @@ class StakingUpdatersModule {
     fun provideBlockNumberUpdater(
         chainRegistry: ChainRegistry,
         stakingSharedState: StakingSharedState,
-        storageCache: StorageCache,
+        storageCache: StorageCache
     ) = BlockNumberUpdater(chainRegistry, stakingSharedState, storageCache)
 
     @Provides

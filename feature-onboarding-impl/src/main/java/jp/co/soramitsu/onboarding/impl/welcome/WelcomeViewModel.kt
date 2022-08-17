@@ -9,7 +9,7 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
-import jp.co.soramitsu.onboarding.impl.presentation.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
+import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
 import javax.inject.Inject
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
