@@ -295,7 +295,7 @@ class StakingRelayChainScenarioInteractor(
     ) {
         require(stashState is StakingState.Stash)
 
-        extrinsicBuilder.withdrawUnbonded(getSlashingSpansNumber(stashState))
+        extrinsicBuilder.withdrawUnbonded(getSlashingSpansNumber(stashState.chain.id, stashState.stashId))
     }
 
     override suspend fun getSelectedAccountStakingState() = selectedAccountStakingStateFlow().first()
@@ -403,8 +403,8 @@ class StakingRelayChainScenarioInteractor(
         }
     }
 
-    private suspend fun getSlashingSpansNumber(stakingState: StakingState.Stash): BigInteger {
-        val slashingSpans = stakingRelayChainScenarioRepository.getSlashingSpan(stakingState.chain.id, stakingState.stashId)
+    private suspend fun getSlashingSpansNumber(chainId: ChainId, stashId: AccountId): BigInteger {
+        val slashingSpans = stakingRelayChainScenarioRepository.getSlashingSpan(chainId, stashId)
 
         return slashingSpans?.let {
             val totalSpans = it.prior.size + 1 //  all from prior + one for lastNonZeroSlash
