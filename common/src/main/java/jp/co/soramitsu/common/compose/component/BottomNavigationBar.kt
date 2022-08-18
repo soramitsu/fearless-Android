@@ -33,7 +33,7 @@ fun BottomNavigationBar(navController: NavController?) {
             modifier = Modifier.fillMaxWidth()
         )
         BottomNavigation(
-            backgroundColor = colorResource(id = R.color.black)//.copy(alpha = 0.5f),
+            backgroundColor = colorResource(id = R.color.black) // .copy(alpha = 0.5f),
         ) {
             val navBackStackEntry = navController?.currentBackStackEntryAsState()
 //            val navBackStackEntry by navController?.currentBackStackEntryAsState()
