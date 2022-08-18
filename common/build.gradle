@@ -68,7 +68,6 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
-        kotlinCompilerVersion kotlinVersion
     }
     namespace 'jp.co.soramitsu.common'
 }
