@@ -51,7 +51,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.model.Learn
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.impl.domain.AssetUseCase
+import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation

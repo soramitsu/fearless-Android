@@ -1,5 +1,12 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.Dp
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -9,6 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.compose.component.AssetSelector
+import jp.co.soramitsu.common.compose.component.AssetSelectorState
+import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -20,6 +30,8 @@ import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBinding
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.impl.domain.model.NominatorStatus
 import jp.co.soramitsu.staking.impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.staking.impl.domain.model.ValidatorStatus
@@ -27,8 +39,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetwo
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationOptionsBottomSheet
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationRecyclerViewAdapter
 import jp.co.soramitsu.staking.impl.presentation.view.StakeSummaryView
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.setupAssetSelector
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -80,7 +90,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
 
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
-        setupAssetSelector(binding.stakingAssetSelector, viewModel, imageLoader)
+        setupAssetSelector()
         observeAlertsJob?.cancel()
         observeAlertsJob = viewModel.alertsFlow.onEach { loadingState ->
             if (loadingState is LoadingState.Loaded) {
@@ -188,6 +198,39 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
 
         viewModel.currentAddressModelLiveData.observe {
             binding.stakingAvatar.setImageDrawable(it.image)
+        }
+    }
+
+    private fun setupAssetSelector() {
+        binding.composeContent.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                val state by viewModel.assetSelectorMixin.selectedAssetModelFlow.collectAsState(initial = null, context = lifecycleScope.coroutineContext)
+                FearlessTheme {
+                    Box(modifier = Modifier.padding(horizontal = Dp(16f))) {
+                        state?.apply {
+                            AssetSelector(
+                                state = AssetSelectorState(
+                                    tokenName,
+                                    imageUrl,
+                                    assetBalance,
+                                    (selectionItem as? StakingAssetSelection.Pool)?.let { "pool" }
+                                ),
+                                onClick = { viewModel.assetSelectorMixin.assetSelectorClicked() }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        viewModel.assetSelectorMixin.showAssetChooser.observeEvent {
+            StakingAssetSelectorBottomSheet(
+                imageLoader = imageLoader,
+                context = requireContext(),
+                payload = it,
+                onClicked = viewModel.assetSelectorMixin::assetChosen
+            ).show()
         }
     }
 

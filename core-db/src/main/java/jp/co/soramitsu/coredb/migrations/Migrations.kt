@@ -3,6 +3,63 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_41_42 = object : Migration(41, 42) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE chains RENAME TO _chains")
+        database.execSQL("DROP TABLE IF EXISTS chains")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chains` (
+            `id` TEXT NOT NULL,
+            `parentId` TEXT,
+            `name` TEXT NOT NULL,
+            `minSupportedVersion` TEXT,
+            `icon` TEXT NOT NULL,
+            `prefix` INTEGER NOT NULL,
+            `isEthereumBased` INTEGER NOT NULL,
+            `isTestNet` INTEGER NOT NULL,
+            `hasCrowdloans` INTEGER NOT NULL,
+            `supportStakingPool` INTEGER NOT NULL,
+            `url` TEXT,
+            `overridesCommon` INTEGER,
+            `staking_url` TEXT,
+            `staking_type` TEXT,
+            `history_url` TEXT,
+            `history_type` TEXT,
+            `crowdloans_url` TEXT,
+            `crowdloans_type` TEXT,
+            
+            PRIMARY KEY(`id`))
+            """.trimIndent()
+        )
+        database.execSQL(
+            """
+            INSERT INTO chains SELECT 
+            c.id,
+            c.parentId,
+            c.name,
+            c.minSupportedVersion,
+            c.icon,
+            c.prefix,
+            c.isEthereumBased,
+            c.isTestNet,
+            c.hasCrowdloans,
+            0 as `supportStakingPool`,
+            c.url,
+            c.overridesCommon,
+            c.staking_url,
+            c.staking_type,
+            c.history_url,
+            c.history_type,
+            c.crowdloans_url,
+            c.crowdloans_type
+            FROM _chains c
+            """.trimIndent()
+        )
+        database.execSQL("DROP TABLE IF EXISTS _chains")
+    }
+}
+
 val AssetsMigration_40_41 = object : Migration(40, 41) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE assets RENAME TO _assets")

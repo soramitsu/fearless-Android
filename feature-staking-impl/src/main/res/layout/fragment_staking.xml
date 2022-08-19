@@ -40,14 +40,12 @@
 
         </FrameLayout>
 
-        <jp.co.soramitsu.wallet.api.presentation.view.AssetSelectorView
-            android:id="@+id/stakingAssetSelector"
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/composeContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            app:backgroundStyle="blurred" />
+            tools:layout_height="48dp" />
 
         <jp.co.soramitsu.staking.impl.presentation.staking.main.view.RelayChainNetworkInfoView
             android:id="@+id/stakingNetworkInfo"
