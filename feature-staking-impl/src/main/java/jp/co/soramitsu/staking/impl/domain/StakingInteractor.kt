@@ -1,6 +1,8 @@
 package jp.co.soramitsu.staking.impl.domain
 
 import java.math.BigDecimal
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -8,8 +10,12 @@ import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.combineToPair
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
@@ -17,18 +23,9 @@ import jp.co.soramitsu.staking.impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
-import jp.co.soramitsu.wallet.impl.domain.AssetUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
-import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
-import jp.co.soramitsu.runtime.state.chain
-import jp.co.soramitsu.runtime.state.chainAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -46,7 +43,6 @@ class StakingInteractor(
     private val stakingRepository: StakingRepository,
     private val stakingRewardsRepository: StakingRewardsRepository,
     private val stakingSharedState: StakingSharedState,
-    private val assetUseCase: AssetUseCase,
     private val chainStateRepository: ChainStateRepository,
     private val chainRegistry: ChainRegistry,
     private val addressIconGenerator: AddressIconGenerator
@@ -76,11 +72,7 @@ class StakingInteractor(
         }
     }
 
-    fun currentAssetFlow() = assetUseCase.currentAssetFlow()
-
-    suspend fun getCurrentAsset(): Chain.Asset {
-        return stakingSharedState.chainAsset()
-    }
+    fun currentAssetFlow() = stakingSharedState.currentAssetFlow()
 
     fun assetFlow(accountAddress: String): Flow<Asset> {
         return flow {

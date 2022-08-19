@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Named
+import jp.co.soramitsu.staking.api.data.StakingSharedState
 
 @HiltViewModel
 class SetupStakingViewModel @Inject constructor(
@@ -62,7 +63,8 @@ class SetupStakingViewModel @Inject constructor(
     private val validationExecutor: ValidationExecutor,
     @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val rewardDestinationMixin: RewardDestinationMixin.Presentation,
-    private val addressIconGenerator: AddressIconGenerator
+    private val addressIconGenerator: AddressIconGenerator,
+    private val stakingSharedState: StakingSharedState
 ) : BaseViewModel(),
     Retriable,
     Validatable by validationExecutor,
@@ -100,7 +102,7 @@ class SetupStakingViewModel @Inject constructor(
         .asLiveData()
 
     private val rewardCalculator = viewModelScope.async {
-        val asset = interactor.getCurrentAsset()
+        val asset = stakingSharedState.assetWithChain.first().asset
         rewardCalculatorFactory.create(asset.staking, asset.chainId)
     }
 

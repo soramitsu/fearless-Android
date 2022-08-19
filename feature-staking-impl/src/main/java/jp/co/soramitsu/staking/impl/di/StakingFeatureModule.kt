@@ -34,8 +34,8 @@ import jp.co.soramitsu.staking.impl.data.network.subquery.SubQueryValidatorSetFe
 import jp.co.soramitsu.staking.impl.data.repository.IdentityRepositoryImpl
 import jp.co.soramitsu.staking.impl.data.repository.PayoutRepository
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
-import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
+import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
@@ -73,15 +73,9 @@ import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenario
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorFactory
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
-import jp.co.soramitsu.wallet.impl.domain.AssetUseCase
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
-import jp.co.soramitsu.wallet.impl.domain.implementations.AssetUseCaseImpl
-import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
-import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 
@@ -93,12 +87,8 @@ class StakingFeatureModule {
     @Singleton
     @Named("StakingTokenUseCase")
     fun provideTokenUseCase(
-        tokenRepository: TokenRepository,
         sharedState: StakingSharedState
-    ): TokenUseCase = TokenUseCaseImpl(
-        tokenRepository,
-        sharedState
-    )
+    ): TokenUseCase = sharedState
 
     @Provides
     @Singleton
@@ -113,36 +103,12 @@ class StakingFeatureModule {
 
     @Provides
     @Singleton
-    @Named("StakingAssetUseCase")
-    fun provideAssetUseCase(
-        walletRepository: WalletRepository,
-        accountRepository: AccountRepository,
-        sharedState: StakingSharedState
-    ): AssetUseCase = AssetUseCaseImpl(
-        walletRepository,
-        accountRepository,
-        sharedState
-    )
-
-    @Provides
-    @Singleton
-    @Named("StakingAssetSelector")
-    fun provideAssetSelectorMixinFactory(
-        @Named("StakingAssetUseCase") assetUseCase: AssetUseCase,
-        singleAssetSharedState: StakingSharedState,
-        resourceManager: ResourceManager
-    ): AssetSelectorMixin.Presentation.Factory = AssetSelectorFactory(
-        assetUseCase,
-        singleAssetSharedState,
-        resourceManager
-    )
-
-    @Provides
-    @Singleton
     fun provideStakingSharedState(
         chainRegistry: ChainRegistry,
-        preferences: Preferences
-    ): StakingSharedState = StakingSharedState(chainRegistry, preferences)
+        preferences: Preferences,
+        accountRepository: AccountRepository,
+        walletRepository: WalletRepository
+    ): StakingSharedState = StakingSharedState(chainRegistry, preferences, walletRepository, accountRepository)
 
     @Provides
     @Singleton
@@ -233,7 +199,6 @@ class StakingFeatureModule {
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
         stakingSharedState: StakingSharedState,
-        @Named("StakingAssetUseCase") assetUseCase: AssetUseCase,
         chainStateRepository: ChainStateRepository,
         chainRegistry: ChainRegistry,
         addressIconGenerator: AddressIconGenerator
@@ -243,7 +208,6 @@ class StakingFeatureModule {
         stakingRepository,
         stakingRewardsRepository,
         stakingSharedState,
-        assetUseCase,
         chainStateRepository,
         chainRegistry,
         addressIconGenerator

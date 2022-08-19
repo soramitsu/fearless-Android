@@ -3,6 +3,9 @@ package jp.co.soramitsu.staking.impl.scenarios.parachain
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -18,9 +21,9 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -79,16 +82,13 @@ import jp.co.soramitsu.staking.impl.domain.validations.unbond.UnbondValidationSy
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.wallet.impl.domain.validation.assetBalanceProducer
-import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
-import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
@@ -660,7 +660,7 @@ class StakingParachainScenarioInteractor(
                         walletRepository,
                         originAddressExtractor = { it.stashAddress },
                         chainAssetExtractor = { it.chainAsset },
-                        stakingSharedState = stakingSharedState
+                        chainProducer = { stakingSharedState.chain() }
                     ),
                     errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
                     extraAmountExtractor = { it.amount }

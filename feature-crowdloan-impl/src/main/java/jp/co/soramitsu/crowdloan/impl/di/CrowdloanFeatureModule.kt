@@ -21,7 +21,7 @@ import jp.co.soramitsu.crowdloan.impl.di.customCrowdloan.CustomContributeModule
 import jp.co.soramitsu.crowdloan.impl.domain.contribute.CrowdloanContributeInteractor
 import jp.co.soramitsu.crowdloan.impl.domain.main.CrowdloanInteractor
 import jp.co.soramitsu.crowdloan.impl.storage.CrowdloanStorage
-import jp.co.soramitsu.wallet.impl.domain.AssetUseCase
+import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.implementations.AssetUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl

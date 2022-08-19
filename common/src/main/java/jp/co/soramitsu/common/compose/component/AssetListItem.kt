@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.compose.component
 
-import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -22,8 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.decode.SvgDecoder
-import coil.request.ImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -121,13 +118,6 @@ fun AssetListItem(
             }
         }
     }
-}
-
-private fun getImageRequest(context: Context, url: String): ImageRequest {
-    return ImageRequest.Builder(context)
-        .data(url)
-        .decoderFactory(SvgDecoder.Factory())
-        .build()
 }
 
 @Preview

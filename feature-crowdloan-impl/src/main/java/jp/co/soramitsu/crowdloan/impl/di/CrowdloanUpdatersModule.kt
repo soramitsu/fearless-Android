@@ -12,6 +12,7 @@ import jp.co.soramitsu.crowdloan.impl.data.CrowdloanSharedState
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.updaters.BlockNumberUpdater
 import jp.co.soramitsu.runtime.network.updaters.SingleChainUpdateSystem
+import kotlinx.coroutines.flow.map
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -37,6 +38,6 @@ class CrowdloanUpdatersModule {
             blockNumberUpdater
         ),
         chainRegistry = chainRegistry,
-        singleAssetSharedState = crowdloanSharedState
+        chainFlow = crowdloanSharedState.assetWithChain.map { it.chain }
     )
 }

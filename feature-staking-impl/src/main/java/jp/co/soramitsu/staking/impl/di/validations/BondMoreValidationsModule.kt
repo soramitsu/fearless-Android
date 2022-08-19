@@ -36,7 +36,7 @@ class BondMoreValidationsModule {
                 walletRepository,
                 originAddressExtractor = { it.stashAddress },
                 chainAssetExtractor = { it.chainAsset },
-                stakingSharedState = stakingSharedState
+                chainProducer = { stakingSharedState.chain() }
             ),
             errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
             extraAmountExtractor = { it.amount }

@@ -42,7 +42,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getS
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
 import jp.co.soramitsu.crowdloan.impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.crowdloan.impl.presentation.main.model.CrowdloanStatusModel
-import jp.co.soramitsu.wallet.impl.domain.AssetUseCase
+import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount

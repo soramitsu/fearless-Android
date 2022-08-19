@@ -42,6 +42,7 @@ import jp.co.soramitsu.coredb.migrations.FixAssetsMigration_36_37
 import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_29_30
 import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_30_31
 import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_32_33
+import jp.co.soramitsu.coredb.migrations.Migration_41_42
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -63,7 +64,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 41,
+    version = 42,
     entities = [
         AccountLocal::class,
         AssetLocal::class,
@@ -121,6 +122,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AssetsMigration_38_39)
                     .addMigrations(ChainAssetsMigration_39_40)
                     .addMigrations(AssetsMigration_40_41)
+                    .addMigrations(Migration_41_42)
                     .build()
             }
             return instance!!

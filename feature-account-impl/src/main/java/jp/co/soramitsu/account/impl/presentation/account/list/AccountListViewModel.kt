@@ -63,7 +63,7 @@ class AccountListViewModel @Inject constructor(
         val chainAsset =
             stakingSharedState.availableToSelect().find { it.chainId.contentEquals(polkadotChainId) }
                 ?: stakingSharedState.availableToSelect().first()
-        stakingSharedState.update(chainAsset.chainId, chainAsset.id)
+        stakingSharedState.update(chainAsset)
     }
 
     private fun dispatchNavigation() {

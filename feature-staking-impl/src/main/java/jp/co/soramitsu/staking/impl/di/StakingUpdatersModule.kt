@@ -37,6 +37,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.historical.H
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.scope.AccountStakingScope
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
+import kotlinx.coroutines.flow.map
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -320,6 +321,6 @@ class StakingUpdatersModule {
             blockNumberUpdater
         ),
         chainRegistry = chainRegistry,
-        singleAssetSharedState = stakingSharedState
+        chainFlow = stakingSharedState.assetWithChain.map { it.chain }
     )
 }

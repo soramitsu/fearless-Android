@@ -1,15 +1,13 @@
 package jp.co.soramitsu.wallet.impl.domain.validation
 
 import java.math.BigDecimal
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.state.SingleAssetSharedState
-import jp.co.soramitsu.runtime.state.chain
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 
 class EnoughToPayFeesValidation<P, E>(
     private val feeExtractor: AmountProducer<P>,
@@ -33,11 +31,11 @@ class EnoughToPayFeesValidation<P, E>(
 fun <P> EnoughToPayFeesValidation.Companion.assetBalanceProducer(
     accountRepository: AccountRepository,
     walletRepository: WalletRepository,
-    stakingSharedState: SingleAssetSharedState,
+    chainProducer: suspend () -> Chain,
     originAddressExtractor: (P) -> String,
     chainAssetExtractor: (P) -> Chain.Asset
 ): AmountProducer<P> = { payload ->
-    val chain = stakingSharedState.chain()
+    val chain = chainProducer()
     val accountId = chain.accountIdOf(originAddressExtractor(payload))
     val meta = accountRepository.getSelectedMetaAccount()
 

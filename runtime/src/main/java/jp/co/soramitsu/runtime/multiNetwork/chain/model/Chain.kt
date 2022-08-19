@@ -30,7 +30,8 @@ data class Chain(
     val isEthereumBased: Boolean,
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
-    val parentId: String?
+    val parentId: String?,
+    val supportStakingPool: Boolean
 ) {
 
     val assetsBySymbol = assets.associateBy(Asset::symbol)
@@ -56,7 +57,8 @@ data class Chain(
         val priceId: String?,
         val precision: Int,
         val staking: StakingType,
-        val priceProviders: List<String>?
+        val priceProviders: List<String>?,
+        val supportStakingPool: Boolean
     ) {
 
         enum class StakingType {

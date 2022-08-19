@@ -15,6 +15,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 private const val ETHEREUM_OPTION = "ethereumBased"
 private const val CROWDLOAN_OPTION = "crowdloans"
 private const val TESTNET_OPTION = "testnet"
+private const val NOMINATION_POOL_OPTION = "poolStaking"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
     "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
@@ -104,7 +105,8 @@ fun mapChainRemoteToChain(
                     priceId = assetRemote?.priceId,
                     precision = assetRemote?.precision ?: DEFAULT_PRECISION,
                     staking = mapStakingStringToStakingType(chainAsset.staking),
-                    priceProviders = chainAsset.purchaseProviders
+                    priceProviders = chainAsset.purchaseProviders,
+                    supportStakingPool = NOMINATION_POOL_OPTION in chainRemote.options.orEmpty()
                 )
             }
         }
@@ -144,7 +146,8 @@ fun mapChainRemoteToChain(
             addressPrefix = chainRemote.addressPrefix,
             isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
             isTestNet = TESTNET_OPTION in optionsOrEmpty,
-            hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty
+            hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
+            supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty
         )
     }
 }
@@ -172,7 +175,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             priceProviders = mapToList(it.priceProviders),
             chainName = chainLocal.chain.name,
             chainIcon = chainLocal.chain.icon,
-            isTestNet = chainLocal.chain.isTestNet
+            isTestNet = chainLocal.chain.isTestNet,
+            supportStakingPool = chainLocal.chain.supportStakingPool
         )
     }
 
@@ -214,7 +218,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             addressPrefix = prefix,
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
-            hasCrowdloans = hasCrowdloans
+            hasCrowdloans = hasCrowdloans,
+            supportStakingPool = supportStakingPool
         )
     }
 }
@@ -280,7 +285,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             externalApi = externalApi,
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
-            hasCrowdloans = hasCrowdloans
+            hasCrowdloans = hasCrowdloans,
+            supportStakingPool = supportStakingPool
         )
     }
 

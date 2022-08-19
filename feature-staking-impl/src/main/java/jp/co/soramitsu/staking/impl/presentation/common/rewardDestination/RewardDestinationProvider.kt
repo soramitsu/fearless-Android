@@ -22,7 +22,6 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.state.chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -80,7 +79,7 @@ class RewardDestinationProvider(
 
     override fun learnMoreClicked(scope: CoroutineScope) {
         scope.launch {
-            val link = when (interactor.getCurrentAsset().staking) {
+            val link = when (sharedState.assetWithChain.first().asset.staking) {
                 Chain.Asset.StakingType.PARACHAIN -> appLinksProvider.moonbeamStakingLearnMore
                 Chain.Asset.StakingType.RELAYCHAIN -> appLinksProvider.payoutsLearnMore
                 Chain.Asset.StakingType.UNSUPPORTED -> ""
@@ -104,7 +103,7 @@ class RewardDestinationProvider(
     }
 
     override suspend fun updateReturns(rewardCalculator: RewardCalculator, asset: Asset, amount: BigDecimal) {
-        val chainId = sharedState.chain().id
+        val chainId = sharedState.chainId()
         val restakeReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, true, chainId)
 
         val payoutReturns = rewardCalculator.calculateReturns(amount, DAYS_IN_YEAR, false, chainId)

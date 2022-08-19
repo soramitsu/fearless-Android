@@ -45,7 +45,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.Cont
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.impl.domain.AssetUseCase
+import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin

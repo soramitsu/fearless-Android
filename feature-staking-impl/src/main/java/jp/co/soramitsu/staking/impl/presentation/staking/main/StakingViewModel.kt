@@ -24,6 +24,7 @@ import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingVali
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingAssetSelector
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.manageStakingActionValidationFailure
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
@@ -32,8 +33,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingS
 import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.WithAssetSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
@@ -60,14 +59,12 @@ class StakingViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     @Named("StakingChainUpdateSystem") stakingUpdateSystem: UpdateSystem,
-    @Named("StakingAssetSelector") assetSelectorMixinFactory: AssetSelectorMixin.Presentation.Factory,
     stakingSharedState: StakingSharedState,
     parachainScenarioInteractor: StakingParachainScenarioInteractor,
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     rewardCalculatorFactory: RewardCalculatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState
 ) : BaseViewModel(),
-    WithAssetSelector,
     BaseStakingViewModel,
     Validatable by validationExecutor {
 
@@ -86,7 +83,7 @@ class StakingViewModel @Inject constructor(
         stakingViewStateFactory
     )
 
-    override val assetSelectorMixin = assetSelectorMixinFactory.create(scope = this)
+    val assetSelectorMixin = StakingAssetSelector(stakingSharedState, this)
 
     val stakingTypeFlow = stakingSharedState.assetWithChain.map { interactor.currentAssetFlow().first().token.configuration.staking }
 
