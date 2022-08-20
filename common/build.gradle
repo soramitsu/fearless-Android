@@ -116,14 +116,17 @@ dependencies {
 
     implementation coilCompose
     implementation navigationComposeDep
-    implementation composeRuntimeDep
-    implementation composeLiveDataDep
+    implementation hiltNavComposeDep
     implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
     implementation composeFoundationDep
     implementation composeMaterialDep
     implementation composeToolingPreviewDep
     debugImplementation composeToolingDep
-//    debugImplementation customviewDep
+    debugImplementation customviewDep
     debugImplementation customviewPoolingcontainerDep
 
     api coilDep

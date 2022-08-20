@@ -39,6 +39,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
     }
 
     compileOptions {
@@ -50,6 +51,9 @@ android {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = '1.8'
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
     }
     namespace 'jp.co.soramitsu.feature_wallet_impl'
 }
@@ -105,4 +109,21 @@ dependencies {
 
     implementation insetterDep
     implementation shimmerDep
+
+    implementation navigationComposeDep
+    implementation hiltNavComposeDep
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeAnimationDep
+    implementation composeActivityDep
+    implementation composeViewModelDep
+    implementation composeToolingPreviewDep
+    debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 }
