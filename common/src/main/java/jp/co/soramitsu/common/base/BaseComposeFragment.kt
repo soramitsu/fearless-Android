@@ -6,13 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.AlertDialog
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -25,11 +25,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.customColors
 
 abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
@@ -49,30 +50,39 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                     val openAlertDialog = remember { mutableStateOf(AlertDialogData()) }
 
                     Scaffold(
-                        scaffoldState = scaffoldState
-                    ) { padding ->
-                        Box(
-                            modifier = Modifier.background(MaterialTheme.customColors.black).fillMaxSize()
-                        ) {
-                            Content(padding, scrollState)
-
-                            AlertDialogContent(openAlertDialog)
-                            viewModel.errorLiveData.observeAsState().value?.let {
-                                openAlertDialog.value = AlertDialogData(
-                                    title = stringResource(id = R.string.common_error_general_title),
-                                    message = it.peekContent()
-                                )
+                        scaffoldState = scaffoldState,
+                        topBar = {
+                            Column {
+                                MarginVertical(margin = 24.dp) // it's status bar
+                                Toolbar()
                             }
-                            viewModel.errorWithTitleLiveData.observeAsState().value?.let {
-                                val (title, message) = it.peekContent()
+                        },
+                        content = { padding ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(padding)
+                            ) {
+                                Content(padding, scrollState)
 
-                                openAlertDialog.value = AlertDialogData(
-                                    title = title,
-                                    message = message
-                                )
+                                AlertDialogContent(openAlertDialog)
+                                viewModel.errorLiveData.observeAsState().value?.let {
+                                    openAlertDialog.value = AlertDialogData(
+                                        title = stringResource(id = R.string.common_error_general_title),
+                                        message = it.peekContent()
+                                    )
+                                }
+                                viewModel.errorWithTitleLiveData.observeAsState().value?.let {
+                                    val (title, message) = it.peekContent()
+
+                                    openAlertDialog.value = AlertDialogData(
+                                        title = title,
+                                        message = message
+                                    )
+                                }
                             }
                         }
-                    }
+                    )
                 }
             }
         }
@@ -102,6 +112,9 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
     @Composable
     abstract fun Content(padding: PaddingValues, scrollState: ScrollState)
+
+    @Composable
+    open fun Toolbar() = Unit
 
     fun <V> LiveData<V>.observe(observer: (V) -> Unit) {
         observe(viewLifecycleOwner, observer)

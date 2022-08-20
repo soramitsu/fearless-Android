@@ -22,7 +22,7 @@ val red = Color(0xFFF00004)
 val blurColorDark = Color(0xB3000000)
 val blurColor = Color(0x8C000000)
 val blurColorLight = Color(0x66000000)
-val backgroundBlurColor = Color(0xFF2f2d41)
+val backgroundBlurColor = Color(0xAFFFFFF)
 
 val white = Color(0xFFFFFFFF)
 val white04 = Color(0x0AFFFFFF)
@@ -43,3 +43,5 @@ val black4 = gray4
 val accountIconLight = Color(0xFFEEEEEE)
 val accountIconDark = Color(0xFF000000)
 val errorRed = Color(0xFFFF3B30)
+
+val transparent = Color(0xffffff)

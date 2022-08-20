@@ -1,8 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +13,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -22,10 +21,9 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 
 @Composable
-fun MultiToggleButton(
-    currentSelection: String,
-    toggleStates: List<String>,
-    onToggleChange: (String) -> Unit
+fun <T : MultiToggleItem> MultiToggleButton(
+    state: MultiToggleButtonState<T>,
+    onToggleChange: (T) -> Unit
 ) {
     val selectedTint = MaterialTheme.customColors.white16
     val unselectedTint = Color.Unspecified
@@ -34,11 +32,10 @@ fun MultiToggleButton(
         Row(
             modifier = Modifier
                 .height(IntrinsicSize.Min)
-                .border(BorderStroke(1.dp, Color.LightGray))
                 .fillMaxWidth()
         ) {
-            toggleStates.forEachIndexed { index, toggleState ->
-                val isSelected = currentSelection.lowercase() == toggleState.lowercase()
+            state.toggleStates.forEach { toggleState ->
+                val isSelected = state.currentSelection == toggleState
                 val backgroundTint = if (isSelected) selectedTint else unselectedTint
 
                 val style = if (isSelected) {
@@ -48,27 +45,27 @@ fun MultiToggleButton(
                 }
 
                 BackgroundCornered(
-                    modifier = Modifier.weight(1f),
-                    backgroundColor = backgroundTint,
+                    modifier = Modifier
+                        .weight(1f)
+                        .toggleable(
+                            value = isSelected,
+                            enabled = true,
+                            role = Role.Tab,
+                            onValueChange = { selected ->
+                                if (selected) {
+                                    onToggleChange(toggleState)
+                                }
+                            }
+                        ),
+                    backgroundColor = backgroundTint
                 ) {
                     Text(
-                        text = toggleState,
+                        text = toggleState.title,
                         style = style,
                         color = Color.White,
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                             .padding(horizontal = 1.dp)
-//                            .fillMaxSize()
-                            .toggleable(
-                                value = isSelected,
-                                enabled = true,
-                                onValueChange = { selected ->
-                                    println("!!! onValueChange selected: $selected")
-                                    if (selected) {
-                                        onToggleChange(toggleState)
-                                    }
-                                }
-                            )
                     )
                 }
             }
@@ -76,20 +73,30 @@ fun MultiToggleButton(
     }
 }
 
-data class MultiToggleButtonState(
-    val currentSelection: String,
-    val toggleStates: List<String>
+data class MultiToggleButtonState<T : MultiToggleItem>(
+    val currentSelection: T,
+    val toggleStates: List<T>
 )
+
+interface MultiToggleItem {
+    val title: String
+}
 
 @Preview
 @Composable
 fun PreviewMultiToggleButton() {
+    val currencies = object : MultiToggleItem {
+        override val title = "Currencies"
+    }
+    val nfts = object : MultiToggleItem {
+        override val title = "Currencies"
+    }
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {
             MultiToggleButton(
-                currentSelection = "Currencies",
-                toggleStates = listOf("Currencies", "NFTs"),
-                onToggleChange = {})
+                MultiToggleButtonState(currencies, listOf(currencies, nfts)),
+                onToggleChange = {}
+            )
         }
     }
 }

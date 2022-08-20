@@ -1,9 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -11,6 +10,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -36,14 +36,17 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetUpdateState
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
@@ -57,10 +60,6 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
-
-    private val _uiState = mutableStateOf<LoadingState<WalletState>>(LoadingState.Loading())
-    val uiState: State<LoadingState<WalletState>>
-        get() = _uiState
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
@@ -109,24 +108,42 @@ class BalanceListViewModel @Inject constructor(
             )
         }.orEmpty()
 
-        val assetsListItemStates: List<AssetListItemViewState> = assetModels?.map { asset ->
-            AssetListItemViewState(
-                assetIconUrl = asset.token.configuration.iconUrl,
-                assetChainName = asset.token.configuration.chainName.orEmpty(),
-                assetSymbol = asset.token.configuration.symbol,
-                assetTokenFiat = asset.fiatAmount?.formatAsCurrency(asset.token.fiatSymbol),
-                assetTokenRate = asset.token.recentRateChange?.formatAsChange(),
-//                assetTokenRate = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol),
-                assetBalance = asset.total.orZero().format(),
-                assetBalanceFiat = asset.fiatAmount?.formatAsCurrency(fiatSymbol),
-                assetChainUrls = listOf(asset.token.configuration.chainIcon).mapNotNull { it }
-            )
-        }.orEmpty()
-
-        _uiState.value = LoadingState.Loaded(WalletState("Currencies", assetsListItemStates))
-
         BalanceModel(assetsWithState, fiatSymbol.orEmpty())
     }
+
+    private val assetTypeSelectorState = MutableLiveData(MultiToggleButtonState(AssetType.Currencies, AssetType.values().toList()))
+
+    val state = combine(
+        assetTypeSelectorState.asFlow(),
+        balanceLiveData.asFlow()
+    ) { multiToggleButtonState: MultiToggleButtonState<AssetType>, balanceModel: BalanceModel ->
+        if (balanceModel.assetModels.isEmpty()) return@combine LoadingState.Loading()
+        val assetsListItemStates: List<AssetListItemViewState> = balanceModel.assetModels.map { model ->
+            with(model.asset) {
+                AssetListItemViewState(
+                    assetIconUrl = token.configuration.iconUrl,
+                    assetChainName = token.configuration.chainName.orEmpty(),
+                    assetSymbol = token.configuration.symbol,
+                    assetTokenFiat = fiatAmount?.formatAsCurrency(token.fiatSymbol),
+                    assetTokenRate = token.recentRateChange?.formatAsChange(),
+//                assetTokenRate = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol),
+                    assetBalance = total.orZero().format(),
+                    assetBalanceFiat = fiatAmount?.formatAsCurrency(balanceModel.fiatSymbol),
+                    assetChainUrls = listOf(token.configuration.chainIcon).mapNotNull { it },
+                    chainId = token.configuration.chainId,
+                    chainAssetId = token.configuration.id,
+                    isSupported = isSupported
+                )
+            }
+        }
+
+        LoadingState.Loaded(
+            WalletState(
+                multiToggleButtonState,
+                assetsListItemStates
+            )
+        )
+    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
     fun sync() {
         viewModelScope.launch {
@@ -139,6 +156,7 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    @Deprecated("Don't use BalanceListAdapter")
     fun assetClicked(asset: AssetModel) {
         if (asset.isSupported.not()) {
             _showUnsupportedChainAlert.value = Event(Unit)
@@ -148,6 +166,20 @@ class BalanceListViewModel @Inject constructor(
         val payload = AssetPayload(
             chainId = asset.token.configuration.chainId,
             chainAssetId = asset.token.configuration.id
+        )
+
+        router.openAssetDetails(payload)
+    }
+
+    fun assetClicked(asset: AssetListItemViewState) {
+        if (asset.isSupported.not()) {
+            _showUnsupportedChainAlert.value = Event(Unit)
+            return
+        }
+
+        val payload = AssetPayload(
+            chainId = asset.chainId,
+            chainAssetId = asset.chainAssetId
         )
 
         router.openAssetDetails(payload)
@@ -210,7 +242,7 @@ class BalanceListViewModel @Inject constructor(
         _openPlayMarket.value = Event(Unit)
     }
 
-    fun handleSelection(it: String) {
-        println("!!! BalanceListWM: handleSelection = $it")
+    fun assetTypeChanged(type: AssetType) {
+        assetTypeSelectorState.value = assetTypeSelectorState.value?.copy(currentSelection = type)
     }
 }

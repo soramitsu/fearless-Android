@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
@@ -13,7 +14,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeFragment
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.utils.hideKeyboard
@@ -36,9 +37,13 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>(), Balance
 
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState) {
-        FearlessTheme {
-            WalletScreen(viewModel)
-        }
+        WalletScreen(viewModel)
+    }
+
+    @Composable
+    override fun Toolbar() {
+        // todo toolbar goes here
+        MarginVertical(margin = 62.dp)
     }
 
     fun initViews() {
