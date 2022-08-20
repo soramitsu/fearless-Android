@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -9,6 +11,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.FiatCurrencies
@@ -18,20 +21,25 @@ import jp.co.soramitsu.common.domain.get
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.format
+import jp.co.soramitsu.common.utils.formatAsChange
+import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.mediateWith
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
-import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetUpdateState
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -49,6 +57,10 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
+
+    private val _uiState = mutableStateOf<LoadingState<WalletState>>(LoadingState.Loading())
+    val uiState: State<LoadingState<WalletState>>
+        get() = _uiState
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
@@ -96,6 +108,22 @@ class BalanceListViewModel @Inject constructor(
                 state = AssetUpdateState(rateUpdate, balanceUpdate, chainUpdate, isTokenFiatChanged)
             )
         }.orEmpty()
+
+        val assetsListItemStates: List<AssetListItemViewState> = assetModels?.map { asset ->
+            AssetListItemViewState(
+                assetIconUrl = asset.token.configuration.iconUrl,
+                assetChainName = asset.token.configuration.chainName.orEmpty(),
+                assetSymbol = asset.token.configuration.symbol,
+                assetTokenFiat = asset.fiatAmount?.formatAsCurrency(asset.token.fiatSymbol),
+                assetTokenRate = asset.token.recentRateChange?.formatAsChange(),
+//                assetTokenRate = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol),
+                assetBalance = asset.total.orZero().format(),
+                assetBalanceFiat = asset.fiatAmount?.formatAsCurrency(fiatSymbol),
+                assetChainUrls = listOf(asset.token.configuration.chainIcon).mapNotNull { it }
+            )
+        }.orEmpty()
+
+        _uiState.value = LoadingState.Loaded(WalletState("Currencies", assetsListItemStates))
 
         BalanceModel(assetsWithState, fiatSymbol.orEmpty())
     }
@@ -180,5 +208,9 @@ class BalanceListViewModel @Inject constructor(
 
     fun updateAppClicked() {
         _openPlayMarket.value = Event(Unit)
+    }
+
+    fun handleSelection(it: String) {
+        println("!!! BalanceListWM: handleSelection = $it")
     }
 }
