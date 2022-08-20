@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -16,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,19 +24,20 @@ import coil.compose.AsyncImage
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 
 @Composable
 fun AssetListItem(
     state: AssetListItemViewState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (AssetListItemViewState) -> Unit
 ) {
-    BackgroundCornered(modifier) {
+    BackgroundCornered(modifier.clickable { onClick(state) }) {
         Row(
             Modifier
                 .height(IntrinsicSize.Min)
-                .padding(horizontal = 4.dp)
-//            .blur(16.dp)
+                .padding(horizontal = 8.dp)
                 .fillMaxWidth()
 
         ) {
@@ -44,22 +45,19 @@ fun AssetListItem(
                 model = getImageRequest(LocalContext.current, state.assetIconUrl),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(48.dp)
-                    .padding(start = 2.dp)
-                    .alpha(0.5f)
+                    .size(42.dp)
+                    .padding(start = 4.dp)
                     .align(CenterVertically)
             )
-
+            MarginHorizontal(margin = 8.dp)
             Divider(
-                color = Color.White,
+                color = white16,
                 modifier = Modifier
                     .height(64.dp)
-                    .width(9.dp)
-                    .padding(horizontal = 4.dp)
-                    .alpha(0.16f)
+                    .width(1.dp)
                     .align(CenterVertically)
             )
-
+            MarginHorizontal(margin = 8.dp)
             Column(
                 Modifier
                     .padding(vertical = 8.dp)
@@ -95,12 +93,12 @@ fun AssetListItem(
                 }
                 Row {
                     Text(
-                        text = state.assetTokenFiat,
+                        text = state.assetTokenFiat ?: "",
                         style = MaterialTheme.customTypography.body1,
                         modifier = Modifier.alpha(0.64f)
                     )
                     Text(
-                        text = state.assetTokenRate,
+                        text = state.assetTokenRate ?: "",
                         style = MaterialTheme.customTypography.body1.copy(
                             color = MaterialTheme.customColors.greenText
                         ),
@@ -108,7 +106,7 @@ fun AssetListItem(
                     )
                     Spacer(modifier = Modifier.weight(1.0f))
                     Text(
-                        text = state.assetBalanceFiat,
+                        text = state.assetBalanceFiat ?: "",
                         style = MaterialTheme.customTypography.body1,
                         modifier = Modifier
                             .alpha(0.64f)
@@ -148,9 +146,12 @@ fun PreviewAssetListItem() {
         assetTokenRate = assetTokenRate,
         assetBalance = assetBalance,
         assetBalanceFiat = assetBalanceFiat,
-        assetChainUrls = assetChainUrls
+        assetChainUrls = assetChainUrls,
+        chainId = "",
+        chainAssetId = "",
+        true
     )
     FearlessTheme {
-        AssetListItem(state)
+        AssetListItem(state) {}
     }
 }

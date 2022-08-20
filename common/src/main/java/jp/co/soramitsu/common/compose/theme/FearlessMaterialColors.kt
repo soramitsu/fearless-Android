@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 
 val fearlessMaterialColors = darkColors(
     primary = colorPrimary,
-    background = black,
+    background = transparent,
     surface = Color.Unspecified,
     error = errorRed
 )

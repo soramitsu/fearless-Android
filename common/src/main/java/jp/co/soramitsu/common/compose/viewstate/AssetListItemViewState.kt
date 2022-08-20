@@ -8,5 +8,8 @@ data class AssetListItemViewState(
     val assetTokenRate: String?,
     val assetBalance: String,
     val assetBalanceFiat: String?,
-    val assetChainUrls: List<String>
+    val assetChainUrls: List<String>,
+    val chainId: String,
+    val chainAssetId: String,
+    val isSupported: Boolean
 )

@@ -19,7 +19,9 @@ fun AboutScreen(
 
     when (state) {
         is LoadingState.Loading -> {}
-        is LoadingState.Loaded -> { state.data }
+        is LoadingState.Loaded -> {
+            state.data
+        }
     }
 
     val assetIconUrl = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
@@ -47,9 +49,12 @@ fun AboutScreen(
         assetTokenRate = assetTokenRate,
         assetBalance = assetBalance,
         assetBalanceFiat = assetBalanceFiat,
-        assetChainUrls = assetChainUrls
+        assetChainUrls = assetChainUrls,
+        chainId = "",
+        chainAssetId = "",
+        isSupported = true
     )
-    AssetListItem(assetListItemState, Modifier.padding(0.dp, 24.dp, 0.dp, 0.dp))
+    AssetListItem(assetListItemState, Modifier.padding(0.dp, 24.dp, 0.dp, 0.dp)) {}
 }
 
 @Preview
