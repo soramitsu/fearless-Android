@@ -26,6 +26,7 @@ val backgroundBlurColor = Color(0xAFFFFFF)
 
 val white = Color(0xFFFFFFFF)
 val white04 = Color(0x0AFFFFFF)
+val white08 = Color(0x14FFFFFF)
 val white10 = Color(0x1AFFFFFF)
 val white16 = Color(0x29FFFFFF)
 val white20 = Color(0x33FFFFFF)
