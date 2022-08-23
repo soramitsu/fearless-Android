@@ -113,6 +113,7 @@ buildscript {
         composeToolingPreviewDep = "androidx.compose.ui:ui-tooling-preview:$composeVersion"
         composeActivityDep = "androidx.activity:activity-compose:1.5.1"
         composeViewModelDep = "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1"
+        composeShimmerDep = "com.valentinilk.shimmer:compose-shimmer:1.0.3"
 
         //fix compose preview https://stackoverflow.com/a/71830120
         customviewDep = "androidx.customview:customview:1.2.0-alpha01"
