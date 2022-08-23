@@ -107,6 +107,7 @@ dependencies {
     implementation composeViewModelDep
     implementation composeToolingPreviewDep
     implementation composeShimmerDep
+    implementation composeConstraintLayoutDep
     debugImplementation composeToolingDep
     debugImplementation customviewDep
     debugImplementation customviewPoolingcontainerDep
