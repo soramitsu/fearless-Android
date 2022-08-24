@@ -24,11 +24,11 @@ fun DelegationScheduledRequest.toUnbonding(timeLeft: Long) = Unbonding(
 
 fun StakingHistoryRemote.HistoryElement.toUnbonding(): Unbonding {
     val timeLeft = this.timestamp?.toLongOrNull()?.let {
-        Calendar.getInstance(TimeZone.getTimeZone("UTC")).get(Calendar.SECOND) - it
+        Calendar.getInstance(TimeZone.getTimeZone("UTC")).timeInMillis / 1000 - it
     } ?: 0
 
     return Unbonding(
-        amount = this.amount.orZero(),
+        amount = this.amount?.toBigInteger().orZero(),
         timeLeft = timeLeft,
         calculatedAt = System.currentTimeMillis(),
         type = DelegationAction.byId(type?.toInt())
