@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.subquery
 
+import java.math.BigDecimal
 import java.math.BigInteger
 
 class StakingHistoryRemote(val delegatorHistoryElements: SubQueryNodes<HistoryElement>) {
@@ -11,6 +12,6 @@ class StakingHistoryRemote(val delegatorHistoryElements: SubQueryNodes<HistoryEl
         val timestamp: String?,
         val type: BigInteger?,
         val roundId: String?,
-        val amount: BigInteger?
+        val amount: BigDecimal?
     )
 }
