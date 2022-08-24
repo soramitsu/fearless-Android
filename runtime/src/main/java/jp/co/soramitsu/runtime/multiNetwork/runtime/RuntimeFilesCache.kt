@@ -10,7 +10,7 @@ private const val METADATA_FILE_MASK = "metadata_%s"
 private const val TYPE_DEFINITIONS_FILE_MASK = "definitions_%s"
 
 class RuntimeFilesCache(
-    private val fileProvider: FileProvider,
+    private val fileProvider: FileProvider
 ) {
 
     suspend fun getBaseTypes(): String {

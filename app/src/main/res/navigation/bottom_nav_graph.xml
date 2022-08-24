@@ -8,24 +8,24 @@
     <fragment
         android:id="@+id/profileFragment"
         tools:layout="@layout/fragment_profile"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.profile.ProfileFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.profile.ProfileFragment"
         android:label="ProfileFragment" />
 
     <fragment
         android:id="@+id/crowdloanFragment"
         tools:layout="@layout/fragment_crowdloans"
-        android:name="jp.co.soramitsu.feature_crowdloan_impl.presentation.main.CrowdloanFragment"
+        android:name="jp.co.soramitsu.crowdloan.impl.presentation.main.CrowdloanFragment"
         android:label="CrowdloanFragment" />
 
     <fragment
         android:id="@+id/stakingFragment"
         tools:layout="@layout/fragment_staking"
-        android:name="jp.co.soramitsu.feature_staking_impl.presentation.staking.main.StakingFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.main.StakingFragment"
         android:label="StakingFragment" />
 
     <fragment
         android:id="@+id/walletFragment"
         tools:layout="@layout/fragment_balance_list"
-        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.balance.list.BalanceListFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListFragment"
         android:label="WalletFragment" />
 </navigation>

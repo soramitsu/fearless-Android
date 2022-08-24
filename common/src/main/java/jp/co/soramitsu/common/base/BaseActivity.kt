@@ -4,16 +4,15 @@ import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import jp.co.soramitsu.common.di.FeatureContainer
-import javax.inject.Inject
+import jp.co.soramitsu.common.resources.ContextManager
+import jp.co.soramitsu.common.resources.LanguagesHolder
 
 abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
 
-    @Inject protected open lateinit var viewModel: T
+    abstract val viewModel: T
 
     override fun attachBaseContext(base: Context) {
-        val commonApi = (base.applicationContext as FeatureContainer).commonApi()
-        val contextManager = commonApi.contextManager()
+        val contextManager = ContextManager.getInstanceOrInit(base.applicationContext, LanguagesHolder())
         applyOverrideConfiguration(contextManager.setLocale(base).resources.configuration)
         super.attachBaseContext(contextManager.setLocale(base))
     }
@@ -29,12 +28,9 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
 
         setContentView(layoutResource())
 
-        inject()
         initViews()
         subscribe(viewModel)
     }
-
-    abstract fun inject()
 
     abstract fun layoutResource(): Int
 

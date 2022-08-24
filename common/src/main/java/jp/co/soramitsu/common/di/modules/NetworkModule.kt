@@ -5,13 +5,14 @@ import com.google.gson.Gson
 import com.neovisionaries.ws.client.WebSocketFactory
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
-import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
@@ -22,16 +23,18 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.File
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 private const val HTTP_CACHE = "http_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 private const val TIMEOUT_SECONDS = 60L
 
+@InstallIn(SingletonComponent::class)
 @Module
 class NetworkModule {
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideAppLinksProvider(): AppLinksProvider {
         return AppLinksProvider(
             termsUrl = BuildConfig.TERMS_URL,
@@ -44,7 +47,7 @@ class NetworkModule {
     }
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideOkHttpClient(
         context: Context
     ): OkHttpClient {
@@ -63,11 +66,11 @@ class NetworkModule {
     }
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideLogger(): Logger = AndroidLogger()
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideApiCreator(
         okHttpClient: OkHttpClient
     ): NetworkApiCreator {
@@ -75,21 +78,21 @@ class NetworkModule {
     }
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun httpExceptionHandler(
         resourceManager: ResourceManager
     ): HttpExceptionHandler = HttpExceptionHandler(resourceManager)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideSocketFactory() = WebSocketFactory()
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideReconnector() = Reconnector()
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideRequestExecutor() = RequestExecutor()
 
     @Provides
@@ -102,7 +105,7 @@ class NetworkModule {
     ): SocketService = SocketService(mapper, logger, socketFactory, reconnector, requestExecutor)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideSocketSingleRequestExecutor(
         mapper: Gson,
         logger: Logger,
@@ -111,6 +114,6 @@ class NetworkModule {
     ) = SocketSingleRequestExecutor(mapper, logger, socketFactory, resourceManager)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideJsonMapper() = Gson()
 }

@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.R
 
 typealias ClickHandler<T> = (T) -> Unit
 
-class ReferentialEqualityDiffCallBack<T> : DiffUtil.ItemCallback<T>() {
+class ReferentialEqualityDiffCallBack<T : Any> : DiffUtil.ItemCallback<T>() {
 
     override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
         return oldItem === newItem

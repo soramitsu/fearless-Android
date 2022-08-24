@@ -20,7 +20,10 @@ class AddressChooserBottomSheetDialog(
     clickHandler: ClickHandler<AddressModel>,
     @StringRes val title: Int
 ) : DynamicListBottomSheet<AddressModel>(
-    context, payload, AddressModelDiffCallback, clickHandler
+    context,
+    payload,
+    AddressModelDiffCallback,
+    clickHandler
 ) {
 
     override fun onCreate(savedInstanceState: Bundle?) {

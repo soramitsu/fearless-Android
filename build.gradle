@@ -5,37 +5,37 @@ buildscript {
         versionCode = 70
 
         // SDK and tools
-        compileSdkVersion = 31
+        compileSdkVersion = 33
         minSdkVersion = 24
-        targetSdkVersion = 31
+        targetSdkVersion = 33
 
-        kotlinVersion = '1.7.0'
+        kotlinVersion = '1.7.10'
 
-        ktlintPinterestVersion = '0.40.0'
+        ktlintPinterestVersion = '0.46.1'
 
         supportVersion = '1.6.1'
         cardViewVersion = '1.0.0'
         constraintVersion = '2.1.4'
 
-        coroutinesVersion = '1.6.2'
+        coroutinesVersion = '1.6.4'
 
         biometricVersion = '1.1.0'
 
         progressButtonsVersion = '2.1.0'
 
-        daggerVersion = '2.42'
+        daggerVersion = '2.43'
         javaxInjectVersion = '1'
 
-        architectureComponentVersion = '2.4.1'
-        roomVersion = '2.4.2'
+        architectureComponentVersion = '2.5.1'
+        roomVersion = '2.4.3'
 
         retrofitVersion = '2.9.0'
         okhttpVersion = '5.0.0-alpha.8'
-        gsonVersion = '2.9.0'
+        gsonVersion = '2.9.1'
 
         zXingVersion = '3.5.0'
 
-        navControllerVersion = '2.4.2'
+        navControllerVersion = '2.5.1'
 
         junitVersion = '4.13.2'
         mockitoVersion = '4.6.1'
@@ -69,12 +69,19 @@ buildscript {
 
         androidxCoreVersion = '1.8.0'
 
-        appcompatVersion = '1.4.2'
+        composeVersion = '1.2.1'
+        composeCompilerVersion = '1.3.0'
+
+        appcompatVersion = '1.5.0'
         recyclerviewVersion = '1.2.1'
-        lifecycleVersion = '2.4.1'
+        lifecycleVersion = '2.5.1'
+
+        activityKtx = '1.1.0'
+        fragmentKtx = '1.5.2'
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
+        coilCompose = "io.coil-kt:coil-compose:$coilVersion"
 
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
@@ -86,9 +93,31 @@ buildscript {
         constraintDep = "androidx.constraintlayout:constraintlayout:$constraintVersion"
         materialDep = "com.google.android.material:material:$supportVersion"
         androidxCoreDep = "androidx.core:core-ktx:$androidxCoreVersion"
+        activityKtxDep = "androidx.activity:activity-ktx:$activityKtx"
+        fragmentKtxDep = "androidx.fragment:fragment-ktx:$fragmentKtx"
 
-        daggerDep = "com.google.dagger:dagger:$daggerVersion"
-        daggerKapt = "com.google.dagger:dagger-compiler:$daggerVersion"
+        daggerDep = "com.google.dagger:hilt-android:$daggerVersion"
+        daggerKapt = "com.google.dagger:hilt-compiler:$daggerVersion"
+        hiltNavComposeDep = "androidx.hilt:hilt-navigation-compose:1.0.0"
+
+        composeRuntimeDep = "androidx.compose.runtime:runtime:$composeVersion"
+        composeUiDep = "androidx.compose.ui:ui:$composeVersion"
+        composeLiveDataDep = "androidx.compose.runtime:runtime-livedata:$composeVersion"
+        composeCompilerDep = "androidx.compose.compiler:compiler:$composeCompilerVersion"
+        composeFoundationDep = "androidx.compose.foundation:foundation:$composeVersion"
+        composeMaterialDep = "androidx.compose.material:material:$composeVersion"
+        composeThemeAdapterDep = "com.google.android.material:compose-theme-adapter:1.1.1"
+        composeAnimationDep = "androidx.compose.animation:animation:$composeVersion"
+        composeAnimationGraphicsDep = "androidx.compose.animation:animation-graphics:$composeVersion"
+        composeToolingDep = "androidx.compose.ui:ui-tooling:$composeVersion"
+        composeToolingPreviewDep = "androidx.compose.ui:ui-tooling-preview:$composeVersion"
+        composeActivityDep = "androidx.activity:activity-compose:1.5.1"
+        composeViewModelDep = "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1"
+        composeShimmerDep = "com.valentinilk.shimmer:compose-shimmer:1.0.3"
+
+        //fix compose preview https://stackoverflow.com/a/71830120
+        customviewDep = "androidx.customview:customview:1.2.0-alpha01"
+        customviewPoolingcontainerDep = "androidx.customview:customview-poolingcontainer:1.0.0"
 
         lifecycleProcessDep = "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
 
@@ -114,6 +143,7 @@ buildscript {
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
+        navigationComposeDep = "androidx.navigation:navigation-compose:$navControllerVersion"
 
         bouncyCastleDep = "org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion"
 
@@ -149,7 +179,7 @@ buildscript {
         androidTestRulesDep = 'androidx.test:rules:1.4.0'
         androidJunitDep = 'androidx.test.ext:junit:1.1.3'
 
-        roomTestsDep = "androidx.room:room-testing:$architectureComponentVersion"
+        roomTestsDep = "androidx.room:room-testing:$roomVersion"
     }
 
     repositories {
@@ -159,11 +189,12 @@ buildscript {
         maven { url 'https://maven.google.com' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.1'
+        classpath 'com.android.tools.build:gradle:7.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath 'com.google.gms:google-services:4.3.10'
+        classpath 'com.google.gms:google-services:4.3.13'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
+        classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"
     }
 }
 
@@ -186,7 +217,13 @@ task clean(type: Delete) {
 }
 
 dependencies {
-    ktlint "com.pinterest:ktlint:$ktlintPinterestVersion"
+
+    ktlint("com.pinterest:ktlint:$ktlintPinterestVersion") {
+//    ktlint("com.pinterest:ktlint:0.46.1") {
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, getObjects().named(Bundling, Bundling.EXTERNAL))
+        }
+    }
 }
 
 task ktlint(type: JavaExec, group: "verification") {

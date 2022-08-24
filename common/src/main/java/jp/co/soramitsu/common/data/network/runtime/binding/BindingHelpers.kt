@@ -25,7 +25,6 @@ typealias BinderWithType<T> = (scale: String?, RuntimeSnapshot, Type<*>) -> T
 
 @OptIn(ExperimentalContracts::class)
 inline fun <reified T> requireType(dynamicInstance: Any?): T {
-
     contract {
         returns() implies (dynamicInstance is T)
     }

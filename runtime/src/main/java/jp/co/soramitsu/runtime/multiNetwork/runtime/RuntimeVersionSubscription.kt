@@ -1,6 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
-import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.runtimeVersionChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.runtime.multiNetwork.connection.ChainConnection
@@ -14,7 +14,7 @@ class RuntimeVersionSubscription(
     private val chainId: String,
     connection: ChainConnection,
     private val chainDao: ChainDao,
-    private val runtimeSyncService: RuntimeSyncService,
+    private val runtimeSyncService: RuntimeSyncService
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     init {

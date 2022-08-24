@@ -24,10 +24,10 @@ abstract class SingleAssetSharedState(
 
     data class AssetWithChain(
         val chain: Chain,
-        val asset: Chain.Asset,
+        val asset: Chain.Asset
     )
 
-    val assetWithChain: Flow<AssetWithChain> = preferences.stringFlow(
+    open val assetWithChain: Flow<AssetWithChain> = preferences.stringFlow(
         field = preferencesKey,
         initialValueProducer = {
             val defaultAsset = availableToSelect().first()
@@ -62,7 +62,7 @@ abstract class SingleAssetSharedState(
         }.flatten()
     }
 
-    fun update(chainId: ChainId, chainAssetId: String) {
+    open fun update(chainId: ChainId, chainAssetId: String) {
         preferences.putString(preferencesKey, encode(chainId, chainAssetId))
     }
 
@@ -70,11 +70,11 @@ abstract class SingleAssetSharedState(
         return assetWithChain.first().chain.id
     }
 
-    private fun encode(chainId: ChainId, chainAssetId: String): String {
+    protected open fun encode(chainId: ChainId, chainAssetId: String): String {
         return "$chainId$DELIMITER$chainAssetId"
     }
 
-    private fun decode(value: String): Pair<ChainId, String> {
+    protected open fun decode(value: String): Pair<ChainId, String> {
         val (chainId, chainAssetRaw) = value.split(DELIMITER)
 
         return chainId to chainAssetRaw

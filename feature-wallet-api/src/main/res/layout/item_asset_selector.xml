@@ -41,6 +41,22 @@
         tools:text="Polkadot" />
 
     <TextView
+        android:id="@+id/itemAssetSelectorBadge"
+        style="@style/TextAppearance.Soramitsu.CapsTitle2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_asset_badge"
+        android:paddingHorizontal="6dp"
+        android:textColor="@color/white_64"
+        android:textSize="10sp"
+        android:visibility="gone"
+        app:layout_constraintBaseline_toBaselineOf="@+id/itemAssetSelectorTokenName"
+        app:layout_constraintStart_toEndOf="@+id/itemAssetSelectorTokenName"
+        tools:text="POOL"
+        tools:visibility="visible" />
+
+    <TextView
         android:id="@+id/itemAssetSelectorBalance"
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="wrap_content"

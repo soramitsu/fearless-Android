@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
@@ -24,12 +25,18 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
     }
 
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = '1.8'
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+        kotlinCompilerVersion kotlinVersion
     }
 
     compileOptions {
@@ -63,6 +70,8 @@ dependencies {
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
 
+    implementation fragmentKtxDep
+
     implementation insetterDep
 
     implementation daggerDep
@@ -72,6 +81,7 @@ dependencies {
     implementation roomDep
     kapt roomKapt
 
+    implementation lifecycleProcessDep
     kapt lifecycleKapt
 
     testImplementation jUnitDep
@@ -84,4 +94,20 @@ dependencies {
     implementation retrofitDep
 
     implementation shimmerDep
+
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeAnimationDep
+    implementation composeActivityDep
+    implementation composeViewModelDep
+    implementation composeToolingPreviewDep
+    implementation composeShimmerDep
+    debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 }
