@@ -6,23 +6,32 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 
-class FearlessCorneredShape(private val cornerRadius: Float = 8f) : Shape {
+class FearlessCorneredShape(
+    private val cornerRadius: Dp = 8.dp,
+    private val cornerCutLength: Dp = 12.dp
+) : Shape {
 
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
         return Outline.Generic(
             // Draw your custom path here
-            path = drawPath(size = size, cornerRadius = cornerRadius)
+            path = drawPath(
+                size = size,
+                cornerRadius = cornerRadius.value * density.density,
+                cornerCutLength = cornerCutLength.value * density.density
+            )
         )
     }
 
-    private fun drawPath(size: Size, cornerRadius: Float): Path {
+    private fun drawPath(size: Size, cornerRadius: Float, cornerCutLength: Float): Path {
         return Path().apply {
             reset()
             // Top left corner
-            relativeMoveTo(0f, 12f)
-            relativeLineTo(12f, -12f)
+            relativeMoveTo(0f, cornerCutLength)
+            relativeLineTo(cornerCutLength, -cornerCutLength)
             lineTo(x = size.width - cornerRadius, y = 0f)
             // Top right corner
             arcTo(
@@ -36,9 +45,9 @@ class FearlessCorneredShape(private val cornerRadius: Float = 8f) : Shape {
                 sweepAngleDegrees = 90.0f,
                 forceMoveTo = false
             )
-            lineTo(x = size.width, y = size.height - 12f)
+            lineTo(x = size.width, y = size.height - cornerCutLength)
             // Bottom right corner
-            relativeLineTo(-12f, 12f)
+            relativeLineTo(-cornerCutLength, cornerCutLength)
             lineTo(x = cornerRadius, y = size.height)
             // Bottom left corner
             arcTo(
@@ -52,7 +61,7 @@ class FearlessCorneredShape(private val cornerRadius: Float = 8f) : Shape {
                 sweepAngleDegrees = 90.0f,
                 forceMoveTo = false
             )
-            lineTo(x = 0f, y = 12f)
+            lineTo(x = 0f, y = cornerCutLength)
             close()
         }
     }

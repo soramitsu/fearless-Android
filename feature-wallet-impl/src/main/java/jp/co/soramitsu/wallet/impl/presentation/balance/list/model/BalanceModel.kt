@@ -1,12 +1,22 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list.model
 
 import java.math.BigDecimal
+import java.math.RoundingMode
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
 
 class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: String) {
     val totalBalance = calculateTotalBalance()
+    val totalBalanceChange = calculateTotalBalanceChange()
     val isUpdating = checkIsUpdating()
     val isTokensUpdated = checkIsTokensUpdated()
+
+    val rate = try {
+        totalBalance?.let { totalBalanceChange.divide(totalBalance, RoundingMode.HALF_UP).multiply(BigDecimal("100")) }
+    } catch (e: ArithmeticException) {
+        e.printStackTrace()
+        null
+    }
 
     private fun calculateTotalBalance(): BigDecimal? {
         return if (assetModels.filter { it.asset.token.fiatSymbol == fiatSymbol }.any { it.asset.fiatAmount != null }) {
@@ -17,6 +27,14 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
             }
         } else {
             null
+        }
+    }
+
+    private fun calculateTotalBalanceChange(): BigDecimal {
+        return assetModels.fold(BigDecimal.ZERO) { acc, current ->
+            val toAdd = current.asset.totalFiat?.multiply(current.asset.token.recentRateChange)?.divide(BigDecimal("100")).orZero()
+
+            acc + toAdd
         }
     }
 

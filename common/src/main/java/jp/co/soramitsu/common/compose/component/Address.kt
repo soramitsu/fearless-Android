@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,6 +50,7 @@ fun Address(
                 color = Color.White,
                 maxLines = 1,
                 modifier = Modifier
+                    .testTag("address")
                     .wrapContentWidth()
                     .align(CenterVertically)
             )
@@ -57,7 +59,9 @@ fun Address(
                 painter = painterResource(id = R.drawable.ic_copy_16),
                 tint = white,
                 contentDescription = null,
-                modifier = Modifier.align(CenterVertically)
+                modifier = Modifier
+                    .testTag("address_copy_icon")
+                    .align(CenterVertically)
             )
         }
     }
