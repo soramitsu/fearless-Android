@@ -1,6 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,7 +17,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.compose.component.AssetSelector
-import jp.co.soramitsu.common.compose.component.AssetSelectorState
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -30,11 +30,12 @@ import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBinding
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.staking.api.data.StakingAssetSelection
+import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.domain.model.NominatorStatus
 import jp.co.soramitsu.staking.impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.staking.impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarnings
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingAssetInfo
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationOptionsBottomSheet
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationRecyclerViewAdapter
@@ -90,7 +91,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
 
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
-        setupAssetSelector()
+        setupComposeViews()
         observeAlertsJob?.cancel()
         observeAlertsJob = viewModel.alertsFlow.onEach { loadingState ->
             if (loadingState is LoadingState.Loaded) {
@@ -163,15 +164,19 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             state to stakingType
         }.distinctUntilChanged().observe { (state, stakingType) ->
             when {
-                state is LoadingState.Loading<*> && stakingType == Chain.Asset.StakingType.RELAYCHAIN -> {
+                state is LoadingState.Loading<*> && stakingType == StakingType.RELAYCHAIN -> {
                     binding.parachainStakingNetworkInfo.isVisible = false
                     binding.stakingNetworkInfo.isVisible = true
                     binding.stakingNetworkInfo.showLoading()
                 }
-                state is LoadingState.Loading<*> && stakingType == Chain.Asset.StakingType.PARACHAIN -> {
+                state is LoadingState.Loading<*> && stakingType == StakingType.PARACHAIN -> {
                     binding.stakingNetworkInfo.isVisible = false
                     binding.parachainStakingNetworkInfo.isVisible = true
                     binding.parachainStakingNetworkInfo.showLoading()
+                }
+                stakingType == StakingType.POOL -> {
+                    binding.stakingNetworkInfo.isVisible = false
+                    binding.parachainStakingNetworkInfo.isVisible = false
                 }
                 state is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     when (val model = state.data) {
@@ -181,6 +186,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                         is StakingNetworkInfoModel.RelayChain -> {
                             setupNetworkInfo(model)
                         }
+                        is StakingNetworkInfoModel.Pool -> Unit
                     }
                 }
             }
@@ -201,23 +207,20 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         }
     }
 
-    private fun setupAssetSelector() {
+    private fun setupComposeViews() {
         binding.composeContent.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val state by viewModel.assetSelectorMixin.selectedAssetModelFlow.collectAsState(initial = null, context = lifecycleScope.coroutineContext)
-                FearlessTheme {
-                    Box(modifier = Modifier.padding(horizontal = Dp(16f))) {
-                        state?.apply {
-                            AssetSelector(
-                                state = AssetSelectorState(
-                                    tokenName,
-                                    imageUrl,
-                                    assetBalance,
-                                    (selectionItem as? StakingAssetSelection.Pool)?.let { "pool" }
-                                ),
-                                onClick = { viewModel.assetSelectorMixin.assetSelectorClicked() }
-                            )
+                val state by viewModel.state.collectAsState()
+                state?.let {
+                    FearlessTheme {
+                        Column(modifier = Modifier.padding(horizontal = Dp(16f))) {
+                            AssetSelector(state = it.selectorState, onClick = { viewModel.assetSelectorMixin.assetSelectorClicked() })
+                            MarginVertical(margin = Dp(16f))
+                            it.networkInfoState?.let { networkState ->
+                                StakingAssetInfo(networkState)
+                            }
+                            EstimatedEarnings()
                         }
                     }
                 }

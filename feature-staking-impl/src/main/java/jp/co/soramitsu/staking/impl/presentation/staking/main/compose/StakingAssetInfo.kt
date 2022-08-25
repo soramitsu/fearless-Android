@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.compose
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,9 +7,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
@@ -20,20 +20,23 @@ import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TitleToValue
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.compose.component.clickableWithNoIndication
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white64
-
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 
 @Composable
 private fun StakingAssetInfo(
-    state: StakingAssetInfoViewState.TitleState,
+    title: String,
     GuideInfo: @Composable () -> Unit,
-    MainInfo: @Composable () -> Unit,
-    collapseClicked: () -> Unit
+    MainInfo: @Composable () -> Unit
 ) {
-    val chevronIcon = if (state.collapsed) {
+    val collapseState = remember { mutableStateOf(false) }
+
+    val chevronIcon = if (collapseState.value) {
         R.drawable.ic_chevron_down_white
     } else {
         R.drawable.ic_chevron_up_white
@@ -53,16 +56,16 @@ private fun StakingAssetInfo(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp)
-                    .clickable(onClick = collapseClicked, role = Role.Button)
+                    .clickableWithNoIndication { collapseState.value = collapseState.value.not() }
             ) {
                 Text(
-                    text = state.title,
+                    text = title,
                     style = MaterialTheme.customTypography.body1,
                     modifier = Modifier.weight(1f)
                 )
                 Image(res = chevronIcon, modifier = Modifier.align(Alignment.CenterVertically))
             }
-            if (state.collapsed.not()) {
+            if (collapseState.value.not()) {
                 GuideInfo()
                 MarginVertical(margin = 16.dp)
                 MainInfo()
@@ -72,82 +75,52 @@ private fun StakingAssetInfo(
     }
 }
 
-sealed class StakingAssetInfoViewState {
-    abstract val titleState: TitleState
-
-    data class StakingPool(
-        override val titleState: TitleState,
-        val guide: String,
-        val minToJoin: TitleValueViewState,
-        val minToCreate: TitleValueViewState,
-        val existingPools: TitleValueViewState,
-        val possiblePools: TitleValueViewState,
-        val maxMembersInPool: TitleValueViewState,
-        val maxPoolsMembers: TitleValueViewState
-    ) : StakingAssetInfoViewState()
-
-    data class RelayChainPool(
-        override val titleState: TitleState,
-        val stories: String, // todo stories view state
-        val totalStaked: String,
-        val totalStakedFiat: String,
-        val minStake: String,
-        val minStakeFiat: String,
-        val activeNominators: String,
-        val unstakingPeriod: String,
-    ) : StakingAssetInfoViewState()
-
-    data class ParachainPool(
-        override val titleState: TitleState,
-        val stories: String, // todo stories view state
-        val minStake: String,
-        val minStakeFiat: String,
-        val unstakingPeriod: String,
-    ) : StakingAssetInfoViewState()
-
-    data class TitleState(
-        val title: String,
-        val collapsed: Boolean
-    )
-}
-
 @Composable
-fun StakingAssetInfo(state: StakingAssetInfoViewState, collapseClicked: () -> Unit) {
+fun StakingAssetInfo(state: StakingAssetInfoViewState) {
     when (state) {
-        is StakingAssetInfoViewState.ParachainPool -> TODO()
-        is StakingAssetInfoViewState.RelayChainPool -> TODO()
-        is StakingAssetInfoViewState.StakingPool -> {
-            PoolsStakingInfo(state, collapseClicked = collapseClicked)
+        is StakingAssetInfoViewState.Parachain -> {
+            ParachainStakingInfo(state)
         }
+        is StakingAssetInfoViewState.RelayChain -> {
+            RelaychainStakingInfo(state)
+        }
+        is StakingAssetInfoViewState.StakingPool -> PoolsStakingInfo(state)
     }
 }
 
+@Composable
+fun ParachainStakingInfo(state: StakingAssetInfoViewState.Parachain) {
+}
 
 @Composable
-fun PoolsStakingInfo(state: StakingAssetInfoViewState.StakingPool, collapseClicked: () -> Unit) {
+fun RelaychainStakingInfo(state: StakingAssetInfoViewState.RelayChain) {
+}
+
+@Composable
+fun PoolsStakingInfo(state: StakingAssetInfoViewState.StakingPool) {
     StakingAssetInfo(
-        state.titleState,
+        state.title,
         GuideInfo = {
             B2(text = state.guide, color = white64)
         },
         MainInfo = {
             Row {
                 Column(modifier = Modifier.weight(1f)) {
-                    TitleToValue(state = state.minToJoin)
+                    TitleToValue(state = state.minToJoin, testTag = "minToJoin")
                     MarginVertical(margin = 16.dp)
-                    TitleToValue(state = state.existingPools)
+                    TitleToValue(state = state.existingPools, testTag = "existingPools")
                     MarginVertical(margin = 16.dp)
-                    TitleToValue(state = state.maxMembersInPool)
+                    TitleToValue(state = state.maxMembersInPool, testTag = "maxMembersInPool")
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    TitleToValue(state = state.minToCreate)
+                    TitleToValue(state = state.minToCreate, testTag = "minToCreate")
                     MarginVertical(margin = 16.dp)
-                    TitleToValue(state = state.possiblePools)
+                    TitleToValue(state = state.possiblePools, testTag = "possiblePools")
                     MarginVertical(margin = 16.dp)
-                    TitleToValue(state = state.maxPoolsMembers)
+                    TitleToValue(state = state.maxPoolsMembers, testTag = "maxPoolsMembers")
                 }
             }
-        }, collapseClicked = collapseClicked
+        }
     )
 }
 
@@ -155,7 +128,7 @@ fun PoolsStakingInfo(state: StakingAssetInfoViewState.StakingPool, collapseClick
 @Preview
 fun StakingAssetInfoPreview() {
     val poolState = StakingAssetInfoViewState.StakingPool(
-        StakingAssetInfoViewState.TitleState("Kusama pool", collapsed = false),
+        title = "Kusama pool",
         guide = "Stakers (members) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a member's stake in the bonded pool.",
         minToJoin = TitleValueViewState("Min. to join Pool", "0.0016 KSM"),
         minToCreate = TitleValueViewState("Min. to create a pool", "0.0016 KSM"),
@@ -166,9 +139,7 @@ fun StakingAssetInfoPreview() {
     )
     FearlessTheme {
         Column {
-            StakingAssetInfo(StakingAssetInfoViewState.TitleState("Kusama", collapsed = true), GuideInfo = {}, MainInfo = {}) {}
-            MarginVertical(margin = 32.dp)
-            PoolsStakingInfo(poolState) {}
+            PoolsStakingInfo(poolState)
             MarginVertical(margin = 32.dp)
             PoolsStakingInfo(
                 poolState.copy(
@@ -179,7 +150,7 @@ fun StakingAssetInfoPreview() {
                     maxMembersInPool = TitleValueViewState("Max members in pool", null),
                     maxPoolsMembers = TitleValueViewState("Max pools members", null)
                 )
-            ) {}
+            )
         }
     }
 }

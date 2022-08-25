@@ -3,11 +3,13 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -18,7 +20,7 @@ import jp.co.soramitsu.common.compose.theme.shimmerColor
 fun ShimmerB0(modifier: Modifier = Modifier) {
     Shimmer(
         modifier = modifier
-            .height(20.dp)
+            .height(17.dp)
     )
 }
 
@@ -26,7 +28,7 @@ fun ShimmerB0(modifier: Modifier = Modifier) {
 fun ShimmerB2(modifier: Modifier = Modifier) {
     Shimmer(
         modifier = modifier
-            .height(15.dp)
+            .height(13.dp)
     )
 }
 
@@ -34,9 +36,15 @@ fun ShimmerB2(modifier: Modifier = Modifier) {
 fun Shimmer(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .shimmer()
-            .background(shimmerColor, RoundedCornerShape(size = 5.dp))
-    )
+            .shimmer(),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(shimmerColor, RoundedCornerShape(size = 5.dp))
+        )
+    }
 }
 
 @Preview

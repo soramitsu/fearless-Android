@@ -61,7 +61,7 @@ private class StakingAssetSelectorHolder(
             (item.selectionItem as? StakingAssetSelection.Pool)?.let {
                 findViewById<TextView>(R.id.itemAssetSelectorBadge).apply {
                     isVisible = true
-                    text = it.type
+                    text = it.type.name
                 }
             }
         }

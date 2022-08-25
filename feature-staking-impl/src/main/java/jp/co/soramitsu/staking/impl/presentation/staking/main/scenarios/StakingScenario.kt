@@ -1,14 +1,16 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
+import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
 
@@ -21,7 +23,8 @@ class StakingScenario(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val resourceManager: ResourceManager,
     private val alertsInteractor: AlertsInteractor,
-    private val stakingViewStateFactory: StakingViewStateFactory
+    private val stakingViewStateFactory: StakingViewStateFactory,
+    private val stakingPoolInteractor: StakingPoolInteractor
 ) {
 
     private val parachainViewModel by lazy {
@@ -46,29 +49,24 @@ class StakingScenario(
             state
         )
     }
+    private val stakingPoolViewModel by lazy {
+        StakingPoolViewModel(
+            stakingPoolInteractor,
+            stakingInteractor
+        )
+    }
 
-    fun getViewModel(stakingType: Chain.Asset.StakingType): StakingScenarioViewModel {
+    fun getViewModel(stakingType: StakingType): StakingScenarioViewModel {
         return when (stakingType) {
-            Chain.Asset.StakingType.PARACHAIN -> {
-                parachainViewModel
-            }
-            Chain.Asset.StakingType.RELAYCHAIN -> {
-                relaychainViewModel
-            }
-            else -> error("")
+            StakingType.PARACHAIN -> parachainViewModel
+            StakingType.RELAYCHAIN -> relaychainViewModel
+            StakingType.POOL -> stakingPoolViewModel
+            else -> error("StakingScenario.getViewModel")
         }
     }
 
-    val viewModel = state.assetWithChain.map {
-        when (it.asset.staking) {
-            Chain.Asset.StakingType.PARACHAIN -> {
-                parachainViewModel
-            }
-            Chain.Asset.StakingType.RELAYCHAIN -> {
-                relaychainViewModel
-            }
-            else -> error("")
-        }
+    val viewModel = state.selectionItem.map {
+        getViewModel(it.type)
     }
 }
 

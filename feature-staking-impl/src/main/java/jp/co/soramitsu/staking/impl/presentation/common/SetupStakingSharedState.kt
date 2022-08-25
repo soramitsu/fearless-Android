@@ -3,18 +3,19 @@ package jp.co.soramitsu.staking.impl.presentation.common
 import android.util.Log
 import java.math.BigDecimal
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.api.domain.model.WithAddress
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Filters
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Sorting
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.flow.MutableStateFlow
+
 
 sealed class SetupStakingProcess {
 
-    class Initial(val stakingType: Chain.Asset.StakingType) : SetupStakingProcess() {
+    class Initial(val stakingType: StakingType) : SetupStakingProcess() {
 
         val defaultAmount = 10.toBigDecimal()
 
@@ -36,7 +37,7 @@ sealed class SetupStakingProcess {
 
         class Stash(override val amount: BigDecimal) : SetupStep() {
 
-            override fun previous() = Initial(Chain.Asset.StakingType.RELAYCHAIN)
+            override fun previous() = Initial(StakingType.RELAYCHAIN)
 
             override fun next(
                 newAmount: BigDecimal,
@@ -47,7 +48,7 @@ sealed class SetupStakingProcess {
 
         class Parachain(override val amount: BigDecimal) : SetupStep() {
 
-            override fun previous() = Initial(Chain.Asset.StakingType.PARACHAIN)
+            override fun previous() = Initial(StakingType.PARACHAIN)
 
             override fun next(
                 newAmount: BigDecimal,
@@ -99,7 +100,7 @@ sealed class SetupStakingProcess {
 
             fun previous() = when (payload) {
                 is Payload.Full -> SetupStep.Stash(payload.amount)
-                else -> Initial(Chain.Asset.StakingType.RELAYCHAIN)
+                else -> Initial(StakingType.RELAYCHAIN)
             }
 
             fun next(validators: List<Validator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
@@ -234,15 +235,15 @@ sealed class SetupStakingProcess {
         }
 
         fun finish() = when (this) {
-            is Parachain -> Initial(Chain.Asset.StakingType.PARACHAIN)
-            is Stash -> Initial(Chain.Asset.StakingType.RELAYCHAIN)
+            is Parachain -> Initial(StakingType.PARACHAIN)
+            is Stash -> Initial(StakingType.RELAYCHAIN)
         }
     }
 }
 
 class SetupStakingSharedState {
 
-    val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial(Chain.Asset.StakingType.PARACHAIN))
+    val setupStakingProcess = MutableStateFlow<SetupStakingProcess>(SetupStakingProcess.Initial(StakingType.PARACHAIN))
 
     fun set(newState: SetupStakingProcess) {
         Log.d("RX", "${setupStakingProcess.value.javaClass.simpleName} -> ${newState.javaClass.simpleName}")

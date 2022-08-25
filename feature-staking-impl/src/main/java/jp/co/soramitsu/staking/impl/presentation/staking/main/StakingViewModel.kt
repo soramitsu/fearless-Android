@@ -4,8 +4,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import javax.inject.Named
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.AssetSelectorState
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -14,7 +17,10 @@ import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
+import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
@@ -27,16 +33,21 @@ import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingAssetSelector
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.manageStakingActionValidationFailure
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.select.SelectBondMorePayload
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingAssetInfoViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.default
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.update
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.BaseStakingViewModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingScenario
 import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
+import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
@@ -46,6 +57,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
@@ -63,7 +75,9 @@ class StakingViewModel @Inject constructor(
     parachainScenarioInteractor: StakingParachainScenarioInteractor,
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     rewardCalculatorFactory: RewardCalculatorFactory,
-    private val setupStakingSharedState: SetupStakingSharedState
+    private val setupStakingSharedState: SetupStakingSharedState,
+    private val stakingPoolInteractor: StakingPoolInteractor,
+    private val accountInteractor: AccountInteractor
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
@@ -80,20 +94,21 @@ class StakingViewModel @Inject constructor(
         rewardCalculatorFactory,
         resourceManager,
         alertsInteractor,
-        stakingViewStateFactory
+        stakingViewStateFactory,
+        stakingPoolInteractor
     )
 
     val assetSelectorMixin = StakingAssetSelector(stakingSharedState, this)
 
-    val stakingTypeFlow = stakingSharedState.assetWithChain.map { interactor.currentAssetFlow().first().token.configuration.staking }
+    val stakingTypeFlow = stakingSharedState.selectionItem.map { it.type }
 
-    private val scenarioViewModelFlow = stakingSharedState.assetWithChain.debounce(50).onEach {
-        stakingStateScope.coroutineContext.cancelChildren()
-    }
-        .map {
-            val asset = interactor.currentAssetFlow().first()
-            stakingScenario.getViewModel(asset.token.configuration.staking)
-        }.shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
+    private val scenarioViewModelFlow = stakingSharedState.selectionItem
+        .debounce(50)
+        .onEach {
+            stakingStateScope.coroutineContext.cancelChildren()
+        }
+        .map { stakingScenario.getViewModel(it.type) }
+        .shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     val networkInfo = scenarioViewModelFlow
         .flatMapLatest {
@@ -110,12 +125,43 @@ class StakingViewModel @Inject constructor(
             it.alerts()
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
+    private val defaultNetworkInfoStates = mapOf(
+        StakingType.POOL to StakingAssetInfoViewState.StakingPool.default(resourceManager),
+        StakingType.RELAYCHAIN to StakingAssetInfoViewState.RelayChain.default(resourceManager),
+        StakingType.PARACHAIN to StakingAssetInfoViewState.Parachain.default(resourceManager)
+    )
+
+    inline fun <reified T : StakingAssetInfoViewState> Map<StakingType, StakingAssetInfoViewState>.get(type: StakingType): T = get(type) as T
+
+    private val networkInfoState = combine(stakingSharedState.selectionItem, networkInfo) { selection, networkInfoState ->
+        if (selection.type != StakingType.POOL) return@combine null
+        if (networkInfoState is LoadingState.Loaded) {
+            defaultNetworkInfoStates[selection.type]!!.update(networkInfoState.data)
+        } else {
+            defaultNetworkInfoStates[selection.type]!!
+        }
+    }
+
+    val state = combine(assetSelectorMixin.selectedAssetModelFlow, networkInfoState) { selectedAsset, networkInfo ->
+        val selectorState = AssetSelectorState(
+            selectedAsset.tokenName,
+            selectedAsset.imageUrl,
+            selectedAsset.assetBalance,
+            (selectedAsset.selectionItem as? StakingAssetSelection.Pool)?.let { "pool" }
+        )
+
+        ViewState(
+            selectorState,
+            networkInfo
+        )
+    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
+
     init {
         stakingUpdateSystem.start()
             .launchIn(this)
         viewModelScope.launch {
-            stakingSharedState.assetWithChain.distinctUntilChanged().collect {
-                setupStakingSharedState.set(SetupStakingProcess.Initial(it.asset.staking))
+            stakingSharedState.selectionItem.distinctUntilChanged().collect {
+                setupStakingSharedState.set(SetupStakingProcess.Initial(it.type))
                 stakingStateScope.coroutineContext.cancelChildren()
             }
         }
@@ -141,7 +187,14 @@ class StakingViewModel @Inject constructor(
     }
 
     fun avatarClicked() {
-        router.openChangeAccountFromStaking()
+//        router.openChangeAccountFromStaking()
+        launch {
+            val meta = accountInteractor.selectedMetaAccountFlow().first()
+            val chain = interactor.getChain(kusamaChainId)
+            val accountId = meta.accountId(chain)!!
+            val poolMembers = stakingPoolInteractor.getPoolMembers(kusamaChainId, accountId)
+            hashCode()
+        }
     }
 
     override fun openCurrentValidators() {
@@ -215,4 +268,9 @@ class StakingViewModel @Inject constructor(
             (stakingState as? LoadingState.Loaded)?.data?.openCollatorInfo(model)
         }
     }
+
+    data class ViewState(
+        val selectorState: AssetSelectorState,
+        val networkInfoState: StakingAssetInfoViewState? // todo shouldn't be nullable - it's just a stub
+    )
 }
