@@ -22,9 +22,12 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
@@ -36,6 +39,7 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
     abstract val viewModel: T
 
+    @OptIn(ExperimentalComposeUiApi::class)
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,6 +64,9 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                         content = { padding ->
                             Box(
                                 modifier = Modifier
+                                    .semantics {
+                                        testTagsAsResourceId = true
+                                    }
                                     .fillMaxSize()
                                     .padding(padding)
                             ) {
