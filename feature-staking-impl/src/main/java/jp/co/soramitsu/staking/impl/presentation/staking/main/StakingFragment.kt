@@ -155,6 +155,9 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             binding.stakingEstimate.isVisible = true
                             binding.startStakingBtn.isVisible = true
                         }
+                        is PoolMemberViewState -> {
+
+                        }
                     }
                 }
             }
@@ -220,7 +223,9 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             it.networkInfoState?.let { networkState ->
                                 StakingAssetInfo(networkState)
                             }
-                            EstimatedEarnings()
+                            it.estimatedEarnings?.let { estimatedEarnings ->
+                                EstimatedEarnings(estimatedEarnings, viewModel::onEstimatedEarningsInfoClick)
+                            }
                         }
                     }
                 }

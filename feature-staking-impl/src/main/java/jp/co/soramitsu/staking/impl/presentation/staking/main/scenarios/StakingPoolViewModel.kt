@@ -8,29 +8,49 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
-import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculator
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 
 class StakingPoolViewModel(
     private val stakingPoolInteractor: StakingPoolInteractor,
-    private val stakingInteractor: StakingInteractor
+    private val stakingInteractor: StakingInteractor,
+    private val stakingViewStateFactory: StakingViewStateFactory,
+    private val baseViewModel: BaseStakingViewModel,
 ) :
     StakingScenarioViewModel {
 
-    override val stakingStateFlow: Flow<StakingState> = emptyFlow()
+    override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
 
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
-        return emptyFlow()
+        return stakingStateFlow.map { stakingState ->
+            when (stakingState) {
+                is StakingState.Pool.Member -> {
+                    stakingViewStateFactory.createPoolMemberViewState(
+                        stakingState,
+                        stakingInteractor.currentAssetFlow(),
+                        baseViewModel.stakingStateScope,
+                        baseViewModel::showError
+                    )
+                }
+                is StakingState.Pool.None -> {
+                    stakingViewStateFactory.createPoolWelcomeViewState(
+                        stakingInteractor.currentAssetFlow(),
+                        baseViewModel.stakingStateScope,
+                        baseViewModel::showError
+                    )
+                }
+                else -> error("Wrong state")
+            }
+        }
     }
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
@@ -65,10 +85,6 @@ class StakingPoolViewModel(
             )
 
         }.withLoading()
-    }
-
-    override suspend fun getRewardCalculator(): RewardCalculator {
-        TODO("Not yet implemented")
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {

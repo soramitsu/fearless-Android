@@ -31,7 +31,6 @@ class StakingScenario(
         StakingParachainScenarioViewModel(
             stakingInteractor,
             parachainInteractor,
-            rewardCalculatorFactory,
             resourceManager,
             baseViewModel,
             stakingViewStateFactory
@@ -42,7 +41,6 @@ class StakingScenario(
             stakingInteractor,
             relaychainInteractor,
             resourceManager,
-            rewardCalculatorFactory,
             baseViewModel,
             alertsInteractor,
             stakingViewStateFactory,
@@ -52,7 +50,9 @@ class StakingScenario(
     private val stakingPoolViewModel by lazy {
         StakingPoolViewModel(
             stakingPoolInteractor,
-            stakingInteractor
+            stakingInteractor,
+            stakingViewStateFactory,
+            baseViewModel
         )
     }
 

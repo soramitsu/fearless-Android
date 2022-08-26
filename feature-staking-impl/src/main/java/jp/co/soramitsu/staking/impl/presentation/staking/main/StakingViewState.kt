@@ -20,6 +20,8 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.ext.accountFromMapKey
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfo
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.staking.api.domain.model.Round
@@ -49,11 +51,9 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.IdentityParce
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.runtime.ext.accountFromMapKey
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -497,6 +497,70 @@ class ParachainWelcomeViewState(
     }
 }
 
+class StakingPoolWelcomeViewState(
+    setupStakingSharedState: SetupStakingSharedState,
+    rewardCalculatorFactory: RewardCalculatorFactory,
+    resourceManager: ResourceManager,
+    router: StakingRouter,
+    currentAssetFlow: Flow<Asset>,
+    scope: CoroutineScope,
+    errorDisplayer: (String) -> Unit,
+    validationSystem: WelcomeStakingValidationSystem,
+    validationExecutor: ValidationExecutor
+) : WelcomeViewState(
+    setupStakingSharedState,
+    rewardCalculatorFactory,
+    resourceManager,
+    router,
+    currentAssetFlow,
+    scope,
+    errorDisplayer,
+    validationSystem,
+    validationExecutor
+) {
+    val chainId = currentAssetFlow.filter { it.token.configuration.staking == Chain.Asset.StakingType.RELAYCHAIN }.map { it.token.configuration.chainId }
+
+    override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual(chainId.first()) }
+
+    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+        val chainId = asset.token.configuration.chainId
+        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
+
+        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
+        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
+
+        ReturnsModel(monthlyEstimation, yearlyEstimation)
+    }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
+
+    override fun infoActionClicked() {
+        scope.launch {
+            val rewardCalculator = rewardCalculator()
+
+            val chainId = chainId.first()
+            val maxAPY = rewardCalculator.calculateMaxAPY(chainId)
+            val avgAPY = rewardCalculator.calculateAvgAPY()
+
+            val payload = StakingRewardEstimationBottomSheet.Payload(
+                maxAPY.formatAsPercentage(),
+                avgAPY.formatAsPercentage(),
+                R.string.staking_reward_info_max,
+                R.string.staking_reward_info_avg
+            )
+
+            _showRewardEstimationEvent.value = Event(payload)
+        }
+    }
+
+    override fun nextClicked() {
+        scope.launch {
+            setupStakingSharedState.set(currentSetupProgress.stakingPoolFlow())
+            router.openStakingPoolWelcome()
+        }
+    }
+}
+
+
 class DelegatorViewState(
     private val delegatorState: StakingState.Parachain.Delegator,
     val welcomeViewState: ParachainWelcomeViewState,
@@ -646,3 +710,19 @@ fun CandidateInfo.toModelStatus(
         else -> DelegatorViewState.CollatorDelegationModel.Status.Idle
     }
 }
+
+class PoolMemberViewState(
+    val poolState: StakingState.Pool.Member,
+    currentAssetFlow: Flow<Asset>,
+    stakingInteractor: StakingInteractor,
+    resourceManager: ResourceManager,
+    scope: CoroutineScope,
+    router: StakingRouter,
+    errorDisplayer: (Throwable) -> Unit
+) : StakeViewState<DelegatorStatus>(
+    poolState, currentAssetFlow, stakingInteractor,
+    resourceManager, scope, router, errorDisplayer,
+    summaryFlowProvider = { emptyFlow() },
+    statusMessageProvider = { getDelegatorStatusTitleAndMessage(resourceManager, it) },
+    availableManageActions = ManageStakeAction.values().toSet()
+)

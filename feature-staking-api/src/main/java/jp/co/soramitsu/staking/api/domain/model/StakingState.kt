@@ -79,6 +79,19 @@ sealed class StakingState(
             val totalDelegatedAmount: BigDecimal
         ) : Parachain(chain, accountId)
     }
+
+    sealed class Pool(chain: Chain, accountId: AccountId) : StakingState(chain, accountId) {
+        class Member(
+            chain: Chain,
+            accountId: AccountId,
+            pool: NominationPool
+        ) : Pool(chain, accountId)
+
+        class None(chain: Chain, accountId: AccountId) : Pool(chain, accountId)
+        class Root(chain: Chain, accountId: AccountId) : Pool(chain, accountId)
+        class Nominator(chain: Chain, accountId: AccountId) : Pool(chain, accountId)
+        class StateToggler(chain: Chain, accountId: AccountId) : Pool(chain, accountId)
+    }
 }
 
 data class CollatorDelegation(

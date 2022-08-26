@@ -13,7 +13,9 @@ import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.DelegatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.NominatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ParachainWelcomeViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.PoolMemberViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.RelaychainWelcomeViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingPoolWelcomeViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StashNoneViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ValidatorViewState
@@ -136,5 +138,30 @@ class StakingViewStateFactory(
             errorDisplayer = errorDisplayer,
             rewardCalculatorFactory = rewardCalculatorFactory
         )
+    }
+
+    fun createPoolWelcomeViewState(
+        currentAssetFlow: Flow<Asset>,
+        scope: CoroutineScope,
+        errorDisplayer: (String) -> Unit
+    ) = StakingPoolWelcomeViewState(
+        setupStakingSharedState,
+        rewardCalculatorFactory,
+        resourceManager,
+        router,
+        currentAssetFlow,
+        scope,
+        errorDisplayer,
+        ValidationSystem(CompositeValidation(validations = listOf())),
+        validationExecutor
+    )
+
+    fun createPoolMemberViewState(
+        state: StakingState.Pool.Member,
+        currentAssetFlow: Flow<Asset>,
+        scope: CoroutineScope,
+        errorDisplayer: (Throwable) -> Unit
+    ): PoolMemberViewState {
+        return PoolMemberViewState(state, currentAssetFlow, stakingInteractor, resourceManager, scope, router, errorDisplayer)
     }
 }

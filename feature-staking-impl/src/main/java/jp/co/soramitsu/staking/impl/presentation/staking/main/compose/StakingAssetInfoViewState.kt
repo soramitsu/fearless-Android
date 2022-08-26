@@ -97,6 +97,7 @@ fun StakingAssetInfoViewState.Parachain.update(state: StakingNetworkInfoModel.Pa
 }
 
 fun StakingAssetInfoViewState.update(state: StakingNetworkInfoModel): StakingAssetInfoViewState {
+    hashCode()
     return when (state) {
         is StakingNetworkInfoModel.Parachain -> (this as StakingAssetInfoViewState.Parachain).update(state)
         is StakingNetworkInfoModel.Pool -> (this as StakingAssetInfoViewState.StakingPool).update(state)

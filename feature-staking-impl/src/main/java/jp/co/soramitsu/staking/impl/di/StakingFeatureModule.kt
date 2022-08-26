@@ -134,6 +134,7 @@ class StakingFeatureModule {
             is SetupStakingProcess.SetupStep.Parachain -> {
                 ParachainStakingStoriesDataSourceImpl()
             }
+            is SetupStakingProcess.SetupStep.Pool -> StakingStoriesDataSourceImpl()
         }
     }
 
@@ -555,5 +556,10 @@ class StakingFeatureModule {
 
     @Provides
     @Singleton
-    fun provideStakingPoolInteractor(api: StakingPoolApi, dataSource: StakingPoolDataSource) = StakingPoolInteractor(api, dataSource)
+    fun provideStakingPoolInteractor(
+        api: StakingPoolApi,
+        dataSource: StakingPoolDataSource,
+        stakingInteractor: StakingInteractor,
+        accountRepository: AccountRepository,
+    ) = StakingPoolInteractor(api, dataSource, stakingInteractor, accountRepository)
 }

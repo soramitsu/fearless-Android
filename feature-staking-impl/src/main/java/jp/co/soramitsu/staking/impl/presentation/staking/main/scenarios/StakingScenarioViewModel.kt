@@ -29,7 +29,6 @@ interface StakingScenarioViewModel {
     suspend fun getStakingViewStateFlow(): Flow<StakingViewState>
 
     suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>>
-    suspend fun getRewardCalculator(): RewardCalculator
     suspend fun alerts(): Flow<LoadingState<List<AlertModel>>>
 
     suspend fun getRedeemValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>

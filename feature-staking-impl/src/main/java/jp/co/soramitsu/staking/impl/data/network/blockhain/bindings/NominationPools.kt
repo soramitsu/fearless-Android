@@ -17,8 +17,8 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEn
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
-import jp.co.soramitsu.staking.impl.data.model.NominationPoolState
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.model.PoolUnbonding
 
@@ -96,10 +96,11 @@ fun bindLastPoolId(
 }
 
 @UseCaseBinding
-fun bindBondedPools(
-    scale: String,
+fun bindBondedPool(
+    scale: String?,
     runtime: RuntimeSnapshot
-): BondedPool {
+): BondedPool? {
+    scale ?: return null
     val returnType = runtime.metadata.storageReturnType("NominationPools", "BondedPools")
     val decoded = returnType.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
 

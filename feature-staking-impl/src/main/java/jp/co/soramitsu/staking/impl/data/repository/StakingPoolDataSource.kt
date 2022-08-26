@@ -12,7 +12,7 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
-import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindBondedPools
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindBondedPool
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindBondedPoolsMetadata
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExistingPools
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindLastPoolId
@@ -23,6 +23,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMinCreat
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMinJoinBond
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindPoolMember
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
+import kotlinx.coroutines.flow.Flow
 
 class StakingPoolDataSource(
     private val remoteStorage: StorageDataSource,
@@ -86,7 +87,7 @@ class StakingPoolDataSource(
             prefixKeyBuilder = { it.metadata.nominationPools().storage("BondedPools").storageKey() },
             keyExtractor = { it.u32ArgumentFromStorageKey() }
         ) { scale, runtime, _ ->
-            scale?.let { bindBondedPools(it, runtime) }
+            scale?.let { bindBondedPool(it, runtime) }
         }
     }
 
@@ -112,6 +113,21 @@ class StakingPoolDataSource(
         return remoteStorage.query(
             keyBuilder = { it.metadata.nominationPools().storage("PoolMembers").storageKey(it, accountId) },
             binding = ::bindPoolMember,
+            chainId = chainId
+        )
+    }
+
+    suspend fun observePool(chainId: ChainId, poolId: BigInteger): Flow<BondedPool?> {
+        return remoteStorage.observe(
+            chainId = chainId,
+            keyBuilder = { it.metadata.nominationPools().storage("BondedPools").storageKey(it, poolId) },
+            binder = ::bindBondedPool)
+    }
+
+    fun observePoolMembers(chainId: ChainId, accountId: AccountId): Flow<PoolMember?> {
+        return remoteStorage.observe(
+            keyBuilder = { it.metadata.nominationPools().storage("PoolMembers").storageKey(it, accountId) },
+            binder = ::bindPoolMember,
             chainId = chainId
         )
     }

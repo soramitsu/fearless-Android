@@ -1,13 +1,74 @@
 package jp.co.soramitsu.staking.impl.scenarios
 
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.staking.api.domain.model.NominationPool
+import jp.co.soramitsu.staking.api.domain.model.StakingState
+import jp.co.soramitsu.staking.impl.data.mappers.toDomain
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
+import jp.co.soramitsu.staking.impl.domain.StakingInteractor
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
-class StakingPoolInteractor(private val api: StakingPoolApi, private val dataSource: StakingPoolDataSource) {
+class StakingPoolInteractor(
+    private val api: StakingPoolApi,
+    private val dataSource: StakingPoolDataSource,
+    private val stakingInteractor: StakingInteractor,
+    private val accountRepository: AccountRepository
+) {
+
+    fun stakingStateFlow(): Flow<StakingState> {
+        return stakingInteractor.selectedChainFlow().flatMapConcat { chain ->
+            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+            stakingPoolStateFlow(chain, accountId)
+        }
+    }
+    
+    private fun stakingPoolStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState> {
+        return observeCurrentPool(chain.id, accountId).map {
+            it ?: return@map StakingState.Pool.None(chain, accountId)
+
+            when (it) {
+                null -> StakingState.Pool.None(chain, accountId)
+                else -> StakingState.Pool.Member(chain, accountId, it)
+            }
+        }.runCatching { this }.getOrDefault(emptyFlow())
+    }
+
+    fun observeCurrentPool(
+        chainId: ChainId,
+        accountId: AccountId
+    ): Flow<NominationPool?> {
+        return dataSource.observePoolMembers(chainId, accountId).flatMapConcat { poolMember ->
+            poolMember ?: return@flatMapConcat flowOf(null)
+            dataSource.observePool(chainId, poolMember.poolId).map { bondedPool ->
+                bondedPool ?: return@map null
+                NominationPool(
+                    poolMember.poolId,
+                    poolMember.points,
+                    poolMember.lastRecordedRewardCounter,
+                    bondedPool.state,
+                    BigInteger.ZERO,
+                    poolMember.unbondingEras.toDomain(),
+                    bondedPool.memberCounter,
+                    bondedPool.depositor,
+                    bondedPool.root,
+                    bondedPool.nominator,
+                    bondedPool.stateToggler
+                )
+            }
+        }
+    }
+
     suspend fun getMinToJoinPool(chainId: ChainId): BigInteger {
         return dataSource.minJoinBond(chainId)
     }

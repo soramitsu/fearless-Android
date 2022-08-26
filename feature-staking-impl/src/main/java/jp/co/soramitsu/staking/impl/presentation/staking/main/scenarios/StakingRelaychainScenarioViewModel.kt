@@ -42,7 +42,6 @@ class StakingRelaychainScenarioViewModel(
     private val stakingInteractor: StakingInteractor,
     private val scenarioInteractor: StakingRelayChainScenarioInteractor,
     private val resourceManager: ResourceManager,
-    private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val baseViewModel: BaseStakingViewModel,
     private val alertsInteractor: AlertsInteractor,
     private val stakingViewStateFactory: StakingViewStateFactory,
@@ -101,8 +100,6 @@ class StakingRelaychainScenarioViewModel(
             }
         }
     }
-
-    override suspend fun getRewardCalculator() = rewardCalculatorFactory.createManual(chainId.first())
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
         return combine(

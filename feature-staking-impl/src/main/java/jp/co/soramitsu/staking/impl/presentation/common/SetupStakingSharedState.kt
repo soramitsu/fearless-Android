@@ -21,6 +21,8 @@ sealed class SetupStakingProcess {
 
         fun fullFlow(flow: SetupStakingProcess) = flow
 
+        fun stakingPoolFlow() = SetupStakingProcess.SetupStep.Pool()
+
         fun existingStashFlow() = SelectBlockProducersStep.Validators(SelectBlockProducersStep.Payload.ExistingStash)
 
         fun changeValidatorsFlow() = SelectBlockProducersStep.Validators(SelectBlockProducersStep.Payload.Validators)
@@ -55,6 +57,21 @@ sealed class SetupStakingProcess {
                 rewardDestination: RewardDestination,
                 currentAccountAddress: String
             ): SelectBlockProducersStep.Collators {
+                val payout = RewardDestination.Payout(currentAccountAddress.fromHex())
+                return SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Full(newAmount, payout, currentAccountAddress))
+            }
+        }
+
+        class Pool(override val amount: BigDecimal = BigDecimal.ZERO) : SetupStep() {
+
+            override fun previous() = Initial(StakingType.POOL)
+
+            override fun next(
+                newAmount: BigDecimal,
+                rewardDestination: RewardDestination,
+                currentAccountAddress: String
+            ): SelectBlockProducersStep.Collators {
+                //todo
                 val payout = RewardDestination.Payout(currentAccountAddress.fromHex())
                 return SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Full(newAmount, payout, currentAccountAddress))
             }

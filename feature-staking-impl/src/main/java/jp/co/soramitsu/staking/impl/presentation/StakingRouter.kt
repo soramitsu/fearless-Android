@@ -93,5 +93,9 @@ interface StakingRouter {
 
     fun openConfirmRewardDestination(payload: ConfirmRewardDestinationPayload)
 
+    fun openStakingPoolWelcome() {
+
+    }
+
     val currentStackEntryLifecycle: Lifecycle
 }
