@@ -1,10 +1,10 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
@@ -51,7 +51,8 @@ class Asset(
             metaId: Long,
             accountId: AccountId,
             chainAccountName: String? = null,
-            minSupportedVersion: String?
+            minSupportedVersion: String?,
+            enabled: Boolean = true
         ) = Asset(
             metaId = metaId,
             Token(configuration = chainAsset, fiatRate = null, fiatSymbol = null, recentRateChange = null),
@@ -64,7 +65,7 @@ class Asset(
             redeemableInPlanks = null,
             unbondingInPlanks = null,
             sortIndex = Int.MAX_VALUE,
-            enabled = true,
+            enabled = enabled,
             minSupportedVersion = minSupportedVersion,
             chainAccountName = chainAccountName,
             markedNotNeed = false

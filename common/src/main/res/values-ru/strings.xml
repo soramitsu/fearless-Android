@@ -740,5 +740,6 @@
     <string name="staking_history_title">История стейкинга</string>
     <string name="parachain_staking_request_finished">Завершен</string>
     <string name="chain_selection_all_networks">Все сети</string>
+    <string name="hidden_assets">Скрытые активы</string>
 
 </resources>

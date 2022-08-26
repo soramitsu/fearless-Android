@@ -4,10 +4,10 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.calculateTotalBalance
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 data class ManageAssetModel(
     val chainId: ChainId,
@@ -46,7 +46,7 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
         amount = "$totalBalance ${token.configuration.symbol}",
         network = network,
         position = asset.sortIndex,
-        enabled = enabled,
+        enabled = asset.enabled,
         isTestNet = token.configuration.isTestNet ?: false,
         hasAccount = hasAccount,
         markedAsNotNeed = asset.markedNotNeed

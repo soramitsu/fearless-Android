@@ -4,6 +4,10 @@ import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -13,10 +17,12 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.runtime.ext.isValidAddress
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
+import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -31,12 +37,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
-import jp.co.soramitsu.runtime.ext.isValidAddress
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
-import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -60,7 +60,6 @@ class WalletInteractorImpl(
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {
-//        val previousSort = mutableMapOf<AssetKey, Int>()
         return updatesMixin.tokenRatesUpdate.map {
             it.isNotEmpty()
         }.asFlow()
@@ -75,27 +74,11 @@ class WalletInteractorImpl(
                     .map { assets ->
                         when {
                             customAssetSortingEnabled() -> assets.sortedBy { it.asset.sortIndex }
-                            // todo research this logic
-//                            ratesUpdating && previousSort.isEmpty() -> {
-//                                val sortedAssets = assets.sortedWith(defaultAssetListSort())
-//                                previousSort.clear()
-//                                previousSort.putAll(getSortInfo(sortedAssets))
-//                                sortedAssets
-//                            }
-//                            ratesUpdating -> assets.sortedWith(createSortComparator(previousSort))
                             else -> assets.sortedWith(defaultAssetListSort())
                         }
                     }
             }
     }
-
-//    private fun getSortInfo(sortedAssets: List<Asset>) = sortedAssets.mapIndexed { index, asset ->
-//        asset.uniqueKey to index
-//    }
-//
-//    private fun createSortComparator(previousSort: Map<AssetKey, Int>) = compareBy<Asset> {
-//        previousSort[it.uniqueKey]
-//    }
 
     private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
         .thenByDescending { it.asset.fiatAmount.orZero() }

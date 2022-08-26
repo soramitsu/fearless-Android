@@ -23,7 +23,8 @@ data class AssetModel(
     val available: BigDecimal?,
     val sortIndex: Int,
     val minSupportedVersion: String?,
-    val chainAccountName: String?
+    val chainAccountName: String?,
+    val isHidden: Boolean?
 ) {
     val totalFiat = total?.applyFiatRate(token.fiatRate)
     val availableFiat = available?.applyFiatRate(token.fiatRate)

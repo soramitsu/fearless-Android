@@ -2,6 +2,8 @@ package jp.co.soramitsu.wallet.impl.data.repository
 
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -23,9 +25,26 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
+import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
+import jp.co.soramitsu.wallet.impl.data.mappers.mapFeeRemoteToFee
+import jp.co.soramitsu.wallet.impl.data.mappers.mapNodeToOperation
+import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
+import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
+import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryHistoryRequest
+import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
+import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
+import jp.co.soramitsu.wallet.impl.data.network.subquery.SubQueryOperationsApi
+import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -38,25 +57,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
-import jp.co.soramitsu.wallet.impl.data.mappers.mapFeeRemoteToFee
-import jp.co.soramitsu.wallet.impl.data.mappers.mapNodeToOperation
-import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
-import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.wallet.impl.data.network.model.request.SubqueryHistoryRequest
-import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
-import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
-import jp.co.soramitsu.wallet.impl.data.network.subquery.SubQueryOperationsApi
-import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
-import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.ext.addressOf
-import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -93,7 +93,6 @@ class WalletRepositoryImpl(
                     val hasChainAccount = asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }
                     AssetWithStatus(
                         asset = it,
-                        enabled = it.enabled,
                         hasAccount = !it.accountId.contentEquals(emptyAccountIdValue),
                         hasChainAccount = hasChainAccount
                     )
@@ -108,9 +107,9 @@ class WalletRepositoryImpl(
                                 chainAsset = it,
                                 metaId = meta.id,
                                 accountId = meta.accountId(chain) ?: emptyAccountIdValue,
-                                minSupportedVersion = chain.minSupportedVersion
+                                minSupportedVersion = chain.minSupportedVersion,
+                                enabled = chain.nodes.isNotEmpty()
                             ),
-                            enabled = true,
                             hasAccount = !chain.isEthereumBased || meta.ethereumPublicKey != null,
                             hasChainAccount = chain.id in chainAccounts.mapNotNull { it.chain?.id }
                         )
@@ -122,7 +121,6 @@ class WalletRepositoryImpl(
                     createEmpty(chainAccount)?.let { asset ->
                         AssetWithStatus(
                             asset = asset,
-                            enabled = true,
                             hasAccount = true,
                             hasChainAccount = false
                         )
