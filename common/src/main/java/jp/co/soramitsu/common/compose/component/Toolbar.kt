@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +25,8 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,8 +40,13 @@ import jp.co.soramitsu.common.compose.theme.white
 
 data class MainToolbarViewState(
     val title: String,
-    val walletIcon: Drawable?,
+    val homeIconState: ToolbarHomeIconState = ToolbarHomeIconState(),
     val selectorViewState: ChainSelectorViewState
+)
+
+data class ToolbarHomeIconState(
+    val walletIcon: Drawable? = null,
+    @DrawableRes val navigationIcon: Int? = null
 )
 
 data class MenuIconItem(
@@ -49,7 +58,6 @@ data class MenuIconItem(
 fun MainToolbar(
     state: MainToolbarViewState,
     onChangeChainClick: () -> Unit,
-    @DrawableRes navigationIcon: Int? = null,
     onNavigationClick: () -> Unit = {},
     menuItems: List<MenuIconItem>? = null
 ) {
@@ -64,34 +72,10 @@ fun MainToolbar(
             contentAlignment = Alignment.CenterStart,
             modifier = Modifier.weight(1f)
         ) {
-            state.walletIcon?.let {
-                IconButton(
-                    onClick = onNavigationClick,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(backgroundBlurColor)
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        painter = rememberAsyncImagePainter(model = it),
-                        contentDescription = null
-                    )
-                }
-            } ?: navigationIcon?.let {
-                IconButton(
-                    onClick = onNavigationClick,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(backgroundBlurColor)
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = navigationIcon),
-                        tint = white,
-                        contentDescription = null
-                    )
-                }
-            }
+            ToolbarHomeIcon(
+                state = state.homeIconState,
+                onClick = onNavigationClick
+            )
         }
         Column(
             modifier = Modifier
@@ -136,14 +120,54 @@ fun MainToolbar(
     }
 }
 
+@Composable
+private fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
+    when {
+        state.navigationIcon != null -> {
+            IconButton(
+                painter = painterResource(id = state.navigationIcon),
+                tint = white,
+                onClick = onClick
+            )
+        }
+        state.walletIcon != null -> {
+            IconButton(
+                painter = rememberAsyncImagePainter(model = state.walletIcon),
+                onClick = onClick
+            )
+        }
+    }
+}
+
+@Composable
+fun IconButton(
+    painter: Painter,
+    tint: Color = LocalContentColor.current.copy(alpha = LocalContentAlpha.current),
+    onClick: () -> Unit
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(backgroundBlurColor)
+            .size(40.dp)
+    ) {
+        Icon(
+            painter = painter,
+            tint = tint,
+            contentDescription = null
+        )
+    }
+}
+
 @Preview
 @Composable
-fun MainToolbarPreview() {
+private fun MainToolbarPreview() {
     FearlessTheme {
         MainToolbar(
             state = MainToolbarViewState(
                 title = "My main wallet",
-                walletIcon = null,
+                homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
                 selectorViewState = ChainSelectorViewState(
                     selectedChainId = "id",
                     selectedChainName = "Kusama",
@@ -154,7 +178,6 @@ fun MainToolbarPreview() {
                 MenuIconItem(icon = R.drawable.ic_scan, {}),
                 MenuIconItem(icon = R.drawable.ic_search, {})
             ),
-            navigationIcon = R.drawable.ic_arrow_back_24dp,
             onChangeChainClick = {},
             onNavigationClick = {}
         )

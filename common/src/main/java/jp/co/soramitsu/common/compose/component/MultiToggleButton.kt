@@ -23,7 +23,8 @@ import jp.co.soramitsu.common.utils.toggleableWithNoIndication
 
 @Composable
 fun <T : MultiToggleItem> MultiToggleButton(
-    state: MultiToggleButtonState<T>
+    state: MultiToggleButtonState<T>,
+    onToggleChange: (T) -> Unit
 ) {
     val selectedTint = MaterialTheme.customColors.white16
     val unselectedTint = Color.Unspecified
@@ -53,7 +54,7 @@ fun <T : MultiToggleItem> MultiToggleButton(
                             role = Role.Tab,
                             onValueChange = { selected ->
                                 if (selected) {
-                                    state.onToggleChange(toggleState)
+                                    onToggleChange(toggleState)
                                 }
                             }
                         ),
@@ -75,8 +76,7 @@ fun <T : MultiToggleItem> MultiToggleButton(
 
 data class MultiToggleButtonState<T : MultiToggleItem>(
     val currentSelection: T,
-    val toggleStates: List<T>,
-    val onToggleChange: (T) -> Unit
+    val toggleStates: List<T>
 )
 
 interface MultiToggleItem {
@@ -95,7 +95,8 @@ fun PreviewMultiToggleButton() {
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {
             MultiToggleButton(
-                MultiToggleButtonState(currencies, listOf(currencies, nfts)) {}
+                MultiToggleButtonState(currencies, listOf(currencies, nfts)),
+                onToggleChange = {}
             )
         }
     }

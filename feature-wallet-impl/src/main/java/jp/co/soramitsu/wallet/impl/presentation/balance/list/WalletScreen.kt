@@ -51,7 +51,10 @@ fun WalletScreen(
                 MarginVertical(margin = 16.dp)
                 AssetBalance(state = data.balance)
                 MarginVertical(margin = 24.dp)
-                MultiToggleButton(state = data.multiToggleButtonState)
+                MultiToggleButton(
+                    state = data.multiToggleButtonState,
+                    onToggleChange = viewModel::assetTypeChanged
+                )
                 MarginVertical(margin = 16.dp)
                 LazyColumn {
                     items(data.assets) { asset ->

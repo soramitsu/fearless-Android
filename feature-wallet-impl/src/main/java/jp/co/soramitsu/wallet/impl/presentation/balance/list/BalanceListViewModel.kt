@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -115,8 +116,7 @@ class BalanceListViewModel @Inject constructor(
     private val assetTypeSelectorState = MutableLiveData(
         MultiToggleButtonState(
             currentSelection = AssetType.Currencies,
-            toggleStates = AssetType.values().toList(),
-            onToggleChange = ::assetTypeChanged
+            toggleStates = AssetType.values().toList()
         )
     )
 
@@ -168,7 +168,7 @@ class BalanceListViewModel @Inject constructor(
         LoadingState.Loaded(
             MainToolbarViewState(
                 title = it.nameOrAddress,
-                walletIcon = it.image,
+                homeIconState = ToolbarHomeIconState(walletIcon = it.image),
                 selectorViewState = ChainSelectorViewState()
             )
         )

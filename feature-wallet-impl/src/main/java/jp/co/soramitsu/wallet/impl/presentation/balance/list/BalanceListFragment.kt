@@ -54,7 +54,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                         MenuIconItem(icon = R.drawable.ic_scan, {}),
                         MenuIconItem(icon = R.drawable.ic_search, {})
                     ),
-                    navigationIcon = R.drawable.ic_arrow_back_24dp,
                     onChangeChainClick = { },
                     onNavigationClick = { viewModel.avatarClicked() }
                 )
@@ -65,13 +64,14 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        hideKeyboard()
+
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
     }
 
     fun initViews() {
-        hideKeyboard()
 //        with(binding) {
 //            walletContainer.setOnRefreshListener {
 //                viewModel.sync()
