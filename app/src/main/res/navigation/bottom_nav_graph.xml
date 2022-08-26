@@ -25,7 +25,6 @@
 
     <fragment
         android:id="@+id/walletFragment"
-        tools:layout="@layout/fragment_balance_list"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListFragment"
         android:label="WalletFragment" />
 </navigation>

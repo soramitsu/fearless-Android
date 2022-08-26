@@ -16,20 +16,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
-import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.colorAccent
+import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.transparent
 
 data class ChainSelectorViewState(
-    val selectedChainName: String,
-    val selectedChainId: String,
-    val selectedChainStatusColor: Color
+    val selectedChainName: String? = null,
+    val selectedChainId: String? = null,
+    val selectedChainStatusColor: Color = colorAccent
 )
 
 @Composable
@@ -55,7 +56,7 @@ fun ChainSelector(
             }
         }
         Text(
-            text = selectorViewState.selectedChainName,
+            text = selectorViewState.selectedChainName ?: stringResource(R.string.chain_selection_all_networks),
             style = MaterialTheme.customTypography.body1,
             maxLines = 1
         )
@@ -63,7 +64,7 @@ fun ChainSelector(
             painter = painterResource(id = R.drawable.ic_arrow_down),
             contentDescription = null,
             modifier = Modifier.padding(8.dp),
-            tint = white
+            tint = transparent
         )
     }
 }

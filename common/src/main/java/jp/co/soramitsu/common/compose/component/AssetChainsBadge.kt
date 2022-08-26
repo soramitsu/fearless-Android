@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,12 +40,17 @@ fun AssetChainsBadge(
                     .size(16.dp)
                     .padding(2.dp)
                     .alpha(0.5f)
+                    .testTag("AssetChainsBadge_chain_icon")
             )
         }
 
         val iconsLeft = urls.size - iconsToShow
         if (iconsLeft > 0) {
-            Surface(Modifier.height(16.dp)) {
+            Surface(
+                modifier = Modifier
+                    .height(16.dp)
+                    .testTag("AssetChainsBadge_chains_extra")
+            ) {
                 Text(
                     text = "+$iconsLeft".uppercase(),
                     style = MaterialTheme.customTypography.capsTitle2,

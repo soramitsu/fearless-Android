@@ -1,11 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +21,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetListItem
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
@@ -41,8 +39,7 @@ fun WalletScreen(
         is LoadingState.Loading<WalletState> -> {
             Text(
                 text = "LOADING...",
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Black,
                 fontSize = TextUnit(40f, TextUnitType.Sp)
@@ -52,15 +49,14 @@ fun WalletScreen(
             val data = (state as LoadingState.Loaded<WalletState>).data
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 MarginVertical(margin = 16.dp)
-                // todo it's Balance component here
-                Box(
-                    modifier = Modifier
-                        .height(58.dp)
-                        .fillMaxWidth()
+                AssetBalance(
+                    state = data.balance,
+                    onAddressClick = { },
+                    onBalanceClick = { viewModel.onBalanceClicked() }
                 )
                 MarginVertical(margin = 24.dp)
                 MultiToggleButton(
-                    data.multiToggleButtonState,
+                    state = data.multiToggleButtonState,
                     onToggleChange = viewModel::assetTypeChanged
                 )
                 MarginVertical(margin = 16.dp)
@@ -78,7 +74,7 @@ fun WalletScreen(
 
 @Preview
 @Composable
-fun PreviewWalletScreen() {
+private fun PreviewWalletScreen() {
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {
             WalletScreen()
