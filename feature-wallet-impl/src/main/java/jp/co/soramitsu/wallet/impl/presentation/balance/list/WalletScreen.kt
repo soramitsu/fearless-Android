@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetListItem
+import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -60,10 +62,24 @@ fun WalletScreen(
                     onToggleChange = viewModel::assetTypeChanged
                 )
                 MarginVertical(margin = 16.dp)
-                LazyColumn {
-                    items(data.assets) { asset ->
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(data.visibleAssets) { asset ->
                         AssetListItem(asset) { viewModel.assetClicked(it) }
-                        MarginVertical(margin = 8.dp)
+                    }
+                    if (data.hiddenAssets.isNotEmpty()) {
+                        item {
+                            HiddenAssetsItem(
+                                state = data.hiddenState,
+                                onClick = { viewModel.onHiddenAssetClicked() }
+                            )
+                        }
+                        if (data.hiddenState.isExpanded) {
+                            items(data.hiddenAssets) { asset ->
+                                AssetListItem(asset) { viewModel.assetClicked(it) }
+                            }
+                        }
                     }
                     item { MarginVertical(margin = 80.dp) }
                 }

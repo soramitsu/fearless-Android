@@ -52,7 +52,8 @@ fun AboutScreen(
         assetChainUrls = assetChainUrls,
         chainId = "",
         chainAssetId = "",
-        isSupported = true
+        isSupported = true,
+        isHidden = false
     )
     AssetListItem(assetListItemState, Modifier.padding(0.dp, 24.dp, 0.dp, 0.dp)) {}
 }

@@ -3,11 +3,11 @@ package jp.co.soramitsu.wallet.impl.data.mappers
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.TokenLocal
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.model.TokenModel
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 fun mapTokenLocalToToken(
     tokenLocal: TokenLocal,
@@ -76,7 +76,8 @@ fun mapAssetToAssetModel(asset: Asset): AssetModel {
             fiatAmount = fiatAmount,
             sortIndex = sortIndex,
             minSupportedVersion = minSupportedVersion,
-            chainAccountName = chainAccountName
+            chainAccountName = chainAccountName,
+            isHidden = !enabled
         )
     }
 }

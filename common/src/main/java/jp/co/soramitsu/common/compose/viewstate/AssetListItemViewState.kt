@@ -11,5 +11,6 @@ data class AssetListItemViewState(
     val assetChainUrls: List<String>,
     val chainId: String,
     val chainAssetId: String,
-    val isSupported: Boolean
+    val isSupported: Boolean,
+    val isHidden: Boolean
 )

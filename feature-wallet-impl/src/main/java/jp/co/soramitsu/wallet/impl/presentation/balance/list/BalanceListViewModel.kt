@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeViewState
+import jp.co.soramitsu.common.compose.component.HiddenItemState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
@@ -113,6 +114,8 @@ class BalanceListViewModel @Inject constructor(
         BalanceModel(assetsWithState, fiatSymbol.orEmpty())
     }
 
+    private val hiddenAssetsState = MutableLiveData(HiddenItemState(isExpanded = false))
+
     private val assetTypeSelectorState = MutableLiveData(
         MultiToggleButtonState(
             currentSelection = AssetType.Currencies,
@@ -122,8 +125,9 @@ class BalanceListViewModel @Inject constructor(
 
     val state = combine(
         assetTypeSelectorState.asFlow(),
-        balanceLiveData.asFlow()
-    ) { multiToggleButtonState: MultiToggleButtonState<AssetType>, balanceModel: BalanceModel ->
+        balanceLiveData.asFlow(),
+        hiddenAssetsState.asFlow()
+    ) { multiToggleButtonState: MultiToggleButtonState<AssetType>, balanceModel: BalanceModel, hiddenState: HiddenItemState ->
         if (balanceModel.assetModels.isEmpty()) return@combine LoadingState.Loading()
         val assetsListItemStates: List<AssetListItemViewState> = balanceModel.assetModels.map { model ->
             with(model.asset) {
@@ -138,7 +142,8 @@ class BalanceListViewModel @Inject constructor(
                     assetChainUrls = listOf(token.configuration.chainIcon).mapNotNull { it },
                     chainId = token.configuration.chainId,
                     chainAssetId = token.configuration.id,
-                    isSupported = isSupported
+                    isSupported = isSupported,
+                    isHidden = isHidden == true
                 )
             }
         }
@@ -157,7 +162,8 @@ class BalanceListViewModel @Inject constructor(
             WalletState(
                 multiToggleButtonState,
                 assetsListItemStates,
-                balanceState
+                balanceState,
+                hiddenState
             )
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
@@ -201,6 +207,12 @@ class BalanceListViewModel @Inject constructor(
         router.openChangeAccountFromWallet()
     }
 
+    fun onHiddenAssetClicked() {
+        hiddenAssetsState.value = HiddenItemState(
+            isExpanded = hiddenAssetsState.value?.isExpanded?.not() ?: false
+        )
+    }
+
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedAccountFlow(polkadotChainId)
             .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
@@ -214,9 +226,8 @@ class BalanceListViewModel @Inject constructor(
         interactor.assetsFlow()
             .mapList {
                 when {
-                    !it.enabled -> null
-                    !it.hasAccount -> null
-                    else -> it.asset
+                    it.hasAccount -> it.asset
+                    else -> null
                 }
             }
             .map { it.filterNotNull() }

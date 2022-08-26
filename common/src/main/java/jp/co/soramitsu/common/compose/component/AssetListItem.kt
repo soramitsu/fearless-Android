@@ -180,7 +180,8 @@ private fun PreviewAssetListItem() {
         assetChainUrls = assetChainUrls,
         chainId = "",
         chainAssetId = "",
-        true
+        isSupported = true,
+        isHidden = false
     )
     FearlessTheme {
         AssetListItem(state) {}
