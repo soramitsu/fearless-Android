@@ -140,7 +140,7 @@ private fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
 }
 
 @Composable
-fun IconButton(
+private fun IconButton(
     painter: Painter,
     tint: Color = LocalContentColor.current.copy(alpha = LocalContentAlpha.current),
     onClick: () -> Unit

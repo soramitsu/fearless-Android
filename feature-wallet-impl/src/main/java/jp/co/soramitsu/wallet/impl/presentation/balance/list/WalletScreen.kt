@@ -49,7 +49,11 @@ fun WalletScreen(
             val data = (state as LoadingState.Loaded<WalletState>).data
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 MarginVertical(margin = 16.dp)
-                AssetBalance(state = data.balance)
+                AssetBalance(
+                    state = data.balance,
+                    onAddressClick = { },
+                    onBalanceClick = { viewModel.onBalanceClicked() }
+                )
                 MarginVertical(margin = 24.dp)
                 MultiToggleButton(
                     state = data.multiToggleButtonState,

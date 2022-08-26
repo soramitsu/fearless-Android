@@ -147,8 +147,6 @@ class BalanceListViewModel @Inject constructor(
             balance = balanceModel.totalBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
             assetSymbol = "",
             address = "",
-            onAddressClick = {},
-            onBalanceClick = { onBalanceClicked() },
             changeViewState = ChangeViewState(
                 percentChange = balanceModel.rate?.formatAsChange().orEmpty(),
                 fiatChange = balanceModel.totalBalanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)

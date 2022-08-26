@@ -23,8 +23,6 @@ data class AssetBalanceViewState(
     val balance: String,
     val assetSymbol: String,
     val address: String,
-    val onAddressClick: () -> Unit,
-    val onBalanceClick: () -> Unit,
     val changeViewState: ChangeViewState
 )
 
@@ -35,7 +33,9 @@ data class ChangeViewState(
 
 @Composable
 fun AssetBalance(
-    state: AssetBalanceViewState
+    state: AssetBalanceViewState,
+    onAddressClick: () -> Unit,
+    onBalanceClick: () -> Unit
 ) {
     val balanceChangeStatusColor = if (state.changeViewState.percentChange.startsWith("+")) {
         MaterialTheme.customColors.greenText
@@ -71,14 +71,14 @@ fun AssetBalance(
                 modifier = Modifier
                     .testTag("balance_fiat")
                     .clickableWithNoIndication {
-                        state.onBalanceClick()
+                        onBalanceClick()
                     }
             )
         }
         if (state.address.isNotEmpty()) {
             Address(
                 address = state.address,
-                onClick = state.onAddressClick,
+                onClick = onAddressClick,
                 modifier = Modifier.testTag("balance_address")
             )
         }
@@ -98,8 +98,6 @@ private fun PreviewAssetBalance() {
         balance = assetBalance,
         assetSymbol = assetSymbol,
         address = address,
-        onAddressClick = {},
-        onBalanceClick = {},
         changeViewState = ChangeViewState(
             percentChange = percentChange,
             fiatChange = assetBalanceFiat
@@ -107,6 +105,10 @@ private fun PreviewAssetBalance() {
     )
 
     FearlessTheme {
-        AssetBalance(state)
+        AssetBalance(
+            state = state,
+            onAddressClick = {},
+            onBalanceClick = {}
+        )
     }
 }
