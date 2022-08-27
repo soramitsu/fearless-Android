@@ -25,7 +25,11 @@ import jp.co.soramitsu.feature_staking_impl.R
 data class EstimatedEarningsViewState(
     val monthlyChange: TitleValueViewState?,
     val yearlyChange: TitleValueViewState?,
-)
+){
+    companion object{
+        val default = EstimatedEarningsViewState(null, null)
+    }
+}
 
 @Composable
 fun EstimatedEarnings(

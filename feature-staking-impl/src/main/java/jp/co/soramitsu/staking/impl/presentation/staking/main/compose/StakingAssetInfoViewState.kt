@@ -95,12 +95,3 @@ fun StakingAssetInfoViewState.Parachain.update(state: StakingNetworkInfoModel.Pa
         unstakingPeriod = unstakingPeriod.copy(value = state.lockupPeriod)
     )
 }
-
-fun StakingAssetInfoViewState.update(state: StakingNetworkInfoModel): StakingAssetInfoViewState {
-    hashCode()
-    return when (state) {
-        is StakingNetworkInfoModel.Parachain -> (this as StakingAssetInfoViewState.Parachain).update(state)
-        is StakingNetworkInfoModel.Pool -> (this as StakingAssetInfoViewState.StakingPool).update(state)
-        is StakingNetworkInfoModel.RelayChain -> (this as StakingAssetInfoViewState.RelayChain).update(state)
-    }
-}

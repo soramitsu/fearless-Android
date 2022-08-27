@@ -36,6 +36,7 @@ import jp.co.soramitsu.staking.impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.staking.impl.domain.model.ValidatorStatus
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarnings
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingAssetInfo
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationOptionsBottomSheet
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationRecyclerViewAdapter
@@ -126,6 +127,11 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                     binding.collatorsList.setVisible(stakingState is DelegatorViewState)
 
                     when (stakingState) {
+                        is StakingPoolWelcomeViewState -> {
+                            binding.stakingEstimate.setVisible(false)
+                            binding.stakingStakeSummary.setVisible(false)
+                            binding.collatorsList.setVisible(false)
+                        }
                         is NominatorViewState -> {
                             binding.stakingStakeSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
                         }
@@ -156,7 +162,9 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             binding.startStakingBtn.isVisible = true
                         }
                         is PoolMemberViewState -> {
-
+                            binding.stakingEstimate.setVisible(false)
+                            binding.stakingStakeSummary.setVisible(false)
+                            binding.collatorsList.setVisible(false)
                         }
                     }
                 }
@@ -223,8 +231,17 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             it.networkInfoState?.let { networkState ->
                                 StakingAssetInfo(networkState)
                             }
-                            it.estimatedEarnings?.let { estimatedEarnings ->
-                                EstimatedEarnings(estimatedEarnings, viewModel::onEstimatedEarningsInfoClick)
+                            it.stakingViewState?.let { stakingViewState ->
+                                when (stakingViewState) {
+                                    is StakingViewState1.Pool.PoolMember -> {
+                                        MarginVertical(margin = Dp(16f))
+                                        StakingPoolInfo(stakingViewState.stakeInfoViewState) {}
+                                    }
+                                    is StakingViewState1.Pool.Welcome -> {
+                                        MarginVertical(margin = Dp(16f))
+                                        EstimatedEarnings(stakingViewState.estimatedEarnings, viewModel::onEstimatedEarningsInfoClick)
+                                    }
+                                }
                             }
                         }
                     }

@@ -18,6 +18,7 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 
 class StakingPoolViewModel(
@@ -54,7 +55,7 @@ class StakingPoolViewModel(
     }
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
-        return stakingInteractor.currentAssetFlow().map { asset ->
+        return stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }.map { asset ->
             val config = asset.token.configuration
             val chainId = config.chainId
 

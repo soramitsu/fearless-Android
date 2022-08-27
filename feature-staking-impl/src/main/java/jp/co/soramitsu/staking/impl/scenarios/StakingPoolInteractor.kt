@@ -15,6 +15,7 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -27,12 +28,12 @@ class StakingPoolInteractor(
 ) {
 
     fun stakingStateFlow(): Flow<StakingState> {
-        return stakingInteractor.selectedChainFlow().flatMapConcat { chain ->
+        return stakingInteractor.selectedChainFlow().filter { it.supportStakingPool }.flatMapConcat { chain ->
             val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
             stakingPoolStateFlow(chain, accountId)
         }
     }
-    
+
     private fun stakingPoolStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState> {
         return observeCurrentPool(chain.id, accountId).map {
             it ?: return@map StakingState.Pool.None(chain, accountId)
@@ -52,8 +53,10 @@ class StakingPoolInteractor(
             poolMember ?: return@flatMapConcat flowOf(null)
             dataSource.observePool(chainId, poolMember.poolId).map { bondedPool ->
                 bondedPool ?: return@map null
+                val name = dataSource.getPoolMetadata(chainId, poolMember.poolId)
                 NominationPool(
                     poolMember.poolId,
+                    name,
                     poolMember.points,
                     poolMember.lastRecordedRewardCounter,
                     bondedPool.state,

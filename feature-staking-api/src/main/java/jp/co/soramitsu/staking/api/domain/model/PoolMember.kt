@@ -18,6 +18,7 @@ data class PoolUnbonding(
 
 data class NominationPool(
     val poolId: BigInteger,
+    val name: String?,
     val stakedInPlanks: BigInteger,
     val lastRecordedRewardCounter: BigInteger,
     val state: NominationPoolState,
@@ -30,6 +31,7 @@ data class NominationPool(
     val stateToggler: AccountId
 ) {
     val unstaking = unbondingEras.sumByBigInteger { it.amount }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -84,7 +84,7 @@ sealed class StakingState(
         class Member(
             chain: Chain,
             accountId: AccountId,
-            pool: NominationPool
+            val pool: NominationPool
         ) : Pool(chain, accountId)
 
         class None(chain: Chain, accountId: AccountId) : Pool(chain, accountId)

@@ -131,4 +131,15 @@ class StakingPoolDataSource(
             chainId = chainId
         )
     }
+
+    suspend fun getPoolMetadata(chainId: ChainId, poolId: BigInteger): String? {
+        return remoteStorage.query(
+            chainId = chainId,
+            keyBuilder = { it.metadata.nominationPools().storage("Metadata").storageKey(it, poolId) },
+            binding = { scale, runtime ->
+                scale ?: return@query null
+                bindBondedPoolsMetadata(scale, runtime)
+            }
+         )
+    }
 }
