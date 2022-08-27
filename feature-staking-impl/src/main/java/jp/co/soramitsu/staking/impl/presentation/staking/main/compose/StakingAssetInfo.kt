@@ -25,8 +25,6 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white64
-import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 
 @Composable
 private fun StakingAssetInfo(
@@ -129,7 +127,9 @@ fun PoolsStakingInfo(state: StakingAssetInfoViewState.StakingPool) {
 fun StakingAssetInfoPreview() {
     val poolState = StakingAssetInfoViewState.StakingPool(
         title = "Kusama pool",
-        guide = "Stakers (members) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a member's stake in the bonded pool.",
+        guide = "Stakers (members) with a small amount of tokens can pool their funds " +
+            "together and act as a single nominator. The earnings of the pool are split pro rata " +
+            "to a member's stake in the bonded pool.",
         minToJoin = TitleValueViewState("Min. to join Pool", "0.0016 KSM"),
         minToCreate = TitleValueViewState("Min. to create a pool", "0.0016 KSM"),
         existingPools = TitleValueViewState("Existing pools", "59"),

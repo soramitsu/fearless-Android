@@ -27,7 +27,7 @@ sealed class StakingAssetInfoViewState {
         val totalStaked: TitleValueViewState,
         val minStake: TitleValueViewState,
         val activeNominators: TitleValueViewState,
-        val unstakingPeriod: TitleValueViewState,
+        val unstakingPeriod: TitleValueViewState
     ) : StakingAssetInfoViewState() {
         companion object
     }
@@ -36,7 +36,7 @@ sealed class StakingAssetInfoViewState {
         override val title: String,
         val stories: String, // todo stories view state
         val minStake: TitleValueViewState,
-        val unstakingPeriod: TitleValueViewState,
+        val unstakingPeriod: TitleValueViewState
     ) : StakingAssetInfoViewState() {
         companion object
     }

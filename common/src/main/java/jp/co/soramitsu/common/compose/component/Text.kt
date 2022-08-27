@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.white16
 
 @Composable
 fun B1(modifier: Modifier = Modifier, text: String, color: Color = Color.Unspecified) {

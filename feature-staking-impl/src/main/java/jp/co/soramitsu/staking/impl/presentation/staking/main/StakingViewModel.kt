@@ -77,7 +77,7 @@ class StakingViewModel @Inject constructor(
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     rewardCalculatorFactory: RewardCalculatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
-    private val stakingPoolInteractor: StakingPoolInteractor,
+    private val stakingPoolInteractor: StakingPoolInteractor
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
@@ -281,11 +281,9 @@ class StakingViewModel @Inject constructor(
     }
 
     fun onEstimatedEarningsInfoClick() {
-
     }
 
     fun startStakingClick() {
-
     }
 }
 

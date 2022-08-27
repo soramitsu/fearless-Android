@@ -837,10 +837,9 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_staking_state_toggler">State toggler</string>
     <string name="pool_staking_title">Pool staking</string>
     <string name="common_watch">Watch</string>
-    <string name="hidden.assets">Hidden assets</string>
-    <string name="nft.stub.title">Sumimasen!</string>
-    <string name="nft.stub.text">NFTs are going to be here soon</string>
-    <string name="сurrencies.stub.text">Currencies</string>
-    <string name="nfts.stub">NFTs</string>
+    <string name="nft_stub_title">Sumimasen!</string>
+    <string name="nft_stub_text">NFTs are going to be here soon</string>
+    <string name="сurrencies_stub_text">Currencies</string>
+    <string name="nfts_stub">NFTs</string>
 
 </resources>

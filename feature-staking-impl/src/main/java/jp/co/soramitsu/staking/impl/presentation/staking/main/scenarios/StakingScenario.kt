@@ -23,7 +23,7 @@ class StakingScenario(
     private val resourceManager: ResourceManager,
     private val alertsInteractor: AlertsInteractor,
     private val stakingViewStateFactory: StakingViewStateFactory,
-    private val stakingPoolInteractor: StakingPoolInteractor,
+    private val stakingPoolInteractor: StakingPoolInteractor
 ) {
 
     private val parachainViewModel by lazy {

@@ -77,7 +77,6 @@ private fun StakingInfoItem(
             MarginVertical(margin = 16.dp)
             Status()
             MarginVertical(margin = 16.dp)
-
         }
     }
 }
@@ -86,7 +85,8 @@ private fun StakingInfoItem(
 fun StakingPoolInfo(state: StakeInfoViewState, onClick: () -> Unit) {
     require(state is StakeInfoViewState.PoolStakeInfoViewState)
     StakingInfoItem(
-        title = state.title, MainInfo = {
+        title = state.title,
+        MainInfo = {
             Column {
                 Row {
                     TitleToValue(state = state.staked, testTag = "poolStaked", modifier = Modifier.weight(1f))
@@ -101,7 +101,8 @@ fun StakingPoolInfo(state: StakeInfoViewState, onClick: () -> Unit) {
         },
         Status = {
             StakeStatus(state.status)
-        }, onClick
+        },
+        onClick
     )
 }
 

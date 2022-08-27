@@ -31,7 +31,8 @@ private fun ButtonPreview() {
     FearlessTheme {
         Column(modifier = Modifier.padding(16.dp)) {
             AccentButton(
-                "Start staking", modifier = Modifier
+                "Start staking",
+                modifier = Modifier
                     .width(200.dp)
                     .height(52.dp)
             ) {}

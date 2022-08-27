@@ -49,20 +49,25 @@ private fun TitleToValue(modifier: Modifier = Modifier, state: TitleValueViewSta
         )
 
         state.value?.let {
-            B0(text = it, modifier = Modifier
+            B0(
+                text = it,
+                modifier = Modifier
+                    .constrainAs(value) {
+                        top.linkTo(title.bottom, 4.dp)
+                        start.linkTo(title.start)
+                    }
+                    .testTag("${testTag}Value")
+            )
+        } ?: ShimmerB0(
+            modifier = Modifier
                 .constrainAs(value) {
-                    top.linkTo(title.bottom, 4.dp)
+                    top.linkTo(title.bottom, 8.dp)
                     start.linkTo(title.start)
+                    end.linkTo(title.end)
+                    width = Dimension.fillToConstraints
                 }
-                .testTag("${testTag}Value"))
-        } ?: ShimmerB0(modifier = Modifier
-            .constrainAs(value) {
-                top.linkTo(title.bottom, 8.dp)
-                start.linkTo(title.start)
-                end.linkTo(title.end)
-                width = Dimension.fillToConstraints
-            }
-            .testTag("${testTag}ValueShimmer"))
+                .testTag("${testTag}ValueShimmer")
+        )
 
         state.additionalValue?.let { additionalValue ->
             B2(

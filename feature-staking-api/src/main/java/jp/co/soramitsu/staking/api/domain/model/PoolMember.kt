@@ -83,4 +83,3 @@ enum class NominationPoolState {
         }
     }
 }
-

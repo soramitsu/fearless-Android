@@ -8,7 +8,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.model.NominationPool
 import jp.co.soramitsu.staking.api.domain.model.StakingState
-import jp.co.soramitsu.staking.impl.data.mappers.toDomain
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
@@ -54,6 +53,7 @@ class StakingPoolInteractor(
             dataSource.observePool(chainId, poolMember.poolId).map { bondedPool ->
                 bondedPool ?: return@map null
                 val name = dataSource.getPoolMetadata(chainId, poolMember.poolId)
+                val unbondingEras = poolMember.unbondingEras.map { jp.co.soramitsu.staking.api.domain.model.PoolUnbonding(it.era, it.amount) }
                 NominationPool(
                     poolMember.poolId,
                     name,
@@ -61,7 +61,7 @@ class StakingPoolInteractor(
                     poolMember.lastRecordedRewardCounter,
                     bondedPool.state,
                     BigInteger.ZERO,
-                    poolMember.unbondingEras.toDomain(),
+                    unbondingEras,
                     bondedPool.memberCounter,
                     bondedPool.depositor,
                     bondedPool.root,

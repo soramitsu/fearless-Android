@@ -12,7 +12,6 @@ import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Filt
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Sorting
 import kotlinx.coroutines.flow.MutableStateFlow
 
-
 sealed class SetupStakingProcess {
 
     class Initial(val stakingType: StakingType) : SetupStakingProcess() {
@@ -71,7 +70,7 @@ sealed class SetupStakingProcess {
                 rewardDestination: RewardDestination,
                 currentAccountAddress: String
             ): SelectBlockProducersStep.Collators {
-                //todo
+                // todo
                 val payout = RewardDestination.Payout(currentAccountAddress.fromHex())
                 return SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Full(newAmount, payout, currentAccountAddress))
             }

@@ -560,6 +560,6 @@ class StakingFeatureModule {
         api: StakingPoolApi,
         dataSource: StakingPoolDataSource,
         stakingInteractor: StakingInteractor,
-        accountRepository: AccountRepository,
+        accountRepository: AccountRepository
     ) = StakingPoolInteractor(api, dataSource, stakingInteractor, accountRepository)
 }

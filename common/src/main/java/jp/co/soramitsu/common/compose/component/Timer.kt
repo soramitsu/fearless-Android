@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.view.formatTime
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-
 @Composable
 fun Timer(
     millis: Long,
@@ -42,7 +41,6 @@ fun Timer(
         currentTimer.cancel()
     }
 
-
     val newTimer = Timer(
         millis,
         deltaTime,
@@ -51,9 +49,11 @@ fun Timer(
         LocalContext.current.resources,
         textUpdate = {
             text.value = it
-        }, onFinish = {
+        },
+        onFinish = {
             timer.value = null
-        })
+        }
+    )
 
     newTimer.start()
 

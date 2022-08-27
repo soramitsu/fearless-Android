@@ -121,7 +121,8 @@ class StakingPoolDataSource(
         return remoteStorage.observe(
             chainId = chainId,
             keyBuilder = { it.metadata.nominationPools().storage("BondedPools").storageKey(it, poolId) },
-            binder = ::bindBondedPool)
+            binder = ::bindBondedPool
+        )
     }
 
     fun observePoolMembers(chainId: ChainId, accountId: AccountId): Flow<PoolMember?> {
@@ -140,6 +141,6 @@ class StakingPoolDataSource(
                 scale ?: return@query null
                 bindBondedPoolsMetadata(scale, runtime)
             }
-         )
+        )
     }
 }

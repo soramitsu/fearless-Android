@@ -13,15 +13,26 @@ sealed class StakeStatus(
 
     class Active(eraDisplay: String) : StakeStatus(
         R.string.staking_nominator_status_active,
-        R.color.green, eraDisplay, true)
+        R.color.green,
+        eraDisplay,
+        true
+    )
 
-    class PoolActive(override val timeLeft: Long, override val hideZeroTimer: Boolean) : StakeStatus(
-        R.string.staking_nominator_status_active,
-        R.color.green, "", true), WithTimer
+    class PoolActive(override val timeLeft: Long, override val hideZeroTimer: Boolean) :
+        StakeStatus(
+            R.string.staking_nominator_status_active,
+            R.color.green,
+            "",
+            true
+        ),
+        WithTimer
 
     class Inactive(eraDisplay: String) : StakeStatus(
         R.string.staking_nominator_status_inactive,
-        R.color.red, eraDisplay, true)
+        R.color.red,
+        eraDisplay,
+        true
+    )
 
     class Waiting(
         override val timeLeft: Long,
@@ -35,18 +46,28 @@ sealed class StakeStatus(
 
     class IdleCollator : StakeStatus(
         R.string.staking_collator_status_idle,
-        R.color.colorGreyText, null, false)
+        R.color.colorGreyText,
+        null,
+        false
+    )
 
     class LeavingCollator(
         override val timeLeft: Long,
         override val hideZeroTimer: Boolean = true
     ) : StakeStatus(
         R.string.staking_collator_status_leaving,
-        R.color.red, "Waiting execution", false), WithTimer
+        R.color.red,
+        "Waiting execution",
+        false
+    ),
+        WithTimer
 
     object ReadyToUnlockCollator : StakeStatus(
         R.string.staking_delegation_status_ready_to_unlock,
-        R.color.red, null, false)
+        R.color.red,
+        null,
+        false
+    )
 
     interface WithTimer {
         val timeLeft: Long
