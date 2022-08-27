@@ -7,7 +7,6 @@ import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AssetSelectorState
-import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -45,9 +44,9 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -55,8 +54,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flattenMerge
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -128,29 +125,16 @@ class StakingViewModel @Inject constructor(
             it.alerts()
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
-    @OptIn(FlowPreview::class)
-    private val estimatedEarningsViewState = stakingViewState.map {
-        if (it is LoadingState.Loading) {
-            return@map flowOf(EstimatedEarningsViewState.default)
-        }
-        when (val state = (it as LoadingState.Loaded).data) {
-            is StakingPoolWelcomeViewState -> {
-                state.returns
-            }
-            else -> null
-        }?.map { returns ->
-            EstimatedEarningsViewState(
-                monthlyChange = TitleValueViewState(returns.monthly.gain, returns.monthly.amount, returns.monthly.fiatAmount),
-                yearlyChange = TitleValueViewState(returns.yearly.gain, returns.yearly.amount, returns.yearly.fiatAmount)
-            )
-        } ?: flowOf(EstimatedEarningsViewState.default)
-    }.flattenMerge().stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = EstimatedEarningsViewState.default)
-
     private val defaultNetworkInfoStates = mapOf(
         StakingType.POOL to StakingAssetInfoViewState.StakingPool.default(resourceManager),
         StakingType.RELAYCHAIN to StakingAssetInfoViewState.RelayChain.default(resourceManager),
         StakingType.PARACHAIN to StakingAssetInfoViewState.Parachain.default(resourceManager)
     )
+
+    private val stakingViewState1: SharedFlow<StakingViewState1?> = scenarioViewModelFlow
+        .flatMapLatest {
+            it.getStakingViewStateFlow1()
+        }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     inline fun <reified T : StakingAssetInfoViewState> Map<StakingType, StakingAssetInfoViewState>.get(type: StakingType): T = get(type) as T
 
@@ -169,36 +153,12 @@ class StakingViewModel @Inject constructor(
         }
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
 
-    private val defaultStakeInfoViewStates = mapOf(
-        StakingType.POOL to StakeInfoViewState.PoolStakeInfoViewState.default(resourceManager),
-//        StakingType.RELAYCHAIN to StakeInfoViewState.RelayChain.default(resourceManager),
-//        StakingType.PARACHAIN to StakeInfoViewState.Parachain.default(resourceManager)
-    )
-
-    private val stakeFlow: Flow<StakeInfoViewState?> = stakingViewState.map {
-        when (it) {
-            is LoadingState.Loaded -> {
-                when (val data = it.data) {
-                    is PoolMemberViewState -> {
-                        val default = defaultStakeInfoViewStates[StakingType.POOL]!!
-                        data.poolFlow.map(default::update)
-                    }
-                    else -> {
-                        flowOf(null)
-                    }
-                }
-            }
-            is LoadingState.Loading -> flowOf()
-        }
-    }.flattenMerge().stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
-
     val state = combine(
         stakingSharedState.selectionItem,
         assetSelectorMixin.selectedAssetModelFlow,
         networkInfoState,
-        estimatedEarningsViewState,
-        stakeFlow
-    ) { selection, selectedAsset, networkInfo, estimatedEarnings, stake ->
+        stakingViewState1
+    ) { selection, selectedAsset, networkInfo, stakingState ->
 
         val selectorState = AssetSelectorState(
             selectedAsset.tokenName,
@@ -206,14 +166,13 @@ class StakingViewModel @Inject constructor(
             selectedAsset.assetBalance,
             (selectedAsset.selectionItem as? StakingAssetSelection.Pool)?.let { "pool" }
         )
-        val stakingViewState = stake?.let { StakingViewState1.Pool.PoolMember(it) } ?: StakingViewState1.Pool.Welcome(estimatedEarnings)
 
         StakingScreenViewState(
             selectorState,
             if (selection.type !== StakingType.POOL) null else networkInfo,
-            if (selection.type !== StakingType.POOL) null else stakingViewState
+            if (selection.type !== StakingType.POOL) null else stakingState
         )
-    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
+    }.debounce(50).stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
 
     init {
         stakingUpdateSystem.start()
@@ -322,6 +281,10 @@ class StakingViewModel @Inject constructor(
     }
 
     fun onEstimatedEarningsInfoClick() {
+
+    }
+
+    fun startStakingClick() {
 
     }
 }

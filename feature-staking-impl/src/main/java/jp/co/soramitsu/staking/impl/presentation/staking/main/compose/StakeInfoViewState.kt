@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main.compose
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.presentation.staking.main.PoolMemberViewState
 
 sealed class StakeInfoViewState {
     abstract val title: String
@@ -49,15 +48,5 @@ fun StakeInfoViewState.PoolStakeInfoViewState.Companion.default(resourceManager:
         redeemable = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_redeemable)),
         unstaking = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_unbonding_v1_9_0)),
         status = StakeStatus.PoolActive(0L, true)
-    )
-}
-
-fun StakeInfoViewState.PoolStakeInfoViewState.update(pool: PoolMemberViewState.PoolModel): StakeInfoViewState.PoolStakeInfoViewState {
-    return copy(
-        title = pool.name ?: "Your pool staking",
-        staked = staked.copy(value = pool.staked, additionalValue = pool.stakedFiat),
-        rewarded = rewarded.copy(value = pool.rewarded, additionalValue = pool.rewardedFiat),
-        redeemable = redeemable.copy(value = pool.redeemable, additionalValue = pool.redeemableFiat),
-        unstaking = unstaking.copy(value = pool.unstaking, additionalValue = pool.unstakingFiat),
     )
 }

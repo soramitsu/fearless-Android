@@ -1,7 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -24,7 +23,7 @@ class StakingScenario(
     private val resourceManager: ResourceManager,
     private val alertsInteractor: AlertsInteractor,
     private val stakingViewStateFactory: StakingViewStateFactory,
-    private val stakingPoolInteractor: StakingPoolInteractor
+    private val stakingPoolInteractor: StakingPoolInteractor,
 ) {
 
     private val parachainViewModel by lazy {
@@ -51,8 +50,9 @@ class StakingScenario(
         StakingPoolViewModel(
             stakingPoolInteractor,
             stakingInteractor,
-            stakingViewStateFactory,
-            baseViewModel
+            baseViewModel,
+            resourceManager,
+            rewardCalculatorFactory
         )
     }
 

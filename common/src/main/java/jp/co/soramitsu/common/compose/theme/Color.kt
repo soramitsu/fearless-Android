@@ -1,5 +1,9 @@
 package jp.co.soramitsu.common.compose.theme
 
+import androidx.compose.material.ButtonColors
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Color
 
 val colorPrimary = Color(0xFF004CB7)
@@ -49,3 +53,17 @@ val accountIconDark = Color(0xFF000000)
 val errorRed = Color(0xFFFF3B30)
 
 val transparent = Color(0xffffff)
+
+val colorAccentDisabled = Color(0xFFEE0077)
+
+val accentButtonColors = object : ButtonColors {
+    @Composable
+    override fun backgroundColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) colorAccent else colorAccentDisabled)
+    }
+
+    @Composable
+    override fun contentColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) white else white64)
+    }
+}

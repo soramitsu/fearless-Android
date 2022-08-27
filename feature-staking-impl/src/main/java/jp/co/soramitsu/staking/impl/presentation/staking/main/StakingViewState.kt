@@ -24,7 +24,6 @@ import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfo
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfoStatus
-import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.Round
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -711,86 +710,5 @@ fun CandidateInfo.toModelStatus(
     }
 }
 
-class PoolMemberViewState(
-    val poolState: StakingState.Pool.Member,
-    currentAssetFlow: Flow<Asset>,
-    stakingInteractor: StakingInteractor,
-    resourceManager: ResourceManager,
-    scope: CoroutineScope,
-    router: StakingRouter,
-    errorDisplayer: (Throwable) -> Unit
-) : StakeViewState<DelegatorStatus>(
-    poolState, currentAssetFlow, stakingInteractor,
-    resourceManager, scope, router, errorDisplayer,
-    summaryFlowProvider = { emptyFlow() },
-    statusMessageProvider = { getDelegatorStatusTitleAndMessage(resourceManager, it) },
-    availableManageActions = ManageStakeAction.values().toSet()
-) {
-
-    val poolFlow = currentAssetFlow.filter { it.token.configuration.supportStakingPool }.map { asset ->
-        val pool = poolState.pool
-        pool.state
-        val staked = asset.token.amountFromPlanks(pool.stakedInPlanks)
-        val stakedFormatted = staked.formatTokenAmount(asset.token.configuration)
-        val stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
-
-        val rewardedInPlanks = BigInteger.ZERO
-        val rewarded = asset.token.amountFromPlanks(rewardedInPlanks)
-        val rewardedFormatted = rewarded.formatTokenAmount(asset.token.configuration)
-        val rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
-
-        val redeemableInPlanks = BigInteger.ZERO
-        val redeemable = asset.token.amountFromPlanks(redeemableInPlanks)
-        val redeemableFormatted = redeemable.formatTokenAmount(asset.token.configuration)
-        val redeemableFiat = redeemable.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
-
-        val unstaking = asset.token.amountFromPlanks(pool.unstaking)
-        val unstakingFormatted = unstaking.formatTokenAmount(asset.token.configuration)
-        val unstakingFiat = unstaking.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
-
-        val status = PoolModel.Status.from(pool.state, 10000L)
-
-        PoolModel(
-            pool.name,
-            stakedFormatted,
-            stakedFiat,
-            rewardedFormatted,
-            rewardedFiat,
-            redeemableFormatted,
-            redeemableFiat,
-            unstakingFormatted,
-            unstakingFiat,
-            status
-        )
-    }
-
-    data class PoolModel(
-        val name: String?,
-        val staked: String,
-        val stakedFiat: String?,
-        val rewarded: String,
-        val rewardedFiat: String?,
-        val redeemable: String,
-        val redeemableFiat: String?,
-        val unstaking: String,
-        val unstakingFiat: String?,
-        val status: Status
-    ) {
-        sealed class Status {
-            class Open(val nextRoundTimeLeft: Long) : Status()
-            object Blocked : Status()
-            object Destroying : Status()
-
-            companion object {
-                fun from(state: NominationPoolState, nextRoundTimeLeft: Long): Status {
-                    return when (state) {
-                        NominationPoolState.Open -> Open(nextRoundTimeLeft)
-                        NominationPoolState.Blocked -> Blocked
-                        NominationPoolState.Destroying -> Destroying
-                    }
-                }
-
-            }
-        }
-    }
-}
+// todo stub
+object Pool : StakingViewState()

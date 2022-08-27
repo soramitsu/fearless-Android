@@ -1,57 +1,93 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
+import java.math.BigDecimal
+import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
+import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
+import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
+import jp.co.soramitsu.staking.impl.presentation.staking.main.Pool
+import jp.co.soramitsu.staking.impl.presentation.staking.main.ReturnsModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
-import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState1
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.toViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class StakingPoolViewModel(
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val stakingInteractor: StakingInteractor,
-    private val stakingViewStateFactory: StakingViewStateFactory,
     private val baseViewModel: BaseStakingViewModel,
-) :
-    StakingScenarioViewModel {
+    private val resourceManager: ResourceManager,
+    private val rewardCalculatorFactory: RewardCalculatorFactory
+) : StakingScenarioViewModel {
 
     override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
 
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
-        return stakingStateFlow.map { stakingState ->
-            when (stakingState) {
+        return kotlinx.coroutines.flow.flowOf(Pool)
+    }
+
+    override suspend fun getStakingViewStateFlow1(): Flow<StakingViewState1> {
+        return stakingStateFlow.map { state ->
+            when (state) {
                 is StakingState.Pool.Member -> {
-                    stakingViewStateFactory.createPoolMemberViewState(
-                        stakingState,
-                        stakingInteractor.currentAssetFlow(),
-                        baseViewModel.stakingStateScope,
-                        baseViewModel::showError
-                    )
+                    val asset = stakingInteractor.currentAssetFlow().first()
+                    val poolViewState = state.pool.toViewState(asset, resourceManager)
+                    StakingViewState1.Pool.PoolMember(poolViewState)
                 }
                 is StakingState.Pool.None -> {
-                    stakingViewStateFactory.createPoolWelcomeViewState(
-                        stakingInteractor.currentAssetFlow(),
-                        baseViewModel.stakingStateScope,
-                        baseViewModel::showError
+                    val returns = getReturns()
+                    val returnsViewState = EstimatedEarningsViewState(
+                        monthlyChange = TitleValueViewState(returns.monthly.gain, returns.monthly.amount, returns.monthly.fiatAmount),
+                        yearlyChange = TitleValueViewState(returns.yearly.gain, returns.yearly.amount, returns.yearly.fiatAmount)
                     )
+                    StakingViewState1.Pool.Welcome(returnsViewState)
                 }
-                else -> error("Wrong state")
+                is StakingState.Pool.Nominator -> error("StakingState.Pool.Nominator is not supported")
+                is StakingState.Pool.Root -> error("StakingState.Pool.Root is not supported")
+                is StakingState.Pool.StateToggler -> error("StakingState.Pool.StateToggler is not supported")
+                else -> error("StakingPoolViewModel.getStakingViewStateFlow1 wrong staking state")
             }
         }
+    }
+
+    private val chainId = stakingInteractor.currentAssetFlow()
+        .filter { it.token.configuration.staking == Chain.Asset.StakingType.RELAYCHAIN }
+        .map { it.token.configuration.chainId }
+
+    private val rewardCalculator = baseViewModel.stakingStateScope.async { rewardCalculatorFactory.createManual(chainId.first()) }
+
+    private suspend fun getReturns(): ReturnsModel {
+        val asset = stakingInteractor.currentAssetFlow().first()
+        val chainId = asset.token.configuration.chainId
+        val monthly = rewardCalculator().calculateReturns(BigDecimal.ONE, PERIOD_MONTH, true, chainId)
+        val yearly = rewardCalculator().calculateReturns(BigDecimal.ONE, PERIOD_YEAR, true, chainId)
+
+        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
+        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
+
+        return ReturnsModel(monthlyEstimation, yearlyEstimation)
     }
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
@@ -84,7 +120,6 @@ class StakingPoolViewModel(
                 maxMembersInPool,
                 maxPoolsMembers
             )
-
         }.withLoading()
     }
 

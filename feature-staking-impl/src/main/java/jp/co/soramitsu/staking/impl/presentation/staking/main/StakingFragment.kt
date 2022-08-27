@@ -1,11 +1,15 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -16,6 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AssetSelector
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -161,7 +166,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             binding.stakingEstimate.isVisible = true
                             binding.startStakingBtn.isVisible = true
                         }
-                        is PoolMemberViewState -> {
+                        is Pool -> {
                             binding.stakingEstimate.setVisible(false)
                             binding.stakingStakeSummary.setVisible(false)
                             binding.collatorsList.setVisible(false)
@@ -240,6 +245,16 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                                     is StakingViewState1.Pool.Welcome -> {
                                         MarginVertical(margin = Dp(16f))
                                         EstimatedEarnings(stakingViewState.estimatedEarnings, viewModel::onEstimatedEarningsInfoClick)
+                                        MarginVertical(margin = Dp(16f))
+                                        Spacer(modifier = Modifier.weight(1f, fill = true))
+                                        AccentButton(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(Dp(52f)),
+                                            text = stringResource(id = R.string.staking_start_title),
+                                            onClick = viewModel::startStakingClick
+                                        )
+                                        MarginVertical(margin = Dp(16f))
                                     }
                                 }
                             }
