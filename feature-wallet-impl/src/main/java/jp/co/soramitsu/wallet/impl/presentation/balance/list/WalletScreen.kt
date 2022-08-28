@@ -18,17 +18,24 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import jp.co.soramitsu.common.compose.component.AssetBalance
-import jp.co.soramitsu.common.compose.component.AssetListItem
-import jp.co.soramitsu.common.compose.component.AssetListItemShimmer
-import jp.co.soramitsu.common.compose.component.BackgroundCornered
-import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
+import jp.co.soramitsu.common.compose.component.ActionBarViewState
+import jp.co.soramitsu.common.compose.component.ActionItem
+import jp.co.soramitsu.common.compose.component.SwipeBox
+import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
+import jp.co.soramitsu.common.compose.component.AssetListItem
+import jp.co.soramitsu.common.compose.component.ActionBar
+import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
 import jp.co.soramitsu.common.compose.component.Shimmer
+import jp.co.soramitsu.common.compose.component.BackgroundCornered
+import jp.co.soramitsu.common.compose.component.AssetListItemShimmer
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
@@ -64,7 +71,53 @@ fun WalletScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(data.visibleAssets) { asset ->
-                        AssetListItem(asset) { viewModel.assetClicked(it) }
+                        // It is a mock, need to provide onClick() from viewModel
+                        val leftActionBarViewState = ActionBarViewState(
+                            actionItems = listOf(
+                                ActionItem(
+                                    iconId = R.drawable.ic_common_send,
+                                    title = stringResource(R.string.common_action_send),
+                                    onClick = {}
+                                ),
+                                ActionItem(
+                                    iconId = R.drawable.ic_common_receive,
+                                    title = stringResource(R.string.common_action_receive),
+                                    onClick = {}
+                                ),
+                                ActionItem(
+                                    iconId = R.drawable.ic_common_teleport,
+                                    title = stringResource(R.string.common_action_teleport),
+                                    onClick = {}
+                                )
+                            )
+                        )
+
+                        // It is a mock, need to provide onClick() from viewModel
+                        val rightActionBarViewState = ActionBarViewState(
+                            actionItems = listOf(
+                                ActionItem(
+                                    iconId = R.drawable.ic_common_hide,
+                                    title = stringResource(R.string.common_action_hide),
+                                    onClick = {}
+                                )
+                            )
+                        )
+
+                        SwipeBox(
+                            state = SwipeBoxViewState(
+                                leftStateWidth = 250.dp,
+                                rightStateWidth = 90.dp
+                            ),
+                            initialContent = {
+                                AssetListItem(asset) { viewModel.assetClicked(it) }
+                            },
+                            leftContent = {
+                                ActionBar(leftActionBarViewState)
+                            },
+                            rightContent = {
+                                ActionBar(rightActionBarViewState)
+                            }
+                        )
                     }
                     if (data.hiddenAssets.isNotEmpty()) {
                         item {
