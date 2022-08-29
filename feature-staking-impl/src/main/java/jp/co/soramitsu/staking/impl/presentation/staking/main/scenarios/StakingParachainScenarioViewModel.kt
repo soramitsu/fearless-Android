@@ -19,8 +19,8 @@ import jp.co.soramitsu.staking.impl.domain.model.NetworkInfo
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
-import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState1
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
@@ -42,7 +42,7 @@ class StakingParachainScenarioViewModel(
 
     override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
 
-    override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
+    override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
         return stakingStateFlow.map { stakingState ->
             when (stakingState) {
                 is StakingState.Parachain.None -> {
@@ -65,7 +65,7 @@ class StakingParachainScenarioViewModel(
         }
     }
 
-    override suspend fun getStakingViewStateFlow1(): Flow<StakingViewState1> {
+    override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
         return emptyFlow()
     }
 

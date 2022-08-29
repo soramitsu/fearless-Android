@@ -20,8 +20,8 @@ import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewar
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.Pool
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ReturnsModel
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
-import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState1
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.toViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
@@ -44,17 +44,17 @@ class StakingPoolViewModel(
 
     override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
 
-    override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
+    override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
         return kotlinx.coroutines.flow.flowOf(Pool)
     }
 
-    override suspend fun getStakingViewStateFlow1(): Flow<StakingViewState1> {
+    override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
         return stakingStateFlow.map { state ->
             when (state) {
                 is StakingState.Pool.Member -> {
                     val asset = stakingInteractor.currentAssetFlow().first()
                     val poolViewState = state.pool.toViewState(asset, resourceManager)
-                    StakingViewState1.Pool.PoolMember(poolViewState)
+                    StakingViewState.Pool.PoolMember(poolViewState)
                 }
                 is StakingState.Pool.None -> {
                     val returns = getReturns()
@@ -62,7 +62,7 @@ class StakingPoolViewModel(
                         monthlyChange = TitleValueViewState(returns.monthly.gain, returns.monthly.amount, returns.monthly.fiatAmount),
                         yearlyChange = TitleValueViewState(returns.yearly.gain, returns.yearly.amount, returns.yearly.fiatAmount)
                     )
-                    StakingViewState1.Pool.Welcome(returnsViewState)
+                    StakingViewState.Pool.Welcome(returnsViewState)
                 }
                 is StakingState.Pool.Nominator -> error("StakingState.Pool.Nominator is not supported")
                 is StakingState.Pool.Root -> error("StakingState.Pool.Root is not supported")

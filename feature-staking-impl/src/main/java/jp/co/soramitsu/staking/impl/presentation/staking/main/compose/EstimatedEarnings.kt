@@ -17,9 +17,9 @@ import jp.co.soramitsu.common.compose.component.ChangeToValue
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
-import jp.co.soramitsu.common.compose.component.clickableWithNoIndication
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.blurColorLight
+import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
 
 data class EstimatedEarningsViewState(

@@ -75,7 +75,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
-sealed class StakingViewState
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
+sealed class StakingViewStateOld
 
 // private const val PERIOD_MONTH = 30
 // private const val PERIOD_YEAR = 365
@@ -102,6 +103,7 @@ enum class ManageStakeAction {
     PAYOUTS, BALANCE, CONTROLLER, VALIDATORS, REWARD_DESTINATION
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 sealed class StakeViewState<S>(
     private val stakeState: StakingState,
     protected val currentAssetFlow: Flow<Asset>,
@@ -113,7 +115,7 @@ sealed class StakeViewState<S>(
     protected val summaryFlowProvider: suspend (StakingState) -> Flow<StakeSummary<S>>,
     protected val statusMessageProvider: (S) -> TitleAndMessage,
     private val availableManageActions: Set<ManageStakeAction>
-) : StakingViewState() {
+) : StakingViewStateOld() {
 
     val manageStakingActionsButtonVisible = availableManageActions.isNotEmpty()
 
@@ -188,6 +190,7 @@ sealed class StakeViewState<S>(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class ValidatorViewState(
     validatorState: StakingState.Stash.Validator,
     currentAssetFlow: Flow<Asset>,
@@ -222,6 +225,7 @@ private fun getValidatorStatusTitleAndMessage(
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class StashNoneViewState(
     stashState: StakingState.Stash.None,
     currentAssetFlow: Flow<Asset>,
@@ -243,6 +247,7 @@ class StashNoneViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 private fun getStashStatusTitleAndMessage(
     resourceManager: ResourceManager,
     status: StashNoneStatus
@@ -254,6 +259,7 @@ private fun getStashStatusTitleAndMessage(
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class NominatorViewState(
     nominatorState: StakingState.Stash.Nominator,
     currentAssetFlow: Flow<Asset>,
@@ -313,6 +319,7 @@ private fun getDelegatorStatusTitleAndMessage(
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 sealed class WelcomeViewState(
     protected val setupStakingSharedState: SetupStakingSharedState,
     protected val rewardCalculatorFactory: RewardCalculatorFactory,
@@ -323,7 +330,7 @@ sealed class WelcomeViewState(
     protected val errorDisplayer: (String) -> Unit,
     protected val validationSystem: WelcomeStakingValidationSystem,
     protected val validationExecutor: ValidationExecutor
-) : StakingViewState(), Validatable by validationExecutor {
+) : StakingViewStateOld(), Validatable by validationExecutor {
 
     protected val currentSetupProgress by lazy { setupStakingSharedState.get<SetupStakingProcess.Initial>() }
 
@@ -359,6 +366,7 @@ sealed class WelcomeViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class RelaychainWelcomeViewState(
     setupStakingSharedState: SetupStakingSharedState,
     rewardCalculatorFactory: RewardCalculatorFactory,
@@ -433,6 +441,7 @@ class RelaychainWelcomeViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class ParachainWelcomeViewState(
     setupStakingSharedState: SetupStakingSharedState,
     rewardCalculatorFactory: RewardCalculatorFactory,
@@ -497,6 +506,7 @@ class ParachainWelcomeViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class StakingPoolWelcomeViewState(
     setupStakingSharedState: SetupStakingSharedState,
     rewardCalculatorFactory: RewardCalculatorFactory,
@@ -560,6 +570,7 @@ class StakingPoolWelcomeViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class DelegatorViewState(
     private val delegatorState: StakingState.Parachain.Delegator,
     val welcomeViewState: ParachainWelcomeViewState,
@@ -711,4 +722,4 @@ fun CandidateInfo.toModelStatus(
 }
 
 // todo stub
-object Pool : StakingViewState()
+object Pool : StakingViewStateOld()

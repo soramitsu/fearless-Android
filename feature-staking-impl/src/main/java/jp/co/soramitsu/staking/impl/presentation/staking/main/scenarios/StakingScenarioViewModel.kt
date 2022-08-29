@@ -9,8 +9,8 @@ import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
-import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState1
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Token
@@ -26,8 +26,11 @@ interface StakingScenarioViewModel {
     }
 
     val stakingStateFlow: Flow<StakingState>
+
+    @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
+    suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld>
+
     suspend fun getStakingViewStateFlow(): Flow<StakingViewState>
-    suspend fun getStakingViewStateFlow1(): Flow<StakingViewState1>
 
     suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>>
     suspend fun alerts(): Flow<LoadingState<List<AlertModel>>>

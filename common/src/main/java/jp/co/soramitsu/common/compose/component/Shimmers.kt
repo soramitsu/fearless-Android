@@ -49,7 +49,7 @@ fun Shimmer(modifier: Modifier = Modifier) {
 
 @Preview
 @Composable
-fun ShimmerPreview() {
+private fun ShimmerPreview() {
     Column(modifier = Modifier.padding(16.dp)) {
         ShimmerB0(Modifier.width(160.dp))
         MarginVertical(margin = 16.dp)

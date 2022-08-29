@@ -112,7 +112,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             }
         }.launchIn(viewModel.stakingStateScope)
 
-        viewModel.stakingViewState.observe { loadingState ->
+        viewModel.stakingViewStateOld.observe { loadingState ->
             observeDelegationsJob?.cancel()
             when (loadingState) {
                 is LoadingState.Loading -> {
@@ -238,11 +238,11 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             }
                             it.stakingViewState?.let { stakingViewState ->
                                 when (stakingViewState) {
-                                    is StakingViewState1.Pool.PoolMember -> {
+                                    is StakingViewState.Pool.PoolMember -> {
                                         MarginVertical(margin = Dp(16f))
                                         StakingPoolInfo(stakingViewState.stakeInfoViewState) {}
                                     }
-                                    is StakingViewState1.Pool.Welcome -> {
+                                    is StakingViewState.Pool.Welcome -> {
                                         MarginVertical(margin = Dp(16f))
                                         EstimatedEarnings(stakingViewState.estimatedEarnings, viewModel::onEstimatedEarningsInfoClick)
                                         MarginVertical(margin = Dp(16f))

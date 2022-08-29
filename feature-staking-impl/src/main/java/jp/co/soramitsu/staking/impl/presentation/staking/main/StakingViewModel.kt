@@ -115,9 +115,10 @@ class StakingViewModel @Inject constructor(
             it.networkInfo()
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
-    val stakingViewState = scenarioViewModelFlow
+    @Deprecated("Use stakingViewState flow with ready models for compose")
+    val stakingViewStateOld = scenarioViewModelFlow
         .flatMapLatest {
-            it.getStakingViewStateFlow().withLoading()
+            it.getStakingViewStateFlowOld().withLoading()
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     val alertsFlow = scenarioViewModelFlow
@@ -131,16 +132,16 @@ class StakingViewModel @Inject constructor(
         StakingType.PARACHAIN to StakingAssetInfoViewState.Parachain.default(resourceManager)
     )
 
-    private val stakingViewState1: SharedFlow<StakingViewState1?> = scenarioViewModelFlow
+    private val stakingViewState: SharedFlow<StakingViewState?> = scenarioViewModelFlow
         .flatMapLatest {
-            it.getStakingViewStateFlow1()
+            it.getStakingViewStateFlow()
         }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     inline fun <reified T : StakingAssetInfoViewState> Map<StakingType, StakingAssetInfoViewState>.get(type: StakingType): T = get(type) as T
 
     private val networkInfoState: Flow<StakingAssetInfoViewState?> = networkInfo.map { networkInfoState ->
         val selection = stakingSharedState.selectionItem.first()
-        if (selection.type != StakingType.POOL) return@map null
+        if (selection.type != StakingType.POOL) return@map null // todo it's a stub
         if (networkInfoState is LoadingState.Loaded) {
             when (val state = networkInfoState.data) {
                 is StakingNetworkInfoModel.Parachain -> defaultNetworkInfoStates.get<StakingAssetInfoViewState.Parachain>(StakingType.PARACHAIN).update(state)
@@ -157,14 +158,14 @@ class StakingViewModel @Inject constructor(
         stakingSharedState.selectionItem,
         assetSelectorMixin.selectedAssetModelFlow,
         networkInfoState,
-        stakingViewState1
+        stakingViewState
     ) { selection, selectedAsset, networkInfo, stakingState ->
 
         val selectorState = AssetSelectorState(
             selectedAsset.tokenName,
             selectedAsset.imageUrl,
             selectedAsset.assetBalance,
-            (selectedAsset.selectionItem as? StakingAssetSelection.Pool)?.let { "pool" }
+            (selectedAsset.selectionItem as? StakingAssetSelection.Pool)?.type?.name
         )
 
         StakingScreenViewState(
@@ -275,7 +276,7 @@ class StakingViewModel @Inject constructor(
 
     fun openCollatorInfo(model: DelegatorViewState.CollatorDelegationModel) {
         viewModelScope.launch {
-            val stakingState = stakingViewState.filterIsInstance<LoadingState.Loaded<DelegatorViewState>>().first()
+            val stakingState = stakingViewStateOld.filterIsInstance<LoadingState.Loaded<DelegatorViewState>>().first()
             (stakingState as? LoadingState.Loaded)?.data?.openCollatorInfo(model)
         }
     }
@@ -290,11 +291,11 @@ class StakingViewModel @Inject constructor(
 data class StakingScreenViewState(
     val selectorState: AssetSelectorState,
     val networkInfoState: StakingAssetInfoViewState?, // todo shouldn't be nullable - it's just a stub
-    val stakingViewState: StakingViewState1?
+    val stakingViewState: StakingViewState?
 )
 
-sealed class StakingViewState1 {
-    sealed class Pool : StakingViewState1() {
+sealed class StakingViewState {
+    sealed class Pool : StakingViewState() {
         data class Welcome(val estimatedEarnings: EstimatedEarningsViewState) : Pool()
         data class PoolMember(val stakeInfoViewState: StakeInfoViewState) : Pool()
     }

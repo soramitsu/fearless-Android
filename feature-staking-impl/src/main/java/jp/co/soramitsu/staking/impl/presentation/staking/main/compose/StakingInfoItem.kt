@@ -29,11 +29,11 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Timer
 import jp.co.soramitsu.common.compose.component.TitleToValue
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
-import jp.co.soramitsu.common.compose.component.clickableWithNoIndication
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
+import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
 
 @Composable
@@ -141,7 +141,7 @@ fun StatusText(
 
 @Preview
 @Composable
-fun StakingInfoItemPreview() {
+private fun StakingInfoItemPreview() {
     val poolState = StakeInfoViewState.PoolStakeInfoViewState(
         title = "Your pool staking",
         TitleValueViewState("Staked", "10 KSM", "$4,530"),
