@@ -22,7 +22,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 
-private const val STAKING_SHARED_STATE = "STAKING_CURRENT_ASSET"
+enum class StakingType {
+    PARACHAIN, RELAYCHAIN, POOL
+}
+
+private const val STAKING_SHARED_STATE = "STAKING_CURRENT_ASSET_TYPE"
 
 class StakingSharedState(
     private val chainRegistry: ChainRegistry,
@@ -52,6 +56,11 @@ class StakingSharedState(
 
     val assetWithChain: Flow<SingleAssetSharedState.AssetWithChain> = selectionItem.map {
         val (chain, asset) = chainRegistry.chainWithAsset(it.chainId, it.chainAssetId)
+        SingleAssetSharedState.AssetWithChain(chain, asset)
+    }
+
+    suspend fun assetWithChain(selectionItem: StakingAssetSelection) {
+        val (chain, asset) = chainRegistry.chainWithAsset(selectionItem.chainId, selectionItem.chainAssetId)
         SingleAssetSharedState.AssetWithChain(chain, asset)
     }
 
@@ -91,7 +100,13 @@ class StakingSharedState(
         return allChains.map { chain ->
             val staking = chain.assets.filter { chainAsset ->
                 chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
-            }.map { StakingAssetSelection.Staking(chain.id, it.id) }
+            }.map {
+                when (it.staking) {
+                    Chain.Asset.StakingType.PARACHAIN -> StakingAssetSelection.ParachainStaking(chain.id, it.id)
+                    Chain.Asset.StakingType.RELAYCHAIN -> StakingAssetSelection.RelayChainStaking(chain.id, it.id)
+                    else -> error("StakingSharedState.availableToSelect wrong staking type: ${it.staking}")
+                }
+            }
             val pools = chain.assets.filter { it.supportStakingPool }
                 .map { StakingAssetSelection.Pool(chain.id, it.id) }
             staking + pools
@@ -111,7 +126,7 @@ class StakingSharedState(
     }
 
     private fun encode(item: StakingAssetSelection): String {
-        return "${item.chainId}$DELIMITER${item.chainAssetId}$DELIMITER${item.type}"
+        return "${item.chainId}$DELIMITER${item.chainAssetId}$DELIMITER${item.type.name}"
     }
 
     private fun decode(value: String): StakingAssetSelection {
@@ -130,20 +145,25 @@ class StakingSharedState(
 }
 
 sealed class StakingAssetSelection(val chainId: ChainId, val chainAssetId: String) {
-    abstract val type: String
+    abstract val type: StakingType
 
-    class Staking(chainId: ChainId, chainAssetId: String) : StakingAssetSelection(chainId, chainAssetId) {
-        override val type = "staking"
+    class RelayChainStaking(chainId: ChainId, chainAssetId: String) : StakingAssetSelection(chainId, chainAssetId) {
+        override val type = StakingType.RELAYCHAIN
+    }
+
+    class ParachainStaking(chainId: ChainId, chainAssetId: String) : StakingAssetSelection(chainId, chainAssetId) {
+        override val type = StakingType.PARACHAIN
     }
 
     class Pool(chainId: ChainId, chainAssetId: String) : StakingAssetSelection(chainId, chainAssetId) {
-        override val type = "pool"
+        override val type = StakingType.POOL
     }
 
     companion object {
         fun from(chainId: ChainId, chainAssetId: String, type: String) = when (type) {
-            "staking" -> Staking(chainId, chainAssetId)
-            "pool" -> Pool(chainId, chainAssetId)
+            StakingType.RELAYCHAIN.name -> RelayChainStaking(chainId, chainAssetId)
+            StakingType.PARACHAIN.name -> ParachainStaking(chainId, chainAssetId)
+            StakingType.POOL.name -> Pool(chainId, chainAssetId)
             else -> error("StakingAssetSelection.from Unknown staking type: $type")
         }
     }

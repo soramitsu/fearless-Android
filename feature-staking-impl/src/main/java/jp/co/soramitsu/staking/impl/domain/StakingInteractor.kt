@@ -23,22 +23,17 @@ import jp.co.soramitsu.staking.impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
-import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 
 class StakingInteractor(
-    private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository,
     private val stakingRepository: StakingRepository,
     private val stakingRewardsRepository: StakingRewardsRepository,
@@ -73,22 +68,6 @@ class StakingInteractor(
     }
 
     fun currentAssetFlow() = stakingSharedState.currentAssetFlow()
-
-    fun assetFlow(accountAddress: String): Flow<Asset> {
-        return flow {
-            val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
-            val meta = accountRepository.getSelectedMetaAccount()
-
-            emitAll(
-                walletRepository.assetFlow(
-                    metaId = meta.id,
-                    accountId = chain.accountIdOf(accountAddress),
-                    chainAsset = chainAsset,
-                    minSupportedVersion = chain.minSupportedVersion
-                )
-            )
-        }
-    }
 
     fun selectedAccountProjectionFlow(): Flow<StakingAccount> {
         return combine(

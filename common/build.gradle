@@ -125,6 +125,8 @@ dependencies {
     implementation composeFoundationDep
     implementation composeMaterialDep
     implementation composeToolingPreviewDep
+    implementation composeShimmerDep
+    implementation composeConstraintLayoutDep
     debugImplementation composeToolingDep
     debugImplementation customviewDep
     debugImplementation customviewPoolingcontainerDep

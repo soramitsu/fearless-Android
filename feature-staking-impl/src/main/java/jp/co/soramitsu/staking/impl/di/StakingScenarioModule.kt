@@ -4,12 +4,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -22,10 +22,10 @@ class StakingScenarioModule {
         stakingRelayChainScenarioInteractor: StakingRelayChainScenarioInteractor
     ): StakingScenarioInteractor {
         return when (val state = setupStakingSharedState.setupStakingProcess.value) {
-            is SetupStakingProcess.Initial -> if (state.stakingType == Chain.Asset.StakingType.RELAYCHAIN) {
-                stakingRelayChainScenarioInteractor
-            } else {
-                stakingParachainScenarioInteractor
+            is SetupStakingProcess.Initial -> when (state.stakingType) {
+                StakingType.RELAYCHAIN -> stakingRelayChainScenarioInteractor
+                StakingType.PARACHAIN -> stakingParachainScenarioInteractor
+                StakingType.POOL -> stakingRelayChainScenarioInteractor
             }
 
             is SetupStakingProcess.ReadyToSubmit.Stash,
@@ -39,6 +39,7 @@ class StakingScenarioModule {
             is SetupStakingProcess.SetupStep.Parachain -> {
                 stakingParachainScenarioInteractor
             }
+            is SetupStakingProcess.SetupStep.Pool -> stakingRelayChainScenarioInteractor
         }
     }
 }

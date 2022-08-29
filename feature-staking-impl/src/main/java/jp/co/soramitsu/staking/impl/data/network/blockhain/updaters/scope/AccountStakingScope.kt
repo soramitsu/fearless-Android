@@ -6,8 +6,8 @@ import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.core.updater.UpdateScope
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.data.StakingType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emptyFlow
@@ -23,13 +23,15 @@ class AccountStakingScope(
 
     override fun invalidationFlow(): Flow<Any> {
         return combineToPair(
-            sharedStakingState.assetWithChain,
+            sharedStakingState.selectionItem,
             accountRepository.selectedMetaAccountFlow().debounce(500)
-        ).flatMapLatest { (chainWithAsset, account) ->
-            val (chain, chainAsset) = chainWithAsset
-            when (chainAsset.staking) {
-                Chain.Asset.StakingType.RELAYCHAIN -> accountStakingDao.observeDistinct(chain.id, chainAsset.id, account.accountId(chain)!!)
-                Chain.Asset.StakingType.PARACHAIN -> flowOf(Unit)
+        ).flatMapLatest { (selectionItem, account) ->
+
+            val (chain, chainAsset) = sharedStakingState.assetWithChain.first()
+            when (selectionItem.type) {
+                StakingType.RELAYCHAIN -> accountStakingDao.observeDistinct(chain.id, chainAsset.id, account.accountId(chain)!!)
+                StakingType.PARACHAIN -> flowOf(Unit)
+                StakingType.POOL -> flowOf(Unit)
                 else -> emptyFlow()
             }
         }

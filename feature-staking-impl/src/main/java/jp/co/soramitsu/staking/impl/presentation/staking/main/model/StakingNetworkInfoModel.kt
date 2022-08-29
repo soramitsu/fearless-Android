@@ -1,29 +1,29 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.model
 
-sealed class StakingNetworkInfoModel(
-    open val lockupPeriod: String,
-    open val minimumStake: String,
-    open val minimumStakeFiat: String?
-) {
+sealed class StakingNetworkInfoModel {
     data class RelayChain(
-        override val lockupPeriod: String,
-        override val minimumStake: String,
-        override val minimumStakeFiat: String?,
+        val lockupPeriod: String,
+        val minimumStake: String,
+        val minimumStakeFiat: String?,
         val totalStake: String,
         val totalStakeFiat: String?,
         val nominatorsCount: String
-    ) : StakingNetworkInfoModel(
-        lockupPeriod,
-        minimumStake,
-        minimumStakeFiat
-    )
+    ) : StakingNetworkInfoModel()
+
     data class Parachain(
-        override val lockupPeriod: String,
-        override val minimumStake: String,
-        override val minimumStakeFiat: String?
-    ) : StakingNetworkInfoModel(
-        lockupPeriod,
-        minimumStake,
-        minimumStakeFiat
-    )
+        val lockupPeriod: String,
+        val minimumStake: String,
+        val minimumStakeFiat: String?
+    ) : StakingNetworkInfoModel()
+
+    data class Pool(
+        val minToJoin: String,
+        val minToJoinFiat: String?,
+        val minToCreate: String,
+        val minToCreateFiat: String?,
+        val existingPools: String,
+        val possiblePools: String?,
+        val maxMembersInPool: String,
+        val maxPoolsMembers: String?
+    ) : StakingNetworkInfoModel()
 }

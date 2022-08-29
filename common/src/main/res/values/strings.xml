@@ -806,4 +806,40 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="chain_selection_all_networks">All networks</string>
     <string name="hidden_assets">Hidden assets</string>
 
+    <string name="staking_pool_rewards_delay_text">Stake at anytime. You will start earning interests after %@</string>
+    <string name="staking_pool_start_apr_text">Earn %@ per year</string>
+    <string name="staking_pool_start_unstake_period_text">Unstake at anytime. You will need to wait for %@ before being able to spend your funds and the interest you’ve earned</string>
+    <string name="staking_pool_start_reward_freq_text">Rewards is paid every %@</string>
+    <string name="staking_pool_start_join_button_title">Join pool</string>
+    <string name="staking_pool_start_create_button_title">Create pool</string>
+    <string name="staking_pool_start_earn_reward_title">Earn rewards when you stake your\n%@</string>
+    <string name="pool_staking_main_min_create_title">Min. to create a pool</string>
+    <string name="pool_staking_main_min_join_title">Min. to join Pool</string>
+    <string name="pool_staking_main_existing_pools_title">Existing pools</string>
+    <string name="pool_staking_main_possible_pools_title">Possible pools</string>
+    <string name="pool_staking_main_max_members_inpool_title">Max members in pool</string>
+    <string name="pool_staking_main_max_pool_members_title">Max pools members</string>
+    <string name="pool_staking_main_description_title">Stakers (members) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a member\'s stake in the bonded pool.</string>
+    <string name="pool_staking_start_about_title">What is Staking and how does it work, watch instruction</string>
+    <string name="pool_staking_join_title">Join pool</string>
+    <string name="pool_staking_join_account_title">Join pool from</string>
+    <string name="pool_staking_join_button_title">Join</string>
+    <string name="pool_staking_choosepool_title">Choose a pool</string>
+    <string name="pool_staking_choosepool_button_title">Choose</string>
+    <string name="pool_staking_choosepool_members_count_title">Members: %d</string>
+    <string name="pool_staking_choosepool_staked_title">Staked %@</string>
+    <string name="pool_staking_selected_pool">Selected pool</string>
+    <string name="pool_staking_pool_name">Pool Name</string>
+    <string name="pool_staking_pool_id">Pool ID</string>
+    <string name="pool_staking_depositor">Depositor</string>
+    <string name="pool_staking_root">Root</string>
+    <string name="pool_staking_nominator">Nominator</string>
+    <string name="pool_staking_state_toggler">State toggler</string>
+    <string name="pool_staking_title">Pool staking</string>
+    <string name="common_watch">Watch</string>
+    <string name="nft_stub_title">Sumimasen!</string>
+    <string name="nft_stub_text">NFTs are going to be here soon</string>
+    <string name="сurrencies_stub_text">Currencies</string>
+    <string name="nfts_stub">NFTs</string>
+
 </resources>

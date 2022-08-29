@@ -20,6 +20,8 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.ext.accountFromMapKey
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfo
 import jp.co.soramitsu.staking.api.domain.model.CandidateInfoStatus
 import jp.co.soramitsu.staking.api.domain.model.Round
@@ -49,11 +51,9 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.IdentityParce
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.runtime.ext.accountFromMapKey
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -75,7 +75,8 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
-sealed class StakingViewState
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
+sealed class StakingViewStateOld
 
 // private const val PERIOD_MONTH = 30
 // private const val PERIOD_YEAR = 365
@@ -102,6 +103,7 @@ enum class ManageStakeAction {
     PAYOUTS, BALANCE, CONTROLLER, VALIDATORS, REWARD_DESTINATION
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 sealed class StakeViewState<S>(
     private val stakeState: StakingState,
     protected val currentAssetFlow: Flow<Asset>,
@@ -113,7 +115,7 @@ sealed class StakeViewState<S>(
     protected val summaryFlowProvider: suspend (StakingState) -> Flow<StakeSummary<S>>,
     protected val statusMessageProvider: (S) -> TitleAndMessage,
     private val availableManageActions: Set<ManageStakeAction>
-) : StakingViewState() {
+) : StakingViewStateOld() {
 
     val manageStakingActionsButtonVisible = availableManageActions.isNotEmpty()
 
@@ -188,6 +190,7 @@ sealed class StakeViewState<S>(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class ValidatorViewState(
     validatorState: StakingState.Stash.Validator,
     currentAssetFlow: Flow<Asset>,
@@ -222,6 +225,7 @@ private fun getValidatorStatusTitleAndMessage(
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class StashNoneViewState(
     stashState: StakingState.Stash.None,
     currentAssetFlow: Flow<Asset>,
@@ -243,6 +247,7 @@ class StashNoneViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 private fun getStashStatusTitleAndMessage(
     resourceManager: ResourceManager,
     status: StashNoneStatus
@@ -254,6 +259,7 @@ private fun getStashStatusTitleAndMessage(
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class NominatorViewState(
     nominatorState: StakingState.Stash.Nominator,
     currentAssetFlow: Flow<Asset>,
@@ -313,6 +319,7 @@ private fun getDelegatorStatusTitleAndMessage(
     return resourceManager.getString(titleRes) to resourceManager.getString(messageRes)
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 sealed class WelcomeViewState(
     protected val setupStakingSharedState: SetupStakingSharedState,
     protected val rewardCalculatorFactory: RewardCalculatorFactory,
@@ -323,7 +330,7 @@ sealed class WelcomeViewState(
     protected val errorDisplayer: (String) -> Unit,
     protected val validationSystem: WelcomeStakingValidationSystem,
     protected val validationExecutor: ValidationExecutor
-) : StakingViewState(), Validatable by validationExecutor {
+) : StakingViewStateOld(), Validatable by validationExecutor {
 
     protected val currentSetupProgress by lazy { setupStakingSharedState.get<SetupStakingProcess.Initial>() }
 
@@ -359,6 +366,7 @@ sealed class WelcomeViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class RelaychainWelcomeViewState(
     setupStakingSharedState: SetupStakingSharedState,
     rewardCalculatorFactory: RewardCalculatorFactory,
@@ -433,6 +441,7 @@ class RelaychainWelcomeViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class ParachainWelcomeViewState(
     setupStakingSharedState: SetupStakingSharedState,
     rewardCalculatorFactory: RewardCalculatorFactory,
@@ -497,6 +506,71 @@ class ParachainWelcomeViewState(
     }
 }
 
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
+class StakingPoolWelcomeViewState(
+    setupStakingSharedState: SetupStakingSharedState,
+    rewardCalculatorFactory: RewardCalculatorFactory,
+    resourceManager: ResourceManager,
+    router: StakingRouter,
+    currentAssetFlow: Flow<Asset>,
+    scope: CoroutineScope,
+    errorDisplayer: (String) -> Unit,
+    validationSystem: WelcomeStakingValidationSystem,
+    validationExecutor: ValidationExecutor
+) : WelcomeViewState(
+    setupStakingSharedState,
+    rewardCalculatorFactory,
+    resourceManager,
+    router,
+    currentAssetFlow,
+    scope,
+    errorDisplayer,
+    validationSystem,
+    validationExecutor
+) {
+    val chainId = currentAssetFlow.filter { it.token.configuration.staking == Chain.Asset.StakingType.RELAYCHAIN }.map { it.token.configuration.chainId }
+
+    override val rewardCalculator = scope.async { rewardCalculatorFactory.createManual(chainId.first()) }
+
+    override val returns: Flow<ReturnsModel> = currentAssetFlow.combine(parsedAmountFlow) { asset, amount ->
+        val chainId = asset.token.configuration.chainId
+        val monthly = rewardCalculator().calculateReturns(amount, PERIOD_MONTH, true, chainId)
+        val yearly = rewardCalculator().calculateReturns(amount, PERIOD_YEAR, true, chainId)
+
+        val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
+        val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
+
+        ReturnsModel(monthlyEstimation, yearlyEstimation)
+    }.cancellable().shareIn(scope, SharingStarted.Eagerly, replay = 1)
+
+    override fun infoActionClicked() {
+        scope.launch {
+            val rewardCalculator = rewardCalculator()
+
+            val chainId = chainId.first()
+            val maxAPY = rewardCalculator.calculateMaxAPY(chainId)
+            val avgAPY = rewardCalculator.calculateAvgAPY()
+
+            val payload = StakingRewardEstimationBottomSheet.Payload(
+                maxAPY.formatAsPercentage(),
+                avgAPY.formatAsPercentage(),
+                R.string.staking_reward_info_max,
+                R.string.staking_reward_info_avg
+            )
+
+            _showRewardEstimationEvent.value = Event(payload)
+        }
+    }
+
+    override fun nextClicked() {
+        scope.launch {
+            setupStakingSharedState.set(currentSetupProgress.stakingPoolFlow())
+            router.openStakingPoolWelcome()
+        }
+    }
+}
+
+@Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
 class DelegatorViewState(
     private val delegatorState: StakingState.Parachain.Delegator,
     val welcomeViewState: ParachainWelcomeViewState,
@@ -646,3 +720,6 @@ fun CandidateInfo.toModelStatus(
         else -> DelegatorViewState.CollatorDelegationModel.Status.Idle
     }
 }
+
+// todo stub
+object Pool : StakingViewStateOld()

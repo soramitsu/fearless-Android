@@ -1,11 +1,15 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -16,8 +20,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AssetSelector
-import jp.co.soramitsu.common.compose.component.AssetSelectorState
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.mixin.impl.observeValidations
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -30,11 +35,13 @@ import jp.co.soramitsu.common.view.dialog.infoDialog
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentStakingBinding
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.staking.api.data.StakingAssetSelection
+import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.impl.domain.model.NominatorStatus
 import jp.co.soramitsu.staking.impl.domain.model.StashNoneStatus
 import jp.co.soramitsu.staking.impl.domain.model.ValidatorStatus
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarnings
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingAssetInfo
+import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.StakingPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationOptionsBottomSheet
 import jp.co.soramitsu.staking.impl.presentation.view.DelegationRecyclerViewAdapter
@@ -90,7 +97,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
 
     override fun subscribe(viewModel: StakingViewModel) {
         observeValidations(viewModel)
-        setupAssetSelector()
+        setupComposeViews()
         observeAlertsJob?.cancel()
         observeAlertsJob = viewModel.alertsFlow.onEach { loadingState ->
             if (loadingState is LoadingState.Loaded) {
@@ -105,7 +112,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             }
         }.launchIn(viewModel.stakingStateScope)
 
-        viewModel.stakingViewState.observe { loadingState ->
+        viewModel.stakingViewStateOld.observe { loadingState ->
             observeDelegationsJob?.cancel()
             when (loadingState) {
                 is LoadingState.Loading -> {
@@ -125,6 +132,11 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                     binding.collatorsList.setVisible(stakingState is DelegatorViewState)
 
                     when (stakingState) {
+                        is StakingPoolWelcomeViewState -> {
+                            binding.stakingEstimate.setVisible(false)
+                            binding.stakingStakeSummary.setVisible(false)
+                            binding.collatorsList.setVisible(false)
+                        }
                         is NominatorViewState -> {
                             binding.stakingStakeSummary.bindStakeSummary(stakingState, ::mapNominatorStatus)
                         }
@@ -154,6 +166,11 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                             binding.stakingEstimate.isVisible = true
                             binding.startStakingBtn.isVisible = true
                         }
+                        is Pool -> {
+                            binding.stakingEstimate.setVisible(false)
+                            binding.stakingStakeSummary.setVisible(false)
+                            binding.collatorsList.setVisible(false)
+                        }
                     }
                 }
             }
@@ -163,15 +180,19 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             state to stakingType
         }.distinctUntilChanged().observe { (state, stakingType) ->
             when {
-                state is LoadingState.Loading<*> && stakingType == Chain.Asset.StakingType.RELAYCHAIN -> {
+                state is LoadingState.Loading<*> && stakingType == StakingType.RELAYCHAIN -> {
                     binding.parachainStakingNetworkInfo.isVisible = false
                     binding.stakingNetworkInfo.isVisible = true
                     binding.stakingNetworkInfo.showLoading()
                 }
-                state is LoadingState.Loading<*> && stakingType == Chain.Asset.StakingType.PARACHAIN -> {
+                state is LoadingState.Loading<*> && stakingType == StakingType.PARACHAIN -> {
                     binding.stakingNetworkInfo.isVisible = false
                     binding.parachainStakingNetworkInfo.isVisible = true
                     binding.parachainStakingNetworkInfo.showLoading()
+                }
+                stakingType == StakingType.POOL -> {
+                    binding.stakingNetworkInfo.isVisible = false
+                    binding.parachainStakingNetworkInfo.isVisible = false
                 }
                 state is LoadingState.Loaded<StakingNetworkInfoModel> -> {
                     when (val model = state.data) {
@@ -181,6 +202,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                         is StakingNetworkInfoModel.RelayChain -> {
                             setupNetworkInfo(model)
                         }
+                        is StakingNetworkInfoModel.Pool -> Unit
                     }
                 }
             }
@@ -201,23 +223,41 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
         }
     }
 
-    private fun setupAssetSelector() {
+    private fun setupComposeViews() {
         binding.composeContent.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                val state by viewModel.assetSelectorMixin.selectedAssetModelFlow.collectAsState(initial = null, context = lifecycleScope.coroutineContext)
-                FearlessTheme {
-                    Box(modifier = Modifier.padding(horizontal = Dp(16f))) {
-                        state?.apply {
-                            AssetSelector(
-                                state = AssetSelectorState(
-                                    tokenName,
-                                    imageUrl,
-                                    assetBalance,
-                                    (selectionItem as? StakingAssetSelection.Pool)?.let { "pool" }
-                                ),
-                                onClick = { viewModel.assetSelectorMixin.assetSelectorClicked() }
-                            )
+                val state by viewModel.state.collectAsState()
+                state?.let {
+                    FearlessTheme {
+                        Column(modifier = Modifier.padding(horizontal = Dp(16f))) {
+                            AssetSelector(state = it.selectorState, onClick = { viewModel.assetSelectorMixin.assetSelectorClicked() })
+                            MarginVertical(margin = Dp(16f))
+                            it.networkInfoState?.let { networkState ->
+                                StakingAssetInfo(networkState)
+                            }
+                            it.stakingViewState?.let { stakingViewState ->
+                                when (stakingViewState) {
+                                    is StakingViewState.Pool.PoolMember -> {
+                                        MarginVertical(margin = Dp(16f))
+                                        StakingPoolInfo(stakingViewState.stakeInfoViewState) {}
+                                    }
+                                    is StakingViewState.Pool.Welcome -> {
+                                        MarginVertical(margin = Dp(16f))
+                                        EstimatedEarnings(stakingViewState.estimatedEarnings, viewModel::onEstimatedEarningsInfoClick)
+                                        MarginVertical(margin = Dp(16f))
+                                        Spacer(modifier = Modifier.weight(1f, fill = true))
+                                        AccentButton(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(Dp(52f)),
+                                            text = stringResource(id = R.string.staking_start_title),
+                                            onClick = viewModel::startStakingClick
+                                        )
+                                        MarginVertical(margin = Dp(16f))
+                                    }
+                                }
+                            }
                         }
                     }
                 }

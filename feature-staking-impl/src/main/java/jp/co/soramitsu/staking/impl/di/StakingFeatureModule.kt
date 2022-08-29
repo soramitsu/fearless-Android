@@ -22,10 +22,10 @@ import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
@@ -68,6 +68,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationProvider
+import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioRepository
@@ -116,10 +117,10 @@ class StakingFeatureModule {
         setupStakingSharedState: SetupStakingSharedState
     ): StakingStoriesDataSource {
         return when (val state = setupStakingSharedState.setupStakingProcess.value) {
-            is SetupStakingProcess.Initial -> if (state.stakingType == Chain.Asset.StakingType.RELAYCHAIN) {
-                StakingStoriesDataSourceImpl()
-            } else {
-                ParachainStakingStoriesDataSourceImpl()
+            is SetupStakingProcess.Initial -> when (state.stakingType) {
+                StakingType.RELAYCHAIN -> StakingStoriesDataSourceImpl()
+                StakingType.PARACHAIN -> ParachainStakingStoriesDataSourceImpl()
+                else -> ParachainStakingStoriesDataSourceImpl()
             }
 
             is SetupStakingProcess.ReadyToSubmit.Stash,
@@ -133,6 +134,7 @@ class StakingFeatureModule {
             is SetupStakingProcess.SetupStep.Parachain -> {
                 ParachainStakingStoriesDataSourceImpl()
             }
+            is SetupStakingProcess.SetupStep.Pool -> StakingStoriesDataSourceImpl()
         }
     }
 
@@ -194,7 +196,6 @@ class StakingFeatureModule {
     @Provides
     @Singleton
     fun provideStakingInteractor(
-        walletRepository: WalletRepository,
         accountRepository: AccountRepository,
         stakingRepository: StakingRepository,
         stakingRewardsRepository: StakingRewardsRepository,
@@ -203,7 +204,6 @@ class StakingFeatureModule {
         chainRegistry: ChainRegistry,
         addressIconGenerator: AddressIconGenerator
     ) = StakingInteractor(
-        walletRepository,
         accountRepository,
         stakingRepository,
         stakingRewardsRepository,
@@ -553,4 +553,13 @@ class StakingFeatureModule {
         extrinsicService,
         stakingSharedState
     )
+
+    @Provides
+    @Singleton
+    fun provideStakingPoolInteractor(
+        api: StakingPoolApi,
+        dataSource: StakingPoolDataSource,
+        stakingInteractor: StakingInteractor,
+        accountRepository: AccountRepository
+    ) = StakingPoolInteractor(api, dataSource, stakingInteractor, accountRepository)
 }

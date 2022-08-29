@@ -742,4 +742,40 @@
     <string name="chain_selection_all_networks">Все сети</string>
     <string name="hidden_assets">Скрытые активы</string>
 
+
+    <string name="staking_pool_rewards_delay_text"></string>
+    <string name="staking_pool_start_apr_text"></string>
+    <string name="staking_pool_start_unstake_period_text"></string>
+    <string name="staking_pool_start_reward_freq_text"></string>
+    <string name="staking_pool_start_join_button_title"></string>
+    <string name="staking_pool_start_create_button_title"></string>
+    <string name="staking_pool_start_earn_reward_title"></string>
+    <string name="pool_staking_main_min_create_title"></string>
+    <string name="pool_staking_main_min_join_title"></string>
+    <string name="pool_staking_main_existing_pools_title"></string>
+    <string name="pool_staking_main_possible_pools_title"></string>
+    <string name="pool_staking_main_max_members_inpool_title"></string>
+    <string name="pool_staking_main_max_pool_members_title"></string>
+    <string name="pool_staking_main_description_title"></string>
+    <string name="pool_staking_start_about_title"></string>
+    <string name="pool_staking_join_title"></string>
+    <string name="pool_staking_join_account_title"></string>
+    <string name="pool_staking_join_button_title"></string>
+    <string name="pool_staking_choosepool_title"></string>
+    <string name="pool_staking_choosepool_button_title"></string>
+    <string name="pool_staking_choosepool_members_count_title"></string>
+    <string name="pool_staking_choosepool_staked_title"></string>
+    <string name="pool_staking_selected_pool"></string>
+    <string name="pool_staking_pool_name"></string>
+    <string name="pool_staking_pool_id"></string>
+    <string name="pool_staking_depositor"></string>
+    <string name="pool_staking_root"></string>
+    <string name="pool_staking_nominator"></string>
+    <string name="pool_staking_state_toggler"></string>
+    <string name="pool_staking_title"></string>
+    <string name="common_watch"></string>
+    <string name="nft_stub_title">Извините!</string>
+    <string name="nft_stub_text">NFTs скоро будут здесь</string>
+    <string name="сurrencies_stub_text">Токены</string>
+    <string name="nfts_stub">NFTs</string>
 </resources>

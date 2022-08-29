@@ -14,7 +14,8 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.DelegatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.NominatorViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ParachainWelcomeViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.RelaychainWelcomeViewState
-import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingPoolWelcomeViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StashNoneViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.ValidatorViewState
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
@@ -120,7 +121,7 @@ class StakingViewStateFactory(
         currentAssetFlow: Flow<Asset>,
         scope: CoroutineScope,
         errorDisplayer: (Throwable) -> Unit
-    ): StakingViewState {
+    ): StakingViewStateOld {
         val welcomeViewState = createParachainWelcomeViewState(currentAssetFlow, scope) {
             errorDisplayer(Exception(it))
         }
@@ -137,4 +138,20 @@ class StakingViewStateFactory(
             rewardCalculatorFactory = rewardCalculatorFactory
         )
     }
+
+    fun createPoolWelcomeViewState(
+        currentAssetFlow: Flow<Asset>,
+        scope: CoroutineScope,
+        errorDisplayer: (String) -> Unit
+    ) = StakingPoolWelcomeViewState(
+        setupStakingSharedState,
+        rewardCalculatorFactory,
+        resourceManager,
+        router,
+        currentAssetFlow,
+        scope,
+        errorDisplayer,
+        ValidationSystem(CompositeValidation(validations = listOf())),
+        validationExecutor
+    )
 }
