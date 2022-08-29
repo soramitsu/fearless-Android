@@ -1,16 +1,17 @@
 package jp.co.soramitsu.common.utils
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import java.io.InputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 
 private val PERCENTAGE_MULTIPLIER = 100.toBigDecimal()
 
 fun BigDecimal.fractionToPercentage() = this * PERCENTAGE_MULTIPLIER
+fun BigDecimal.percentageToFraction() = this / PERCENTAGE_MULTIPLIER
 
 val BigDecimal.isNonNegative: Boolean
     get() = signum() >= 0

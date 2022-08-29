@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
+import jp.co.soramitsu.common.compose.theme.black
 import jp.co.soramitsu.common.compose.theme.shimmerColor
 
 @Composable
@@ -42,7 +43,7 @@ fun Shimmer(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(shimmerColor, RoundedCornerShape(size = 5.dp))
+                .background(shimmerColor, RoundedCornerShape(size = 50.dp))
         )
     }
 }
@@ -50,9 +51,11 @@ fun Shimmer(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun ShimmerPreview() {
-    Column(modifier = Modifier.padding(16.dp)) {
-        ShimmerB0(Modifier.width(160.dp))
-        MarginVertical(margin = 16.dp)
-        ShimmerB2(Modifier.width(120.dp))
+    Box(modifier = Modifier.background(color = black)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            ShimmerB0(Modifier.width(160.dp))
+            MarginVertical(margin = 16.dp)
+            ShimmerB2(Modifier.width(120.dp))
+        }
     }
 }
