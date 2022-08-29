@@ -106,3 +106,23 @@ fun H6(modifier: Modifier = Modifier, text: String, color: Color = Color.Unspeci
         color = color
     )
 }
+
+@Composable
+fun CapsTitle(modifier: Modifier = Modifier, text: String, color: Color = Color.Unspecified) {
+    Text(
+        text = text,
+        style = MaterialTheme.customTypography.capsTitle,
+        modifier = modifier,
+        color = color
+    )
+}
+
+@Composable
+fun CapsTitle2(modifier: Modifier = Modifier, text: String, color: Color = Color.Unspecified) {
+    Text(
+        text = text,
+        style = MaterialTheme.customTypography.capsTitle2,
+        modifier = modifier,
+        color = color
+    )
+}

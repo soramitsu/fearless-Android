@@ -8,10 +8,13 @@ import androidx.compose.material.ButtonColors
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.accentButtonColors
+import jp.co.soramitsu.common.compose.theme.customButtonColors
+import jp.co.soramitsu.common.compose.theme.purple
 
 @Composable
 fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -26,6 +29,19 @@ fun FearlessButton(text: String, enabled: Boolean, colors: ButtonColors, modifie
 }
 
 @Composable
+fun ColoredTextButton(text: String, enabled: Boolean = true, backgroundColor: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    TextButton(
+        modifier = modifier,
+        onClick = onClick,
+        shape = FearlessCorneredShape(),
+        colors = customButtonColors(backgroundColor),
+        enabled = enabled
+    ) {
+        CapsTitle(text = text.uppercase())
+    }
+}
+
+@Composable
 @Preview
 private fun ButtonPreview() {
     FearlessTheme {
@@ -35,6 +51,12 @@ private fun ButtonPreview() {
                 modifier = Modifier
                     .width(200.dp)
                     .height(52.dp)
+            ) {}
+            MarginVertical(margin = 16.dp)
+            ColoredTextButton(
+                "Watch",
+                backgroundColor = purple,
+                modifier = Modifier
             ) {}
         }
     }

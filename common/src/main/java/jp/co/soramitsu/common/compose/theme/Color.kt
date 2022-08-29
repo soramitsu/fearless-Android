@@ -69,3 +69,15 @@ val accentButtonColors = object : ButtonColors {
         return rememberUpdatedState(if (enabled) white else white64)
     }
 }
+
+fun customButtonColors(backgroundColor: Color) = object : ButtonColors {
+    @Composable
+    override fun backgroundColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) backgroundColor else backgroundColor.copy(alpha = 0.5f))
+    }
+
+    @Composable
+    override fun contentColor(enabled: Boolean): State<Color> {
+        return rememberUpdatedState(if (enabled) white else white64)
+    }
+}
