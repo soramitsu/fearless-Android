@@ -46,6 +46,8 @@ val black2 = gray2
 val black3 = gray3
 val black4 = gray4
 
+val purple = Color(0xFF7700EE)
+
 val shimmerColor = Color(0x80DBDBDB)
 
 val accountIconLight = Color(0xFFEEEEEE)

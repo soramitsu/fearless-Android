@@ -57,6 +57,12 @@ data class MenuIconItem(
     val onClick: () -> Unit
 )
 
+data class ToolbarViewState(
+    val title: String,
+    @DrawableRes val navigationIcon: Int? = null,
+    val menuItems: List<MenuIconItem>? = null
+)
+
 @Composable
 fun MainToolbar(
     state: MainToolbarViewState,
@@ -221,12 +227,66 @@ private fun IconButton(
     }
 }
 
+@Composable
+fun Toolbar(state: ToolbarViewState, onNavigationClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Box(
+            contentAlignment = Alignment.CenterStart,
+            modifier = Modifier.weight(1f)
+        ) {
+            ToolbarHomeIcon(
+                state = ToolbarHomeIconState(navigationIcon = state.navigationIcon),
+                onClick = onNavigationClick
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(2f),
+            horizontalAlignment = CenterHorizontally
+        ) {
+            Text(
+                text = state.title,
+                style = MaterialTheme.customTypography.header4,
+                maxLines = 1
+            )
+        }
+        Row(
+            verticalAlignment = CenterVertically,
+            horizontalArrangement = spacedBy(8.dp, End),
+            modifier = Modifier.weight(1f)
+        ) {
+            state.menuItems?.forEach { menuItem ->
+                IconButton(
+                    onClick = menuItem.onClick,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(backgroundBlurColor)
+                        .size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = menuItem.icon),
+                        tint = white,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun MainToolbarPreview() {
     FearlessTheme {
         Column(
-            modifier = Modifier.background(Color.Black)
+            modifier = Modifier.background(Color.Black).padding(16.dp)
         ) {
             MainToolbarShimmer(
                 homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
@@ -251,6 +311,17 @@ private fun MainToolbarPreview() {
                     MenuIconItem(icon = R.drawable.ic_search, {})
                 ),
                 onChangeChainClick = {},
+                onNavigationClick = {}
+            )
+            MarginVertical(margin = 16.dp)
+            Toolbar(
+                state = ToolbarViewState(
+                    "Pool staking",
+                    R.drawable.ic_arrow_back_24dp,
+                    listOf(
+                        MenuIconItem(icon = R.drawable.ic_dots_horizontal_24, {})
+                    )
+                ),
                 onNavigationClick = {}
             )
         }
