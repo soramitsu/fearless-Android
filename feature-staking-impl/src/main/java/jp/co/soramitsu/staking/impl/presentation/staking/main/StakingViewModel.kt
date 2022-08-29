@@ -135,7 +135,7 @@ class StakingViewModel @Inject constructor(
     private val stakingViewState: SharedFlow<StakingViewState?> = scenarioViewModelFlow
         .flatMapLatest {
             it.getStakingViewStateFlow()
-        }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
+        }.distinctUntilChanged().stateIn(scope = stakingStateScope, started = SharingStarted.Eagerly, initialValue = null)
 
     inline fun <reified T : StakingAssetInfoViewState> Map<StakingType, StakingAssetInfoViewState>.get(type: StakingType): T = get(type) as T
 
