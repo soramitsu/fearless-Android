@@ -8,8 +8,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.Image
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.black
@@ -42,8 +44,10 @@ fun SetupStakingPoolScreen(viewModel: StakingPoolViewModel) {
 @Composable
 private fun SetupStakingPoolScreen(state: SetupStakingPoolViewState, onNavigationClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
+        MarginVertical(margin = 12.dp)
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
-
+        MarginVertical(margin = 8.dp)
+        WhatIsStakingCard()
     }
 }
 
@@ -51,7 +55,8 @@ private fun SetupStakingPoolScreen(state: SetupStakingPoolViewState, onNavigatio
 private fun WhatIsStakingCard() {
     BackgroundCornered(modifier = Modifier.fillMaxWidth()) {
         Row {
-            Image(res = R.drawable.ic_arrow_back_24dp, tint = purple)
+            Image(res = R.drawable.ic_book, tint = purple)
+
         }
     }
 }
