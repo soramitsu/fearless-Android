@@ -185,6 +185,13 @@
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+        <action
+            android:id="@+id/action_mainFragment_to_setupStakingPoolFragment"
+            app:destination="@id/setupStakingPoolFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
         <action
             android:id="@+id/action_mainFragment_to_payoutsListFragment"
@@ -514,6 +521,12 @@
         android:id="@+id/setupStakingFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingFragment"
         android:label="setupStakingFragment"
+        tools:layout="@layout/fragment_setup_staking" />
+
+    <fragment
+        android:id="@+id/setupStakingPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingPoolFragment"
+        android:label="setupStakingPoolFragment"
         tools:layout="@layout/fragment_setup_staking" />
 
     <action

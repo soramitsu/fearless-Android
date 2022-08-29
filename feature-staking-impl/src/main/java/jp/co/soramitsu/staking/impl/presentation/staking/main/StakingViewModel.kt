@@ -284,7 +284,8 @@ class StakingViewModel @Inject constructor(
     fun onEstimatedEarningsInfoClick() {
     }
 
-    fun startStakingClick() {
+    fun startStakingPoolClick() {
+        router.openStakingPoolWelcome()
     }
 }
 

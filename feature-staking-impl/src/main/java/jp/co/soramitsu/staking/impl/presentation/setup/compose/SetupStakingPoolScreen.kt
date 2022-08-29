@@ -3,7 +3,6 @@ package jp.co.soramitsu.staking.impl.presentation.setup.compose
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -44,7 +44,7 @@ import jp.co.soramitsu.common.compose.theme.purple
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingPoolViewModel
+import jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingPoolViewModel
 
 data class SetupStakingPoolViewState(
     val toolbarViewState: ToolbarViewState,
@@ -55,24 +55,21 @@ data class SetupStakingPoolViewState(
 )
 
 @Composable
-fun SetupStakingPoolScreen(viewModel: StakingPoolViewModel) {
-    SetupStakingPoolScreen(
-        SetupStakingPoolViewState(
-            ToolbarViewState("Pool staking", R.drawable.ic_arrow_back_24dp),
-            "KSM",
-            "2 days",
-            "18%",
-            "7 days"
-        ),
-        onNavigationClick = {},
-        instructionsClick = {},
-        joinPool = {},
-        createPool = {}
-    )
+fun SetupStakingPoolScreen(viewModel: SetupStakingPoolViewModel) {
+    val state = viewModel.state.collectAsState()
+    state.value?.let {
+        SetupStakingPoolScreen(
+            state = it,
+            onNavigationClick = {},
+            instructionsClick = {},
+            joinPool = {},
+            createPool = {}
+        )
+    }
 }
 
 @Composable
-private fun SetupStakingPoolScreen(
+fun SetupStakingPoolScreen(
     state: SetupStakingPoolViewState,
     onNavigationClick: () -> Unit,
     instructionsClick: () -> Unit,
@@ -97,7 +94,7 @@ private fun SetupStakingPoolScreen(
             )
             MarginVertical(margin = 8.dp)
             H1(
-                text = state.assetName,
+                text = state.assetName.uppercase(),
                 modifier = Modifier.align(CenterHorizontally),
                 color = colorAccentDisabled
             )
