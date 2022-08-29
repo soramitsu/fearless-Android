@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -14,11 +15,17 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.accentButtonColors
 import jp.co.soramitsu.common.compose.theme.customButtonColors
+import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.purple
 
 @Composable
 fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
     FearlessButton(text, enabled, accentButtonColors, modifier, onClick)
+}
+
+@Composable
+fun TextButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    FearlessButton(text, enabled, customButtonColors(grayButtonBackground), modifier, onClick)
 }
 
 @Composable
@@ -33,9 +40,10 @@ fun ColoredTextButton(text: String, enabled: Boolean = true, backgroundColor: Co
     TextButton(
         modifier = modifier,
         onClick = onClick,
-        shape = FearlessCorneredShape(),
+        shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
         colors = customButtonColors(backgroundColor),
-        enabled = enabled
+        enabled = enabled,
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
     ) {
         CapsTitle(text = text.uppercase())
     }
@@ -57,6 +65,13 @@ private fun ButtonPreview() {
                 "Watch",
                 backgroundColor = purple,
                 modifier = Modifier
+            ) {}
+            MarginVertical(margin = 16.dp)
+            TextButton(
+                "Create pool",
+                modifier = Modifier
+                    .width(200.dp)
+                    .height(52.dp)
             ) {}
         }
     }

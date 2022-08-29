@@ -1,30 +1,47 @@
 package jp.co.soramitsu.staking.impl.presentation.setup.compose
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.ColoredTextButton
+import jp.co.soramitsu.common.compose.component.H1
+import jp.co.soramitsu.common.compose.component.H2
+import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.H6
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.backgroundBlack
+import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.colorAccentDisabled
 import jp.co.soramitsu.common.compose.theme.purple
-import jp.co.soramitsu.common.compose.theme.transparent
+import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingPoolViewModel
@@ -48,21 +65,68 @@ fun SetupStakingPoolScreen(viewModel: StakingPoolViewModel) {
             "7 days"
         ),
         onNavigationClick = {},
-        instructionsClick = {}
+        instructionsClick = {},
+        joinPool = {},
+        createPool = {}
     )
 }
 
 @Composable
-private fun SetupStakingPoolScreen(state: SetupStakingPoolViewState, onNavigationClick: () -> Unit, instructionsClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
+private fun SetupStakingPoolScreen(
+    state: SetupStakingPoolViewState,
+    onNavigationClick: () -> Unit,
+    instructionsClick: () -> Unit,
+    joinPool: () -> Unit,
+    createPool: () -> Unit
+) {
+    Column(modifier = Modifier.background(backgroundBlack)) {
         MarginVertical(margin = 12.dp)
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
-        MarginVertical(margin = 8.dp)
-        WhatIsStakingCard(instructionsClick)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            MarginVertical(margin = 16.dp)
+            WhatIsStakingCard(instructionsClick)
+            MarginVertical(margin = 16.dp)
+            H2(
+                text = stringResource(id = R.string.staking_pool_start_earn_reward_title),
+                textAlign = TextAlign.Center,
+                color = black2
+            )
+            MarginVertical(margin = 8.dp)
+            H1(
+                text = state.assetName,
+                modifier = Modifier.align(CenterHorizontally),
+                color = colorAccentDisabled
+            )
+            MarginVertical(margin = 24.dp)
+            SingleValueInfoCard(R.drawable.ic_chart, R.string.staking_pool_rewards_delay_text, state.rewardsPayoutDelay)
+            MarginVertical(margin = 8.dp)
+            SingleValueInfoCard(R.drawable.ic_money, R.string.staking_pool_start_apr_text, state.yearlyEstimatedEarnings)
+            MarginVertical(margin = 8.dp)
+            SingleValueInfoCard(R.drawable.ic_withdrawal, R.string.staking_pool_start_unstake_period_text, state.unstakingPeriod)
+            MarginVertical(margin = 8.dp)
+            SingleValueInfoCard(R.drawable.ic_gift, R.string.staking_pool_start_reward_freq_text, state.rewardsPayoutDelay)
+            Spacer(modifier = Modifier.weight(1f))
+            AccentButton(
+                text = stringResource(id = R.string.staking_pool_start_join_button_title),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                onClick = joinPool
+            )
+            MarginVertical(margin = 8.dp)
+            TextButton(
+                text = stringResource(id = R.string.staking_pool_start_create_button_title),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                onClick = createPool
+            )
+            MarginVertical(margin = 32.dp)
+        }
     }
 }
 
@@ -75,14 +139,18 @@ private fun WhatIsStakingCard(onClick: () -> Unit) {
                 .padding(8.dp)
         ) {
             Image(
-                res = R.drawable.ic_book, tint = purple, modifier = Modifier
+                res = R.drawable.ic_book,
+                tint = purple,
+                modifier = Modifier
                     .size(24.dp)
                     .align(CenterVertically)
             )
             MarginHorizontal(margin = 10.dp)
             H6(
                 text = stringResource(id = R.string.pool_staking_start_about_title),
-                modifier = Modifier.align(CenterVertically),
+                modifier = Modifier
+                    .align(CenterVertically)
+                    .weight(1f),
                 color = white50
             )
             MarginHorizontal(margin = 8.dp)
@@ -90,10 +158,43 @@ private fun WhatIsStakingCard(onClick: () -> Unit) {
                 text = stringResource(id = R.string.common_watch),
                 backgroundColor = purple,
                 modifier = Modifier
-                    .height(24.dp)
-                    .weight(1f)
+                    .height(28.dp)
                     .align(CenterVertically),
                 onClick = onClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun SingleValueInfoCard(@DrawableRes icon: Int, @StringRes text: Int, value: String) {
+    val formatted = stringResource(id = text, value)
+    val startIndex = formatted.indexOf(value)
+    val endIndex = startIndex + value.length
+    BackgroundCornered(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Image(
+                res = icon,
+                tint = colorAccentDisabled,
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(CenterVertically)
+            )
+            MarginHorizontal(margin = 10.dp)
+            H4(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = white)) {
+                        append(formatted)
+                    }
+                    addStyle(SpanStyle(color = colorAccentDisabled), startIndex, endIndex)
+                },
+                modifier = Modifier
+                    .align(CenterVertically)
+                    .weight(1f)
             )
         }
     }
@@ -110,6 +211,6 @@ private fun SetupStakingPoolScreenPreview() {
         "7 days"
     )
     FearlessTheme {
-        SetupStakingPoolScreen(state, {}, {})
+        SetupStakingPoolScreen(state, {}, {}, {}, {})
     }
 }
