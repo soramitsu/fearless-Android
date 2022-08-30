@@ -2,7 +2,9 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list.model
 
 import java.math.BigDecimal
 import java.math.RoundingMode
+import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
 
 class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: String) {
@@ -12,7 +14,7 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
     val isTokensUpdated = checkIsTokensUpdated()
 
     val rate = try {
-        totalBalance?.let { totalBalanceChange.divide(totalBalance, RoundingMode.HALF_UP).multiply(BigDecimal("100")) }
+        totalBalance?.let { totalBalanceChange.divide(totalBalance, RoundingMode.HALF_UP).fractionToPercentage() }
     } catch (e: ArithmeticException) {
         e.printStackTrace()
         null
@@ -32,7 +34,7 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
 
     private fun calculateTotalBalanceChange(): BigDecimal {
         return assetModels.fold(BigDecimal.ZERO) { acc, current ->
-            val toAdd = current.asset.totalFiat?.multiply(current.asset.token.recentRateChange)?.divide(BigDecimal("100")).orZero()
+            val toAdd = current.asset.totalFiat?.multiply(current.asset.token.recentRateChange.orZero())?.percentageToFraction().orZero()
 
             acc + toAdd
         }

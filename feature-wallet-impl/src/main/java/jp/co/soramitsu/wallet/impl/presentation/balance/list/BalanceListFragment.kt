@@ -18,8 +18,10 @@ import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.MainToolbar
+import jp.co.soramitsu.common.compose.component.MainToolbarShimmer
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MenuIconItem
+import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -46,13 +48,21 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         val toolbarState by viewModel.toolbarState.collectAsState()
 
         when (toolbarState) {
-            is LoadingState.Loading<MainToolbarViewState> -> {}
+            is LoadingState.Loading<MainToolbarViewState> -> {
+                MainToolbarShimmer(
+                    homeIconState = ToolbarHomeIconState(navigationIcon = jp.co.soramitsu.common.R.drawable.ic_wallet),
+                    menuItems = listOf(
+                        MenuIconItem(icon = jp.co.soramitsu.common.R.drawable.ic_scan, {}),
+                        MenuIconItem(icon = jp.co.soramitsu.common.R.drawable.ic_search, {})
+                    )
+                )
+            }
             is LoadingState.Loaded<MainToolbarViewState> -> {
                 MainToolbar(
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
                     menuItems = listOf(
-                        MenuIconItem(icon = R.drawable.ic_scan, {}),
-                        MenuIconItem(icon = R.drawable.ic_search, {})
+                        MenuIconItem(icon = R.drawable.ic_scan) {},
+                        MenuIconItem(icon = R.drawable.ic_search) {}
                     ),
                     onChangeChainClick = { },
                     onNavigationClick = { viewModel.avatarClicked() }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -28,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -46,7 +48,8 @@ data class MainToolbarViewState(
 
 data class ToolbarHomeIconState(
     val walletIcon: Drawable? = null,
-    @DrawableRes val navigationIcon: Int? = null
+    @DrawableRes val navigationIcon: Int? = null,
+    val tint: Color = Color.Unspecified
 )
 
 data class MenuIconItem(
@@ -59,11 +62,13 @@ fun MainToolbar(
     state: MainToolbarViewState,
     onChangeChainClick: () -> Unit,
     onNavigationClick: () -> Unit = {},
-    menuItems: List<MenuIconItem>? = null
+    menuItems: List<MenuIconItem>? = null,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .height(62.dp)
             .padding(horizontal = 16.dp),
         verticalAlignment = CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -121,21 +126,77 @@ fun MainToolbar(
 }
 
 @Composable
+fun MainToolbarShimmer(
+    homeIconState: ToolbarHomeIconState,
+    menuItems: List<MenuIconItem>? = null,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(62.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Box(
+            contentAlignment = Alignment.CenterStart,
+            modifier = Modifier.weight(1f)
+        ) {
+            homeIconState.navigationIcon?.let {
+                IconButton(
+                    painter = painterResource(id = it),
+                    tint = Color.Unspecified,
+                    onClick = {}
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(2f),
+            horizontalAlignment = CenterHorizontally
+        ) {
+            Shimmer(Modifier.height(14.dp))
+            MarginVertical(margin = 12.dp)
+            Shimmer(Modifier.height(12.dp).padding(horizontal = 20.dp))
+        }
+        Row(
+            verticalAlignment = CenterVertically,
+            horizontalArrangement = spacedBy(8.dp, End),
+            modifier = Modifier.weight(1f)
+        ) {
+            menuItems?.forEach { menuItem ->
+                IconButton(
+                    onClick = menuItem.onClick,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(backgroundBlurColor)
+                        .size(32.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = menuItem.icon),
+                        tint = white,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
     when {
-        state.navigationIcon != null -> {
-            IconButton(
-                painter = painterResource(id = state.navigationIcon),
-                tint = white,
-                onClick = onClick
-            )
-        }
-        state.walletIcon != null -> {
-            IconButton(
-                painter = rememberAsyncImagePainter(model = state.walletIcon),
-                onClick = onClick
-            )
-        }
+        state.navigationIcon != null -> painterResource(id = state.navigationIcon)
+        state.walletIcon != null -> rememberAsyncImagePainter(model = state.walletIcon)
+        else -> null
+    }?.let { painter ->
+        IconButton(
+            painter = painter,
+            tint = state.tint,
+            onClick = onClick
+        )
     }
 }
 
@@ -164,22 +225,34 @@ private fun IconButton(
 @Composable
 private fun MainToolbarPreview() {
     FearlessTheme {
-        MainToolbar(
-            state = MainToolbarViewState(
-                title = "My main wallet",
-                homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
-                selectorViewState = ChainSelectorViewState(
-                    selectedChainId = "id",
-                    selectedChainName = "Kusama",
-                    selectedChainStatusColor = colorAccent
+        Column(
+            modifier = Modifier.background(Color.Black)
+        ) {
+            MainToolbarShimmer(
+                homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
+                menuItems = listOf(
+                    MenuIconItem(icon = R.drawable.ic_scan, {}),
+                    MenuIconItem(icon = R.drawable.ic_search, {})
                 )
-            ),
-            menuItems = listOf(
-                MenuIconItem(icon = R.drawable.ic_scan, {}),
-                MenuIconItem(icon = R.drawable.ic_search, {})
-            ),
-            onChangeChainClick = {},
-            onNavigationClick = {}
-        )
+            )
+
+            MainToolbar(
+                state = MainToolbarViewState(
+                    title = "Fearless wallet",
+                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
+                    selectorViewState = ChainSelectorViewState(
+                        selectedChainId = "id",
+                        selectedChainName = stringResource(id = R.string.chain_selection_all_networks),
+                        selectedChainStatusColor = colorAccent
+                    )
+                ),
+                menuItems = listOf(
+                    MenuIconItem(icon = R.drawable.ic_scan, {}),
+                    MenuIconItem(icon = R.drawable.ic_search, {})
+                ),
+                onChangeChainClick = {},
+                onNavigationClick = {}
+            )
+        }
     }
 }
