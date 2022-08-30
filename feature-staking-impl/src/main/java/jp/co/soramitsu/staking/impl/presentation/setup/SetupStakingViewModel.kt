@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -19,6 +20,8 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.mappers.mapRewardDestinationModelToRewardDestination
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -32,10 +35,9 @@ import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.Reward
 import jp.co.soramitsu.staking.impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,8 +50,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import javax.inject.Named
-import jp.co.soramitsu.staking.api.data.StakingSharedState
 
 @HiltViewModel
 class SetupStakingViewModel @Inject constructor(
@@ -219,7 +219,12 @@ class SetupStakingViewModel @Inject constructor(
         stakingType: Chain.Asset.StakingType
     ) {
         viewModelScope.launch {
-            setupStakingSharedState.set(currentProcessState.next(newAmount, rewardDestination, currentAccountAddress))
+            val payload = when (stakingType) {
+                Chain.Asset.StakingType.PARACHAIN -> SetupStakingProcess.SetupStep.Payload.Parachain(newAmount, currentAccountAddress)
+                Chain.Asset.StakingType.RELAYCHAIN -> SetupStakingProcess.SetupStep.Payload.RelayChain(newAmount, rewardDestination, currentAccountAddress)
+                else -> SetupStakingProcess.SetupStep.Payload.Pool(newAmount, currentAccountAddress)
+            }
+            setupStakingSharedState.set(currentProcessState.next(payload))
 
             when (stakingType) {
                 Chain.Asset.StakingType.PARACHAIN -> router.openStartChangeCollators()

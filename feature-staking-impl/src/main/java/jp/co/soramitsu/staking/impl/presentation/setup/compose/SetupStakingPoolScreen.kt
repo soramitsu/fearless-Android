@@ -44,7 +44,7 @@ import jp.co.soramitsu.common.compose.theme.purple
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingPoolViewModel
+import jp.co.soramitsu.staking.impl.presentation.setup.StartStakingPoolViewModel
 
 data class SetupStakingPoolViewState(
     val toolbarViewState: ToolbarViewState,
@@ -55,9 +55,9 @@ data class SetupStakingPoolViewState(
 )
 
 @Composable
-fun SetupStakingPoolScreen(viewModel: SetupStakingPoolViewModel) {
+fun StartStakingPoolScreen(viewModel: StartStakingPoolViewModel) {
     val state = viewModel.state.collectAsState()
-    SetupStakingPoolScreen(
+    StartStakingPoolScreen(
         state = state.value,
         onNavigationClick = viewModel::onBackClick,
         instructionsClick = viewModel::onInstructionsClick,
@@ -67,7 +67,7 @@ fun SetupStakingPoolScreen(viewModel: SetupStakingPoolViewModel) {
 }
 
 @Composable
-fun SetupStakingPoolScreen(
+fun StartStakingPoolScreen(
     state: SetupStakingPoolViewState,
     onNavigationClick: () -> Unit,
     instructionsClick: () -> Unit,
@@ -206,6 +206,6 @@ private fun SetupStakingPoolScreenPreview() {
         "7 days"
     )
     FearlessTheme {
-        SetupStakingPoolScreen(state, {}, {}, {}, {})
+        StartStakingPoolScreen(state, {}, {}, {}, {})
     }
 }

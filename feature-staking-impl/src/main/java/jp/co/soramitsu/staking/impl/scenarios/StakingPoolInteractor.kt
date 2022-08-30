@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.scenarios
 
+import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -98,5 +99,9 @@ class StakingPoolInteractor(
 
     suspend fun getPoolMembers(chainId: ChainId, accountId: AccountId): PoolMember? {
         return dataSource.poolMembers(chainId, accountId)
+    }
+
+    suspend fun estimateJoinFee(amount: BigInteger): BigInteger {
+        return api.estimateJoinFee(amount, BigInteger.ZERO)
     }
 }

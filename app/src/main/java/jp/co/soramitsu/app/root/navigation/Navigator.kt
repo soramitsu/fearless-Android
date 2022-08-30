@@ -350,7 +350,11 @@ class Navigator :
     }
 
     override fun openStakingPoolWelcome() {
-        navController?.navigate(R.id.action_mainFragment_to_setupStakingPoolFragment)
+        navController?.navigate(R.id.action_mainFragment_to_startStakingPoolFragment)
+    }
+
+    override fun openSetupStakingPool() {
+        navController?.navigate(R.id.setupStakingPoolFragment)
     }
 
     override val currentStackEntryLifecycle: Lifecycle

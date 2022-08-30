@@ -40,6 +40,7 @@ class StakingScenarioModule {
                 stakingParachainScenarioInteractor
             }
             is SetupStakingProcess.SetupStep.Pool -> stakingRelayChainScenarioInteractor
+            is SetupStakingProcess.SelectBlockProducersStep.Pools -> stakingRelayChainScenarioInteractor
         }
     }
 }
