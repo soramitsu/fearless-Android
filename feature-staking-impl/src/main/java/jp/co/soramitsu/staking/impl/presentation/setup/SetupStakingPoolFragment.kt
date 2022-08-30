@@ -15,7 +15,6 @@ class SetupStakingPoolFragment : BaseComposeFragment<SetupStakingPoolViewModel>(
 
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState) {
-
         SetupStakingPoolScreen(viewModel = viewModel)
     }
 }

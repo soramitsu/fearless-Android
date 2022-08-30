@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
+import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingPoolViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.PERIOD_YEAR
@@ -25,7 +26,8 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val stakingSharedState: StakingSharedState,
     private val resourceManager: ResourceManager,
-    private val rewardCalculatorFactory: RewardCalculatorFactory
+    private val rewardCalculatorFactory: RewardCalculatorFactory,
+    private val router: StakingRouter
 ) : BaseViewModel() {
 
     private val yearlyReturnsFlow = flowOf {
@@ -62,7 +64,9 @@ class SetupStakingPoolViewModel @Inject constructor(
             unstakingPeriod
         )
     }.stateIn(
-        this.viewModelScope, SharingStarted.Eagerly, SetupStakingPoolViewState(
+        this.viewModelScope,
+        SharingStarted.Eagerly,
+        SetupStakingPoolViewState(
             ToolbarViewState(
                 resourceManager.getString(R.string.pool_staking_title),
                 R.drawable.ic_arrow_back_24dp
@@ -73,4 +77,14 @@ class SetupStakingPoolViewModel @Inject constructor(
             "..."
         )
     )
+
+    fun onBackClick() {
+        router.back()
+    }
+
+    fun onInstructionsClick() {}
+
+    fun onJoinPool() {}
+
+    fun onCreatePool() {}
 }

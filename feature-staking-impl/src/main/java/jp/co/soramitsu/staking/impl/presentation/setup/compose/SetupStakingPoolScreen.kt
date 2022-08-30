@@ -57,15 +57,13 @@ data class SetupStakingPoolViewState(
 @Composable
 fun SetupStakingPoolScreen(viewModel: SetupStakingPoolViewModel) {
     val state = viewModel.state.collectAsState()
-    state.value?.let {
-        SetupStakingPoolScreen(
-            state = it,
-            onNavigationClick = {},
-            instructionsClick = {},
-            joinPool = {},
-            createPool = {}
-        )
-    }
+    SetupStakingPoolScreen(
+        state = state.value,
+        onNavigationClick = viewModel::onBackClick,
+        instructionsClick = viewModel::onInstructionsClick,
+        joinPool = viewModel::onJoinPool,
+        createPool = viewModel::onCreatePool
+    )
 }
 
 @Composable
