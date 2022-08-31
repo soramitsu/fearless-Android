@@ -32,6 +32,17 @@ fun B2(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
+fun B2(modifier: Modifier = Modifier, text: AnnotatedString, textAlign: TextAlign? = null, color: Color = Color.Unspecified) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.body2,
+        modifier = modifier,
+        color = color
+    )
+}
+
+@Composable
 fun B0(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified) {
     Text(
         textAlign = textAlign,

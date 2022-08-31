@@ -39,7 +39,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black2
-import jp.co.soramitsu.common.compose.theme.colorAccentDisabled
+import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.purple
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
@@ -94,7 +94,7 @@ fun StartStakingPoolScreen(
             H1(
                 text = state.assetName.uppercase(),
                 modifier = Modifier.align(CenterHorizontally),
-                color = colorAccentDisabled
+                color = colorAccentDark
             )
             MarginVertical(margin = 24.dp)
             SingleValueInfoCard(R.drawable.ic_chart, R.string.staking_pool_rewards_delay_text, state.rewardsPayoutDelay)
@@ -174,7 +174,7 @@ private fun SingleValueInfoCard(@DrawableRes icon: Int, @StringRes text: Int, va
         ) {
             Image(
                 res = icon,
-                tint = colorAccentDisabled,
+                tint = colorAccentDark,
                 modifier = Modifier
                     .size(24.dp)
                     .align(CenterVertically)
@@ -185,7 +185,7 @@ private fun SingleValueInfoCard(@DrawableRes icon: Int, @StringRes text: Int, va
                     withStyle(style = SpanStyle(color = white)) {
                         append(formatted)
                     }
-                    addStyle(SpanStyle(color = colorAccentDisabled), startIndex, endIndex)
+                    addStyle(SpanStyle(color = colorAccentDark), startIndex, endIndex)
                 },
                 modifier = Modifier
                     .align(CenterVertically)

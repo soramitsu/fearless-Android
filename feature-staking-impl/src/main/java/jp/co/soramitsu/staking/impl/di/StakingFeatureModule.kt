@@ -135,10 +135,6 @@ class StakingFeatureModule {
             is SetupStakingProcess.SetupStep.Parachain -> {
                 ParachainStakingStoriesDataSourceImpl()
             }
-            is SetupStakingProcess.SetupStep.Pool -> StakingStoriesDataSourceImpl()
-            is SetupStakingProcess.SelectBlockProducersStep.Pools -> {
-                StakingStoriesDataSourceImpl()
-            }
         }
     }
 

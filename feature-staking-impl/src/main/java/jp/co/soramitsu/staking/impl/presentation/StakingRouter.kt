@@ -25,6 +25,8 @@ interface StakingRouter {
 
     fun openSelectCustomCollators()
 
+    fun openSelectPool()
+
     fun openStartChangeValidators()
 
     fun openRecommendedValidators()

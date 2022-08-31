@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.scenarios
 
-import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -8,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.model.NominationPool
+import jp.co.soramitsu.staking.api.domain.model.ShortPoolInfo
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
@@ -103,5 +103,20 @@ class StakingPoolInteractor(
 
     suspend fun estimateJoinFee(amount: BigInteger): BigInteger {
         return api.estimateJoinFee(amount, BigInteger.ZERO)
+    }
+
+    suspend fun getAllPools(chainId: ChainId): List<ShortPoolInfo> {
+        val poolsMetadata = dataSource.poolsMetadata(chainId)
+        val pools = dataSource.bondedPools(chainId)
+        return pools.mapNotNull { (id, pool) ->
+            pool ?: return@mapNotNull null
+            val name = poolsMetadata[id] ?: "Pool #$id"
+            ShortPoolInfo(
+                id,
+                name,
+                pool.points,
+                pool.memberCounter
+            )
+        }
     }
 }

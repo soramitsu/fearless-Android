@@ -827,7 +827,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_staking_choosepool_title">Choose a pool</string>
     <string name="pool_staking_choosepool_button_title">Choose</string>
     <string name="pool_staking_choosepool_members_count_title">Members: %d</string>
-    <string name="pool_staking_choosepool_staked_title">Staked %@</string>
+    <string name="pool_staking_choosepool_staked_title">Staked </string>
     <string name="pool_staking_selected_pool">Selected pool</string>
     <string name="pool_staking_pool_name">Pool Name</string>
     <string name="pool_staking_pool_id">Pool ID</string>

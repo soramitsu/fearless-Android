@@ -31,7 +31,7 @@ fun TextButton(text: String, enabled: Boolean = true, modifier: Modifier = Modif
 @Composable
 fun FearlessButton(text: String, enabled: Boolean, colors: ButtonColors, modifier: Modifier = Modifier, onClick: () -> Unit) {
     TextButton(modifier = modifier, onClick = onClick, shape = FearlessCorneredShape(), colors = colors, enabled = enabled) {
-        H3(text = text)
+        H3(text = text, color = colors.contentColor(enabled = enabled).value)
     }
 }
 
@@ -56,6 +56,14 @@ private fun ButtonPreview() {
         Column(modifier = Modifier.padding(16.dp)) {
             AccentButton(
                 "Start staking",
+                modifier = Modifier
+                    .width(200.dp)
+                    .height(52.dp)
+            ) {}
+            MarginVertical(margin = 16.dp)
+            AccentButton(
+                "Start staking",
+                enabled = false,
                 modifier = Modifier
                     .width(200.dp)
                     .height(52.dp)

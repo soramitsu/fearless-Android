@@ -529,11 +529,15 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.StartStakingPoolFragment"
         android:label="startStakingPoolFragment" />
 
-
     <fragment
         android:id="@+id/setupStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingPoolFragment"
         android:label="setupStakingPoolFragment" />
+
+    <fragment
+        android:id="@+id/selectPoolFramgent"
+        android:name="jp.co.soramitsu.staking.impl.presentation.pools.SelectPoolFragment"
+        android:label="selectPoolFramgent" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"

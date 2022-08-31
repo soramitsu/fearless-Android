@@ -160,5 +160,7 @@ class SetupStakingPoolViewModel @Inject constructor(
         val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
 
         setupPoolSharedState.set(setupFlow.copy(amount = amount))
+
+        router.openSelectPool()
     }
 }

@@ -19,13 +19,13 @@ fun getImageRequest(context: Context, url: String): ImageRequest {
 }
 
 @Composable
-fun Image(modifier: Modifier = Modifier, @DrawableRes res: Int, tint: Color = Color.Unspecified, contentDescription: String? = null) {
+fun Image(modifier: Modifier = Modifier, @DrawableRes res: Int, tint: Color? = null, contentDescription: String? = null) {
     androidx.compose.foundation.Image(
         modifier = modifier,
         imageVector = ImageVector.vectorResource(
             id = res
         ),
         contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(tint)
+        colorFilter = tint?.let { ColorFilter.tint(it) }
     )
 }

@@ -1,6 +1,9 @@
 package jp.co.soramitsu.common.compose.theme
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.material.ButtonColors
+import androidx.compose.material.RadioButtonColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberUpdatedState
@@ -58,12 +61,12 @@ val errorRed = Color(0xFFFF3B30)
 
 val transparent = Color(0xffffff)
 
-val colorAccentDisabled = Color(0xFFEE0077)
+val colorAccentDark = Color(0xFFEE0077)
 
 val accentButtonColors = object : ButtonColors {
     @Composable
     override fun backgroundColor(enabled: Boolean): State<Color> {
-        return rememberUpdatedState(if (enabled) colorAccent else colorAccentDisabled)
+        return rememberUpdatedState(if (enabled) colorAccent else colorAccentDark)
     }
 
     @Composable
@@ -81,5 +84,22 @@ fun customButtonColors(backgroundColor: Color) = object : ButtonColors {
     @Composable
     override fun contentColor(enabled: Boolean): State<Color> {
         return rememberUpdatedState(if (enabled) white else white64)
+    }
+}
+
+val accentRadioButtonColors = object : RadioButtonColors {
+    @Composable
+    override fun radioColor(enabled: Boolean, selected: Boolean): State<Color> {
+        val target = when {
+            !enabled -> grayDisabled
+            !selected -> white16
+            else -> colorAccentDark
+        }
+
+        return if (enabled) {
+            animateColorAsState(target, tween(durationMillis = 100))
+        } else {
+            rememberUpdatedState(target)
+        }
     }
 }

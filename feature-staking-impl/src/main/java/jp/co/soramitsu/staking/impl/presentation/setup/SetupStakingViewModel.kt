@@ -160,7 +160,6 @@ class SetupStakingViewModel @Inject constructor(
                     is SetupStakingProcess.SetupStep.Parachain -> {
                         setupStakingInteractor.estimateParachainFee()
                     }
-                    is SetupStakingProcess.SetupStep.Pool -> BigInteger.ZERO
                 }
             },
             onRetryCancelled = ::backClicked

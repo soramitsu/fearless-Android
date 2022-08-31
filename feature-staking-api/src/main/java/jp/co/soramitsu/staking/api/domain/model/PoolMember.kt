@@ -16,6 +16,13 @@ data class PoolUnbonding(
     val amount: BigInteger
 )
 
+data class ShortPoolInfo(
+    val poolId: BigInteger,
+    val name: String,
+    val stakedInPlanks: BigInteger,
+    val members: BigInteger,
+)
+
 data class NominationPool(
     val poolId: BigInteger,
     val name: String?,
