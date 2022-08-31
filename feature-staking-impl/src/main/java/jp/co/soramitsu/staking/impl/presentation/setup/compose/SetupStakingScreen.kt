@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,6 +18,7 @@ import jp.co.soramitsu.common.compose.component.AccountInfo
 import jp.co.soramitsu.common.compose.component.AccountInfoViewState
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
+import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -29,7 +33,7 @@ data class SetupStakingScreenViewState(
     val accountInfoState: AccountInfoViewState,
     val amountInputViewState: AmountInputViewState,
     val feeInfoViewState: FeeInfoViewState,
-    val nextButtonTitle: String
+    val buttonState: ButtonViewState
 )
 
 @Composable
@@ -44,7 +48,9 @@ fun SetupStakingScreen(
             .background(backgroundBlack)
             .padding(horizontal = 16.dp)
             .fillMaxSize()
+            .imePadding()
     ) {
+        MarginVertical(margin = 12.dp)
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
         MarginVertical(margin = 8.dp)
         AccountInfo(state = state.accountInfoState)
@@ -53,7 +59,13 @@ fun SetupStakingScreen(
         Spacer(modifier = Modifier.weight(1f))
         FeeInfo(state = state.feeInfoViewState)
         MarginVertical(margin = 16.dp)
-        AccentButton(text = state.nextButtonTitle, onClick = onNextClick)
+        AccentButton(
+            state = state.buttonState,
+            onClick = onNextClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+        )
         MarginVertical(margin = 16.dp)
     }
 }
@@ -80,8 +92,7 @@ fun SetupStakingScreenPreview() {
             feeAmount = "0.0051 KSM",
             feeAmountFiat = "$0.0009"
         ),
-        "Join"
-
+        ButtonViewState("Join", true)
     )
     FearlessTheme {
         SetupStakingScreen(state, {}, {}, {})

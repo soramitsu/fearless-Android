@@ -18,6 +18,16 @@ import jp.co.soramitsu.common.compose.theme.customButtonColors
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.purple
 
+data class ButtonViewState(
+    val text: String,
+    val enabled: Boolean = true
+)
+
+@Composable
+fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    FearlessButton(state.text, state.enabled, accentButtonColors, modifier, onClick)
+}
+
 @Composable
 fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
     FearlessButton(text, enabled, accentButtonColors, modifier, onClick)

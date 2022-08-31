@@ -22,7 +22,11 @@ data class FeeInfoViewState(
     val caption: String? = null,
     val feeAmount: String?,
     val feeAmountFiat: String?
-)
+) {
+    companion object{
+        val default = FeeInfoViewState(null, null, null)
+    }
+}
 
 @Composable
 fun FeeInfo(state: FeeInfoViewState) {

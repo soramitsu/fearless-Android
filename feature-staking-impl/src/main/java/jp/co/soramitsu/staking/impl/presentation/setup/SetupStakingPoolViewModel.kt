@@ -2,6 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.setup
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -9,6 +11,7 @@ import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AccountInfoViewState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
+import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -17,6 +20,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.staking.impl.di.validations.InsufficientBalanceException
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
@@ -70,16 +74,7 @@ class SetupStakingPoolViewModel @Inject constructor(
             caption = resourceManager.getString(R.string.pool_staking_join_account_title)
         )
         emit(state)
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        AccountInfoViewState(
-            accountName = "...",
-            address = "",
-            image = R.drawable.ic_wallet,
-            caption = resourceManager.getString(R.string.pool_staking_join_account_title)
-        )
-    )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAccountInfoState)
 
     private val enteredAmountFlow = MutableStateFlow("10")
 
@@ -95,17 +90,7 @@ class SetupStakingPoolViewModel @Inject constructor(
             fiatAmount = fiatAmount,
             tokenAmount = enteredAmount
         )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        AmountInputViewState(
-            tokenName = "...",
-            tokenImage = "",
-            totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
-            fiatAmount = "",
-            tokenAmount = "10"
-        )
-    )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAmountInputState)
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = enteredAmountFlow.map { enteredAmount ->
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
@@ -113,39 +98,34 @@ class SetupStakingPoolViewModel @Inject constructor(
         val feeInPlanks = stakingPoolInteractor.estimateJoinFee(inPlanks)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
         val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
-        val feeFiat = fee.applyFiatRate(asset.fiatAmount)?.formatAsCurrency(asset.token.fiatSymbol)
+        val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState(null, null, null))
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
-    val viewState = combine(accountInfoViewStateFlow, amountInputViewState, feeInfoViewStateFlow) { accountInfoViewState, amountInputViewState, feeViewState ->
+    private val buttonStateFlow = enteredAmountFlow.map { enteredAmount ->
+        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+        val amountInPlanks = asset.token.planksFromAmount(amount)
+        ButtonViewState(
+            resourceManager.getString(R.string.pool_staking_join_button_title),
+            amountInPlanks != BigInteger.ZERO
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
+
+    val viewState = combine(
+        accountInfoViewStateFlow,
+        amountInputViewState,
+        feeInfoViewStateFlow,
+        buttonStateFlow
+    ) { accountInfoViewState, amountInputViewState, feeViewState, buttonState ->
         SetupStakingScreenViewState(
             toolbarViewState,
             accountInfoViewState,
             amountInputViewState,
             feeViewState,
-            resourceManager.getString(R.string.pool_staking_join_button_title)
+            buttonState
         )
-    }.stateIn(
-        viewModelScope, SharingStarted.Eagerly, SetupStakingScreenViewState(
-            toolbarViewState,
-            AccountInfoViewState(
-                accountName = "...",
-                address = "",
-                image = R.drawable.ic_wallet,
-                caption = resourceManager.getString(R.string.pool_staking_join_account_title)
-            ),
-            AmountInputViewState(
-                tokenName = "...",
-                tokenImage = "",
-                totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
-                fiatAmount = "",
-                tokenAmount = "10"
-            ),
-            FeeInfoViewState(null, null, null),
-            resourceManager.getString(R.string.pool_staking_join_button_title)
-        )
-    )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
     fun onNavigationClick() {
         router.back()
@@ -159,8 +139,53 @@ class SetupStakingPoolViewModel @Inject constructor(
         val setupFlow = requireNotNull(setupPoolSharedState.get())
         val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
 
-        setupPoolSharedState.set(setupFlow.copy(amount = amount))
-
-        router.openSelectPool()
+        isValid(amount).fold({
+            setupPoolSharedState.set(setupFlow.copy(amount = amount))
+            router.openSelectPool()
+        }, {
+            showError(it)
+        })
     }
+
+    private fun isValid(amount: BigDecimal): Result<Any> {
+        val amountInPlanks = asset.token.planksFromAmount(amount)
+        val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
+
+        return when {
+            amountInPlanks >= transferableInPlanks -> Result.failure(InsufficientBalanceException(resourceManager))
+            else -> Result.success(Unit)
+        }
+    }
+
+    private val defaultState
+        get() = SetupStakingScreenViewState(
+            toolbarViewState,
+            defaultAccountInfoState,
+            defaultAmountInputState,
+            FeeInfoViewState.default,
+            defaultButtonState
+        )
+
+    private val defaultAmountInputState
+        get() = AmountInputViewState(
+            tokenName = "...",
+            tokenImage = "",
+            totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
+            fiatAmount = "",
+            tokenAmount = "10"
+        )
+
+    private val defaultAccountInfoState
+        get() = AccountInfoViewState(
+            accountName = "...",
+            address = "",
+            image = R.drawable.ic_wallet,
+            caption = resourceManager.getString(R.string.pool_staking_join_account_title)
+        )
+
+    private val defaultButtonState
+        get() = ButtonViewState(
+            resourceManager.getString(R.string.pool_staking_join_button_title),
+            true
+        )
 }
