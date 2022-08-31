@@ -9,13 +9,16 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingPoolViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.PERIOD_YEAR
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -27,8 +30,18 @@ class StartStakingPoolViewModel @Inject constructor(
     private val stakingSharedState: StakingSharedState,
     private val resourceManager: ResourceManager,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
-    private val router: StakingRouter
+    private val router: StakingRouter,
+    private val setupPoolSharedState: StakingPoolSetupFlowSharedState
 ) : BaseViewModel() {
+
+    val chain: Chain
+    val asset: Asset
+
+    init {
+        val setupState = requireNotNull(setupPoolSharedState.get())
+        chain = requireNotNull(setupState.chain)
+        asset = requireNotNull(setupState.asset)
+    }
 
     private val yearlyReturnsFlow = flowOf {
         val asset = stakingSharedState.currentAssetFlow().first()

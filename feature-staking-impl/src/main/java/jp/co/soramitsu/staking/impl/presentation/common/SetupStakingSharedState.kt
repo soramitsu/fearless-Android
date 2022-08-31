@@ -19,8 +19,6 @@ sealed class SetupStakingProcess {
 
         fun fullFlow(flow: SetupStakingProcess) = flow
 
-        fun stakingPoolFlow() = SetupStakingProcess.SetupStep.Pool()
-
         fun existingStashFlow() = SelectBlockProducersStep.Validators(SelectBlockProducersStep.Payload.ExistingStash)
 
         fun changeValidatorsFlow() = SelectBlockProducersStep.Validators(SelectBlockProducersStep.Payload.Validators)
@@ -41,11 +39,6 @@ sealed class SetupStakingProcess {
             ) : Payload()
 
             data class Parachain(
-                val newAmount: BigDecimal,
-                val currentAccountAddress: String
-            ) : Payload()
-
-            data class Pool(
                 val newAmount: BigDecimal,
                 val currentAccountAddress: String
             ) : Payload()
@@ -77,16 +70,6 @@ sealed class SetupStakingProcess {
 
                 return SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Parachain(payload.newAmount, payload.currentAccountAddress))
             }
-        }
-
-        class Pool(override val amount: BigDecimal = BigDecimal.ZERO) : SetupStep() {
-
-            override fun previous() = Initial(StakingType.POOL)
-            override fun next(payload: Payload): SetupStakingProcess {
-                require(payload is Payload.Pool)
-                return SelectBlockProducersStep.Pools(SelectBlockProducersStep.Payload.Parachain(payload.newAmount, payload.currentAccountAddress))
-            }
-
         }
     }
 
@@ -145,23 +128,6 @@ sealed class SetupStakingProcess {
             }
         }
 
-        class Pools(val payload: Payload) : SelectBlockProducersStep() {
-
-            override val filtersSet: Set<Filters> = emptySet()
-            override val quickFilters: Set<Filters> = emptySet()
-            override val sortingSet: Set<Sorting> = emptySet()
-
-//            fun previous() = when (payload) {
-//                is Payload.Full -> SetupStep.Stash(payload.amount)
-//                else -> Initial(StakingType.RELAYCHAIN)
-//            }
-
-//            fun next(pools: List<NominationPool>): SetupStakingProcess {
-//
-//                return ReadyToSubmit.Stash(payload)
-//            }
-        }
-
         sealed class Payload {
 
             class Full(
@@ -183,11 +149,6 @@ sealed class SetupStakingProcess {
             ) : Payload()
 
             data class Parachain(
-                val amount: BigDecimal,
-                val accountAddress: String
-            ) : Payload()
-
-            data class Pool(
                 val amount: BigDecimal,
                 val accountAddress: String
             ) : Payload()

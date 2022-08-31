@@ -16,19 +16,20 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
 import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingScreenViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -36,17 +37,25 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel
 class SetupStakingPoolViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
-    private val stakingSharedState: StakingSharedState,
     private val stakingInteractor: StakingInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val stakingPoolInteractor: StakingPoolInteractor,
-    private val router: StakingRouter
+    private val router: StakingRouter,
+    private val setupPoolSharedState: StakingPoolSetupFlowSharedState
 ) : BaseViewModel() {
+
+    val chain: Chain
+    val asset: Asset
+
+    init {
+        val setupState = requireNotNull(setupPoolSharedState.get())
+        chain = requireNotNull(setupState.chain)
+        asset = requireNotNull(setupState.asset)
+    }
 
     private val toolbarViewState = ToolbarViewState(resourceManager.getString(R.string.pool_staking_join_title), R.drawable.ic_arrow_back_24dp)
 
     private val accountInfoViewStateFlow: Flow<AccountInfoViewState> = flow {
-        val chain = stakingSharedState.assetWithChain.first().chain
         val meta = stakingInteractor.getCurrentMetaAccount()
         val address = meta.address(chain) ?: ""
         val icon = iconGenerator.createAddressIcon(
@@ -75,7 +84,6 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val enteredAmountFlow = MutableStateFlow("10")
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
-        val asset = stakingInteractor.currentAssetFlow().first()
         val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration.symbol)
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
@@ -101,7 +109,6 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = enteredAmountFlow.map { enteredAmount ->
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
-        val asset = stakingInteractor.currentAssetFlow().first()
         val inPlanks = asset.token.planksFromAmount(amount)
         val feeInPlanks = stakingPoolInteractor.estimateJoinFee(inPlanks)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
@@ -149,6 +156,9 @@ class SetupStakingPoolViewModel @Inject constructor(
     }
 
     fun onNextClick() {
+        val setupFlow = requireNotNull(setupPoolSharedState.get())
+        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
 
+        setupPoolSharedState.set(setupFlow.copy(amount = amount))
     }
 }

@@ -222,7 +222,7 @@ class SetupStakingViewModel @Inject constructor(
             val payload = when (stakingType) {
                 Chain.Asset.StakingType.PARACHAIN -> SetupStakingProcess.SetupStep.Payload.Parachain(newAmount, currentAccountAddress)
                 Chain.Asset.StakingType.RELAYCHAIN -> SetupStakingProcess.SetupStep.Payload.RelayChain(newAmount, rewardDestination, currentAccountAddress)
-                else -> SetupStakingProcess.SetupStep.Payload.Pool(newAmount, currentAccountAddress)
+                else -> error("")
             }
             setupStakingSharedState.set(currentProcessState.next(payload))
 

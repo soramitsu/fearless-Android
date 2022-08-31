@@ -564,7 +564,6 @@ class StakingPoolWelcomeViewState(
 
     override fun nextClicked() {
         scope.launch {
-            setupStakingSharedState.set(currentSetupProgress.stakingPoolFlow())
             router.openStakingPoolWelcome()
         }
     }

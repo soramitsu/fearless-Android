@@ -1,6 +1,5 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,10 +15,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.white
-import jp.co.soramitsu.common.compose.theme.white08
 
 data class AccountInfoViewState(
     val address: String,
@@ -30,11 +27,9 @@ data class AccountInfoViewState(
 
 @Composable
 fun AccountInfo(state: AccountInfoViewState) {
-    BackgroundCornered(
+    BackgroundCorneredWithBorder(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, color = white08, shape = FearlessCorneredShape()),
-        backgroundColor = black05
     ) {
         Row(
             Modifier

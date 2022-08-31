@@ -26,10 +26,14 @@ data class FeeInfoViewState(
 
 @Composable
 fun FeeInfo(state: FeeInfoViewState) {
+    val verticalPadding = if (state.feeAmount.isNullOrEmpty()) {
+        16.dp
+    } else 8.dp
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = verticalPadding)
     ) {
         B2(
             text = state.caption ?: stringResource(id = R.string.network_fee),
@@ -47,7 +51,7 @@ fun FeeInfo(state: FeeInfoViewState) {
             } ?: Shimmer(
                 modifier = Modifier
                     .height(16.dp)
-                    .width(150.dp)
+                    .width(100.dp)
                     .align(Alignment.End)
             )
         }

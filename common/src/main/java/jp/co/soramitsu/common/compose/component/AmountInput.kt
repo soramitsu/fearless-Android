@@ -29,7 +29,7 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
-import jp.co.soramitsu.common.compose.theme.white08
+import jp.co.soramitsu.common.compose.theme.white24
 
 
 data class AmountInputViewState(
@@ -43,10 +43,9 @@ data class AmountInputViewState(
 
 @Composable
 fun AmountInput(state: AmountInputViewState, onInput: (String) -> Unit) {
-    BackgroundCornered(
+    BackgroundCorneredWithBorder(
         modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, color = white08, shape = FearlessCorneredShape()),
+            .fillMaxWidth(),
         backgroundColor = black05
     ) {
         Column(

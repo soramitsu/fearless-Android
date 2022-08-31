@@ -28,6 +28,8 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingAssetSelector
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlow
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.manageStakingActionValidationFailure
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
@@ -72,12 +74,13 @@ class StakingViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     @Named("StakingChainUpdateSystem") stakingUpdateSystem: UpdateSystem,
-    stakingSharedState: StakingSharedState,
+    private val stakingSharedState: StakingSharedState,
     parachainScenarioInteractor: StakingParachainScenarioInteractor,
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     rewardCalculatorFactory: RewardCalculatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
-    private val stakingPoolInteractor: StakingPoolInteractor
+    private val stakingPoolInteractor: StakingPoolInteractor,
+    private val setupPoolSharedState: StakingPoolSetupFlowSharedState
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
@@ -285,7 +288,14 @@ class StakingViewModel @Inject constructor(
     }
 
     fun startStakingPoolClick() {
-        router.openStakingPoolWelcome()
+        launch {
+            val asset = stakingSharedState.currentAssetFlow().first()
+            val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+            setupPoolSharedState.mutate {
+                StakingPoolJoinFlow(asset = asset, chain = chain, chainAsset = chainAsset)
+            }
+            router.openStakingPoolWelcome()
+        }
     }
 }
 
