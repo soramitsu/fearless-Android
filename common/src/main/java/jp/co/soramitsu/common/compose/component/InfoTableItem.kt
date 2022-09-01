@@ -43,7 +43,11 @@ fun InfoTableItem(state: TitleValueViewState) {
                     modifier = Modifier.align(Alignment.End),
                     style = MaterialTheme.customTypography.header5.bold()
                 )
-            } ?: ShimmerB0(modifier = Modifier.width(120.dp).align(Alignment.End))
+            } ?: ShimmerB0(
+                modifier = Modifier
+                    .width(120.dp)
+                    .align(Alignment.End)
+            )
 
             state.additionalValue?.let {
                 val text = if (it.length > 20) {
@@ -55,13 +59,12 @@ fun InfoTableItem(state: TitleValueViewState) {
                     text = text,
                     color = black2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.align(Alignment.End),
+                    modifier = Modifier.align(Alignment.End)
                 )
             }
         }
     }
 }
-
 
 @Preview
 @Composable

@@ -33,7 +33,7 @@ data class ConfirmJoinPoolScreenViewState(
     val amount: String,
     val address: TitleValueViewState,
     val selectedPool: TitleValueViewState,
-    val networkFee: TitleValueViewState,
+    val networkFee: TitleValueViewState
 )
 
 @Composable
@@ -82,7 +82,7 @@ private fun ConfirmJoinPoolScreenPreview() {
         amount = "10 KSM",
         address = TitleValueViewState("From", "Account for join", "0x3784348729384923849223423"),
         selectedPool = TitleValueViewState("Selected Pool", "Pool #1", "id: 1"),
-        networkFee = TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32"),
+        networkFee = TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32")
     )
     FearlessTheme {
         ConfirmJoinPoolScreen(state, {}, {})

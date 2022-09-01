@@ -33,11 +33,13 @@ private fun InfoTableItemPreview() {
             "From",
             "Account for Join",
             "0xEBN4KURhvkURhvkURhvkURhvkURhvkURhvk"
-        ), TitleValueViewState(
+        ),
+        TitleValueViewState(
             "From",
             "Account for Join",
             null
-        ), TitleValueViewState(
+        ),
+        TitleValueViewState(
             "From",
             null,
             null

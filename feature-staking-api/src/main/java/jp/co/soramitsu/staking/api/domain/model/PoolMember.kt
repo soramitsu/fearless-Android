@@ -20,7 +20,7 @@ data class ShortPoolInfo(
     val poolId: BigInteger,
     val name: String,
     val stakedInPlanks: BigInteger,
-    val members: BigInteger,
+    val members: BigInteger
 )
 
 data class NominationPool(

@@ -23,7 +23,7 @@ data class FeeInfoViewState(
     val feeAmount: String?,
     val feeAmountFiat: String?
 ) {
-    companion object{
+    companion object {
         val default = FeeInfoViewState(null, null, null)
     }
 }

@@ -16,7 +16,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.CapsTitle
 import jp.co.soramitsu.common.compose.component.FearlessRadioButton
@@ -91,7 +90,9 @@ fun PoolItemPreview() {
                     staked = "20k KSM",
                     stakedAmount = BigDecimal.ZERO,
                     isSelected = true
-                ), {}, {}
+                ),
+                {},
+                {}
             )
             PoolItem(
                 PoolItemState(
@@ -101,7 +102,9 @@ fun PoolItemPreview() {
                     staked = "10k KSM",
                     stakedAmount = BigDecimal.ZERO,
                     isSelected = false
-                ), {}, {}
+                ),
+                {},
+                {}
             )
         }
     }

@@ -11,7 +11,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import jp.co.soramitsu.common.compose.theme.customTypography
 
 @Composable
-fun B1(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun B1(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -23,7 +29,13 @@ fun B1(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun B2(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun B2(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -35,7 +47,13 @@ fun B2(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun B2(modifier: Modifier = Modifier, text: AnnotatedString, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun B2(
+    modifier: Modifier = Modifier,
+    text: AnnotatedString,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -47,7 +65,13 @@ fun B2(modifier: Modifier = Modifier, text: AnnotatedString, textAlign: TextAlig
 }
 
 @Composable
-fun B0(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun B0(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -59,7 +83,13 @@ fun B0(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun B3(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun B3(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -71,7 +101,13 @@ fun B3(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun H1(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun H1(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -83,7 +119,13 @@ fun H1(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun H2(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun H2(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -95,7 +137,13 @@ fun H2(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun H3(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun H3(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -107,7 +155,13 @@ fun H3(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun H4(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun H4(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -119,7 +173,13 @@ fun H4(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun H4(modifier: Modifier = Modifier, text: AnnotatedString, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun H4(
+    modifier: Modifier = Modifier,
+    text: AnnotatedString,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -131,7 +191,13 @@ fun H4(modifier: Modifier = Modifier, text: AnnotatedString, textAlign: TextAlig
 }
 
 @Composable
-fun H5(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun H5(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -143,7 +209,13 @@ fun H5(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun H6(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun H6(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -155,7 +227,13 @@ fun H6(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null
 }
 
 @Composable
-fun H6(modifier: Modifier = Modifier, text: AnnotatedString, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun H6(
+    modifier: Modifier = Modifier,
+    text: AnnotatedString,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -167,7 +245,13 @@ fun H6(modifier: Modifier = Modifier, text: AnnotatedString, textAlign: TextAlig
 }
 
 @Composable
-fun CapsTitle(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun CapsTitle(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,
@@ -179,7 +263,13 @@ fun CapsTitle(modifier: Modifier = Modifier, text: String, textAlign: TextAlign?
 }
 
 @Composable
-fun CapsTitle2(modifier: Modifier = Modifier, text: String, textAlign: TextAlign? = null, color: Color = Color.Unspecified, overflow: TextOverflow = TextOverflow.Clip) {
+fun CapsTitle2(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
     Text(
         textAlign = textAlign,
         text = text,

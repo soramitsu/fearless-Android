@@ -31,7 +31,9 @@ fun GradientIcon(@DrawableRes iconRes: Int, color: Color, modifier: Modifier = M
                 .border(10.dp, gradientBrush, CircleShape)
         ) {
             Image(
-                res = iconRes, tint = color, modifier = Modifier
+                res = iconRes,
+                tint = color,
+                modifier = Modifier
                     .size(45.dp)
                     .align(Alignment.Center)
             )

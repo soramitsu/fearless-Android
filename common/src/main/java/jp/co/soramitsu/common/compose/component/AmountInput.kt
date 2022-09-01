@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,8 +28,6 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
-import jp.co.soramitsu.common.compose.theme.white24
-
 
 data class AmountInputViewState(
     val tokenName: String,

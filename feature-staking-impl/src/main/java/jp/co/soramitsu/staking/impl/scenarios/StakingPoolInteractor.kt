@@ -106,7 +106,7 @@ class StakingPoolInteractor(
     }
 
     suspend fun joinPool(address: String, amount: BigInteger, poolId: BigInteger): Result<String> {
-        return api.joinPool(address,amount, poolId)
+        return api.joinPool(address, amount, poolId)
     }
 
     suspend fun getAllPools(chainId: ChainId): List<ShortPoolInfo> {

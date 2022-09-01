@@ -26,7 +26,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 data class SelectPoolScreenViewState(
     val toolbarViewState: ToolbarViewState,
     val pools: List<PoolItemState>,
-    val selectedPool: PoolItemState?,
+    val selectedPool: PoolItemState?
 )
 
 @Composable
@@ -101,4 +101,3 @@ private fun SelectPoolScreenPreview() {
         SelectPoolScreen(state, {}, {}, {}, {})
     }
 }
-
