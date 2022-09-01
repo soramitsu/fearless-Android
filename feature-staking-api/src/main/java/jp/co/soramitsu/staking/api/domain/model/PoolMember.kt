@@ -16,6 +16,13 @@ data class PoolUnbonding(
     val amount: BigInteger
 )
 
+data class ShortPoolInfo(
+    val poolId: BigInteger,
+    val name: String,
+    val stakedInPlanks: BigInteger,
+    val members: BigInteger
+)
+
 data class NominationPool(
     val poolId: BigInteger,
     val name: String?,
@@ -26,9 +33,9 @@ data class NominationPool(
     val unbondingEras: List<PoolUnbonding>,
     val members: BigInteger,
     val depositor: AccountId,
-    val root: AccountId,
-    val nominator: AccountId,
-    val stateToggler: AccountId
+    val root: AccountId?,
+    val nominator: AccountId?,
+    val stateToggler: AccountId?
 ) {
     val unstaking = unbondingEras.sumByBigInteger { it.amount }
 

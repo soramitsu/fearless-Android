@@ -2,7 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.common
 
 import android.util.Log
 import java.math.BigDecimal
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
@@ -20,8 +19,6 @@ sealed class SetupStakingProcess {
 
         fun fullFlow(flow: SetupStakingProcess) = flow
 
-        fun stakingPoolFlow() = SetupStakingProcess.SetupStep.Pool()
-
         fun existingStashFlow() = SelectBlockProducersStep.Validators(SelectBlockProducersStep.Payload.ExistingStash)
 
         fun changeValidatorsFlow() = SelectBlockProducersStep.Validators(SelectBlockProducersStep.Payload.Validators)
@@ -31,48 +28,47 @@ sealed class SetupStakingProcess {
         abstract val amount: BigDecimal
         abstract fun previous(): SetupStakingProcess
         abstract fun next(
-            newAmount: BigDecimal,
-            rewardDestination: RewardDestination,
-            currentAccountAddress: String
+            payload: Payload
         ): SetupStakingProcess
+
+        sealed class Payload {
+            data class RelayChain(
+                val newAmount: BigDecimal,
+                val rewardDestination: RewardDestination,
+                val currentAccountAddress: String
+            ) : Payload()
+
+            data class Parachain(
+                val newAmount: BigDecimal,
+                val currentAccountAddress: String
+            ) : Payload()
+        }
 
         class Stash(override val amount: BigDecimal) : SetupStep() {
 
             override fun previous() = Initial(StakingType.RELAYCHAIN)
 
-            override fun next(
-                newAmount: BigDecimal,
-                rewardDestination: RewardDestination,
-                currentAccountAddress: String
-            ) = SelectBlockProducersStep.Validators(SelectBlockProducersStep.Payload.Full(newAmount, rewardDestination, currentAccountAddress))
+            override fun next(payload: Payload): SetupStakingProcess {
+                require(payload is Payload.RelayChain)
+
+                return SelectBlockProducersStep.Validators(
+                    SelectBlockProducersStep.Payload.Relaychain(
+                        payload.newAmount,
+                        payload.rewardDestination,
+                        payload.currentAccountAddress
+                    )
+                )
+            }
         }
 
         class Parachain(override val amount: BigDecimal) : SetupStep() {
 
             override fun previous() = Initial(StakingType.PARACHAIN)
 
-            override fun next(
-                newAmount: BigDecimal,
-                rewardDestination: RewardDestination,
-                currentAccountAddress: String
-            ): SelectBlockProducersStep.Collators {
-                val payout = RewardDestination.Payout(currentAccountAddress.fromHex())
-                return SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Full(newAmount, payout, currentAccountAddress))
-            }
-        }
+            override fun next(payload: Payload): SetupStakingProcess {
+                require(payload is Payload.Parachain)
 
-        class Pool(override val amount: BigDecimal = BigDecimal.ZERO) : SetupStep() {
-
-            override fun previous() = Initial(StakingType.POOL)
-
-            override fun next(
-                newAmount: BigDecimal,
-                rewardDestination: RewardDestination,
-                currentAccountAddress: String
-            ): SelectBlockProducersStep.Collators {
-                // todo
-                val payout = RewardDestination.Payout(currentAccountAddress.fromHex())
-                return SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Full(newAmount, payout, currentAccountAddress))
+                return SelectBlockProducersStep.Collators(SelectBlockProducersStep.Payload.Parachain(payload.newAmount, payload.currentAccountAddress))
             }
         }
     }
@@ -84,7 +80,7 @@ sealed class SetupStakingProcess {
         abstract val sortingSet: Set<Sorting>
 
         class Collators(
-            val payload: Payload.Full
+            val payload: Payload.Parachain
         ) : SelectBlockProducersStep() {
 
             override val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.WithRelevantBond)
@@ -94,10 +90,9 @@ sealed class SetupStakingProcess {
 
             fun next(collators: List<Collator>, selectionMethod: ReadyToSubmit.SelectionMethod): SetupStakingProcess {
                 return ReadyToSubmit.Parachain(
-                    ReadyToSubmit.Payload.Full(
+                    ReadyToSubmit.Payload.Parachain(
                         payload.amount,
-                        payload.rewardDestination,
-                        payload.controllerAddress,
+                        payload.accountAddress,
                         collators,
                         selectionMethod
                     )
@@ -124,7 +119,7 @@ sealed class SetupStakingProcess {
                     when (this) {
                         is Payload.Full -> ReadyToSubmit.Payload.Full(amount, rewardDestination, controllerAddress, validators, selectionMethod)
                         is Payload.ExistingStash -> ReadyToSubmit.Payload.ExistingStash(validators, selectionMethod)
-                        is Payload.Validators -> ReadyToSubmit.Payload.Validators(validators, selectionMethod)
+                        is Payload.Relaychain -> ReadyToSubmit.Payload.RelayChain(amount, rewardDestination, controllerAddress, validators, selectionMethod)
                         else -> error("Wrong payload type")
                     }
                 }
@@ -146,6 +141,17 @@ sealed class SetupStakingProcess {
             object Validators : Payload()
 
             object Collators : Payload()
+
+            data class Relaychain(
+                val amount: BigDecimal,
+                val rewardDestination: RewardDestination,
+                val controllerAddress: String
+            ) : Payload()
+
+            data class Parachain(
+                val amount: BigDecimal,
+                val accountAddress: String
+            ) : Payload()
         }
     }
 
@@ -186,23 +192,46 @@ sealed class SetupStakingProcess {
                 }
             }
 
-            class Validators(
-                validators: List<Validator>,
-                selectionMethod: SelectionMethod
-            ) : Payload<Validator>(validators, selectionMethod) {
+//            class Validators(
+//                validators: List<Validator>,
+//                selectionMethod: SelectionMethod
+//            ) : Payload<Validator>(validators, selectionMethod) {
+//
+//                override fun changeBlockProducers(newBlockProducers: List<Validator>, selectionMethod: SelectionMethod): Payload<Validator> {
+//                    return Validators(newBlockProducers, selectionMethod)
+//                }
+//            }
+//
+//            class Collators(
+//                collators: List<Collator>,
+//                selectionMethod: SelectionMethod
+//            ) : Payload<Collator>(collators, selectionMethod) {
+//
+//                override fun changeBlockProducers(newBlockProducers: List<Collator>, selectionMethod: SelectionMethod): Payload<Collator> {
+//                    return Collators(newBlockProducers, selectionMethod)
+//                }
+//            }
 
-                override fun changeBlockProducers(newBlockProducers: List<Validator>, selectionMethod: SelectionMethod): Payload<Validator> {
-                    return Validators(newBlockProducers, selectionMethod)
-                }
-            }
-
-            class Collators(
+            class Parachain(
+                val amount: BigDecimal,
+                val currentAccountAddress: String,
                 collators: List<Collator>,
                 selectionMethod: SelectionMethod
             ) : Payload<Collator>(collators, selectionMethod) {
-
                 override fun changeBlockProducers(newBlockProducers: List<Collator>, selectionMethod: SelectionMethod): Payload<Collator> {
-                    return Collators(newBlockProducers, selectionMethod)
+                    return Parachain(amount, currentAccountAddress, newBlockProducers, selectionMethod)
+                }
+            }
+
+            class RelayChain(
+                val amount: BigDecimal,
+                val rewardDestination: RewardDestination,
+                val controllerAddress: String,
+                validators: List<Validator>,
+                selectionMethod: SelectionMethod
+            ) : Payload<Validator>(validators, selectionMethod) {
+                override fun changeBlockProducers(newBlockProducers: List<Validator>, selectionMethod: SelectionMethod): Payload<Validator> {
+                    return RelayChain(amount, rewardDestination, controllerAddress, newBlockProducers, selectionMethod)
                 }
             }
         }
@@ -233,7 +262,7 @@ sealed class SetupStakingProcess {
                     val payload = when (payload) {
                         is Payload.Full -> SelectBlockProducersStep.Payload.Full(payload.amount, payload.rewardDestination, payload.currentAccountAddress)
                         is Payload.ExistingStash -> SelectBlockProducersStep.Payload.ExistingStash
-                        is Payload.Validators -> SelectBlockProducersStep.Payload.Validators
+                        is Payload.RelayChain -> SelectBlockProducersStep.Payload.Validators
                         else -> error("Wrong payload type")
                     }
                     SelectBlockProducersStep.Validators(payload)
@@ -241,7 +270,7 @@ sealed class SetupStakingProcess {
                 is Parachain -> {
                     val payload = when (payload) {
 //                        is Payload.Collators -> SelectBlockProducersStep.Payload.Collators //todo
-                        is Payload.Full -> SelectBlockProducersStep.Payload.Full(payload.amount, payload.rewardDestination, payload.currentAccountAddress)
+                        is Payload.Parachain -> SelectBlockProducersStep.Payload.Parachain(payload.amount, payload.currentAccountAddress)
 
                         else -> error("Wrong payload type")
                     }

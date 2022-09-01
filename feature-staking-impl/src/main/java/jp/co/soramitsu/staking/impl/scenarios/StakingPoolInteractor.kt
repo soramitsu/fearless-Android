@@ -7,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.model.NominationPool
+import jp.co.soramitsu.staking.api.domain.model.ShortPoolInfo
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
@@ -98,5 +99,28 @@ class StakingPoolInteractor(
 
     suspend fun getPoolMembers(chainId: ChainId, accountId: AccountId): PoolMember? {
         return dataSource.poolMembers(chainId, accountId)
+    }
+
+    suspend fun estimateJoinFee(amount: BigInteger, poolId: BigInteger = BigInteger.ZERO): BigInteger {
+        return api.estimateJoinFee(amount, poolId)
+    }
+
+    suspend fun joinPool(address: String, amount: BigInteger, poolId: BigInteger): Result<String> {
+        return api.joinPool(address, amount, poolId)
+    }
+
+    suspend fun getAllPools(chainId: ChainId): List<ShortPoolInfo> {
+        val poolsMetadata = dataSource.poolsMetadata(chainId)
+        val pools = dataSource.bondedPools(chainId)
+        return pools.mapNotNull { (id, pool) ->
+            pool ?: return@mapNotNull null
+            val name = poolsMetadata[id] ?: "Pool #$id"
+            ShortPoolInfo(
+                id,
+                name,
+                pool.points,
+                pool.memberCounter
+            )
+        }
     }
 }

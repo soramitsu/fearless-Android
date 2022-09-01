@@ -18,13 +18,14 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -75,15 +76,14 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                                 Content(padding, scrollState)
 
                                 AlertDialogContent(openAlertDialog)
-                                viewModel.errorLiveData.observeAsState().value?.let {
+                                viewModel.errorLiveData.observeEventAsState().value?.let {
                                     openAlertDialog.value = AlertDialogData(
                                         title = stringResource(id = R.string.common_error_general_title),
-                                        message = it.peekContent()
+                                        message = it
                                     )
                                 }
-                                viewModel.errorWithTitleLiveData.observeAsState().value?.let {
-                                    val (title, message) = it.peekContent()
 
+                                viewModel.errorWithTitleLiveData.observeEventAsState().value?.let { (title, message) ->
                                     openAlertDialog.value = AlertDialogData(
                                         title = title,
                                         message = message
@@ -136,5 +136,17 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                 observer.invoke(it)
             }
         )
+    }
+
+    @Composable
+    fun <V> LiveData<Event<V>>.observeEventAsState(): MutableState<V?> {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val state = remember { mutableStateOf<V?>(null) }
+        DisposableEffect(this, lifecycleOwner) {
+            val eventObserver = EventObserver<V> { state.value = it }
+            observe(lifecycleOwner, eventObserver)
+            onDispose { removeObserver(eventObserver) }
+        }
+        return state
     }
 }

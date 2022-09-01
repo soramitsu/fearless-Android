@@ -252,7 +252,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                                                 .fillMaxWidth()
                                                 .height(Dp(52f)),
                                             text = stringResource(id = R.string.staking_start_title),
-                                            onClick = viewModel::startStakingClick
+                                            onClick = viewModel::startStakingPoolClick
                                         )
                                         MarginVertical(margin = Dp(16f))
                                     }

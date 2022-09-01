@@ -187,6 +187,14 @@
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
         <action
+            android:id="@+id/action_mainFragment_to_startStakingPoolFragment"
+            app:destination="@id/startStakingPoolFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+        <action
             android:id="@+id/action_mainFragment_to_payoutsListFragment"
             app:destination="@id/payoutsListFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -515,6 +523,26 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingFragment"
         android:label="setupStakingFragment"
         tools:layout="@layout/fragment_setup_staking" />
+
+    <fragment
+        android:id="@+id/startStakingPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.StartStakingPoolFragment"
+        android:label="startStakingPoolFragment" />
+
+    <fragment
+        android:id="@+id/setupStakingPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingPoolFragment"
+        android:label="setupStakingPoolFragment" />
+
+    <fragment
+        android:id="@+id/selectPoolFramgent"
+        android:name="jp.co.soramitsu.staking.impl.presentation.pools.SelectPoolFragment"
+        android:label="selectPoolFramgent" />
+
+    <fragment
+        android:id="@+id/confirmJoinPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.ConfirmJoinPoolFragment"
+        android:label="confirmJoinPoolFragment" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"

@@ -9,9 +9,9 @@ data class BondedPool(
     val state: NominationPoolState,
     val memberCounter: BigInteger,
     val depositor: AccountId,
-    val root: AccountId,
-    val nominator: AccountId,
-    val stateToggler: AccountId
+    val root: AccountId?,
+    val nominator: AccountId?,
+    val stateToggler: AccountId?
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

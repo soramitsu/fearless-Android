@@ -6,6 +6,30 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
+import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
+import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment
+import jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment
+import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
+import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
+import jp.co.soramitsu.account.impl.presentation.account.list.AccountListFragment
+import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
+import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
+import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJsonPasswordFragment
+import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment
+import jp.co.soramitsu.account.impl.presentation.exporting.seed.ExportSeedFragment
+import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment
+import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment
+import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
+import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
+import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
+import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
+import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
+import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
+import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
+import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
+import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
@@ -14,8 +38,19 @@ import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.common.view.onResumeObserver
+import jp.co.soramitsu.crowdloan.impl.presentation.CrowdloanRouter
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.ConfirmContributeFragment
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.BonusPayload
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContributeFragment
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
+import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.ConfirmPayoutFragment
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
@@ -43,38 +78,6 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDeta
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
-import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
-import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment
-import jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment
-import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
-import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
-import jp.co.soramitsu.account.impl.presentation.account.list.AccountListFragment
-import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
-import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
-import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJsonPasswordFragment
-import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment
-import jp.co.soramitsu.account.impl.presentation.exporting.seed.ExportSeedFragment
-import jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment
-import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment
-import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment
-import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
-import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
-import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
-import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
-import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
-import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
-import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
-import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
-import jp.co.soramitsu.crowdloan.impl.presentation.CrowdloanRouter
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.ConfirmContributeFragment
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.confirm.parcel.ConfirmContributePayload
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.BonusPayload
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContributeFragment
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
-import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
@@ -89,9 +92,6 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.Ext
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.splash.SplashRouter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.parcelize.Parcelize
@@ -349,6 +349,18 @@ class Navigator :
         )
     }
 
+    override fun openStakingPoolWelcome() {
+        navController?.navigate(R.id.action_mainFragment_to_startStakingPoolFragment)
+    }
+
+    override fun openSetupStakingPool() {
+        navController?.navigate(R.id.setupStakingPoolFragment)
+    }
+
+    override fun openConfirmJoinPool() {
+        navController?.navigate(R.id.confirmJoinPoolFragment)
+    }
+
     override val currentStackEntryLifecycle: Lifecycle
         get() = navController!!.currentBackStackEntry!!.lifecycle
 
@@ -369,6 +381,10 @@ class Navigator :
 
     override fun openSelectCustomCollators() {
         navController?.navigate(R.id.action_startChangeCollatorsFragment_to_selectCustomCollatorsFragment)
+    }
+
+    override fun openSelectPool() {
+        navController?.navigate(R.id.selectPoolFramgent)
     }
 
     override fun openRecommendedValidators() {

@@ -806,13 +806,13 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="chain_selection_all_networks">All networks</string>
     <string name="hidden_assets">Hidden assets</string>
 
-    <string name="staking_pool_rewards_delay_text">Stake at anytime. You will start earning interests after %@</string>
-    <string name="staking_pool_start_apr_text">Earn %@ per year</string>
-    <string name="staking_pool_start_unstake_period_text">Unstake at anytime. You will need to wait for %@ before being able to spend your funds and the interest you’ve earned</string>
-    <string name="staking_pool_start_reward_freq_text">Rewards is paid every %@</string>
+    <string name="staking_pool_rewards_delay_text">Stake at anytime. You will start earning interests after %s</string>
+    <string name="staking_pool_start_apr_text">Earn %s per year</string>
+    <string name="staking_pool_start_unstake_period_text">Unstake at anytime. You will need to wait for %s before being able to spend your funds and the interest you’ve earned</string>
+    <string name="staking_pool_start_reward_freq_text">Rewards is paid every %s</string>
     <string name="staking_pool_start_join_button_title">Join pool</string>
     <string name="staking_pool_start_create_button_title">Create pool</string>
-    <string name="staking_pool_start_earn_reward_title">Earn rewards when you stake your\n%@</string>
+    <string name="staking_pool_start_earn_reward_title">Earn rewards when you stake your</string>
     <string name="pool_staking_main_min_create_title">Min. to create a pool</string>
     <string name="pool_staking_main_min_join_title">Min. to join Pool</string>
     <string name="pool_staking_main_existing_pools_title">Existing pools</string>
@@ -827,7 +827,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_staking_choosepool_title">Choose a pool</string>
     <string name="pool_staking_choosepool_button_title">Choose</string>
     <string name="pool_staking_choosepool_members_count_title">Members: %d</string>
-    <string name="pool_staking_choosepool_staked_title">Staked %@</string>
+    <string name="pool_staking_choosepool_staked_title">Staked </string>
     <string name="pool_staking_selected_pool">Selected pool</string>
     <string name="pool_staking_pool_name">Pool Name</string>
     <string name="pool_staking_pool_id">Pool ID</string>

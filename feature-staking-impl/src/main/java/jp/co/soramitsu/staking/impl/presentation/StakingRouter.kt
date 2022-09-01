@@ -25,6 +25,8 @@ interface StakingRouter {
 
     fun openSelectCustomCollators()
 
+    fun openSelectPool()
+
     fun openStartChangeValidators()
 
     fun openRecommendedValidators()
@@ -93,8 +95,11 @@ interface StakingRouter {
 
     fun openConfirmRewardDestination(payload: ConfirmRewardDestinationPayload)
 
-    fun openStakingPoolWelcome() {
-    }
+    fun openStakingPoolWelcome()
 
     val currentStackEntryLifecycle: Lifecycle
+
+    fun openSetupStakingPool()
+
+    fun openConfirmJoinPool()
 }

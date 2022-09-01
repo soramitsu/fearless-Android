@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import javax.inject.Named
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AssetSelectorState
@@ -28,6 +29,8 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingAssetSelector
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlow
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.manageStakingActionValidationFailure
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
@@ -72,12 +75,13 @@ class StakingViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val validationExecutor: ValidationExecutor,
     @Named("StakingChainUpdateSystem") stakingUpdateSystem: UpdateSystem,
-    stakingSharedState: StakingSharedState,
+    private val stakingSharedState: StakingSharedState,
     parachainScenarioInteractor: StakingParachainScenarioInteractor,
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     rewardCalculatorFactory: RewardCalculatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
-    private val stakingPoolInteractor: StakingPoolInteractor
+    private val stakingPoolInteractor: StakingPoolInteractor,
+    private val setupPoolSharedState: StakingPoolSetupFlowSharedState
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
@@ -284,7 +288,17 @@ class StakingViewModel @Inject constructor(
     fun onEstimatedEarningsInfoClick() {
     }
 
-    fun startStakingClick() {
+    fun startStakingPoolClick() {
+        launch {
+            val asset = stakingSharedState.currentAssetFlow().first()
+            val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+            val meta = interactor.getCurrentMetaAccount()
+            val address = requireNotNull(meta.address(chain))
+            setupPoolSharedState.mutate {
+                StakingPoolJoinFlow(asset = asset, chain = chain, chainAsset = chainAsset, address = address)
+            }
+            router.openStakingPoolWelcome()
+        }
     }
 }
 
