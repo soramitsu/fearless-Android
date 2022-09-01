@@ -61,7 +61,7 @@ fun ActionCell(
 
 @Preview
 @Composable
-fun ActionSellPreview() {
+private fun ActionSellPreview() {
     val state = ActionCellViewState(
         painter = painterResource(R.drawable.ic_common_send),
         title = "Send"

@@ -778,4 +778,11 @@
     <string name="nft_stub_text">NFTs скоро будут здесь</string>
     <string name="сurrencies_stub_text">Токены</string>
     <string name="nfts_stub">NFTs</string>
+
+    <string name="common_action_receive">Получить</string>
+    <string name="common_action_send">Перевести</string>
+    <string name="common_action_teleport">Телепорт</string>
+    <string name="common_action_hide">Скрыть</string>
+    <string name="common_action_show">Показать</string>
+
 </resources>

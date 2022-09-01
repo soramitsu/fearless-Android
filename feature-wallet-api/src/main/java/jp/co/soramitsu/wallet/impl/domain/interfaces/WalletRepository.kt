@@ -1,26 +1,26 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
+import java.math.BigDecimal
+import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
-import java.math.BigInteger
 
 interface WalletRepository {
 
-    fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount> = emptyList()): Flow<List<AssetWithStatus>>
+    fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>>
 
     suspend fun getAssets(metaId: Long): List<Asset>
 
@@ -29,6 +29,8 @@ interface WalletRepository {
     fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset>
 
     suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset?
+
+    suspend fun updateAssetHidden(metaId: Long, accountId: AccountId, chainId: ChainId, assetChainId: String, isHidden: Boolean)
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,

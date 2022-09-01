@@ -85,7 +85,7 @@ interface MultiToggleItem {
 
 @Preview
 @Composable
-fun PreviewMultiToggleButton() {
+private fun PreviewMultiToggleButton() {
     val currencies = object : MultiToggleItem {
         override val title = "Currencies"
     }

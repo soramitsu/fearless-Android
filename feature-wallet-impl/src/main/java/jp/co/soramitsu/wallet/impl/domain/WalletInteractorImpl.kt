@@ -67,8 +67,7 @@ class WalletInteractorImpl(
             .flatMapLatest { ratesUpdating ->
                 accountRepository.selectedMetaAccountFlow()
                     .flatMapLatest {
-                        val chainAccounts = it.chainAccounts.values.toList()
-                        walletRepository.assetsFlow(it, chainAccounts)
+                        walletRepository.assetsFlow(it)
                     }
                     .filter { it.isNotEmpty() }
                     .map { assets ->
@@ -310,5 +309,37 @@ class WalletInteractorImpl(
     override suspend fun enableCustomAssetSorting() {
         val metaId = accountRepository.getSelectedMetaAccount().id
         preferences.putBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", true)
+    }
+
+    override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainRegistry.getChain(chainId)
+        val accountId = metaAccount.accountId(chain)
+
+        accountId?.let {
+            walletRepository.updateAssetHidden(
+                metaId = metaAccount.id,
+                accountId = it,
+                chainId = chainId,
+                assetChainId = chainAssetId,
+                isHidden = true
+            )
+        }
+    }
+
+    override suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String) {
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainRegistry.getChain(chainId)
+        val accountId = metaAccount.accountId(chain)
+
+        accountId?.let {
+            walletRepository.updateAssetHidden(
+                metaId = metaAccount.id,
+                accountId = it,
+                chainId = chainId,
+                assetChainId = chainAssetId,
+                isHidden = false
+            )
+        }
     }
 }

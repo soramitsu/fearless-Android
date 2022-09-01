@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.utils.isNonNegative
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
-class TokenModel(
+data class TokenModel(
     val configuration: Chain.Asset,
     val fiatRate: BigDecimal?,
     val fiatSymbol: String?,

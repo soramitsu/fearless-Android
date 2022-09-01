@@ -83,11 +83,12 @@ class WalletRepositoryImpl(
     private val remoteConfigFetcher: RemoteConfigFetcher
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
-    override fun assetsFlow(meta: MetaAccount, chainAccounts: List<MetaAccount.ChainAccount>): Flow<List<AssetWithStatus>> {
+    override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
         return combine(
             chainRegistry.chainsById,
             assetCache.observeAssets(meta.id)
         ) { chainsById, assetsLocal ->
+            val chainAccounts = meta.chainAccounts.values.toList()
             val updatedAssets = assetsLocal.mapNotNull { asset ->
                 mapAssetLocalToAsset(chainsById, asset)?.let {
                     val hasChainAccount = asset.asset.chainId in chainAccounts.mapNotNull { it.chain?.id }
@@ -200,6 +201,22 @@ class WalletRepositoryImpl(
 
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
+
+    override suspend fun updateAssetHidden(metaId: Long, accountId: AccountId, chainId: ChainId, assetChainId: String, isHidden: Boolean) {
+        val assetLocal = assetCache.getAsset(metaId, accountId, chainId, assetChainId.uppercase())
+        assetLocal?.toAssetUpdateItem()?.copy(enabled = !isHidden)?.let {
+            assetCache.updateAsset(listOf(it))
+        }
+    }
+
+    private fun AssetWithToken.toAssetUpdateItem() = AssetUpdateItem(
+        metaId = asset.metaId,
+        chainId = asset.chainId,
+        accountId = asset.accountId,
+        tokenSymbol = asset.tokenSymbol,
+        sortIndex = asset.sortIndex,
+        enabled = asset.enabled
+    )
 
     override suspend fun syncOperationsFirstPage(
         pageSize: Int,

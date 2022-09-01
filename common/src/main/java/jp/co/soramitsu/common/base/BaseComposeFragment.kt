@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -95,6 +96,16 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                 }
             }
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.messageLiveData.observeEvent(::showMessage)
+    }
+
+    protected fun showMessage(text: String) {
+        Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT)
+            .show()
     }
 
     @Composable

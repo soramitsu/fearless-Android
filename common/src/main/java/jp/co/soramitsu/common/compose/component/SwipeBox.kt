@@ -1,17 +1,15 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.runtime.Composable
@@ -19,14 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
 enum class SwipeState {
@@ -44,11 +41,11 @@ data class SwipeBoxViewState(
 @Composable
 fun SwipeBox(
     state: SwipeBoxViewState,
+    swipeableState: SwipeableState<SwipeState>,
     initialContent: @Composable () -> Unit,
     leftContent: @Composable () -> Unit,
     rightContent: @Composable () -> Unit
 ) {
-    val swipeableState = rememberSwipeableState(SwipeState.INITIAL)
     val anchors = mapOf(
         with(LocalDensity.current) { state.leftStateWidth.toPx() } to SwipeState.LEFT,
         with(LocalDensity.current) { -state.rightStateWidth.toPx() } to SwipeState.RIGHT,
@@ -67,38 +64,46 @@ fun SwipeBox(
             )
             .testTag("SwipeBox")
     ) {
-        AnimatedVisibility(
-            visible = swipeableState.currentValue == SwipeState.LEFT,
-            modifier = Modifier.align(Alignment.CenterStart),
-            enter = fadeIn() + slideInHorizontally(
-                initialOffsetX = { fullWidth -> -fullWidth }
-            ),
-            exit = fadeOut() + slideOutHorizontally(
-                targetOffsetX = { fullWidth -> -fullWidth }
-            )
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .wrapContentHeight()
+                .offset {
+                    val offsetX = -state.leftStateWidth.toPx() + swipeableState.offset.value
+
+                    val extraOffset = -10.dp.toPx() // hiding beyond screen
+                    val eliminationDistance = 40.dp.toPx()
+                    val eliminationCoefficient = when {
+                        swipeableState.offset.value > eliminationDistance -> 0f
+                        else -> (eliminationDistance - swipeableState.offset.value) / eliminationDistance
+                    }
+
+                    val x = (offsetX + extraOffset * eliminationCoefficient).roundToInt()
+                    IntOffset(x, 0)
+                }
         ) {
-            Box(
-                modifier = Modifier
-                    .wrapContentHeight()
-            ) {
-                leftContent()
-            }
+            leftContent()
         }
 
-        AnimatedVisibility(
-            visible = swipeableState.currentValue == SwipeState.RIGHT,
-            modifier = Modifier.align(Alignment.CenterEnd),
-            enter = fadeIn() + slideInHorizontally(
-                initialOffsetX = { fullWidth -> -fullWidth }
-            ),
-            exit = fadeOut()
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .wrapContentHeight()
+                .offset {
+                    val offsetX = (state.rightStateWidth.toPx() + swipeableState.offset.value).roundToInt()
+
+                    val extraOffset = 10.dp.toPx() // hiding beyond screen
+                    val eliminationDistance = 40.dp.toPx()
+                    val eliminationCoefficient = when {
+                        swipeableState.offset.value.absoluteValue > eliminationDistance -> 0f
+                        else -> (eliminationDistance - swipeableState.offset.value.absoluteValue) / eliminationDistance
+                    }
+
+                    val x = (offsetX + extraOffset * eliminationCoefficient).roundToInt()
+                    IntOffset(x, 0)
+                }
         ) {
-            Box(
-                modifier = Modifier
-                    .wrapContentHeight()
-            ) {
-                rightContent()
-            }
+            rightContent()
         }
 
         Box(
@@ -112,36 +117,25 @@ fun SwipeBox(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
-fun AssetItemSwipeBoxPreview() {
+private fun AssetItemSwipeBoxPreview() {
     val leftActionBarViewState = ActionBarViewState(
+        chainId = "",
+        chainAssetId = "",
         actionItems = listOf(
-            ActionItem(
-                iconId = R.drawable.ic_common_send,
-                title = stringResource(R.string.common_action_send),
-                onClick = {}
-            ),
-            ActionItem(
-                iconId = R.drawable.ic_common_receive,
-                title = stringResource(R.string.common_action_receive),
-                onClick = {}
-            ),
-            ActionItem(
-                iconId = R.drawable.ic_common_teleport,
-                title = stringResource(R.string.common_action_teleport),
-                onClick = {}
-            )
+            ActionItemType.SEND,
+            ActionItemType.RECEIVE,
+            ActionItemType.TELEPORT
         )
     )
 
     val rightActionBarViewState = ActionBarViewState(
+        chainId = "",
+        chainAssetId = "",
         actionItems = listOf(
-            ActionItem(
-                iconId = R.drawable.ic_common_hide,
-                title = stringResource(R.string.common_action_hide),
-                onClick = {}
-            )
+            ActionItemType.HIDE
         )
     )
 
@@ -177,15 +171,18 @@ fun AssetItemSwipeBoxPreview() {
         isHidden = false
     )
 
-    FearlessTheme {
-        SwipeBox(
-            SwipeBoxViewState(
-                leftStateWidth = 250.dp,
-                rightStateWidth = 90.dp
-            ),
-            leftContent = { ActionBar(leftActionBarViewState) },
-            rightContent = { ActionBar(rightActionBarViewState) },
-            initialContent = { AssetListItem(state = assetListItemViewState, onClick = {}) }
-        )
+    FearlessThemeBlackBg {
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            SwipeBox(
+                state = SwipeBoxViewState(
+                    leftStateWidth = 250.dp,
+                    rightStateWidth = 90.dp
+                ),
+                swipeableState = rememberSwipeableState(SwipeState.INITIAL),
+                leftContent = { ActionBar(leftActionBarViewState) },
+                rightContent = { ActionBar(rightActionBarViewState) },
+                initialContent = { AssetListItem(state = assetListItemViewState, onClick = {}) }
+            )
+        }
     }
 }

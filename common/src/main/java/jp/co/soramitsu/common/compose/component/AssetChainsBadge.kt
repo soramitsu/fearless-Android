@@ -66,7 +66,7 @@ fun AssetChainsBadge(
 
 @Preview
 @Composable
-fun PreviewAssetChainBadge() {
+private fun PreviewAssetChainBadge() {
     val list = listOf(
         "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
         "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",

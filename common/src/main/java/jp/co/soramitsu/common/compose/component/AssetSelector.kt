@@ -98,7 +98,7 @@ fun Badge(text: String) {
 
 @Composable
 @Preview
-fun AssetSelectorPreview() {
+private fun AssetSelectorPreview() {
     FearlessTheme {
         AssetSelector(
             state = AssetSelectorState(

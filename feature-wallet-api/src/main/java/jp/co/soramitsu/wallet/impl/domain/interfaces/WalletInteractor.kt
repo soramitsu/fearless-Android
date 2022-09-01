@@ -3,11 +3,13 @@ package jp.co.soramitsu.wallet.impl.domain.interfaces
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
@@ -18,8 +20,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
@@ -91,4 +91,8 @@ interface WalletInteractor {
     suspend fun enableCustomAssetSorting()
 
     suspend fun customAssetSortingEnabled(): Boolean
+
+    suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String)
+
+    suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
 }

@@ -71,7 +71,7 @@ fun ChainSelector(
 
 @Preview
 @Composable
-fun ChainSelectorPreview() {
+private fun ChainSelectorPreview() {
     FearlessTheme {
         ChainSelector(
             selectorViewState = ChainSelectorViewState(

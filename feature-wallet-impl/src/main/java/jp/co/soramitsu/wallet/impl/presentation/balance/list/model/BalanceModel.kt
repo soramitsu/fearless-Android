@@ -10,6 +10,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
 class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: String) {
     val totalBalance = calculateTotalBalance()
     val totalBalanceChange = calculateTotalBalanceChange()
+    val isShowLoading = checkIsShowLoading()
     val isUpdating = checkIsUpdating()
     val isTokensUpdated = checkIsTokensUpdated()
 
@@ -41,6 +42,17 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
     }
 
     private fun checkIsUpdating(): Boolean = assetModels.any { it.state.isFiatUpdating }
+
+    private fun checkIsShowLoading(): Boolean {
+        val amountTotal = assetModels.size
+        val pareto = 0.8
+
+        val amountOfCurrentBalanceUpdating = assetModels.filter { it.state.isBalanceUpdating }.size
+
+        val assumedAmountOfUpdated = amountTotal - amountOfCurrentBalanceUpdating
+        val isLoading = amountTotal == 0 || assumedAmountOfUpdated < pareto * amountTotal
+        return isLoading
+    }
 
     private fun checkIsTokensUpdated(): Boolean {
         return !assetModels.any { it.state.isTokenFiatChanged == true }

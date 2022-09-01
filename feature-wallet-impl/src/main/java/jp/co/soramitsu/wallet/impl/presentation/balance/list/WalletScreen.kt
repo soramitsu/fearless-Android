@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,29 +20,30 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.AssetBalance
-import jp.co.soramitsu.common.compose.component.MultiToggleButton
+import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
-import jp.co.soramitsu.common.compose.component.ActionItem
+import jp.co.soramitsu.common.compose.component.ActionItemType
+import jp.co.soramitsu.common.compose.component.AssetBalance
+import jp.co.soramitsu.common.compose.component.AssetListItem
+import jp.co.soramitsu.common.compose.component.AssetListItemShimmer
+import jp.co.soramitsu.common.compose.component.BackgroundCornered
+import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
+import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.MultiToggleButton
+import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.SwipeBox
 import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
-import jp.co.soramitsu.common.compose.component.AssetListItem
-import jp.co.soramitsu.common.compose.component.ActionBar
-import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
-import jp.co.soramitsu.common.compose.component.Shimmer
-import jp.co.soramitsu.common.compose.component.BackgroundCornered
-import jp.co.soramitsu.common.compose.component.AssetListItemShimmer
+import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
+import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun WalletScreen(
     viewModel: BalanceListViewModel = hiltViewModel()
@@ -70,52 +73,33 @@ fun WalletScreen(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(data.visibleAssets) { asset ->
-                        // It is a mock, need to provide onClick() from viewModel
-                        val leftActionBarViewState = ActionBarViewState(
-                            actionItems = listOf(
-                                ActionItem(
-                                    iconId = R.drawable.ic_common_send,
-                                    title = stringResource(R.string.common_action_send),
-                                    onClick = {}
-                                ),
-                                ActionItem(
-                                    iconId = R.drawable.ic_common_receive,
-                                    title = stringResource(R.string.common_action_receive),
-                                    onClick = {}
-                                ),
-                                ActionItem(
-                                    iconId = R.drawable.ic_common_teleport,
-                                    title = stringResource(R.string.common_action_teleport),
-                                    onClick = {}
-                                )
-                            )
-                        )
-
-                        // It is a mock, need to provide onClick() from viewModel
-                        val rightActionBarViewState = ActionBarViewState(
-                            actionItems = listOf(
-                                ActionItem(
-                                    iconId = R.drawable.ic_common_hide,
-                                    title = stringResource(R.string.common_action_hide),
-                                    onClick = {}
-                                )
-                            )
-                        )
-
+                    items(data.visibleAssets) { assetState ->
+                        val swipeableState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
                         SwipeBox(
+                            swipeableState = swipeableState,
                             state = SwipeBoxViewState(
                                 leftStateWidth = 250.dp,
                                 rightStateWidth = 90.dp
                             ),
                             initialContent = {
-                                AssetListItem(asset) { viewModel.assetClicked(it) }
+                                AssetListItem(
+                                    state = assetState,
+                                    onClick = viewModel::assetClicked
+                                )
                             },
                             leftContent = {
-                                ActionBar(leftActionBarViewState)
+                                ActionBar(
+                                    state = getLeftActionBarViewState(assetState)
+                                ) { actionType, chainId, chainAssetId ->
+                                    viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
+                                }
                             },
                             rightContent = {
-                                ActionBar(rightActionBarViewState)
+                                ActionBar(
+                                    state = getHideActionBarViewState(assetState)
+                                ) { actionType, chainId, chainAssetId ->
+                                    viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
+                                }
                             }
                         )
                     }
@@ -127,8 +111,35 @@ fun WalletScreen(
                             )
                         }
                         if (data.hiddenState.isExpanded) {
-                            items(data.hiddenAssets) { asset ->
-                                AssetListItem(asset) { viewModel.assetClicked(it) }
+                            items(data.hiddenAssets) { assetState ->
+                                val swipeableState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
+                                SwipeBox(
+                                    swipeableState = swipeableState,
+                                    state = SwipeBoxViewState(
+                                        leftStateWidth = 250.dp,
+                                        rightStateWidth = 90.dp
+                                    ),
+                                    initialContent = {
+                                        AssetListItem(
+                                            state = assetState,
+                                            onClick = viewModel::assetClicked
+                                        )
+                                    },
+                                    leftContent = {
+                                        ActionBar(
+                                            state = getLeftActionBarViewState(assetState)
+                                        ) { actionType, chainId, chainAssetId ->
+                                            viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
+                                        }
+                                    },
+                                    rightContent = {
+                                        ActionBar(
+                                            state = getShowActionBarViewState(assetState)
+                                        ) { actionType, chainId, chainAssetId ->
+                                            viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
@@ -138,6 +149,32 @@ fun WalletScreen(
         }
     }
 }
+
+private fun getHideActionBarViewState(asset: AssetListItemViewState) = ActionBarViewState(
+    chainId = asset.chainId,
+    chainAssetId = asset.chainAssetId,
+    actionItems = listOf(
+        ActionItemType.HIDE
+    )
+)
+
+private fun getShowActionBarViewState(asset: AssetListItemViewState) = ActionBarViewState(
+    chainId = asset.chainId,
+    chainAssetId = asset.chainAssetId,
+    actionItems = listOf(
+        ActionItemType.SHOW
+    )
+)
+
+private fun getLeftActionBarViewState(asset: AssetListItemViewState) = ActionBarViewState(
+    chainId = asset.chainId,
+    chainAssetId = asset.chainAssetId,
+    actionItems = listOf(
+        ActionItemType.SEND,
+        ActionItemType.RECEIVE,
+        ActionItemType.TELEPORT
+    )
+)
 
 @Composable
 fun ShimmerWalletScreen(items: List<AssetListItemShimmerViewState>) {
