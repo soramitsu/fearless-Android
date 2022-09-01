@@ -20,9 +20,11 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 
 @Composable
 fun InfoTableItem(state: TitleValueViewState) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .padding(12.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp)
+    ) {
         H5(
             text = state.title,
             modifier = Modifier
@@ -41,7 +43,7 @@ fun InfoTableItem(state: TitleValueViewState) {
                     modifier = Modifier.align(Alignment.End),
                     style = MaterialTheme.customTypography.header5.bold()
                 )
-            } ?: ShimmerB0(modifier = Modifier.width(60.dp))
+            } ?: ShimmerB0(modifier = Modifier.width(120.dp).align(Alignment.End))
 
             state.additionalValue?.let {
                 val text = if (it.length > 20) {
@@ -70,6 +72,15 @@ private fun InfoTableItemPreview() {
         "0xEBN4KURhvkURhvkURhvkURhvkURhvkURhvk"
     )
     FearlessTheme {
-        InfoTableItem(state)
+        Column {
+            InfoTableItem(state)
+            InfoTableItem(
+                TitleValueViewState(
+                    "From",
+                    null,
+                    null
+                )
+            )
+        }
     }
 }

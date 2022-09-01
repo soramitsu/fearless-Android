@@ -36,11 +36,11 @@ private fun InfoTableItemPreview() {
         ), TitleValueViewState(
             "From",
             "Account for Join",
-            "0xEBN4KURhvkURhvkURhvkURhvkURhvkURhvk"
+            null
         ), TitleValueViewState(
             "From",
-            "Account for Join",
-            "0xEBN4KURhvkURhvkURhvkURhvkURhvkURhvk"
+            null,
+            null
         )
     )
     FearlessTheme {

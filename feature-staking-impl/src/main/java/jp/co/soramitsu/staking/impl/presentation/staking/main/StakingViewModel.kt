@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import javax.inject.Named
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AssetSelectorState
@@ -291,8 +292,10 @@ class StakingViewModel @Inject constructor(
         launch {
             val asset = stakingSharedState.currentAssetFlow().first()
             val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+            val meta = interactor.getCurrentMetaAccount()
+            val address = requireNotNull(meta.address(chain))
             setupPoolSharedState.mutate {
-                StakingPoolJoinFlow(asset = asset, chain = chain, chainAsset = chainAsset)
+                StakingPoolJoinFlow(asset = asset, chain = chain, chainAsset = chainAsset, address = address)
             }
             router.openStakingPoolWelcome()
         }

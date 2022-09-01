@@ -539,6 +539,11 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.pools.SelectPoolFragment"
         android:label="selectPoolFramgent" />
 
+    <fragment
+        android:id="@+id/confirmJoinPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.ConfirmJoinPoolFragment"
+        android:label="confirmJoinPoolFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"

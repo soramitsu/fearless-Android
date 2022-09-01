@@ -357,6 +357,10 @@ class Navigator :
         navController?.navigate(R.id.setupStakingPoolFragment)
     }
 
+    override fun openConfirmJoinPool() {
+        navController?.navigate(R.id.confirmJoinPoolFragment)
+    }
+
     override val currentStackEntryLifecycle: Lifecycle
         get() = navController!!.currentBackStackEntry!!.lifecycle
 

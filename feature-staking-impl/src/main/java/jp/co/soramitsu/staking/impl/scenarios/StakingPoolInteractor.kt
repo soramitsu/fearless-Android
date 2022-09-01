@@ -101,8 +101,12 @@ class StakingPoolInteractor(
         return dataSource.poolMembers(chainId, accountId)
     }
 
-    suspend fun estimateJoinFee(amount: BigInteger): BigInteger {
-        return api.estimateJoinFee(amount, BigInteger.ZERO)
+    suspend fun estimateJoinFee(amount: BigInteger, poolId: BigInteger = BigInteger.ZERO): BigInteger {
+        return api.estimateJoinFee(amount, poolId)
+    }
+
+    suspend fun joinPool(address: String, amount: BigInteger, poolId: BigInteger): Result<String> {
+        return api.joinPool(address,amount, poolId)
     }
 
     suspend fun getAllPools(chainId: ChainId): List<ShortPoolInfo> {

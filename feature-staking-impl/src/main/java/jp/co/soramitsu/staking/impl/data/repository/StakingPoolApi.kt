@@ -41,7 +41,7 @@ class StakingPoolApi(
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
             val accountId = chain.accountIdOf(accountAddress)
-
+            hashCode()
             extrinsicService.submitExtrinsic(chain, accountId) {
                 joinPool(amountInPlanks, poolId)
             }

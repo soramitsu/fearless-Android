@@ -98,5 +98,8 @@ interface StakingRouter {
     fun openStakingPoolWelcome()
 
     val currentStackEntryLifecycle: Lifecycle
+
     fun openSetupStakingPool()
+
+    fun openConfirmJoinPool()
 }

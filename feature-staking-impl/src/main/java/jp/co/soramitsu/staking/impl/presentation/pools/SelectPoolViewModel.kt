@@ -93,5 +93,6 @@ class SelectPoolViewModel @Inject constructor(
 
         setupPoolSharedState.set(setupFlow.copy(selectedPool = pool))
 
+        router.openConfirmJoinPool()
     }
 }
