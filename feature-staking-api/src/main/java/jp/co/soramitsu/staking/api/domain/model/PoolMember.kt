@@ -33,9 +33,9 @@ data class NominationPool(
     val unbondingEras: List<PoolUnbonding>,
     val members: BigInteger,
     val depositor: AccountId,
-    val root: AccountId,
-    val nominator: AccountId,
-    val stateToggler: AccountId
+    val root: AccountId?,
+    val nominator: AccountId?,
+    val stateToggler: AccountId?
 ) {
     val unstaking = unbondingEras.sumByBigInteger { it.amount }
 

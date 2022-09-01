@@ -109,9 +109,9 @@ fun bindBondedPool(
     val memberCounter = bindNumber(decoded.getTyped("memberCounter"))
     val roles = decoded.getTyped<Struct.Instance>("roles")
     val depositor = roles.get<ByteArray>("depositor") ?: error("Cannot bind BondedPool.depositor")
-    val root = roles.get<ByteArray>("root") ?: error("Cannot bind BondedPool.root")
-    val nominator = roles.get<ByteArray>("nominator") ?: error("Cannot bind BondedPool.nominator")
-    val stateToggler = roles.get<ByteArray>("stateToggler") ?: error("Cannot bind BondedPool.stateToggler")
+    val root = roles.get<ByteArray>("root")
+    val nominator = roles.get<ByteArray>("nominator")
+    val stateToggler = roles.get<ByteArray>("stateToggler")
 
     return BondedPool(points, state, memberCounter, depositor, root, nominator, stateToggler)
 }
