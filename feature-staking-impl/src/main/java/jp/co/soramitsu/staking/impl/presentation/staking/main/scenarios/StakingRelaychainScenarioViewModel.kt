@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -22,19 +21,19 @@ import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingVali
 import jp.co.soramitsu.staking.impl.domain.validations.welcome.WelcomeStakingMaxNominatorsValidation
 import jp.co.soramitsu.staking.impl.domain.validations.welcome.WelcomeStakingValidationFailure
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
-import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingScenarioViewModel.Companion.WAITING_ICON
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingScenarioViewModel.Companion.WARNING_ICON
+import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
 
@@ -47,9 +46,6 @@ class StakingRelaychainScenarioViewModel(
     private val stakingViewStateFactory: StakingViewStateFactory,
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
-
-    private val chainId = stakingInteractor.currentAssetFlow().filter { it.token.configuration.staking == Chain.Asset.StakingType.RELAYCHAIN }
-        .map { it.token.configuration.chainId }
 
     private val welcomeStakingValidationSystem = ValidationSystem(
         CompositeValidation(
@@ -115,8 +111,12 @@ class StakingRelaychainScenarioViewModel(
 
             val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
 
-            val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
-                .format(networkInfo.lockupPeriodInDays)
+            val lockupPeriod = if (networkInfo.lockupPeriodInHours > HOURS_IN_DAY) {
+                val inDays = networkInfo.lockupPeriodInHours / HOURS_IN_DAY
+                resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+            } else {
+                resourceManager.getQuantityString(R.plurals.common_hours_format, networkInfo.lockupPeriodInHours, networkInfo.lockupPeriodInHours)
+            }
             val totalStake = asset.token.amountFromPlanks(networkInfo.totalStake)
             val totalStakeFormatted = totalStake.formatTokenAmount(asset.token.configuration)
 

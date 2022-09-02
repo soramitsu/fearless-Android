@@ -17,6 +17,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowShar
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingPoolViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.PERIOD_YEAR
+import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,7 +32,7 @@ class StartStakingPoolViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val router: StakingRouter,
-    private val setupPoolSharedState: StakingPoolSetupFlowSharedState
+    setupPoolSharedState: StakingPoolSetupFlowSharedState
 ) : BaseViewModel() {
 
     val chain: Chain
@@ -54,8 +55,13 @@ class StartStakingPoolViewModel @Inject constructor(
     }
 
     private val unstakingPeriodFlow = flowOf {
-        val lockupPeriod = relayChainScenarioInteractor.unstakingPeriod()
-        resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, lockupPeriod, lockupPeriod)
+        val lockupPeriodInHours = relayChainScenarioInteractor.unstakingPeriod()
+        if (lockupPeriodInHours > HOURS_IN_DAY) {
+            val inDays = lockupPeriodInHours / HOURS_IN_DAY
+            resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+        } else {
+            resourceManager.getQuantityString(R.plurals.common_hours_format, lockupPeriodInHours, lockupPeriodInHours)
+        }
     }
 
     private val rewardsPayoutDelayFlow = flowOf {

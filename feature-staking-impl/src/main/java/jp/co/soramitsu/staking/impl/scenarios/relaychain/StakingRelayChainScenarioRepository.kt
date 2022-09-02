@@ -23,6 +23,13 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
+import jp.co.soramitsu.runtime.storage.source.observeNonNull
+import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.model.EraIndex
 import jp.co.soramitsu.staking.api.domain.model.Exposure
@@ -49,13 +56,6 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingL
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.activeEraStorageKeyOrNull
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
-import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import jp.co.soramitsu.runtime.storage.source.observeNonNull
-import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.time.DurationUnit
@@ -361,6 +361,11 @@ suspend fun StakingRelayChainScenarioRepository.erasPerDay(chainId: ChainId): In
     val dayDuration = 1.toDuration(DurationUnit.DAYS).toDouble(DurationUnit.MILLISECONDS)
 
     return floor(dayDuration / eraDuration).toInt()
+}
+
+suspend fun StakingRelayChainScenarioRepository.hoursInEra(chainId: ChainId): Int {
+    val erasPerDay = erasPerDay(chainId)
+    return floor(HOURS_IN_DAY.toDouble() / erasPerDay.toDouble()).toInt()
 }
 
 suspend fun StakingRelayChainScenarioRepository.getActiveElectedValidatorsExposures(chainId: ChainId) =

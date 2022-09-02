@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.map
 class StakingPoolViewModel(
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val stakingInteractor: StakingInteractor,
-    private val baseViewModel: BaseStakingViewModel,
     private val resourceManager: ResourceManager,
     private val rewardCalculatorFactory: RewardCalculatorFactory
 ) : StakingScenarioViewModel {

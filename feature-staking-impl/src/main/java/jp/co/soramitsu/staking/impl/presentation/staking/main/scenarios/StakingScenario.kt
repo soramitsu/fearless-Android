@@ -50,7 +50,6 @@ class StakingScenario(
         StakingPoolViewModel(
             stakingPoolInteractor,
             stakingInteractor,
-            baseViewModel,
             resourceManager,
             rewardCalculatorFactory
         )

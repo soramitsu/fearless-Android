@@ -40,6 +40,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationModel
 import jp.co.soramitsu.staking.impl.presentation.common.validation.stakingValidationFailure
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -129,11 +130,17 @@ class ConfirmStakingViewModel @Inject constructor(
         .asLiveData()
 
     val unstakingTime = flow {
-        val lockupPeriod = scenarioInteractor.unstakingPeriod()
+        val lockupPeriodInHours = scenarioInteractor.unstakingPeriod()
+        val lockupPeriod = if (lockupPeriodInHours > HOURS_IN_DAY) {
+            val inDays = lockupPeriodInHours / HOURS_IN_DAY
+            resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+        } else {
+            resourceManager.getQuantityString(R.plurals.common_hours_format, lockupPeriodInHours, lockupPeriodInHours)
+        }
         emit(
             resourceManager.getString(
                 R.string.staking_hint_unstake_format,
-                resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, lockupPeriod, lockupPeriod)
+                lockupPeriod
             )
         )
     }.inBackground()
