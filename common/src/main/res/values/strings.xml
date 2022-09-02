@@ -848,4 +848,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_hide">Hide</string>
     <string name="common_action_show">Show</string>
 
+    <string name="pool_staking_confirm_join_title">Joining to pool</string>
+
 </resources>

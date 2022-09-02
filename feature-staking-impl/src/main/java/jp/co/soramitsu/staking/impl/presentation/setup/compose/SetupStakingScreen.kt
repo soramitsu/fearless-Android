@@ -1,15 +1,17 @@
 package jp.co.soramitsu.staking.impl.presentation.setup.compose
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -18,6 +20,7 @@ import jp.co.soramitsu.common.compose.component.AccountInfo
 import jp.co.soramitsu.common.compose.component.AccountInfoViewState
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
+import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
@@ -25,7 +28,6 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.feature_staking_impl.R
 
 data class SetupStakingScreenViewState(
@@ -36,6 +38,7 @@ data class SetupStakingScreenViewState(
     val buttonState: ButtonViewState
 )
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SetupStakingScreen(
     state: SetupStakingScreenViewState,
@@ -43,30 +46,34 @@ fun SetupStakingScreen(
     onAmountInput: (String) -> Unit,
     onNextClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .background(backgroundBlack)
-            .padding(horizontal = 16.dp)
-            .fillMaxSize()
-            .imePadding()
-    ) {
-        MarginVertical(margin = 12.dp)
+    val keyboardController = LocalSoftwareKeyboardController.current
+    BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
-        MarginVertical(margin = 8.dp)
-        AccountInfo(state = state.accountInfoState)
-        MarginVertical(margin = 12.dp)
-        AmountInput(state = state.amountInputViewState, onInput = onAmountInput)
-        Spacer(modifier = Modifier.weight(1f))
-        FeeInfo(state = state.feeInfoViewState)
-        MarginVertical(margin = 16.dp)
-        AccentButton(
-            state = state.buttonState,
-            onClick = onNextClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-        )
-        MarginVertical(margin = 16.dp)
+        Column(
+            Modifier
+                .padding(horizontal = 16.dp)
+                .imePadding()
+        ) {
+            MarginVertical(margin = 8.dp)
+            AccountInfo(state = state.accountInfoState)
+            MarginVertical(margin = 12.dp)
+            AmountInput(state = state.amountInputViewState, onInput = onAmountInput)
+            MarginVertical(margin = 16.dp)
+            Spacer(modifier = Modifier.weight(1f))
+            FeeInfo(state = state.feeInfoViewState)
+            MarginVertical(margin = 16.dp)
+            AccentButton(
+                state = state.buttonState,
+                onClick = {
+                    keyboardController?.hide()
+                    onNextClick()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            )
+            MarginVertical(margin = 16.dp)
+        }
     }
 }
 

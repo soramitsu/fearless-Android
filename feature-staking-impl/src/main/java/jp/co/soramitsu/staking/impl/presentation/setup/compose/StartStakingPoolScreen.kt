@@ -2,7 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.setup.compose
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -25,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
+import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ColoredTextButton
 import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H2
@@ -37,7 +39,6 @@ import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.purple
@@ -74,8 +75,7 @@ fun StartStakingPoolScreen(
     joinPool: () -> Unit,
     createPool: () -> Unit
 ) {
-    Column(modifier = Modifier.background(backgroundBlack)) {
-        MarginVertical(margin = 12.dp)
+    BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
         Column(
             modifier = Modifier
@@ -104,6 +104,7 @@ fun StartStakingPoolScreen(
             SingleValueInfoCard(R.drawable.ic_withdrawal, R.string.staking_pool_start_unstake_period_text, state.unstakingPeriod)
             MarginVertical(margin = 8.dp)
             SingleValueInfoCard(R.drawable.ic_gift, R.string.staking_pool_start_reward_freq_text, state.rewardsPayoutDelay)
+            MarginVertical(margin = 16.dp)
             Spacer(modifier = Modifier.weight(1f))
             AccentButton(
                 text = stringResource(id = R.string.staking_pool_start_join_button_title),
