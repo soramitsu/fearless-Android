@@ -23,12 +23,14 @@
         android:title="@string/tabbar_staking_title"
         app:showAsAction="ifRoom" />
 
+<!--
     <item
         android:id="@+id/governanceFragment"
         android:enabled="false"
         android:icon="@drawable/ic_nav_governance"
         android:title="@string/tabbar_governance_title"
         app:showAsAction="ifRoom" />
+-->
 
     <item
         android:id="@+id/profileFragment"
