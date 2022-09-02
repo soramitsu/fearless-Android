@@ -86,6 +86,9 @@ class BalanceListViewModel @Inject constructor(
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
+    private val _decodeAddressResult = MutableLiveData<Event<String>>()
+    val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
+
     private val fiatSymbolFlow = combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
         fiatCurrencies[selectedFiat]?.symbol
     }.onEach {
@@ -341,5 +344,13 @@ class BalanceListViewModel @Inject constructor(
 
     fun assetTypeChanged(type: AssetType) {
         assetTypeSelectorState.value = assetTypeSelectorState.value?.copy(currentSelection = type)
+    }
+
+    fun qrCodeScanned(content: String) {
+        viewModelScope.launch {
+            val result = interactor.getRecipientFromQrCodeContent(content).getOrDefault(content)
+
+            _decodeAddressResult.value = Event(result)
+        }
     }
 }

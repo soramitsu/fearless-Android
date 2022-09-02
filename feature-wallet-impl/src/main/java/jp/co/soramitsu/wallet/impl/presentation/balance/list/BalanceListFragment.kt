@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -11,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
+import com.google.zxing.integration.android.IntentIntegrator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
@@ -29,6 +32,8 @@ import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.presentation.common.askPermissionsSafely
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
@@ -61,7 +66,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                 MainToolbar(
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
                     menuItems = listOf(
-                        MenuIconItem(icon = R.drawable.ic_scan) {},
+                        MenuIconItem(icon = R.drawable.ic_scan) { requestCameraPermission() },
                         MenuIconItem(icon = R.drawable.ic_search) {}
                     ),
                     onChangeChainClick = { },
@@ -79,6 +84,10 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
+        viewModel.decodeAddressResult.observeEvent {
+            viewModel.showMessage("SCANNED: $it")
+            // TODO use. old scenario was: place to search field
+        }
     }
 
     fun initViews() {
@@ -112,6 +121,35 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
         } catch (e: ActivityNotFoundException) {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
+        }
+    }
+
+    private fun requestCameraPermission() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = askPermissionsSafely(Manifest.permission.CAMERA)
+
+            if (result.isSuccess) {
+                initiateCameraScanner()
+            }
+        }
+    }
+
+    private fun initiateCameraScanner() {
+        val integrator = IntentIntegrator.forSupportFragment(this).apply {
+            setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
+            setPrompt("")
+            setBeepEnabled(false)
+        }
+        integrator.initiateScan()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+        result?.contents?.let {
+            viewModel.qrCodeScanned(it)
         }
     }
 }
