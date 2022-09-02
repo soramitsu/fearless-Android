@@ -21,10 +21,12 @@ import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.api.domain.model.StakingAccount
 import jp.co.soramitsu.staking.impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
+import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce

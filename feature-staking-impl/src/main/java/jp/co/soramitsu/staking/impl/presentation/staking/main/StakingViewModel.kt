@@ -47,6 +47,7 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
@@ -187,6 +188,9 @@ class StakingViewModel @Inject constructor(
                 setupStakingSharedState.set(SetupStakingProcess.Initial(it.type))
                 stakingStateScope.coroutineContext.cancelChildren()
             }
+
+            //setup reward calculators
+
         }
     }
 
