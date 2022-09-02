@@ -19,11 +19,12 @@ import jp.co.soramitsu.staking.impl.domain.model.NetworkInfo
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationFailure
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.alerts.model.AlertModel
-import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.di.StakingViewStateFactory
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
+import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
@@ -79,9 +80,12 @@ class StakingParachainScenarioViewModel(
 
             val minimumStakeFiat = asset.token.fiatAmount(minimumStake)?.formatAsCurrency(asset.token.fiatSymbol)
 
-            val lockupPeriod = resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, networkInfo.lockupPeriodInDays)
-                .format(networkInfo.lockupPeriodInDays)
-
+            val lockupPeriod = if (networkInfo.lockupPeriodInHours > HOURS_IN_DAY) {
+                val inDays = networkInfo.lockupPeriodInHours / HOURS_IN_DAY
+                resourceManager.getQuantityString(R.plurals.staking_main_lockup_period_value, inDays, inDays)
+            } else {
+                resourceManager.getQuantityString(R.plurals.common_hours_format, networkInfo.lockupPeriodInHours, networkInfo.lockupPeriodInHours)
+            }
             StakingNetworkInfoModel.Parachain(lockupPeriod, minimumStakeFormatted, minimumStakeFiat)
         }.withLoading()
     }

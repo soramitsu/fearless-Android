@@ -78,6 +78,7 @@ fun AmountInput(state: AmountInputViewState, onInput: (String) -> Unit) {
                     onValueChange = onInput,
                     textStyle = MaterialTheme.customTypography.header2.copy(textAlign = TextAlign.End),
                     singleLine = true,
+                    maxLines = 1,
                     keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Decimal, imeAction = ImeAction.None),
                     modifier = Modifier
                         .background(color = transparent)

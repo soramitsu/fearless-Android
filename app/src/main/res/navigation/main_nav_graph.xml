@@ -524,22 +524,22 @@
         android:label="setupStakingFragment"
         tools:layout="@layout/fragment_setup_staking" />
 
-    <fragment
+    <dialog
         android:id="@+id/startStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.StartStakingPoolFragment"
         android:label="startStakingPoolFragment" />
 
-    <fragment
+    <dialog
         android:id="@+id/setupStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingPoolFragment"
         android:label="setupStakingPoolFragment" />
 
-    <fragment
+    <dialog
         android:id="@+id/selectPoolFramgent"
         android:name="jp.co.soramitsu.staking.impl.presentation.pools.SelectPoolFragment"
         android:label="selectPoolFramgent" />
 
-    <fragment
+    <dialog
         android:id="@+id/confirmJoinPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.confirm.ConfirmJoinPoolFragment"
         android:label="confirmJoinPoolFragment" />

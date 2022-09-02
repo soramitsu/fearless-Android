@@ -70,7 +70,6 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowShar
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -298,10 +297,9 @@ class StakingFeatureModule {
     fun provideRewardCalculatorFactory(
         stakingRelayChainScenarioRepository: StakingRelayChainScenarioRepository,
         repository: StakingRepository,
-        sharedState: StakingSharedState,
-        stakingScenarioInteractor: StakingScenarioInteractor,
+        stakingScenarioInteractor: StakingParachainScenarioInteractor,
         stakingApi: StakingApi
-    ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, sharedState, stakingScenarioInteractor, stakingApi)
+    ) = RewardCalculatorFactory(stakingRelayChainScenarioRepository, repository, stakingScenarioInteractor, stakingApi)
 
     @Provides
     @Singleton

@@ -8,8 +8,11 @@ import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AssetSelectorState
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.StakingStoryModel
+import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.childScope
@@ -80,7 +83,7 @@ class StakingViewModel @Inject constructor(
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     rewardCalculatorFactory: RewardCalculatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
-    private val stakingPoolInteractor: StakingPoolInteractor,
+    stakingPoolInteractor: StakingPoolInteractor,
     private val setupPoolSharedState: StakingPoolSetupFlowSharedState
 ) : BaseViewModel(),
     BaseStakingViewModel,
@@ -299,6 +302,11 @@ class StakingViewModel @Inject constructor(
             }
             router.openStakingPoolWelcome()
         }
+    }
+
+    private fun transformStories(story: StoryGroup.Staking): StakingStoryModel = with(story) {
+        val elements = elements.map { StoryElement.Staking(it.titleRes, it.bodyRes, it.url) }
+        StakingStoryModel(titleRes, iconSymbol, elements)
     }
 }
 

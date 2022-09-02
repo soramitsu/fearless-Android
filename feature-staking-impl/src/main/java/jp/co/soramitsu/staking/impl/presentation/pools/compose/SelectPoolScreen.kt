@@ -1,8 +1,5 @@
 package jp.co.soramitsu.staking.impl.presentation.pools.compose
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,12 +12,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.feature_staking_impl.R
 
 data class SelectPoolScreenViewState(
@@ -37,12 +34,7 @@ fun SelectPoolScreen(
     onInfoClick: (PoolItemState) -> Unit,
     onChooseClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .background(backgroundBlack)
-            .fillMaxSize()
-    ) {
-        MarginVertical(margin = 12.dp)
+    BottomSheetScreen {
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
         MarginVertical(margin = 8.dp)
         LazyColumn(modifier = Modifier.weight(1f)) {

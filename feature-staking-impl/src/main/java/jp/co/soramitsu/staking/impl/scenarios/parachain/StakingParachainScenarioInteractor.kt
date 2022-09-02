@@ -89,8 +89,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.wallet.impl.domain.validation.assetBalanceProducer
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
@@ -124,7 +122,7 @@ class StakingParachainScenarioInteractor(
 
         return flowOf(
             NetworkInfo.Parachain(
-                lockupPeriodInDays = lockupPeriod,
+                lockupPeriodInHours = lockupPeriod,
                 minimumStake = minimumStakeInPlanks
             )
         )
@@ -133,8 +131,7 @@ class StakingParachainScenarioInteractor(
     private suspend fun getParachainLockupPeriodInDays(chainId: ChainId): Int {
         val hoursInRound = hoursInRound[chainId] ?: return 0
         val lockupPeriodInRounds = stakingConstantsRepository.parachainLockupPeriodInRounds(chainId).toInt()
-        val lockupPeriodInHours = lockupPeriodInRounds * hoursInRound
-        return lockupPeriodInHours.toDuration(DurationUnit.HOURS).toInt(DurationUnit.DAYS)
+        return lockupPeriodInRounds * hoursInRound
     }
 
     // todo move to overrides parameter of chain_type.json

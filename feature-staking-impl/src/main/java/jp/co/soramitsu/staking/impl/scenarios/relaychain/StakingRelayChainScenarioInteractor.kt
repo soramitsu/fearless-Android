@@ -3,6 +3,9 @@ package jp.co.soramitsu.staking.impl.scenarios.relaychain
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
@@ -12,9 +15,9 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -81,15 +84,12 @@ import jp.co.soramitsu.staking.impl.domain.validations.unbond.UnbondValidationSy
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.model.StakingBalanceModel
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
+import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
-import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
-import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -123,7 +123,7 @@ class StakingRelayChainScenarioInteractor(
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
         val chainId = stakingInteractor.getSelectedChain().id
-        val lockupPeriod = getLockupPeriodInDays(chainId)
+        val lockupPeriod = getLockupPeriodInHours(chainId)
 
         return stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainId).map { exposuresMap ->
             val exposures = exposuresMap.values
@@ -131,7 +131,7 @@ class StakingRelayChainScenarioInteractor(
             val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainId)
 
             NetworkInfo.RelayChain(
-                lockupPeriodInDays = lockupPeriod,
+                lockupPeriodInHours = lockupPeriod,
                 minimumStake = minimumStake(exposures, minimumNominatorBond),
                 totalStake = totalStake(exposures),
                 nominatorsCount = activeNominators(chainId, exposures)
@@ -155,8 +155,8 @@ class StakingRelayChainScenarioInteractor(
         }.size
     }
 
-    private suspend fun getLockupPeriodInDays(chainId: ChainId): Int {
-        return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() / stakingRelayChainScenarioRepository.erasPerDay(chainId)
+    private suspend fun getLockupPeriodInHours(chainId: ChainId): Int {
+        return stakingConstantsRepository.lockupPeriodInEras(chainId).toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
     }
 
     override val stakingStateFlow = combine(
@@ -440,8 +440,8 @@ class StakingRelayChainScenarioInteractor(
         return minimumStake(exposures, minimumNominatorBond)
     }
 
-    suspend fun getLockupPeriodInDays() = withContext(Dispatchers.Default) {
-        getLockupPeriodInDays(stakingSharedState.chainId())
+    suspend fun getLockupPeriodInHours() = withContext(Dispatchers.Default) {
+        getLockupPeriodInHours(stakingSharedState.chainId())
     }
 
     override suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination = withContext(Dispatchers.Default) {
@@ -502,7 +502,7 @@ class StakingRelayChainScenarioInteractor(
     }
 
     override suspend fun unstakingPeriod(): Int {
-        return getLockupPeriodInDays()
+        return getLockupPeriodInHours()
     }
 
     override suspend fun stakePeriodInHours(): Int {

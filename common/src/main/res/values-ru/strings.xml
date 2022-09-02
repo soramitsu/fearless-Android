@@ -785,4 +785,5 @@
     <string name="common_action_hide">Скрыть</string>
     <string name="common_action_show">Показать</string>
 
+    <string name="pool_staking_confirm_join_title"></string>
 </resources>
