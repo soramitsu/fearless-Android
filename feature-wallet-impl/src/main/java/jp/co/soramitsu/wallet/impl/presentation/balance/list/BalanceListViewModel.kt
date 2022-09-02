@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
@@ -10,12 +12,14 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeViewState
 import jp.co.soramitsu.common.compose.component.HiddenItemState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -37,6 +41,7 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -130,7 +135,7 @@ class BalanceListViewModel @Inject constructor(
         balanceLiveData.asFlow(),
         hiddenAssetsState.asFlow()
     ) { multiToggleButtonState: MultiToggleButtonState<AssetType>, balanceModel: BalanceModel, hiddenState: HiddenItemState ->
-        if (balanceModel.assetModels.isEmpty() || balanceModel.isUpdating) {
+        if (balanceModel.assetModels.isEmpty() || balanceModel.isShowLoading) {
             return@combine LoadingState.Loading()
         }
         val assetsListItemStates: List<AssetListItemViewState> = balanceModel.assetModels.map { model ->
@@ -215,6 +220,47 @@ class BalanceListViewModel @Inject constructor(
             result.exceptionOrNull()?.let(::showError)
             _hideRefreshEvent.value = Event(Unit)
         }
+    }
+
+    @OptIn(ExperimentalMaterialApi::class)
+    fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {
+        val payload = AssetPayload(chainId, chainAssetId)
+        launch {
+            swipeableState.snapTo(SwipeState.INITIAL)
+        }
+        when (actionType) {
+            ActionItemType.SEND -> {
+                sendClicked(payload)
+            }
+            ActionItemType.RECEIVE -> {
+                receiveClicked(payload)
+            }
+            ActionItemType.TELEPORT -> {
+                showMessage("YOU NEED THE BLUE KEY")
+            }
+            ActionItemType.HIDE -> {
+                launch { hideAsset(chainId, chainAssetId) }
+            }
+            ActionItemType.SHOW -> {
+                launch { showAsset(chainId, chainAssetId) }
+            }
+        }
+    }
+
+    suspend fun hideAsset(chainId: ChainId, chainAssetId: String) {
+        interactor.markAssetAsHidden(chainId, chainAssetId)
+    }
+
+    suspend fun showAsset(chainId: ChainId, chainAssetId: String) {
+        interactor.markAssetAsShown(chainId, chainAssetId)
+    }
+
+    fun sendClicked(assetPayload: AssetPayload) {
+        router.openChooseRecipient(assetPayload)
+    }
+
+    fun receiveClicked(assetPayload: AssetPayload) {
+        router.openReceive(assetPayload)
     }
 
     fun assetClicked(asset: AssetListItemViewState) {

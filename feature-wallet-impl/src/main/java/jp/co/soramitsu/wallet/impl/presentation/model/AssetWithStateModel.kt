@@ -5,7 +5,7 @@ data class AssetWithStateModel(
     val state: AssetUpdateState
 )
 
-class AssetUpdateState(
+data class AssetUpdateState(
     val rateUpdate: Boolean?,
     val balanceUpdate: Boolean?,
     val chainUpdate: Boolean?,

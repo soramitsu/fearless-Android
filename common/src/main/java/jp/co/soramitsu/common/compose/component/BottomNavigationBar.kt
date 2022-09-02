@@ -71,7 +71,7 @@ fun BottomNavigationBar(navController: NavController?) {
 
 @Preview
 @Composable
-fun BottomNavigationBarPreview() {
+private fun BottomNavigationBarPreview() {
     FearlessTheme {
         BottomNavigationBar(null)
     }

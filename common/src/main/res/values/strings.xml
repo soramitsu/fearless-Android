@@ -842,4 +842,10 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="сurrencies_stub_text">Currencies</string>
     <string name="nfts_stub">NFTs</string>
 
+    <string name="common_action_receive">Receive</string>
+    <string name="common_action_send">Send</string>
+    <string name="common_action_teleport">Teleport</string>
+    <string name="common_action_hide">Hide</string>
+    <string name="common_action_show">Show</string>
+
 </resources>

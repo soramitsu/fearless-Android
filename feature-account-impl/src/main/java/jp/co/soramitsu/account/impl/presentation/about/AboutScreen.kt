@@ -1,16 +1,23 @@
 package jp.co.soramitsu.account.impl.presentation.about
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import jp.co.soramitsu.common.compose.component.ActionBar
+import jp.co.soramitsu.common.compose.component.ActionBarViewState
+import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetListItem
+import jp.co.soramitsu.common.compose.component.SwipeBox
+import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
+import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AboutScreen(
     viewModel: AboutViewModel = hiltViewModel()
@@ -41,7 +48,7 @@ fun AboutScreen(
         "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Rococo.svg"
     )
 
-    val assetListItemState = AssetListItemViewState(
+    val assetListItemViewState = AssetListItemViewState(
         assetIconUrl = assetIconUrl,
         assetChainName = assetChainName,
         assetSymbol = assetSymbol,
@@ -55,12 +62,42 @@ fun AboutScreen(
         isSupported = true,
         isHidden = false
     )
-    AssetListItem(assetListItemState, Modifier.padding(0.dp, 24.dp, 0.dp, 0.dp)) {}
+
+    val leftActionBarViewState = ActionBarViewState(
+        chainId = "",
+        chainAssetId = "",
+        actionItems = listOf(
+            ActionItemType.SEND,
+            ActionItemType.RECEIVE,
+            ActionItemType.TELEPORT
+        )
+    )
+
+    val rightActionBarViewState = ActionBarViewState(
+        chainId = "",
+        chainAssetId = "",
+        actionItems = listOf(
+            ActionItemType.HIDE
+        )
+    )
+
+    FearlessTheme {
+        SwipeBox(
+            swipeableState = rememberSwipeableState(SwipeState.INITIAL),
+            state = SwipeBoxViewState(
+                leftStateWidth = 250.dp,
+                rightStateWidth = 90.dp
+            ),
+            leftContent = { ActionBar(leftActionBarViewState) },
+            rightContent = { ActionBar(rightActionBarViewState) },
+            initialContent = { AssetListItem(state = assetListItemViewState, onClick = {}) }
+        )
+    }
 }
 
 @Preview
 @Composable
-fun PreviewAboutScreen() {
+private fun PreviewAboutScreen() {
     FearlessTheme {
         AboutScreen()
     }

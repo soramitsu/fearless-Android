@@ -69,7 +69,7 @@ fun Address(
 
 @Preview
 @Composable
-fun AddressPreview() {
+private fun AddressPreview() {
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {
             Address(

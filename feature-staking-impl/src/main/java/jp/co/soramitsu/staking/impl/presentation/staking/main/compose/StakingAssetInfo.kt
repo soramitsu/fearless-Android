@@ -124,7 +124,7 @@ fun PoolsStakingInfo(state: StakingAssetInfoViewState.StakingPool) {
 
 @Composable
 @Preview
-fun StakingAssetInfoPreview() {
+private fun StakingAssetInfoPreview() {
     val poolState = StakingAssetInfoViewState.StakingPool(
         title = "Kusama pool",
         guide = "Stakers (members) with a small amount of tokens can pool their funds " +
