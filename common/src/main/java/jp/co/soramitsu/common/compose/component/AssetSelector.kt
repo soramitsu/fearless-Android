@@ -62,11 +62,12 @@ fun AssetSelector(
                 Row {
                     Text(
                         text = state.title,
-                        style = MaterialTheme.customTypography.body1
+                        style = MaterialTheme.customTypography.body1,
+                        modifier = Modifier.alignByBaseline()
                     )
                     MarginHorizontal(margin = 8.dp)
                     state.badge?.let {
-                        Badge(it)
+                        Badge(it, modifier = Modifier.alignByBaseline())
                     }
                 }
 
@@ -85,8 +86,8 @@ fun AssetSelector(
 }
 
 @Composable
-fun Badge(text: String) {
-    Row(modifier = Modifier.background(color = white16, shape = RoundedCornerShape(size = 3.dp))) {
+fun Badge(text: String, modifier: Modifier = Modifier) {
+    Row(modifier = modifier.background(color = white16, shape = RoundedCornerShape(size = 3.dp))) {
         MarginHorizontal(margin = 6.dp)
         Text(
             text = text.uppercase(),
