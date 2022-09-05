@@ -20,7 +20,8 @@ class SelectPoolFragment : BaseComposeBottomSheetDialogFragment<SelectPoolViewMo
             onNavigationClick = viewModel::onBackClick,
             onPoolSelected = viewModel::onPoolSelected,
             onInfoClick = viewModel::onInfoClick,
-            onChooseClick = viewModel::onNextClick
+            onChooseClick = viewModel::onNextClick,
+            onSortingSelected = viewModel::onSortingSelected
         )
     }
 }

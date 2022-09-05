@@ -16,7 +16,8 @@ fun B1(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -24,7 +25,8 @@ fun B1(
         style = MaterialTheme.customTypography.body1,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -34,7 +36,8 @@ fun B2(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -42,7 +45,8 @@ fun B2(
         style = MaterialTheme.customTypography.body2,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -52,7 +56,8 @@ fun B2(
     text: AnnotatedString,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -60,7 +65,8 @@ fun B2(
         style = MaterialTheme.customTypography.body2,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -70,7 +76,8 @@ fun B0(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -78,7 +85,8 @@ fun B0(
         style = MaterialTheme.customTypography.body0,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -88,7 +96,8 @@ fun B3(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -96,7 +105,8 @@ fun B3(
         style = MaterialTheme.customTypography.body3,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -106,7 +116,8 @@ fun H1(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -114,7 +125,8 @@ fun H1(
         style = MaterialTheme.customTypography.header1,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -124,7 +136,8 @@ fun H2(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -132,7 +145,8 @@ fun H2(
         style = MaterialTheme.customTypography.header2,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -142,7 +156,8 @@ fun H3(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -150,7 +165,8 @@ fun H3(
         style = MaterialTheme.customTypography.header3,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -160,7 +176,8 @@ fun H4(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -168,7 +185,8 @@ fun H4(
         style = MaterialTheme.customTypography.header4,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -178,7 +196,8 @@ fun H4(
     text: AnnotatedString,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -186,7 +205,8 @@ fun H4(
         style = MaterialTheme.customTypography.header4,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -196,7 +216,8 @@ fun H5(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -204,7 +225,8 @@ fun H5(
         style = MaterialTheme.customTypography.header5,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -214,7 +236,8 @@ fun H6(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -222,7 +245,8 @@ fun H6(
         style = MaterialTheme.customTypography.header6,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -232,7 +256,8 @@ fun H6(
     text: AnnotatedString,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -240,7 +265,8 @@ fun H6(
         style = MaterialTheme.customTypography.header6,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -250,7 +276,8 @@ fun CapsTitle(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -258,7 +285,8 @@ fun CapsTitle(
         style = MaterialTheme.customTypography.capsTitle,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }
 
@@ -268,7 +296,8 @@ fun CapsTitle2(
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Text(
         textAlign = textAlign,
@@ -276,6 +305,7 @@ fun CapsTitle2(
         style = MaterialTheme.customTypography.capsTitle2,
         modifier = modifier,
         color = color,
-        overflow = overflow
+        overflow = overflow,
+        maxLines = maxLines
     )
 }

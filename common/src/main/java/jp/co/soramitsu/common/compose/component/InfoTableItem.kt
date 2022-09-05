@@ -41,7 +41,9 @@ fun InfoTableItem(state: TitleValueViewState) {
                 Text(
                     text = it,
                     modifier = Modifier.align(Alignment.End),
-                    style = MaterialTheme.customTypography.header5.bold()
+                    style = MaterialTheme.customTypography.header5.bold(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             } ?: ShimmerB0(
                 modifier = Modifier
@@ -59,7 +61,8 @@ fun InfoTableItem(state: TitleValueViewState) {
                     text = text,
                     color = black2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier.align(Alignment.End),
+                    maxLines = 1
                 )
             }
         }

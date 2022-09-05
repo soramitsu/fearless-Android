@@ -3,16 +3,23 @@ package jp.co.soramitsu.staking.impl.scenarios
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
+import jp.co.soramitsu.staking.api.domain.model.Identity
 import jp.co.soramitsu.staking.api.domain.model.NominationPool
-import jp.co.soramitsu.staking.api.domain.model.ShortPoolInfo
+import jp.co.soramitsu.staking.api.domain.model.PoolInfo
+import jp.co.soramitsu.staking.api.domain.model.PoolUnbonding
 import jp.co.soramitsu.staking.api.domain.model.StakingState
+import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
+import jp.co.soramitsu.staking.impl.data.repository.IdentityRepositoryImpl
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
+import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
@@ -24,7 +31,8 @@ class StakingPoolInteractor(
     private val api: StakingPoolApi,
     private val dataSource: StakingPoolDataSource,
     private val stakingInteractor: StakingInteractor,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
+    private val identitiesRepositoryImpl: IdentityRepository
 ) {
 
     fun stakingStateFlow(): Flow<StakingState> {
@@ -54,23 +62,31 @@ class StakingPoolInteractor(
             dataSource.observePool(chainId, poolMember.poolId).map { bondedPool ->
                 bondedPool ?: return@map null
                 val name = dataSource.getPoolMetadata(chainId, poolMember.poolId)
-                val unbondingEras = poolMember.unbondingEras.map { jp.co.soramitsu.staking.api.domain.model.PoolUnbonding(it.era, it.amount) }
-                NominationPool(
-                    poolMember.poolId,
-                    name,
-                    poolMember.points,
-                    poolMember.lastRecordedRewardCounter,
-                    bondedPool.state,
-                    BigInteger.ZERO,
-                    unbondingEras,
-                    bondedPool.memberCounter,
-                    bondedPool.depositor,
-                    bondedPool.root,
-                    bondedPool.nominator,
-                    bondedPool.stateToggler
-                )
+                val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
+                bondedPool.toNominationPool(poolMember, name, unbondingEras)
             }
         }
+    }
+
+    private fun BondedPool.toNominationPool(
+        poolMember: PoolMember,
+        name: String?,
+        unbondingEras: List<PoolUnbonding>
+    ): NominationPool {
+        return NominationPool(
+            poolId = poolMember.poolId,
+            name = name,
+            stakedInPlanks = points,
+            lastRecordedRewardCounter = poolMember.lastRecordedRewardCounter,
+            state = state,
+            redeemable = BigInteger.ZERO,
+            unbondingEras = unbondingEras,
+            members = memberCounter,
+            depositor = depositor,
+            root = root,
+            nominator = nominator,
+            stateToggler = stateToggler
+        )
     }
 
     suspend fun getMinToJoinPool(chainId: ChainId): BigInteger {
@@ -109,18 +125,29 @@ class StakingPoolInteractor(
         return api.joinPool(address, amount, poolId)
     }
 
-    suspend fun getAllPools(chainId: ChainId): List<ShortPoolInfo> {
+    suspend fun getAllPools(chainId: ChainId): List<PoolInfo> {
         val poolsMetadata = dataSource.poolsMetadata(chainId)
         val pools = dataSource.bondedPools(chainId)
         return pools.mapNotNull { (id, pool) ->
             pool ?: return@mapNotNull null
             val name = poolsMetadata[id] ?: "Pool #$id"
-            ShortPoolInfo(
+            PoolInfo(
                 id,
                 name,
                 pool.points,
-                pool.memberCounter
+                pool.state,
+                pool.memberCounter,
+                pool.depositor,
+                pool.root,
+                pool.nominator,
+                pool.stateToggler
             )
         }
+    }
+
+    suspend fun getIdentities(accountIds: List<AccountId>): Map<String, Identity?> {
+        if (accountIds.isEmpty()) return emptyMap()
+        val chain = stakingInteractor.getSelectedChain()
+        return identitiesRepositoryImpl.getIdentitiesFromIds(chain, accountIds.map { it.toHexString(false) })
     }
 }

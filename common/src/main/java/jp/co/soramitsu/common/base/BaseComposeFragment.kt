@@ -34,6 +34,9 @@ import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.backgroundBlack
+import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 
@@ -110,8 +113,9 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
     private fun AlertDialogContent(openAlertDialog: MutableState<AlertDialogData>) {
         if (openAlertDialog.value.title.isNotEmpty()) {
             AlertDialog(
-                title = { Text(text = openAlertDialog.value.title) },
-                text = { Text(text = openAlertDialog.value.message) },
+                backgroundColor = backgroundBlack,
+                title = { Text(text = openAlertDialog.value.title, color = white) },
+                text = { Text(text = openAlertDialog.value.message, color = black2) },
                 onDismissRequest = {
                     openAlertDialog.value = AlertDialogData()
                 },
@@ -121,7 +125,7 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                             openAlertDialog.value = AlertDialogData()
                         }
                     ) {
-                        Text(text = stringResource(id = R.string.common_ok))
+                        Text(text = stringResource(id = R.string.common_ok), color = white)
                     }
                 }
             )

@@ -49,6 +49,7 @@ val black2 = gray2
 val black3 = gray3
 val black4 = gray4
 val black05 = Color(0xff1D1F21)
+val black72 = Color(0xB8000000)
 
 val purple = Color(0xFF7700EE)
 val backgroundBlack = Color(0xFF131313)

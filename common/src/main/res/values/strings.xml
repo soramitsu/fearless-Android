@@ -849,5 +849,11 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_show">Show</string>
 
     <string name="pool_staking_confirm_join_title">Joining to pool</string>
+    <string name="pool_staking_number_of_members">Number of members</string>
+    <string name="pool_staking_pool_info">Pool Info</string>
+    <string name="pool_staking_roles">Roles</string>
 
+    <string name="pool_info_index">Index</string>
+    <string name="pool_info_members">Members</string>
+    <string name="pool_info_state">State</string>
 </resources>
