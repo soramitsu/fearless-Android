@@ -5,6 +5,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
+import javax.inject.Singleton
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
@@ -16,22 +20,18 @@ import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AssetDao
+import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingAddressDao
 import jp.co.soramitsu.coredb.dao.TokenDao
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.feature_wallet_impl.BuildConfig
+import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
+import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
-import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
-import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
-import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecksProvider
-import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
@@ -44,15 +44,17 @@ import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
+import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
+import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
-import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.network.rpc.RpcCalls
-import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -159,6 +161,11 @@ class WalletFeatureModule {
         selectedFiat,
         updatesMixin
     )
+
+    @Provides
+    fun provideChainInteractor(
+        chainDao: ChainDao
+    ): ChainInteractor = ChainInteractor(chainDao)
 
     @Provides
     fun provideBuyTokenIntegration(): BuyTokenRegistry {

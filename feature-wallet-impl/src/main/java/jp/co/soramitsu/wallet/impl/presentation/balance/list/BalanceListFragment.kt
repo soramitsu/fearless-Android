@@ -8,9 +8,12 @@ import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
@@ -43,14 +46,17 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
     override val viewModel: BalanceListViewModel by viewModels()
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    override fun Content(padding: PaddingValues, scrollState: ScrollState) {
-        WalletScreen(viewModel)
+    override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
+        WalletScreen(viewModel, modalBottomSheetState)
     }
 
+    @ExperimentalMaterialApi
     @Composable
-    override fun Toolbar() {
+    override fun Toolbar(modalBottomSheetState: ModalBottomSheetState) {
         val toolbarState by viewModel.toolbarState.collectAsState()
+        val coroutineScope = rememberCoroutineScope()
 
         when (toolbarState) {
             is LoadingState.Loading<MainToolbarViewState> -> {
@@ -69,7 +75,11 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                         MenuIconItem(icon = R.drawable.ic_scan) { requestCameraPermission() },
                         MenuIconItem(icon = R.drawable.ic_search) {}
                     ),
-                    onChangeChainClick = { },
+                    onChangeChainClick = {
+                        coroutineScope.launch {
+                            modalBottomSheetState.show()
+                        }
+                    },
                     onNavigationClick = { viewModel.avatarClicked() }
                 )
             }

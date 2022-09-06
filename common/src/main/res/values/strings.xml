@@ -805,6 +805,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="parachain_staking_request_finished">Finished</string>
     <string name="chain_selection_all_networks">All networks</string>
     <string name="hidden_assets">Hidden assets</string>
+    <string name="common_select_network">Select Network</string>
 
     <string name="staking_pool_rewards_delay_text">Stake at anytime. You will start earning interests after %s</string>
     <string name="staking_pool_start_apr_text">Earn %s per year</string>

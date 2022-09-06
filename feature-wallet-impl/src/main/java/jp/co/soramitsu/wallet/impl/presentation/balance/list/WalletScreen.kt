@@ -10,9 +10,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Surface
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,53 +45,79 @@ import jp.co.soramitsu.common.compose.component.SwipeBox
 import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.SelectChainContent
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun WalletScreen(
-    viewModel: BalanceListViewModel = hiltViewModel()
+    viewModel: BalanceListViewModel = hiltViewModel(),
+    modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 ) {
     val state by viewModel.state.collectAsState()
     val shimmerItems by viewModel.assetShimmerItems.collectAsState()
+    val chainsState by viewModel.chainsState.collectAsState()
 
-    when (state) {
-        is LoadingState.Loading<WalletState> -> {
-            ShimmerWalletScreen(shimmerItems)
-        }
-        is LoadingState.Loaded<WalletState> -> {
-            val data = (state as LoadingState.Loaded<WalletState>).data
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                MarginVertical(margin = 16.dp)
-                AssetBalance(
-                    state = data.balance,
-                    onAddressClick = { },
-                    onBalanceClick = { viewModel.onBalanceClicked() }
-                )
-                MarginVertical(margin = 24.dp)
-                MultiToggleButton(
-                    state = data.multiToggleButtonState,
-                    onToggleChange = viewModel::assetTypeChanged
-                )
-                MarginVertical(margin = 16.dp)
-                if (data.multiToggleButtonState.currentSelection == AssetType.NFTs) {
-                    NftStub(
-                        Modifier
-                            .fillMaxSize()
-                            .padding(bottom = 80.dp)
-                    )
-                } else {
-                    AssetsList(data, viewModel)
+    ModalBottomSheetLayout(
+        sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
+        sheetBackgroundColor = backgroundBlack,
+        sheetState = modalBottomSheetState,
+        sheetContent = {
+            SelectChainContent(
+                state = chainsState,
+                onChainSelected = viewModel::onChainSelected
+            )
+        },
+        content = {
+            when (state) {
+                is LoadingState.Loading<WalletState> -> {
+                    ShimmerWalletScreen(shimmerItems)
+                }
+                is LoadingState.Loaded<WalletState> -> {
+                    val data = (state as LoadingState.Loaded<WalletState>).data
+                    ContentWalletScreen(viewModel, data)
                 }
             }
+        },
+        scrimColor = Color.Black.copy(alpha = 0.32f) // https://issuetracker.google.com/issues/183697056
+    )
+}
+
+@Composable
+private fun ContentWalletScreen(
+    viewModel: BalanceListViewModel,
+    data: WalletState
+) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        MarginVertical(margin = 16.dp)
+        AssetBalance(
+            state = data.balance,
+            onAddressClick = { },
+            onBalanceClick = { viewModel.onBalanceClicked() }
+        )
+        MarginVertical(margin = 24.dp)
+        MultiToggleButton(
+            state = data.multiToggleButtonState,
+            onToggleChange = viewModel::assetTypeChanged
+        )
+        MarginVertical(margin = 16.dp)
+        if (data.multiToggleButtonState.currentSelection == AssetType.NFTs) {
+            NftStub(
+                Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp)
+            )
+        } else {
+            AssetsList(data, viewModel)
         }
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun AssetsList(
     data: WalletState,
@@ -96,34 +127,7 @@ private fun AssetsList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(data.visibleAssets) { assetState ->
-            val swipeableState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
-            SwipeBox(
-                swipeableState = swipeableState,
-                state = SwipeBoxViewState(
-                    leftStateWidth = 250.dp,
-                    rightStateWidth = 90.dp
-                ),
-                initialContent = {
-                    AssetListItem(
-                        state = assetState,
-                        onClick = viewModel::assetClicked
-                    )
-                },
-                leftContent = {
-                    ActionBar(
-                        state = getLeftActionBarViewState(assetState)
-                    ) { actionType, chainId, chainAssetId ->
-                        viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
-                    }
-                },
-                rightContent = {
-                    ActionBar(
-                        state = getHideActionBarViewState(assetState)
-                    ) { actionType, chainId, chainAssetId ->
-                        viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
-                    }
-                }
-            )
+            SwipableBalanceListItem(viewModel, assetState)
         }
         if (data.hiddenAssets.isNotEmpty()) {
             item {
@@ -134,34 +138,7 @@ private fun AssetsList(
             }
             if (data.hiddenState.isExpanded) {
                 items(data.hiddenAssets) { assetState ->
-                    val swipeableState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
-                    SwipeBox(
-                        swipeableState = swipeableState,
-                        state = SwipeBoxViewState(
-                            leftStateWidth = 250.dp,
-                            rightStateWidth = 90.dp
-                        ),
-                        initialContent = {
-                            AssetListItem(
-                                state = assetState,
-                                onClick = viewModel::assetClicked
-                            )
-                        },
-                        leftContent = {
-                            ActionBar(
-                                state = getLeftActionBarViewState(assetState)
-                            ) { actionType, chainId, chainAssetId ->
-                                viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
-                            }
-                        },
-                        rightContent = {
-                            ActionBar(
-                                state = getShowActionBarViewState(assetState)
-                            ) { actionType, chainId, chainAssetId ->
-                                viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
-                            }
-                        }
-                    )
+                    SwipableBalanceListItem(viewModel, assetState)
                 }
             }
         }
@@ -169,19 +146,50 @@ private fun AssetsList(
     }
 }
 
-private fun getHideActionBarViewState(asset: AssetListItemViewState) = ActionBarViewState(
-    chainId = asset.chainId,
-    chainAssetId = asset.chainAssetId,
-    actionItems = listOf(
-        ActionItemType.HIDE
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun SwipableBalanceListItem(
+    viewModel: BalanceListViewModel,
+    assetState: AssetListItemViewState
+) {
+    val swipeableState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
+    SwipeBox(
+        swipeableState = swipeableState,
+        state = SwipeBoxViewState(
+            leftStateWidth = 250.dp,
+            rightStateWidth = 90.dp
+        ),
+        initialContent = {
+            AssetListItem(
+                state = assetState,
+                onClick = viewModel::assetClicked
+            )
+        },
+        leftContent = {
+            ActionBar(
+                state = getLeftActionBarViewState(assetState)
+            ) { actionType, chainId, chainAssetId ->
+                viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
+            }
+        },
+        rightContent = {
+            ActionBar(
+                state = getRightActionBarViewState(assetState)
+            ) { actionType, chainId, chainAssetId ->
+                viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
+            }
+        }
     )
-)
+}
 
-private fun getShowActionBarViewState(asset: AssetListItemViewState) = ActionBarViewState(
+private fun getRightActionBarViewState(asset: AssetListItemViewState) = ActionBarViewState(
     chainId = asset.chainId,
     chainAssetId = asset.chainAssetId,
     actionItems = listOf(
-        ActionItemType.SHOW
+        when {
+            asset.isHidden -> ActionItemType.SHOW
+            else -> ActionItemType.HIDE
+        }
     )
 )
 
@@ -254,13 +262,16 @@ fun ShimmerWalletScreen(items: List<AssetListItemShimmerViewState>) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
 private fun PreviewWalletScreen() {
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {
 //            ShimmerWalletScreen(defaultWalletShimmerItems())
-            WalletScreen()
+            WalletScreen(
+                modalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+            )
         }
     }
 }

@@ -14,9 +14,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -44,7 +48,7 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
     abstract val viewModel: T
 
-    @OptIn(ExperimentalComposeUiApi::class)
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,12 +62,14 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                     val scrollState = rememberScrollState()
                     val openAlertDialog = remember { mutableStateOf(AlertDialogData()) }
 
+                    val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+
                     Scaffold(
                         scaffoldState = scaffoldState,
                         topBar = {
                             Column {
                                 MarginVertical(margin = 24.dp) // it's status bar
-                                Toolbar()
+                                Toolbar(modalBottomSheetState)
                             }
                         },
                         content = { padding ->
@@ -75,7 +81,7 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                                     .fillMaxSize()
                                     .padding(padding)
                             ) {
-                                Content(padding, scrollState)
+                                Content(padding, scrollState, modalBottomSheetState)
 
                                 AlertDialogContent(openAlertDialog)
                                 val errorTitle = stringResource(id = R.string.common_error_general_title)
@@ -132,11 +138,13 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
         }
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    abstract fun Content(padding: PaddingValues, scrollState: ScrollState)
+    abstract fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState)
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    open fun Toolbar() = Unit
+    open fun Toolbar(modalBottomSheetState: ModalBottomSheetState) = Unit
 
     fun <V> LiveData<V>.observe(observer: (V) -> Unit) {
         observe(viewLifecycleOwner, observer)

@@ -741,6 +741,7 @@
     <string name="parachain_staking_request_finished">Завершен</string>
     <string name="chain_selection_all_networks">Все сети</string>
     <string name="hidden_assets">Скрытые активы</string>
+    <string name="common_select_network">Выбрать Сеть</string>
 
 
     <string name="staking_pool_rewards_delay_text"></string>
