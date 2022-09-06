@@ -3,6 +3,8 @@ package jp.co.soramitsu.runtime.multiNetwork.connection
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.switchMap
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Provider
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.asLiveData
@@ -14,8 +16,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Provider
 
 class ConnectionPool(
     private val socketServiceProvider: Provider<SocketService>,
@@ -46,6 +46,8 @@ class ConnectionPool(
     }
 
     fun getConnection(chainId: ChainId): ChainConnection = pool.getValue(chainId)
+
+    fun getConnectionOrNull(chainId: ChainId): ChainConnection? = pool.getOrDefault(chainId, null)
 
     fun setupConnection(chain: Chain, onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit): ChainConnection {
         var isNew = false

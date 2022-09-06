@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 
-private const val NODE_SWITCHING_FREQUENCY = 5 // switch node every n attempt
+private const val NODE_SWITCHING_FREQUENCY = 3 // switch node every n attempt
 private const val ATTEMPT_THRESHOLD = 1
 
 class ChainConnection(
@@ -67,7 +67,7 @@ class ChainConnection(
 
         val firstActiveNodeUrl = getFirstActiveNode()?.url ?: availableNodes.first().url.also(onSelectedNodeChange)
 
-        socketService.start(firstActiveNodeUrl, remainPaused = true)
+        socketService.start(firstActiveNodeUrl)
     }
 
     private fun getFirstActiveNode() = availableNodes.firstOrNull { it.isActive }
@@ -95,20 +95,12 @@ class ChainConnection(
 
     private fun autoBalance(currentState: State) {
         if (!isAutoBalanceEnabled()) return
-
-        if (currentState is State.WaitingForReconnect && (currentState.attempt % NODE_SWITCHING_FREQUENCY) == 0 ||
-            currentState is State.Connecting && (currentState.attempt % NODE_SWITCHING_FREQUENCY) == 0
-        ) {
+        if (currentState is State.WaitingForReconnect && (currentState.attempt % NODE_SWITCHING_FREQUENCY) == 0) {
             val currentNodeIndex = availableNodes.indexOfFirst { it.isActive }
             // if current selected node is the last, start from first node
             val nextNodeIndex = (currentNodeIndex + 1).let { newIndex -> if (newIndex >= availableNodes.size) 0 else newIndex }
             val nextNode = availableNodes[nextNodeIndex]
-
-            if (currentState is State.WaitingForReconnect) {
-                socketService.switchUrl(nextNode.url)
-            } else {
-                socketService.start(nextNode.url)
-            }
+            socketService.switchUrl(nextNode.url)
             onSelectedNodeChange(nextNode.url)
         }
     }

@@ -28,7 +28,6 @@ import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.flow.Flow
@@ -45,14 +44,14 @@ class PaymentUpdaterFactory(
     private val updatesMixin: UpdatesMixin,
 ) {
 
-    fun create(chainId: ChainId): Updater {
+    fun create(chain: Chain): Updater {
         return PaymentUpdater(
             substrateSource,
             assetCache,
             operationDao,
             chainRegistry,
             scope,
-            chainId,
+            chain,
             updatesMixin
         )
     }
@@ -64,14 +63,14 @@ class PaymentUpdater(
     private val operationDao: OperationDao,
     private val chainRegistry: ChainRegistry,
     override val scope: AccountUpdateScope,
-    private val chainId: ChainId,
+    private val chain: Chain,
     private val updatesMixin: UpdatesMixin
 ) : Updater, UpdatesProviderUi by updatesMixin {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)
 
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
-        val chain = chainRegistry.getChain(chainId)
+        val chainId = chain.id
 
         val metaAccount = scope.getAccount()
         val chainAccount = metaAccount.chainAccounts[chainId]
@@ -123,7 +122,7 @@ class PaymentUpdater(
     }
 
     private suspend fun fetchTransfers(blockHash: String, chain: Chain, accountId: AccountId) {
-        val result = substrateSource.fetchAccountTransfersInBlock(chainId, blockHash, accountId)
+        val result = substrateSource.fetchAccountTransfersInBlock(chain.id, blockHash, accountId)
 
         val blockTransfers = result.getOrNull() ?: return
 

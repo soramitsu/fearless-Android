@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
+import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.md5
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import java.util.concurrent.ConcurrentHashMap
 
 data class SyncInfo(
     val connection: ChainConnection,
@@ -42,7 +42,7 @@ class RuntimeSyncService(
     private val typesFetcher: TypesFetcher,
     private val runtimeFilesCache: RuntimeFilesCache,
     private val chainDao: ChainDao,
-    maxConcurrentUpdates: Int = 8,
+    maxConcurrentUpdates: Int = 15,
     private val updatesMixin: UpdatesMixin
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
