@@ -562,6 +562,13 @@ class StakingFeatureModule {
         api: StakingPoolApi,
         dataSource: StakingPoolDataSource,
         stakingInteractor: StakingInteractor,
-        accountRepository: AccountRepository
-    ) = StakingPoolInteractor(api, dataSource, stakingInteractor, accountRepository)
+        accountRepository: AccountRepository,
+        identityRepository: IdentityRepository
+    ) = StakingPoolInteractor(
+        api,
+        dataSource,
+        stakingInteractor,
+        accountRepository,
+        identityRepository
+    )
 }

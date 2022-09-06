@@ -786,4 +786,11 @@
     <string name="common_action_show">Показать</string>
 
     <string name="pool_staking_confirm_join_title"></string>
+    <string name="pool_staking_number_of_members"></string>
+    <string name="pool_staking_pool_info"></string>
+    <string name="pool_staking_roles"></string>
+
+    <string name="pool_info_index"></string>
+    <string name="pool_info_members"></string>
+    <string name="pool_info_state"></string>
 </resources>

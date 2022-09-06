@@ -2,6 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation
 
 import androidx.lifecycle.Lifecycle
 import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.staking.impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
@@ -102,4 +103,6 @@ interface StakingRouter {
     fun openSetupStakingPool()
 
     fun openConfirmJoinPool()
+
+    fun openPoolInfo(poolInfo: PoolInfo)
 }

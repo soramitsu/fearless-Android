@@ -51,11 +51,13 @@ import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
+import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.ConfirmPayoutFragment
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.staking.impl.presentation.payouts.detail.PayoutDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.payouts.model.PendingPayoutParcelable
+import jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.StakingBalanceFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
@@ -359,6 +361,10 @@ class Navigator :
 
     override fun openConfirmJoinPool() {
         navController?.navigate(R.id.confirmJoinPoolFragment)
+    }
+
+    override fun openPoolInfo(poolInfo: PoolInfo) {
+        navController?.navigate(R.id.poolInfoFragment, PoolInfoFragment.getBundle(poolInfo))
     }
 
     override val currentStackEntryLifecycle: Lifecycle

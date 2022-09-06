@@ -11,7 +11,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.staking.api.domain.model.ShortPoolInfo
+import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
 import jp.co.soramitsu.staking.impl.presentation.confirm.compose.ConfirmJoinPoolScreenViewState
@@ -36,7 +36,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
     private val chain: Chain
     private val asset: Asset
     private val amount: BigDecimal
-    private val selectedPool: ShortPoolInfo
+    private val selectedPool: PoolInfo
     private val address: String
 
     init {

@@ -1,27 +1,42 @@
 package jp.co.soramitsu.staking.api.domain.model
 
+import android.os.Parcelable
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-
-data class PoolMember(
-    val poolId: BigInteger,
-    val stakedInPlanks: BigInteger,
-    val lastRecordedRewardCounter: BigInteger,
-    val unbondingEras: List<PoolUnbonding>
-)
 
 data class PoolUnbonding(
     val era: BigInteger,
     val amount: BigInteger
 )
 
-data class ShortPoolInfo(
+@kotlinx.parcelize.Parcelize
+data class PoolInfo(
     val poolId: BigInteger,
     val name: String,
     val stakedInPlanks: BigInteger,
-    val members: BigInteger
-)
+    val state: NominationPoolState,
+    val members: BigInteger,
+    val depositor: AccountId,
+    val root: AccountId?,
+    val nominator: AccountId?,
+    val stateToggler: AccountId?
+) : Parcelable {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as PoolInfo
+
+        if (poolId != other.poolId) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return poolId.hashCode()
+    }
+}
 
 data class NominationPool(
     val poolId: BigInteger,
@@ -46,17 +61,6 @@ data class NominationPool(
         other as NominationPool
 
         if (poolId != other.poolId) return false
-        if (stakedInPlanks != other.stakedInPlanks) return false
-        if (lastRecordedRewardCounter != other.lastRecordedRewardCounter) return false
-        if (state != other.state) return false
-        if (redeemable != other.redeemable) return false
-        if (unbondingEras != other.unbondingEras) return false
-        if (members != other.members) return false
-        if (!depositor.contentEquals(other.depositor)) return false
-        if (!root.contentEquals(other.root)) return false
-        if (!nominator.contentEquals(other.nominator)) return false
-        if (!stateToggler.contentEquals(other.stateToggler)) return false
-        if (unstaking != other.unstaking) return false
 
         return true
     }
