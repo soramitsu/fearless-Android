@@ -55,7 +55,6 @@ fun BottomSheetLayout(
                 }
                 Grip(Modifier.align(Alignment.TopCenter))
             }
-
         },
         content = { content(bottomSheetState) }
     )

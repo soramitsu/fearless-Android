@@ -94,7 +94,7 @@ class PoolInfoViewModel @Inject constructor(
             depositor = TitleValueViewState(resourceManager.getString(R.string.pool_staking_depositor), null),
             root = TitleValueViewState(resourceManager.getString(R.string.pool_staking_root), null),
             nominator = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), null),
-            stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_state_toggler), null),
+            stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_state_toggler), null)
         )
 
     private fun AccountId?.roleNameOrHex(rolesNames: Map<String, String?>): String? {

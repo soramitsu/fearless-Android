@@ -15,7 +15,6 @@ import jp.co.soramitsu.staking.api.domain.model.PoolUnbonding
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
-import jp.co.soramitsu.staking.impl.data.repository.IdentityRepositoryImpl
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor

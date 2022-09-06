@@ -1,5 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -15,16 +17,20 @@ import jp.co.soramitsu.common.presentation.StakingStoryModel
 import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.childScope
+import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
+import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationPayload
 import jp.co.soramitsu.staking.impl.domain.validations.balance.ManageStakingValidationSystem
@@ -81,7 +87,7 @@ class StakingViewModel @Inject constructor(
     private val stakingSharedState: StakingSharedState,
     parachainScenarioInteractor: StakingParachainScenarioInteractor,
     relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
-    rewardCalculatorFactory: RewardCalculatorFactory,
+    private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
     stakingPoolInteractor: StakingPoolInteractor,
     private val setupPoolSharedState: StakingPoolSetupFlowSharedState
@@ -108,6 +114,9 @@ class StakingViewModel @Inject constructor(
     val assetSelectorMixin = StakingAssetSelector(stakingSharedState, this)
 
     val stakingTypeFlow = stakingSharedState.selectionItem.map { it.type }
+
+    private val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>>()
+    val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>> = _showRewardEstimationEvent
 
     private val scenarioViewModelFlow = stakingSharedState.selectionItem
         .debounce(50)
@@ -289,6 +298,22 @@ class StakingViewModel @Inject constructor(
     }
 
     fun onEstimatedEarningsInfoClick() {
+        launch {
+            val chainId = interactor.getSelectedChain().id
+            val rewardCalculator = rewardCalculatorFactory.createManual(chainId)
+
+            val maxAPY = rewardCalculator.calculateMaxAPY(chainId)
+            val avgAPY = rewardCalculator.calculateAvgAPY()
+
+            val payload = StakingRewardEstimationBottomSheet.Payload(
+                maxAPY.formatAsPercentage(),
+                avgAPY.formatAsPercentage(),
+                R.string.staking_reward_info_apr_max,
+                R.string.staking_reward_info_apr_avg
+            )
+
+            _showRewardEstimationEvent.value = Event(payload)
+        }
     }
 
     fun startStakingPoolClick() {

@@ -60,15 +60,21 @@ fun SelectPoolScreen(
                 scope.launch { sheetState.hide() }
                 onSortingSelected(it)
             })
-        }, content = { sheetState ->
+        },
+        content = { sheetState ->
             BottomSheetScreen {
                 Toolbar(
                     state = ToolbarViewState(
                         title = stringResource(R.string.pool_staking_choosepool_title),
                         navigationIcon = R.drawable.ic_arrow_back_24dp,
-                        menuItems = listOf(MenuIconItem(R.drawable.ic_dots_horizontal_24, onClick = {
-                            scope.launch { sheetState.show() }
-                        }))
+                        menuItems = listOf(
+                            MenuIconItem(
+                                R.drawable.ic_dots_horizontal_24,
+                                onClick = {
+                                    scope.launch { sheetState.show() }
+                                }
+                            )
+                        )
                     ),
                     onNavigationClick = onNavigationClick
                 )

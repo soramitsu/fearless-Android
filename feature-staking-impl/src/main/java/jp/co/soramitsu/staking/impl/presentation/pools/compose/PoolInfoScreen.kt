@@ -63,7 +63,6 @@ fun PoolInfoScreen(state: PoolInfoScreenViewState, onCloseClick: () -> Unit) {
                 H4(text = stringResource(id = R.string.pool_staking_roles))
                 MarginVertical(margin = 8.dp)
                 InfoTable(items = roles)
-
             }
             MarginVertical(margin = 16.dp)
         }

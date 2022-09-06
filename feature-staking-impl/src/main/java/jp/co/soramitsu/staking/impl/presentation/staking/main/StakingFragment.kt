@@ -224,6 +224,9 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
     }
 
     private fun setupComposeViews() {
+        viewModel.showRewardEstimationEvent.observeEvent {
+            StakingRewardEstimationBottomSheet(requireContext(), it).show()
+        }
         binding.composeContent.apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
