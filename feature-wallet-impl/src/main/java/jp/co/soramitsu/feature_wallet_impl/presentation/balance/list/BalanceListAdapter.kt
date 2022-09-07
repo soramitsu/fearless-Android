@@ -1,9 +1,8 @@
 package jp.co.soramitsu.feature_wallet_impl.presentation.balance.list
 
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
@@ -11,24 +10,23 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import coil.load
+import java.math.BigDecimal
 import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setVisible
-import jp.co.soramitsu.common.view.BadgeView
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.common.view.shape.getCutLeftBottomCornerDrawableFromColors
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_wallet_impl.databinding.ItemAssetWithShimmerBinding
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetWithStateModel
 import kotlinx.android.extensions.LayoutContainer
-import java.math.BigDecimal
 
 val fiatRateExtractor = { item: AssetWithStateModel -> item.asset.token.fiatRate }
 val recentChangeExtractor = { item: AssetWithStateModel -> item.asset.token.recentRateChange }
@@ -45,9 +43,8 @@ class BalanceListAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AssetViewHolder {
-        val view = parent.inflateChild(R.layout.item_asset_with_shimmer)
-
-        return AssetViewHolder(view, imageLoader)
+        val binding = ItemAssetWithShimmerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return AssetViewHolder(binding, imageLoader)
     }
 
     override fun onBindViewHolder(holder: AssetViewHolder, position: Int) {
@@ -69,11 +66,9 @@ class BalanceListAdapter(
 }
 
 class AssetViewHolder(
-    override val containerView: View,
+    val binding: ItemAssetWithShimmerBinding,
     private val imageLoader: ImageLoader,
-) : RecyclerView.ViewHolder(containerView), LayoutContainer {
-    private val shimmer = containerView.findViewById<ConstraintLayout>(R.id.item_asset_shimmer)
-    private val content = containerView.findViewById<ConstraintLayout>(R.id.item_asset_content)
+) : RecyclerView.ViewHolder(binding.root), LayoutContainer {
 
     init {
         with(containerView) {
@@ -87,60 +82,57 @@ class AssetViewHolder(
 
     fun bind(model: AssetWithStateModel, itemHandler: BalanceListAdapter.ItemAssetHandler) {
         val asset = model.asset
-
-        content.alpha = when {
-            asset.isSupported -> 1.0F
-            else -> 0.4f
+        binding.apply {
+            binding.itemAssetContent.root.alpha = when {
+                asset.isSupported -> 1.0F
+                else -> 0.4f
+            }
+            itemAssetContent.apply {
+                itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
+                itemAssetNetwork.text = asset.token.configuration.name
+                itemAssetToken.text = asset.token.configuration.symbol
+                networkBadge.setText(asset.token.configuration.chainName)
+                networkBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
+                root.setOnClickListener { itemHandler.assetClicked(asset) }
+                chainAssetNameBadge.text = asset.chainAccountName
+                chainAssetNameBadge.background = root.context.getCutLeftBottomCornerDrawableFromColors()
+            }
+            itemAssetShimmer.apply {
+                itemAssetImage.load(asset.token.configuration.iconUrl, imageLoader)
+                itemAssetNetwork.text = asset.token.configuration.name
+                itemAssetToken.text = asset.token.configuration.symbol
+                networkBadge.setText(asset.token.configuration.chainName)
+                networkBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
+                root.setOnClickListener { itemHandler.assetClicked(asset) }
+                chainAssetNameBadge.text = asset.chainAccountName
+                chainAssetNameBadge.background = root.context.getCutLeftBottomCornerDrawableFromColors()
+            }
         }
-
-        content.findViewById<ImageView>(R.id.itemAssetImage).load(asset.token.configuration.iconUrl, imageLoader)
-        shimmer.findViewById<ImageView>(R.id.itemAssetImage).load(asset.token.configuration.iconUrl, imageLoader)
-
-        content.findViewById<TextView>(R.id.itemAssetNetwork).text = asset.token.configuration.name
-        shimmer.findViewById<TextView>(R.id.itemAssetNetwork).text = asset.token.configuration.name
-
-        content.findViewById<TextView>(R.id.itemAssetToken).text = asset.token.configuration.symbol
-        shimmer.findViewById<TextView>(R.id.itemAssetToken).text = asset.token.configuration.symbol
-
-        content.findViewById<BadgeView>(R.id.networkBadge).setText(asset.token.configuration.chainName)
-        content.findViewById<BadgeView>(R.id.networkBadge).setIcon(asset.token.configuration.chainIcon, imageLoader)
-        shimmer.findViewById<BadgeView>(R.id.networkBadge).setText(asset.token.configuration.chainName)
-        shimmer.findViewById<BadgeView>(R.id.networkBadge).setIcon(asset.token.configuration.chainIcon, imageLoader)
-
-        content.setOnClickListener { itemHandler.assetClicked(asset) }
-        shimmer.setOnClickListener { itemHandler.assetClicked(asset) }
-
-        content.findViewById<TextView>(R.id.chainAssetNameBadge).text = asset.chainAccountName
-        content.findViewById<TextView>(R.id.chainAssetNameBadge).background = content.context.getCutLeftBottomCornerDrawableFromColors()
-
-        shimmer.findViewById<TextView>(R.id.chainAssetNameBadge).text = asset.chainAccountName
-        shimmer.findViewById<TextView>(R.id.chainAssetNameBadge).background = content.context.getCutLeftBottomCornerDrawableFromColors()
-
         bindState(model)
     }
 
     fun bindState(model: AssetWithStateModel) {
         val asset = model.asset
         val state = model.state
-
-        content.findViewById<TextView>(R.id.itemAssetImage).setVisible(state.chainUpdate == false, View.INVISIBLE)
-        shimmer.findViewById<TextView>(R.id.itemAssetImage).setVisible(state.chainUpdate != false, View.INVISIBLE)
-
-        content.findViewById<TextView>(R.id.itemAssetNetwork).setVisible(state.chainUpdate == false, View.INVISIBLE)
-        shimmer.findViewById<TextView>(R.id.itemAssetNetwork).setVisible(state.chainUpdate != false, View.INVISIBLE)
-
-        content.findViewById<TextView>(R.id.itemAssetToken).setVisible(state.chainUpdate == false, View.INVISIBLE)
-        shimmer.findViewById<TextView>(R.id.itemAssetToken).setVisible(state.chainUpdate != false, View.INVISIBLE)
-
-        content.findViewById<BadgeView>(R.id.networkBadge).isVisible = !asset.token.configuration.isNative && state.chainUpdate == false
-        shimmer.findViewById<BadgeView>(R.id.networkBadge).isVisible = !asset.token.configuration.isNative && state.chainUpdate != false
-
-        content.findViewById<BadgeView>(R.id.testnetBadge).isVisible = asset.token.configuration.isTestNet == true && state.chainUpdate == false
-        shimmer.findViewById<BadgeView>(R.id.testnetBadge).isVisible = asset.token.configuration.isTestNet == true && state.chainUpdate != false
-
-        content.findViewById<TextView>(R.id.chainAssetNameBadge).isVisible = !asset.chainAccountName.isNullOrEmpty() && state.chainUpdate == false
-        shimmer.findViewById<TextView>(R.id.chainAssetNameBadge).isVisible = !asset.chainAccountName.isNullOrEmpty() && state.chainUpdate != false
-
+        val isShimmerVisible = state.chainUpdate != false
+        binding.apply {
+            itemAssetContent.apply {
+                itemAssetImage.setVisible(state.chainUpdate == false, View.INVISIBLE)
+                itemAssetNetwork.setVisible(state.chainUpdate == false, View.INVISIBLE)
+                itemAssetToken.setVisible(state.chainUpdate == false, View.INVISIBLE)
+                networkBadge.isVisible = !asset.token.configuration.isNative && state.chainUpdate == false
+                testnetBadge.isVisible = asset.token.configuration.isTestNet == true && state.chainUpdate == false
+                chainAssetNameBadge.isVisible = !asset.chainAccountName.isNullOrEmpty() && state.chainUpdate == false
+            }
+            itemAssetShimmer.apply {
+                itemAssetImage.setVisible(isShimmerVisible, View.INVISIBLE)
+                itemAssetNetwork.setVisible(isShimmerVisible, View.INVISIBLE)
+                itemAssetToken.setVisible(isShimmerVisible, View.INVISIBLE)
+                networkBadge.isVisible = !asset.token.configuration.isNative && isShimmerVisible
+                testnetBadge.isVisible = asset.token.configuration.isTestNet == true && isShimmerVisible
+                chainAssetNameBadge.isVisible = !asset.chainAccountName.isNullOrEmpty() && isShimmerVisible
+            }
+        }
         bindFiatInfo(model)
 
         bindRecentChange(model)
@@ -150,46 +142,76 @@ class AssetViewHolder(
 
     fun bindTotal(model: AssetWithStateModel) {
         val asset = model.asset
-        shimmer.findViewById<View>(R.id.itemAssetBalanceShimmer).isVisible = asset.total == null && model.state.isBalanceUpdating
-        shimmer.findViewById<TextView>(R.id.itemAssetBalance).setVisible(asset.total != null && model.state.isBalanceUpdating, View.INVISIBLE)
-        shimmer.findViewById<TextView>(R.id.itemAssetBalance).text = asset.total.orZero().format()
-        content.findViewById<TextView>(R.id.itemAssetBalance).text = asset.total.orZero().format()
-        content.findViewById<TextView>(R.id.itemAssetBalance).setVisible(!model.state.isBalanceUpdating, View.INVISIBLE)
+        binding.apply {
+            itemAssetShimmer.apply {
+                itemAssetBalanceShimmer.isVisible = asset.total == null && model.state.isBalanceUpdating
+                itemAssetBalance.setVisible(asset.total != null && model.state.isBalanceUpdating, View.INVISIBLE)
+                itemAssetBalance.text = asset.total.orZero().format()
+            }
+            itemAssetContent.apply {
+                itemAssetBalance.text = asset.total.orZero().format()
+                itemAssetBalance.setVisible(!model.state.isBalanceUpdating, View.INVISIBLE)
+            }
+        }
 
         bindFiatAmount(asset.fiatAmount, asset.token.fiatSymbol, model.state.isFiatUpdating)
     }
 
     fun bindRecentChange(model: AssetWithStateModel) {
         val asset = model.asset
-        shimmer.findViewById<TextView>(R.id.itemAssetRateChange).setVisible(
-            asset.token.fiatRate != null && asset.token.recentRateChange != null && model.state.isRateUpdating,
-            View.INVISIBLE
-        )
-        shimmer.findViewById<TextView>(R.id.itemAssetRateChange).setTextColorRes(R.color.white_64)
-        shimmer.findViewById<TextView>(R.id.itemAssetRateChange).text = asset.token.recentRateChange?.formatAsChange()
-        content.findViewById<TextView>(R.id.itemAssetRateChange).setTextColorRes(asset.token.rateChangeColorRes)
-        content.findViewById<TextView>(R.id.itemAssetRateChange).text = asset.token.recentRateChange?.formatAsChange()
-        content.findViewById<TextView>(R.id.itemAssetRateChange).setVisible(!model.state.isRateUpdating, View.INVISIBLE)
+        binding.apply {
+            itemAssetShimmer.apply {
+                itemAssetRateChange.setVisible(
+                    asset.token.fiatRate != null && asset.token.recentRateChange != null && model.state.isRateUpdating,
+                    View.INVISIBLE
+                )
+                itemAssetRateChange.setTextColorRes(R.color.white_64)
+                itemAssetRateChange.text = asset.token.recentRateChange?.formatAsChange()
+            }
+
+            itemAssetContent.apply {
+                itemAssetRateChange.setTextColorRes(asset.token.rateChangeColorRes)
+                itemAssetRateChange.text = asset.token.recentRateChange?.formatAsChange()
+                itemAssetRateChange.setVisible(!model.state.isRateUpdating, View.INVISIBLE)
+            }
+        }
     }
 
     fun bindFiatInfo(model: AssetWithStateModel) {
         val asset = model.asset
-        shimmer.findViewById<View>(R.id.itemAssetRateShimmer).isVisible = asset.token.fiatRate == null && model.state.isRateUpdating
-        shimmer.findViewById<TextView>(R.id.itemAssetRate).setVisible(asset.token.fiatRate != null && model.state.isRateUpdating, View.INVISIBLE)
+        binding.apply {
+            itemAssetShimmer.apply {
+                itemAssetRateShimmer.isVisible = asset.token.fiatRate == null && model.state.isRateUpdating
+                itemAssetRate.setVisible(asset.token.fiatRate != null && model.state.isRateUpdating, View.INVISIBLE)
+                itemAssetRate.text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol)
+            }
 
-        shimmer.findViewById<TextView>(R.id.itemAssetRate).text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol)
-        content.findViewById<TextView>(R.id.itemAssetRate).text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol)
-        content.findViewById<TextView>(R.id.itemAssetRate).setVisible(asset.token.fiatRate != null && !model.state.isRateUpdating, View.INVISIBLE)
+            itemAssetContent.apply {
+                itemAssetRate.text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol)
+                itemAssetRate.setVisible(asset.token.fiatRate != null && !model.state.isRateUpdating, View.INVISIBLE)
+            }
+        }
+
         bindFiatAmount(asset.fiatAmount, asset.token.fiatSymbol, model.state.isFiatUpdating)
     }
 
     private fun bindFiatAmount(fiatAmount: BigDecimal?, fiatSymbol: String?, isUpdating: Boolean) {
-        shimmer.findViewById<View>(R.id.itemAssetFiatAmountShimmer).isVisible = fiatAmount == null && isUpdating
-        shimmer.findViewById<TextView>(R.id.itemAssetFiatAmount).setVisible(fiatAmount != null && isUpdating, View.INVISIBLE)
-        shimmer.findViewById<TextView>(R.id.itemAssetFiatAmount).text = fiatAmount?.formatAsCurrency(fiatSymbol)
-        content.findViewById<TextView>(R.id.itemAssetFiatAmount).text = fiatAmount?.formatAsCurrency(fiatSymbol)
-        content.findViewById<TextView>(R.id.itemAssetFiatAmount).setVisible(!isUpdating, View.INVISIBLE)
+        binding.apply {
+            itemAssetShimmer.apply {
+                itemAssetFiatAmountShimmer.isVisible = fiatAmount == null && isUpdating
+                itemAssetFiatAmount.setVisible(fiatAmount != null && isUpdating, View.INVISIBLE)
+                itemAssetFiatAmount.text = fiatAmount?.formatAsCurrency(fiatSymbol)
+            }
+
+            itemAssetContent.apply {
+                itemAssetFiatAmount.text = fiatAmount?.formatAsCurrency(fiatSymbol)
+                itemAssetFiatAmount.setVisible(!isUpdating, View.INVISIBLE)
+            }
+        }
     }
+
+    override val containerView: View
+        get() = binding.root
 }
 
 private object AssetDiffCallback : DiffUtil.ItemCallback<AssetWithStateModel>() {
@@ -202,7 +224,7 @@ private object AssetDiffCallback : DiffUtil.ItemCallback<AssetWithStateModel>() 
         return oldItem == newItem
     }
 
-    override fun getChangePayload(oldItem: AssetWithStateModel, newItem: AssetWithStateModel): Any? {
+    override fun getChangePayload(oldItem: AssetWithStateModel, newItem: AssetWithStateModel): Any {
         return AssetPayloadGenerator.diff(oldItem, newItem)
     }
 }
