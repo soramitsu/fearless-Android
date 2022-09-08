@@ -47,6 +47,7 @@ class BalanceListFragment : BaseFragment<BalanceListViewModel>(R.layout.fragment
         adapter = BalanceListAdapter(imageLoader, this)
         binding.balanceListAssets.adapter = adapter
         binding.balanceListAssets.scrollToTopWhenItemsShuffled(viewLifecycleOwner)
+        binding.balanceListAssets.itemAnimator = null
 
         with(binding) {
             walletContainer.setOnRefreshListener {
