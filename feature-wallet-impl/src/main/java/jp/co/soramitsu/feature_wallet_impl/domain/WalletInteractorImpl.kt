@@ -2,6 +2,8 @@ package jp.co.soramitsu.feature_wallet_impl.domain
 
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -44,8 +46,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 
@@ -60,7 +60,6 @@ class WalletInteractorImpl(
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {
-//        val previousSort = mutableMapOf<AssetKey, Int>()
         return updatesMixin.tokenRatesUpdate.map {
             it.isNotEmpty()
         }.asFlow()
@@ -75,27 +74,11 @@ class WalletInteractorImpl(
                     .map { assets ->
                         when {
                             customAssetSortingEnabled() -> assets.sortedBy { it.asset.sortIndex }
-                            // todo research this logic
-//                            ratesUpdating && previousSort.isEmpty() -> {
-//                                val sortedAssets = assets.sortedWith(defaultAssetListSort())
-//                                previousSort.clear()
-//                                previousSort.putAll(getSortInfo(sortedAssets))
-//                                sortedAssets
-//                            }
-//                            ratesUpdating -> assets.sortedWith(createSortComparator(previousSort))
                             else -> assets.sortedWith(defaultAssetListSort())
                         }
                     }
             }
     }
-
-//    private fun getSortInfo(sortedAssets: List<Asset>) = sortedAssets.mapIndexed { index, asset ->
-//        asset.uniqueKey to index
-//    }
-//
-//    private fun createSortComparator(previousSort: Map<AssetKey, Int>) = compareBy<Asset> {
-//        previousSort[it.uniqueKey]
-//    }
 
     private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
         .thenByDescending { it.asset.fiatAmount.orZero() }
