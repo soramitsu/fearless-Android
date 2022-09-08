@@ -44,16 +44,21 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.SelectChainScreenViewState
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceModel
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetUpdateState
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetWithStateModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -67,6 +72,7 @@ private const val CURRENT_ICON_SIZE = 40
 @HiltViewModel
 class BalanceListViewModel @Inject constructor(
     private val interactor: WalletInteractor,
+    private val chainInteractor: ChainInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
@@ -94,6 +100,15 @@ class BalanceListViewModel @Inject constructor(
     }.onEach {
         sync()
     }
+
+    private val chainsFlow = chainInteractor.getChainsFlow().mapList {
+        it.toChainItemState()
+    }
+    private val selectedChainItem = MutableStateFlow<ChainItemState?>(null)
+
+    val chainsState = combine(chainsFlow, selectedChainItem) { chainItems, selectedChain ->
+        SelectChainScreenViewState(chainItems, selectedChain)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, SelectChainScreenViewState(emptyList(), null))
 
     private val fiatSymbolLiveData = fiatSymbolFlow.asLiveData()
     private val assetModelsLiveData = assetModelsFlow().asLiveData()
@@ -180,12 +195,12 @@ class BalanceListViewModel @Inject constructor(
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
-    val toolbarState = currentAddressModelFlow().map {
+    val toolbarState = combine(currentAddressModelFlow(), selectedChainItem) { addressModel, chain ->
         LoadingState.Loaded(
             MainToolbarViewState(
-                title = it.nameOrAddress,
-                homeIconState = ToolbarHomeIconState(walletIcon = it.image),
-                selectorViewState = ChainSelectorViewState()
+                title = addressModel.nameOrAddress,
+                homeIconState = ToolbarHomeIconState(walletIcon = addressModel.image),
+                selectorViewState = ChainSelectorViewState(chain?.title, chain?.id)
             )
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
@@ -282,6 +297,10 @@ class BalanceListViewModel @Inject constructor(
 
     fun avatarClicked() {
         router.openChangeAccountFromWallet()
+    }
+
+    fun onChainSelected(item: ChainItemState? = null) {
+        selectedChainItem.value = item
     }
 
     fun onHiddenAssetClicked() {

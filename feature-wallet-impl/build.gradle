@@ -110,6 +110,7 @@ dependencies {
     implementation insetterDep
     implementation shimmerDep
 
+    implementation coilCompose
     implementation navigationComposeDep
     implementation hiltNavComposeDep
     implementation composeUiDep

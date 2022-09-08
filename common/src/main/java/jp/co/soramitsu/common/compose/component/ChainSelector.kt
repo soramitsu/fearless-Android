@@ -21,11 +21,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.transparent
+import jp.co.soramitsu.common.compose.theme.white
 
 data class ChainSelectorViewState(
     val selectedChainName: String? = null,
@@ -64,7 +64,7 @@ fun ChainSelector(
             painter = painterResource(id = R.drawable.ic_arrow_down),
             contentDescription = null,
             modifier = Modifier.padding(8.dp),
-            tint = transparent
+            tint = white
         )
     }
 }
@@ -72,14 +72,14 @@ fun ChainSelector(
 @Preview
 @Composable
 private fun ChainSelectorPreview() {
-    FearlessTheme {
+    FearlessThemeBlackBg {
         ChainSelector(
             selectorViewState = ChainSelectorViewState(
                 selectedChainId = "id",
                 selectedChainName = "Kusama",
                 selectedChainStatusColor = colorAccent
             ),
-            {}
+            onChangeChainClick = {}
         )
     }
 }
