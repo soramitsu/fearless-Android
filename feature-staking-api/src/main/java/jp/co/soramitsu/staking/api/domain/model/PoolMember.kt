@@ -45,6 +45,7 @@ data class NominationPool(
     val lastRecordedRewardCounter: BigInteger,
     val state: NominationPoolState,
     val redeemable: BigInteger,
+    val unbonding: BigInteger,
     val unbondingEras: List<PoolUnbonding>,
     val members: BigInteger,
     val depositor: AccountId,
@@ -52,8 +53,6 @@ data class NominationPool(
     val nominator: AccountId?,
     val stateToggler: AccountId?
 ) {
-    val unstaking = unbondingEras.sumByBigInteger { it.amount }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -77,7 +76,7 @@ data class NominationPool(
         result = 31 * result + root.contentHashCode()
         result = 31 * result + nominator.contentHashCode()
         result = 31 * result + stateToggler.contentHashCode()
-        result = 31 * result + unstaking.hashCode()
+        result = 31 * result + unbonding.hashCode()
         return result
     }
 }
