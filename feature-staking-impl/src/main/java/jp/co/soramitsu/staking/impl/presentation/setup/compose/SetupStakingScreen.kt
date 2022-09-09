@@ -79,7 +79,7 @@ fun SetupStakingScreen(
 
 @Composable
 @Preview
-fun SetupStakingScreenPreview() {
+private fun SetupStakingScreenPreview() {
     val state = SetupStakingScreenViewState(
         ToolbarViewState(title = "Join pool", navigationIcon = R.drawable.ic_arrow_back_24dp),
         AccountInfoViewState(

@@ -45,7 +45,7 @@ import jp.co.soramitsu.common.compose.component.SwipeBox
 import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.backgroundBlack
+import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -65,12 +65,13 @@ fun WalletScreen(
 
     ModalBottomSheetLayout(
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
-        sheetBackgroundColor = backgroundBlack,
+        sheetBackgroundColor = black4,
         sheetState = modalBottomSheetState,
         sheetContent = {
             SelectChainContent(
                 state = chainsState,
-                onChainSelected = viewModel::onChainSelected
+                onChainSelected = viewModel::onChainSelected,
+                onInput = viewModel::onChainSearchEntered
             )
         },
         content = {
