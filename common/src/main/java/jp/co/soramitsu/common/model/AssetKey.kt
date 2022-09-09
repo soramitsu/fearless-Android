@@ -6,7 +6,7 @@ data class AssetKey(
     val metaId: Long,
     val chainId: String,
     val accountId: AccountId,
-    val tokenSymbol: String
+    val assetId: String
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -17,7 +17,7 @@ data class AssetKey(
         if (metaId != other.metaId) return false
         if (chainId != other.chainId) return false
         if (!accountId.contentEquals(other.accountId)) return false
-        if (tokenSymbol != other.tokenSymbol) return false
+        if (assetId != other.assetId) return false
 
         return true
     }
@@ -26,7 +26,7 @@ data class AssetKey(
         var result = metaId.hashCode()
         result = 31 * result + chainId.hashCode()
         result = 31 * result + accountId.contentHashCode()
-        result = 31 * result + tokenSymbol.hashCode()
+        result = 31 * result + assetId.hashCode()
         return result
     }
 }

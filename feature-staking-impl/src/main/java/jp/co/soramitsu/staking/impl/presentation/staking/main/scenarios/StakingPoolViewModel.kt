@@ -41,6 +41,7 @@ class StakingPoolViewModel(
 
     override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
 
+    @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
         return kotlinx.coroutines.flow.flowOf(Pool)
     }

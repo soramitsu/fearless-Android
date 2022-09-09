@@ -26,16 +26,16 @@ class UpdatesProvider : UpdatesMixin {
     private val tokensMutex = Mutex()
     private val chainsMutex = Mutex()
 
-    override suspend fun startUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, tokenSymbol: String) {
+    override suspend fun startUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, assetId: String) {
         assetMutex.withLock {
-            assetsCache.add(AssetKey(metaId, chainId, accountId, tokenSymbol))
+            assetsCache.add(AssetKey(metaId, chainId, accountId, assetId))
             _assets.postValue(assetsCache)
         }
     }
 
-    override suspend fun finishUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, tokenSymbol: String) {
+    override suspend fun finishUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, assetId: String) {
         assetMutex.withLock {
-            assetsCache.remove(AssetKey(metaId, chainId, accountId, tokenSymbol))
+            assetsCache.remove(AssetKey(metaId, chainId, accountId, assetId))
             // update chain here too - assume chain updated if we got balance; need logic research: somehow not applied in finishChainSyncUp
             chainsCache.remove(chainId)
             _chains.postValue(chainsCache)
@@ -43,32 +43,32 @@ class UpdatesProvider : UpdatesMixin {
         }
     }
 
-    override suspend fun startUpdateToken(symbol: String) {
+    override suspend fun startUpdateToken(assetId: String) {
         tokensMutex.withLock {
-            tokensCache.add(symbol)
+            tokensCache.add(assetId)
             _tokenRates.postValue(tokensCache)
         }
     }
 
-    override suspend fun startUpdateTokens(symbols: List<String>) {
-        if (symbols.isEmpty()) return
+    override suspend fun startUpdateTokens(assetIds: List<String>) {
+        if (assetIds.isEmpty()) return
         tokensMutex.withLock {
-            tokensCache.addAll(symbols)
+            tokensCache.addAll(assetIds)
             _tokenRates.postValue(tokensCache)
         }
     }
 
-    override suspend fun finishUpdateTokens(symbols: List<String>) {
-        if (symbols.isEmpty()) return
+    override suspend fun finishUpdateTokens(assetIds: List<String>) {
+        if (assetIds.isEmpty()) return
         tokensMutex.withLock {
-            tokensCache.removeAll(symbols)
+            tokensCache.removeAll(assetIds.toSet())
             _tokenRates.postValue(tokensCache)
         }
     }
 
-    override suspend fun finishUpdateToken(symbol: String) {
+    override suspend fun finishUpdateToken(assetId: String) {
         tokensMutex.withLock {
-            tokensCache.remove(symbol)
+            tokensCache.remove(assetId)
             _tokenRates.postValue(tokensCache)
         }
     }

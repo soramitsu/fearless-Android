@@ -1,6 +1,8 @@
 package jp.co.soramitsu.staking.impl.data.network.blockhain.updaters
 
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.staking
@@ -19,8 +21,10 @@ import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeStorageRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
-import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.runtime.network.updaters.insert
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.isRedeemableIn
@@ -30,11 +34,6 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingL
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.base.StakingUpdater
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
-import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.getRuntime
-import jp.co.soramitsu.runtime.network.updaters.insert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -66,7 +65,7 @@ class StakingLedgerUpdater(
 
         val key = runtime.metadata.staking().storage("Bonded").storageKey(runtime, currentAccountId)
 
-        updatesMixin.startUpdateAsset(scope.getAccount().id, chain.id, currentAccountId, chain.utilityAsset.symbol)
+        updatesMixin.startUpdateAsset(scope.getAccount().id, chain.id, currentAccountId, chainAsset.id)
 
         return storageSubscriptionBuilder.subscribe(key)
             .flatMapLatest { change ->

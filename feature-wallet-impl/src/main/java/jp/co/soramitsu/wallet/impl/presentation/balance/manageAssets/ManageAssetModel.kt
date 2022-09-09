@@ -10,6 +10,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.calculateTotalBalance
 
 data class ManageAssetModel(
+    val assetId: String,
     val chainId: ChainId,
     val tokenSymbol: String,
     val accountId: AccountId,
@@ -38,12 +39,13 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
     }
 
     return ManageAssetModel(
+        assetId = token.configuration.id,
         chainId = token.configuration.chainId,
         tokenSymbol = token.configuration.symbol,
         accountId = asset.accountId,
         name = token.configuration.name,
         iconUrl = token.configuration.iconUrl,
-        amount = "$totalBalance ${token.configuration.symbol}",
+        amount = "$totalBalance ${token.configuration.symbol.uppercase()}",
         network = network,
         position = asset.sortIndex,
         enabled = asset.enabled,
@@ -53,4 +55,4 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
     )
 }
 
-fun ManageAssetModel.toUpdateItem(metaId: Long, setPosition: Int?) = AssetUpdateItem(metaId, chainId, accountId, tokenSymbol, setPosition ?: position, enabled)
+fun ManageAssetModel.toUpdateItem(metaId: Long, setPosition: Int?) = AssetUpdateItem(metaId, chainId, accountId, assetId, setPosition ?: position, enabled)

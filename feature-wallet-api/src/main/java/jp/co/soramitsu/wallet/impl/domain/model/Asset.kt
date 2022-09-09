@@ -90,7 +90,7 @@ class Asset(
 
     val fiatAmount = total?.let { token.fiatRate?.multiply(total) }
 
-    val uniqueKey = AssetKey(metaId, token.configuration.chainId, accountId, token.configuration.symbol)
+    val uniqueKey = AssetKey(metaId, token.configuration.chainId, accountId, token.configuration.id)
 }
 
 fun calculateTotalBalance(

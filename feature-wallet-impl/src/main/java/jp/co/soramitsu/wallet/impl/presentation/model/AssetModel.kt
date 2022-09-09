@@ -37,7 +37,7 @@ data class AssetModel(
 
     val primaryKey = AssetKey(
         metaId = metaId,
-        tokenSymbol = token.configuration.symbol,
+        assetId = token.configuration.id,
         accountId = emptyAccountIdValue,
         chainId = token.configuration.chainId
     )

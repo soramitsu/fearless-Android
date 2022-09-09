@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -25,6 +26,7 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
+import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
@@ -41,11 +43,15 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotKusamaOthers
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -129,7 +135,7 @@ class BalanceListViewModel @Inject constructor(
         chainsUpdate
     ) { (assetModels: List<AssetModel>?, fiatSymbol: String?, tokenRatesUpdate: Set<String>?, assetsUpdate: Set<AssetKey>?, chainsUpdate: Set<String>?) ->
         val assetsWithState = assetModels?.map { asset ->
-            val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.symbol in it }
+            val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.id in it }
             val balanceUpdate = assetsUpdate?.let { asset.primaryKey in it }
             val chainUpdate = chainsUpdate?.let { asset.token.configuration.chainId in it }
             val isTokenFiatChanged = when {
@@ -156,31 +162,71 @@ class BalanceListViewModel @Inject constructor(
         )
     )
 
-    val state = combine(
-        assetTypeSelectorState.asFlow(),
-        balanceLiveData.asFlow(),
-        hiddenAssetsState.asFlow()
-    ) { multiToggleButtonState: MultiToggleButtonState<AssetType>, balanceModel: BalanceModel, hiddenState: HiddenItemState ->
-        if (balanceModel.assetModels.isEmpty() || balanceModel.isShowLoading) {
-            return@combine LoadingState.Loading()
-        }
-        val assetsListItemStates: List<AssetListItemViewState> = balanceModel.assetModels.map { model ->
-            with(model.asset) {
+    val assetStates = combine(
+        interactor.assetsFlow(),
+        chainInteractor.getChainsFlow(),
+        selectedChainItem
+    ) { assets: List<AssetWithStatus>, chains: List<JoinedChainInfo>, selectedChain: ChainItemState? ->
+        assets
+            .filter { it.hasAccount }
+            .filter { selectedChain?.id == null || selectedChain.id == it.asset.token.configuration.chainId }
+            .sortedWith(defaultAssetListSort())
+            .map { assetWithStatus ->
+                val token = assetWithStatus.asset.token
+                val chainAsset = token.configuration
+
+                val chainLocal = chains.find { it.chain.id == token.configuration.nativeChainId }
+                val chain = chainLocal?.let { mapChainLocalToChain(it) }
+
+                val isSupported: Boolean = when (chain?.minSupportedVersion) {
+                    null -> true
+                    else -> AppVersion.isSupported(chain.minSupportedVersion)
+                }
+                val assetChainUrls = chains.mapNotNull {
+                    if (it.assets.any { it.id == chainAsset.id }) {
+                        it.chain.icon
+                    } else {
+                        null
+                    }
+                }
+
                 AssetListItemViewState(
-                    assetIconUrl = token.configuration.iconUrl,
-                    assetChainName = token.configuration.chainName.orEmpty(),
-                    assetSymbol = token.configuration.symbol,
+                    assetIconUrl = chainAsset.iconUrl,
+                    assetChainName = chain?.name.orEmpty(),
+                    assetSymbol = chainAsset.symbol,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
                     assetTokenRate = token.recentRateChange?.formatAsChange(),
-                    assetBalance = total.orZero().format(),
-                    assetBalanceFiat = fiatAmount?.formatAsCurrency(balanceModel.fiatSymbol),
-                    assetChainUrls = listOf(token.configuration.chainIcon).mapNotNull { it },
-                    chainId = token.configuration.chainId,
-                    chainAssetId = token.configuration.id,
+                    assetBalance = assetWithStatus.asset.total?.format().orEmpty(),
+                    assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total)?.formatAsCurrency(token.fiatSymbol),
+                    assetChainUrls = assetChainUrls.orEmpty(),
+                    chainId = chain?.id.orEmpty(),
+                    chainAssetId = chainAsset.id,
                     isSupported = isSupported,
-                    isHidden = isHidden == true
+                    isHidden = !assetWithStatus.asset.enabled
                 )
             }
+    }
+
+    private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
+        .thenByDescending { it.asset.fiatAmount.orZero() }
+        .thenBy { it.asset.token.configuration.isTestNet }
+        .thenBy { it.asset.token.configuration.chainId.polkadotKusamaOthers() }
+        .thenBy { it.asset.token.configuration.chainName }
+
+    val state = combine(
+        assetStates,
+        assetTypeSelectorState.asFlow(),
+        balanceLiveData.asFlow(),
+        hiddenAssetsState.asFlow(),
+        enteredChainQueryFlow
+    ) { assetsListItemStates: List<AssetListItemViewState>,
+        multiToggleButtonState: MultiToggleButtonState<AssetType>,
+        balanceModel: BalanceModel,
+        hiddenState: HiddenItemState,
+        selectedChainId: String? ->
+
+        if (assetsListItemStates.isEmpty() || balanceModel.isShowLoading) {
+            return@combine LoadingState.Loading()
         }
 
         val balanceState = AssetBalanceViewState(

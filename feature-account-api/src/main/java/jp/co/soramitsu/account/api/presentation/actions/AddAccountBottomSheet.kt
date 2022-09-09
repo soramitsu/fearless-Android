@@ -12,14 +12,14 @@ class AddAccountBottomSheet(
     private val payload: Payload,
     private val onCreate: (chainId: ChainId, metaId: Long) -> Unit,
     private val onImport: (chainId: ChainId, metaId: Long) -> Unit,
-    private val onNoNeed: (chainId: ChainId, metaId: Long, symbol: String) -> Unit
+    private val onNoNeed: (chainId: ChainId, metaId: Long, assetId: String) -> Unit
 ) : FixedListBottomSheet(context) {
 
     class Payload(
         val metaId: Long,
         val chainId: ChainId,
         val chainName: String,
-        val symbol: String,
+        val assetId: String,
         val markedAsNotNeed: Boolean
     )
 
@@ -38,7 +38,7 @@ class AddAccountBottomSheet(
 
         if (!payload.markedAsNotNeed) {
             textItem(R.string.i_dont_need_account) {
-                onNoNeed(payload.chainId, payload.metaId, payload.symbol)
+                onNoNeed(payload.chainId, payload.metaId, payload.assetId)
             }
         }
     }

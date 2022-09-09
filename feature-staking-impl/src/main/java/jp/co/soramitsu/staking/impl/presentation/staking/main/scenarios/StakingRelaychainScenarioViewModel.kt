@@ -62,6 +62,7 @@ class StakingRelaychainScenarioViewModel(
 
     override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
 
+    @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
         return stakingStateFlow.map { stakingState ->
             when (stakingState) {

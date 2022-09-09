@@ -8,7 +8,6 @@ import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -58,7 +57,7 @@ class AccountControllerBalanceUpdater(
         val key = runtime.metadata.system().storage("Account").storageKey(runtime, companionAccountId)
 
         val metaId = scope.getSelectedMetaAccount().id
-        updatesMixin.startUpdateAsset(metaId, chain.id, companionAccountId, chain.utilityAsset.symbol)
+        updatesMixin.startUpdateAsset(metaId, chain.id, companionAccountId, chainAsset.id)
 
         return storageSubscriptionBuilder.subscribe(key)
             .onEach { change ->

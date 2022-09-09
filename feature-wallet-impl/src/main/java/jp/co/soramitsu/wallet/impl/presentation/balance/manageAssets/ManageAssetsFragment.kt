@@ -4,17 +4,17 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.dragAndDropItemTouchHelper
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentManageAssetsBinding
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(R.layout.fragment_manage_assets), ManageAssetsAdapter.Handler {
@@ -56,8 +56,8 @@ class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(R.layout.fragme
         viewModel.toggleEnabled(item)
     }
 
-    override fun addAccount(chainId: ChainId, chainName: String, symbol: String, markedAsNotNeed: Boolean) {
-        viewModel.onAddAccountClick(chainId, chainName, symbol, markedAsNotNeed)
+    override fun addAccount(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean) {
+        viewModel.onAddAccountClick(chainId, chainName, assetId, markedAsNotNeed)
     }
 
     override fun startDrag(viewHolder: RecyclerView.ViewHolder) {

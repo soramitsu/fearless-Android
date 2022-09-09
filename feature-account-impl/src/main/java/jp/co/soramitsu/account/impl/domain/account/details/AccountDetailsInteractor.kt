@@ -1,12 +1,5 @@
 package jp.co.soramitsu.account.impl.domain.account.details
 
-import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
-import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
-import jp.co.soramitsu.common.list.GroupedList
-import jp.co.soramitsu.common.model.AssetKey
-import jp.co.soramitsu.common.utils.flowOf
-import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -14,7 +7,13 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain.From
-import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.common.list.GroupedList
+import jp.co.soramitsu.common.model.AssetKey
+import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
+import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -43,11 +42,13 @@ class AccountDetailsInteractor(
             chainRegistry.currentChains.map { it.sortedWith(chainSort()) },
             assetNotNeedAccountUseCase.getAssetsMarkedNotNeedFlow(metaId)
         ) { metaAccount, chains, assetsMarkedNotNeed ->
-            chains.map { chain ->
-                val markedNotNeed = assetsMarkedNotNeed.contains(
-                    AssetKey(metaId, chain.id, emptyAccountIdValue, chain.utilityAsset.symbol)
-                )
-                createAccountInChain(metaAccount, chain, markedNotNeed)
+            chains.flatMap { chain ->
+                chain.assets.map { chainAsset ->
+                    val markedNotNeed = assetsMarkedNotNeed.contains(
+                        AssetKey(metaId, chain.id, emptyAccountIdValue, chainAsset.id)
+                    )
+                    createAccountInChain(metaAccount, chain, markedNotNeed)
+                }
             }
                 .groupBy(AccountInChain::from)
                 .toSortedMap(compareBy { it.name })

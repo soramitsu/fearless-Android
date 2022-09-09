@@ -7,8 +7,8 @@ import jp.co.soramitsu.common.utils.toBase64
 import jp.co.soramitsu.common.utils.toHexColor
 import jp.co.soramitsu.common.utils.urlEncoded
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 
 class MoonPayProvider(
     private val host: String,

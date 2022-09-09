@@ -5,6 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
+import jp.co.soramitsu.account.api.domain.model.hasChainAccount
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
+import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
+import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
+import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
+import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,17 +25,7 @@ import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
-import jp.co.soramitsu.account.api.domain.model.hasChainAccount
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
-import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
-import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
-import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -39,7 +40,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val UPDATE_NAME_INTERVAL_SECONDS = 1L
 
@@ -194,7 +194,7 @@ class AccountDetailsViewModel @Inject constructor(
                     metaId = metaId,
                     chainId = item.chainId,
                     chainName = item.chainName,
-                    symbol = chainRegistry.getChain(item.chainId).utilityAsset.symbol,
+                    assetId = chainRegistry.getChain(item.chainId).utilityAsset.id,
                     markedAsNotNeed = item.markedAsNotNeed
                 )
             )
@@ -223,9 +223,9 @@ class AccountDetailsViewModel @Inject constructor(
         accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
     }
 
-    fun noNeedAccount(chainId: ChainId, metaId: Long, symbol: String) {
+    fun noNeedAccount(chainId: ChainId, metaId: Long, assetId: String) {
         launch {
-            assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, symbol = symbol)
+            assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, assetId = assetId)
         }
     }
 }

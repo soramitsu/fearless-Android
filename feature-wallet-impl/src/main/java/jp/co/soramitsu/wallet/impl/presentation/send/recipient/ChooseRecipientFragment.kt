@@ -90,7 +90,7 @@ class ChooseRecipientFragment : BaseFragment<ChooseRecipientViewModel>(R.layout.
         binding.searchRecipientField.onTextChanged(viewModel::queryChanged)
 
         viewModel.assetSymbolLiveData.observe {
-            binding.searchRecipientToolbar.setTitle(getString(R.string.wallet_send_navigation_title, it))
+            binding.searchRecipientToolbar.setTitle(getString(R.string.wallet_send_navigation_title, it.uppercase()))
         }
     }
 

@@ -5,9 +5,9 @@ import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentReceiveBinding
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -55,11 +55,11 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>(R.layout.fragment_receive
 
         viewModel.shareEvent.observeEvent(::startQrSharingIntent)
 
-        binding.fearlessToolbar.setTitle(getString(R.string.wallet_asset_receive_template, viewModel.assetSymbol))
+        binding.fearlessToolbar.setTitle(getString(R.string.wallet_asset_receive_template, viewModel.assetSymbol?.uppercase()))
     }
 
     private fun startQrSharingIntent(qrSharingPayload: QrSharingPayload) {
-        val imageUri = FileProvider.getUriForFile(activity!!, "${activity!!.packageName}.provider", qrSharingPayload.qrFile)
+        val imageUri = FileProvider.getUriForFile(requireActivity(), "${requireActivity().packageName}.provider", qrSharingPayload.qrFile)
 
         if (imageUri != null) {
             val intent = Intent(Intent.ACTION_SEND).apply {

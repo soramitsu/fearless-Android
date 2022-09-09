@@ -4,15 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.DragAndDropTouchHelperCallback
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
-import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -87,7 +87,7 @@ class ManageAssetsViewModel @Inject constructor(
         onItemsChanged()
     }
 
-    fun onAddAccountClick(chainId: ChainId, chainName: String, symbol: String, markedAsNotNeed: Boolean) {
+    fun onAddAccountClick(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean) {
         launch {
             val meta = walletInteractor.getSelectedMetaAccount()
             _showAddAccountChooser.value = Event(
@@ -95,7 +95,7 @@ class ManageAssetsViewModel @Inject constructor(
                     metaId = meta.id,
                     chainId = chainId,
                     chainName = chainName,
-                    symbol = symbol,
+                    assetId = assetId,
                     markedAsNotNeed = markedAsNotNeed
                 )
             )
@@ -110,9 +110,9 @@ class ManageAssetsViewModel @Inject constructor(
         walletRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
     }
 
-    fun noNeedAccount(chainId: ChainId, metaId: Long, symbol: String) {
+    fun noNeedAccount(chainId: ChainId, metaId: Long, assetId: String) {
         launch {
-            assetNotNeedAccountUseCase.markNotNeed(chainId = chainId, metaId = metaId, symbol = symbol)
+            assetNotNeedAccountUseCase.markNotNeed(chainId = chainId, metaId = metaId, assetId = assetId)
         }
     }
 
@@ -159,7 +159,7 @@ class ManageAssetsViewModel @Inject constructor(
     private fun isSortingUpdated(newItems: List<AssetUpdateItem>): Boolean {
         initialAssets.forEachIndexed { index, item ->
             newItems[index].let {
-                val areItemsTheSame = it.accountId.contentEquals(item.accountId) && it.chainId == item.chainId && it.tokenSymbol == item.tokenSymbol
+                val areItemsTheSame = it.accountId.contentEquals(item.accountId) && it.chainId == item.chainId && it.id == item.assetId
                 if (areItemsTheSame.not()) {
                     return true
                 }
