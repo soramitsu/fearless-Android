@@ -114,7 +114,7 @@ class ChainRegistryModule {
 
     @Provides
     @ApplicationScope
-    fun provideExternalRequirementsFlow() = MutableStateFlow(ChainConnection.ExternalRequirement.FORBIDDEN)
+    fun provideExternalRequirementsFlow() = MutableStateFlow(ChainConnection.ExternalRequirement.ALLOWED)
 
     @Provides
     @ApplicationScope

@@ -30,8 +30,10 @@ import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetModel
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetUpdateState
 import jp.co.soramitsu.feature_wallet_impl.presentation.model.AssetWithStateModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -61,7 +63,7 @@ class BalanceListViewModel(
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 
-    val fiatSymbolFlow = combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
+    private val fiatSymbolFlow = combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
         fiatCurrencies[selectedFiat]?.symbol
     }.onEach {
         sync()
@@ -135,8 +137,9 @@ class BalanceListViewModel(
         return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
     }
 
+    @OptIn(FlowPreview::class)
     private fun assetModelsFlow(): Flow<List<AssetModel>> =
-        interactor.assetsFlow()
+        interactor.assetsFlow().debounce(5)
             .mapList {
                 when {
                     !it.enabled -> null
