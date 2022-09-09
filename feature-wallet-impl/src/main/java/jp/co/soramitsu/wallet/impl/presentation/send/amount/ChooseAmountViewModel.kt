@@ -49,12 +49,14 @@ import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.api.Phishi
 import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.api.proceedOrShowPhishingWarning
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
@@ -64,8 +66,6 @@ import kotlinx.coroutines.launch
 private const val AVATAR_SIZE_DP = 24
 
 private const val RETRY_TIMES = 3L
-
-private const val QUICK_VALUE_MAX = 1.0
 
 enum class RetryReason(val reasonRes: Int) {
     CHECK_ENOUGH_FUNDS(R.string.choose_amount_error_balance),
@@ -95,6 +95,8 @@ class ChooseAmountViewModel @Inject constructor(
     val recipientModelLiveData = liveData {
         emit(generateAddressModel(recipientAddress))
     }
+
+    private val amountDecimalFlow = MutableStateFlow(BigDecimal.ZERO)
 
     private val amountEvents = MutableStateFlow("0")
     val amountRawLiveData = amountEvents.asLiveData()
@@ -127,7 +129,7 @@ class ChooseAmountViewModel @Inject constructor(
         }
     }
 
-    val feeLiveData = feeFlow().asLiveData()
+    val feeLiveData = MutableLiveData<Fee?>()
     val feeFiatLiveData = combine(assetLiveData, feeLiveData) { (asset: Asset, fee: Fee?) ->
         fee?.feeAmount?.let {
             asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol)
@@ -170,6 +172,12 @@ class ChooseAmountViewModel @Inject constructor(
         }
     }
 
+    private val feeCalculationTriggerFlow = MutableStateFlow("0")
+
+    init {
+        feeFlow().launchIn(viewModelScope)
+    }
+
     private suspend fun updateExistentialDeposit(tokenConfiguration: Chain.Asset) {
         val amountInPlanks = kotlin.runCatching {
             walletConstants.existentialDeposit(tokenConfiguration.chainId)
@@ -184,7 +192,14 @@ class ChooseAmountViewModel @Inject constructor(
 
     fun amountChanged(newAmountRaw: String) {
         viewModelScope.launch {
-            amountEvents.emit(newAmountRaw)
+            amountEvents.value = newAmountRaw
+            val fee = feeLiveData.value
+            fee?.let {
+                val amountFromLastFeeCalculation = (it.transferAmount - it.feeAmount).format()
+                if (newAmountRaw != amountFromLastFeeCalculation) {
+                    feeCalculationTriggerFlow.emit(newAmountRaw)
+                }
+            } ?: feeCalculationTriggerFlow.emit(newAmountRaw)
         }
     }
 
@@ -228,13 +243,33 @@ class ChooseAmountViewModel @Inject constructor(
         router.back()
     }
 
-    @OptIn(FlowPreview::class)
-    private fun feeFlow(): Flow<Fee?> = amountEvents
+    private suspend fun calculateFee(amount: BigDecimal?): Fee? {
+        amount ?: return null
+        _feeLoadingLiveData.postValue(true)
+        val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
+        val transfer = Transfer(recipientAddress, amount, asset.token.configuration)
+
+        runCatching { interactor.getTransferFee(transfer) }.fold(
+            {
+                _feeLoadingLiveData.value = false
+                return it
+            },
+            {
+                _feeLoadingLiveData.value = false
+                _feeErrorLiveData.postValue(Event(RetryReason.LOAD_FEE))
+                return null
+            }
+        )
+    }
+
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    private fun feeFlow(): Flow<Fee?> = feeCalculationTriggerFlow
         .mapNotNull(String::toBigDecimalOrNull)
         .debounce(500.toDuration(DurationUnit.MILLISECONDS))
         .distinctUntilChanged()
         .onEach { _feeLoadingLiveData.postValue(true) }
         .mapLatest<BigDecimal, Fee?> { amount ->
+            amountDecimalFlow.emit(amount)
             val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
             val transfer = Transfer(recipientAddress, amount, asset.token.configuration)
 
@@ -246,6 +281,7 @@ class ChooseAmountViewModel @Inject constructor(
 
             emit(null)
         }.onEach {
+            feeLiveData.postValue(it)
             _feeLoadingLiveData.value = false
         }
 
@@ -254,13 +290,11 @@ class ChooseAmountViewModel @Inject constructor(
     }
 
     private fun checkEnoughFunds() {
-        val fee = feeLiveData.value ?: return
-
         checkingEnoughFundsLiveData.value = true
 
         viewModelScope.launch {
             val asset = interactor.getCurrentAsset(assetPayload.chainId, assetPayload.chainAssetId)
-            val transfer = Transfer(recipientAddress, fee.transferAmount, asset.token.configuration)
+            val transfer = Transfer(recipientAddress, amountDecimalFlow.value, asset.token.configuration)
 
             val result = interactor.checkTransferValidityStatus(transfer)
 
@@ -292,7 +326,7 @@ class ChooseAmountViewModel @Inject constructor(
         val fee = feeLiveData.value ?: return null
         val tip = tipAmountLiveData.value
 
-        return TransferDraft(fee.transferAmount, fee.feeAmount, assetPayload, recipientAddress, tip)
+        return TransferDraft(amountDecimalFlow.value, fee.feeAmount, assetPayload, recipientAddress, tip)
     }
 
     private fun retryLoadFee() {
@@ -300,18 +334,22 @@ class ChooseAmountViewModel @Inject constructor(
     }
 
     fun quickInputSelected(value: Double) {
-        val amount = assetModelLiveData.value?.available ?: return
-        val fee = feeLiveData.value?.feeAmount ?: return
-        val tip = tipAmountLiveData.value ?: BigDecimal.ZERO
+        viewModelScope.launch {
+            val allAmount = assetModelLiveData.value?.available ?: return@launch
+            val tip = tipAmountLiveData.value ?: BigDecimal.ZERO
+            val amountToTransfer = (allAmount * value.toBigDecimal()) - tip
+            val fee = calculateFee(amountToTransfer) ?: return@launch
+            feeLiveData.value = fee
 
-        val quickAmountRaw = amount * value.toBigDecimal()
-        val quickAmountWithoutExtraPays = quickAmountRaw - fee - tip
+            val quickAmountWithoutExtraPays = amountToTransfer - fee.feeAmount
 
-        if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
-            return
+            if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
+                return@launch
+            }
+
+            val newAmount = quickAmountWithoutExtraPays.format()
+            amountDecimalFlow.emit(quickAmountWithoutExtraPays)
+            amountEvents.emit(newAmount)
         }
-
-        val newAmount = quickAmountWithoutExtraPays.format()
-        amountChanged(newAmount)
     }
 }

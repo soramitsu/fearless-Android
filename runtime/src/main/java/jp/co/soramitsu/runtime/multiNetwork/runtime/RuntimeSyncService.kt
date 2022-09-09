@@ -42,7 +42,7 @@ class RuntimeSyncService(
     private val typesFetcher: TypesFetcher,
     private val runtimeFilesCache: RuntimeFilesCache,
     private val chainDao: ChainDao,
-    maxConcurrentUpdates: Int = 8,
+    maxConcurrentUpdates: Int = 15,
     private val updatesMixin: UpdatesMixin
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 

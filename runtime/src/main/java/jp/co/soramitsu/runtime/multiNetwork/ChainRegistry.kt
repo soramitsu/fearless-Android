@@ -92,12 +92,14 @@ class ChainRegistry @Inject constructor(
     }
 
     fun syncUp() {
-        launch { runCatching { chainSyncService.syncUp() } }
-
-        runCatching { baseTypeSynchronizer.sync() }
+        launch {
+            runCatching { chainSyncService.syncUp() }
+            runCatching { baseTypeSynchronizer.sync() }
+        }
     }
 
     fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
+    fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
 
     fun getRuntimeProvider(chainId: String): RuntimeProvider {
         return runtimeProviderPool.getRuntimeProvider(chainId)
@@ -134,7 +136,8 @@ suspend fun ChainRegistry.getRuntime(chainId: ChainId): RuntimeSnapshot {
     return getRuntimeProvider(chainId).get()
 }
 
-suspend fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
+fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
+fun ChainRegistry.getSocketOrNull(chainId: ChainId) = getConnectionOrNull(chainId)?.socketService
 
 fun ChainRegistry.getService(chainId: ChainId) = ChainService(
     runtimeProvider = getRuntimeProvider(chainId),

@@ -3,7 +3,6 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.updateNodesActive
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,7 +30,7 @@ class ChainSyncService(
 
             when {
                 localVersion == null -> remoteChain // new
-                localVersion != remoteChain -> remoteChain.updateNodesActive(localVersion) // updated
+                localVersion != remoteChain -> remoteChain // updated
                 else -> null // same
             }
         }.map(::mapChainToChainLocal)
