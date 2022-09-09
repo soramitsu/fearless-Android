@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.network.rpc
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.ExtrinsicStatusResponse
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.data.network.runtime.blake2b256String
@@ -35,7 +36,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 
 data class EventRecord(val phase: PhaseRecord, val event: InnerEventRecord)
 
@@ -62,14 +62,14 @@ class RpcCalls(
 
     suspend fun getEventsInBlock(
         chainId: ChainId,
-        blockHash: String,
+        blockHash: String
     ): List<EventRecord> {
         val runtime = chainRegistry.getRuntime(chainId)
         val storageKey = runtime.metadata.module("System").storage("Events").storageKey()
         return runCatching {
             socketFor(chainId).executeAsync(
                 request = GetStorageRequest(listOf(storageKey, blockHash)),
-                mapper = pojo<String>().nonNull(),
+                mapper = pojo<String>().nonNull()
             )
                 .let { storage ->
                     val eventType = runtime.metadata.module("System").storage("Events").type.value ?: return@let emptyList()

@@ -9,6 +9,7 @@ import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -17,20 +18,19 @@ import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.app.root.di.RootApi
-import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseActivity
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
     companion object {
@@ -41,14 +41,9 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     @Inject
     lateinit var navigator: Navigator
 
-    private val rootNetworkBar: TextView by lazy { findViewById(R.id.rootNetworkBar) }
+    override val viewModel: RootViewModel by viewModels()
 
-    override fun inject() {
-        FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
-            .mainActivityComponentFactory()
-            .create(this)
-            .inject(this)
-    }
+    private val rootNetworkBar: TextView by lazy { findViewById(R.id.rootNetworkBar) }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)

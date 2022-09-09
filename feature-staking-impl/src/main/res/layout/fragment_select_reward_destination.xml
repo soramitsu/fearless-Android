@@ -16,12 +16,12 @@
         app:homeButtonIcon="@drawable/ic_close"
         app:titleText="@string/staking_rewards_destination_title" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationChooserView
+    <jp.co.soramitsu.staking.impl.presentation.view.RewardDestinationChooserView
         android:id="@+id/selectRewardDestinationChooser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+    <jp.co.soramitsu.wallet.api.presentation.view.FeeView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"

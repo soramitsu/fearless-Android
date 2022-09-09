@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
+    <jp.co.soramitsu.staking.impl.presentation.view.StakeSummaryView
         android:id="@+id/summaryView"
         android:layout_marginTop="8dp"
         android:layout_width="match_parent"

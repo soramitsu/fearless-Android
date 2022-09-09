@@ -2,6 +2,7 @@ import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
@@ -98,6 +99,9 @@ android {
 
         jvmTarget = '1.8'
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+    }
     namespace 'jp.co.soramitsu.app'
 }
 
@@ -115,8 +119,8 @@ dependencies {
 
     implementation project(':feature-onboarding-api')
     implementation project(':feature-onboarding-impl')
-
     implementation project(':feature-account-api')
+
     implementation project(':feature-account-impl')
 
     implementation project(':feature-wallet-api')
@@ -169,6 +173,23 @@ dependencies {
 
     kaptAndroidTest daggerKapt
     implementation storiesDep
+
+    implementation navigationComposeDep
+    implementation hiltNavComposeDep
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeAnimationDep
+    implementation composeActivityDep
+    implementation composeViewModelDep
+    implementation composeToolingPreviewDep
+    debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep

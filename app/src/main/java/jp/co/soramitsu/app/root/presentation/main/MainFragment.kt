@@ -1,20 +1,20 @@
 package jp.co.soramitsu.app.root.presentation.main
 
 import androidx.activity.OnBackPressedCallback
+import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI.onNavDestinationSelected
 import androidx.navigation.ui.setupWithNavController
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.databinding.FragmentMainBinding
-import jp.co.soramitsu.app.root.di.RootApi
-import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.viewBinding
 
+@AndroidEntryPoint
 class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
 
     private var navController: NavController? = null
@@ -26,6 +26,8 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
     }
 
     private val binding by viewBinding(FragmentMainBinding::bind)
+
+    override val viewModel: MainViewModel by viewModels()
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -67,13 +69,6 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         navController!!.addOnDestinationChangedListener { _, destination, _ ->
             backCallback.isEnabled = !isAtHomeTab(destination)
         }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
-            .mainFragmentComponentFactory()
-            .create(requireActivity())
-            .inject(this)
     }
 
     override fun subscribe(viewModel: MainViewModel) {

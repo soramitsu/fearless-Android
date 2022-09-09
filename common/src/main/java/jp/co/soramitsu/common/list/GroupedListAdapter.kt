@@ -45,7 +45,7 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
-        viewType: Int,
+        viewType: Int
     ): GroupedListHolder {
         return if (viewType == TYPE_GROUP) {
             createGroupViewHolder(parent)
