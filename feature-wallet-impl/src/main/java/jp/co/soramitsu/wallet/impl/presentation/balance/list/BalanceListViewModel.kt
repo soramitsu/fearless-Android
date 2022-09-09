@@ -95,6 +95,8 @@ class BalanceListViewModel @Inject constructor(
     private val _decodeAddressResult = MutableLiveData<Event<String>>()
     val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
 
+    private val enteredChainQueryFlow = MutableStateFlow("")
+
     private val fiatSymbolFlow = combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
         fiatCurrencies[selectedFiat]?.symbol
     }.onEach {
@@ -106,9 +108,15 @@ class BalanceListViewModel @Inject constructor(
     }
     private val selectedChainItem = MutableStateFlow<ChainItemState?>(null)
 
-    val chainsState = combine(chainsFlow, selectedChainItem) { chainItems, selectedChain ->
-        SelectChainScreenViewState(chainItems, selectedChain)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, SelectChainScreenViewState(emptyList(), null))
+    val chainsState = combine(chainsFlow, selectedChainItem, enteredChainQueryFlow) { chainItems, selectedChain, searchQuery ->
+        SelectChainScreenViewState(
+            chains = chainItems.filter {
+                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || it.tokenSymbols.any { it.contains(searchQuery, true) }
+            },
+            selectedChain = selectedChain,
+            searchQuery = searchQuery
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, SelectChainScreenViewState(emptyList(), null, null))
 
     private val fiatSymbolLiveData = fiatSymbolFlow.asLiveData()
     private val assetModelsLiveData = assetModelsFlow().asLiveData()
@@ -301,6 +309,10 @@ class BalanceListViewModel @Inject constructor(
 
     fun onChainSelected(item: ChainItemState? = null) {
         selectedChainItem.value = item
+    }
+
+    fun onChainSearchEntered(query: String) {
+        enteredChainQueryFlow.value = query
     }
 
     fun onHiddenAssetClicked() {

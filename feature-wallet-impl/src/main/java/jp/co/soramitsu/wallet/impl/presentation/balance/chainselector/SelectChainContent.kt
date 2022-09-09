@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H4
@@ -27,19 +29,22 @@ import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
+import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.feature_wallet_impl.R
 
 data class SelectChainScreenViewState(
     val chains: List<ChainItemState>,
-    val selectedChain: ChainItemState?
+    val selectedChain: ChainItemState?,
+    val searchQuery: String? = null
 )
 
 @Composable
 fun SelectChainContent(
     state: SelectChainScreenViewState,
-    onChainSelected: (ChainItemState?) -> Unit
+    onChainSelected: (ChainItemState?) -> Unit,
+    onInput: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -50,6 +55,8 @@ fun SelectChainContent(
         Grip(Modifier.align(CenterHorizontally))
         MarginVertical(margin = 8.dp)
         H3(text = stringResource(id = R.string.common_select_network))
+        MarginVertical(margin = 16.dp)
+        CorneredInput(state = state.searchQuery, onInput = onInput)
         LazyColumn(modifier = Modifier.weight(1f)) {
             item {
                 ChainAllItem(
@@ -72,14 +79,16 @@ data class ChainItemState(
     val id: String,
     val imageUrl: String?,
     val title: String,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
+    val tokenSymbols: List<String> = listOf()
 )
 
 fun JoinedChainInfo.toChainItemState() = ChainItemState(
     id = chain.id,
     imageUrl = chain.icon,
     title = chain.name,
-    isSelected = false
+    isSelected = false,
+    tokenSymbols = assets.map { it.symbol }
 )
 
 @Composable
@@ -168,13 +177,17 @@ private fun SelectChainScreenPreview() {
     )
     val state = SelectChainScreenViewState(
         chains = items,
-        selectedChain = items.first()
+        selectedChain = null,
+        searchQuery = null
     )
     FearlessThemeBlackBg {
-        Column {
+        Column(
+            Modifier.background(black4)
+        ) {
             SelectChainContent(
                 state = state,
-                onChainSelected = {}
+                onChainSelected = {},
+                onInput = {}
             )
         }
     }
