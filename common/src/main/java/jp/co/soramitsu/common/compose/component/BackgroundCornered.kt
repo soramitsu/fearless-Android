@@ -37,11 +37,11 @@ fun BackgroundCorneredWithBorder(
     content: @Composable () -> Unit
 ) {
     Surface(
-        color = Color.Unspecified,
         modifier = modifier
-            .background(backgroundColor, FearlessCorneredShape())
-            .border(1.dp, color = borderColor, shape = FearlessCorneredShape())
             .wrapContentSize()
+            .border(1.dp, color = borderColor, shape = FearlessCorneredShape()),
+        shape = FearlessCorneredShape(),
+        color = backgroundColor
     ) {
         content()
     }

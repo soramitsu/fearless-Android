@@ -125,6 +125,14 @@
         app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
+    <action
+        android:id="@+id/importAction"
+        app:destination="@id/importAccountFragment"
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="jp.co.soramitsu.app.root.presentation.main.MainFragment"
@@ -330,6 +338,26 @@
         android:name="jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFragment"
         android:label="WalletExportFragment"
         tools:layout="@layout/fragment_wallet_export" />
+
+    <fragment
+        android:id="@+id/importAccountFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
+        android:label="fragment_import"
+        tools:layout="@layout/fragment_import_account">
+
+        <action
+            android:id="@+id/action_importAccountFragment_to_pincodeFragment"
+            app:destination="@id/pincodeFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
+
+        </action>
+
+    </fragment>
 
     <fragment
         android:id="@+id/accountsForExportFragment"
@@ -553,6 +581,16 @@
         android:id="@+id/managePoolStakeFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.staking.balance.ManagePoolStakeFragment"
         android:label="managePoolStakeFragment" />
+
+    <dialog
+        android:id="@+id/selectWalletFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.SelectWalletFragment"
+        android:label="selectWalletFragment" />
+
+    <dialog
+        android:id="@+id/optionsWalletFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment"
+        android:label="optionsWalletFragment" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"

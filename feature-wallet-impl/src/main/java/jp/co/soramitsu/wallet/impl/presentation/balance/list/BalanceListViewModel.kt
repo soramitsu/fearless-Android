@@ -16,7 +16,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
-import jp.co.soramitsu.common.compose.component.ChangeViewState
+import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.HiddenItemState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
@@ -233,7 +233,7 @@ class BalanceListViewModel @Inject constructor(
             balance = balanceModel.totalBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
             assetSymbol = "",
             address = "",
-            changeViewState = ChangeViewState(
+            changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.rate?.formatAsChange().orEmpty(),
                 fiatChange = balanceModel.totalBalanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)
             )
@@ -349,10 +349,6 @@ class BalanceListViewModel @Inject constructor(
         router.openAssetDetails(payload)
     }
 
-    fun avatarClicked() {
-        router.openChangeAccountFromWallet()
-    }
-
     fun onChainSelected(item: ChainItemState? = null) {
         selectedChainItem.value = item
     }
@@ -429,5 +425,9 @@ class BalanceListViewModel @Inject constructor(
 
             _decodeAddressResult.value = Event(result)
         }
+    }
+
+    fun openWalletSelector() {
+        router.openSelectWallet()
     }
 }

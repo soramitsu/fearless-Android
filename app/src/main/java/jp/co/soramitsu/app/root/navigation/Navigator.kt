@@ -83,6 +83,7 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDeta
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
@@ -666,6 +667,15 @@ class Navigator :
 
     override fun openEducationalStories(stories: StoryGroupModel) {
         navController?.navigate(R.id.action_splash_to_stories, StoryFragment.getBundle(stories))
+    }
+
+    override fun openSelectWallet() {
+        navController?.navigate(R.id.selectWalletFragment)
+    }
+
+    override fun openOptionsWallet(walletId: Long) {
+        val bundle = OptionsWalletFragment.getBundle(walletId)
+        navController?.navigate(R.id.optionsWalletFragment, bundle)
     }
 
     fun educationalStoriesCompleted() {

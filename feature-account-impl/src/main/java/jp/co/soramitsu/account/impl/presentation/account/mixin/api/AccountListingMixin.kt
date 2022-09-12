@@ -5,5 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface AccountListingMixin {
 
-    fun accountsFlow(): Flow<List<LightMetaAccountUi>>
+    fun accountsFlow(metaAccountIconDpSize: Int? = null): Flow<List<LightMetaAccountUi>>
 }

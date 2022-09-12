@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -12,10 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.black2
-import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
@@ -23,12 +19,7 @@ data class AssetBalanceViewState(
     val balance: String,
     val assetSymbol: String,
     val address: String,
-    val changeViewState: ChangeViewState
-)
-
-data class ChangeViewState(
-    val percentChange: String,
-    val fiatChange: String
+    val changeViewState: ChangeBalanceViewState
 )
 
 @Composable
@@ -37,33 +28,12 @@ fun AssetBalance(
     onAddressClick: () -> Unit,
     onBalanceClick: () -> Unit
 ) {
-    val balanceChangeStatusColor = if (state.changeViewState.percentChange.startsWith("+")) {
-        MaterialTheme.customColors.greenText
-    } else {
-        MaterialTheme.customColors.red
-    }
-
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row {
-            Text(
-                text = state.changeViewState.percentChange,
-                style = MaterialTheme.customTypography.body1.copy(
-                    color = balanceChangeStatusColor
-                ),
-                modifier = Modifier.testTag("balance_change_percent")
-            )
-            Text(
-                text = "(${state.changeViewState.fiatChange})",
-                style = MaterialTheme.customTypography.body1.copy(color = black2),
-                modifier = Modifier
-                    .padding(start = 4.dp)
-                    .testTag("balance_change_fiat")
-            )
-        }
+        ChangeBalance(state.changeViewState)
         Row {
             Text(
                 text = state.assetSymbol + state.balance,
@@ -98,7 +68,7 @@ private fun PreviewAssetBalance() {
         balance = assetBalance,
         assetSymbol = assetSymbol,
         address = address,
-        changeViewState = ChangeViewState(
+        changeViewState = ChangeBalanceViewState(
             percentChange = percentChange,
             fiatChange = assetBalanceFiat
         )
