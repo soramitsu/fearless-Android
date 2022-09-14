@@ -52,7 +52,7 @@ class StakingPoolInteractor(
         }.runCatching { this }.getOrDefault(emptyFlow())
     }
 
-    private fun observeCurrentPool(
+    fun observeCurrentPool(
         chainId: ChainId,
         accountId: AccountId
     ): Flow<NominationPool?> {

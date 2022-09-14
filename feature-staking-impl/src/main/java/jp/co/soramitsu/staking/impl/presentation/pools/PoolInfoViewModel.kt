@@ -18,7 +18,7 @@ import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreenViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class PoolInfoViewModel @Inject constructor(
-    setupPoolSharedState: StakingPoolSetupFlowSharedState,
+    stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
@@ -45,7 +45,7 @@ class PoolInfoViewModel @Inject constructor(
     private val stakedFiat: String?
 
     init {
-        val setupState = requireNotNull(setupPoolSharedState.get())
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
         chain = requireNotNull(setupState.chain)
         asset = requireNotNull(setupState.asset)
         poolInfo = requireNotNull(savedStateHandle.get<PoolInfo>(PoolInfoFragment.POOL_INFO_KEY))

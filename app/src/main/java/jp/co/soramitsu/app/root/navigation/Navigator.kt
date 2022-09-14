@@ -367,6 +367,10 @@ class Navigator :
         navController?.navigate(R.id.poolInfoFragment, PoolInfoFragment.getBundle(poolInfo))
     }
 
+    override fun openManagePoolStake() {
+        navController?.navigate(R.id.managePoolStakeFragment)
+    }
+
     override val currentStackEntryLifecycle: Lifecycle
         get() = navController!!.currentBackStackEntry!!.lifecycle
 

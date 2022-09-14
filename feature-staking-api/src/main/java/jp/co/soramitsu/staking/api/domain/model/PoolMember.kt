@@ -2,7 +2,6 @@ package jp.co.soramitsu.staking.api.domain.model
 
 import android.os.Parcelable
 import java.math.BigInteger
-import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 
 data class PoolUnbonding(
@@ -79,6 +78,20 @@ data class NominationPool(
         result = 31 * result + unbonding.hashCode()
         return result
     }
+}
+
+fun NominationPool.toPoolInfo(): PoolInfo {
+    return PoolInfo(
+        poolId,
+        name ?: "Pool #$poolId",
+        stakedInPlanks,
+        state,
+        members,
+        depositor,
+        root,
+        nominator,
+        stateToggler
+    )
 }
 
 enum class NominationPoolState {

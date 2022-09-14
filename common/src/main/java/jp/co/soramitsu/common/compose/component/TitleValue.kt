@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -19,8 +20,11 @@ import jp.co.soramitsu.common.compose.theme.white64
 data class TitleValueViewState(
     val title: String,
     val value: String? = null,
-    val additionalValue: String? = null
-)
+    val additionalValue: String? = null,
+    val clickState: ClickState? = null
+) {
+    data class ClickState(@DrawableRes val icon: Int, val identifier: Int)
+}
 
 @Composable
 fun TitleToValue(state: TitleValueViewState, modifier: Modifier = Modifier, testTag: String) {

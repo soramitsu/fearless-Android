@@ -8,7 +8,7 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolItemState
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolSorting
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectPoolScreenViewState
@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel
 class SelectPoolViewModel @Inject constructor(
     poolInteractor: StakingPoolInteractor,
-    private val setupPoolSharedState: StakingPoolSetupFlowSharedState,
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val router: StakingRouter
 ) : BaseViewModel() {
 
@@ -36,9 +36,10 @@ class SelectPoolViewModel @Inject constructor(
     private val selectedItem: MutableStateFlow<PoolItemState?>
 
     init {
-        val setupState = requireNotNull(setupPoolSharedState.get())
-        chain = requireNotNull(setupState.chain)
-        asset = requireNotNull(setupState.asset)
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+        val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
+        chain = requireNotNull(mainState.chain)
+        asset = requireNotNull(mainState.asset)
         selectedItem = MutableStateFlow(setupState.selectedPool?.toState(asset, true))
     }
 
@@ -81,11 +82,11 @@ class SelectPoolViewModel @Inject constructor(
     }
 
     fun onNextClick() {
-        val setupFlow = requireNotNull(setupPoolSharedState.get())
+        val setupFlow = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
         val selectedPoolId = requireNotNull(selectedItem.value?.id)
         val pool = requireNotNull(poolsFlow.value.find { it.poolId == selectedPoolId.toBigInteger() })
 
-        setupPoolSharedState.set(setupFlow.copy(selectedPool = pool))
+        stakingPoolSharedStateProvider.setupState.set(setupFlow.copy(selectedPool = pool))
 
         router.openConfirmJoinPool()
     }
