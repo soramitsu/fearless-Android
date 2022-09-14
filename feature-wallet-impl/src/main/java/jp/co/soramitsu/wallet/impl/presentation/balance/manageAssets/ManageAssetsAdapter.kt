@@ -17,7 +17,7 @@ class ManageAssetsAdapter(
 
     interface Handler {
         fun switch(item: ManageAssetModel)
-        fun addAccount(chainId: ChainId, chainName: String, symbol: String, markedAsNotNeed: Boolean)
+        fun addAccount(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean)
         fun startDrag(viewHolder: RecyclerView.ViewHolder)
     }
 
@@ -37,8 +37,8 @@ class ManageAssetsAdapter(
         handler.switch(item)
     }
 
-    override fun addAccount(chainId: ChainId, chainName: String, symbol: String, markedAsNotNeed: Boolean) =
-        handler.addAccount(chainId, chainName, symbol, markedAsNotNeed)
+    override fun addAccount(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean) =
+        handler.addAccount(chainId, chainName, assetId, markedAsNotNeed)
 
     override fun startDrag(viewHolder: RecyclerView.ViewHolder) {
         handler.startDrag(viewHolder)

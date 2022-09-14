@@ -24,7 +24,7 @@ class ManageAssetViewHolder(
 
     interface Listener {
         fun switch(itemPosition: Int, checked: Boolean)
-        fun addAccount(chainId: ChainId, chainName: String, symbol: String, markedAsNotNeed: Boolean)
+        fun addAccount(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean)
         fun startDrag(viewHolder: RecyclerView.ViewHolder)
     }
 
@@ -70,7 +70,7 @@ class ManageAssetViewHolder(
                 listener.addAccount(
                     chainId = item.chainId,
                     chainName = item.name,
-                    symbol = item.tokenSymbol,
+                    assetId = item.assetId,
                     markedAsNotNeed = item.markedAsNotNeed
                 )
             }

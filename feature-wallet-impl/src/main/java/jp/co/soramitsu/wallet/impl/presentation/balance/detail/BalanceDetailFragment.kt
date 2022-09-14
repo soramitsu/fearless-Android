@@ -7,6 +7,10 @@ import coil.ImageLoader
 import coil.load
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -16,17 +20,13 @@ import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
-import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
-import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentBalanceDetailBinding
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.showState
-import javax.inject.Inject
 
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
@@ -100,7 +100,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.frag
 
                 tokenBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
 
-                balanceDetailTokenName.text = asset.token.configuration.symbol
+                balanceDetailTokenName.text = asset.token.configuration.symbol.uppercase()
                 tokenBadge.setText(asset.token.configuration.chainName)
                 balanceDetailRate.text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol) ?: ""
                 balanceDetailRate.isVisible = asset.token.fiatRate != null

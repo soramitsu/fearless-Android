@@ -1,13 +1,13 @@
 package jp.co.soramitsu.account.impl.domain
 
 import java.math.BigDecimal
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.utils.DOLLAR_SIGN
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.dao.AssetDao
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
-import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -32,7 +32,7 @@ class GetTotalBalanceUseCaseImpl(
             .map { items ->
                 items.fold(TotalBalance.Empty) { acc, current ->
                     val chainAsset = chainRegistry.chainsById.first().getValue(current.asset.chainId).assets
-                        .firstOrNull { it.id == current.asset.tokenSymbol.lowercase() }
+                        .firstOrNull { it.id == current.asset.id }
                         ?: return@fold TotalBalance.Empty
 
                     val total = current.asset.freeInPlanks.orZero() + current.asset.reservedInPlanks.orZero()

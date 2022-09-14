@@ -8,21 +8,21 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentChooseAmountBinding
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.wallet.impl.presentation.send.phishing.observePhishingCheck
-import javax.inject.Inject
 
 const val KEY_ADDRESS = "KEY_ADDRESS"
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
@@ -111,9 +111,9 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>(R.layout.fragme
             val transferableAmount =
                 resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.orZero().formatTokenAmount(it.token.configuration))
             binding.chooseAmountField.setAssetBalance(transferableAmount)
-            binding.chooseAmountField.setAssetName(it.token.configuration.symbol)
+            binding.chooseAmountField.setAssetName(it.token.configuration.symbol.uppercase())
             binding.chooseAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
-            val toolbarTitle = resources.getString(R.string.wallet_send_navigation_title, it.token.configuration.symbol)
+            val toolbarTitle = resources.getString(R.string.wallet_send_navigation_title, it.token.configuration.symbol.uppercase())
             binding.chooseAmountToolbar.setTitle(toolbarTitle)
         }
 

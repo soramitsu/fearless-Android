@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
 import javax.inject.Named
+import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
@@ -23,10 +24,6 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.core.updater.UpdateSystem
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
-import jp.co.soramitsu.feature_crowdloan_impl.R
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.crowdloan.impl.data.CrowdloanSharedState
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_API_KEY
@@ -42,17 +39,20 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getS
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataToParcel
 import jp.co.soramitsu.crowdloan.impl.presentation.main.model.CrowdloanModel
 import jp.co.soramitsu.crowdloan.impl.presentation.main.model.CrowdloanStatusModel
-import jp.co.soramitsu.wallet.api.domain.AssetUseCase
-import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
-import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.WithAssetSelector
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.runtime.state.selectedChainFlow
+import jp.co.soramitsu.wallet.api.domain.AssetUseCase
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.AssetSelectorMixin
+import jp.co.soramitsu.wallet.api.presentation.mixin.assetSelector.WithAssetSelector
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -91,7 +91,7 @@ class CrowdloanViewModel @Inject constructor(
         .share()
 
     val mainDescription = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.symbol)
+        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.symbol.uppercase())
     }
 
     private val selectedChain = sharedState.selectedChainFlow()

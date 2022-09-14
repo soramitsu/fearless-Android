@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.api.data.cache
 
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -10,7 +11,6 @@ import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.TokenLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -33,22 +33,22 @@ class AssetCache(
         chainAsset: Chain.Asset,
         builder: (local: AssetLocal) -> AssetLocal
     ) = withContext(Dispatchers.IO) {
-        val symbol = chainAsset.symbol
         val chainId = chainAsset.chainId
+        val assetId = chainAsset.id
 
         assetUpdateMutex.withLock {
-            tokenDao.ensureToken(symbol)
+            tokenDao.ensureToken(assetId)
 
-            val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, symbol)?.asset
+            val cachedAsset = assetDao.getAsset(metaId, accountId, chainId, assetId)?.asset
             when {
-                cachedAsset == null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, symbol, chainId, metaId)))
+                cachedAsset == null -> assetDao.insertAsset(builder.invoke(AssetLocal.createEmpty(accountId, assetId, chainId, metaId)))
                 cachedAsset.accountId.contentEquals(emptyAccountIdValue) -> {
-                    assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, symbol)
+                    assetDao.deleteAsset(metaId, emptyAccountIdValue, chainId, assetId)
                     assetDao.insertAsset(builder.invoke(cachedAsset.copy(accountId = accountId)))
                 }
                 else -> assetDao.updateAsset(builder.invoke(cachedAsset))
             }
-            updatesMixin.finishUpdateAsset(metaId, chainId, accountId, symbol)
+            updatesMixin.finishUpdateAsset(metaId, chainId, accountId, assetId)
         }
     }
 
@@ -65,11 +65,11 @@ class AssetCache(
     }
 
     suspend fun updateToken(
-        symbol: String,
+        assetId: String,
         builder: (local: TokenLocal) -> TokenLocal
     ) = withContext(Dispatchers.IO) {
         assetUpdateMutex.withLock {
-            val tokenLocal = tokenDao.getToken(symbol) ?: TokenLocal.createEmpty(symbol)
+            val tokenLocal = tokenDao.getToken(assetId) ?: TokenLocal.createEmpty(assetId)
 
             val newToken = builder.invoke(tokenLocal)
 
@@ -80,9 +80,9 @@ class AssetCache(
     suspend fun updateAsset(updateModel: List<AssetUpdateItem>) {
         val onlyUpdates = mutableListOf<AssetUpdateItem>()
         updateModel.listIterator().forEach {
-            val cached = assetDao.getAsset(it.metaId, it.accountId, it.chainId, it.tokenSymbol)?.asset
+            val cached = assetDao.getAsset(it.metaId, it.accountId, it.chainId, it.id)?.asset
             if (cached == null) {
-                val initial = AssetLocal.createEmpty(it.accountId, it.tokenSymbol, it.chainId, it.metaId)
+                val initial = AssetLocal.createEmpty(it.accountId, it.id, it.chainId, it.metaId)
                 val newAsset = initial.copy(
                     sortIndex = it.sortIndex,
                     enabled = it.enabled

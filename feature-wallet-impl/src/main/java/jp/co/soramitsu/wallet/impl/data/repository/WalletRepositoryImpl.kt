@@ -157,7 +157,7 @@ class WalletRepositoryImpl(
     ): Asset? {
         val (chain, chainAsset) = try {
             val chain = chainsById.getValue(assetLocal.asset.chainId)
-            val asset = chain.assetsBySymbol.getValue(assetLocal.token.symbol)
+            val asset = chain.assetsById.getValue(assetLocal.token.assetId)
             chain to asset
         } catch (e: Exception) {
             return null
@@ -173,8 +173,8 @@ class WalletRepositoryImpl(
 
         val chainsWithAssetPrices = chains.filter { it.utilityAsset.priceId != null }
 
-        val symbols = chainsWithAssetPrices.map { it.utilityAsset.symbol }
-        updatesMixin.startUpdateTokens(symbols)
+        val assetIds = chainsWithAssetPrices.map { it.utilityAsset.id }
+        updatesMixin.startUpdateTokens(assetIds)
 
         chainsWithAssetPrices.forEach { chain ->
             val asset = chain.utilityAsset
@@ -184,20 +184,20 @@ class WalletRepositoryImpl(
             val change = stat[changeKey]
             val fiatCurrency = availableFiatCurrencies[currencyId]
             asset.priceId?.let {
-                updateAssetRates(asset.symbol, fiatCurrency?.symbol, price, change)
+                updateAssetRates(asset.id, fiatCurrency?.symbol, price, change)
             }
         }
-        updatesMixin.finishUpdateTokens(symbols)
+        updatesMixin.finishUpdateTokens(assetIds)
     }
 
     override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset> {
-        return assetCache.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)
+        return assetCache.observeAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
             .mapNotNull { it }
             .mapNotNull { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
 
     override suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset? {
-        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)
+        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)
 
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
@@ -213,7 +213,7 @@ class WalletRepositoryImpl(
         metaId = asset.metaId,
         chainId = asset.chainId,
         accountId = asset.accountId,
-        tokenSymbol = asset.tokenSymbol,
+        id = asset.id,
         sortIndex = asset.sortIndex,
         enabled = asset.enabled
     )
@@ -353,7 +353,7 @@ class WalletRepositoryImpl(
 
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
-        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.symbol)!!
+        val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)!!
         val asset = mapAssetLocalToAsset(assetLocal, chainAsset, chain.minSupportedVersion)
 
         val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)
@@ -416,11 +416,11 @@ class WalletRepositoryImpl(
         )
 
     private suspend fun updateAssetRates(
-        symbol: String,
+        assetId: String,
         fiatSymbol: String?,
         price: BigDecimal?,
         change: BigDecimal?
-    ) = assetCache.updateToken(symbol) { cached ->
+    ) = assetCache.updateToken(assetId) { cached ->
         cached.copy(
             fiatRate = price,
             fiatSymbol = fiatSymbol,

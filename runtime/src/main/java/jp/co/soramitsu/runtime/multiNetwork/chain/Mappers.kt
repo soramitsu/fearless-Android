@@ -95,6 +95,7 @@ fun mapChainRemoteToChain(
                 val assetNativeChain = chainsRemote.firstOrNull { it.chainId == assetRemote?.chainId }
                 Chain.Asset(
                     id = chainAsset.assetId,
+                    symbol = assetRemote?.symbol.orEmpty(),
                     name = assetNativeChain?.name.orEmpty(),
                     iconUrl = assetRemote?.icon ?: assetNativeChain?.icon.orEmpty(),
                     chainId = chainRemote.chainId,
@@ -113,7 +114,7 @@ fun mapChainRemoteToChain(
 
         val types = chainRemote.types?.let {
             Chain.Types(
-                url = it.url,
+                url = it.androidUrl,
                 overridesCommon = it.overridesCommon
             )
         }
@@ -165,6 +166,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
     val assets = chainLocal.assets.map {
         Chain.Asset(
             id = it.id,
+            symbol = it.symbol,
             name = it.name,
             iconUrl = it.icon,
             chainId = it.chainId,
@@ -238,6 +240,7 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     val assets = chain.assets.map {
         ChainAssetLocal(
             id = it.id,
+            symbol = it.symbol,
             icon = it.iconUrl,
             precision = it.precision,
             chainId = chain.id,

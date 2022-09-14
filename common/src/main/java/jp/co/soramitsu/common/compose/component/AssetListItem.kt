@@ -89,7 +89,7 @@ fun AssetListItem(
                         .testTag("AssetListItem_${state.assetSymbol}_chain_name")
                 )
                 Text(
-                    text = state.assetSymbol,
+                    text = state.assetSymbol.uppercase(),
                     style = MaterialTheme.customTypography.header3,
                     modifier = Modifier
                         .padding(vertical = 4.dp)

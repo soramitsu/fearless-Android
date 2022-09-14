@@ -116,7 +116,7 @@ class ReceiveViewModel @Inject constructor(
         val asset = chain.assetsById[assetPayload.chainAssetId]
         return resourceManager.getString(R.string.wallet_receive_share_message).format(
             chain.name,
-            asset?.symbol
+            asset?.symbol?.uppercase()
         ) + " " + address
     }
 }

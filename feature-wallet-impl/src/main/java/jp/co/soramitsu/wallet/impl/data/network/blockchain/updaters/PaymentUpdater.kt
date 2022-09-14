@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
+import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
@@ -14,22 +16,20 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
-import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.wallet.api.data.cache.AssetCache
-import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
-import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
-import jp.co.soramitsu.wallet.api.data.cache.updateAsset
-import jp.co.soramitsu.wallet.impl.domain.model.Operation
-import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationStatusToOperationLocalStatus
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.wallet.api.data.cache.AssetCache
+import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.updateAsset
+import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationStatusToOperationLocalStatus
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
+import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.merge
@@ -84,13 +84,12 @@ class PaymentUpdater(
         if (accountIdsToCheck.isEmpty()) return emptyFlow()
 
         return accountIdsToCheck.map { accountId ->
-            updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, chain.utilityAsset.symbol)
-
+            val asset = chain.utilityAsset
+            updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, asset.id)
             val key = when {
                 chainId.isOrml() -> {
-                    val symbol = chain.utilityAsset.symbol
                     runtime.metadata.tokens().storage("Accounts")
-                        .storageKey(runtime, accountId, DictEnum.Entry("Token", DictEnum.Entry(symbol, null)))
+                        .storageKey(runtime, accountId, DictEnum.Entry("Token", DictEnum.Entry(asset.symbol.uppercase(), null)))
                 }
                 else -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
             }
@@ -101,7 +100,7 @@ class PaymentUpdater(
                         chainId.isOrml() -> {
                             val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
 
-                            assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset) {
+                            assetCache.updateAsset(metaAccount.id, accountId, asset) {
                                 it.copy(
                                     accountId = accountId,
                                     freeInPlanks = ormlTokensAccountData.free,
@@ -112,7 +111,7 @@ class PaymentUpdater(
                         }
                         else -> {
                             val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
-                            assetCache.updateAsset(metaAccount.id, accountId, chain.utilityAsset, newAccountInfo)
+                            assetCache.updateAsset(metaAccount.id, accountId, asset, newAccountInfo)
                         }
                     }
 

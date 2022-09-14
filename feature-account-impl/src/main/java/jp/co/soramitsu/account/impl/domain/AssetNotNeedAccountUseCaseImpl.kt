@@ -1,11 +1,11 @@
 package jp.co.soramitsu.account.impl.domain
 
+import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.TokenDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetLocal
-import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,20 +15,20 @@ class AssetNotNeedAccountUseCaseImpl(
     private val tokenDao: TokenDao
 ) : AssetNotNeedAccountUseCase {
 
-    override suspend fun markNotNeed(chainId: ChainId, metaId: Long, symbol: String) {
-        updateAssetNotNeed(metaId, chainId, symbol)
+    override suspend fun markNotNeed(chainId: ChainId, metaId: Long, assetId: String) {
+        updateAssetNotNeed(metaId, chainId, assetId)
     }
 
     private suspend fun updateAssetNotNeed(
         metaId: Long,
         chainId: ChainId,
-        symbol: String
+        assetId: String
     ) {
-        val cached = assetDao.getAsset(metaId, emptyAccountIdValue, chainId, symbol)?.asset
+        val cached = assetDao.getAsset(metaId, emptyAccountIdValue, chainId, assetId)?.asset
         if (cached == null) {
-            val initial = AssetLocal.createEmpty(emptyAccountIdValue, symbol, chainId, metaId)
+            val initial = AssetLocal.createEmpty(emptyAccountIdValue, assetId, chainId, metaId)
             val newAsset = initial.copy(markedNotNeed = true)
-            tokenDao.ensureToken(symbol)
+            tokenDao.ensureToken(assetId)
             assetDao.insertAsset(newAsset)
         } else {
             val updatedAsset = cached.copy(markedNotNeed = true)
@@ -43,7 +43,7 @@ class AssetNotNeedAccountUseCaseImpl(
                     metaId = metaId,
                     chainId = it.asset.chainId,
                     accountId = it.asset.accountId,
-                    it.token.symbol
+                    it.token.assetId
                 )
             }
         }

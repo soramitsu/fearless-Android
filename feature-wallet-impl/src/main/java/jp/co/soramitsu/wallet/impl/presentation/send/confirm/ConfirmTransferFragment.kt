@@ -5,19 +5,19 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentConfirmTransferBinding
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.wallet.impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
-import javax.inject.Inject
 
 const val KEY_DRAFT = "KEY_DRAFT"
 
@@ -67,7 +67,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>(R.layout.
             val transferableAmount =
                 resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.orZero().formatTokenAmount(it.token.configuration))
             binding.confirmAmountField.setAssetBalance(transferableAmount)
-            binding.confirmAmountField.setAssetName(it.token.configuration.symbol)
+            binding.confirmAmountField.setAssetName(it.token.configuration.symbol.uppercase())
             binding.confirmAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
 
             with(viewModel.transferDraft) {

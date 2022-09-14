@@ -6,6 +6,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
+import javax.inject.Inject
+import javax.inject.Named
+import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -22,8 +25,6 @@ import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.feature_crowdloan_impl.R
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_API_KEY
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_API_URL
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.FLOW_BONUS_URL
@@ -50,14 +51,15 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.model.Crowd
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.model.LearnMoreModel
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.getString
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.mapParachainMetadataFromParcel
+import jp.co.soramitsu.feature_crowdloan_impl.R
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -70,8 +72,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class CustomContributeViewModel @Inject constructor(
@@ -128,7 +128,7 @@ class CustomContributeViewModel @Inject constructor(
         .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == CONTRIBUTE }
         .flatMapLatest { assetFlow }
         .map {
-            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol)
+            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol.uppercase())
         }
         .inBackground()
         .share()

@@ -33,8 +33,6 @@ data class Chain(
     val parentId: String?,
     val supportStakingPool: Boolean
 ) {
-
-    val assetsBySymbol = assets.associateBy(Asset::symbol)
     val assetsById = assets.associateBy(Asset::id)
 
     val isSupported: Boolean
@@ -47,6 +45,7 @@ data class Chain(
 
     data class Asset(
         val id: String,
+        val symbol: String,
         val name: String,
         val iconUrl: String,
         val chainId: ChainId,
@@ -65,16 +64,13 @@ data class Chain(
             UNSUPPORTED, RELAYCHAIN, PARACHAIN
         }
 
-        val symbol: String
-            get() = id.uppercase()
-
         val isNative: Boolean
             get() = nativeChainId == null || nativeChainId == chainId
 
         val chainToSymbol = chainId to symbol
 
         val orderInStaking: Int
-            get() = when (val order = STAKING_ORDER.indexOf(symbol)) {
+            get() = when (val order = STAKING_ORDER.indexOfFirst { it.equals(symbol, true) }) {
                 -1 -> STAKING_ORDER.size
                 else -> order
             }
@@ -146,8 +142,6 @@ data class Chain(
         if (isTestNet != other.isTestNet) return false
         if (hasCrowdloans != other.hasCrowdloans) return false
         if (parentId != other.parentId) return false
-        if (assetsBySymbol != other.assetsBySymbol) return false
-        if (assetsById != other.assetsById) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -175,8 +169,6 @@ data class Chain(
         result = 31 * result + isTestNet.hashCode()
         result = 31 * result + hasCrowdloans.hashCode()
         result = 31 * result + (parentId?.hashCode() ?: 0)
-        result = 31 * result + assetsBySymbol.hashCode()
-        result = 31 * result + assetsById.hashCode()
         return result
     }
 }
@@ -192,7 +184,14 @@ fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Typ
     }
 }.toMap()
 
+@Deprecated("Use polkadotKusamaOthers() to get Polkadot at first place", ReplaceWith("polkadotKusamaOthers()"))
 fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
+
+fun ChainId.polkadotKusamaOthers() = when (this) {
+    polkadotChainId -> 1
+    kusamaChainId -> 2
+    else -> 3
+}
 
 fun ChainId.isOrml() = this in listOf(kitsugiChainId, interlayChainId) // todo rework, probably asset's parameter
 

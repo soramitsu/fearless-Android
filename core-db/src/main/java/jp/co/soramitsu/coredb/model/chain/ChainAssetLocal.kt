@@ -21,6 +21,7 @@ import androidx.room.Index
 )
 class ChainAssetLocal(
     val id: String,
+    val symbol: String,
     val chainId: String,
     val name: String,
     val icon: String,
@@ -29,7 +30,4 @@ class ChainAssetLocal(
     val precision: Int,
     val priceProviders: String?,
     val nativeChainId: String?
-) {
-    val symbol: String
-        get() = id.uppercase()
-}
+)

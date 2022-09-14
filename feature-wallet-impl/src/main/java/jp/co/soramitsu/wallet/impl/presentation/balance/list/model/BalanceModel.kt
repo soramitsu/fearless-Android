@@ -15,7 +15,10 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
     val isTokensUpdated = checkIsTokensUpdated()
 
     val rate = try {
-        totalBalance?.let { totalBalanceChange.divide(totalBalance, RoundingMode.HALF_UP).fractionToPercentage() }
+        when (totalBalance) {
+            BigDecimal.ZERO, null -> BigDecimal.ZERO
+            else -> totalBalanceChange.divide(totalBalance, RoundingMode.HALF_UP).fractionToPercentage()
+        }
     } catch (e: ArithmeticException) {
         e.printStackTrace()
         null
