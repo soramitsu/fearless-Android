@@ -19,6 +19,7 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
+import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
@@ -30,6 +31,7 @@ class StakingPoolInteractor(
     private val api: StakingPoolApi,
     private val dataSource: StakingPoolDataSource,
     private val stakingInteractor: StakingInteractor,
+    private val relayChainRepository: StakingRelayChainScenarioRepository,
     private val accountRepository: AccountRepository,
     private val identitiesRepositoryImpl: IdentityRepository
 ) {
@@ -43,8 +45,6 @@ class StakingPoolInteractor(
 
     private fun stakingPoolStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState> {
         return observeCurrentPool(chain.id, accountId).map {
-            it ?: return@map StakingState.Pool.None(chain, accountId)
-
             when (it) {
                 null -> StakingState.Pool.None(chain, accountId)
                 else -> StakingState.Pool.Member(chain, accountId, it)
@@ -60,9 +60,12 @@ class StakingPoolInteractor(
             poolMember ?: return@flatMapConcat flowOf(null)
             dataSource.observePool(chainId, poolMember.poolId).map { bondedPool ->
                 bondedPool ?: return@map null
+                val currentEra = relayChainRepository.getCurrentEraIndex(chainId)
                 val name = dataSource.getPoolMetadata(chainId, poolMember.poolId)
                 val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
-                bondedPool.toNominationPool(poolMember, name, unbondingEras)
+                val redeemable = unbondingEras.filter { it.era < currentEra }.sumOf { it.amount }
+                val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
+                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding)
             }
         }
     }
@@ -70,7 +73,9 @@ class StakingPoolInteractor(
     private fun BondedPool.toNominationPool(
         poolMember: PoolMember,
         name: String?,
-        unbondingEras: List<PoolUnbonding>
+        unbondingEras: List<PoolUnbonding>,
+        redeemable: BigInteger,
+        unbonding: BigInteger
     ): NominationPool {
         return NominationPool(
             poolId = poolMember.poolId,
@@ -78,7 +83,8 @@ class StakingPoolInteractor(
             stakedInPlanks = points,
             lastRecordedRewardCounter = poolMember.lastRecordedRewardCounter,
             state = state,
-            redeemable = BigInteger.ZERO,
+            redeemable = redeemable,
+            unbonding = unbonding,
             unbondingEras = unbondingEras,
             members = memberCounter,
             depositor = depositor,

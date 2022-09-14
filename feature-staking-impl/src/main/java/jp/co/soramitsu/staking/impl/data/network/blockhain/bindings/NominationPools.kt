@@ -20,6 +20,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
+import jp.co.soramitsu.staking.impl.data.model.PoolRewards
 import jp.co.soramitsu.staking.impl.data.model.PoolUnbonding
 
 @UseCaseBinding
@@ -148,4 +149,20 @@ fun bindPoolMember(scale: String?, runtime: RuntimeSnapshot): PoolMember? {
         lastRecordedRewardCounter,
         unbondings
     )
+}
+
+@UseCaseBinding
+fun bindRewardPool(
+    scale: String?,
+    runtime: RuntimeSnapshot
+): PoolRewards? {
+    scale ?: return null
+    val returnType = runtime.metadata.storageReturnType("NominationPools", "RewardPools")
+    val decoded = returnType.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
+
+    val lastRecordedRewardCounter = bindNumber(decoded.getTyped("lastRecordedRewardCounter"))
+    val lastRecordedTotalPayouts = bindNumber(decoded.getTyped("lastRecordedTotalPayouts"))
+    val totalRewardsClaimed = bindNumber(decoded.getTyped("totalRewardsClaimed"))
+
+    return PoolRewards(lastRecordedRewardCounter, lastRecordedTotalPayouts, totalRewardsClaimed)
 }

@@ -40,10 +40,12 @@ fun BottomSheetScreen(modifier: Modifier = Modifier, Content: @Composable Column
 @Composable
 fun BottomSheetLayout(
     content: @Composable (ModalBottomSheetState) -> Unit,
-    sheetContent: @Composable ColumnScope.(ModalBottomSheetState) -> Unit
+    sheetContent: @Composable ColumnScope.(ModalBottomSheetState) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val bottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     ModalBottomSheetLayout(
+        modifier = modifier,
         sheetState = bottomSheetState,
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
         sheetBackgroundColor = backgroundBlack,

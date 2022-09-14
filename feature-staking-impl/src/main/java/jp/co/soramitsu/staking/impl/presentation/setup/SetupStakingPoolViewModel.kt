@@ -23,7 +23,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.di.validations.InsufficientBalanceException
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingScreenViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -45,14 +45,14 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val iconGenerator: AddressIconGenerator,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val router: StakingRouter,
-    private val setupPoolSharedState: StakingPoolSetupFlowSharedState
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel() {
 
     val chain: Chain
     val asset: Asset
 
     init {
-        val setupState = requireNotNull(setupPoolSharedState.get())
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
         chain = requireNotNull(setupState.chain)
         asset = requireNotNull(setupState.asset)
     }
@@ -136,11 +136,11 @@ class SetupStakingPoolViewModel @Inject constructor(
     }
 
     fun onNextClick() {
-        val setupFlow = requireNotNull(setupPoolSharedState.get())
+        val setupFlow = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
         val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
 
         isValid(amount).fold({
-            setupPoolSharedState.set(setupFlow.copy(amount = amount))
+            stakingPoolSharedStateProvider.setupState.set(setupFlow.copy(amount = amount))
             router.openSelectPool()
         }, {
             showError(it)

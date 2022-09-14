@@ -743,7 +743,6 @@
     <string name="hidden_assets">Скрытые активы</string>
     <string name="common_select_network">Выбрать Сеть</string>
 
-
     <string name="staking_pool_rewards_delay_text"></string>
     <string name="staking_pool_start_apr_text"></string>
     <string name="staking_pool_start_unstake_period_text"></string>
@@ -790,8 +789,13 @@
     <string name="pool_staking_number_of_members"></string>
     <string name="pool_staking_pool_info"></string>
     <string name="pool_staking_roles"></string>
-
     <string name="pool_info_index"></string>
     <string name="pool_info_members"></string>
     <string name="pool_info_state"></string>
+    <string name="pool_claim_reward"></string>
+    <string name="common_claim"></string>
+    <string name="pool_redeem"></string>
+    <string name="pool_time_before_redeem"></string>
+    <string name="pool_nominations"></string>
+    <string name="common_options"></string>
 </resources>

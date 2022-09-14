@@ -67,12 +67,12 @@ fun NominationPool.toViewState(asset: Asset, resourceManager: ResourceManager): 
     val rewardedFormatted = rewarded.formatTokenAmount(asset.token.configuration)
     val rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
-    val redeemableInPlanks = BigInteger.ZERO
+    val redeemableInPlanks = redeemable
     val redeemable = asset.token.amountFromPlanks(redeemableInPlanks)
     val redeemableFormatted = redeemable.formatTokenAmount(asset.token.configuration)
     val redeemableFiat = redeemable.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
-    val unstaking = asset.token.amountFromPlanks(unstaking)
+    val unstaking = asset.token.amountFromPlanks(unbonding)
     val unstakingFormatted = unstaking.formatTokenAmount(asset.token.configuration)
     val unstakingFiat = unstaking.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 

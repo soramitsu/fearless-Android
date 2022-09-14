@@ -13,7 +13,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingPoolViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.PERIOD_YEAR
@@ -32,14 +32,14 @@ class StartStakingPoolViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val router: StakingRouter,
-    setupPoolSharedState: StakingPoolSetupFlowSharedState
+    flowStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel() {
 
     val chain: Chain
     val asset: Asset
 
     init {
-        val setupState = requireNotNull(setupPoolSharedState.get())
+        val setupState = requireNotNull(flowStateProvider.mainState.get())
         chain = requireNotNull(setupState.chain)
         asset = requireNotNull(setupState.asset)
     }

@@ -66,7 +66,7 @@ import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCusto
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomValidatorsInteractor
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationMixin
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
@@ -378,7 +378,7 @@ class StakingFeatureModule {
 
     @Provides
     @Singleton
-    fun provideStakingPoolSetupFlowSharedState() = StakingPoolSetupFlowSharedState()
+    fun provideStakingPoolSharedStateProvider() = StakingPoolSharedStateProvider()
 
     @Provides
     fun provideRewardDestinationChooserMixin(
@@ -563,11 +563,13 @@ class StakingFeatureModule {
         dataSource: StakingPoolDataSource,
         stakingInteractor: StakingInteractor,
         accountRepository: AccountRepository,
+        relayChainScenarioRepository: StakingRelayChainScenarioRepository,
         identityRepository: IdentityRepository
     ) = StakingPoolInteractor(
         api,
         dataSource,
         stakingInteractor,
+        relayChainScenarioRepository,
         accountRepository,
         identityRepository
     )

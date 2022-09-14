@@ -549,6 +549,11 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoFragment"
         android:label="poolInfoFragment" />
 
+    <dialog
+        android:id="@+id/managePoolStakeFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.balance.ManagePoolStakeFragment"
+        android:label="managePoolStakeFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"

@@ -13,13 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 @Composable
-fun InfoTableItem(state: TitleValueViewState) {
+fun InfoTableItem(state: TitleValueViewState, onClick: (Int) -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -32,39 +34,61 @@ fun InfoTableItem(state: TitleValueViewState) {
                 .weight(1f),
             color = black2
         )
-        Column(
+        val clickModifier = if (state.value != null && state.clickState != null) {
+            Modifier.clickableWithNoIndication { onClick(state.clickState.identifier) }
+        } else {
+            Modifier
+        }
+        Row(
             modifier = Modifier
-                .align(Alignment.CenterVertically)
                 .weight(1f)
+                .align(Alignment.CenterVertically)
+                .then(clickModifier)
         ) {
-            state.value?.let {
-                Text(
-                    text = it,
-                    modifier = Modifier.align(Alignment.End),
-                    style = MaterialTheme.customTypography.header5.bold(),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            } ?: ShimmerB0(
+            Column(
                 modifier = Modifier
-                    .width(120.dp)
-                    .align(Alignment.End)
-            )
-
-            state.additionalValue?.let {
-                val text = if (it.length > 20) {
-                    "${it.take(5)}...${it.takeLast(5)}"
-                } else {
-                    it
-                }
-                B1(
-                    text = text,
-                    color = black2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.align(Alignment.End),
-                    maxLines = 1
+                    .align(Alignment.CenterVertically)
+                    .fillMaxWidth()
+            ) {
+                state.value?.let {
+                    Text(
+                        text = it,
+                        modifier = Modifier.align(Alignment.End),
+                        style = MaterialTheme.customTypography.header5.bold(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                } ?: ShimmerB0(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .align(Alignment.End)
                 )
+
+                state.additionalValue?.let {
+                    val text = if (it.length > 20) {
+                        "${it.take(5)}...${it.takeLast(5)}"
+                    } else {
+                        it
+                    }
+                    B1(
+                        text = text,
+                        color = black2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.align(Alignment.End),
+                        maxLines = 1
+                    )
+                }
             }
+        }
+        state.clickState?.let {
+            Image(
+                res = it.icon,
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .padding(start = 8.dp)
+                    .align(Alignment.CenterVertically)
+                    .clickableWithNoIndication { onClick(state.clickState.identifier) }
+            )
         }
     }
 }
@@ -85,6 +109,38 @@ private fun InfoTableItemPreview() {
                     "From",
                     null,
                     null
+                )
+            )
+            InfoTableItem(
+                TitleValueViewState(
+                    "From",
+                    null,
+                    null,
+                    clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
+                )
+            )
+            InfoTableItem(
+                TitleValueViewState(
+                    "From",
+                    "8484834",
+                    null,
+                    clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
+                )
+            )
+            InfoTableItem(
+                TitleValueViewState(
+                    "From",
+                    "8484834",
+                    "sd434f34f3wf434f34f34f34f34f",
+                    clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
+                )
+            )
+            InfoTableItem(
+                TitleValueViewState(
+                    "From",
+                    "84848348484834848483484848348484834848483484848348484834848483484848348484834848483484848348484834",
+                    "sd434f34f3wf434f34f34f34f34f",
+                    clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)
                 )
             )
         }

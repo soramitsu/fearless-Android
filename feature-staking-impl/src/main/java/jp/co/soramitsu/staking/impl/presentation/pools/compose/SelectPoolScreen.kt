@@ -38,8 +38,7 @@ enum class PoolSorting : ListDialogState.Item {
 
 data class SelectPoolScreenViewState(
     val pools: List<PoolItemState>,
-    val selectedPool: PoolItemState?,
-    val sortingDialog: ListDialogState<PoolSorting> = ListDialogState(R.string.common_sort_by, PoolSorting.values().toList())
+    val selectedPool: PoolItemState?
 )
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -56,7 +55,7 @@ fun SelectPoolScreen(
 
     BottomSheetLayout(
         sheetContent = { sheetState ->
-            ListDialog(state = state.sortingDialog, onSelected = {
+            ListDialog(state = ListDialogState(R.string.common_sort_by, PoolSorting.values().toList()), onSelected = {
                 scope.launch { sheetState.hide() }
                 onSortingSelected(it)
             })

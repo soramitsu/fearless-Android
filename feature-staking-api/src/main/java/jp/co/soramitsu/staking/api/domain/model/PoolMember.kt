@@ -2,7 +2,6 @@ package jp.co.soramitsu.staking.api.domain.model
 
 import android.os.Parcelable
 import java.math.BigInteger
-import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 
 data class PoolUnbonding(
@@ -45,6 +44,7 @@ data class NominationPool(
     val lastRecordedRewardCounter: BigInteger,
     val state: NominationPoolState,
     val redeemable: BigInteger,
+    val unbonding: BigInteger,
     val unbondingEras: List<PoolUnbonding>,
     val members: BigInteger,
     val depositor: AccountId,
@@ -52,8 +52,6 @@ data class NominationPool(
     val nominator: AccountId?,
     val stateToggler: AccountId?
 ) {
-    val unstaking = unbondingEras.sumByBigInteger { it.amount }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -77,9 +75,23 @@ data class NominationPool(
         result = 31 * result + root.contentHashCode()
         result = 31 * result + nominator.contentHashCode()
         result = 31 * result + stateToggler.contentHashCode()
-        result = 31 * result + unstaking.hashCode()
+        result = 31 * result + unbonding.hashCode()
         return result
     }
+}
+
+fun NominationPool.toPoolInfo(): PoolInfo {
+    return PoolInfo(
+        poolId,
+        name ?: "Pool #$poolId",
+        stakedInPlanks,
+        state,
+        members,
+        depositor,
+        root,
+        nominator,
+        stateToggler
+    )
 }
 
 enum class NominationPoolState {

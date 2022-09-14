@@ -12,6 +12,7 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
+import jp.co.soramitsu.staking.impl.data.model.PoolRewards
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindBondedPool
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindBondedPoolsMetadata
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExistingPools
@@ -22,6 +23,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMaxPools
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMinCreateBond
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMinJoinBond
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindPoolMember
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardPool
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import kotlinx.coroutines.flow.Flow
 
@@ -117,7 +119,7 @@ class StakingPoolDataSource(
         )
     }
 
-    suspend fun observePool(chainId: ChainId, poolId: BigInteger): Flow<BondedPool?> {
+    fun observePool(chainId: ChainId, poolId: BigInteger): Flow<BondedPool?> {
         return remoteStorage.observe(
             chainId = chainId,
             keyBuilder = { it.metadata.nominationPools().storage("BondedPools").storageKey(it, poolId) },
@@ -141,6 +143,14 @@ class StakingPoolDataSource(
                 scale ?: return@query null
                 bindBondedPoolsMetadata(scale, runtime)
             }
+        )
+    }
+
+    suspend fun observePoolRewards(chainId: ChainId, poolId: BigInteger): Flow<PoolRewards?> {
+        return remoteStorage.observe(
+            chainId = chainId,
+            keyBuilder = { it.metadata.nominationPools().storage("RewardPools").storageKey(it, poolId) },
+            binder = ::bindRewardPool
         )
     }
 }

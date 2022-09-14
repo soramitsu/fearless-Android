@@ -13,7 +13,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.confirm.compose.ConfirmJoinPoolScreenViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class ConfirmJoinPoolViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
-    private val setupPoolSharedState: StakingPoolSetupFlowSharedState,
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val poolInteractor: StakingPoolInteractor,
     private val router: StakingRouter
 ) : BaseViewModel() {
@@ -40,12 +40,13 @@ class ConfirmJoinPoolViewModel @Inject constructor(
     private val address: String
 
     init {
-        val setupState = requireNotNull(setupPoolSharedState.get())
-        chain = requireNotNull(setupState.chain)
-        asset = requireNotNull(setupState.asset)
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+        val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
+        chain = requireNotNull(mainState.chain)
+        asset = requireNotNull(mainState.asset)
         amount = requireNotNull(setupState.amount)
         selectedPool = requireNotNull(setupState.selectedPool)
-        address = requireNotNull(setupState.address)
+        address = requireNotNull(mainState.address)
     }
 
     private val toolbarViewState = ToolbarViewState(
@@ -100,7 +101,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
         launch {
             val amountInPlanks = asset.token.planksFromAmount(amount)
             poolInteractor.joinPool(address, amountInPlanks, selectedPool.poolId).fold({
-                setupPoolSharedState.complete()
+                stakingPoolSharedStateProvider.setupState.complete()
                 router.returnToMain()
             }, {
                 showError(it)

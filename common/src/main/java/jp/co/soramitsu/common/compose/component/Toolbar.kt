@@ -228,9 +228,9 @@ private fun IconButton(
 }
 
 @Composable
-fun Toolbar(state: ToolbarViewState, onNavigationClick: () -> Unit) {
+fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigationClick: () -> Unit) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalAlignment = CenterVertically,

@@ -38,8 +38,8 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingAssetSelector
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlow
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSetupFlowSharedState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolState
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.manageStakingActionValidationFailure
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.select.SelectBondMorePayload
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
@@ -90,7 +90,7 @@ class StakingViewModel @Inject constructor(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
     stakingPoolInteractor: StakingPoolInteractor,
-    private val setupPoolSharedState: StakingPoolSetupFlowSharedState
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
@@ -316,15 +316,20 @@ class StakingViewModel @Inject constructor(
         }
     }
 
+    private suspend fun prepareStakingPoolState() {
+        val asset = stakingSharedState.currentAssetFlow().first()
+        val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
+        val meta = interactor.getCurrentMetaAccount()
+        val address = requireNotNull(meta.address(chain))
+
+        stakingPoolSharedStateProvider.mainState.mutate {
+            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address)
+        }
+    }
+
     fun startStakingPoolClick() {
-        launch {
-            val asset = stakingSharedState.currentAssetFlow().first()
-            val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
-            val meta = interactor.getCurrentMetaAccount()
-            val address = requireNotNull(meta.address(chain))
-            setupPoolSharedState.mutate {
-                StakingPoolJoinFlow(asset = asset, chain = chain, chainAsset = chainAsset, address = address)
-            }
+        viewModelScope.launch {
+            prepareStakingPoolState()
             router.openStakingPoolWelcome()
         }
     }
@@ -332,6 +337,13 @@ class StakingViewModel @Inject constructor(
     private fun transformStories(story: StoryGroup.Staking): StakingStoryModel = with(story) {
         val elements = elements.map { StoryElement.Staking(it.titleRes, it.bodyRes, it.url) }
         StakingStoryModel(titleRes, iconSymbol, elements)
+    }
+
+    fun onManagePoolStake() {
+        viewModelScope.launch {
+            prepareStakingPoolState()
+            router.openManagePoolStake()
+        }
     }
 }
 

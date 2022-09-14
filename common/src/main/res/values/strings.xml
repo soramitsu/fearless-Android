@@ -853,8 +853,16 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_staking_number_of_members">Number of members</string>
     <string name="pool_staking_pool_info">Pool Info</string>
     <string name="pool_staking_roles">Roles</string>
-
     <string name="pool_info_index">Index</string>
     <string name="pool_info_members">Members</string>
     <string name="pool_info_state">State</string>
+    <string name="pool_claim_reward">Claim reward</string>
+    <string name="common_claim">Claim</string>
+    <string name="pool_redeem">Redeem tokens</string>
+    <string name="pool_time_before_redeem">Time before redeem</string>
+    <string name="pool_nominations">Nominations</string>
+    <string name="common_options">Options</string>
+    <string name="pool_stake_info">Pool Stake Info</string>
+    <string name="pool_your_total_stake">Your total stake</string>
+
 </resources>
