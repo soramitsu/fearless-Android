@@ -583,6 +583,11 @@
         android:label="managePoolStakeFragment" />
 
     <dialog
+        android:id="@+id/poolBondMoreFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.PoolBondMoreFragment"
+        android:label="poolBondMoreFragment" />
+
+    <dialog
         android:id="@+id/selectWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.SelectWalletFragment"
         android:label="selectWalletFragment" />

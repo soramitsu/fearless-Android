@@ -11,8 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -40,6 +42,30 @@ fun GradientIcon(@DrawableRes iconRes: Int, color: Color, modifier: Modifier = M
         }
     }
 }
+
+@Composable
+fun GradientIcon(icon: String, color: Color, modifier: Modifier = Modifier) {
+    val gradientBrush = Brush.radialGradient(
+        colors = listOf(color, transparent)
+    )
+    Box(modifier = modifier) {
+        Box(
+            Modifier
+                .size(90.dp)
+                .background(transparent, CircleShape)
+                .border(10.dp, gradientBrush, CircleShape)
+        ) {
+            AsyncImage(
+                model = getImageRequest(LocalContext.current, icon),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(45.dp)
+                    .align(Alignment.Center)
+            )
+        }
+    }
+}
+
 
 @Composable
 @Preview

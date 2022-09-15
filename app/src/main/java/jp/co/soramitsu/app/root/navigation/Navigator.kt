@@ -372,6 +372,10 @@ class Navigator :
         navController?.navigate(R.id.managePoolStakeFragment)
     }
 
+    override fun openPoolBondMore() {
+        navController?.navigate(R.id.poolBondMoreFragment)
+    }
+
     override val currentStackEntryLifecycle: Lifecycle
         get() = navController!!.currentBackStackEntry!!.lifecycle
 

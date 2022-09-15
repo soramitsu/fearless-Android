@@ -1,8 +1,8 @@
-package jp.co.soramitsu.staking.impl.di.validations
+package jp.co.soramitsu.common.validation
 
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.feature_staking_impl.R
 
 class InsufficientBalanceException(resourceManager: ResourceManager) : ValidationException(
     resourceManager.getString(R.string.common_not_enough_funds_title),

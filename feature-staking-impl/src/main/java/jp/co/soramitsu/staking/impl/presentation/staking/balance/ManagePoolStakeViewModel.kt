@@ -130,7 +130,9 @@ class ManagePoolStakeViewModel @Inject constructor(
 
     fun onRedeemClick() {}
 
-    fun onStakeMoreClick() {}
+    fun onStakeMoreClick() {
+        router.openPoolBondMore()
+    }
 
     fun onUnstakeClick() {}
 

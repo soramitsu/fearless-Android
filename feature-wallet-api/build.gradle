@@ -44,6 +44,8 @@ dependencies {
     implementation androidDep
     implementation constraintDep
 
+    implementation viewModelKtxDep
+
     api project(':core-api')
     api project(':core-db')
 
