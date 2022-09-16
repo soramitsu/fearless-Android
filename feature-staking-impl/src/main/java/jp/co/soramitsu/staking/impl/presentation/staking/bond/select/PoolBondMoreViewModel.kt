@@ -1,15 +1,13 @@
-package jp.co.soramitsu.staking.impl.presentation.staking.bond
+package jp.co.soramitsu.staking.impl.presentation.staking.bond.select
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.BaseEnterAmountViewModel
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 
 @HiltViewModel
 class PoolBondMoreViewModel @Inject constructor(
@@ -23,7 +21,10 @@ class PoolBondMoreViewModel @Inject constructor(
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
     resourceManager = resourceManager,
     feeEstimator = stakingPoolInteractor::estimateBondMoreFee,
-    onNextStep = { }
+    onNextStep = { amount ->
+        stakingPoolSharedStateProvider.manageState.get()?.copy(amountInPlanks = amount)?.let { stakingPoolSharedStateProvider.manageState.set(it) }
+        router.openPoolConfirmBondMore()
+    }
 ) {
     fun onBackClick() {
         router.back()

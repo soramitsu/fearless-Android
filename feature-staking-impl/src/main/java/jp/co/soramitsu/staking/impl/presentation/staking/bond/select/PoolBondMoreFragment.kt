@@ -1,4 +1,4 @@
-package jp.co.soramitsu.staking.impl.presentation.staking.bond
+package jp.co.soramitsu.staking.impl.presentation.staking.bond.select
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable

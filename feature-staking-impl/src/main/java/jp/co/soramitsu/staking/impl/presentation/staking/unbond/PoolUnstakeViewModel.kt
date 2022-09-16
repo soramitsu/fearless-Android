@@ -26,7 +26,10 @@ class PoolUnstakeViewModel @Inject constructor(
             it
         )
     },
-    onNextStep = { }
+    onNextStep = { amount ->
+        stakingPoolSharedStateProvider.manageState.get()?.copy(amountInPlanks = amount)?.let { stakingPoolSharedStateProvider.manageState.set(it) }
+        router.openPoolConfirmUnstake()
+    }
 ) {
     fun onBackClick() {
         router.back()

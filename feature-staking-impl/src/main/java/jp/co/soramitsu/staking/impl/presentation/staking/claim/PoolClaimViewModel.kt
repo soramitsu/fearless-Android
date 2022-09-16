@@ -28,7 +28,7 @@ class PoolClaimViewModel @Inject constructor(
     isInputActive = false,
     resourceManager = resourceManager,
     feeEstimator = { stakingPoolInteractor.estimateClaimFee() },
-    onNextStep = { }
+    onNextStep = { router.openPoolConfirmClaim() }
 ) {
     fun onBackClick() {
         router.back()

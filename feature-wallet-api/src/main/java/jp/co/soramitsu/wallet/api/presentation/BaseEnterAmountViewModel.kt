@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.validation.InsufficientBalanceException
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -36,7 +35,7 @@ open class BaseEnterAmountViewModel(
     private val asset: Asset,
     private val resourceManager: ResourceManager,
     private val feeEstimator: suspend (BigInteger) -> BigInteger,
-    private val onNextStep: () -> Unit,
+    private val onNextStep: (BigInteger) -> Unit,
     private vararg val validations: Validation
 ) : BaseViewModel() {
 
@@ -121,9 +120,9 @@ open class BaseEnterAmountViewModel(
 
     fun onNextClick() {
         val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
-
+        val inPlanks = asset.token.planksFromAmount(amount)
         isValid(amount).fold({
-            onNextStep()
+            onNextStep(inPlanks)
         }, {
             showError(it)
         })
@@ -132,8 +131,8 @@ open class BaseEnterAmountViewModel(
     private fun isValid(amount: BigDecimal): Result<Any> {
         val amountInPlanks = asset.token.planksFromAmount(amount)
         val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
-        val hasEnoughTokensValidation = Validation({ amountInPlanks >= transferableInPlanks }, InsufficientBalanceException(resourceManager))
-        val allValidations = validations.toList() + hasEnoughTokensValidation
+//        val hasEnoughTokensValidation = Validation({ amountInPlanks >= transferableInPlanks }, InsufficientBalanceException(resourceManager))
+        val allValidations = validations.toList()// + hasEnoughTokensValidation
         val firstError = allValidations.mapNotNull {
             if (it.condition(amountInPlanks)) null else it.error
         }.firstOrNull()
