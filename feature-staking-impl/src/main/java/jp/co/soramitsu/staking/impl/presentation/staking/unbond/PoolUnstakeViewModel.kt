@@ -1,28 +1,31 @@
-package jp.co.soramitsu.staking.impl.presentation.staking.bond
+package jp.co.soramitsu.staking.impl.presentation.staking.unbond
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.BaseEnterAmountViewModel
-import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 
 @HiltViewModel
-class PoolBondMoreViewModel @Inject constructor(
+class PoolUnstakeViewModel @Inject constructor(
     resourceManager: ResourceManager,
     stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val router: StakingRouter
 ) : BaseEnterAmountViewModel(
     nextButtonTextRes = R.string.common_continue,
-    toolbarTextRes = R.string.staking_bond_more_v1_9_0,
+    toolbarTextRes = R.string.staking_unbond_v1_9_0,
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
     resourceManager = resourceManager,
-    feeEstimator = stakingPoolInteractor::estimateBondMoreFee,
+    feeEstimator = {
+        stakingPoolInteractor.estimateUnstakeFee(
+            requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.address),
+            it
+        )
+    },
     onNextStep = { }
 ) {
     fun onBackClick() {

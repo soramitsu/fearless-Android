@@ -31,7 +31,8 @@ import kotlinx.coroutines.flow.stateIn
 open class BaseEnterAmountViewModel(
     @StringRes private val nextButtonTextRes: Int = R.string.common_continue,
     @StringRes private val toolbarTextRes: Int = R.string.staking_bond_more_v1_9_0,
-    @StringRes private val buttonTextRes: Int = R.string.pool_staking_join_button_title,
+    initialAmount: String = "0",
+    isInputActive: Boolean = true,
     private val asset: Asset,
     private val resourceManager: ResourceManager,
     private val feeEstimator: suspend (BigInteger) -> BigInteger,
@@ -44,7 +45,7 @@ open class BaseEnterAmountViewModel(
         tokenImage = "",
         totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
-        tokenAmount = "0"
+        tokenAmount = initialAmount
     )
 
     private val defaultButtonState = ButtonViewState(
@@ -64,7 +65,7 @@ open class BaseEnterAmountViewModel(
         defaultButtonState
     )
 
-    private val enteredAmountFlow = MutableStateFlow("0")
+    private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
         val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration.symbol)
@@ -76,7 +77,8 @@ open class BaseEnterAmountViewModel(
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
-            tokenAmount = enteredAmount
+            tokenAmount = enteredAmount,
+            isActive = isInputActive
         )
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
@@ -95,7 +97,7 @@ open class BaseEnterAmountViewModel(
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val amountInPlanks = asset.token.planksFromAmount(amount)
         ButtonViewState(
-            resourceManager.getString(buttonTextRes),
+            resourceManager.getString(nextButtonTextRes),
             amountInPlanks != BigInteger.ZERO
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)

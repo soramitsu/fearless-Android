@@ -156,4 +156,16 @@ class StakingPoolInteractor(
 
     suspend fun bondMore(address: String, amount: BigInteger) = api.bondExtra(address, amount)
 
+    suspend fun estimateUnstakeFee(address: String, amount: BigInteger) = api.estimateUnbondFee(address, amount)
+
+    suspend fun unstake(address: String, amount: BigInteger) = api.unbond(address, amount)
+
+    suspend fun estimateRedeemFee(address: String) = api.estimateWithdrawUnbondedFee(address)
+
+    suspend fun redeem(address: String) = api.withdrawUnbonded(address)
+
+    suspend fun estimateClaimFee() = api.estimateClaimPayoutFee()
+
+    suspend fun claim(address: String) = api.claimPayout(address)
+
 }

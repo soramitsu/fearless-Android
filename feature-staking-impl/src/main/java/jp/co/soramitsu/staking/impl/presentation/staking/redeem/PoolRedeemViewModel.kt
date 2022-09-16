@@ -1,4 +1,4 @@
-package jp.co.soramitsu.staking.impl.presentation.staking.bond
+package jp.co.soramitsu.staking.impl.presentation.staking.redeem
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -12,17 +12,22 @@ import jp.co.soramitsu.wallet.api.presentation.BaseEnterAmountViewModel
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 
 @HiltViewModel
-class PoolBondMoreViewModel @Inject constructor(
+class PoolRedeemViewModel @Inject constructor(
     resourceManager: ResourceManager,
     stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val router: StakingRouter
 ) : BaseEnterAmountViewModel(
     nextButtonTextRes = R.string.common_continue,
-    toolbarTextRes = R.string.staking_bond_more_v1_9_0,
+    toolbarTextRes = R.string.staking_redeem,
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
+    initialAmount = requireNotNull(stakingPoolSharedStateProvider.manageState.get()?.redeemInPlanks).let {
+        val asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset)
+        asset.token.amountFromPlanks(it).format()
+    },
+    isInputActive = false,
     resourceManager = resourceManager,
-    feeEstimator = stakingPoolInteractor::estimateBondMoreFee,
+    feeEstimator = { stakingPoolInteractor.estimateRedeemFee(requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.address)) },
     onNextStep = { }
 ) {
     fun onBackClick() {

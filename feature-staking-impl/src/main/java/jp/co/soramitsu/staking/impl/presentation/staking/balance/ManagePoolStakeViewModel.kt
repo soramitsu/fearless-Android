@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolManageFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
@@ -24,13 +25,14 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ManagePoolStakeViewModel @Inject constructor(
     stakingPoolInteractor: StakingPoolInteractor,
-    stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val resourceManager: ResourceManager,
     private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val router: StakingRouter
@@ -41,7 +43,12 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val asset = requireNotNull(mainState.asset)
     private val accountId = requireNotNull(mainState.accountId)
 
-    private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain.id, accountId).stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain.id, accountId).onEach { pool ->
+        val pendingRewards = BigInteger.ZERO
+        stakingPoolSharedStateProvider.manageState.mutate {
+            StakingPoolManageFlowState(pool?.redeemable ?: BigInteger.ZERO, pendingRewards)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val defaultAvailableState = TitleValueViewState(
         resourceManager.getString(R.string.wallet_balance_available)
@@ -124,17 +131,21 @@ class ManagePoolStakeViewModel @Inject constructor(
         }
     }
 
-    fun onOptionsClick() {}
+    fun onClaimClick() {
+        router.openPoolClaim()
+    }
 
-    fun onClaimClick() {}
-
-    fun onRedeemClick() {}
+    fun onRedeemClick() {
+        router.openPoolRedeem()
+    }
 
     fun onStakeMoreClick() {
         router.openPoolBondMore()
     }
 
-    fun onUnstakeClick() {}
+    fun onUnstakeClick() {
+        router.openPoolUnstake()
+    }
 
     fun onNominationsClick() {}
 }

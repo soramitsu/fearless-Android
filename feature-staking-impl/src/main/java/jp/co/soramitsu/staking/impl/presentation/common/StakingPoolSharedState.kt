@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.common
 
 import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
@@ -13,7 +14,8 @@ data class StakingPoolJoinFlowState(
 )
 
 data class StakingPoolManageFlowState(
-    val redeem: String
+    val redeemInPlanks: BigInteger,
+    val claimableInPlanks: BigInteger
 )
 
 data class StakingPoolState(

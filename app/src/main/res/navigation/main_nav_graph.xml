@@ -597,6 +597,21 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment"
         android:label="optionsWalletFragment" />
 
+    <dialog
+        android:id="@+id/poolClaimFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.claim.PoolClaimFragment"
+        android:label="poolClaimFragment" />
+
+    <dialog
+        android:id="@+id/poolRedeemFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.redeem.PoolRedeemFragment"
+        android:label="poolRedeemFragment" />
+
+    <dialog
+        android:id="@+id/poolUnstakeFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.PoolUnstakeFragment"
+        android:label="poolUnstakeFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"
