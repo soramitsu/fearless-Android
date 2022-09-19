@@ -41,7 +41,11 @@ data class AmountInputViewState(
 
 @Composable
 fun AmountInput(state: AmountInputViewState, onInput: (String) -> Unit) {
-    val colorState = if(state.isActive) white else black2
+    val colorState = if (state.isActive) {
+        white
+    } else {
+        black2
+    }
     BackgroundCorneredWithBorder(
         modifier = Modifier
             .fillMaxWidth(),

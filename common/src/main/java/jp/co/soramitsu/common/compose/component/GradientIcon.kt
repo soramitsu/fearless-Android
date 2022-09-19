@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,6 +59,7 @@ fun GradientIcon(icon: String, color: Color, modifier: Modifier = Modifier) {
             AsyncImage(
                 model = getImageRequest(LocalContext.current, icon),
                 contentDescription = null,
+                colorFilter = ColorFilter.tint(color),
                 modifier = Modifier
                     .size(45.dp)
                     .align(Alignment.Center)
@@ -65,7 +67,6 @@ fun GradientIcon(icon: String, color: Color, modifier: Modifier = Modifier) {
         }
     }
 }
-
 
 @Composable
 @Preview

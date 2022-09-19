@@ -56,7 +56,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
 
     private val addressViewState = TitleValueViewState(
         resourceManager.getString(R.string.transaction_details_from),
-        "Account for join",
+        resourceManager.getString(R.string.pool_account_for_join),
         address
     )
     private val poolViewState = TitleValueViewState(

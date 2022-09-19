@@ -167,5 +167,4 @@ class StakingPoolInteractor(
     suspend fun estimateClaimFee() = api.estimateClaimPayoutFee()
 
     suspend fun claim(address: String) = api.claimPayout(address)
-
 }

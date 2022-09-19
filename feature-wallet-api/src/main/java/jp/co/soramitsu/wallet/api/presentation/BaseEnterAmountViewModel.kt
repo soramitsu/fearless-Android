@@ -32,11 +32,12 @@ open class BaseEnterAmountViewModel(
     @StringRes private val toolbarTextRes: Int = R.string.staking_bond_more_v1_9_0,
     initialAmount: String = "0",
     isInputActive: Boolean = true,
-    private val asset: Asset,
+    protected val asset: Asset,
     private val resourceManager: ResourceManager,
     private val feeEstimator: suspend (BigInteger) -> BigInteger,
     private val onNextStep: (BigInteger) -> Unit,
-    private vararg val validations: Validation
+    private vararg val validations: Validation,
+    private val buttonValidation: (BigInteger) -> Boolean = { it != BigInteger.ZERO }
 ) : BaseViewModel() {
 
     private val defaultAmountInputState = AmountInputViewState(
@@ -97,7 +98,7 @@ open class BaseEnterAmountViewModel(
         val amountInPlanks = asset.token.planksFromAmount(amount)
         ButtonViewState(
             resourceManager.getString(nextButtonTextRes),
-            amountInPlanks != BigInteger.ZERO
+            buttonValidation(amountInPlanks)
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -130,9 +131,7 @@ open class BaseEnterAmountViewModel(
 
     private fun isValid(amount: BigDecimal): Result<Any> {
         val amountInPlanks = asset.token.planksFromAmount(amount)
-        val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
-//        val hasEnoughTokensValidation = Validation({ amountInPlanks >= transferableInPlanks }, InsufficientBalanceException(resourceManager))
-        val allValidations = validations.toList()// + hasEnoughTokensValidation
+        val allValidations = validations.toList()
         val firstError = allValidations.mapNotNull {
             if (it.condition(amountInPlanks)) null else it.error
         }.firstOrNull()

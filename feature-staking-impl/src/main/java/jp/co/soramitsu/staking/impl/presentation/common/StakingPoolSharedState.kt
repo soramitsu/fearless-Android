@@ -16,6 +16,7 @@ data class StakingPoolJoinFlowState(
 data class StakingPoolManageFlowState(
     val redeemInPlanks: BigInteger,
     val claimableInPlanks: BigInteger,
+    val stakedInPlanks: BigInteger,
     val amountInPlanks: BigInteger? = null
 )
 

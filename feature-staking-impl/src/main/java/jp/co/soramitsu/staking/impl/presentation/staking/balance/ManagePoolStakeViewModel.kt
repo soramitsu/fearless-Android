@@ -2,6 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.balance
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -10,7 +11,9 @@ import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -46,7 +49,7 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain.id, accountId).onEach { pool ->
         val pendingRewards = BigInteger.ZERO
         stakingPoolSharedStateProvider.manageState.mutate {
-            StakingPoolManageFlowState(pool?.redeemable ?: BigInteger.ZERO, pendingRewards)
+            StakingPoolManageFlowState(pool?.redeemable.orZero(), pendingRewards, pool?.stakedInPlanks.orZero())
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -92,8 +95,12 @@ class ManagePoolStakeViewModel @Inject constructor(
         val total = asset.token.amountFromPlanks(pool.stakedInPlanks)
         val totalFormatted = total.formatTokenAmount(asset.token.configuration)
 
-//        val hasRewardsForClaim = pool.lastRecordedRewardCounter == BigInteger.ZERO
-//        val claimNotification = NotificationState(R.drawable.ic_status_warning_16, R.string.pool_claim_reward, )
+        val hasRewardsForClaim = pool.lastRecordedRewardCounter == BigInteger.ZERO
+        val claimNotification = if (hasRewardsForClaim) {
+            NotificationState(R.drawable.ic_status_warning_16, R.string.pool_claim_reward, BigDecimal.ZERO.format(), R.string.common_claim, colorAccent)
+        } else {
+            null
+        }
         val redeemableNotification = pool.redeemable.takeIf { it > BigInteger.ZERO }?.let { redeemable ->
             val redeemableFormatted = asset.token.amountFromPlanks(redeemable).formatTokenAmount(asset.token.configuration)
             NotificationState(
@@ -116,8 +123,16 @@ class ManagePoolStakeViewModel @Inject constructor(
         val poolInfoViewState = defaultPoolInfoState.copy(value = pool.name ?: "Pool #${pool.poolId}")
 
         val timeBeforeRedeemState = defaultTimeBeforeRedeemState.copy(value = unstakingPeriod)
-
-        ManagePoolStakeViewState(totalFormatted, null, redeemableNotification, availableState, unstakingState, poolInfoViewState, timeBeforeRedeemState)
+        // todo stub for claim notification
+        ManagePoolStakeViewState(
+            totalFormatted,
+            null,
+            redeemableNotification,
+            availableState,
+            unstakingState,
+            poolInfoViewState,
+            timeBeforeRedeemState
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenViewState)
 
     fun onBackClick() {
