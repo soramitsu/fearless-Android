@@ -849,6 +849,14 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_hide">Hide</string>
     <string name="common_action_show">Show</string>
 
+    <string name="common_title_wallet">Wallet</string>
+    <string name="common_title_wallet_option">Wallet option</string>
+    <string name="common_add_new_wallet">Add New Wallet</string>
+    <string name="common_import_wallet">Import Wallet</string>
+    <string name="common_details_wallet">Wallet Details</string>
+    <string name="common_export_wallet">Export Wallet</string>
+    <string name="common_delete_wallet">Delete Wallet</string>
+
     <string name="pool_staking_confirm_join_title">Joining to pool</string>
     <string name="pool_staking_number_of_members">Number of members</string>
     <string name="pool_staking_pool_info">Pool Info</string>

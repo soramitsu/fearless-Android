@@ -35,6 +35,12 @@ interface WalletRouter : SecureRouter {
 
     fun openAddAccount()
 
+    fun openAccountDetails(metaAccountId: Long)
+
+    fun openExportWallet(metaAccountId: Long)
+
+    fun openImportAccountScreen(blockChainType: Int)
+
     fun openChangeAccountFromWallet()
 
     fun openReceive(assetPayload: AssetPayload)
@@ -55,4 +61,8 @@ interface WalletRouter : SecureRouter {
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
 
     fun openEducationalStories(stories: StoryGroupModel)
+
+    fun openSelectWallet()
+
+    fun openOptionsWallet(walletId: Long)
 }

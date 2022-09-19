@@ -1,12 +1,13 @@
 package jp.co.soramitsu.account.impl.domain
 
-import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.utils.DOLLAR_SIGN
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class GetTotalBalanceUseCaseImpl(
     private val accountRepository: AccountRepository,
@@ -39,10 +42,27 @@ class GetTotalBalanceUseCaseImpl(
                     val totalDecimal = total.toBigDecimal(scale = chainAsset.precision)
                     val fiatAmount = totalDecimal.applyFiatRate(current.token.fiatRate)
 
-                    val toAdd = fiatAmount ?: BigDecimal.ZERO
+                    val totalBalanceToAdd = fiatAmount ?: BigDecimal.ZERO
+                    val balanceChangeToAdd = fiatAmount?.multiply(current.token.recentRateChange.orZero())?.percentageToFraction().orZero()
 
-                    val balance = acc.balance + toAdd
-                    TotalBalance(balance, current.token.fiatSymbol ?: DOLLAR_SIGN)
+                    val balance = acc.balance + totalBalanceToAdd
+                    val balanceChange = acc.balanceChange + balanceChangeToAdd
+                    val rate = try {
+                        when (balance) {
+                            BigDecimal.ZERO -> BigDecimal.ZERO
+                            else -> balanceChange.divide(balance, RoundingMode.HALF_UP).fractionToPercentage()
+                        }
+                    } catch (e: ArithmeticException) {
+                        e.printStackTrace()
+                        null
+                    }
+
+                    TotalBalance(
+                        balance = balance,
+                        fiatSymbol = current.token.fiatSymbol ?: DOLLAR_SIGN,
+                        balanceChange = balanceChange,
+                        rateChange = rate
+                    )
                 }
             }
     }
