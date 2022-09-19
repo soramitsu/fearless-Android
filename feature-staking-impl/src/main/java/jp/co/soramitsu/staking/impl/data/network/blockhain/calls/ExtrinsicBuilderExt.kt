@@ -255,23 +255,23 @@ fun ExtrinsicBuilder.claimPayout(): ExtrinsicBuilder {
     return call("NominationPools", "claim_payout", emptyMap())
 }
 
-fun ExtrinsicBuilder.withdrawUnbondedFromPool(memberAccountId: AccountId, numSlashingSpans: BigInteger = BigInteger.ZERO): ExtrinsicBuilder {
+fun ExtrinsicBuilder.withdrawUnbondedFromPool(memberAccountId: MultiAddress, numSlashingSpans: BigInteger = BigInteger.ZERO): ExtrinsicBuilder {
     return call(
         "NominationPools",
         "withdraw_unbonded",
         mapOf(
-            "member_account" to memberAccountId,
+            "member_account" to bindMultiAddress(memberAccountId),
             "num_slashing_spans" to numSlashingSpans
         )
     )
 }
 
-fun ExtrinsicBuilder.unbondFromPool(memberAccountId: AccountId, unbondingPoints: BigInteger): ExtrinsicBuilder {
+fun ExtrinsicBuilder.unbondFromPool(memberAccountId: MultiAddress, unbondingPoints: BigInteger): ExtrinsicBuilder {
     return call(
         "NominationPools",
         "unbond",
         mapOf(
-            "member_account" to memberAccountId,
+            "member_account" to bindMultiAddress(memberAccountId),
             "unbonding_points" to unbondingPoints
         )
     )

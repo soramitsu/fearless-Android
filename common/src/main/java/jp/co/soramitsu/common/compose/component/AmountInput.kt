@@ -35,11 +35,17 @@ data class AmountInputViewState(
     val totalBalance: String,
     val fiatAmount: String?,
     val tokenAmount: String,
-    val title: String? = null
+    val title: String? = null,
+    val isActive: Boolean = true
 )
 
 @Composable
 fun AmountInput(state: AmountInputViewState, onInput: (String) -> Unit) {
+    val colorState = if (state.isActive) {
+        white
+    } else {
+        black2
+    }
     BackgroundCorneredWithBorder(
         modifier = Modifier
             .fillMaxWidth(),
@@ -71,12 +77,13 @@ fun AmountInput(state: AmountInputViewState, onInput: (String) -> Unit) {
                         .align(CenterVertically)
                 )
                 MarginHorizontal(margin = 4.dp)
-                H3(text = state.tokenName.uppercase(), modifier = Modifier.align(CenterVertically))
+                H3(text = state.tokenName.uppercase(), modifier = Modifier.align(CenterVertically), color = colorState)
                 MarginHorizontal(margin = 8.dp)
                 BasicTextField(
                     value = state.tokenAmount,
+                    enabled = state.isActive,
                     onValueChange = onInput,
-                    textStyle = MaterialTheme.customTypography.header2.copy(textAlign = TextAlign.End),
+                    textStyle = MaterialTheme.customTypography.header2.copy(textAlign = TextAlign.End, color = colorState),
                     singleLine = true,
                     maxLines = 1,
                     keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Decimal, imeAction = ImeAction.None),

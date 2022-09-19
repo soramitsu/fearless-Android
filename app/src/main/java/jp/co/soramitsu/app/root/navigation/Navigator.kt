@@ -272,6 +272,10 @@ class Navigator :
         navController?.navigate(R.id.action_return_to_staking_balance)
     }
 
+    override fun returnToManagePoolStake() {
+        navController?.navigate(R.id.action_return_to_pool_staking_balance)
+    }
+
     override fun openSelectUnbond(payload: SelectUnbondPayload) {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_selectUnbondFragment, SelectUnbondFragment.getBundle(payload))
     }
@@ -370,6 +374,38 @@ class Navigator :
 
     override fun openManagePoolStake() {
         navController?.navigate(R.id.managePoolStakeFragment)
+    }
+
+    override fun openPoolBondMore() {
+        navController?.navigate(R.id.poolBondMoreFragment)
+    }
+
+    override fun openPoolClaim() {
+        navController?.navigate(R.id.poolClaimFragment)
+    }
+
+    override fun openPoolRedeem() {
+        navController?.navigate(R.id.poolRedeemFragment)
+    }
+
+    override fun openPoolUnstake() {
+        navController?.navigate(R.id.poolUnstakeFragment)
+    }
+
+    override fun openPoolConfirmBondMore() {
+        navController?.navigate(R.id.poolConfirmBondMoreFragment)
+    }
+
+    override fun openPoolConfirmClaim() {
+        navController?.navigate(R.id.poolConfirmClaimFragment)
+    }
+
+    override fun openPoolConfirmRedeem() {
+        navController?.navigate(R.id.poolConfirmRedeemFragment)
+    }
+
+    override fun openPoolConfirmUnstake() {
+        navController?.navigate(R.id.poolConfirmUnstakeFragment)
     }
 
     override val currentStackEntryLifecycle: Lifecycle

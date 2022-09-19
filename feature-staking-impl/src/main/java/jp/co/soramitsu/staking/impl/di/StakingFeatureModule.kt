@@ -44,6 +44,7 @@ import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDat
 import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.staking.impl.data.repository.datasource.SubqueryStakingRewardsDataSource
 import jp.co.soramitsu.staking.impl.domain.EraTimeCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.GetIdentitiesUseCase
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.staking.impl.domain.payout.PayoutInteractor
@@ -573,4 +574,8 @@ class StakingFeatureModule {
         accountRepository,
         identityRepository
     )
+
+    @Provides
+    @Singleton
+    fun provideIdentitiesUseCase(identityRepository: IdentityRepository) = GetIdentitiesUseCase(identityRepository)
 }

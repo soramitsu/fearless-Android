@@ -56,7 +56,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
 
     private val addressViewState = TitleValueViewState(
         resourceManager.getString(R.string.transaction_details_from),
-        "Account for join",
+        resourceManager.getString(R.string.pool_account_for_join),
         address
     )
     private val poolViewState = TitleValueViewState(
@@ -89,7 +89,8 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             amount,
             addressViewState,
             poolViewState,
-            feeViewState
+            feeViewState,
+            asset.token.configuration.iconUrl
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
 
@@ -122,6 +123,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             "... ${asset.token.configuration.id}",
             addressViewState,
             poolViewState,
-            defaultFeeState
+            defaultFeeState,
+            asset.token.configuration.iconUrl
         )
 }

@@ -106,4 +106,18 @@ interface StakingRouter {
 
     fun openPoolInfo(poolInfo: PoolInfo)
     fun openManagePoolStake()
+
+    fun openPoolBondMore()
+
+    fun openPoolClaim()
+
+    fun openPoolRedeem()
+
+    fun openPoolUnstake()
+
+    fun openPoolConfirmBondMore()
+    fun openPoolConfirmClaim()
+    fun openPoolConfirmRedeem()
+    fun openPoolConfirmUnstake()
+    fun returnToManagePoolStake()
 }

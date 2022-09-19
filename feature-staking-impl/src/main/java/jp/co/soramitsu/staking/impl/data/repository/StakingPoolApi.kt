@@ -4,6 +4,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.ext.multiAddressOf
 import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.bondExtra
@@ -163,9 +164,9 @@ class StakingPoolApi(
     suspend fun estimateWithdrawUnbondedFee(accountAddress: String): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
-            val accountId = chain.accountIdOf(accountAddress)
+            val multiAddress = chain.multiAddressOf(accountAddress)
             extrinsicService.estimateFee(chain) {
-                withdrawUnbondedFromPool(accountId)
+                withdrawUnbondedFromPool(multiAddress)
             }
         }
     }
@@ -174,9 +175,10 @@ class StakingPoolApi(
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
             val accountId = chain.accountIdOf(accountAddress)
+            val multiAddress = chain.multiAddressOf(accountAddress)
 
             extrinsicService.submitExtrinsic(chain, accountId) {
-                withdrawUnbondedFromPool(accountId)
+                withdrawUnbondedFromPool(multiAddress)
             }
         }
     }
@@ -184,9 +186,9 @@ class StakingPoolApi(
     suspend fun estimateUnbondFee(accountAddress: String, unbondingAmount: BigInteger): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
-            val accountId = chain.accountIdOf(accountAddress)
+            val multiAddress = chain.multiAddressOf(accountAddress)
             extrinsicService.estimateFee(chain) {
-                unbondFromPool(accountId, unbondingAmount)
+                unbondFromPool(multiAddress, unbondingAmount)
             }
         }
     }
@@ -195,9 +197,9 @@ class StakingPoolApi(
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
             val accountId = chain.accountIdOf(accountAddress)
-
+            val multiAddress = chain.multiAddressOf(accountAddress)
             extrinsicService.submitExtrinsic(chain, accountId) {
-                unbondFromPool(accountId, unbondingAmount)
+                unbondFromPool(multiAddress, unbondingAmount)
             }
         }
     }

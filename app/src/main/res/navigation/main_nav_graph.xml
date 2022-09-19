@@ -583,6 +583,11 @@
         android:label="managePoolStakeFragment" />
 
     <dialog
+        android:id="@+id/poolBondMoreFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.select.PoolBondMoreFragment"
+        android:label="poolBondMoreFragment" />
+
+    <dialog
         android:id="@+id/selectWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.SelectWalletFragment"
         android:label="selectWalletFragment" />
@@ -591,6 +596,41 @@
         android:id="@+id/optionsWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment"
         android:label="optionsWalletFragment" />
+
+    <dialog
+        android:id="@+id/poolClaimFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.claim.PoolClaimFragment"
+        android:label="poolClaimFragment" />
+
+    <dialog
+        android:id="@+id/poolRedeemFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.redeem.PoolRedeemFragment"
+        android:label="poolRedeemFragment" />
+
+    <dialog
+        android:id="@+id/poolUnstakeFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.PoolUnstakeFragment"
+        android:label="poolUnstakeFragment" />
+
+    <dialog
+        android:id="@+id/poolConfirmBondMoreFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmPoolBondMoreFragment"
+        android:label="poolConfirmBondMoreFragment" />
+
+    <dialog
+        android:id="@+id/poolConfirmClaimFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.claim.ConfirmPoolClaimFragment"
+        android:label="poolConfirmClaimFragment" />
+
+    <dialog
+        android:id="@+id/poolConfirmRedeemFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.redeem.ConfirmPoolRedeemFragment"
+        android:label="poolConfirmRedeemFragment" />
+
+    <dialog
+        android:id="@+id/poolConfirmUnstakeFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmPoolUnbondFragment"
+        android:label="poolConfirmUnstakeFragment" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
@@ -912,6 +952,14 @@
         app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
         app:popUpTo="@id/stakingBalanceFragment" />
+
+    <action
+        android:id="@+id/action_return_to_pool_staking_balance"
+        app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:exitAnim="?android:attr/fragmentCloseExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popUpTo="@id/managePoolStakeFragment" />
 
     <fragment
         android:id="@+id/selectBondMoreFragment"

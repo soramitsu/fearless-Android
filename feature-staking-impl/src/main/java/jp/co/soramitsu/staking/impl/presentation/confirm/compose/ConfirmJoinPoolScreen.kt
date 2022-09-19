@@ -32,7 +32,8 @@ data class ConfirmJoinPoolScreenViewState(
     val amount: String,
     val address: TitleValueViewState,
     val selectedPool: TitleValueViewState,
-    val networkFee: TitleValueViewState
+    val networkFee: TitleValueViewState,
+    val assetIcon: String
 )
 
 @Composable
@@ -44,7 +45,7 @@ fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationCli
                 .padding(horizontal = 16.dp)
         ) {
             MarginVertical(margin = 24.dp)
-            GradientIcon(iconRes = R.drawable.ic_vector, color = colorAccentDark, modifier = Modifier.align(CenterHorizontally))
+            GradientIcon(icon = state.assetIcon, color = colorAccentDark, modifier = Modifier.align(CenterHorizontally))
             H2(
                 text = stringResource(id = R.string.pool_staking_confirm_join_title),
                 modifier = Modifier.align(CenterHorizontally),
@@ -55,7 +56,6 @@ fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationCli
             MarginVertical(margin = 24.dp)
             InfoTable(listOf(state.address, state.selectedPool, state.networkFee))
             MarginVertical(margin = 24.dp)
-//            Spacer(modifier = Modifier.weight(1f))
             AccentButton(
                 text = stringResource(id = R.string.common_confirm),
                 modifier = Modifier
@@ -76,7 +76,8 @@ private fun ConfirmJoinPoolScreenPreview() {
         amount = "10 KSM",
         address = TitleValueViewState("From", "Account for join", "0x3784348729384923849223423"),
         selectedPool = TitleValueViewState("Selected Pool", "Pool #1", "id: 1"),
-        networkFee = TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32")
+        networkFee = TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32"),
+        assetIcon = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg"
     )
     FearlessTheme {
         ConfirmJoinPoolScreen(state, {}, {})
