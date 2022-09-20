@@ -120,7 +120,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
     private val defaultScreenState
         get() = ConfirmJoinPoolScreenViewState(
             toolbarViewState,
-            "... ${asset.token.configuration.id}",
+            "... ${asset.token.configuration.symbol}",
             addressViewState,
             poolViewState,
             defaultFeeState,

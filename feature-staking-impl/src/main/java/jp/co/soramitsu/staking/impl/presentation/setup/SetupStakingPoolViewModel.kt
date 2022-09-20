@@ -84,7 +84,7 @@ class SetupStakingPoolViewModel @Inject constructor(
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         AmountInputViewState(
-            tokenName = asset.token.configuration.id,
+            tokenName = asset.token.configuration.symbol,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,
