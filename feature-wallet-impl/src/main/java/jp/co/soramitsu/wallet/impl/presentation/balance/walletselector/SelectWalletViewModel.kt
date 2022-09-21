@@ -75,6 +75,7 @@ class SelectWalletViewModel @Inject constructor(
         viewModelScope.launch {
             accountInteractor.selectMetaAccount(item.id)
             selectedWalletItem.value = item
+            router.back()
         }
     }
 
