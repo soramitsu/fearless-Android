@@ -36,7 +36,7 @@ class PoolUnstakeViewModel @Inject constructor(
         Validation(
             condition = {
                 val stakedInPlanks = requireNotNull(stakingPoolSharedStateProvider.manageState.get()?.stakedInPlanks)
-                it < stakedInPlanks
+                it <= stakedInPlanks
             },
             error = InsufficientStakeBalanceException(resourceManager)
         )

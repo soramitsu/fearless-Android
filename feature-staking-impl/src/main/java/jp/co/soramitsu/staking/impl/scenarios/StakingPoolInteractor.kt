@@ -65,7 +65,7 @@ class StakingPoolInteractor(
                 val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
                 val redeemable = unbondingEras.filter { it.era < currentEra }.sumOf { it.amount }
                 val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
-                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding)
+                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding, poolMember.points)
             }
         }
     }
@@ -75,7 +75,8 @@ class StakingPoolInteractor(
         name: String?,
         unbondingEras: List<PoolUnbonding>,
         redeemable: BigInteger,
-        unbonding: BigInteger
+        unbonding: BigInteger,
+        points: BigInteger
     ): NominationPool {
         return NominationPool(
             poolId = poolMember.poolId,
