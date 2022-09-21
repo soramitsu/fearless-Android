@@ -165,7 +165,7 @@ private fun SwipableBalanceListItem(
     SwipeBox(
         swipeableState = swipeableState,
         state = SwipeBoxViewState(
-            leftStateWidth = 250.dp,
+            leftStateWidth = 180.dp,
             rightStateWidth = 90.dp
         ),
         initialContent = {
@@ -207,8 +207,7 @@ private fun getLeftActionBarViewState(asset: AssetListItemViewState) = ActionBar
     chainAssetId = asset.chainAssetId,
     actionItems = listOf(
         ActionItemType.SEND,
-        ActionItemType.RECEIVE,
-        ActionItemType.TELEPORT
+        ActionItemType.RECEIVE
     )
 )
 
