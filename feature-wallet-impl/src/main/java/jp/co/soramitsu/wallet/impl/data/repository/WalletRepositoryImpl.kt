@@ -202,11 +202,9 @@ class WalletRepositoryImpl(
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
 
-    override suspend fun updateAssetHidden(metaId: Long, accountId: AccountId, chainId: ChainId, assetChainId: String, isHidden: Boolean) {
-        val assetLocal = assetCache.getAsset(metaId, accountId, chainId, assetChainId.uppercase())
-        assetLocal?.toAssetUpdateItem()?.copy(enabled = !isHidden)?.let {
-            assetCache.updateAsset(listOf(it))
-        }
+    override suspend fun updateAssetHidden(metaId: Long, accountId: AccountId, chainId: ChainId, assetSymbol: String, isHidden: Boolean) {
+        val updateItems = assetCache.getAssets(metaId, accountId, chainId, assetSymbol).map { it.toAssetUpdateItem().copy(enabled = !isHidden) }
+        assetCache.updateAsset(updateItems)
     }
 
     private fun AssetWithToken.toAssetUpdateItem() = AssetUpdateItem(

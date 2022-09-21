@@ -22,6 +22,16 @@ private const val RETRIEVE_ASSET_SQL_ACCOUNT_ID = """
             ORDER BY a.sortIndex
 """
 
+private const val RETRIEVE_ASSETS_SQL_SYMBOL = """
+            SELECT a.*, t.* FROM assets AS a 
+            INNER JOIN tokens AS t ON a.id = t.assetId 
+            LEFT JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
+            WHERE a.accountId IN (:accountId, :emptyAccountId) AND a.chainId = :chainId 
+              AND (ca.displayName IS NOT NULL AND ca.displayName = :symbol OR ca.symbol = :symbol)
+              AND a.metaId = :metaId
+            ORDER BY a.sortIndex
+"""
+
 private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
             SELECT a.*, t.* FROM assets AS a 
             INNER JOIN tokens AS t ON a.id = t.assetId 
@@ -39,6 +49,7 @@ interface AssetReadOnlyCache {
     fun observeAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String): Flow<AssetWithToken>
 
     suspend fun getAsset(metaId: Long, accountId: AccountId, chainId: String, assetId: String): AssetWithToken?
+    suspend fun getAssets(metaId: Long, accountId: AccountId, chainId: String, symbol: String): List<AssetWithToken>
 }
 
 @Dao
@@ -75,6 +86,18 @@ abstract class AssetDao : AssetReadOnlyCache {
         assetId: String,
         emptyAccountId: AccountId
     ): AssetWithToken?
+
+    override suspend fun getAssets(metaId: Long, accountId: AccountId, chainId: String, symbol: String): List<AssetWithToken> =
+        getAssetsWithEmpty(metaId, accountId, chainId, symbol, emptyAccountIdValue)
+
+    @Query(RETRIEVE_ASSETS_SQL_SYMBOL)
+    protected abstract suspend fun getAssetsWithEmpty(
+        metaId: Long,
+        accountId: AccountId,
+        chainId: String,
+        symbol: String,
+        emptyAccountId: AccountId
+    ): List<AssetWithToken>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertAsset(asset: AssetLocal)
