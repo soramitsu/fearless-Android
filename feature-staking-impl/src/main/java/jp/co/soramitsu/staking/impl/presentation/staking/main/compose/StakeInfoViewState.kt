@@ -58,7 +58,7 @@ fun StakeInfoViewState.PoolStakeInfoViewState.Companion.default(resourceManager:
 }
 
 fun NominationPool.toViewState(asset: Asset, resourceManager: ResourceManager): StakeInfoViewState.PoolStakeInfoViewState {
-    val staked = asset.token.amountFromPlanks(stakedInPlanks)
+    val staked = asset.token.amountFromPlanks(myStakeInPlanks)
     val stakedFormatted = staked.formatTokenAmount(asset.token.configuration)
     val stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 

@@ -49,7 +49,7 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain.id, accountId).onEach { pool ->
         val pendingRewards = BigInteger.ZERO
         stakingPoolSharedStateProvider.manageState.mutate {
-            StakingPoolManageFlowState(pool?.redeemable.orZero(), pendingRewards, pool?.stakedInPlanks.orZero())
+            StakingPoolManageFlowState(pool?.redeemable.orZero(), pendingRewards, pool?.myStakeInPlanks.orZero())
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -92,7 +92,7 @@ class ManagePoolStakeViewModel @Inject constructor(
     }
 
     val state = combine(poolStateFlow.filterNotNull(), unstakingPeriodFlow) { pool, unstakingPeriod ->
-        val total = asset.token.amountFromPlanks(pool.stakedInPlanks)
+        val total = asset.token.amountFromPlanks(pool.myStakeInPlanks)
         val totalFormatted = total.formatTokenAmount(asset.token.configuration)
 
         val hasRewardsForClaim = pool.lastRecordedRewardCounter == BigInteger.ZERO
