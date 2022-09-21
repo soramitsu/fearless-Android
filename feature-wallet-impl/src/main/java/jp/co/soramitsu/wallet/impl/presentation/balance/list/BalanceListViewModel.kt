@@ -67,6 +67,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -85,6 +86,8 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val updatesMixin: UpdatesMixin
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
+
+    private val accountAddressToChainItemMap = mutableMapOf<String, ChainItemState?>(polkadotChainId to null)
 
     private val _hideRefreshEvent = MutableLiveData<Event<Unit>>()
     val hideRefreshEvent: LiveData<Event<Unit>> = _hideRefreshEvent
@@ -351,6 +354,10 @@ class BalanceListViewModel @Inject constructor(
 
     fun onChainSelected(item: ChainItemState? = null) {
         selectedChainItem.value = item
+        viewModelScope.launch {
+            val currentAddress = interactor.selectedAccountFlow(polkadotChainId).first().address
+            accountAddressToChainItemMap[currentAddress] = item
+        }
     }
 
     fun onChainSearchEntered(query: String) {
@@ -365,6 +372,14 @@ class BalanceListViewModel @Inject constructor(
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
         return interactor.selectedAccountFlow(polkadotChainId)
+            .onEach {
+                if (accountAddressToChainItemMap.containsKey(it.address).not()) {
+                    selectedChainItem.value = null
+                    accountAddressToChainItemMap[it.address] = null
+                } else {
+                    selectedChainItem.value = accountAddressToChainItemMap.getOrDefault(it.address, null)
+                }
+            }
             .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
     }
 

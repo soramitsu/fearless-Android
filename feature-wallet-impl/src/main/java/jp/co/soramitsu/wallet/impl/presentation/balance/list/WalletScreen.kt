@@ -22,6 +22,7 @@ import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -52,6 +53,7 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.SelectChainContent
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -62,6 +64,7 @@ fun WalletScreen(
     val state by viewModel.state.collectAsState()
     val shimmerItems by viewModel.assetShimmerItems.collectAsState()
     val chainsState by viewModel.chainsState.collectAsState()
+    val scope = rememberCoroutineScope()
 
     ModalBottomSheetLayout(
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
@@ -70,7 +73,12 @@ fun WalletScreen(
         sheetContent = {
             SelectChainContent(
                 state = chainsState,
-                onChainSelected = viewModel::onChainSelected,
+                onChainSelected = { item ->
+                    scope.launch {
+                        viewModel.onChainSelected(item)
+                        modalBottomSheetState.hide()
+                    }
+                },
                 onInput = viewModel::onChainSearchEntered
             )
         },
