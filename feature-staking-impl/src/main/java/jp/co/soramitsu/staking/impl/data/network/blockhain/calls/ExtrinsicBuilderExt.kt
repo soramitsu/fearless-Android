@@ -277,6 +277,28 @@ fun ExtrinsicBuilder.unbondFromPool(memberAccountId: MultiAddress, unbondingPoin
     )
 }
 
+fun ExtrinsicBuilder.withdrawUnbondedFromPool(memberAccountId: AccountId, numSlashingSpans: BigInteger = BigInteger.ZERO): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "withdraw_unbonded",
+        mapOf(
+            "member_account" to memberAccountId,
+            "num_slashing_spans" to numSlashingSpans
+        )
+    )
+}
+
+fun ExtrinsicBuilder.unbondFromPool(memberAccountId: AccountId, unbondingPoints: BigInteger): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "unbond",
+        mapOf(
+            "member_account" to memberAccountId,
+            "unbonding_points" to unbondingPoints
+        )
+    )
+}
+
 fun ExtrinsicBuilder.bondExtra(amount: BigInteger): ExtrinsicBuilder {
     return call(
         "NominationPools",
