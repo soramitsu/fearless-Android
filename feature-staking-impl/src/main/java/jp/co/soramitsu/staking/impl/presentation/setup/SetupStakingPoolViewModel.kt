@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
@@ -48,13 +49,17 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel() {
 
-    val chain: Chain
-    val asset: Asset
+    private val chain: Chain
+    private val asset: Asset
+    private val initialAmount: String
 
     init {
-        val setupState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
-        chain = requireNotNull(setupState.chain)
-        asset = requireNotNull(setupState.asset)
+        val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+
+        chain = requireNotNull(mainState.chain)
+        asset = requireNotNull(mainState.asset)
+        initialAmount = setupState.amount?.format() ?: "10"
     }
 
     private val toolbarViewState = ToolbarViewState(resourceManager.getString(R.string.pool_staking_join_title), R.drawable.ic_arrow_back_24dp)
@@ -76,7 +81,7 @@ class SetupStakingPoolViewModel @Inject constructor(
         emit(state)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAccountInfoState)
 
-    private val enteredAmountFlow = MutableStateFlow("10")
+    private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
         val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration.symbol)
@@ -172,7 +177,7 @@ class SetupStakingPoolViewModel @Inject constructor(
             tokenImage = "",
             totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
             fiatAmount = "",
-            tokenAmount = "10"
+            tokenAmount = initialAmount
         )
 
     private val defaultAccountInfoState

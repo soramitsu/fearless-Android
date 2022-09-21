@@ -103,7 +103,10 @@ class StartStakingPoolViewModel @Inject constructor(
     fun onInstructionsClick() {}
 
     fun onJoinPool() {
-        flowStateProvider.setupState.set(StakingPoolJoinFlowState())
+        val setupState = flowStateProvider.setupState
+        if (setupState.get() == null) {
+            setupState.set(StakingPoolJoinFlowState())
+        }
         router.openSetupStakingPool()
     }
 

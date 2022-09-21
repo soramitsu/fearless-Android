@@ -32,6 +32,7 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -46,6 +47,8 @@ class StakingRelaychainScenarioViewModel(
     private val stakingViewStateFactory: StakingViewStateFactory,
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
+
+    override val enteredAmountFlow = MutableStateFlow("")
 
     private val welcomeStakingValidationSystem = ValidationSystem(
         CompositeValidation(

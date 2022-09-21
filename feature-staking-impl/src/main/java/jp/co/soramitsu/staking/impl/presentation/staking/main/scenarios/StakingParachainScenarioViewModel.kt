@@ -28,6 +28,7 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
@@ -40,6 +41,8 @@ class StakingParachainScenarioViewModel(
     private val baseViewModel: BaseStakingViewModel,
     private val stakingViewStateFactory: StakingViewStateFactory
 ) : StakingScenarioViewModel {
+
+    override val enteredAmountFlow = MutableStateFlow("")
 
     override val stakingStateFlow: Flow<StakingState> = scenarioInteractor.stakingStateFlow
 

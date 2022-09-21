@@ -243,11 +243,18 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
                                 when (stakingViewState) {
                                     is StakingViewState.Pool.PoolMember -> {
                                         MarginVertical(margin = Dp(16f))
-                                        StakingPoolInfo(stakingViewState.stakeInfoViewState, onClick = viewModel::onManagePoolStake)
+                                        StakingPoolInfo(
+                                            stakingViewState.stakeInfoViewState,
+                                            onClick = viewModel::onManagePoolStake
+                                        )
                                     }
                                     is StakingViewState.Pool.Welcome -> {
                                         MarginVertical(margin = Dp(16f))
-                                        EstimatedEarnings(stakingViewState.estimatedEarnings, viewModel::onEstimatedEarningsInfoClick)
+                                        EstimatedEarnings(
+                                            stakingViewState.estimatedEarnings,
+                                            viewModel::onEstimatedEarningsInfoClick,
+                                            viewModel::onPoolsAmountInput
+                                        )
                                         MarginVertical(margin = Dp(16f))
                                         Spacer(modifier = Modifier.weight(1f, fill = true))
                                         AccentButton(

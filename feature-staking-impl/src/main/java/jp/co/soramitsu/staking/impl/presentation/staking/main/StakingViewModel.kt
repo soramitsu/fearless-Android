@@ -38,6 +38,7 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingAssetSelector
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolState
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.manageStakingActionValidationFailure
@@ -316,12 +317,23 @@ class StakingViewModel @Inject constructor(
         }
     }
 
+    fun onPoolsAmountInput(amount: String) {
+        viewModelScope.launch {
+            scenarioViewModelFlow.first().enteredAmountFlow.emit(amount.replace(',', '.'))
+        }
+    }
+
     private suspend fun prepareStakingPoolState() {
         val asset = stakingSharedState.currentAssetFlow().first()
         val (chain, chainAsset) = stakingSharedState.assetWithChain.first()
         val meta = interactor.getCurrentMetaAccount()
         val address = requireNotNull(meta.address(chain))
+        val amount = scenarioViewModelFlow.first().enteredAmountFlow.value
+        val amountDecimal = amount.toBigDecimalOrNull()
 
+        stakingPoolSharedStateProvider.setupState.mutate {
+            StakingPoolJoinFlowState(amount = amountDecimal)
+        }
         stakingPoolSharedStateProvider.mainState.mutate {
             StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address)
         }

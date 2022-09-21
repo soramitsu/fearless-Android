@@ -11,6 +11,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.compose.component.AmountInput
+import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.ChangeToValue
@@ -18,23 +20,22 @@ import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
 
 data class EstimatedEarningsViewState(
     val monthlyChange: TitleValueViewState?,
-    val yearlyChange: TitleValueViewState?
-) {
-    companion object {
-        val default = EstimatedEarningsViewState(null, null)
-    }
-}
+    val yearlyChange: TitleValueViewState?,
+    val amountInputViewState: AmountInputViewState
+)
 
 @Composable
 fun EstimatedEarnings(
     state: EstimatedEarningsViewState,
-    onInfoClick: () -> Unit
+    onInfoClick: () -> Unit,
+    onAmountInput: (String) -> Unit
 ) {
     BackgroundCornered(
         backgroundColor = blurColorLight,
@@ -65,6 +66,15 @@ fun EstimatedEarnings(
                 ChangeToValue(state.monthlyChange, modifier = Modifier.weight(1f), testTag = "MonthlyChange")
                 ChangeToValue(state.yearlyChange, modifier = Modifier.weight(1f), testTag = "YearlyChange")
             }
+            MarginVertical(margin = 24.dp)
+            AmountInput(
+                state = state.amountInputViewState,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                backgroundColor = blurColorLight,
+                borderColor = black2,
+                onInput = onAmountInput
+            )
+            MarginVertical(margin = 24.dp)
         }
     }
 }
@@ -74,9 +84,10 @@ fun EstimatedEarnings(
 private fun EstimatedEarningsPreview() {
     val state = EstimatedEarningsViewState(
         TitleValueViewState("1.43% monthly", "0.164 KSM", "$24.92"),
-        null
+        null,
+        AmountInputViewState("KSM", "", "44.32334", "$12000", "10")
     )
     FearlessTheme {
-        EstimatedEarnings(state) {}
+        EstimatedEarnings(state, {}, {})
     }
 }
