@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 fun BigDecimal.formatTokenAmount(chainAsset: Chain.Asset): String {
-    return formatTokenAmount(chainAsset.symbol)
+    return formatTokenAmount(chainAsset.symbolToShow)
 }
 
 fun BigDecimal.formatTokenAmount(tokenSymbol: String): String {

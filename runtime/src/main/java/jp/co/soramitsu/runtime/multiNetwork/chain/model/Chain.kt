@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 
 typealias ChainId = String
 
@@ -46,6 +47,7 @@ data class Chain(
     data class Asset(
         val id: String,
         val symbol: String,
+        val displayName: String?,
         val name: String,
         val iconUrl: String,
         val chainId: ChainId,
@@ -57,12 +59,18 @@ data class Chain(
         val precision: Int,
         val staking: StakingType,
         val priceProviders: List<String>?,
-        val supportStakingPool: Boolean
+        val supportStakingPool: Boolean,
+        val isUtility: Boolean?,
+        val type: ChainAssetType?,
+        val currencyId: String?,
+        val existentialDeposit: String?
     ) {
 
         enum class StakingType {
             UNSUPPORTED, RELAYCHAIN, PARACHAIN
         }
+
+        val symbolToShow = displayName ?: symbol
 
         val isNative: Boolean
             get() = nativeChainId == null || nativeChainId == chainId
@@ -70,7 +78,7 @@ data class Chain(
         val chainToSymbol = chainId to symbol
 
         val orderInStaking: Int
-            get() = when (val order = STAKING_ORDER.indexOfFirst { it.equals(symbol, true) }) {
+            get() = when (val order = STAKING_ORDER.indexOfFirst { it.equals(symbolToShow, true) }) {
                 -1 -> STAKING_ORDER.size
                 else -> order
             }
@@ -184,10 +192,10 @@ fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Typ
     }
 }.toMap()
 
-@Deprecated("Use polkadotKusamaOthers() to get Polkadot at first place", ReplaceWith("polkadotKusamaOthers()"))
+@Deprecated("Use polkadotKusamaOthers() to get Polkadot at first place", ReplaceWith("defaultChainSort()"))
 fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
 
-fun ChainId.polkadotKusamaOthers() = when (this) {
+fun ChainId.defaultChainSort() = when (this) {
     polkadotChainId -> 1
     kusamaChainId -> 2
     else -> 3

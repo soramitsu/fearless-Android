@@ -71,7 +71,7 @@ fun SelectChainContent(
                 )
             }
         }
-        MarginVertical(margin = 16.dp)
+        MarginVertical(margin = 52.dp)
     }
 }
 

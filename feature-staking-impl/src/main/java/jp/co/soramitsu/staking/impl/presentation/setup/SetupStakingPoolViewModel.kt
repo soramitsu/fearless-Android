@@ -19,9 +19,9 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.validation.InsufficientBalanceException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.common.validation.InsufficientBalanceException
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
@@ -84,7 +84,7 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
-        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration.symbol)
+        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 

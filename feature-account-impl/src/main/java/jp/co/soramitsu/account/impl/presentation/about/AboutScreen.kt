@@ -38,14 +38,14 @@ fun AboutScreen(
     val assetTokenRate = "+5.67%"
     val assetBalance = "444.3"
     val assetBalanceFiat = "$2345.32"
-    val assetChainUrls = listOf(
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonbeam.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Statemine.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Rococo.svg"
+    val assetChainUrlsMap = mapOf(
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonbeam.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Statemine.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Rococo.svg"
     )
 
     val assetListItemViewState = AssetListItemViewState(
@@ -56,11 +56,12 @@ fun AboutScreen(
         assetTokenRate = assetTokenRate,
         assetBalance = assetBalance,
         assetBalanceFiat = assetBalanceFiat,
-        assetChainUrls = assetChainUrls,
+        assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",
         isSupported = true,
-        isHidden = false
+        isHidden = false,
+        displayName = assetSymbol
     )
 
     val leftActionBarViewState = ActionBarViewState(

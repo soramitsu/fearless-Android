@@ -91,7 +91,7 @@ class CrowdloanViewModel @Inject constructor(
         .share()
 
     val mainDescription = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.symbol.uppercase())
+        resourceManager.getString(R.string.crowdloan_main_description, it.token.configuration.symbolToShow.uppercase())
     }
 
     private val selectedChain = sharedState.selectedChainFlow()

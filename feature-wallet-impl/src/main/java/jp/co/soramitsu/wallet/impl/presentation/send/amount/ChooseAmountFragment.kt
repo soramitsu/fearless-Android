@@ -111,9 +111,9 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>(R.layout.fragme
             val transferableAmount =
                 resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.orZero().formatTokenAmount(it.token.configuration))
             binding.chooseAmountField.setAssetBalance(transferableAmount)
-            binding.chooseAmountField.setAssetName(it.token.configuration.symbol.uppercase())
+            binding.chooseAmountField.setAssetName(it.token.configuration.symbolToShow.uppercase())
             binding.chooseAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
-            val toolbarTitle = resources.getString(R.string.wallet_send_navigation_title, it.token.configuration.symbol.uppercase())
+            val toolbarTitle = resources.getString(R.string.wallet_send_navigation_title, it.token.configuration.symbolToShow.uppercase())
             binding.chooseAmountToolbar.setTitle(toolbarTitle)
         }
 

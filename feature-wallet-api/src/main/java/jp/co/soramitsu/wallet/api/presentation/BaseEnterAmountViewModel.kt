@@ -68,12 +68,12 @@ open class BaseEnterAmountViewModel(
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
-        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration.symbol)
+        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         AmountInputViewState(
-            tokenName = asset.token.configuration.symbol,
+            tokenName = asset.token.configuration.symbolToShow,
             tokenImage = asset.token.configuration.iconUrl,
             totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
             fiatAmount = fiatAmount,

@@ -89,7 +89,7 @@ fun AssetListItem(
                         .testTag("AssetListItem_${state.assetSymbol}_chain_name")
                 )
                 Text(
-                    text = state.assetSymbol.uppercase(),
+                    text = state.displayName.uppercase(),
                     style = MaterialTheme.customTypography.header3,
                     modifier = Modifier
                         .padding(vertical = 4.dp)
@@ -125,12 +125,16 @@ fun AssetListItem(
                     .padding(vertical = 8.dp)
                     .align(CenterVertically)
             ) {
-                AssetChainsBadge(
-                    urls = state.assetChainUrls,
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .testTag("AssetListItem_${state.assetSymbol}_chains")
-                )
+                if (state.assetChainUrls.size > 1) {
+                    AssetChainsBadge(
+                        urls = state.assetChainUrls.values.toList(),
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .testTag("AssetListItem_${state.assetSymbol}_chains")
+                    )
+                } else {
+                    Box(modifier = Modifier.height(16.dp))
+                }
                 Text(
                     text = state.assetBalance,
                     style = MaterialTheme.customTypography.header3,
@@ -265,14 +269,14 @@ private fun PreviewAssetListItem() {
     val assetTokenRate = "+5.67%"
     val assetBalance = "444.3"
     val assetBalanceFiat = "$2345.32"
-    val assetChainUrls = listOf(
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonbeam.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Statemine.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Rococo.svg"
+    val assetChainUrlsMap = mapOf(
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonbeam.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Statemine.svg",
+        "" to "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Rococo.svg"
     )
 
     val state = AssetListItemViewState(
@@ -283,18 +287,19 @@ private fun PreviewAssetListItem() {
         assetTokenRate = assetTokenRate,
         assetBalance = assetBalance,
         assetBalanceFiat = assetBalanceFiat,
-        assetChainUrls = assetChainUrls,
+        assetChainUrls = assetChainUrlsMap,
         chainId = "",
         chainAssetId = "",
         isSupported = true,
-        isHidden = false
+        isHidden = false,
+        displayName = assetSymbol
     )
     FearlessTheme {
         Box(modifier = Modifier.background(Color.Black)) {
             Column {
                 AssetListItem(state) {}
                 AssetListItemShimmer(
-                    state = AssetListItemShimmerViewState(assetIconUrl, assetChainUrls)
+                    state = AssetListItemShimmerViewState(assetIconUrl, assetChainUrlsMap.values.toList())
                 )
             }
         }

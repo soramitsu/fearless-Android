@@ -67,7 +67,12 @@ fun ChainLocal.assetOf(
     icon = "",
     priceProviders = null,
     nativeChainId = null,
-    symbol = symbol
+    symbol = symbol,
+    isUtility = null,
+    type = null,
+    displayName = null,
+    currencyId = null,
+    existentialDeposit = null
 )
 
 suspend fun ChainDao.addChain(joinedChainInfo: JoinedChainInfo) {

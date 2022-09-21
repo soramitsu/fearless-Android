@@ -128,7 +128,7 @@ class CustomContributeViewModel @Inject constructor(
         .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == CONTRIBUTE }
         .flatMapLatest { assetFlow }
         .map {
-            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol.uppercase())
+            resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbolToShow.uppercase())
         }
         .inBackground()
         .share()

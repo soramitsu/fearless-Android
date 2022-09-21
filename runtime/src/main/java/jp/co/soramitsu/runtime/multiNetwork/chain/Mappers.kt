@@ -96,6 +96,7 @@ fun mapChainRemoteToChain(
                 Chain.Asset(
                     id = chainAsset.assetId,
                     symbol = assetRemote?.symbol.orEmpty(),
+                    displayName = assetRemote?.displayName,
                     name = assetNativeChain?.name.orEmpty(),
                     iconUrl = assetRemote?.icon ?: assetNativeChain?.icon.orEmpty(),
                     chainId = chainRemote.chainId,
@@ -107,7 +108,11 @@ fun mapChainRemoteToChain(
                     precision = assetRemote?.precision ?: DEFAULT_PRECISION,
                     staking = mapStakingStringToStakingType(chainAsset.staking),
                     priceProviders = chainAsset.purchaseProviders,
-                    supportStakingPool = NOMINATION_POOL_OPTION in chainRemote.options.orEmpty()
+                    supportStakingPool = NOMINATION_POOL_OPTION in chainRemote.options.orEmpty(),
+                    isUtility = chainAsset.isUtility,
+                    type = ChainAssetType.from(chainAsset.type),
+                    currencyId = assetRemote?.currencyId,
+                    existentialDeposit = assetRemote?.existentialDeposit
                 )
             }
         }
@@ -167,6 +172,7 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
         Chain.Asset(
             id = it.id,
             symbol = it.symbol,
+            displayName = it.displayName,
             name = it.name,
             iconUrl = it.icon,
             chainId = it.chainId,
@@ -178,7 +184,11 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             chainName = chainLocal.chain.name,
             chainIcon = chainLocal.chain.icon,
             isTestNet = chainLocal.chain.isTestNet,
-            supportStakingPool = chainLocal.chain.supportStakingPool
+            supportStakingPool = chainLocal.chain.supportStakingPool,
+            isUtility = it.isUtility ?: false,
+            type = it.type?.let { ChainAssetType.valueOf(it) },
+            currencyId = it.currencyId,
+            existentialDeposit = it.existentialDeposit
         )
     }
 
@@ -241,6 +251,7 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
         ChainAssetLocal(
             id = it.id,
             symbol = it.symbol,
+            displayName = it.displayName,
             icon = it.iconUrl,
             precision = it.precision,
             chainId = chain.id,
@@ -248,7 +259,11 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             priceId = it.priceId,
             staking = mapStakingTypeToLocal(it.staking),
             priceProviders = it.priceProviders?.let { Gson().toJson(it) },
-            nativeChainId = it.nativeChainId
+            nativeChainId = it.nativeChainId,
+            isUtility = it.isUtility,
+            type = it.type?.name,
+            currencyId = it.currencyId,
+            existentialDeposit = it.existentialDeposit
         )
     }
 

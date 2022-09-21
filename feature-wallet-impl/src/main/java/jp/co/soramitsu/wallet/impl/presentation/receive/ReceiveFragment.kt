@@ -55,7 +55,7 @@ class ReceiveFragment : BaseFragment<ReceiveViewModel>(R.layout.fragment_receive
 
         viewModel.shareEvent.observeEvent(::startQrSharingIntent)
 
-        binding.fearlessToolbar.setTitle(getString(R.string.wallet_asset_receive_template, viewModel.assetSymbol?.uppercase()))
+        binding.fearlessToolbar.setTitle(getString(R.string.wallet_asset_receive_template, viewModel.assetSymbolToShow?.uppercase()))
     }
 
     private fun startQrSharingIntent(qrSharingPayload: QrSharingPayload) {

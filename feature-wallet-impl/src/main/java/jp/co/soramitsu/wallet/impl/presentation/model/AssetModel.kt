@@ -43,7 +43,7 @@ data class AssetModel(
     )
 
     fun formatTokenAmount(value: BigDecimal?) =
-        value.orZero().formatTokenAmount(token.configuration.symbol)
+        value.orZero().formatTokenAmount(token.configuration)
 
     fun getAsFiatWithCurrency(value: BigDecimal?) =
         token.fiatRate?.let { value?.applyFiatRate(it).orZero().formatAsCurrency(token.fiatSymbol) }
