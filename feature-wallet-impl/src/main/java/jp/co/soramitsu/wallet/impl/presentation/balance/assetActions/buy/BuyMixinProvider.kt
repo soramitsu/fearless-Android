@@ -2,13 +2,13 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy
 
 import androidx.lifecycle.MutableLiveData
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin.IntegrationPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin.Presentation
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin.ProviderChooserPayload
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 class BuyMixinProvider(
     private val buyTokenRegistry: BuyTokenRegistry,
@@ -45,7 +45,7 @@ class BuyMixinProvider(
 
         when {
             asset == null -> throw IllegalArgumentException("No asset found with id = $chainAssetId for chain $chainId")
-            availableProviders.isEmpty() -> throw IllegalArgumentException("No provider found for ${asset.symbol}")
+            availableProviders.isEmpty() -> throw IllegalArgumentException("No provider found for ${asset.symbolToShow}")
             availableProviders.size == 1 -> providerChosen(availableProviders.first(), asset, accountAddress)
             else -> showProviderChooserEvent.value = Event(ProviderChooserPayload(availableProviders, asset, accountAddress))
         }

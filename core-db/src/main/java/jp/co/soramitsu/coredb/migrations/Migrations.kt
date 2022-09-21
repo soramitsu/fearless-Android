@@ -12,6 +12,7 @@ val Migration_42_43 = object : Migration(42, 43) {
             CREATE TABLE IF NOT EXISTS `chain_assets` (
             `id` TEXT NOT NULL,
             `symbol` TEXT NOT NULL,
+            `displayName` TEXT,
             `chainId` TEXT NOT NULL,
             `name` TEXT NOT NULL,
             `icon` TEXT NOT NULL,
@@ -20,6 +21,10 @@ val Migration_42_43 = object : Migration(42, 43) {
             `staking` TEXT NOT NULL,
             `priceProviders` TEXT,
             `nativeChainId` TEXT,
+            `isUtility` INTEGER,
+            `type` TEXT,
+            `currencyId` TEXT,
+            `existentialDeposit` TEXT,
             PRIMARY KEY(`chainId`, `id`),
             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
             """.trimIndent()

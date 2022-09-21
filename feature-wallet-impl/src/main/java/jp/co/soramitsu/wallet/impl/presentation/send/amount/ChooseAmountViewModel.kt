@@ -119,7 +119,7 @@ class ChooseAmountViewModel @Inject constructor(
     }
 
     val tipAmountTextLiveData = mediateWith(tipAmountLiveData, assetLiveData) { (tip: BigDecimal?, asset: Asset?) ->
-        asset?.token?.configuration?.symbol?.let {
+        asset?.token?.configuration?.let {
             tip?.formatTokenAmount(it)
         }
     }

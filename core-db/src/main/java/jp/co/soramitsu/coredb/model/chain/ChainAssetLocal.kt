@@ -2,6 +2,7 @@ package jp.co.soramitsu.coredb.model.chain
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Ignore
 import androidx.room.Index
 
 @Entity(
@@ -22,6 +23,7 @@ import androidx.room.Index
 class ChainAssetLocal(
     val id: String,
     val symbol: String,
+    val displayName: String?,
     val chainId: String,
     val name: String,
     val icon: String,
@@ -29,5 +31,12 @@ class ChainAssetLocal(
     val staking: String,
     val precision: Int,
     val priceProviders: String?,
-    val nativeChainId: String?
-)
+    val nativeChainId: String?,
+    val isUtility: Boolean?,
+    val type: String?,
+    val currencyId: String?,
+    val existentialDeposit: String?
+) {
+    @Ignore
+    val symbolToShow = displayName ?: symbol
+}

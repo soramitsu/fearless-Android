@@ -82,7 +82,7 @@ class ChooseRecipientViewModel @Inject constructor(
     val assetSymbolLiveData = liveData {
         val asset = interactor.getCurrentAsset(payload.chainId, payload.chainAssetId)
 
-        emit(asset.token.configuration.symbol)
+        emit(asset.token.configuration.symbolToShow)
     }
 
     fun backClicked() {

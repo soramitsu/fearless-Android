@@ -126,7 +126,7 @@ class StakingParachainScenarioViewModel(
             val candidateInfo = scenarioInteractor.getCollator(collatorIdHex.requireHexPrefix().fromHex())
             val amountToStakeMoreInPlanks = (candidateInfo.lowestTopDelegationAmount - delegation.amount)
             val token = stakingInteractor.currentAssetFlow().first().token
-            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatTokenAmount(token.configuration.symbol)
+            val amountToStakeMore = (token.amountFromPlanks(amountToStakeMoreInPlanks) * BigDecimal(1.1)).formatTokenAmount(token.configuration)
             Alert.ChangeCollators(collatorIdHex.requireHexPrefix(), amountToStakeMore)
         }
     }

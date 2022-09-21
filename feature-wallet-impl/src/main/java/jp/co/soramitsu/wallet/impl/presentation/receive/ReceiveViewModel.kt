@@ -50,7 +50,7 @@ class ReceiveViewModel @Inject constructor(
 
     private val assetPayload = savedStateHandle.get<AssetPayload>(KEY_ASSET_PAYLOAD)!!
 
-    val assetSymbol = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbol
+    val assetSymbolToShow = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbolToShow
 
     val qrBitmapLiveData = liveData {
         val qrString = interactor.getQrCodeSharingString(assetPayload.chainId)
@@ -116,7 +116,7 @@ class ReceiveViewModel @Inject constructor(
         val asset = chain.assetsById[assetPayload.chainAssetId]
         return resourceManager.getString(R.string.wallet_receive_share_message).format(
             chain.name,
-            asset?.symbol?.uppercase()
+            asset?.symbolToShow?.uppercase()
         ) + " " + address
     }
 }

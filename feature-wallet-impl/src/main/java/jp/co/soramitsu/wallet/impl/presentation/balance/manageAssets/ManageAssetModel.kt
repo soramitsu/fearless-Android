@@ -45,7 +45,7 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
         accountId = asset.accountId,
         name = token.configuration.name,
         iconUrl = token.configuration.iconUrl,
-        amount = "$totalBalance ${token.configuration.symbol.uppercase()}",
+        amount = "$totalBalance ${token.configuration.symbolToShow.uppercase()}",
         network = network,
         position = asset.sortIndex,
         enabled = asset.enabled,

@@ -67,7 +67,7 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>(R.layout.
             val transferableAmount =
                 resources.getString(R.string.wallet_send_transferable_amount_caption, it.available.orZero().formatTokenAmount(it.token.configuration))
             binding.confirmAmountField.setAssetBalance(transferableAmount)
-            binding.confirmAmountField.setAssetName(it.token.configuration.symbol.uppercase())
+            binding.confirmAmountField.setAssetName(it.token.configuration.symbolToShow.uppercase())
             binding.confirmAmountField.setAssetImageUrl(it.token.configuration.iconUrl, imageLoader)
 
             with(viewModel.transferDraft) {

@@ -14,13 +14,14 @@ import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
@@ -84,39 +85,90 @@ class PaymentUpdater(
         if (accountIdsToCheck.isEmpty()) return emptyFlow()
 
         return accountIdsToCheck.map { accountId ->
-            val asset = chain.utilityAsset
-            updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, asset.id)
-            val key = when {
-                chainId.isOrml() -> {
-                    runtime.metadata.tokens().storage("Accounts")
+            chain.assets.sortedBy { it.isUtility }.map { asset ->
+                updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, asset.id)
+                val currencyId = asset.currencyId?.toBigInteger()
+
+                val key = when (asset.type) {
+                    null, ChainAssetType.Normal -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+
+                    ChainAssetType.Equilibrium -> runtime.metadata.module(Modules.EQBALANCES).storage("Account")
+                        .storageKey(runtime, accountId, asset.symbol.uppercase())
+
+                    ChainAssetType.OrmlChain,
+                    ChainAssetType.OrmlAsset -> runtime.metadata.tokens().storage("Accounts")
                         .storageKey(runtime, accountId, DictEnum.Entry("Token", DictEnum.Entry(asset.symbol.uppercase(), null)))
-                }
-                else -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
-            }
+                    ChainAssetType.VToken -> runtime.metadata.tokens().storage("Accounts")
+                        .storageKey(runtime, accountId, DictEnum.Entry("VToken", DictEnum.Entry(asset.symbol.uppercase(), null)))
+                    ChainAssetType.VSToken -> runtime.metadata.tokens().storage("Accounts")
+                        .storageKey(runtime, accountId, DictEnum.Entry("VSToken", DictEnum.Entry(asset.symbol.uppercase(), null)))
+                    ChainAssetType.Stable -> runtime.metadata.tokens().storage("Accounts")
+                        .storageKey(runtime, accountId, DictEnum.Entry("Stable", DictEnum.Entry(asset.symbol.uppercase(), null)))
 
-            storageSubscriptionBuilder.subscribe(key)
-                .onEach { change ->
-                    when {
-                        chainId.isOrml() -> {
-                            val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
-
-                            assetCache.updateAsset(metaAccount.id, accountId, asset) {
-                                it.copy(
-                                    accountId = accountId,
-                                    freeInPlanks = ormlTokensAccountData.free,
-                                    miscFrozenInPlanks = ormlTokensAccountData.frozen,
-                                    reservedInPlanks = ormlTokensAccountData.reserved
-                                )
-                            }
-                        }
-                        else -> {
-                            val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
-                            assetCache.updateAsset(metaAccount.id, accountId, asset, newAccountInfo)
+                    ChainAssetType.ForeignAsset -> {
+                        if (currencyId == null) {
+                            runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+                        } else {
+                            runtime.metadata.tokens().storage("Accounts")
+                                .storageKey(runtime, accountId, DictEnum.Entry("ForeignAsset", currencyId))
                         }
                     }
-
-                    fetchTransfers(change.block, chain, accountId)
+                    ChainAssetType.StableAssetPoolToken -> {
+                        if (currencyId == null) {
+                            runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+                        } else {
+                            runtime.metadata.tokens().storage("Accounts")
+                                .storageKey(runtime, accountId, DictEnum.Entry("StableAssetPoolToken", currencyId))
+                        }
+                    }
+                    ChainAssetType.LiquidCrowdloan -> {
+                        if (currencyId == null) {
+                            runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+                        } else {
+                            runtime.metadata.tokens().storage("Accounts")
+                                .storageKey(runtime, accountId, DictEnum.Entry("LiquidCrowdloan", currencyId))
+                        }
+                    }
                 }
+
+                storageSubscriptionBuilder.subscribe(key)
+                    .onEach { change ->
+                        hashCode()
+                        when (asset.type) {
+                            null, ChainAssetType.Normal -> {
+                                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
+                                assetCache.updateAsset(metaAccount.id, accountId, asset, newAccountInfo)
+                            }
+                            ChainAssetType.OrmlChain,
+                            ChainAssetType.OrmlAsset,
+                            ChainAssetType.ForeignAsset,
+                            ChainAssetType.StableAssetPoolToken,
+                            ChainAssetType.LiquidCrowdloan,
+                            ChainAssetType.VToken,
+                            ChainAssetType.VSToken,
+                            ChainAssetType.Stable -> {
+                                val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
+
+                                assetCache.updateAsset(metaAccount.id, accountId, asset) {
+                                    it.copy(
+                                        accountId = accountId,
+                                        freeInPlanks = ormlTokensAccountData.free,
+                                        miscFrozenInPlanks = ormlTokensAccountData.frozen,
+                                        reservedInPlanks = ormlTokensAccountData.reserved
+                                    )
+                                }
+                            }
+                            ChainAssetType.Equilibrium -> {
+                                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
+                                assetCache.updateAsset(metaAccount.id, accountId, asset, newAccountInfo)
+                            }
+                        }
+
+                        if (asset.isUtility == true) {
+                            fetchTransfers(change.block, chain, accountId)
+                        }
+                    }
+            }.merge()
         }.merge().noSideAffects()
     }
 

@@ -203,7 +203,7 @@ class SetupStakingViewModel @Inject constructor(
 
                 val minimumStakeAmount = payload.asset.token.configuration.amountFromPlanks(minimumStake)
                 if (amount < minimumStakeAmount) {
-                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatTokenAmount(payload.asset.token.configuration.symbol))
+                    _showMinimumStakeAlert.value = Event(minimumStakeAmount.formatTokenAmount(payload.asset.token.configuration))
                 } else {
                     goToNextStep(amount, rewardDestination, currentAccountAddress, asset.token.configuration.staking)
                 }

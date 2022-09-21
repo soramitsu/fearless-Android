@@ -29,7 +29,9 @@ class ChainSyncServiceTest {
             ChainAssetRemote(
                 assetId = "test",
                 staking = null,
-                purchaseProviders = null
+                purchaseProviders = null,
+                isUtility = null,
+                type = null
             )
         ),
         nodes = listOf(
@@ -43,7 +45,8 @@ class ChainSyncServiceTest {
         types = null,
         options = emptyList(),
         parentId = null,
-        externalApi = null
+        externalApi = null,
+        minSupportedVersion = null
     )
 
     private val REMOTE_ASSET = AssetRemote(
@@ -51,7 +54,13 @@ class ChainSyncServiceTest {
         chainId = "0x00",
         precision = 10,
         priceId = "test",
-        icon = "test"
+        icon = "test",
+        symbol = "test",
+        displayName = null,
+        transfersEnabled = null,
+        type = null,
+        currencyId = null,
+        existentialDeposit = null
     )
 
     private val LOCAL_CHAIN = mapChainToChainLocal(mapChainRemoteToChain(listOf(REMOTE_CHAIN), listOf(REMOTE_ASSET))[0])

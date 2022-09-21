@@ -100,7 +100,7 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.frag
 
                 tokenBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
 
-                balanceDetailTokenName.text = asset.token.configuration.symbol.uppercase()
+                balanceDetailTokenName.text = asset.token.configuration.symbolToShow.uppercase()
                 tokenBadge.setText(asset.token.configuration.chainName)
                 balanceDetailRate.text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol) ?: ""
                 balanceDetailRate.isVisible = asset.token.fiatRate != null

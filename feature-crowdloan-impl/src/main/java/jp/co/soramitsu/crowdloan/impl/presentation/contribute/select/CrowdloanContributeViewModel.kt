@@ -188,7 +188,7 @@ class CrowdloanContributeViewModel @Inject constructor(
         .share()
 
     val unlockHintFlow = assetFlow.map {
-        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbol.uppercase())
+        resourceManager.getString(R.string.crowdloan_unlock_hint, it.token.configuration.symbolToShow.uppercase())
     }
         .inBackground()
         .share()

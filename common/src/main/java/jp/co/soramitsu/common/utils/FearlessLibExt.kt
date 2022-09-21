@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.utils
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
+import java.io.ByteArrayOutputStream
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNullableNumberConstant
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
@@ -28,7 +29,6 @@ import jp.co.soramitsu.fearless_utils.scale.dataType.uint32
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
-import java.io.ByteArrayOutputStream
 
 val BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH: String
     get() = "//44//60//0/0/0"
@@ -164,5 +164,6 @@ object Modules {
     const val SESSION = "Session"
     const val NOMINATION_POOLS = "NominationPools"
     const val TOKENS = "Tokens"
+    const val EQBALANCES = "EqBalances"
     const val IDENTITY = "Identity"
 }
