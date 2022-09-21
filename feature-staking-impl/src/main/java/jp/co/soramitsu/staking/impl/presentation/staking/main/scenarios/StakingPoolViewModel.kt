@@ -1,14 +1,18 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
 import java.math.BigDecimal
+import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
+import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -28,16 +32,30 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 class StakingPoolViewModel(
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val stakingInteractor: StakingInteractor,
     private val resourceManager: ResourceManager,
-    private val rewardCalculatorFactory: RewardCalculatorFactory
+    private val rewardCalculatorFactory: RewardCalculatorFactory,
+    baseViewModel: BaseStakingViewModel
 ) : StakingScenarioViewModel {
+
+    private val defaultAmountInputState = AmountInputViewState(
+        tokenName = "...",
+        tokenImage = "",
+        totalBalance = resourceManager.getString(jp.co.soramitsu.common.R.string.common_balance_format, "..."),
+        fiatAmount = "",
+        tokenAmount = "10"
+    )
+    private val currentAssetFlow = stakingInteractor.currentAssetFlow().filter { it.token.configuration.supportStakingPool }
 
     override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
 
@@ -46,8 +64,30 @@ class StakingPoolViewModel(
         return kotlinx.coroutines.flow.flowOf(Pool)
     }
 
+    override val enteredAmountFlow = MutableStateFlow("10")
+
+    private val amountInputViewState: Flow<AmountInputViewState> = combine(enteredAmountFlow, currentAssetFlow) { enteredAmount, asset ->
+        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration.symbol)
+        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+        val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+
+        AmountInputViewState(
+            tokenName = asset.token.configuration.symbol,
+            tokenImage = asset.token.configuration.iconUrl,
+            totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
+            fiatAmount = fiatAmount,
+            tokenAmount = enteredAmount
+        )
+    }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, defaultAmountInputState)
+
+    private val estimatedEarningsViewState = enteredAmountFlow.map { enteredAmount ->
+        val asset = stakingInteractor.currentAssetFlow().first()
+        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+        getReturns(asset.token.configuration.chainId, amount)
+    }
+
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
-        return stakingStateFlow.map { state ->
+        return combine(stakingStateFlow, amountInputViewState, estimatedEarningsViewState) { state, inputState, returns ->
             when (state) {
                 is StakingState.Pool.Member -> {
                     val asset = stakingInteractor.currentAssetFlow().first()
@@ -55,11 +95,10 @@ class StakingPoolViewModel(
                     StakingViewState.Pool.PoolMember(poolViewState)
                 }
                 is StakingState.Pool.None -> {
-                    val returns = getReturns(state.chain.id)
-
                     val returnsViewState = EstimatedEarningsViewState(
                         monthlyChange = TitleValueViewState(returns.monthly.gain, returns.monthly.amount, returns.monthly.fiatAmount),
-                        yearlyChange = TitleValueViewState(returns.yearly.gain, returns.yearly.amount, returns.yearly.fiatAmount)
+                        yearlyChange = TitleValueViewState(returns.yearly.gain, returns.yearly.amount, returns.yearly.fiatAmount),
+                        inputState
                     )
                     StakingViewState.Pool.Welcome(returnsViewState)
                 }
@@ -71,12 +110,12 @@ class StakingPoolViewModel(
         }
     }
 
-    private suspend fun getReturns(id: ChainId): ReturnsModel {
+    private suspend fun getReturns(id: ChainId, amount: BigDecimal): ReturnsModel {
         val calculator = rewardCalculatorFactory.createManual(id)
         val asset = stakingInteractor.currentAssetFlow().first()
         val chainId = asset.token.configuration.chainId
-        val monthly = calculator.calculateReturns(BigDecimal.ONE, PERIOD_MONTH, true, chainId)
-        val yearly = calculator.calculateReturns(BigDecimal.ONE, PERIOD_YEAR, true, chainId)
+        val monthly = calculator.calculateReturns(amount, PERIOD_MONTH, true, chainId)
+        val yearly = calculator.calculateReturns(amount, PERIOD_YEAR, true, chainId)
 
         val monthlyEstimation = mapPeriodReturnsToRewardEstimation(monthly, asset.token, resourceManager)
         val yearlyEstimation = mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)

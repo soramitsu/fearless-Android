@@ -15,6 +15,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetwo
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 const val PERIOD_MONTH = 30
 const val PERIOD_YEAR = 365
@@ -37,6 +38,7 @@ interface StakingScenarioViewModel {
 
     suspend fun getRedeemValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
     suspend fun getBondMoreValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
+    val enteredAmountFlow: MutableStateFlow<String>
 }
 
 fun formatAlertTokenAmount(amount: BigDecimal, token: Token): String {

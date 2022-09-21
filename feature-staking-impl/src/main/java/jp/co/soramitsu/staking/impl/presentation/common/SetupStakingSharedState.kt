@@ -120,7 +120,8 @@ sealed class SetupStakingProcess {
                         is Payload.Full -> ReadyToSubmit.Payload.Full(amount, rewardDestination, controllerAddress, validators, selectionMethod)
                         is Payload.ExistingStash -> ReadyToSubmit.Payload.ExistingStash(validators, selectionMethod)
                         is Payload.Relaychain -> ReadyToSubmit.Payload.RelayChain(amount, rewardDestination, controllerAddress, validators, selectionMethod)
-                        else -> error("Wrong payload type")
+                        is Payload.Validators -> ReadyToSubmit.Payload.ExistingStash(validators, selectionMethod)
+                        else -> error("Wrong payload type - $this")
                     }
                 }
 

@@ -13,6 +13,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingPoolViewState
@@ -32,16 +33,16 @@ class StartStakingPoolViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val router: StakingRouter,
-    flowStateProvider: StakingPoolSharedStateProvider
+    private val flowStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel() {
 
     val chain: Chain
     val asset: Asset
 
     init {
-        val setupState = requireNotNull(flowStateProvider.mainState.get())
-        chain = requireNotNull(setupState.chain)
-        asset = requireNotNull(setupState.asset)
+        val mainState = requireNotNull(flowStateProvider.mainState.get())
+        chain = requireNotNull(mainState.chain)
+        asset = requireNotNull(mainState.asset)
     }
 
     private val yearlyReturnsFlow = flowOf {
@@ -70,14 +71,12 @@ class StartStakingPoolViewModel @Inject constructor(
     }
 
     val state = combine(rewardsPayoutDelayFlow, unstakingPeriodFlow, yearlyReturnsFlow) { rewardsPayoutDelay, unstakingPeriod, yearlyReturns ->
-        val asset = stakingSharedState.currentAssetFlow().first()
-
         SetupStakingPoolViewState(
             ToolbarViewState(
                 resourceManager.getString(R.string.pool_staking_title),
                 R.drawable.ic_arrow_back_24dp
             ),
-            asset.token.configuration.id,
+            asset.token.configuration.symbol,
             rewardsPayoutDelay,
             yearlyReturns.gain,
             unstakingPeriod
@@ -104,6 +103,10 @@ class StartStakingPoolViewModel @Inject constructor(
     fun onInstructionsClick() {}
 
     fun onJoinPool() {
+        val setupState = flowStateProvider.setupState
+        if (setupState.get() == null) {
+            setupState.set(StakingPoolJoinFlowState())
+        }
         router.openSetupStakingPool()
     }
 

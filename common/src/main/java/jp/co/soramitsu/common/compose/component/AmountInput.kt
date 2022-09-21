@@ -12,6 +12,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -28,6 +29,7 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.compose.theme.white24
 
 data class AmountInputViewState(
     val tokenName: String,
@@ -40,16 +42,23 @@ data class AmountInputViewState(
 )
 
 @Composable
-fun AmountInput(state: AmountInputViewState, onInput: (String) -> Unit) {
-    val colorState = if (state.isActive) {
+fun AmountInput(
+    state: AmountInputViewState,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = black05,
+    borderColor: Color = white24,
+    onInput: (String) -> Unit
+) {
+    val textColorState = if (state.isActive) {
         white
     } else {
         black2
     }
     BackgroundCorneredWithBorder(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth(),
-        backgroundColor = black05
+        backgroundColor = backgroundColor,
+        borderColor = borderColor
     ) {
         Column(
             modifier = Modifier
@@ -77,13 +86,13 @@ fun AmountInput(state: AmountInputViewState, onInput: (String) -> Unit) {
                         .align(CenterVertically)
                 )
                 MarginHorizontal(margin = 4.dp)
-                H3(text = state.tokenName.uppercase(), modifier = Modifier.align(CenterVertically), color = colorState)
+                H3(text = state.tokenName.uppercase(), modifier = Modifier.align(CenterVertically), color = textColorState)
                 MarginHorizontal(margin = 8.dp)
                 BasicTextField(
                     value = state.tokenAmount,
                     enabled = state.isActive,
                     onValueChange = onInput,
-                    textStyle = MaterialTheme.customTypography.header2.copy(textAlign = TextAlign.End, color = colorState),
+                    textStyle = MaterialTheme.customTypography.header2.copy(textAlign = TextAlign.End, color = textColorState),
                     singleLine = true,
                     maxLines = 1,
                     keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Decimal, imeAction = ImeAction.None),
@@ -110,6 +119,6 @@ private fun AmountInputPreview() {
         tokenAmount = "0.1"
     )
     FearlessTheme {
-        AmountInput(state, {})
+        AmountInput(state, onInput = {})
     }
 }

@@ -15,12 +15,12 @@ class ParachainStakingStoriesDataSourceImpl : StakingStoriesDataSource {
                     StoryGroup.Story.Staking(
                         R.string.staking_story_staking_title,
                         R.string.staking_story_staking_page_1,
-                        url = "https://wiki.polkadot.network/docs/en/learn-staking"
+                        url = "https://docs.moonbeam.network/learn/features/staking/"
                     ),
                     StoryGroup.Story.Staking(
                         R.string.staking_story_staking_title,
                         R.string.staking_story_staking_page_2,
-                        url = "https://wiki.polkadot.network/docs/en/learn-staking"
+                        url = "https://docs.moonbeam.network/learn/features/staking/"
                     )
                 )
             ),
@@ -30,11 +30,13 @@ class ParachainStakingStoriesDataSourceImpl : StakingStoriesDataSource {
                 elements = listOf(
                     StoryGroup.Story.Staking(
                         R.string.parachain_staking_story_collator_title,
-                        R.string.parachain_staking_story_collator_page_1
+                        R.string.parachain_staking_story_collator_page_1,
+                        url = "https://docs.moonbeam.network/learn/features/staking/#general-definitions"
                     ),
                     StoryGroup.Story.Staking(
                         R.string.parachain_staking_story_collator_title,
-                        R.string.parachain_staking_story_collator_page_2
+                        R.string.parachain_staking_story_collator_page_2,
+                        url = "https://docs.moonbeam.network/learn/features/staking/#general-definitions"
                     )
                 )
             ),
@@ -44,11 +46,13 @@ class ParachainStakingStoriesDataSourceImpl : StakingStoriesDataSource {
                 elements = listOf(
                     StoryGroup.Story.Staking(
                         R.string.parachain_staking_story_delegator_title,
-                        R.string.parachain_staking_story_delegator_page_1
+                        R.string.parachain_staking_story_delegator_page_1,
+                        url = "https://docs.moonbeam.network/learn/features/staking/#general-definitions"
                     ),
                     StoryGroup.Story.Staking(
                         R.string.parachain_staking_story_delegator_title,
-                        R.string.parachain_staking_story_delegator_page_2
+                        R.string.parachain_staking_story_delegator_page_2,
+                        url = "https://docs.moonbeam.network/learn/features/staking/#general-definitions"
                     )
                 )
             ),
@@ -58,11 +62,13 @@ class ParachainStakingStoriesDataSourceImpl : StakingStoriesDataSource {
                 elements = listOf(
                     StoryGroup.Story.Staking(
                         R.string.parachain_staking_story_rewards_title,
-                        R.string.parachain_staking_story_rewards_page_1
+                        R.string.parachain_staking_story_rewards_page_1,
+                        url = "https://docs.moonbeam.network/learn/features/staking/#reward-distribution"
                     ),
                     StoryGroup.Story.Staking(
                         R.string.parachain_staking_story_rewards_title,
-                        R.string.parachain_staking_story_rewards_page_2
+                        R.string.parachain_staking_story_rewards_page_2,
+                        url = "https://docs.moonbeam.network/learn/features/staking/#reward-distribution"
                     )
                 )
             )

@@ -5,7 +5,6 @@ import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.multiAddressOf
-import jp.co.soramitsu.runtime.state.chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.bondExtra
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.claimPayout
@@ -165,8 +164,16 @@ class StakingPoolApi(
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
             val multiAddress = chain.multiAddressOf(accountAddress)
-            extrinsicService.estimateFee(chain) {
-                withdrawUnbondedFromPool(multiAddress)
+            val accountId = chain.accountIdOf(accountAddress)
+            // todo temporary fix until all runtimes will be updated
+            try {
+                extrinsicService.estimateFee(chain) {
+                    withdrawUnbondedFromPool(multiAddress)
+                }
+            } catch (e: Exception) {
+                extrinsicService.estimateFee(chain) {
+                    withdrawUnbondedFromPool(accountId)
+                }
             }
         }
     }
@@ -176,9 +183,20 @@ class StakingPoolApi(
             val chain = stakingSharedState.chain()
             val accountId = chain.accountIdOf(accountAddress)
             val multiAddress = chain.multiAddressOf(accountAddress)
-
-            extrinsicService.submitExtrinsic(chain, accountId) {
-                withdrawUnbondedFromPool(multiAddress)
+            // todo temporary fix until all runtimes will be updated
+            try {
+                val result = extrinsicService.submitExtrinsic(chain, accountId) {
+                    withdrawUnbondedFromPool(multiAddress)
+                }
+                if (result.isFailure) {
+                    extrinsicService.submitExtrinsic(chain, accountId) {
+                        withdrawUnbondedFromPool(accountId)
+                    }
+                } else result
+            } catch (e: Exception) {
+                extrinsicService.submitExtrinsic(chain, accountId) {
+                    withdrawUnbondedFromPool(accountId)
+                }
             }
         }
     }
@@ -187,8 +205,16 @@ class StakingPoolApi(
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
             val multiAddress = chain.multiAddressOf(accountAddress)
-            extrinsicService.estimateFee(chain) {
-                unbondFromPool(multiAddress, unbondingAmount)
+            val accountId = chain.accountIdOf(accountAddress)
+            // todo temporary fix until all runtimes will be updated
+            try {
+                extrinsicService.estimateFee(chain) {
+                    unbondFromPool(multiAddress, unbondingAmount)
+                }
+            } catch (e: Exception) {
+                extrinsicService.estimateFee(chain) {
+                    unbondFromPool(accountId, unbondingAmount)
+                }
             }
         }
     }
@@ -198,8 +224,20 @@ class StakingPoolApi(
             val chain = stakingSharedState.chain()
             val accountId = chain.accountIdOf(accountAddress)
             val multiAddress = chain.multiAddressOf(accountAddress)
-            extrinsicService.submitExtrinsic(chain, accountId) {
-                unbondFromPool(multiAddress, unbondingAmount)
+            // todo temporary fix until all runtimes will be updated
+            try {
+                val result = extrinsicService.submitExtrinsic(chain, accountId) {
+                    unbondFromPool(multiAddress, unbondingAmount)
+                }
+                if (result.isFailure) {
+                    extrinsicService.submitExtrinsic(chain, accountId) {
+                        unbondFromPool(accountId, unbondingAmount)
+                    }
+                } else result
+            } catch (e: Exception) {
+                extrinsicService.submitExtrinsic(chain, accountId) {
+                    unbondFromPool(accountId, unbondingAmount)
+                }
             }
         }
     }
