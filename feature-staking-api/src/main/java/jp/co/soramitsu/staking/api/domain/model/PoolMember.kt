@@ -40,7 +40,8 @@ data class PoolInfo(
 data class NominationPool(
     val poolId: BigInteger,
     val name: String?,
-    val stakedInPlanks: BigInteger,
+    val myStakeInPlanks: BigInteger,
+    val totalStakedInPlanks: BigInteger,
     val lastRecordedRewardCounter: BigInteger,
     val state: NominationPoolState,
     val redeemable: BigInteger,
@@ -65,7 +66,7 @@ data class NominationPool(
 
     override fun hashCode(): Int {
         var result = poolId.hashCode()
-        result = 31 * result + stakedInPlanks.hashCode()
+        result = 31 * result + myStakeInPlanks.hashCode()
         result = 31 * result + lastRecordedRewardCounter.hashCode()
         result = 31 * result + state.hashCode()
         result = 31 * result + redeemable.hashCode()
@@ -84,7 +85,7 @@ fun NominationPool.toPoolInfo(): PoolInfo {
     return PoolInfo(
         poolId,
         name ?: "Pool #$poolId",
-        stakedInPlanks,
+        totalStakedInPlanks,
         state,
         members,
         depositor,

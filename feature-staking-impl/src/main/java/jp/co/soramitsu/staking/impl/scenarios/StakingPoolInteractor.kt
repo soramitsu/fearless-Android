@@ -76,12 +76,13 @@ class StakingPoolInteractor(
         unbondingEras: List<PoolUnbonding>,
         redeemable: BigInteger,
         unbonding: BigInteger,
-        points: BigInteger
+        myStakedPoints: BigInteger
     ): NominationPool {
         return NominationPool(
             poolId = poolMember.poolId,
             name = name,
-            stakedInPlanks = points,
+            myStakeInPlanks = myStakedPoints,
+            totalStakedInPlanks = points,
             lastRecordedRewardCounter = poolMember.lastRecordedRewardCounter,
             state = state,
             redeemable = redeemable,
