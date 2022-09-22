@@ -177,9 +177,11 @@ class StakingFeatureModule {
     @Singleton
     fun provideStakingRepository(
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
+        @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
         stakingStoriesDataSource: StakingStoriesDataSource
     ): StakingRepository = StakingRepositoryImpl(
         localStorage = localStorageSource,
+        remoteStorageSource = remoteStorageSource,
         stakingStoriesDataSource = stakingStoriesDataSource
     )
 

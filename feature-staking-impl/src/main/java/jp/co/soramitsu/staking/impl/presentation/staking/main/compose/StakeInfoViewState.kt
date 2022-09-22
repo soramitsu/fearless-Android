@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.compose
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -62,7 +61,7 @@ fun NominationPool.toViewState(asset: Asset, resourceManager: ResourceManager): 
     val stakedFormatted = staked.formatTokenAmount(asset.token.configuration)
     val stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
-    val rewardedInPlanks = BigInteger.ZERO
+    val rewardedInPlanks = pendingRewards
     val rewarded = asset.token.amountFromPlanks(rewardedInPlanks)
     val rewardedFormatted = rewarded.formatTokenAmount(asset.token.configuration)
     val rewardedFiat = rewarded.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)

@@ -1,20 +1,26 @@
 package jp.co.soramitsu.staking.impl.domain
 
 import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.address.createEthereumAddressModel
+import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.domain.model.StoryGroup
+import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.combineToPair
+import jp.co.soramitsu.common.utils.numberConstant
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
@@ -133,5 +139,15 @@ class StakingInteractor(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val addressInPolkadot = metaAccount.address(polkadotChain) ?: error("Cannot find an address")
         return addressIconGenerator.createAddressModel(addressInPolkadot, sizeInDp, metaAccount.name)
+    }
+
+    suspend fun existentialDeposit(chainId: ChainId): BigInteger {
+        val runtime = chainRegistry.getRuntime(chainId)
+
+        return runtime.metadata.balances().numberConstant("ExistentialDeposit", runtime)
+    }
+
+    suspend fun getAccountBalance(chainId: ChainId, accountId: AccountId): AccountInfo {
+        return stakingRepository.getAccountInfo(chainId, accountId)
     }
 }

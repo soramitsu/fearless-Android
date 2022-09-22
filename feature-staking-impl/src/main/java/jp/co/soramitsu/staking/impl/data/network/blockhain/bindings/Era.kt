@@ -11,6 +11,7 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.staking.api.domain.model.EraIndex
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.runtime.binding.bindString
 
 /*
 "ActiveEraInfo": {

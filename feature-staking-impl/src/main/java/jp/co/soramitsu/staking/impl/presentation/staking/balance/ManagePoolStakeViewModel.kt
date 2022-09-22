@@ -46,7 +46,7 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val asset = requireNotNull(mainState.asset)
     private val accountId = requireNotNull(mainState.accountId)
 
-    private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain.id, accountId).onEach { pool ->
+    private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain, accountId).onEach { pool ->
         val pendingRewards = BigInteger.ZERO
         stakingPoolSharedStateProvider.manageState.mutate {
             StakingPoolManageFlowState(pool?.redeemable.orZero(), pendingRewards, pool?.myStakeInPlanks.orZero())
