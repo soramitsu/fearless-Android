@@ -64,6 +64,7 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
                     val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
 
+                    Background()
                     Scaffold(
                         scaffoldState = scaffoldState,
                         topBar = {
@@ -145,6 +146,9 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     open fun Toolbar(modalBottomSheetState: ModalBottomSheetState) = Unit
+
+    @Composable
+    open fun Background() = Unit
 
     fun <V> LiveData<V>.observe(observer: (V) -> Unit) {
         observe(viewLifecycleOwner, observer)

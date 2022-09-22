@@ -133,6 +133,14 @@
         app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
+    <action
+        android:id="@+id/action_mainFragment_to_balanceDetailFragment"
+        app:destination="@id/balanceDetailFragment"
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="jp.co.soramitsu.app.root.presentation.main.MainFragment"
@@ -150,14 +158,6 @@
         <action
             android:id="@+id/action_mainFragment_to_nodesFragment"
             app:destination="@id/nodesFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-        <action
-            android:id="@+id/action_mainFragment_to_balanceDetailFragment"
-            app:destination="@id/balanceDetailFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
@@ -189,6 +189,14 @@
         <action
             android:id="@+id/action_mainFragment_to_setupStakingFragment"
             app:destination="@id/setupStakingFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+        <action
+            android:id="@+id/action_mainFragment_to_searchAssetsFragment"
+            app:destination="@id/searchAssetsFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
@@ -551,6 +559,11 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingFragment"
         android:label="setupStakingFragment"
         tools:layout="@layout/fragment_setup_staking" />
+
+    <fragment
+        android:id="@+id/searchAssetsFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment"
+        android:label="searchAssetsFragment" />
 
     <dialog
         android:id="@+id/startStakingPoolFragment"
