@@ -2,12 +2,14 @@ package jp.co.soramitsu.staking.impl.scenarios.relaychain
 
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.NonNullBinderWithType
+import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.accountIdFromMapKey
 import jp.co.soramitsu.common.utils.babe
 import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.mapValuesNotNull
+import jp.co.soramitsu.common.utils.nominationPools
 import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
@@ -18,6 +20,7 @@ import jp.co.soramitsu.coredb.model.AccountStakingLocal
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromByteArrayOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -135,6 +138,13 @@ class StakingRelayChainScenarioRepository(
         binding = ::bindCurrentEra,
         chainId = chainId
     )
+
+    suspend fun getNominationPoolPalletId(chainId: ChainId): ByteArray {
+        val runtime = runtimeFor(chainId)
+        val encoded = runtime.metadata.nominationPools().constant("PalletId")
+        val decoded = encoded.type?.fromByteArrayOrNull(runtime, encoded.value) ?: incompatible()
+        return decoded as ByteArray
+    }
 
     suspend fun getHistoryDepth(chainId: ChainId): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("HistoryDepth").storageKey() },

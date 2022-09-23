@@ -2,7 +2,6 @@ package jp.co.soramitsu.staking.impl.presentation.staking.balance
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -11,7 +10,6 @@ import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
@@ -46,10 +44,13 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val asset = requireNotNull(mainState.asset)
     private val accountId = requireNotNull(mainState.accountId)
 
-    private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain.id, accountId).onEach { pool ->
-        val pendingRewards = BigInteger.ZERO
+    private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain, accountId).onEach { pool ->
         stakingPoolSharedStateProvider.manageState.mutate {
-            StakingPoolManageFlowState(pool?.redeemable.orZero(), pendingRewards, pool?.myStakeInPlanks.orZero())
+            StakingPoolManageFlowState(
+                pool?.redeemable.orZero(),
+                pool?.pendingRewards.orZero(),
+                pool?.myStakeInPlanks.orZero()
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -95,9 +96,10 @@ class ManagePoolStakeViewModel @Inject constructor(
         val total = asset.token.amountFromPlanks(pool.myStakeInPlanks)
         val totalFormatted = total.formatTokenAmount(asset.token.configuration)
 
-        val hasRewardsForClaim = pool.lastRecordedRewardCounter == BigInteger.ZERO
+        val hasRewardsForClaim = pool.pendingRewards > BigInteger.ZERO
+        val claimable = asset.token.amountFromPlanks(pool.pendingRewards).formatTokenAmount(asset.token.configuration)
         val claimNotification = if (hasRewardsForClaim) {
-            NotificationState(R.drawable.ic_status_warning_16, R.string.pool_claim_reward, BigDecimal.ZERO.format(), R.string.common_claim, colorAccent)
+            NotificationState(R.drawable.ic_status_warning_16, R.string.pool_claim_reward, claimable, R.string.common_claim, colorAccent)
         } else {
             null
         }
@@ -126,7 +128,7 @@ class ManagePoolStakeViewModel @Inject constructor(
         // todo stub for claim notification
         ManagePoolStakeViewState(
             totalFormatted,
-            null,
+            claimNotification,
             redeemableNotification,
             availableState,
             unstakingState,

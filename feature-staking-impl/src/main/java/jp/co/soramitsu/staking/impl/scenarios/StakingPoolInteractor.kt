@@ -5,6 +5,8 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -15,12 +17,14 @@ import jp.co.soramitsu.staking.api.domain.model.PoolUnbonding
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
+import jp.co.soramitsu.staking.impl.data.model.PoolRewards
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
@@ -44,7 +48,7 @@ class StakingPoolInteractor(
     }
 
     private fun stakingPoolStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState> {
-        return observeCurrentPool(chain.id, accountId).map {
+        return observeCurrentPool(chain, accountId).map {
             when (it) {
                 null -> StakingState.Pool.None(chain, accountId)
                 else -> StakingState.Pool.Member(chain, accountId, it)
@@ -53,21 +57,52 @@ class StakingPoolInteractor(
     }
 
     fun observeCurrentPool(
-        chainId: ChainId,
+        chain: Chain,
         accountId: AccountId
     ): Flow<NominationPool?> {
-        return dataSource.observePoolMembers(chainId, accountId).flatMapConcat { poolMember ->
+        return dataSource.observePoolMembers(chain.id, accountId).flatMapConcat { poolMember ->
             poolMember ?: return@flatMapConcat flowOf(null)
-            dataSource.observePool(chainId, poolMember.poolId).map { bondedPool ->
-                bondedPool ?: return@map null
-                val currentEra = relayChainRepository.getCurrentEraIndex(chainId)
-                val name = dataSource.getPoolMetadata(chainId, poolMember.poolId)
+            combine(dataSource.observePool(chain.id, poolMember.poolId), dataSource.observePoolRewards(chain.id, poolMember.poolId)) { bondedPool, rewardPool ->
+                bondedPool ?: return@combine null
+                val pendingRewards = calculatePendingRewards(chain, poolMember, bondedPool, rewardPool)
+
+                val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
+                val name = dataSource.getPoolMetadata(chain.id, poolMember.poolId)
                 val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
                 val redeemable = unbondingEras.filter { it.era < currentEra }.sumOf { it.amount }
                 val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
-                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding, poolMember.points)
+                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding, poolMember.points, pendingRewards)
             }
         }
+    }
+
+    private suspend fun calculatePendingRewards(chain: Chain, poolMember: PoolMember, bondedPool: BondedPool, rewardPool: PoolRewards?): BigInteger {
+        rewardPool ?: return BigInteger.ZERO
+        val rewardsAccountId = generatePoolRewardAccount(chain, poolMember.poolId)
+        val existentialDeposit = stakingInteractor.existentialDeposit(chain.id)
+        val rewardsAccountBalance = stakingInteractor.getAccountBalance(chain.id, rewardsAccountId).data.free.subtract(existentialDeposit)
+        val payoutSinceLastRecord = rewardsAccountBalance.add(rewardPool.totalRewardsClaimed).subtract(rewardPool.lastRecordedTotalPayouts)
+        val rewardCounterBase = BigInteger.valueOf(10).pow(18)
+        val currentRewardCounter = payoutSinceLastRecord.multiply(rewardCounterBase).divide(bondedPool.points).add(rewardPool.lastRecordedRewardCounter)
+        return currentRewardCounter.subtract(rewardPool.lastRecordedRewardCounter).multiply(poolMember.points).divide(rewardCounterBase)
+    }
+
+    private suspend fun generatePoolRewardAccount(chain: Chain, poolId: BigInteger): ByteArray {
+        return generatePoolAccountId(1, chain, poolId)
+    }
+
+    private suspend fun generatePoolStashAccount(chain: Chain, poolId: BigInteger): ByteArray {
+        return generatePoolAccountId(0, chain, poolId)
+    }
+
+    private suspend fun generatePoolAccountId(index: Int, chain: Chain, poolId: BigInteger): ByteArray {
+        val palletId = relayChainRepository.getNominationPoolPalletId(chain.id)
+        val modPrefix = "modl".toByteArray()
+        val indexBytes = byteArrayOf(index.toByte())
+        val poolIdBytes = poolId.toByteArray()
+        val empty = ByteArray(32)
+        val source = modPrefix + palletId + indexBytes + poolIdBytes + empty
+        return SS58Encoder.encode(source.take(32).toByteArray(), chain.addressPrefix.toShort()).toAccountId()
     }
 
     private fun BondedPool.toNominationPool(
@@ -76,7 +111,8 @@ class StakingPoolInteractor(
         unbondingEras: List<PoolUnbonding>,
         redeemable: BigInteger,
         unbonding: BigInteger,
-        myStakedPoints: BigInteger
+        myStakedPoints: BigInteger,
+        myPendingRewards: BigInteger
     ): NominationPool {
         return NominationPool(
             poolId = poolMember.poolId,
@@ -88,6 +124,7 @@ class StakingPoolInteractor(
             redeemable = redeemable,
             unbonding = unbonding,
             unbondingEras = unbondingEras,
+            pendingRewards = myPendingRewards,
             members = memberCounter,
             depositor = depositor,
             root = root,

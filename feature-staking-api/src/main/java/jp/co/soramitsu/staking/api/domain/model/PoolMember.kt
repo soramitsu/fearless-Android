@@ -47,6 +47,7 @@ data class NominationPool(
     val redeemable: BigInteger,
     val unbonding: BigInteger,
     val unbondingEras: List<PoolUnbonding>,
+    val pendingRewards: BigInteger,
     val members: BigInteger,
     val depositor: AccountId,
     val root: AccountId?,
