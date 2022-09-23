@@ -49,7 +49,7 @@ fun StakeInfoViewState.PoolStakeInfoViewState.Companion.default(resourceManager:
     return StakeInfoViewState.PoolStakeInfoViewState(
         title = "Your pool staking",
         staked = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_bonded)),
-        rewarded = TitleValueViewState(resourceManager.getString(R.string.staking_total_rewards_v1_9_0)),
+        rewarded = TitleValueViewState(resourceManager.getString(R.string.common_claimable)),
         redeemable = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_redeemable)),
         unstaking = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_unbonding_v1_9_0)),
         status = StakeStatus.PoolActive(0L, true)

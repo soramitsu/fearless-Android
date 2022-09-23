@@ -141,10 +141,8 @@ class StakingRelayChainScenarioRepository(
 
     suspend fun getNominationPoolPalletId(chainId: ChainId): ByteArray {
         val runtime = runtimeFor(chainId)
-
-        val c = runtime.metadata.nominationPools().constant("PalletId") // How many blocks per session
-        val decoded = c.type?.fromByteArrayOrNull(runtime, c.value) ?: incompatible()
-        hashCode()
+        val encoded = runtime.metadata.nominationPools().constant("PalletId")
+        val decoded = encoded.type?.fromByteArrayOrNull(runtime, encoded.value) ?: incompatible()
         return decoded as ByteArray
     }
 

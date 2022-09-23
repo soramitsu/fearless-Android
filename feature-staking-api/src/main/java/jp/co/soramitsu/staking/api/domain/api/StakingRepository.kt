@@ -1,7 +1,6 @@
 package jp.co.soramitsu.staking.api.domain.api
 
 import java.math.BigInteger
-import jp.co.soramitsu.common.data.network.runtime.binding.AccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
