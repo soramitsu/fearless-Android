@@ -67,7 +67,7 @@ class ManageAssetsViewModel @Inject constructor(
             assets
         } else {
             assets.filter {
-                it.name.contains(query, ignoreCase = true) ||
+                it.chainName.contains(query, ignoreCase = true) ||
                     it.tokenSymbol.contains(query, ignoreCase = true) ||
                     it.network?.name?.contains(query, ignoreCase = true) == true
             }

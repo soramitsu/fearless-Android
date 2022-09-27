@@ -44,7 +44,7 @@ class ManageAssetViewHolder(
     fun bind(item: ManageAssetModel) =
         with(itemView) {
             findViewById<ImageView>(R.id.manageAssetsItemIcon).load(item.iconUrl, imageLoader)
-            findViewById<TextView>(R.id.manageAssetsItemName).text = item.name
+            findViewById<TextView>(R.id.manageAssetsItemName).text = item.chainName
 
             findViewById<Group>(R.id.manageAssetsAccountExistStateGroup).isVisible = item.hasAccount
             findViewById<Group>(R.id.manageAssetsMissingAccountStateGroup).isVisible = !item.hasAccount
@@ -69,7 +69,7 @@ class ManageAssetViewHolder(
             findViewById<TextView>(R.id.manageAssetsAddAccount).setOnClickListener {
                 listener.addAccount(
                     chainId = item.chainId,
-                    chainName = item.name,
+                    chainName = item.chainName,
                     assetId = item.assetId,
                     markedAsNotNeed = item.markedAsNotNeed
                 )
@@ -79,7 +79,7 @@ class ManageAssetViewHolder(
     private fun setupNetworkBadge(model: ManageAssetModel.Network?) = itemView.apply {
         findViewById<BadgeView>(R.id.manageAssetsBadge).isVisible = model?.let {
             findViewById<BadgeView>(R.id.manageAssetsBadge).setIcon(it.iconUrl, imageLoader)
-            findViewById<BadgeView>(R.id.manageAssetsBadge).setText(stringText = it.name)
+            findViewById<BadgeView>(R.id.manageAssetsBadge).setText(it.name)
             true
         } ?: false
     }

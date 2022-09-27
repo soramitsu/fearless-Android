@@ -31,7 +31,7 @@ class StakingAssetSelector(
             StakingAssetSelectorModel(
                 it,
                 asset.token.configuration.iconUrl,
-                asset.token.configuration.name,
+                asset.token.configuration.chainName,
                 asset.transferable.formatTokenAmount(asset.token.configuration)
             )
         }
@@ -47,7 +47,7 @@ class StakingAssetSelector(
                 StakingAssetSelectorModel(
                     selection,
                     asset.token.configuration.iconUrl,
-                    asset.token.configuration.name,
+                    asset.token.configuration.chainName,
                     asset.transferable.formatTokenAmount(asset.token.configuration)
                 )
             }
@@ -71,7 +71,7 @@ class StakingAssetSelector(
     data class StakingAssetSelectorModel(
         val selectionItem: StakingAssetSelection,
         val imageUrl: String,
-        val tokenName: String,
+        val chainName: String,
         val assetBalance: String
     ) {
         companion object {

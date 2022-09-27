@@ -14,7 +14,7 @@ data class ManageAssetModel(
     val chainId: ChainId,
     val tokenSymbol: String,
     val accountId: AccountId,
-    val name: String,
+    val chainName: String,
     val iconUrl: String,
     // will be null if there is no account for this network
     val amount: String?,
@@ -34,8 +34,12 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
     val totalAmount = calculateTotalBalance(asset.freeInPlanks, asset.reservedInPlanks).orZero()
     val totalBalance = token.amountFromPlanks(totalAmount).format()
 
-    val network = if (token.configuration.isNative) null else token.configuration.chainName?.let {
-        ManageAssetModel.Network(iconUrl = token.configuration.chainIcon ?: "", it)
+    val network = when (token.configuration.isUtility) {
+        true -> null
+        else -> ManageAssetModel.Network(
+            iconUrl = token.configuration.chainIcon.orEmpty(),
+            name = token.configuration.chainName
+        )
     }
 
     return ManageAssetModel(
@@ -43,7 +47,7 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
         chainId = token.configuration.chainId,
         tokenSymbol = token.configuration.symbol,
         accountId = asset.accountId,
-        name = token.configuration.name,
+        chainName = token.configuration.chainName,
         iconUrl = token.configuration.iconUrl,
         amount = "$totalBalance ${token.configuration.symbolToShow.uppercase()}",
         network = network,
