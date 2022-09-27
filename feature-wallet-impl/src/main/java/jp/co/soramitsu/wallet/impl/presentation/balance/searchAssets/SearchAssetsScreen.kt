@@ -172,7 +172,7 @@ private fun SwipableAssetListItem(
         swipeableState = swipeableState,
         state = SwipeBoxViewState(
             leftStateWidth = 180.dp,
-            rightStateWidth = 0.dp
+            rightStateWidth = 90.dp
         ),
         initialContent = {
             AssetListItem(
@@ -187,7 +187,13 @@ private fun SwipableAssetListItem(
                 viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
             }
         },
-        rightContent = {}
+        rightContent = {
+            ActionBar(
+                state = getRightActionBarViewState(assetState)
+            ) { actionType, chainId, chainAssetId ->
+                viewModel.actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
+            }
+        }
     )
 }
 
@@ -197,6 +203,17 @@ private fun getLeftActionBarViewState(asset: AssetListItemViewState) = ActionBar
     actionItems = listOf(
         ActionItemType.SEND,
         ActionItemType.RECEIVE
+    )
+)
+
+private fun getRightActionBarViewState(asset: AssetListItemViewState) = ActionBarViewState(
+    chainId = asset.chainId,
+    chainAssetId = asset.chainAssetId,
+    actionItems = listOf(
+        when {
+            asset.isHidden -> ActionItemType.SHOW
+            else -> ActionItemType.HIDE
+        }
     )
 )
 

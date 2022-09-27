@@ -187,8 +187,21 @@ class SearchAssetsViewModel @Inject constructor(
             ActionItemType.TELEPORT -> {
                 showMessage("YOU NEED THE BLUE KEY")
             }
-            else -> {}
+            ActionItemType.HIDE -> {
+                launch { hideAsset(chainId, chainAssetId) }
+            }
+            ActionItemType.SHOW -> {
+                launch { showAsset(chainId, chainAssetId) }
+            }
         }
+    }
+
+    suspend fun hideAsset(chainId: ChainId, chainAssetId: String) {
+        interactor.markAssetAsHidden(chainId, chainAssetId)
+    }
+
+    suspend fun showAsset(chainId: ChainId, chainAssetId: String) {
+        interactor.markAssetAsShown(chainId, chainAssetId)
     }
 
     private fun sendClicked(assetPayload: AssetPayload) {
