@@ -35,7 +35,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
-import jp.co.soramitsu.wallet.impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.wallet.impl.data.mappers.mapNodeToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb
@@ -299,7 +298,10 @@ class WalletRepositoryImpl(
     ): Fee {
         val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll)
 
-        return mapFeeRemoteToFee(fee, transfer)
+        return Fee(
+            transferAmount = transfer.amount,
+            feeAmount = chain.utilityAsset.amountFromPlanks(fee)
+        )
     }
 
     override suspend fun performTransfer(

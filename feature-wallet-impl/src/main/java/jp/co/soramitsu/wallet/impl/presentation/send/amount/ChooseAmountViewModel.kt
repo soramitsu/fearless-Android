@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.format
@@ -22,8 +23,10 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.requireValue
+import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
@@ -82,7 +85,8 @@ class ChooseAmountViewModel @Inject constructor(
     private val walletConstants: WalletConstants,
     private val phishingAddress: PhishingWarningMixin,
     private val chainRegistry: ChainRegistry,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks,
@@ -111,6 +115,11 @@ class ChooseAmountViewModel @Inject constructor(
         updateExistentialDeposit(asset.token.configuration)
     }
 
+    private val chainLiveData = liveData {
+        val chain = interactor.getChain(assetPayload.chainId)
+        emit(chain)
+    }
+
     private val tipLiveData = liveData { walletConstants.tip(assetPayload.chainId)?.let { emit(it) } }
     private val tipAmountLiveData = mediateWith(tipLiveData, assetLiveData) { (tip: BigInteger?, asset: Asset?) ->
         tip?.let {
@@ -130,7 +139,16 @@ class ChooseAmountViewModel @Inject constructor(
     }
 
     val feeLiveData = MutableLiveData<Fee?>()
-    val feeFiatLiveData = combine(assetLiveData, feeLiveData) { (asset: Asset, fee: Fee?) ->
+    val feeFormattedLiveData = combine(chainLiveData, feeLiveData) { (chain: Chain, fee: Fee?) ->
+        fee?.feeAmount?.formatTokenAmount(chain.utilityAsset.symbolToShow) ?: resourceManager.getString(R.string.common_error_general_title)
+    }
+
+    val feeFiatLiveData = combine(
+        chainLiveData.switchMap { chain ->
+            interactor.assetFlow(chain.id, chain.utilityAsset.id).asLiveData()
+        },
+        feeLiveData
+    ) { (asset: Asset, fee: Fee?) ->
         fee?.feeAmount?.let {
             asset.token.fiatAmount(it)?.formatAsCurrency(asset.token.fiatSymbol)
         }

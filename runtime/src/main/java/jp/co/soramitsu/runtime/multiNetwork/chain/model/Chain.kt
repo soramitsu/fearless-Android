@@ -2,6 +2,7 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 
 typealias ChainId = String
@@ -11,6 +12,8 @@ const val kusamaChainId = "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca9365
 const val westendChainId = "e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e"
 const val moonriverChainId = "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b"
 const val rococoChainId = "aaf2cd1b74b5f726895921259421b534124726263982522174147046b8827897"
+
+const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
 
 const val kitsugiChainId = "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b"
 const val interlayChainId = "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72"
@@ -82,6 +85,21 @@ data class Chain(
                 -1 -> STAKING_ORDER.size
                 else -> order
             }
+
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        val currency = when (type) {
+            null, ChainAssetType.Normal -> null
+            ChainAssetType.ForeignAsset -> DictEnum.Entry("ForeignAsset", currencyId?.toBigInteger())
+            ChainAssetType.StableAssetPoolToken -> DictEnum.Entry("StableAssetPoolToken", currencyId?.toBigInteger())
+            ChainAssetType.LiquidCrowdloan -> DictEnum.Entry("LiquidCrowdloan", currencyId?.toBigInteger())
+            ChainAssetType.OrmlChain,
+            ChainAssetType.OrmlAsset -> DictEnum.Entry("Token", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.VToken -> DictEnum.Entry("VToken", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.VSToken -> DictEnum.Entry("VSToken", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.Stable -> DictEnum.Entry("Stable", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.Equilibrium -> symbol.toBigInteger()
+            ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
+        }
     }
 
     data class Node(

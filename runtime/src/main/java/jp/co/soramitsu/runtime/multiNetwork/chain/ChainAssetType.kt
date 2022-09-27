@@ -10,12 +10,13 @@ enum class ChainAssetType {
     VToken,
     VSToken,
     Stable,
-    Equilibrium;
+    Equilibrium,
+    Unknown;
 
     companion object {
-        fun from(key: String?): ChainAssetType? {
+        fun from(key: String?): ChainAssetType {
             return when (key) {
-                "normal" -> Normal
+                null, "normal" -> Normal
                 "ormlChain" -> OrmlChain
                 "ormlAsset" -> OrmlAsset
                 "foreignAsset" -> ForeignAsset
@@ -25,7 +26,7 @@ enum class ChainAssetType {
                 "vsToken" -> VSToken
                 "stable" -> Stable
                 "equilibrium" -> Equilibrium
-                else -> null
+                else -> Unknown
             }
         }
     }

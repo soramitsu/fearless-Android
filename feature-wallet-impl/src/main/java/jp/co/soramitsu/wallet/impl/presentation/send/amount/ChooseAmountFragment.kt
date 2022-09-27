@@ -81,8 +81,8 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>(R.layout.fragme
 
         observeTransferChecks(viewModel, viewModel::warningConfirmed)
 
-        viewModel.feeLiveData.observe {
-            binding.chooseAmountFee.text = it?.feeAmount?.formatTokenAmount(it.type) ?: getString(R.string.common_error_general_title)
+        viewModel.feeFormattedLiveData.observe {
+            binding.chooseAmountFee.text = it
         }
         viewModel.tipAmountTextLiveData.observe {
             binding.chooseAmountTipGroup.makeVisible()
