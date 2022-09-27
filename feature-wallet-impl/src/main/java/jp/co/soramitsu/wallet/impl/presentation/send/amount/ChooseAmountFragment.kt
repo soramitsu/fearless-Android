@@ -21,7 +21,6 @@ import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentChooseAmountBindi
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
-import jp.co.soramitsu.wallet.impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.wallet.impl.presentation.send.phishing.observePhishingCheck
 
 const val KEY_ADDRESS = "KEY_ADDRESS"
@@ -130,10 +129,6 @@ class ChooseAmountFragment : BaseFragment<ChooseAmountViewModel>(R.layout.fragme
         }
 
         viewModel.continueButtonStateLiveData.observe(binding.chooseAmountNext::setState)
-
-        viewModel.showBalanceDetailsEvent.observeEvent {
-            BalanceDetailsBottomSheet(requireContext(), it).show()
-        }
 
         observePhishingCheck(viewModel)
 

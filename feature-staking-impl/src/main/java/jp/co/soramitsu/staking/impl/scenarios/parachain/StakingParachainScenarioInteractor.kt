@@ -22,6 +22,8 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -116,9 +118,9 @@ class StakingParachainScenarioInteractor(
 ) : StakingScenarioInteractor {
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
-        val chainId = stakingInteractor.getSelectedChain().id
-        val lockupPeriod = getParachainLockupPeriodInDays(chainId)
-        val minimumStakeInPlanks = getMinimumStake(chainId)
+        val chain = stakingInteractor.getSelectedChain()
+        val lockupPeriod = getParachainLockupPeriodInDays(chain.id)
+        val minimumStakeInPlanks = getMinimumStake(chain.utilityAsset)
 
         return flowOf(
             NetworkInfo.Parachain(
@@ -191,7 +193,7 @@ class StakingParachainScenarioInteractor(
     override suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean {
         val tokenConfiguration = payload.asset.token.configuration
 
-        val minimumStakeInPlanks = getMinimumStake(tokenConfiguration.chainId)
+        val minimumStakeInPlanks = getMinimumStake(tokenConfiguration)
         val minimumStake = tokenConfiguration.amountFromPlanks(minimumStakeInPlanks)
         val unstakeAvailable = getUnstakeAvailableAmount(payload.asset, payload.collatorAddress?.fromHex())
         val resultGreaterThanMinimalStake = unstakeAvailable - payload.amount >= minimumStake
@@ -203,8 +205,8 @@ class StakingParachainScenarioInteractor(
         return stakingConstantsRepository.maxDelegationsPerDelegator(stakingInteractor.getSelectedChain().id)
     }
 
-    override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
-        return stakingConstantsRepository.parachainMinimumStaking(chainId)
+    override suspend fun getMinimumStake(chainAsset: Chain.Asset): BigInteger {
+        return stakingConstantsRepository.parachainMinimumStaking(chainAsset.chainId)
     }
 
     override suspend fun maxNumberOfStakesIsReached(chainId: ChainId): Boolean {

@@ -125,7 +125,7 @@ class AlertsInteractor(
         }
 
         val maxRewardedNominatorsPerValidator = stakingConstantsRepository.maxRewardedNominatorPerValidator(chain.id)
-        val minimumNominatorBond = stakingRepository.minimumNominatorBond(chain.id)
+        val minimumNominatorBond = stakingRepository.minimumNominatorBond(chainAsset)
         val meta = accountRepository.getSelectedMetaAccount()
 
         val alertsFlow = combine(

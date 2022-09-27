@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.domain.validation
 
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
 import jp.co.soramitsu.common.validation.validOrWarning
@@ -17,7 +18,7 @@ class ExistentialDepositValidation<P, E>(
 
     override suspend fun validate(value: P): ValidationStatus<E> {
         val token = tokenProducer(value)
-        val existentialDepositInPlanks = walletConstants.existentialDeposit(token.configuration.chainId)
+        val existentialDepositInPlanks = walletConstants.existentialDeposit(token.configuration).orZero()
         val existentialDeposit = token.amountFromPlanks(existentialDepositInPlanks)
 
         val totalBalance = totalBalanceProducer(value)

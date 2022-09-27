@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.amount
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
@@ -22,6 +21,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mediateWith
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.view.ButtonState
@@ -45,7 +45,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
-import jp.co.soramitsu.wallet.impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.api.PhishingWarningMixin
 import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.api.PhishingWarningPresentation
@@ -159,9 +158,6 @@ class ChooseAmountViewModel @Inject constructor(
 
     private val checkingEnoughFundsLiveData = MutableLiveData(false)
 
-    private val _showBalanceDetailsEvent = MutableLiveData<Event<BalanceDetailsBottomSheet.Payload>>()
-    val showBalanceDetailsEvent: LiveData<Event<BalanceDetailsBottomSheet.Payload>> = _showBalanceDetailsEvent
-
     val assetModelLiveData = assetLiveData.map { mapAssetToAssetModel(it) }
 
     private val minimumPossibleAmountLiveData = assetLiveData.map {
@@ -197,9 +193,7 @@ class ChooseAmountViewModel @Inject constructor(
     }
 
     private suspend fun updateExistentialDeposit(tokenConfiguration: Chain.Asset) {
-        val amountInPlanks = kotlin.runCatching {
-            walletConstants.existentialDeposit(tokenConfiguration.chainId)
-        }.getOrDefault(BigInteger.ZERO)
+        val amountInPlanks = walletConstants.existentialDeposit(tokenConfiguration).orZero()
 
         existentialDeposit = tokenConfiguration.amountFromPlanks(amountInPlanks)
     }

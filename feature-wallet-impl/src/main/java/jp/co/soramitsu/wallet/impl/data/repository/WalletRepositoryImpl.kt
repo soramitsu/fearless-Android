@@ -356,7 +356,7 @@ class WalletRepositoryImpl(
         val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)!!
         val asset = mapAssetLocalToAsset(assetLocal, chainAsset, chain.minSupportedVersion)
 
-        val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)
+        val existentialDepositInPlanks = walletConstants.existentialDeposit(chainAsset).orZero()
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
         val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()

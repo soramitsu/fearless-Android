@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.constant
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.nominationPools
 import jp.co.soramitsu.common.utils.numberConstant
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.session
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.common.utils.stakingOrNull
@@ -242,14 +243,14 @@ class StakingRelayChainScenarioRepository(
         chainId = stakingState.chain.id
     )
 
-    suspend fun minimumNominatorBond(chainId: ChainId): BigInteger {
+    suspend fun minimumNominatorBond(chainAsset: Chain.Asset): BigInteger {
         val minBond = queryStorageIfExists(
             storageName = "MinNominatorBond",
             binder = ::bindMinBond,
-            chainId = chainId
+            chainId = chainAsset.chainId
         ) ?: BigInteger.ZERO
 
-        val existentialDeposit = walletConstants.existentialDeposit(chainId)
+        val existentialDeposit = walletConstants.existentialDeposit(chainAsset).orZero()
 
         return minBond.max(existentialDeposit)
     }

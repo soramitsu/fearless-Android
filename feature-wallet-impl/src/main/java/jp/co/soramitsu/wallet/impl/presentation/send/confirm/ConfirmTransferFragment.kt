@@ -16,7 +16,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentConfirmTransferBinding
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.observeTransferChecks
-import jp.co.soramitsu.wallet.impl.presentation.send.BalanceDetailsBottomSheet
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 
 const val KEY_DRAFT = "KEY_DRAFT"
@@ -96,9 +95,5 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>(R.layout.
         }
 
         viewModel.sendButtonStateLiveData.observe(binding.confirmTransferSubmit::setState)
-
-        viewModel.showBalanceDetailsEvent.observeEvent {
-            BalanceDetailsBottomSheet(requireContext(), it).show()
-        }
     }
 }
