@@ -84,6 +84,7 @@ import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
@@ -707,6 +708,11 @@ class Navigator :
 
     override fun openSelectWallet() {
         navController?.navigate(R.id.selectWalletFragment)
+    }
+
+    override fun openSearchAssets(chainId: String?) {
+        val bundle = SearchAssetsFragment.getBundle(chainId)
+        navController?.navigate(R.id.searchAssetsFragment, bundle)
     }
 
     override fun openOptionsWallet(walletId: Long) {

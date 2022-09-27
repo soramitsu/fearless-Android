@@ -73,7 +73,9 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
                     menuItems = listOf(
                         MenuIconItem(icon = R.drawable.ic_scan) { requestCameraPermission() },
-                        MenuIconItem(icon = R.drawable.ic_search) {}
+                        MenuIconItem(icon = R.drawable.ic_search) {
+                            viewModel.openSearchAssets()
+                        }
                     ),
                     onChangeChainClick = {
                         coroutineScope.launch {
