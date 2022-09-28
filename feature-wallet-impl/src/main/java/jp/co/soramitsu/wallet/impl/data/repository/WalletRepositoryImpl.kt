@@ -241,7 +241,7 @@ class WalletRepositoryImpl(
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
-            if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY) {
+            if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY || chainAsset.isUtility != true) {
                 throw HistoryNotSupportedException()
             }
             val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
