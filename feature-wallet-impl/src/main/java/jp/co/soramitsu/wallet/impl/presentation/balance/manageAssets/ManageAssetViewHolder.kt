@@ -24,13 +24,13 @@ class ManageAssetViewHolder(
 
     interface Listener {
         fun switch(itemPosition: Int, checked: Boolean)
-        fun addAccount(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean)
+        fun addAccount(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean, priceId: String?)
         fun startDrag(viewHolder: RecyclerView.ViewHolder)
     }
 
     init {
         itemView.findViewById<SwitchMaterial>(R.id.manageAssetsItemSwitch).setOnCheckedChangeListener { _, checked ->
-            listener.switch(adapterPosition, checked)
+            listener.switch(bindingAdapterPosition, checked)
         }
 
         itemView.findViewById<ImageView>(R.id.manageAssetsItemDragView).setOnTouchListener { _, event ->
@@ -71,7 +71,8 @@ class ManageAssetViewHolder(
                     chainId = item.chainId,
                     chainName = item.chainName,
                     assetId = item.assetId,
-                    markedAsNotNeed = item.markedAsNotNeed
+                    markedAsNotNeed = item.markedAsNotNeed,
+                    priceId = item.priceId
                 )
             }
         }

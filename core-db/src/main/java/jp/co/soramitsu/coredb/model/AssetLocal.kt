@@ -25,6 +25,7 @@ data class AssetLocal(
     @ColumnInfo(index = true) val chainId: String,
     val accountId: AccountId,
     @ColumnInfo(index = true) val metaId: Long,
+    val tokenPriceId: String?,
     val freeInPlanks: BigInteger? = null,
     val reservedInPlanks: BigInteger? = null,
     val miscFrozenInPlanks: BigInteger? = null,
@@ -42,12 +43,14 @@ data class AssetLocal(
             accountId: AccountId,
             assetId: String,
             chainId: String,
-            metaId: Long
+            metaId: Long,
+            priceId: String?
         ) = AssetLocal(
             id = assetId,
             chainId = chainId,
             accountId = accountId,
-            metaId = metaId
+            metaId = metaId,
+            tokenPriceId = priceId
         )
     }
 
@@ -61,5 +64,6 @@ data class AssetUpdateItem(
     val accountId: AccountId,
     val id: String,
     var sortIndex: Int,
-    var enabled: Boolean
+    var enabled: Boolean,
+    val tokenPriceId: String?
 )

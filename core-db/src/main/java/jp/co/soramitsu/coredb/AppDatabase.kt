@@ -19,7 +19,7 @@ import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingAddressDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
-import jp.co.soramitsu.coredb.dao.TokenDao
+import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.coredb.migrations.AddAccountStakingTable_14_15
 import jp.co.soramitsu.coredb.migrations.AddChainExplorersTable_33_34
 import jp.co.soramitsu.coredb.migrations.AddChainRegistryTables_27_28
@@ -54,7 +54,7 @@ import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingAddressLocal
 import jp.co.soramitsu.coredb.model.StorageEntryLocal
-import jp.co.soramitsu.coredb.model.TokenLocal
+import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
@@ -69,7 +69,7 @@ import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
     entities = [
         AccountLocal::class,
         AssetLocal::class,
-        TokenLocal::class,
+        TokenPriceLocal::class,
         PhishingAddressLocal::class,
         StorageEntryLocal::class,
         AccountStakingLocal::class,
@@ -141,7 +141,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun storageDao(): StorageDao
 
-    abstract fun tokenDao(): TokenDao
+    abstract fun tokenDao(): TokenPriceDao
 
     abstract fun accountStakingDao(): AccountStakingDao
 

@@ -24,7 +24,8 @@ data class ManageAssetModel(
     var enabled: Boolean,
     var hasAccount: Boolean,
     val isTestNet: Boolean,
-    val markedAsNotNeed: Boolean
+    val markedAsNotNeed: Boolean,
+    val priceId: String?
 ) {
     data class Network(val iconUrl: String, val name: String)
 }
@@ -55,8 +56,10 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
         enabled = asset.enabled,
         isTestNet = token.configuration.isTestNet ?: false,
         hasAccount = hasAccount,
-        markedAsNotNeed = asset.markedNotNeed
+        markedAsNotNeed = asset.markedNotNeed,
+        priceId = token.configuration.priceId
     )
 }
 
-fun ManageAssetModel.toUpdateItem(metaId: Long, setPosition: Int?) = AssetUpdateItem(metaId, chainId, accountId, assetId, setPosition ?: position, enabled)
+fun ManageAssetModel.toUpdateItem(metaId: Long, setPosition: Int?) =
+    AssetUpdateItem(metaId, chainId, accountId, assetId, setPosition ?: position, enabled, priceId)

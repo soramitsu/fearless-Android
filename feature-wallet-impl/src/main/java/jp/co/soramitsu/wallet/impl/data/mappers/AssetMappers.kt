@@ -2,25 +2,23 @@ package jp.co.soramitsu.wallet.impl.data.mappers
 
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetWithToken
-import jp.co.soramitsu.coredb.model.TokenLocal
+import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
 import jp.co.soramitsu.wallet.impl.presentation.model.TokenModel
 
-fun mapTokenLocalToToken(
-    tokenLocal: TokenLocal,
-    chainAsset: Chain.Asset
+fun combineAssetWithPrices(
+    chainAsset: Chain.Asset,
+    tokenPriceLocal: TokenPriceLocal?
 ): Token {
-    return with(tokenLocal) {
-        Token(
-            configuration = chainAsset,
-            fiatRate = fiatRate,
-            fiatSymbol = fiatSymbol,
-            recentRateChange = recentRateChange
-        )
-    }
+    return Token(
+        configuration = chainAsset,
+        fiatRate = tokenPriceLocal?.fiatRate,
+        fiatSymbol = tokenPriceLocal?.fiatSymbol,
+        recentRateChange = tokenPriceLocal?.recentRateChange
+    )
 }
 
 fun mapTokenToTokenModel(token: Token): TokenModel {
@@ -42,7 +40,7 @@ fun mapAssetLocalToAsset(
     return with(assetLocal) {
         Asset(
             metaId = asset.metaId,
-            token = mapTokenLocalToToken(token, chainAsset),
+            token = combineAssetWithPrices(chainAsset, token),
             accountId = asset.accountId,
             freeInPlanks = asset.freeInPlanks.orZero(),
             reservedInPlanks = asset.reservedInPlanks.orZero(),

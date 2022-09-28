@@ -56,8 +56,8 @@ class ManageAssetsFragment : BaseFragment<ManageAssetsViewModel>(R.layout.fragme
         viewModel.toggleEnabled(item)
     }
 
-    override fun addAccount(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean) {
-        viewModel.onAddAccountClick(chainId, chainName, assetId, markedAsNotNeed)
+    override fun addAccount(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean, priceId: String?) {
+        viewModel.onAddAccountClick(chainId, chainName, assetId, markedAsNotNeed, priceId)
     }
 
     override fun startDrag(viewHolder: RecyclerView.ViewHolder) {

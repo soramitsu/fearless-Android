@@ -37,6 +37,7 @@ val Migration_42_43 = object : Migration(42, 43) {
             `chainId` TEXT NOT NULL, 
             `accountId` BLOB NOT NULL, 
             `metaId` INTEGER NOT NULL, 
+            `tokenPriceId` TEXT, 
             `freeInPlanks` TEXT, 
             `reservedInPlanks` TEXT, 
             `miscFrozenInPlanks` TEXT, 
@@ -60,12 +61,12 @@ val Migration_42_43 = object : Migration(42, 43) {
         database.execSQL("DROP TABLE IF EXISTS tokens")
         database.execSQL(
             """
-            CREATE TABLE IF NOT EXISTS `tokens` (
-            `assetId` TEXT NOT NULL, 
+            CREATE TABLE IF NOT EXISTS `token_price` (
+            `priceId` TEXT NOT NULL, 
             `fiatRate` TEXT, 
             `fiatSymbol` TEXT, 
             `recentRateChange` TEXT, 
-            PRIMARY KEY(`assetId`)
+            PRIMARY KEY(`priceId`)
             )
             """.trimIndent()
         )

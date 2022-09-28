@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.domain
 
+import java.math.BigDecimal
+import java.math.RoundingMode
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
@@ -16,8 +18,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.math.BigDecimal
-import java.math.RoundingMode
 
 class GetTotalBalanceUseCaseImpl(
     private val accountRepository: AccountRepository,
@@ -40,10 +40,10 @@ class GetTotalBalanceUseCaseImpl(
 
                     val total = current.asset.freeInPlanks.orZero() + current.asset.reservedInPlanks.orZero()
                     val totalDecimal = total.toBigDecimal(scale = chainAsset.precision)
-                    val fiatAmount = totalDecimal.applyFiatRate(current.token.fiatRate)
+                    val fiatAmount = totalDecimal.applyFiatRate(current.token?.fiatRate)
 
                     val totalBalanceToAdd = fiatAmount ?: BigDecimal.ZERO
-                    val balanceChangeToAdd = fiatAmount?.multiply(current.token.recentRateChange.orZero())?.percentageToFraction().orZero()
+                    val balanceChangeToAdd = fiatAmount?.multiply(current.token?.recentRateChange.orZero())?.percentageToFraction().orZero()
 
                     val balance = acc.balance + totalBalanceToAdd
                     val balanceChange = acc.balanceChange + balanceChangeToAdd
@@ -59,7 +59,7 @@ class GetTotalBalanceUseCaseImpl(
 
                     TotalBalance(
                         balance = balance,
-                        fiatSymbol = current.token.fiatSymbol ?: DOLLAR_SIGN,
+                        fiatSymbol = current.token?.fiatSymbol ?: DOLLAR_SIGN,
                         balanceChange = balanceChange,
                         rateChange = rate
                     )

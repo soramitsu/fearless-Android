@@ -156,7 +156,7 @@ class WalletRepositoryImpl(
     ): Asset? {
         val (chain, chainAsset) = try {
             val chain = chainsById.getValue(assetLocal.asset.chainId)
-            val asset = chain.assetsById.getValue(assetLocal.token.assetId)
+            val asset = chain.assetsById.getValue(assetLocal.asset.id)
             chain to asset
         } catch (e: Exception) {
             return null
@@ -167,26 +167,21 @@ class WalletRepositoryImpl(
 
     override suspend fun syncAssetsRates(currencyId: String) {
         val chains = chainRegistry.currentChains.first()
-        val priceIds = chains.mapNotNull { it.utilityAsset.priceId }
+        val priceIds = chains.map { it.assets.mapNotNull { it.priceId } }.flatten().toSet()
         val priceStats = getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
 
-        val chainsWithAssetPrices = chains.filter { it.utilityAsset.priceId != null }
+        updatesMixin.startUpdateTokens(priceIds)
 
-        val assetIds = chainsWithAssetPrices.map { it.utilityAsset.id }
-        updatesMixin.startUpdateTokens(assetIds)
-
-        chainsWithAssetPrices.forEach { chain ->
-            val asset = chain.utilityAsset
-            val stat = priceStats[chain.utilityAsset.priceId] ?: return@forEach
+        priceIds.forEach { priceId ->
+            val stat = priceStats[priceId] ?: return@forEach
             val price = stat[currencyId]
             val changeKey = "${currencyId}_24h_change"
             val change = stat[changeKey]
             val fiatCurrency = availableFiatCurrencies[currencyId]
-            asset.priceId?.let {
-                updateAssetRates(asset.id, fiatCurrency?.symbol, price, change)
-            }
+
+            updateAssetRates(priceId, fiatCurrency?.symbol, price, change)
         }
-        updatesMixin.finishUpdateTokens(assetIds)
+        updatesMixin.finishUpdateTokens(priceIds)
     }
 
     override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset> {
@@ -212,7 +207,8 @@ class WalletRepositoryImpl(
         accountId = asset.accountId,
         id = asset.id,
         sortIndex = asset.sortIndex,
-        enabled = asset.enabled
+        enabled = asset.enabled,
+        tokenPriceId = token?.priceId
     )
 
     override suspend fun syncOperationsFirstPage(
@@ -416,11 +412,11 @@ class WalletRepositoryImpl(
         )
 
     private suspend fun updateAssetRates(
-        assetId: String,
+        priceId: String,
         fiatSymbol: String?,
         price: BigDecimal?,
         change: BigDecimal?
-    ) = assetCache.updateToken(assetId) { cached ->
+    ) = assetCache.updateTokenPrice(priceId) { cached ->
         cached.copy(
             fiatRate = price,
             fiatSymbol = fiatSymbol,
