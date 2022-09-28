@@ -15,9 +15,6 @@ const val rococoChainId = "aaf2cd1b74b5f726895921259421b534124726263982522174147
 
 const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
 
-const val kitsugiChainId = "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b"
-const val interlayChainId = "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72"
-
 private val STAKING_ORDER = arrayOf("DOT", "KSM", "WND", "GLMR", "MOVR", "DEV", "PDEX")
 
 data class Chain(
@@ -213,8 +210,6 @@ fun ChainId.defaultChainSort() = when (this) {
     kusamaChainId -> 2
     else -> 3
 }
-
-fun ChainId.isOrml() = this in listOf(kitsugiChainId, interlayChainId) // todo rework, probably asset's parameter
 
 enum class TypesUsage {
     BASE, OWN, BOTH,
