@@ -5,9 +5,11 @@ import androidx.compose.material.SwipeableState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.asFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
+import jp.co.soramitsu.common.compose.component.HiddenItemState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -56,6 +58,7 @@ class SearchAssetsViewModel @Inject constructor(
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
     private val enteredAssetQueryFlow = MutableStateFlow("")
+    private val hiddenAssetsState = MutableLiveData(HiddenItemState(isExpanded = false))
 
     private val assetStates = combine(
         interactor.assetsFlow(),
@@ -109,9 +112,11 @@ class SearchAssetsViewModel @Inject constructor(
 
     val state = combine(
         assetStates,
-        enteredAssetQueryFlow
+        enteredAssetQueryFlow,
+        hiddenAssetsState.asFlow()
     ) { assetsListItemStates: List<AssetListItemViewState>,
-        searchQuery ->
+        searchQuery,
+        hiddenAssetsState: HiddenItemState ->
 
         if (assetsListItemStates.isEmpty()) {
             return@combine LoadingState.Loading()
@@ -125,7 +130,8 @@ class SearchAssetsViewModel @Inject constructor(
         LoadingState.Loaded(
             SearchAssetState(
                 assets = assets,
-                searchQuery = searchQuery
+                searchQuery = searchQuery,
+                hiddenState = hiddenAssetsState
             )
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
@@ -236,5 +242,11 @@ class SearchAssetsViewModel @Inject constructor(
 
     fun onAssetSearchEntered(query: String) {
         enteredAssetQueryFlow.value = query
+    }
+
+    fun onHiddenAssetClicked() {
+        hiddenAssetsState.value = HiddenItemState(
+            isExpanded = hiddenAssetsState.value?.isExpanded?.not() ?: false
+        )
     }
 }

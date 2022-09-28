@@ -38,6 +38,7 @@ import jp.co.soramitsu.common.compose.component.AssetListItemShimmer
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.H3
+import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.SwipeBox
@@ -135,8 +136,21 @@ private fun AssetsList(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(data.assets) { assetState ->
+        items(data.visibleAssets) { assetState ->
             SwipableAssetListItem(viewModel, assetState)
+        }
+        if (data.hiddenAssets.isNotEmpty()) {
+            item {
+                HiddenAssetsItem(
+                    state = data.hiddenState,
+                    onClick = { viewModel.onHiddenAssetClicked() }
+                )
+            }
+            if (data.hiddenState.isExpanded) {
+                items(data.hiddenAssets) { assetState ->
+                    SwipableAssetListItem(viewModel, assetState)
+                }
+            }
         }
         item { MarginVertical(margin = 80.dp) }
     }
