@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- only for debug builds -->
     <debug-overrides>
         <trust-anchors>
-            <!-- Trust preinstalled CAs -->
+            <!-- Trust user added CAs while debuggable only -->
+            <certificates src="user" />
             <certificates src="system" />
-            <!-- HERE: Additionally trust user added CAs -->
-            <certificates src="user"/>
         </trust-anchors>
     </debug-overrides>
+
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config>
+        <!-- Make sure your URL Server here -->
+        <domain includeSubdomains="true">onfinality.io</domain>
+        <domain includeSubdomains="true">dwellir.com</domain>
+        <domain includeSubdomains="true">polkadot.io</domain>
+        <domain includeSubdomains="true">kusama.api.onfinality.io</domain>
+        <domain includeSubdomains="true">kusama-rpc.dwellir.com</domain>
+        <domain includeSubdomains="true">kusama-rpc.polkadot.io</domain>
+        <domain includeSubdomains="true">raw.githubusercontent.com</domain>
+        <trust-anchors>
+            <certificates src="user"/>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
 </network-security-config>
