@@ -179,7 +179,7 @@ class StakingViewModel @Inject constructor(
     ) { selection, selectedAsset, networkInfo, stakingState ->
 
         val selectorState = AssetSelectorState(
-            selectedAsset.tokenName,
+            selectedAsset.chainName,
             selectedAsset.imageUrl,
             selectedAsset.assetBalance,
             (selectedAsset.selectionItem as? StakingAssetSelection.Pool)?.type?.name

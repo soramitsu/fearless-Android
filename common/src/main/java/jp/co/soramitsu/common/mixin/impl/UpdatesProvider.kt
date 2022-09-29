@@ -43,32 +43,32 @@ class UpdatesProvider : UpdatesMixin {
         }
     }
 
-    override suspend fun startUpdateToken(assetId: String) {
+    override suspend fun startUpdateToken(priceId: String) {
         tokensMutex.withLock {
-            tokensCache.add(assetId)
+            tokensCache.add(priceId)
             _tokenRates.postValue(tokensCache)
         }
     }
 
-    override suspend fun startUpdateTokens(assetIds: List<String>) {
-        if (assetIds.isEmpty()) return
+    override suspend fun startUpdateTokens(priceIds: Set<String>) {
+        if (priceIds.isEmpty()) return
         tokensMutex.withLock {
-            tokensCache.addAll(assetIds)
+            tokensCache.addAll(priceIds)
             _tokenRates.postValue(tokensCache)
         }
     }
 
-    override suspend fun finishUpdateTokens(assetIds: List<String>) {
-        if (assetIds.isEmpty()) return
+    override suspend fun finishUpdateTokens(priceIds: Set<String>) {
+        if (priceIds.isEmpty()) return
         tokensMutex.withLock {
-            tokensCache.removeAll(assetIds.toSet())
+            tokensCache.removeAll(priceIds)
             _tokenRates.postValue(tokensCache)
         }
     }
 
-    override suspend fun finishUpdateToken(assetId: String) {
+    override suspend fun finishUpdateToken(priceId: String) {
         tokensMutex.withLock {
-            tokensCache.remove(assetId)
+            tokensCache.remove(priceId)
             _tokenRates.postValue(tokensCache)
         }
     }

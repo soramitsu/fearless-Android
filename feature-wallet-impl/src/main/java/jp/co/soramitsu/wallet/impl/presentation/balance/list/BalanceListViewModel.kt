@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -71,8 +73,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -183,7 +183,7 @@ class BalanceListViewModel @Inject constructor(
                 val token = assetWithStatus.asset.token
                 val chainAsset = token.configuration
 
-                val chainLocal = chains.find { it.chain.id == token.configuration.nativeChainId }
+                val chainLocal = chains.find { it.chain.id == token.configuration.chainId }
                 val chain = chainLocal?.let { mapChainLocalToChain(it) }
 
                 val isSupported: Boolean = when (chain?.minSupportedVersion) {
@@ -203,8 +203,8 @@ class BalanceListViewModel @Inject constructor(
                         displayName = chainAsset.symbolToShow,
                         assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
                         assetTokenRate = token.recentRateChange?.formatAsChange(),
-                        assetBalance = assetWithStatus.asset.total?.format().orEmpty(),
-                        assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total)?.formatAsCurrency(token.fiatSymbol),
+                        assetBalance = assetWithStatus.asset.total.orZero().format(),
+                        assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total.orZero())?.formatAsCurrency(token.fiatSymbol),
                         assetChainUrls = assetChainUrls,
                         chainId = chain?.id.orEmpty(),
                         chainAssetId = chainAsset.id,

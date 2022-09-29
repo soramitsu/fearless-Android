@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.HiddenItemState
@@ -40,8 +42,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 @HiltViewModel
 class SearchAssetsViewModel @Inject constructor(
@@ -75,7 +75,7 @@ class SearchAssetsViewModel @Inject constructor(
                 val token = assetWithStatus.asset.token
                 val chainAsset = token.configuration
 
-                val chainLocal = chains.find { it.chain.id == token.configuration.nativeChainId }
+                val chainLocal = chains.find { it.chain.id == token.configuration.chainId }
                 val chain = chainLocal?.let { mapChainLocalToChain(it) }
 
                 val isSupported: Boolean = when (chain?.minSupportedVersion) {

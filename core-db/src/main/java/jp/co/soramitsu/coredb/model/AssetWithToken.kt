@@ -7,5 +7,5 @@ class AssetWithToken(
     val asset: AssetLocal,
 
     @Embedded
-    val token: TokenLocal
+    val token: TokenPriceLocal?
 )

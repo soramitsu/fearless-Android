@@ -67,7 +67,7 @@ class ManageAssetsViewModel @Inject constructor(
             assets
         } else {
             assets.filter {
-                it.name.contains(query, ignoreCase = true) ||
+                it.chainName.contains(query, ignoreCase = true) ||
                     it.tokenSymbol.contains(query, ignoreCase = true) ||
                     it.network?.name?.contains(query, ignoreCase = true) == true
             }
@@ -87,7 +87,7 @@ class ManageAssetsViewModel @Inject constructor(
         onItemsChanged()
     }
 
-    fun onAddAccountClick(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean) {
+    fun onAddAccountClick(chainId: ChainId, chainName: String, assetId: String, markedAsNotNeed: Boolean, priceId: String?) {
         launch {
             val meta = walletInteractor.getSelectedMetaAccount()
             _showAddAccountChooser.value = Event(
@@ -96,7 +96,8 @@ class ManageAssetsViewModel @Inject constructor(
                     chainId = chainId,
                     chainName = chainName,
                     assetId = assetId,
-                    markedAsNotNeed = markedAsNotNeed
+                    markedAsNotNeed = markedAsNotNeed,
+                    priceId = priceId
                 )
             )
         }
@@ -110,9 +111,14 @@ class ManageAssetsViewModel @Inject constructor(
         walletRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
     }
 
-    fun noNeedAccount(chainId: ChainId, metaId: Long, assetId: String) {
+    fun noNeedAccount(chainId: ChainId, metaId: Long, assetId: String, priceId: String?) {
         launch {
-            assetNotNeedAccountUseCase.markNotNeed(chainId = chainId, metaId = metaId, assetId = assetId)
+            assetNotNeedAccountUseCase.markNotNeed(
+                chainId = chainId,
+                metaId = metaId,
+                assetId = assetId,
+                priceId = priceId
+            )
         }
     }
 

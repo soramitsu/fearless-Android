@@ -195,6 +195,7 @@ class AccountDetailsViewModel @Inject constructor(
                     chainId = item.chainId,
                     chainName = item.chainName,
                     assetId = chainRegistry.getChain(item.chainId).utilityAsset.id,
+                    priceId = chainRegistry.getChain(item.chainId).utilityAsset.priceId,
                     markedAsNotNeed = item.markedAsNotNeed
                 )
             )
@@ -223,9 +224,9 @@ class AccountDetailsViewModel @Inject constructor(
         accountRouter.openOnboardingNavGraph(chainId = chainId, metaId = metaId, isImport = true)
     }
 
-    fun noNeedAccount(chainId: ChainId, metaId: Long, assetId: String) {
+    fun noNeedAccount(chainId: ChainId, metaId: Long, assetId: String, priceId: String?) {
         launch {
-            assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, assetId = assetId)
+            assetNotNeedAccount.markNotNeed(chainId = chainId, metaId = metaId, assetId = assetId, priceId = priceId)
         }
     }
 }

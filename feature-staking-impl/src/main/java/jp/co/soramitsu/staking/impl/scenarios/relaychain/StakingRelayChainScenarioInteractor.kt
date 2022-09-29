@@ -16,6 +16,8 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.ext.utilityAsset
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -122,19 +124,19 @@ class StakingRelayChainScenarioInteractor(
 ) : StakingScenarioInteractor {
 
     override suspend fun observeNetworkInfoState(): Flow<NetworkInfo> {
-        val chainId = stakingInteractor.getSelectedChain().id
-        val lockupPeriod = getLockupPeriodInHours(chainId)
+        val chain = stakingInteractor.getSelectedChain()
+        val lockupPeriod = getLockupPeriodInHours(chain.id)
 
-        return stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainId).map { exposuresMap ->
+        return stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chain.id).map { exposuresMap ->
             val exposures = exposuresMap.values
 
-            val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainId)
+            val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chain.utilityAsset)
 
             NetworkInfo.RelayChain(
                 lockupPeriodInHours = lockupPeriod,
                 minimumStake = minimumStake(exposures, minimumNominatorBond),
                 totalStake = totalStake(exposures),
-                nominatorsCount = activeNominators(chainId, exposures)
+                nominatorsCount = activeNominators(chain.id, exposures)
             )
         }
     }
@@ -197,7 +199,10 @@ class StakingRelayChainScenarioInteractor(
 
             else -> {
                 val inactiveReason = when {
-                    it.asset.bondedInPlanks.orZero() < minimumStake(eraStakers, stakingRelayChainScenarioRepository.minimumNominatorBond(chainId)) -> {
+                    it.asset.bondedInPlanks.orZero() < minimumStake(
+                        eraStakers,
+                        stakingRelayChainScenarioRepository.minimumNominatorBond(nominatorState.chain.utilityAsset)
+                    ) -> {
                         NominatorStatus.Inactive.Reason.MIN_STAKE
                     }
                     else -> NominatorStatus.Inactive.Reason.NO_ACTIVE_VALIDATOR
@@ -321,7 +326,7 @@ class StakingRelayChainScenarioInteractor(
     override suspend fun checkCrossExistentialValidation(payload: UnbondValidationPayload): Boolean {
         val tokenConfiguration = payload.asset.token.configuration
 
-        val existentialDepositInPlanks = walletConstants.existentialDeposit(tokenConfiguration.chainId)
+        val existentialDepositInPlanks = walletConstants.existentialDeposit(tokenConfiguration).orZero()
         val existentialDeposit = tokenConfiguration.amountFromPlanks(existentialDepositInPlanks)
 
         val bonded = payload.asset.bonded
@@ -434,9 +439,9 @@ class StakingRelayChainScenarioInteractor(
         HOURS_IN_DAY / stakingRelayChainScenarioRepository.erasPerDay(chainId)
     }
 
-    override suspend fun getMinimumStake(chainId: ChainId): BigInteger {
-        val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainId).firstOrNull()?.values ?: emptyList()
-        val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainId)
+    override suspend fun getMinimumStake(chainAsset: Chain.Asset): BigInteger {
+        val exposures = stakingRelayChainScenarioRepository.electedExposuresInActiveEra(chainAsset.chainId).firstOrNull()?.values ?: emptyList()
+        val minimumNominatorBond = stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset)
         return minimumStake(exposures, minimumNominatorBond)
     }
 
@@ -596,7 +601,7 @@ class StakingRelayChainScenarioInteractor(
         // if account is nominating
         return if (stashState is StakingState.Stash.Nominator &&
             // and resulting bonded balance is less than min bond
-            currentBondedBalance - unbondAmount < stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.id) &&
+            currentBondedBalance - unbondAmount < stakingRelayChainScenarioRepository.minimumNominatorBond(stashState.chain.utilityAsset) &&
             chilled.not()
         ) {
             chill()

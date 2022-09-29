@@ -14,7 +14,7 @@ data class ManageAssetModel(
     val chainId: ChainId,
     val tokenSymbol: String,
     val accountId: AccountId,
-    val name: String,
+    val chainName: String,
     val iconUrl: String,
     // will be null if there is no account for this network
     val amount: String?,
@@ -24,7 +24,8 @@ data class ManageAssetModel(
     var enabled: Boolean,
     var hasAccount: Boolean,
     val isTestNet: Boolean,
-    val markedAsNotNeed: Boolean
+    val markedAsNotNeed: Boolean,
+    val priceId: String?
 ) {
     data class Network(val iconUrl: String, val name: String)
 }
@@ -34,8 +35,12 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
     val totalAmount = calculateTotalBalance(asset.freeInPlanks, asset.reservedInPlanks).orZero()
     val totalBalance = token.amountFromPlanks(totalAmount).format()
 
-    val network = if (token.configuration.isNative) null else token.configuration.chainName?.let {
-        ManageAssetModel.Network(iconUrl = token.configuration.chainIcon ?: "", it)
+    val network = when (token.configuration.isUtility) {
+        true -> null
+        else -> ManageAssetModel.Network(
+            iconUrl = token.configuration.chainIcon.orEmpty(),
+            name = token.configuration.chainName
+        )
     }
 
     return ManageAssetModel(
@@ -43,7 +48,7 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
         chainId = token.configuration.chainId,
         tokenSymbol = token.configuration.symbol,
         accountId = asset.accountId,
-        name = token.configuration.name,
+        chainName = token.configuration.chainName,
         iconUrl = token.configuration.iconUrl,
         amount = "$totalBalance ${token.configuration.symbolToShow.uppercase()}",
         network = network,
@@ -51,8 +56,10 @@ fun AssetWithStatus.toAssetModel(): ManageAssetModel {
         enabled = asset.enabled,
         isTestNet = token.configuration.isTestNet ?: false,
         hasAccount = hasAccount,
-        markedAsNotNeed = asset.markedNotNeed
+        markedAsNotNeed = asset.markedNotNeed,
+        priceId = token.configuration.priceId
     )
 }
 
-fun ManageAssetModel.toUpdateItem(metaId: Long, setPosition: Int?) = AssetUpdateItem(metaId, chainId, accountId, assetId, setPosition ?: position, enabled)
+fun ManageAssetModel.toUpdateItem(metaId: Long, setPosition: Int?) =
+    AssetUpdateItem(metaId, chainId, accountId, assetId, setPosition ?: position, enabled, priceId)

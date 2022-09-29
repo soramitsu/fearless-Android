@@ -1,14 +1,14 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 class Token(
+    val configuration: Chain.Asset,
     val fiatRate: BigDecimal?,
     val fiatSymbol: String?,
-    val recentRateChange: BigDecimal?,
-    val configuration: Chain.Asset
+    val recentRateChange: BigDecimal?
 ) {
 
     fun fiatAmount(tokenAmount: BigDecimal): BigDecimal? = fiatRate?.multiply(tokenAmount)

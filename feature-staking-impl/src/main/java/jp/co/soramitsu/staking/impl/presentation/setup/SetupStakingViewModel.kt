@@ -119,8 +119,8 @@ class SetupStakingViewModel @Inject constructor(
         startUpdatingReturns()
 
         launch {
-            val chainId = assetFlow.first().token.configuration.chainId
-            minimumStake = stakingScenarioInteractor.getMinimumStake(chainId)
+            val chainAsset = assetFlow.first().token.configuration
+            minimumStake = stakingScenarioInteractor.getMinimumStake(chainAsset)
 
             setupStakingSharedState.setupStakingProcess.filterIsInstance<SetupStakingProcess.SetupStep>()
                 .collect {

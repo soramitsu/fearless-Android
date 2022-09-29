@@ -32,10 +32,8 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.isOrml
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
-import jp.co.soramitsu.wallet.impl.data.mappers.mapFeeRemoteToFee
 import jp.co.soramitsu.wallet.impl.data.mappers.mapNodeToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationLocalToOperation
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationLocalDb
@@ -157,7 +155,7 @@ class WalletRepositoryImpl(
     ): Asset? {
         val (chain, chainAsset) = try {
             val chain = chainsById.getValue(assetLocal.asset.chainId)
-            val asset = chain.assetsById.getValue(assetLocal.token.assetId)
+            val asset = chain.assetsById.getValue(assetLocal.asset.id)
             chain to asset
         } catch (e: Exception) {
             return null
@@ -168,26 +166,21 @@ class WalletRepositoryImpl(
 
     override suspend fun syncAssetsRates(currencyId: String) {
         val chains = chainRegistry.currentChains.first()
-        val priceIds = chains.mapNotNull { it.utilityAsset.priceId }
+        val priceIds = chains.map { it.assets.mapNotNull { it.priceId } }.flatten().toSet()
         val priceStats = getAssetPriceCoingecko(*priceIds.toTypedArray(), currencyId = currencyId)
 
-        val chainsWithAssetPrices = chains.filter { it.utilityAsset.priceId != null }
+        updatesMixin.startUpdateTokens(priceIds)
 
-        val assetIds = chainsWithAssetPrices.map { it.utilityAsset.id }
-        updatesMixin.startUpdateTokens(assetIds)
-
-        chainsWithAssetPrices.forEach { chain ->
-            val asset = chain.utilityAsset
-            val stat = priceStats[chain.utilityAsset.priceId] ?: return@forEach
+        priceIds.forEach { priceId ->
+            val stat = priceStats[priceId] ?: return@forEach
             val price = stat[currencyId]
             val changeKey = "${currencyId}_24h_change"
             val change = stat[changeKey]
             val fiatCurrency = availableFiatCurrencies[currencyId]
-            asset.priceId?.let {
-                updateAssetRates(asset.id, fiatCurrency?.symbol, price, change)
-            }
+
+            updateAssetRates(priceId, fiatCurrency?.symbol, price, change)
         }
-        updatesMixin.finishUpdateTokens(assetIds)
+        updatesMixin.finishUpdateTokens(priceIds)
     }
 
     override fun assetFlow(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Flow<Asset> {
@@ -213,7 +206,8 @@ class WalletRepositoryImpl(
         accountId = asset.accountId,
         id = asset.id,
         sortIndex = asset.sortIndex,
-        enabled = asset.enabled
+        enabled = asset.enabled,
+        tokenPriceId = token?.priceId
     )
 
     override suspend fun syncOperationsFirstPage(
@@ -242,7 +236,7 @@ class WalletRepositoryImpl(
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
-            if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY) {
+            if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY || chainAsset.isUtility != true) {
                 throw HistoryNotSupportedException()
             }
             val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
@@ -299,7 +293,10 @@ class WalletRepositoryImpl(
     ): Fee {
         val fee = substrateSource.getTransferFee(chain, transfer, additional, batchAll)
 
-        return mapFeeRemoteToFee(fee, transfer)
+        return Fee(
+            transferAmount = transfer.amount,
+            feeAmount = chain.utilityAsset.amountFromPlanks(fee)
+        )
     }
 
     override suspend fun performTransfer(
@@ -336,25 +333,15 @@ class WalletRepositoryImpl(
         val feeResponse = getTransferFee(chain, transfer, additional, batchAll)
 
         val chainAsset = transfer.chainAsset
+        val recipientAccountId = chain.accountIdOf(transfer.recipient)
 
-        val totalRecipientBalanceInPlanks = when {
-            chain.id.isOrml() -> {
-                val symbol = chain.utilityAsset.symbol
-                val ormlTokensAccountData = substrateSource.getOrmlTokensAccountData(chain.id, symbol, chain.accountIdOf(transfer.recipient))
-                ormlTokensAccountData.totalBalance
-            }
-            else -> {
-                val recipientInfo = substrateSource.getAccountInfo(chain.id, chain.accountIdOf(transfer.recipient))
-                recipientInfo.totalBalance
-            }
-        }
-
+        val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, recipientAccountId)
         val totalRecipientBalance = chainAsset.amountFromPlanks(totalRecipientBalanceInPlanks)
 
         val assetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chainAsset.id)!!
         val asset = mapAssetLocalToAsset(assetLocal, chainAsset, chain.minSupportedVersion)
 
-        val existentialDepositInPlanks = kotlin.runCatching { walletConstants.existentialDeposit(chain.id) }.getOrDefault(BigInteger.ZERO)
+        val existentialDepositInPlanks = walletConstants.existentialDeposit(chainAsset).orZero()
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
         val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()
@@ -381,13 +368,8 @@ class WalletRepositoryImpl(
         phishingAddresses.contains(accountId.toHexString(withPrefix = true))
     }
 
-    override suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId) = when {
-        chainId.isOrml() -> {
-            val assetSymbol = chainRegistry.getChain(chainId).utilityAsset.symbol
-            substrateSource.getOrmlTokensAccountData(chainId, assetSymbol, accountId).free
-        }
-        else -> substrateSource.getAccountInfo(chainId, accountId).data.free
-    }
+    override suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId) =
+        substrateSource.getAccountFreeBalance(chainAsset, accountId)
 
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
         assetCache.updateAsset(newItems)
@@ -414,11 +396,11 @@ class WalletRepositoryImpl(
         )
 
     private suspend fun updateAssetRates(
-        assetId: String,
+        priceId: String,
         fiatSymbol: String?,
         price: BigDecimal?,
         change: BigDecimal?
-    ) = assetCache.updateToken(assetId) { cached ->
+    ) = assetCache.updateTokenPrice(priceId) { cached ->
         cached.copy(
             fiatRate = price,
             fiatSymbol = fiatSymbol,

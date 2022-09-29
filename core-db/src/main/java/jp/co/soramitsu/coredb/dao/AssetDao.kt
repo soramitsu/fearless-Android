@@ -16,15 +16,16 @@ import kotlinx.coroutines.flow.mapNotNull
 val emptyAccountIdValue: AccountId = ByteArray(0)
 
 private const val RETRIEVE_ASSET_SQL_ACCOUNT_ID = """
-            SELECT * FROM assets AS a INNER JOIN tokens AS t ON a.id = t.assetId 
+            SELECT * FROM assets AS a 
+            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
             WHERE a.accountId IN (:accountId, :emptyAccountId) AND a.chainId = :chainId AND a.id = :assetId
               AND a.metaId = :metaId
             ORDER BY a.sortIndex
 """
 
 private const val RETRIEVE_ASSETS_SQL_SYMBOL = """
-            SELECT a.*, t.* FROM assets AS a 
-            INNER JOIN tokens AS t ON a.id = t.assetId 
+            SELECT a.*, tp.* FROM assets AS a 
+            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
             LEFT JOIN chain_assets ca ON ca.id = a.id AND ca.chainId = a.chainId
             WHERE a.accountId IN (:accountId, :emptyAccountId) AND a.chainId = :chainId 
               AND (ca.displayName IS NOT NULL AND ca.displayName = :symbol OR ca.symbol = :symbol)
@@ -33,8 +34,8 @@ private const val RETRIEVE_ASSETS_SQL_SYMBOL = """
 """
 
 private const val RETRIEVE_ACCOUNT_ASSETS_QUERY = """
-            SELECT a.*, t.* FROM assets AS a 
-            INNER JOIN tokens AS t ON a.id = t.assetId 
+            SELECT a.*, tp.* FROM assets AS a 
+            LEFT JOIN token_price AS tp ON a.tokenPriceId = tp.priceId 
             LEFT JOIN chain_accounts AS ca ON ca.metaId = a.metaId AND ca.chainId = a.chainId
             WHERE a.metaId = :metaId
             AND (ca.accountId = a.accountId OR ca.accountId IS NULL)

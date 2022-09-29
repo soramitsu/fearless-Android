@@ -164,6 +164,7 @@ object Modules {
     const val SESSION = "Session"
     const val NOMINATION_POOLS = "NominationPools"
     const val TOKENS = "Tokens"
+    const val CURRENCIES = "Currencies"
     const val EQBALANCES = "EqBalances"
     const val IDENTITY = "Identity"
 }

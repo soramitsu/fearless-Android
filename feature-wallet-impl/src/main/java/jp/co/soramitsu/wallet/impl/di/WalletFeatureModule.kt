@@ -23,7 +23,7 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingAddressDao
-import jp.co.soramitsu.coredb.dao.TokenDao
+import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -72,12 +72,12 @@ class WalletFeatureModule {
 
     @Provides
     fun provideAssetCache(
-        tokenDao: TokenDao,
+        tokenPriceDao: TokenPriceDao,
         assetDao: AssetDao,
         accountRepository: AccountRepository,
         updatesMixin: UpdatesMixin
     ): AssetCache {
-        return AssetCache(tokenDao, accountRepository, assetDao, updatesMixin)
+        return AssetCache(tokenPriceDao, accountRepository, assetDao, updatesMixin)
     }
 
     @Provides
@@ -101,9 +101,9 @@ class WalletFeatureModule {
 
     @Provides
     fun provideTokenRepository(
-        tokenDao: TokenDao
+        tokenPriceDao: TokenPriceDao
     ): TokenRepository = TokenRepositoryImpl(
-        tokenDao
+        tokenPriceDao
     )
 
     @Provides

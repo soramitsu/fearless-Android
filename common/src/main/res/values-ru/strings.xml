@@ -117,7 +117,6 @@
     <string name="common_continue">Продолжить</string>
     <string name="common_amount">Сумма</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
-    <string name="choose_amount_available_balance">Свободный баланс</string>
     <string name="search_recipient_welcome">Здесь появятся ваши аккаунты и контакты, которым вы отправляли переводы</string>
     <string name="wallet_search_empty_title">Убедитесь, что адрес
 из правильной сети</string>
@@ -148,9 +147,6 @@
     <string name="transaction_details_copy_hash">Копировать хеш</string>
     <string name="transaction_details_view_polkascan">Посмотреть в Polkascan</string>
     <string name="transaction_details_view_subscan">Просмотреть в Subscan</string>
-    <string name="wallet_balance_details_title">Детали баланса</string>
-    <string name="wallet_balance_details_total">Общий баланс</string>
-    <string name="wallet_balance_details_total_after">Общий после перевода</string>
     <string name="wallet_balance_details_existential_deposit">Минимальный баланс</string>
     <string name="wallet_send_existential_warning_message">Ваш перевод удалит аккаунт, так как общий баланс станет ниже минимального.</string>
     <string name="common_warning">Предупреждение</string>

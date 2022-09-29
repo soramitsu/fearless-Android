@@ -8,20 +8,22 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
+import jp.co.soramitsu.core.model.StorageChange
 import jp.co.soramitsu.core.updater.SubscriptionBuilder
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
@@ -76,7 +78,6 @@ class PaymentUpdater(
         val metaAccount = scope.getAccount()
         val chainAccount = metaAccount.chainAccounts[chainId]
 
-        val runtime = chainRegistry.getRuntime(chainId)
         val accountIdsToCheck = listOfNotNull(
             metaAccount.accountId(chain),
             chainAccount?.accountId
@@ -87,89 +88,97 @@ class PaymentUpdater(
         return accountIdsToCheck.map { accountId ->
             chain.assets.sortedBy { it.isUtility }.map { asset ->
                 updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, asset.id)
-                val currencyId = asset.currencyId?.toBigInteger()
 
-                val key = when (asset.type) {
-                    null, ChainAssetType.Normal -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
-
-                    ChainAssetType.Equilibrium -> runtime.metadata.module(Modules.EQBALANCES).storage("Account")
-                        .storageKey(runtime, accountId, asset.symbol.uppercase())
-
-                    ChainAssetType.OrmlChain,
-                    ChainAssetType.OrmlAsset -> runtime.metadata.tokens().storage("Accounts")
-                        .storageKey(runtime, accountId, DictEnum.Entry("Token", DictEnum.Entry(asset.symbol.uppercase(), null)))
-                    ChainAssetType.VToken -> runtime.metadata.tokens().storage("Accounts")
-                        .storageKey(runtime, accountId, DictEnum.Entry("VToken", DictEnum.Entry(asset.symbol.uppercase(), null)))
-                    ChainAssetType.VSToken -> runtime.metadata.tokens().storage("Accounts")
-                        .storageKey(runtime, accountId, DictEnum.Entry("VSToken", DictEnum.Entry(asset.symbol.uppercase(), null)))
-                    ChainAssetType.Stable -> runtime.metadata.tokens().storage("Accounts")
-                        .storageKey(runtime, accountId, DictEnum.Entry("Stable", DictEnum.Entry(asset.symbol.uppercase(), null)))
-
-                    ChainAssetType.ForeignAsset -> {
-                        if (currencyId == null) {
-                            runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
-                        } else {
-                            runtime.metadata.tokens().storage("Accounts")
-                                .storageKey(runtime, accountId, DictEnum.Entry("ForeignAsset", currencyId))
-                        }
-                    }
-                    ChainAssetType.StableAssetPoolToken -> {
-                        if (currencyId == null) {
-                            runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
-                        } else {
-                            runtime.metadata.tokens().storage("Accounts")
-                                .storageKey(runtime, accountId, DictEnum.Entry("StableAssetPoolToken", currencyId))
-                        }
-                    }
-                    ChainAssetType.LiquidCrowdloan -> {
-                        if (currencyId == null) {
-                            runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
-                        } else {
-                            runtime.metadata.tokens().storage("Accounts")
-                                .storageKey(runtime, accountId, DictEnum.Entry("LiquidCrowdloan", currencyId))
-                        }
-                    }
+                val keyResult = runCatching {
+                    constructKey(chainId, asset, accountId)
+                }
+                if (BuildConfig.DEBUG) {
+                    keyResult.exceptionOrNull()?.printStackTrace()
                 }
 
-                storageSubscriptionBuilder.subscribe(key)
-                    .onEach { change ->
-                        hashCode()
-                        when (asset.type) {
-                            null, ChainAssetType.Normal -> {
-                                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
-                                assetCache.updateAsset(metaAccount.id, accountId, asset, newAccountInfo)
-                            }
-                            ChainAssetType.OrmlChain,
-                            ChainAssetType.OrmlAsset,
-                            ChainAssetType.ForeignAsset,
-                            ChainAssetType.StableAssetPoolToken,
-                            ChainAssetType.LiquidCrowdloan,
-                            ChainAssetType.VToken,
-                            ChainAssetType.VSToken,
-                            ChainAssetType.Stable -> {
-                                val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
+                val key = keyResult.getOrNull()
+                if (key == null) {
+                    emptyFlow()
+                } else {
+                    storageSubscriptionBuilder.subscribe(key)
+                        .onEach { change ->
+                            handleResponse(metaAccount.id, chainId, accountId, asset, change)
 
-                                assetCache.updateAsset(metaAccount.id, accountId, asset) {
-                                    it.copy(
-                                        accountId = accountId,
-                                        freeInPlanks = ormlTokensAccountData.free,
-                                        miscFrozenInPlanks = ormlTokensAccountData.frozen,
-                                        reservedInPlanks = ormlTokensAccountData.reserved
-                                    )
-                                }
-                            }
-                            ChainAssetType.Equilibrium -> {
-                                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
-                                assetCache.updateAsset(metaAccount.id, accountId, asset, newAccountInfo)
+                            if (asset.isUtility == true) {
+                                fetchTransfers(change.block, chain, accountId)
                             }
                         }
-
-                        if (asset.isUtility == true) {
-                            fetchTransfers(change.block, chain, accountId)
-                        }
-                    }
+                }
             }.merge()
         }.merge().noSideAffects()
+    }
+
+    private suspend fun handleResponse(
+        metaId: Long,
+        chainId: ChainId,
+        accountId: ByteArray,
+        asset: Chain.Asset,
+        change: StorageChange
+    ) {
+        val runtime = chainRegistry.getRuntime(chainId)
+
+        when (asset.type) {
+            null, ChainAssetType.Normal -> {
+                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
+                assetCache.updateAsset(metaId, accountId, asset, newAccountInfo)
+            }
+            ChainAssetType.OrmlChain,
+            ChainAssetType.OrmlAsset,
+            ChainAssetType.ForeignAsset,
+            ChainAssetType.StableAssetPoolToken,
+            ChainAssetType.LiquidCrowdloan,
+            ChainAssetType.VToken,
+            ChainAssetType.VSToken,
+            ChainAssetType.Stable -> {
+                val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
+
+                assetCache.updateAsset(metaId, accountId, asset) {
+                    it.copy(
+                        accountId = accountId,
+                        freeInPlanks = ormlTokensAccountData.free,
+                        miscFrozenInPlanks = ormlTokensAccountData.frozen,
+                        reservedInPlanks = ormlTokensAccountData.reserved
+                    )
+                }
+            }
+            ChainAssetType.Equilibrium -> {
+                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
+                assetCache.updateAsset(metaId, accountId, asset, newAccountInfo)
+            }
+            ChainAssetType.Unknown -> Unit
+        }
+    }
+
+    private suspend fun constructKey(
+        chainId: ChainId,
+        asset: Chain.Asset,
+        accountId: ByteArray
+    ): String {
+        val runtime = chainRegistry.getRuntime(chainId)
+
+        val currency = asset.currency
+        return if (currency == null) {
+            runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+        } else {
+            when (asset.type) {
+                null, ChainAssetType.Normal -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+                ChainAssetType.Equilibrium -> runtime.metadata.module(Modules.EQBALANCES).storage("Account").storageKey(runtime, accountId, currency)
+                ChainAssetType.OrmlChain,
+                ChainAssetType.OrmlAsset,
+                ChainAssetType.VToken,
+                ChainAssetType.VSToken,
+                ChainAssetType.Stable,
+                ChainAssetType.ForeignAsset,
+                ChainAssetType.StableAssetPoolToken,
+                ChainAssetType.LiquidCrowdloan -> runtime.metadata.tokens().storage("Accounts").storageKey(runtime, accountId, currency)
+                ChainAssetType.Unknown -> error("Not supported type for token ${asset.symbolToShow} in ${chain.name}")
+            }
+        }
     }
 
     private suspend fun fetchTransfers(blockHash: String, chain: Chain, accountId: AccountId) {

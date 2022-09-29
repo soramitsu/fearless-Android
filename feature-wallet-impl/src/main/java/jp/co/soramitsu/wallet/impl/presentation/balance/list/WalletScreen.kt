@@ -25,8 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,7 +57,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.SelectChai
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun WalletScreen(
     viewModel: BalanceListViewModel = hiltViewModel(),
@@ -65,6 +67,7 @@ fun WalletScreen(
     val shimmerItems by viewModel.assetShimmerItems.collectAsState()
     val chainsState by viewModel.chainsState.collectAsState()
     val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     ModalBottomSheetLayout(
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
@@ -78,6 +81,7 @@ fun WalletScreen(
                         viewModel.onChainSelected(item)
                         modalBottomSheetState.hide()
                     }
+                    keyboardController?.hide()
                 },
                 onInput = viewModel::onChainSearchEntered
             )

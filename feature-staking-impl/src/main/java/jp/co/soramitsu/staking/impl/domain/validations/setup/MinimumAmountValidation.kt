@@ -13,7 +13,7 @@ class MinimumAmountValidation(
     override suspend fun validate(value: SetupStakingPayload): ValidationStatus<SetupStakingValidationFailure> {
         val assetConfiguration = value.asset.token.configuration
 
-        val minimumBondInPlanks = stakingScenarioInteractor.getMinimumStake(assetConfiguration.chainId)
+        val minimumBondInPlanks = stakingScenarioInteractor.getMinimumStake(assetConfiguration)
         val minimumBond = assetConfiguration.amountFromPlanks(minimumBondInPlanks)
 
         // either first time bond or already existing bonded balance

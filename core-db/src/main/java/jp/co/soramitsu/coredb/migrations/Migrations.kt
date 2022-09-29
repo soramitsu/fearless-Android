@@ -14,13 +14,11 @@ val Migration_42_43 = object : Migration(42, 43) {
             `symbol` TEXT NOT NULL,
             `displayName` TEXT,
             `chainId` TEXT NOT NULL,
-            `name` TEXT NOT NULL,
             `icon` TEXT NOT NULL,
             `precision` INTEGER NOT NULL,
             `priceId` TEXT,
             `staking` TEXT NOT NULL,
             `priceProviders` TEXT,
-            `nativeChainId` TEXT,
             `isUtility` INTEGER,
             `type` TEXT,
             `currencyId` TEXT,
@@ -39,6 +37,7 @@ val Migration_42_43 = object : Migration(42, 43) {
             `chainId` TEXT NOT NULL, 
             `accountId` BLOB NOT NULL, 
             `metaId` INTEGER NOT NULL, 
+            `tokenPriceId` TEXT, 
             `freeInPlanks` TEXT, 
             `reservedInPlanks` TEXT, 
             `miscFrozenInPlanks` TEXT, 
@@ -62,12 +61,12 @@ val Migration_42_43 = object : Migration(42, 43) {
         database.execSQL("DROP TABLE IF EXISTS tokens")
         database.execSQL(
             """
-            CREATE TABLE IF NOT EXISTS `tokens` (
-            `assetId` TEXT NOT NULL, 
+            CREATE TABLE IF NOT EXISTS `token_price` (
+            `priceId` TEXT NOT NULL, 
             `fiatRate` TEXT, 
             `fiatSymbol` TEXT, 
             `recentRateChange` TEXT, 
-            PRIMARY KEY(`assetId`)
+            PRIMARY KEY(`priceId`)
             )
             """.trimIndent()
         )

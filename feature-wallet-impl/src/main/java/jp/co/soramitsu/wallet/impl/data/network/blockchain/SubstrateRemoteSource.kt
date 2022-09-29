@@ -1,15 +1,13 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
-import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
-import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.wallet.impl.domain.model.Transfer
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.TransferExtrinsic
+import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 
 class TransferExtrinsicWithStatus(
     val extrinsic: TransferExtrinsic,
@@ -17,16 +15,8 @@ class TransferExtrinsicWithStatus(
 )
 
 interface SubstrateRemoteSource {
-    suspend fun getOrmlTokensAccountData(
-        chainId: ChainId,
-        assetSymbol: String,
-        accountId: AccountId
-    ): OrmlTokensAccountData
-
-    suspend fun getAccountInfo(
-        chainId: ChainId,
-        accountId: AccountId
-    ): AccountInfo
+    suspend fun getTotalBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
+    suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
 
     suspend fun getTransferFee(
         chain: Chain,

@@ -4,12 +4,12 @@ import java.math.BigDecimal
 import jp.co.soramitsu.common.validation.DefaultFailureLevel
 import jp.co.soramitsu.common.validation.Validation
 import jp.co.soramitsu.common.validation.ValidationStatus
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.validations.controller.SetControllerValidationFailure
 import jp.co.soramitsu.staking.impl.domain.validations.controller.SetControllerValidationPayload
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
-import jp.co.soramitsu.runtime.ext.accountIdOf
-import jp.co.soramitsu.runtime.state.chain
+import kotlinx.coroutines.flow.first
 
 class NotZeroBalanceValidation(
     private val walletRepository: WalletRepository,
@@ -17,9 +17,9 @@ class NotZeroBalanceValidation(
 ) : Validation<SetControllerValidationPayload, SetControllerValidationFailure> {
 
     override suspend fun validate(value: SetControllerValidationPayload): ValidationStatus<SetControllerValidationFailure> {
-        val chain = stakingSharedState.chain()
+        val (chain, asset) = stakingSharedState.assetWithChain.first()
 
-        val controllerBalance = walletRepository.getAccountFreeBalance(chain.id, chain.accountIdOf(value.controllerAddress)).toBigDecimal()
+        val controllerBalance = walletRepository.getAccountFreeBalance(asset, chain.accountIdOf(value.controllerAddress)).toBigDecimal()
 
         return if (controllerBalance > BigDecimal.ZERO) {
             ValidationStatus.Valid()

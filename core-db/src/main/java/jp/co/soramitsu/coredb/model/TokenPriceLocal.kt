@@ -4,15 +4,15 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.math.BigDecimal
 
-@Entity(tableName = "tokens")
-data class TokenLocal(
+@Entity(tableName = "token_price")
+data class TokenPriceLocal(
     @PrimaryKey
-    val assetId: String,
+    val priceId: String,
     val fiatRate: BigDecimal?,
     val fiatSymbol: String?,
     val recentRateChange: BigDecimal?
 ) {
     companion object {
-        fun createEmpty(assetId: String): TokenLocal = TokenLocal(assetId, null, null, null)
+        fun createEmpty(priceId: String): TokenPriceLocal = TokenPriceLocal(priceId, null, null, null)
     }
 }

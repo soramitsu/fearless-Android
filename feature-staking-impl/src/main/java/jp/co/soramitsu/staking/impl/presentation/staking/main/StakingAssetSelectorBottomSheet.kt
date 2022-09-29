@@ -55,7 +55,7 @@ private class StakingAssetSelectorHolder(
 
         with(itemView) {
             findViewById<TextView>(R.id.itemAssetSelectorBalance).text = item.assetBalance
-            findViewById<TextView>(R.id.itemAssetSelectorTokenName).text = item.tokenName
+            findViewById<TextView>(R.id.itemAssetSelectorTokenName).text = item.chainName
             findViewById<ImageView>(R.id.itemAssetSelectorIcon).load(item.imageUrl, imageLoader)
             findViewById<ImageView>(R.id.itemAssetSelectorCheckmark).setVisible(isSelected, falseState = View.INVISIBLE)
             (item.selectionItem as? StakingAssetSelection.Pool)?.let {

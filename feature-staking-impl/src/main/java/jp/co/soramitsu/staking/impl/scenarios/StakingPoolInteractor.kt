@@ -7,6 +7,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
@@ -23,6 +24,7 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
@@ -37,7 +39,8 @@ class StakingPoolInteractor(
     private val stakingInteractor: StakingInteractor,
     private val relayChainRepository: StakingRelayChainScenarioRepository,
     private val accountRepository: AccountRepository,
-    private val identitiesRepositoryImpl: IdentityRepository
+    private val identitiesRepositoryImpl: IdentityRepository,
+    private val walletConstants: WalletConstants
 ) {
 
     fun stakingStateFlow(): Flow<StakingState> {
@@ -79,7 +82,7 @@ class StakingPoolInteractor(
     private suspend fun calculatePendingRewards(chain: Chain, poolMember: PoolMember, bondedPool: BondedPool, rewardPool: PoolRewards?): BigInteger {
         rewardPool ?: return BigInteger.ZERO
         val rewardsAccountId = generatePoolRewardAccount(chain, poolMember.poolId)
-        val existentialDeposit = stakingInteractor.existentialDeposit(chain.id)
+        val existentialDeposit = walletConstants.existentialDeposit(chain.utilityAsset)
         val rewardsAccountBalance = stakingInteractor.getAccountBalance(chain.id, rewardsAccountId).data.free.subtract(existentialDeposit)
         val payoutSinceLastRecord = rewardsAccountBalance.add(rewardPool.totalRewardsClaimed).subtract(rewardPool.lastRecordedTotalPayouts)
         val rewardCounterBase = BigInteger.valueOf(10).pow(18)

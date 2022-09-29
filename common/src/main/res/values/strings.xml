@@ -121,7 +121,6 @@ operations will appear here</string>
     <string name="common_continue">Continue</string>
     <string name="common_amount">Amount</string>
     <string name="wallet_send_confirm_transfer">Confirm transfer</string>
-    <string name="choose_amount_available_balance">Available balance</string>
     <string name="search_recipient_welcome">Your accounts and contacts to whom you were sending transfers will appear here</string>
     <string name="wallet_search_empty_title">Make sure that the address is
 from the right network</string>
@@ -152,9 +151,6 @@ from the right network</string>
     <string name="transaction_details_copy_hash">Copy hash</string>
     <string name="transaction_details_view_polkascan">View in Polkascan</string>
     <string name="transaction_details_view_subscan">View in Subscan</string>
-    <string name="wallet_balance_details_title">Balance details</string>
-    <string name="wallet_balance_details_total">Total balance</string>
-    <string name="wallet_balance_details_total_after">Total after transfer</string>
     <string name="wallet_balance_details_existential_deposit">Minimal balance</string>
     <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than minimal balance.</string>
     <string name="common_warning">Warning</string>

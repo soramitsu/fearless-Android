@@ -1,11 +1,12 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import java.math.BigInteger
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 interface WalletConstants {
 
-    suspend fun existentialDeposit(chainId: ChainId): BigInteger
+    suspend fun existentialDeposit(chainAsset: Chain.Asset): BigInteger?
 
     suspend fun tip(chainId: ChainId): BigInteger?
 }

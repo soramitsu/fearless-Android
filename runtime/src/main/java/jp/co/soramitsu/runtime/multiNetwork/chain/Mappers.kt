@@ -92,17 +92,14 @@ fun mapChainRemoteToChain(
         val assets = chainRemote.assets?.mapNotNull { chainAsset ->
             chainAsset.assetId?.let {
                 val assetRemote = assetsById[chainAsset.assetId]
-                val assetNativeChain = chainsRemote.firstOrNull { it.chainId == assetRemote?.chainId }
                 Chain.Asset(
                     id = chainAsset.assetId,
                     symbol = assetRemote?.symbol.orEmpty(),
                     displayName = assetRemote?.displayName,
-                    name = assetNativeChain?.name.orEmpty(),
-                    iconUrl = assetRemote?.icon ?: assetNativeChain?.icon.orEmpty(),
+                    iconUrl = assetRemote?.icon.orEmpty(),
                     chainId = chainRemote.chainId,
                     chainName = chainRemote.name,
                     chainIcon = chainRemote.icon,
-                    nativeChainId = assetNativeChain?.chainId,
                     isTestNet = TESTNET_OPTION in chainRemote.options.orEmpty(),
                     priceId = assetRemote?.priceId,
                     precision = assetRemote?.precision ?: DEFAULT_PRECISION,
@@ -173,10 +170,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             id = it.id,
             symbol = it.symbol,
             displayName = it.displayName,
-            name = it.name,
             iconUrl = it.icon,
             chainId = it.chainId,
-            nativeChainId = it.nativeChainId,
             priceId = it.priceId,
             precision = it.precision,
             staking = mapStakingTypeFromLocal(it.staking),
@@ -255,11 +250,9 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             icon = it.iconUrl,
             precision = it.precision,
             chainId = chain.id,
-            name = it.name,
             priceId = it.priceId,
             staking = mapStakingTypeToLocal(it.staking),
             priceProviders = it.priceProviders?.let { Gson().toJson(it) },
-            nativeChainId = it.nativeChainId,
             isUtility = it.isUtility,
             type = it.type?.name,
             currencyId = it.currencyId,

@@ -91,7 +91,7 @@ interface WalletRepository {
 
     suspend fun isAccountIdFromPhishingList(accountId: AccountId): Boolean
 
-    suspend fun getAccountFreeBalance(chainId: ChainId, accountId: AccountId): BigInteger
+    suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 

@@ -6,6 +6,25 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
+import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
+import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
+import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
+import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActionsProvider
+import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryImpl
+import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
+import jp.co.soramitsu.account.impl.data.repository.datasource.migration.AccountDataMigration
+import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
+import jp.co.soramitsu.account.impl.domain.AssetNotNeedAccountUseCaseImpl
+import jp.co.soramitsu.account.impl.domain.NodeHostValidator
+import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
+import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
+import jp.co.soramitsu.account.impl.presentation.common.mixin.impl.CryptoTypeChooser
 import jp.co.soramitsu.common.data.OnboardingStoriesDataSource
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -25,28 +44,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.TokenDao
+import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
-import jp.co.soramitsu.account.api.domain.interfaces.SelectedAccountUseCase
-import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
-import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActionsProvider
-import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryImpl
-import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
-import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
-import jp.co.soramitsu.account.impl.data.repository.datasource.migration.AccountDataMigration
-import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
-import jp.co.soramitsu.account.impl.domain.AssetNotNeedAccountUseCaseImpl
-import jp.co.soramitsu.account.impl.domain.NodeHostValidator
-import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
-import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
-import jp.co.soramitsu.account.impl.presentation.common.mixin.impl.CryptoTypeChooser
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
@@ -200,9 +200,9 @@ class AccountFeatureModule {
     @Provides
     fun provideAssetNotNeedAccountUseCase(
         assetDao: AssetDao,
-        tokenDao: TokenDao
+        tokenPriceDao: TokenPriceDao
     ): AssetNotNeedAccountUseCase {
-        return AssetNotNeedAccountUseCaseImpl(assetDao, tokenDao)
+        return AssetNotNeedAccountUseCaseImpl(assetDao, tokenPriceDao)
     }
 
     @Provides
