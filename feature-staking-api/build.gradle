@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-parcelize'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -33,6 +34,8 @@ dependencies {
 
     implementation project(':runtime')
     implementation project(':common')
+    implementation project(':feature-wallet-api')
+    implementation project(':feature-account-api')
 
     api project(':core-api')
 }

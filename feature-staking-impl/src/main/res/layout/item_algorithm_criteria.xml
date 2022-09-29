@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/criteria"
+    style="@style/TextAppearance.Soramitsu.Body2"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:drawablePadding="8dp"
+    android:gravity="center_vertical"
+    android:includeFontPadding="false"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="2dp"
+    android:textColor="@color/black1"
+    app:drawableStartCompat="@drawable/ic_status_success_16"
+    tools:background="@color/black"
+    tools:drawableStart="@drawable/ic_status_success_16"
+    tools:text="Most profitable" />

@@ -13,7 +13,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:homeButtonIcon="@drawable/ic_close"
-        app:titleText="@string/staking_unbond_v1_9_0" />
+        app:titleText="@string/stake_less" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/collatorAddressView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:enabled="false"
+        app:label="@string/collator"
+        tools:textIcon="@color/colorAccent"
+        tools:visibility="visible" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/accountAddressView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:enabled="false"
+        app:label="@string/common_account"
+        tools:textIcon="@color/colorAccent"
+        tools:visibility="visible" />
 
     <jp.co.soramitsu.common.view.AmountView
         android:id="@+id/unbondAmount"
@@ -23,7 +49,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp" />
 
-    <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+    <jp.co.soramitsu.wallet.api.presentation.view.FeeView
         android:id="@+id/unbondFee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,11 +58,11 @@
         android:layout_marginEnd="16dp" />
 
     <jp.co.soramitsu.common.view.TableCellView
+        android:id="@+id/unbondPeriod"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:id="@+id/unbondPeriod"
         app:title="@string/staking_unbonding_period_v1_9_0" />
 
     <LinearLayout
@@ -54,6 +80,7 @@
             app:tint="@color/black2" />
 
         <TextView
+            android:id="@+id/unbondHint"
             style="@style/TextAppearance.Soramitsu.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -67,6 +94,37 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
+
+    <LinearLayout
+        android:id="@+id/confirmUnbondLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/black4"
+        android:orientation="vertical">
+
+        <jp.co.soramitsu.wallet.api.presentation.view.FeeView
+            android:id="@+id/unbondConfirmFee"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
+
+        <jp.co.soramitsu.common.view.TableCellView
+            android:id="@+id/unbondConfirmPeriod"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            app:title="@string/staking_unbonding_period_v1_9_0" />
+
+        <jp.co.soramitsu.common.view.PrimaryButton
+            android:id="@+id/unbondConfirm"
+            style="@style/Widget.Fearless.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/common_confirm" />
+    </LinearLayout>
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/unbondContinue"

@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.extensions.LayoutContainer
 
 private const val TYPE_GROUP = 1
 private const val TYPE_CHILD = 2
@@ -46,7 +45,7 @@ abstract class GroupedListAdapter<GROUP, CHILD>(private val diffCallback: BaseGr
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
-        viewType: Int,
+        viewType: Int
     ): GroupedListHolder {
         return if (viewType == TYPE_GROUP) {
             createGroupViewHolder(parent)
@@ -126,5 +125,5 @@ abstract class BaseGroupedDiffCallback<GROUP, CHILD>(private val groupClass: Cla
     internal fun isGroup(item: Any) = item::class.java == groupClass
 }
 
-abstract class GroupedListHolder(override val containerView: View) :
-    RecyclerView.ViewHolder(containerView), LayoutContainer
+abstract class GroupedListHolder(val containerView: View) :
+    RecyclerView.ViewHolder(containerView)

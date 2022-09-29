@@ -1,7 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 
 android {
@@ -22,6 +23,11 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+        compose true
+    }
+
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
@@ -32,6 +38,9 @@ android {
 
         jvmTarget = '1.8'
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+    }
     namespace 'jp.co.soramitsu.feature_account_impl'
 }
 
@@ -41,7 +50,8 @@ dependencies {
     implementation project(':common')
     implementation project(':runtime')
     implementation project(':feature-account-api')
-
+    implementation project(':feature-staking-api')
+    implementation project(':feature-wallet-api')
     implementation kotlinDep
 
     implementation androidDep
@@ -65,6 +75,8 @@ dependencies {
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
 
+    implementation fragmentKtxDep
+
     implementation daggerDep
     kapt daggerKapt
 
@@ -72,6 +84,23 @@ dependencies {
     kapt roomKapt
 
     kapt lifecycleKapt
+
+    implementation navigationComposeDep
+    implementation hiltNavComposeDep
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeAnimationDep
+    implementation composeActivityDep
+    implementation composeViewModelDep
+    implementation composeToolingPreviewDep
+    debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep

@@ -1,12 +1,13 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
+import javax.inject.Inject
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
@@ -36,7 +37,7 @@ data class ChainService(
     val connection: ChainConnection
 )
 
-class ChainRegistry(
+class ChainRegistry @Inject constructor(
     private val runtimeProviderPool: RuntimeProviderPool,
     private val connectionPool: ConnectionPool,
     private val runtimeSubscriptionPool: RuntimeSubscriptionPool,
@@ -44,7 +45,7 @@ class ChainRegistry(
     private val chainSyncService: ChainSyncService,
     private val baseTypeSynchronizer: BaseTypeSynchronizer,
     private val runtimeSyncService: RuntimeSyncService,
-    private val updatesMixin: UpdatesMixin,
+    private val updatesMixin: UpdatesMixin
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
     val currentChains = chainDao.joinChainInfoFlow()
@@ -91,12 +92,14 @@ class ChainRegistry(
     }
 
     fun syncUp() {
-        launch { runCatching { chainSyncService.syncUp() } }
-
-        runCatching { baseTypeSynchronizer.sync() }
+        launch {
+            runCatching { chainSyncService.syncUp() }
+            runCatching { baseTypeSynchronizer.sync() }
+        }
     }
 
     fun getConnection(chainId: String) = connectionPool.getConnection(chainId)
+    fun getConnectionOrNull(chainId: String) = connectionPool.getConnectionOrNull(chainId)
 
     fun getRuntimeProvider(chainId: String): RuntimeProvider {
         return runtimeProviderPool.getRuntimeProvider(chainId)
@@ -133,7 +136,8 @@ suspend fun ChainRegistry.getRuntime(chainId: ChainId): RuntimeSnapshot {
     return getRuntimeProvider(chainId).get()
 }
 
-suspend fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
+fun ChainRegistry.getSocket(chainId: ChainId) = getConnection(chainId).socketService
+fun ChainRegistry.getSocketOrNull(chainId: ChainId) = getConnectionOrNull(chainId)?.socketService
 
 fun ChainRegistry.getService(chainId: ChainId) = ChainService(
     runtimeProvider = getRuntimeProvider(chainId),

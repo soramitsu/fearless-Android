@@ -176,7 +176,7 @@ fun RadioGroup.bindTo(flow: MutableStateFlow<Int>, scope: LifecycleCoroutineScop
 
 inline fun <T> Flow<T>.observe(
     scope: LifecycleCoroutineScope,
-    noinline collector: suspend (T) -> Unit,
+    noinline collector: suspend (T) -> Unit
 ) {
     scope.launchWhenResumed {
         collect(FlowCollector(collector))

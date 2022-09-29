@@ -27,23 +27,17 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
         android:text="@string/staking_start_change_validators_recommended_subtitle"
         android:textColor="@color/black1" />
 
-    <TextView
+    <LinearLayout
         android:id="@+id/startChangeValidatorsRecommendedFeatures"
-        style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:lineSpacingExtra="5dp"
-        android:textColor="@color/black1"
-        tools:text="✅ Most profitable\n✅ Most profitable" />
+        android:layout_marginTop="16dp"
+        android:orientation="vertical" />
 
     <jp.co.soramitsu.common.view.GoNextView
         android:id="@+id/startChangeValidatorsRecommended"
@@ -68,7 +62,7 @@
         style="@style/TextAppearance.Soramitsu.Body2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:text="@string/staking_start_change_validators_custom_subtitle"

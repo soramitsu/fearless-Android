@@ -49,6 +49,8 @@ operations will appear here</string>
     <string name="ecdsa_selection_title">ECDSA</string>
     <string name="account_creation_info">Mnemonic is used to recover access to account. Write it down, we will not be able to recover your account without it!</string>
     <string name="common_info">Info</string>
+    <string name="common_selected">Selected</string>
+    <string name="common_select">Select</string>
     <string name="common_undefined_error_message">Please, try again with another input. If the error appears again, please, contact support.</string>
     <string name="recovery_source_type">Source type</string>
     <string name="recovery_mnemonic">Mnemonic phrase</string>
@@ -119,7 +121,6 @@ operations will appear here</string>
     <string name="common_continue">Continue</string>
     <string name="common_amount">Amount</string>
     <string name="wallet_send_confirm_transfer">Confirm transfer</string>
-    <string name="choose_amount_available_balance">Available balance</string>
     <string name="search_recipient_welcome">Your accounts and contacts to whom you were sending transfers will appear here</string>
     <string name="wallet_search_empty_title">Make sure that the address is
 from the right network</string>
@@ -146,14 +147,10 @@ from the right network</string>
     <string name="wallet_balance_locked">Locked</string>
     <string name="wallet_balance_reserved">Reserved</string>
     <string name="wallet_balance_redeemable">Redeemable</string>
-    <string name="wallet_balance_unbonding">Unstaking</string>
     <string name="transaction_details_hash_title">Extrinsic Hash</string>
     <string name="transaction_details_copy_hash">Copy hash</string>
     <string name="transaction_details_view_polkascan">View in Polkascan</string>
     <string name="transaction_details_view_subscan">View in Subscan</string>
-    <string name="wallet_balance_details_title">Balance details</string>
-    <string name="wallet_balance_details_total">Total balance</string>
-    <string name="wallet_balance_details_total_after">Total after transfer</string>
     <string name="wallet_balance_details_existential_deposit">Minimal balance</string>
     <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than minimal balance.</string>
     <string name="common_warning">Warning</string>
@@ -239,11 +236,15 @@ Derivation path: %s</string>
     <string name="staking_year_period_title">yearly</string>
     <string name="staking_recommended_title">Validators</string>
     <string name="staking_recommended_section_title">Validators suggested by algorithm</string>
+    <string name="staking_suggested_collators_title">Suggested collators</string>
+    <string name="staking_select_collator_title">Select a collator</string>
     <string name="staking_recommended_feature_1">Most profitable</string>
     <string name="staking_recommended_feature_2">Not oversubscribed</string>
     <string name="staking_recommended_feature_3">Having onchain identity</string>
     <string name="staking_recommended_feature_4">Not slashed</string>
     <string name="staking_validators">Validators</string>
+    <string name="staking_collators">Collators</string>
+    <string name="staking_collator_info">Collator info</string>
     <string name="staking_confirm_nominations" formatted="false">%s of %s</string>
     <string name="staking_recommended_custom_title">Choose custom validators </string>
     <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
@@ -257,6 +258,10 @@ Derivation path: %s</string>
     <string name="staking_validator_info_title">Validator info</string>
     <string name="staking_validator_total_stake">Total stake</string>
     <string name="staking_validator_nominators">Nominators</string>
+    <string name="staking_collator_delegations">Delegations</string>
+    <string name="staking_collator_min_bond">Min. bond</string>
+    <string name="staking_collator_self_bonded">Self-bonded</string>
+    <string name="staking_collator_effective_amount_bonded">Effective amount bonded</string>
     <string name="staking_validator_estimated_reward">Estimated reward</string>
     <string name="identity_title">Identity</string>
     <string name="identity_display_name_title">Display name</string>
@@ -306,6 +311,7 @@ Derivation path: %s</string>
     <string name="staking_reward_details_era">Era</string>
     <string name="staking_reward_details_reward">Reward</string>
     <string name="staking_reward">Reward</string>
+    <string name="staking_delegate">Delegate</string>
     <string name="staking_slash">Slash</string>
     <string name="common_call">Call</string>
     <string name="common_module">Module</string>
@@ -324,6 +330,10 @@ Derivation path: %s</string>
         <item quantity="one">%d day left</item>
         <item quantity="other">%d days left</item>
     </plurals>
+    <plurals name="days_format">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
     <string name="staking_reward_payouts_empty_rewards">Perfect! All rewards are paid.</string>
     <string name="staking_reward_details_validator">Validator</string>
     <string name="common_not_enough_funds_title">Insufficient balance</string>
@@ -331,14 +341,16 @@ Derivation path: %s</string>
     <string name="staking_warning_tiny_payout">The reward is less than the network fee.</string>
     <string name="staking_unbonding_limit_reached_message">You have reached the unstaking requests limit (%d active requests).</string>
     <string name="staking_unbonding_limit_reached_title">Unstaking requests limit reached</string>
-    <string name="staking_bond_more">Stake more</string>
-    <string name="staking_unbond">Unstake</string>
     <string name="staking_redeem">Redeem</string>
+    <string name="parachain_staking_unlock">Unlock</string>
+    <string name="staking_balance_ready_for_unlocking">Ready for unlocking</string>
+    <string name="staking_delegation_status_ready_to_unlock">Ready to unlock</string>
     <string name="common_balance">Balance</string>
+    <string name="your_collator">Your collator</string>
+    <string name="collator">Collator</string>
     <string name="staking_balance_title">Staking balance</string>
     <string name="make_payout_transaction_sent">Payout transaction sent</string>
     <string name="staking_zero_bond_error">Amount must be positive</string>
-    <string name="staking_no_stash_account">Stash account %s is unavailable to update staking setup.</string>
     <string name="common_transaction_submitted">Transaction submitted</string>
     <string name="staking_your_validators">Your validators</string>
     <string name="staking_rebond_all">Rebond all</string>
@@ -351,6 +363,8 @@ Derivation path: %s</string>
     <string name="staking_bonded_format">Bonded: %s</string>
     <string name="staking_unbonding_all_message">Remaining staking balance will drop under minimum value and also will be added to unstaking amount</string>
     <string name="staking_unbonding_hint">Your tokens will be available to redeem after the unstaking period.</string>
+    <string name="parachain_staking_unbonding_hint_template">Note: you can still cancel this initiation request. Once the exit delay period has passed (%1$s), you can return to this staking dashboard and execute the request, after which you will see the unbonded funds in your free balance.</string>
+    <string name="parachain_staking_unbonding_period_template">%1$s in %2$s - which is %3$s</string>
     <string name="common_account">Account</string>
     <string name="account_template">%s account</string>
     <string name="staking_redeemable_format">Redeemable: %s</string>
@@ -419,15 +433,20 @@ Derivation path: %s</string>
     <string name="staking_add_controller">Add controller account %s to the application to perform this action.</string>
     <string name="crowdloan_empty_bonus_title">Get a special bonus</string>
     <string name="staking_start_change_validators_recommended_title">Stake with validators suggested by algorithm</string>
+    <string name="staking_start_change_collators_suggested_title">Stake with collators suggested by the algorithm</string>
     <string name="staking_start_change_validators_custom_title">Stake with your validators</string>
+    <string name="staking_start_change_collators_custom_title">Stake with known collators</string>
     <string name="common_applied">Applied</string>
     <string name="crowdloan_terms_action">Agree with Terms and Conditions</string>
     <string name="crowdloan_referral_code_invalid">Referral code is invalid. Please, try another one</string>
     <string name="staking_start_change_validators_custom_subtitle">You should trust your nominations to act competently and honest, basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
+    <string name="staking_start_change_collators_custom_subtitle">You should trust your collators to act competently and honest; basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.</string>
     <string name="staking_select_recommended">Select recommended</string>
+    <string name="staking_select_suggested">Select suggested</string>
     <string name="staking_select_custom">Select by yourself</string>
     <string name="staking_selected_validators_count_v1.9.1" formatted="false">selected %d (max %d)</string>
     <string name="staking_start_change_validators_recommended_subtitle">Fearless algorithm has select a list of recommended validators based on the criteria:</string>
+    <string name="staking_start_change_collators_suggested_subtitle">FEARLESS algorithm has made a list of suggested collators based on the following criteria:</string>
     <string name="common_not_enough_funds_message">Sorry, you don\'t have enough funds to pay the network fee.</string>
     <string name="choose_amount_error_too_big">Sorry, you don\'t have enough funds to spend specified amount</string>
     <string name="staking_alert_change_validators_message">Staking is inactive. None of your validators were elected by network.</string>
@@ -458,16 +477,19 @@ Derivation path: %s</string>
     <string name="staking_custom_validators_update_list">Update your list</string>
     <string name="staking_your_oversubscribed_message">Your tokens are allocated to the oversubscribed validators. You will not receive rewards in this era.</string>
     <string name="staking_your_not_elected_format">Not elected (%s)</string>
+    <string name="staking_your_elected">Elected</string>
     <string name="staking_your_elected_format">Elected (%s)</string>
     <string name="staking_rewards_apy">Rewards (APY)</string>
+    <string name="staking_rewards_apr">Rewards (APR)</string>
     <string name="staking_validator_slashed_desc">Validator is slashed for misbehaves (e.g. goes offline, attacks the network, or runs modified software) in the network.</string>
     <string name="staking_payout_expired">Payout expired</string>
     <string name="wallet_balance_unbonding_v1_9_0">Unstaking</string>
     <string name="staking_unbonding_period_v1_9_0">Unstaking period</string>
     <string name="wallet_balance_bonded">Staked</string>
     <string name="staking_total_rewards_v1.9.0">Rewarded</string>
-    <string name="staking_setup_reward_destination_section_title">How to use your rewards?</string>
+    <string name="staking_setup_reward_destination_section_title">Your reward destination</string>
     <string name="staking_bond_more_v1_9_0">Stake more</string>
+    <string name="stake_less">Stake less</string>
     <string name="staking_unbond_v1_9_0">Unstake</string>
     <string name="staking_unbonding_empty_list_v1_9_0">Unstaking transactions will appear here</string>
     <string name="staking_validator_my_oversubscribed_message">Oversubscribed. You will not receive rewards from the validator in this era.</string>
@@ -481,11 +503,12 @@ Derivation path: %s</string>
     <string name="staking_hint_no_rewards">Tokens in unstaking period generate no rewards.</string>
     <string name="staking_hint_redeem">After unstaking period you will need to redeem your tokens.</string>
     <string name="staking_hint_reward_bond_more">Your rewards will be increased starting from the next era.</string>
+    <string name="staking_hint_reward_more">Your rewards will be increased starting from the next period.</string>
     <string name="staking_hint_unbond_kills_stash">Fearless wallet will change rewards destination
 to your account to avoid remaining stake.</string>
     <string name="staking_custom_validators_settings_filters">Show</string>
     <string name="common_sort_by">Sort by</string>
-    <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APY)</string>
+    <string name="staking_custom_validators_settings_sort_apy">Estimated rewards (% APR)</string>
     <string name="staking_information_controller_actions">Controller can unbond, redeem, rebond, change reward destination and validators</string>
     <string name="staking_only_apr">APR</string>
     <string name="staking_only_apy">APY</string>
@@ -496,6 +519,16 @@ to your account to avoid remaining stake.</string>
     <string name="invoice_scan_qr_code_title">QR code</string>
     <string name="invoice_scan_upload">Upload from gallery</string>
     <string name="contacts_scan">Scan QR code</string>
+    <string name="parachain_staking_story_collator_title">Who’s a collator?</string>
+    <string name="parachain_staking_story_collator_page_1">Collators maintain parachains by collecting parachain transactions from users and producing state transition proofs for Relay Chain validators. In other words, collators aggregate parachain transactions into parachain block candidates and produce state transition proofs for validators based on those blocks.</string>
+    <string name="parachain_staking_story_collator_page_2">A collator runs a blockchain node 24/7 and is required to have enough stake locked (both owned and provided by delegators) to be elected by the network. Collators should maintain their nodes\' performance and reliability to be rewarded. Being a collator is almost a full-time job.\nEveryone can be a collator and run a blockchain node, but doing so requires a certain level of technical skills and responsibility.</string>
+    <string name="parachain_staking_story_delegator_title">Who’s a delegator?</string>
+    <string name="parachain_staking_story_delegator_page_1">Delegators are token holders who stake tokens, vouching for specific collator candidates. Any user that holds a minimum amount of tokens as free balance can become a delegator.</string>
+    <string name="parachain_staking_story_delegator_page_2">Delegators should check their stake states regularly. It is possible that staking balance falls below the minimum required amount to receive rewards or even be a delegator. In the worst-case scenario,  your staking slot may be replaced by another delegator with a higher stake and your stake could be pushed out and immediately returned to your balance.</string>
+    <string name="parachain_staking_story_rewards_title">Rewards?</string>
+    <string name="parachain_staking_story_rewards_page_1">Reward pool - a portion of the annual inflation that is set aside for collators and delegators.\nRewards for collators and their delegators are calculated at the start of every round for their work prior to the reward payout delay.\nThe calculated rewards are then paid out on a block-by-block basis. For every block, one collator will be chosen to receive their entire reward payout from the prior round, along with their delegators, until all of the rewards have been paid for that round.</string>
+    <string name="parachain_staking_story_rewards_page_2">Delegators get rewards after a reward payout delay. Payout delays are a certain amount of rounds which must pass before staking rewards are distributed automatically to the free balance.\nReward distribution to some delegators may be stopped because of two possible reasons; A collator hasn\'t been chosen by the network for creating blocks, or decided to leave the candidate pool. Another reason is having a stake amount lower than the minimum collator bond.</string>
+    <string name="parachain_staking_unlock_title">Unlock tokens</string>
     <string name="staking_story_staking_title">What is staking?</string>
     <string name="staking_story_staking_page_1">Staking is an option to earn passive income by locking your tokens in the network. Staking rewards are allocated every era (6 hours on Kusama and 24 hours on Polkadot). You can stake as long as you wish, and for unstaking your tokens you need to wait for the unstacking period to end, making your tokens available to be redeemed.</string>
     <string name="staking_story_staking_page_2">Staking is an important part of network security and reliability. Anyone can run validator nodes, but only those who have enough tokens staked will be elected by the network to participate in composing new blocks and receive the rewards. Validators often do not have enough tokens by themselves, so nominators are helping them by locking their tokens for them to achieve the required amount of stake.</string>
@@ -524,6 +557,10 @@ to your account to avoid remaining stake.</string>
     <plurals name="common_hours_format">
         <item quantity="one">%d hour</item>
         <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="rounds_format">
+        <item quantity="one">%d round</item>
+        <item quantity="other">%d rounds</item>
     </plurals>
     <string name="import_mnemonic_invalid_title">Your mnemonic is invalid</string>
     <string name="account_error_try_another_one">Please, try another one.</string>
@@ -623,6 +660,7 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="view_wallet">View wallet</string>
     <string name="export_wallet">Export wallet</string>
     <string name="select_validators_disclaimer">DISCLAIMER: Algorithmic validator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity, and algorithmic validator suggestions do not necessarily mitigate this risk. A validator suggested by the algorithm could still be slashed. A validator suggested by the algorithm could also change their parameters (e.g. commission rates, etc.) at any time after having been suggested and/or selected. You could lose tokens or rewards for these or other reasons. Only stake tokens and use validator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
+    <string name="select_collators_warning">DISCLAIMER: Algorithmic сollator suggestions do not constitute financial consultation or advice. Staking is a high-risk activity, and algorithmic сollator suggestions do not necessarily mitigate this risk. A сollator suggested by the algorithm could still leave the pool of candidates. A сollator suggested by the algorithm could also change their parameters (e.g.,commission rates, etc.) at any time after having been suggested and/or selected. You could lose rewards for these or other reasons. Only stake tokens and use сollator suggestions at your own discretion, after conducting due diligence and carefully considering the risks involved.</string>
     <string name="accounts_with_one_key">Accounts with one key</string>
     <string name="accounts_with_changed_key">Accounts with changed key</string>
     <string name="select_save_type">Select save type</string>
@@ -731,5 +769,111 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="common_connection_problems">Connection Problems</string>
     <string name="connection_problems_alert_message">Failed to load necessary data to launch the application. Please, check your internet connection and try again.</string>
+
+    <string name="staking_custom_header_collators_title" formatted="false">Collators: %d of %d</string>
+    <string name="staking_custom_collators_default_button_state_text">You should select a collator</string>
+
+    <string name="collator_staking_sorting_effective_amount_bonded">Effective amount bonded</string>
+    <string name="collator_staking_sorting_own_stake">Collator\'s own stake</string>
+    <string name="collator_staking_sorting_delegations">Delegations</string>
+    <string name="collator_staking_sorting_minimum_bond">Minimum bond</string>
+
+    <string name="staking_collator_status_leaving">Leaving</string>
+    <string name="staking_collator_status_idle">Idle</string>
+
+    <string name="staking_alert_leaving_collator_title">The collator %s is leaving the set of candidates</string>
+    <string name="staking_alert_leaving_collator_text">Check your delegation to the collator %s and unlock your tokens if they’re ready</string>
+    <string name="staking_alert_low_stake_title">Your delegation doesn’t make any rewards.</string>
+    <string name="staking_alert_low_stake_text">Your stake amount is too small for generating rewards. You can stake %s more tokens or take away your stake.</string>
+    <string name="staking_alert_unlock_title">Your tokens are ready for unlocking</string>
+    <string name="staking_alert_unlock_text">Please complete the pending operation (stake less/revoke) by unlocking your tokens</string>
+
+    <string name="staking_reward_info_apr_max">Maximum APR</string>
+    <string name="staking_reward_info_apr_avg">Average APR</string>
+
+    <string name="staking_recommended_collators_empty_text">Your stake amount is less than the minimum one of all collators suggested by the algorithm. Increase your stake amount or choose a collator manually</string>
+    <string name="collator_details_delegators">Delegators</string>
+
+    <string name="select_collator_having_identity">Having onchain identity</string>
+    <string name="select_collator_having_relevant_minimum_bond">Having relevant minimum bond</string>
+
+    <string name="staking_history_title">Staking history</string>
+    <string name="parachain_staking_request_finished">Finished</string>
+    <string name="chain_selection_all_networks">All networks</string>
+    <string name="hidden_assets">Hidden assets</string>
+    <string name="common_select_network">Select Network</string>
+
+    <string name="staking_pool_rewards_delay_text">Stake at anytime. You will start earning interests after %s</string>
+    <string name="staking_pool_start_apr_text">Earn %s per year</string>
+    <string name="staking_pool_start_unstake_period_text">Unstake at anytime. You will need to wait for %s before being able to spend your funds and the interest you’ve earned</string>
+    <string name="staking_pool_start_reward_freq_text">Rewards is paid every %s</string>
+    <string name="staking_pool_start_join_button_title">Join pool</string>
+    <string name="staking_pool_start_create_button_title">Create pool</string>
+    <string name="staking_pool_start_earn_reward_title">Earn rewards when you stake your</string>
+    <string name="pool_staking_main_min_create_title">Min. to create a pool</string>
+    <string name="pool_staking_main_min_join_title">Min. to join Pool</string>
+    <string name="pool_staking_main_existing_pools_title">Existing pools</string>
+    <string name="pool_staking_main_possible_pools_title">Possible pools</string>
+    <string name="pool_staking_main_max_members_inpool_title">Max members in pool</string>
+    <string name="pool_staking_main_max_pool_members_title">Max pools members</string>
+    <string name="pool_staking_main_description_title">Stakers (members) with a small amount of tokens can pool their funds together and act as a single nominator. The earnings of the pool are split pro rata to a member\'s stake in the bonded pool.</string>
+    <string name="pool_staking_start_about_title">What is Staking and how does it work, watch instruction</string>
+    <string name="pool_staking_join_title">Join pool</string>
+    <string name="pool_staking_join_account_title">Join pool from</string>
+    <string name="pool_staking_join_button_title">Join</string>
+    <string name="pool_staking_choosepool_title">Choose a pool</string>
+    <string name="pool_staking_choosepool_button_title">Choose</string>
+    <string name="pool_staking_choosepool_members_count_title">Members: %d</string>
+    <string name="pool_staking_choosepool_staked_title">Staked </string>
+    <string name="pool_staking_selected_pool">Selected pool</string>
+    <string name="pool_staking_pool_name">Pool Name</string>
+    <string name="pool_staking_pool_id">Pool ID</string>
+    <string name="pool_staking_depositor">Depositor</string>
+    <string name="pool_staking_root">Root</string>
+    <string name="pool_staking_nominator">Nominator</string>
+    <string name="pool_staking_state_toggler">State toggler</string>
+    <string name="pool_staking_title">Pool staking</string>
+    <string name="common_watch">Watch</string>
+    <string name="nft_stub_title">Sumimasen!</string>
+    <string name="nft_stub_text">NFTs are going to be here soon</string>
+    <string name="сurrencies_stub_text">Currencies</string>
+    <string name="nfts_stub">NFTs</string>
+
+    <string name="common_action_receive">Receive</string>
+    <string name="common_action_send">Send</string>
+    <string name="common_action_teleport">Teleport</string>
+    <string name="common_action_hide">Hide</string>
+    <string name="common_action_show">Show</string>
+
+    <string name="common_title_wallet">Wallet</string>
+    <string name="common_title_wallet_option">Wallet option</string>
+    <string name="common_add_new_wallet">Add New Wallet</string>
+    <string name="common_import_wallet">Import Wallet</string>
+    <string name="common_details_wallet">Wallet Details</string>
+    <string name="common_export_wallet">Export Wallet</string>
+    <string name="common_delete_wallet">Delete Wallet</string>
+    <string name="common_search_assets_alert_title">Sumimasen!</string>
+    <string name="common_search_assets_alert_description">No networks or asset were found :(</string>
+
+    <string name="pool_staking_confirm_join_title">Joining to pool</string>
+    <string name="pool_staking_number_of_members">Number of members</string>
+    <string name="pool_staking_pool_info">Pool Info</string>
+    <string name="pool_staking_roles">Roles</string>
+    <string name="pool_info_index">Index</string>
+    <string name="pool_info_members">Members</string>
+    <string name="pool_info_state">State</string>
+    <string name="pool_claim_reward">Claim reward</string>
+    <string name="common_claim">Claim</string>
+    <string name="pool_redeem">Redeem tokens</string>
+    <string name="pool_time_before_redeem">Time before redeem</string>
+    <string name="pool_nominations">Nominations</string>
+    <string name="common_options">Options</string>
+    <string name="pool_stake_info">Pool Stake Info</string>
+    <string name="pool_your_total_stake">Your total stake</string>
+    <string name="pool_account_for_join">Account for join</string>
+    <string name="common_note">Note: </string>
+    <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
+    <string name="pool_staking_unstake_error">No redeemable tokens found</string>
+    <string name="common_claimable">Claimable</string>
 
 </resources>

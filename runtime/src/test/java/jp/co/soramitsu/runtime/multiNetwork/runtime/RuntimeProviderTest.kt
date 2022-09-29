@@ -4,10 +4,10 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
-import jp.co.soramitsu.test_shared.any
-import jp.co.soramitsu.test_shared.eq
-import jp.co.soramitsu.test_shared.thenThrowUnsafe
-import jp.co.soramitsu.test_shared.whenever
+import jp.co.soramitsu.testshared.any
+import jp.co.soramitsu.testshared.eq
+import jp.co.soramitsu.testshared.thenThrowUnsafe
+import jp.co.soramitsu.testshared.whenever
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first

@@ -10,7 +10,7 @@ class EraValidatorInfoQueryResponse(val query: EraValidatorInfo?) {
                 val address: String,
                 val era: BigInteger,
                 val total: String,
-                val own: String,
+                val own: String
             )
         }
     }

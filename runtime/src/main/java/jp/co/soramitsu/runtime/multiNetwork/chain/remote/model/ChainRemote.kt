@@ -1,5 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.remote.model
 
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainTypesInfo
+
 data class ChainRemote(
     val chainId: String,
     val name: String,

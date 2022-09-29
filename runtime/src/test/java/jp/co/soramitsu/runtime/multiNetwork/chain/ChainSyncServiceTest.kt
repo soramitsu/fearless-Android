@@ -1,15 +1,15 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
-import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainLocal
-import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainLocal
+import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainNodeRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
-import jp.co.soramitsu.test_shared.argThat
-import jp.co.soramitsu.test_shared.eq
+import jp.co.soramitsu.testshared.argThat
+import jp.co.soramitsu.testshared.eq
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
@@ -29,7 +29,9 @@ class ChainSyncServiceTest {
             ChainAssetRemote(
                 assetId = "test",
                 staking = null,
-                purchaseProviders = null
+                purchaseProviders = null,
+                isUtility = null,
+                type = null
             )
         ),
         nodes = listOf(
@@ -43,7 +45,8 @@ class ChainSyncServiceTest {
         types = null,
         options = emptyList(),
         parentId = null,
-        externalApi = null
+        externalApi = null,
+        minSupportedVersion = null
     )
 
     private val REMOTE_ASSET = AssetRemote(
@@ -51,7 +54,13 @@ class ChainSyncServiceTest {
         chainId = "0x00",
         precision = 10,
         priceId = "test",
-        icon = "test"
+        icon = "test",
+        symbol = "test",
+        displayName = null,
+        transfersEnabled = null,
+        type = null,
+        currencyId = null,
+        existentialDeposit = null
     )
 
     private val LOCAL_CHAIN = mapChainToChainLocal(mapChainRemoteToChain(listOf(REMOTE_CHAIN), listOf(REMOTE_ASSET))[0])

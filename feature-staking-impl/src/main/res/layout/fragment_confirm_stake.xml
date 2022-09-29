@@ -35,7 +35,7 @@
         android:layout_marginEnd="16dp"
         android:enabled="false" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.view.RewardDestinationViewer
+    <jp.co.soramitsu.staking.impl.presentation.view.RewardDestinationViewer
         android:id="@+id/confirmStakeRewardDestination"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -76,6 +76,16 @@
             android:layout_marginEnd="16dp"
             android:src="@drawable/ic_arrow_right_24" />
     </LinearLayout>
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/confirmStakeSelectedCollator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:actionIcon="@drawable/ic_copy_24"
+        app:enabled="true" />
 
     <View
         android:layout_width="match_parent"

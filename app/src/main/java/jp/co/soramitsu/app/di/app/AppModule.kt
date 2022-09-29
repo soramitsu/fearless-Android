@@ -3,15 +3,18 @@ package jp.co.soramitsu.app.di.app
 import android.content.Context
 import dagger.Module
 import dagger.Provides
-import jp.co.soramitsu.app.App
-import jp.co.soramitsu.common.di.scope.ApplicationScope
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
+@InstallIn(SingletonComponent::class)
 @Module
 class AppModule {
 
-    @ApplicationScope
+    @Singleton
     @Provides
-    fun provideContext(application: App): Context {
-        return application
+    fun provideContext(@ApplicationContext context: Context): Context {
+        return context
     }
 }
