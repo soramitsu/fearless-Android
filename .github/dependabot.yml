@@ -1,8 +1,7 @@
 version: 2
-updates:
-  - package-ecosystem: "gradle" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "daily"
-      time: "06:00"
+on:
+  pull_request:
+    updates:
+      - package-ecosystem: "gradle" # See documentation for possible values
+      directory: "/" # Location of package manifests
     open-pull-requests-limit: 0
