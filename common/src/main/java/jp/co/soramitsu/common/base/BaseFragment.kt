@@ -18,16 +18,18 @@ import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.dp
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
-import javax.inject.Inject
 
-abstract class BaseFragment<T : BaseViewModel> : Fragment() {
+abstract class BaseFragment<T : BaseViewModel> : Fragment {
 
-    @Inject protected open lateinit var viewModel: T
+    abstract val viewModel: T
+
+    constructor(contentLayoutId: Int) : super(contentLayoutId)
+
+    constructor() : super()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        inject()
         initViews()
         subscribe(viewModel)
 
@@ -96,11 +98,9 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment() {
 
     protected fun EditText.bindTo(liveData: MutableLiveData<String>) = bindTo(liveData, viewLifecycleOwner)
 
-    protected inline fun <reified T> argument(key: String): T = arguments!![key] as T
+    protected inline fun <reified T> argument(key: String): T = requireArguments()[key] as T
 
     abstract fun initViews()
-
-    abstract fun inject()
 
     abstract fun subscribe(viewModel: T)
 }

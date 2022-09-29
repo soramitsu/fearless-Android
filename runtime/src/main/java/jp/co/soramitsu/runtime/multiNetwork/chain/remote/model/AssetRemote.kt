@@ -1,14 +1,18 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.remote.model
 
-import java.util.Locale
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 
 data class AssetRemote(
     val id: String?,
+    val symbol: String?,
+    @Deprecated("Tobe removed in favor of isUtility param of Chain.Asset")
     val chainId: String?,
+    val displayName: String?,
     val precision: Int?,
     val priceId: String?,
-    val icon: String?
-) {
-    val symbol: String
-        get() = id?.toUpperCase(Locale.ROOT).orEmpty()
-}
+    val icon: String?,
+    val transfersEnabled: Boolean?,
+    val type: ChainAssetType?,
+    val currencyId: String?,
+    val existentialDeposit: String?
+)

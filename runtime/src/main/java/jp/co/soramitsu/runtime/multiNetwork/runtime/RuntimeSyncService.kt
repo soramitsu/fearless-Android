@@ -1,13 +1,14 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import android.util.Log
+import java.util.concurrent.ConcurrentHashMap
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.md5
 import jp.co.soramitsu.common.utils.newLimitedThreadPoolExecutor
 import jp.co.soramitsu.common.utils.retryUntilDone
-import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainRuntimeInfoLocal
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -23,17 +24,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import java.util.concurrent.ConcurrentHashMap
 
 data class SyncInfo(
     val connection: ChainConnection,
-    val typesUrl: String?,
+    val typesUrl: String?
 )
 
 class SyncResult(
     val chainId: String,
     val metadataHash: FileHash?,
-    val typesHash: FileHash?,
+    val typesHash: FileHash?
 )
 
 private const val LOG_TAG = "RuntimeSyncService"
@@ -42,7 +42,7 @@ class RuntimeSyncService(
     private val typesFetcher: TypesFetcher,
     private val runtimeFilesCache: RuntimeFilesCache,
     private val chainDao: ChainDao,
-    maxConcurrentUpdates: Int = 8,
+    maxConcurrentUpdates: Int = 15,
     private val updatesMixin: UpdatesMixin
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 

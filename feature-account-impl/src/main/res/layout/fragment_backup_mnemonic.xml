@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <jp.co.soramitsu.feature_account_impl.presentation.view.mnemonic.MnemonicViewer
+            <jp.co.soramitsu.account.impl.presentation.view.mnemonic.MnemonicViewer
                 android:id="@+id/backupMnemonicViewer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -34,7 +34,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp" />
 
-            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
+            <jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/advancedBlockView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

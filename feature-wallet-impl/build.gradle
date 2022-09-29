@@ -1,7 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
@@ -36,6 +37,11 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+        compose = true
+    }
+
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
@@ -45,6 +51,9 @@ android {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = '1.8'
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
     }
     namespace 'jp.co.soramitsu.feature_wallet_impl'
 }
@@ -72,6 +81,8 @@ dependencies {
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
 
+    implementation fragmentKtxDep
+
     implementation daggerDep
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt daggerKapt
@@ -98,4 +109,22 @@ dependencies {
 
     implementation insetterDep
     implementation shimmerDep
+
+    implementation coilCompose
+    implementation navigationComposeDep
+    implementation hiltNavComposeDep
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeAnimationDep
+    implementation composeActivityDep
+    implementation composeViewModelDep
+    implementation composeToolingPreviewDep
+    debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 }

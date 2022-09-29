@@ -4,14 +4,14 @@ import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import androidx.core.content.ContextCompat
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.common.utils.daysFromMillis
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.getDrawableCompat
+import javax.inject.Singleton
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-@ApplicationScope
+@Singleton
 class ResourceManagerImpl(
     private val contextManager: ContextManager
 ) : ResourceManager {

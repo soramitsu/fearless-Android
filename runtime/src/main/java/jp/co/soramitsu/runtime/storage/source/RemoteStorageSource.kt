@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.map
 
 class RemoteStorageSource(
     chainRegistry: ChainRegistry,
-    private val bulkRetriever: BulkRetriever,
+    private val bulkRetriever: BulkRetriever
 ) : BaseStorageSource(chainRegistry) {
 
     override suspend fun query(key: String, chainId: String, at: BlockHash?): String? {

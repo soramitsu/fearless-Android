@@ -1,7 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 
 android {
@@ -19,6 +20,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 
     kotlinOptions {
@@ -56,6 +61,8 @@ dependencies {
     implementation viewModelKtxDep
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
+
+    implementation fragmentKtxDep
 
     implementation insetterDep
 
