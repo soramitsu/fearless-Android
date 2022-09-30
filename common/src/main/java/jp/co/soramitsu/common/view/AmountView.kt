@@ -20,7 +20,7 @@ import jp.co.soramitsu.common.view.shape.getCutCornersStateDrawable
 class AmountView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyle: Int = 0,
+    defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
 
     private val binding: ViewStakingAmountBinding
@@ -44,7 +44,7 @@ class AmountView @JvmOverloads constructor(
         amountInput.inputType = if (enabled) InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL else InputType.TYPE_NULL
     }
 
-    override fun childDrawableStateChanged(child: View?) {
+    override fun childDrawableStateChanged(child: View) {
         refreshDrawableState()
     }
 

@@ -48,7 +48,7 @@ abstract class BaseStorageSource(
         chainId: String,
         keysBuilder: (RuntimeSnapshot) -> Map<StorageKey, K>,
         at: BlockHash?,
-        binding: Binder<T>,
+        binding: Binder<T>
     ): Map<K, T> = withContext(Dispatchers.Default) {
         val runtime = chainRegistry.getRuntime(chainId)
 
@@ -64,7 +64,7 @@ abstract class BaseStorageSource(
         chainId: String,
         keyBuilder: (RuntimeSnapshot) -> String?,
         at: BlockHash?,
-        binding: Binder<T>,
+        binding: Binder<T>
     ) = withContext(Dispatchers.Default) {
         val runtime = chainRegistry.getRuntime(chainId)
 
@@ -77,7 +77,7 @@ abstract class BaseStorageSource(
     override fun <T> observe(
         chainId: String,
         keyBuilder: (RuntimeSnapshot) -> String?,
-        binder: Binder<T>,
+        binder: Binder<T>
     ) = flow {
         val runtime = chainRegistry.getRuntime(chainId)
         val key = keyBuilder(runtime)

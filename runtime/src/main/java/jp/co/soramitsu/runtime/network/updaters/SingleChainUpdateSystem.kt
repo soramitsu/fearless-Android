@@ -6,10 +6,9 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.subscribeUsing
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.runtime.multiNetwork.getSocket
-import jp.co.soramitsu.runtime.state.SingleAssetSharedState
-import jp.co.soramitsu.runtime.state.selectedChainFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -21,10 +20,10 @@ import kotlinx.coroutines.flow.onCompletion
 class SingleChainUpdateSystem(
     private val updaters: List<Updater>,
     private val chainRegistry: ChainRegistry,
-    private val singleAssetSharedState: SingleAssetSharedState,
+    private val chainFlow: Flow<Chain>
 ) : UpdateSystem {
 
-    override fun start(): Flow<Updater.SideEffect> = singleAssetSharedState.selectedChainFlow().flatMapLatest { chain ->
+    override fun start(): Flow<Updater.SideEffect> = chainFlow.flatMapLatest { chain ->
         val socket = chainRegistry.getSocket(chain.id)
         val runtimeMetadata = chainRegistry.getRuntime(chain.id).metadata
 

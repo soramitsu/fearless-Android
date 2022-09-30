@@ -15,7 +15,7 @@
         android:layout_marginEnd="@dimen/x1"
         android:text="@string/pincode_enter_pin_code" />
 
-    <jp.co.soramitsu.feature_account_impl.presentation.pincode.view.DotsProgressView
+    <jp.co.soramitsu.account.impl.presentation.pincode.view.DotsProgressView
         android:id="@+id/dotsProgressView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.utils
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import io.emeraldpay.polkaj.scale.ScaleCodecWriter
+import java.io.ByteArrayOutputStream
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNullableNumberConstant
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
@@ -28,7 +29,6 @@ import jp.co.soramitsu.fearless_utils.scale.dataType.uint32
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
-import java.io.ByteArrayOutputStream
 
 val BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH: String
     get() = "//44//60//0/0/0"
@@ -115,6 +115,8 @@ fun RuntimeMetadata.session() = module(Modules.SESSION)
 
 fun RuntimeMetadata.identity() = module(Modules.SESSION)
 
+fun RuntimeMetadata.nominationPools() = module(Modules.NOMINATION_POOLS)
+
 fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapArguments: Collection<T>): Map<String, T> {
     return singleMapArguments.associateBy { storageKey(runtime, it) }
 }
@@ -160,6 +162,9 @@ object Modules {
     const val BABE = "Babe"
     const val SLOTS = "Slots"
     const val SESSION = "Session"
+    const val NOMINATION_POOLS = "NominationPools"
     const val TOKENS = "Tokens"
+    const val CURRENCIES = "Currencies"
+    const val EQBALANCES = "EqBalances"
     const val IDENTITY = "Identity"
 }

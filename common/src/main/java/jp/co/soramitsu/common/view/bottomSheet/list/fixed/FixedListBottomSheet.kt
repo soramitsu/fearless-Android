@@ -22,7 +22,6 @@ abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(contex
 
     @CallSuper
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
     }
 
