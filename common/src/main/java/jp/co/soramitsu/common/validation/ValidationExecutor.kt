@@ -12,7 +12,7 @@ typealias ProgressConsumer = (Boolean) -> Unit
 fun MutableLiveData<Boolean>.progressConsumer(): ProgressConsumer = { value = it }
 
 class ValidationExecutor(
-    val resourceManager: ResourceManager,
+    val resourceManager: ResourceManager
 ) : Validatable {
 
     suspend fun <P, S> requireValid(
@@ -22,7 +22,7 @@ class ValidationExecutor(
         validationFailureTransformer: (S) -> TitleAndMessage,
         progressConsumer: ProgressConsumer? = null,
         autoFixPayload: (original: P, failureStatus: S) -> P = { original, _ -> original },
-        block: (P) -> Unit,
+        block: (P) -> Unit
     ) {
         progressConsumer?.invoke(true)
 

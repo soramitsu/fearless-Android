@@ -13,17 +13,17 @@ interface UpdatesProviderUi {
 
     val chainsUpdate: LiveData<Set<String>>
 
-    suspend fun startUpdateToken(symbol: String)
+    suspend fun startUpdateToken(priceId: String)
 
-    suspend fun startUpdateTokens(symbols: List<String>)
+    suspend fun startUpdateTokens(priceIds: Set<String>)
 
-    suspend fun finishUpdateTokens(symbols: List<String>)
+    suspend fun finishUpdateTokens(priceIds: Set<String>)
 
-    suspend fun finishUpdateToken(symbol: String)
+    suspend fun finishUpdateToken(priceId: String)
 
-    suspend fun startUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, tokenSymbol: String)
+    suspend fun startUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, assetId: String)
 
-    suspend fun finishUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, tokenSymbol: String)
+    suspend fun finishUpdateAsset(metaId: Long, chainId: String, accountId: AccountId, assetId: String)
 
     suspend fun startChainSyncUp(chainId: String)
 

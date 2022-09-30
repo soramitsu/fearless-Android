@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.utils
 
 import android.content.Context
 import android.text.format.DateUtils
+import android.util.Log
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -83,7 +84,10 @@ fun Long.formatDaysSinceEpoch(context: Context): String? {
     val currentDays = System.currentTimeMillis().daysFromMillis()
     val diff = currentDays - this
 
-    if (diff < 0) throw IllegalArgumentException("Past date should be less than current")
+    if (diff < 0) {
+        Log.e("NumberFormatter", "\"Past date should be less than current. Current days = $currentDays, countingDays = $this\"")
+        return null
+    }
 
     return when (diff) {
         0L -> context.getString(R.string.today)

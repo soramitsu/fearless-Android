@@ -52,8 +52,4 @@ class BadgeView @JvmOverloads constructor(
     fun setText(text: CharSequence) {
         binding.badgeName.text = text
     }
-
-    fun setText(stringText: String?) {
-        binding.badgeName.text = stringText
-    }
 }

@@ -15,7 +15,7 @@ class Mortality(val era: Era.Mortal, val blockHash: String)
 
 class MortalityConstructor(
     private val rpcCalls: RpcCalls,
-    private val chainStateRepository: ChainStateRepository,
+    private val chainStateRepository: ChainStateRepository
 ) {
 
     suspend fun constructMortality(chainId: ChainId): Mortality {

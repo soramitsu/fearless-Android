@@ -1,7 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.test_shared.whenever
+import jp.co.soramitsu.testshared.whenever
 import org.mockito.Mockito
 
 object Mocks {

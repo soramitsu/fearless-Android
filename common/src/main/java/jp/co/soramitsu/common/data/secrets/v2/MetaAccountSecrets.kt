@@ -41,7 +41,7 @@ fun MetaAccountSecrets(
     seed: ByteArray? = null,
     substrateDerivationPath: String? = null,
     ethereumKeypair: Keypair? = null,
-    ethereumDerivationPath: String? = null,
+    ethereumDerivationPath: String? = null
 ): EncodableStruct<MetaAccountSecrets> = MetaAccountSecrets { secrets ->
     secrets[Entropy] = entropy
     secrets[Seed] = seed
@@ -67,7 +67,7 @@ fun ChainAccountSecrets(
     keyPair: Keypair,
     entropy: ByteArray? = null,
     seed: ByteArray? = null,
-    derivationPath: String? = null,
+    derivationPath: String? = null
 ): EncodableStruct<ChainAccountSecrets> = ChainAccountSecrets { secrets ->
     secrets[Entropy] = entropy
     secrets[Seed] = seed

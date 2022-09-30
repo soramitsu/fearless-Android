@@ -4,16 +4,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.validation.ProgressConsumer
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
-import kotlin.coroutines.CoroutineContext
 
 typealias TitleAndMessage = Pair<String, String>
 
@@ -41,7 +42,12 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
     }
 
     fun showError(throwable: Throwable) {
-        throwable.message?.let(this::showError)
+        if (throwable is ValidationException) {
+            val (title, text) = throwable
+            _errorWithTitleLiveData.value = Event(title to text)
+        } else {
+            throwable.message?.let(this::showError)
+        }
     }
 
     override val coroutineContext: CoroutineContext
@@ -59,7 +65,7 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
         validationFailureTransformer: (S) -> TitleAndMessage,
         progressConsumer: ProgressConsumer? = null,
         autoFixPayload: (original: P, failureStatus: S) -> P = { original, _ -> original },
-        block: (P) -> Unit,
+        block: (P) -> Unit
     ) = requireValid(
         validationSystem = validationSystem,
         payload = payload,

@@ -8,46 +8,46 @@
     tools:orientation="vertical"
     tools:parentTag="android.widget.LinearLayout">
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+    <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/collatorStatusView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:validatorInfoItemTitle="@string/transaction_detail_status"
         />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+    <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/collatorDelegations"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:validatorInfoItemTitle="@string/staking_collator_delegations"
         />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+    <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/collatorTotalStakeView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:validatorInfoItemTitleIcon="@drawable/ic_info_16"
         app:validatorInfoItemTitle="@string/staking_validator_total_stake" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+    <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/collatorEstimatedReward"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:validatorInfoItemTitle="@string/staking_validator_estimated_reward" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+    <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/collatorMinBond"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:validatorInfoItemTitle="@string/staking_collator_min_bond" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+    <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/collatorSelfBonded"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:validatorInfoItemTitle="@string/staking_collator_self_bonded" />
 
-    <jp.co.soramitsu.feature_staking_impl.presentation.validators.details.view.ValidatorInfoItemView
+    <jp.co.soramitsu.staking.impl.presentation.validators.details.view.ValidatorInfoItemView
         android:id="@+id/collatorEffectiveAmountBonded"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
