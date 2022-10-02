@@ -281,7 +281,7 @@ fun CapsTitle(
 ) {
     Text(
         textAlign = textAlign,
-        text = text,
+        text = text.uppercase(),
         style = MaterialTheme.customTypography.capsTitle,
         modifier = modifier,
         color = color,
@@ -301,7 +301,7 @@ fun CapsTitle2(
 ) {
     Text(
         textAlign = textAlign,
-        text = text,
+        text = text.uppercase(),
         style = MaterialTheme.customTypography.capsTitle2,
         modifier = modifier,
         color = color,
