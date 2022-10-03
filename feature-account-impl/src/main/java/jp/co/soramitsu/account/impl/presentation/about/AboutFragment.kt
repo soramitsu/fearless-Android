@@ -53,10 +53,4 @@ class AboutFragment : BaseComposeFragment<AboutViewModel>() {
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         AboutScreen(viewModel)
     }
-
-    // todo this is not worked for now, applied in AboutScreenContent()
-//    @Composable
-//    override fun Background() {
-//        AboutBackground()
-//    }
 }
