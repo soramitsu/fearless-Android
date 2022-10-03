@@ -270,8 +270,7 @@
     <fragment
         android:id="@+id/aboutFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.about.AboutFragment"
-        android:label="fragment_about"
-        tools:layout="@layout/fragment_about" />
+        android:label="fragment_about" />
 
     <fragment
         android:id="@+id/accountsFragment"

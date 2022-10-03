@@ -79,6 +79,10 @@
     <string name="common_done">Готово</string>
     <string name="accounts_add_account">Добавить аккаунт</string>
     <string name="account_add_already_exists_message">Аккаунт уже существует. Пожалуйста, попробуйте другой.</string>
+    <string name="fearless_wallet">Fearless Wallet</string>
+    <string name="community">Сообщество</string>
+    <string name="social_media">Social Media</string>
+    <string name="support_and_feedback">Поддержка и Обратная связь</string>
     <string name="about_website">Официальный сайт</string>
     <string name="about_github">Исходный код на Github</string>
     <string name="about_telegram">Присоединяйтесь к группе Telegram</string>

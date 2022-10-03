@@ -26,8 +26,8 @@ operations will appear here</string>
     <string name="about_version">App version</string>
     <string name="about_contact_us">Contact Email</string>
     <string name="about_title">About</string>
-    <string name="about_privacy">Privacy policy</string>
-    <string name="about_terms">Terms and conditions</string>
+    <string name="about_privacy">Privacy Policy</string>
+    <string name="about_terms">Terms and Conditions</string>
     <string name="language_title">Language</string>
     <string name="onboarding_create_account">Create account</string>
     <string name="username_setup_choose_title">Name</string>
@@ -83,6 +83,10 @@ operations will appear here</string>
     <string name="common_done">Done</string>
     <string name="accounts_add_account">Add account</string>
     <string name="account_add_already_exists_message">Account already exists. Please, try another one.</string>
+    <string name="fearless_wallet">Fearless Wallet</string>
+    <string name="community">Community</string>
+    <string name="social_media">Social Media</string>
+    <string name="support_and_feedback">Support &amp; Feedback</string>
     <string name="about_website">Official Website</string>
     <string name="about_github">Github Source Code</string>
     <string name="about_telegram">Join on Telegram</string>

@@ -84,7 +84,7 @@ private fun AdditionalInfo(message: String) {
         )
         val text = buildAnnotatedString {
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                append("${stringResource(id = R.string.common_note)} ")
+                append(stringResource(id = R.string.common_note))
             }
             withStyle(style = SpanStyle()) {
                 append(message)
