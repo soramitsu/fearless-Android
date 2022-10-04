@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets
 
-import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -41,7 +40,6 @@ class SearchAssetsFragment : BaseComposeFragment<SearchAssetsViewModel>() {
 
     override val viewModel: SearchAssetsViewModel by viewModels()
 
-    @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
