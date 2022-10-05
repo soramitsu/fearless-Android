@@ -55,7 +55,7 @@ class SetupStakingPoolViewModel @Inject constructor(
 
     init {
         val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
-        val setupState = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
 
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
@@ -141,11 +141,11 @@ class SetupStakingPoolViewModel @Inject constructor(
     }
 
     fun onNextClick() {
-        val setupFlow = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+        val setupFlow = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
         val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
 
         isValid(amount).fold({
-            stakingPoolSharedStateProvider.setupState.set(setupFlow.copy(amount = amount))
+            stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(amount = amount))
             router.openSelectPool()
         }, {
             showError(it)

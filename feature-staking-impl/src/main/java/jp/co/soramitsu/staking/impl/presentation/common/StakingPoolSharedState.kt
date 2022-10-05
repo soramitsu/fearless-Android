@@ -13,6 +13,13 @@ data class StakingPoolJoinFlowState(
     val selectedPool: PoolInfo? = null
 )
 
+data class StakingPoolCreateFlowState(
+    val poolName: String? = null,
+    val amount: BigDecimal? = null,
+    val poolId: Int? = null,
+
+)
+
 data class StakingPoolManageFlowState(
     val redeemInPlanks: BigInteger,
     val claimableInPlanks: BigInteger,

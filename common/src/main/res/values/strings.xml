@@ -879,5 +879,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
     <string name="pool_staking_unstake_error">No redeemable tokens found</string>
     <string name="common_claimable">Claimable</string>
+    <string name="pool_create_title">Create a pool</string>
+    <string name="common_create">Create</string>
 
 </resources>

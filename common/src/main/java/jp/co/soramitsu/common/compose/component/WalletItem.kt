@@ -39,7 +39,7 @@ data class WalletItemViewState(
 @Composable
 fun WalletItem(
     state: WalletItemViewState,
-    onOptionsClick: (WalletItemViewState) -> Unit,
+    onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
     onSelected: (WalletItemViewState) -> Unit
 ) {
     val borderColor = if (state.isSelected) {
@@ -90,23 +90,25 @@ fun WalletItem(
                     ChangeBalance(state = it)
                 }
             }
-            Box(
-                contentAlignment = Alignment.CenterEnd,
-                modifier = Modifier.weight(1f)
-            ) {
-                IconButton(
-                    onClick = {
-                        onOptionsClick(state)
-                    },
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(30.dp)
+            onOptionsClick?.let { optionsAction ->
+                Box(
+                    contentAlignment = Alignment.CenterEnd,
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
-                        tint = Color.Unspecified,
-                        contentDescription = null
-                    )
+                    IconButton(
+                        onClick = {
+                            optionsAction(state)
+                        },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(30.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
+                            tint = Color.Unspecified,
+                            contentDescription = null
+                        )
+                    }
                 }
             }
         }

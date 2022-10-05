@@ -803,4 +803,6 @@
     <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
     <string name="pool_staking_unstake_error">No redeemable tokens found</string>
     <string name="common_claimable">Claimable</string>
+    <string name="pool_create_title">Создать пулл</string>
+    <string name="common_create">Создать</string>
 </resources>

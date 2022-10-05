@@ -331,7 +331,7 @@ class StakingViewModel @Inject constructor(
         val amount = scenarioViewModelFlow.first().enteredAmountFlow.value
         val amountDecimal = amount.toBigDecimalOrNull()
 
-        stakingPoolSharedStateProvider.setupState.mutate {
+        stakingPoolSharedStateProvider.joinFlowState.mutate {
             StakingPoolJoinFlowState(amount = amountDecimal)
         }
         stakingPoolSharedStateProvider.mainState.mutate {

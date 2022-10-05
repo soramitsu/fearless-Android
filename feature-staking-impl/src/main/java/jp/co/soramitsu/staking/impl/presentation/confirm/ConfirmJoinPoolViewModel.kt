@@ -40,7 +40,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
     private val address: String
 
     init {
-        val setupState = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
         val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
@@ -102,7 +102,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
         launch {
             val amountInPlanks = asset.token.planksFromAmount(amount)
             poolInteractor.joinPool(address, amountInPlanks, selectedPool.poolId).fold({
-                stakingPoolSharedStateProvider.setupState.complete()
+                stakingPoolSharedStateProvider.joinFlowState.complete()
                 router.returnToMain()
             }, {
                 showError(it)

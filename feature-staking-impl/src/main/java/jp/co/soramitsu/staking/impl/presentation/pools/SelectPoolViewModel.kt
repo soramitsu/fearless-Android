@@ -36,7 +36,7 @@ class SelectPoolViewModel @Inject constructor(
     private val selectedItem: MutableStateFlow<PoolItemState?>
 
     init {
-        val setupState = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
         val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
@@ -82,11 +82,11 @@ class SelectPoolViewModel @Inject constructor(
     }
 
     fun onNextClick() {
-        val setupFlow = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+        val setupFlow = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
         val selectedPoolId = requireNotNull(selectedItem.value?.id)
         val pool = requireNotNull(poolsFlow.value.find { it.poolId == selectedPoolId.toBigInteger() })
 
-        stakingPoolSharedStateProvider.setupState.set(setupFlow.copy(selectedPool = pool))
+        stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(selectedPool = pool))
 
         router.openConfirmJoinPool()
     }
