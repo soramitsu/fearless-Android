@@ -78,9 +78,10 @@ fun bindMaxMembersInPool(
 
 @UseCaseBinding
 fun bindExistingPools(
-    scale: String,
+    scale: String?,
     runtime: RuntimeSnapshot
 ): BigInteger {
+    scale ?: return BigInteger.ZERO
     val returnType = runtime.metadata.storageReturnType("NominationPools", "CounterForBondedPools")
 
     return bindNumber(returnType.fromHexOrIncompatible(scale, runtime))
