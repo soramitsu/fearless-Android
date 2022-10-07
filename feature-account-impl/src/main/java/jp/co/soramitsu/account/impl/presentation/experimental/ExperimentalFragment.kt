@@ -1,45 +1,25 @@
-package jp.co.soramitsu.feature_account_impl.presentation.experimental
+package jp.co.soramitsu.account.impl.presentation.experimental
 
 import android.content.Intent
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import com.google.zxing.integration.android.IntentIntegrator
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.qrScanner.QrScannerActivity
-import jp.co.soramitsu.feature_account_api.di.AccountFeatureApi
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.di.AccountFeatureComponent
-import kotlinx.android.synthetic.main.fragment_experimental.experimentsBackButton
-import kotlinx.android.synthetic.main.fragment_experimental.experimentsBeaconDapp
-import kotlinx.android.synthetic.main.fragment_experimental.experimentsBeaconDappClickView
+import jp.co.soramitsu.feature_account_impl.databinding.FragmentExperimentalBinding
 
-class ExperimentalFragment : BaseFragment<ExperimentalViewModel>() {
+@AndroidEntryPoint
+class ExperimentalFragment : BaseFragment<ExperimentalViewModel>(R.layout.fragment_experimental) {
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_experimental, container, false)
-    }
+    private val binding by viewBinding(FragmentExperimentalBinding::bind)
+    override val viewModel: ExperimentalViewModel by viewModels()
 
     override fun initViews() {
-        experimentsBeaconDappClickView.setOnClickListener { viewModel.onBeaconClicked() }
-        experimentsBackButton.setOnClickListener { viewModel.backClicked() }
-    }
-
-    override fun inject() {
-        FeatureUtils.getFeature<AccountFeatureComponent>(
-            requireContext(),
-            AccountFeatureApi::class.java
-        )
-            .experimentalComponentFactory()
-            .create(this)
-            .inject(this)
+        binding.experimentsBeaconDappClickView.setOnClickListener { viewModel.onBeaconClicked() }
+        binding.experimentsBackButton.setOnClickListener { viewModel.backClicked() }
     }
 
     override fun subscribe(viewModel: ExperimentalViewModel) {
@@ -47,7 +27,7 @@ class ExperimentalFragment : BaseFragment<ExperimentalViewModel>() {
             setBeaconVisibility(state.beaconDapp != null)
 
             state.beaconDapp?.let {
-                experimentsBeaconDapp.text = it.name
+                binding.experimentsBeaconDapp.text = it.name
             }
         }
 
@@ -64,9 +44,9 @@ class ExperimentalFragment : BaseFragment<ExperimentalViewModel>() {
     }
 
     private fun setBeaconVisibility(isVisible: Boolean) {
-        experimentsBeaconDapp.isVisible = isVisible
+        binding.experimentsBeaconDapp.isVisible = isVisible
 //        experimentsBeaconDappStatus.isVisible = isVisible
-        experimentsBeaconDappClickView.isVisible = isVisible
+        binding.experimentsBeaconDappClickView.isVisible = isVisible
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

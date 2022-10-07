@@ -1157,13 +1157,13 @@
 
     <fragment
         android:id="@+id/experimentalFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.experimental.ExperimentalFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.experimental.ExperimentalFragment"
         android:label="ExperimentalFragment"
         tools:layout="@layout/fragment_experimental" />
 
     <fragment
         android:id="@+id/successFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.experimental.SuccessfulFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment"
         android:label="SuccessfulFragment"
         tools:layout="@layout/fragment_succesful" />
 
