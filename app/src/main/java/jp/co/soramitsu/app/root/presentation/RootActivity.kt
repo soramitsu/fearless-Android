@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
+import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -16,24 +18,20 @@ import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import javax.inject.Inject
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.app.root.di.RootApi
-import jp.co.soramitsu.app.root.di.RootComponent
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseActivity
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
-import jp.co.soramitsu.splash.presentation.SplashBackgroundHolder
-import kotlinx.android.synthetic.main.activity_root.mainView
-import kotlinx.android.synthetic.main.activity_root.rootNetworkBar
+import javax.inject.Inject
 
-class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, LifecycleObserver {
+@AndroidEntryPoint
+class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
     companion object {
         private const val ANIM_DURATION = 150L
@@ -43,17 +41,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
     @Inject
     lateinit var navigator: Navigator
 
-    override fun inject() {
-        FeatureUtils.getFeature<RootComponent>(this, RootApi::class.java)
-            .mainActivityComponentFactory()
-            .create(this)
-            .inject(this)
-    }
+    override val viewModel: RootViewModel by viewModels()
+
+    private val rootNetworkBar: TextView by lazy { findViewById(R.id.rootNetworkBar) }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-
-        removeSplashBackground()
 
         viewModel.restoredAfterConfigChange()
     }
@@ -142,6 +135,12 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
                 finish()
             }
         )
+        viewModel.showNoInternetConnectionAlert.observe(
+            this,
+            EventObserver {
+                showNoInternetConnectionAlert()
+            }
+        )
     }
 
     private fun showUnsupportedAppVersionAlert() {
@@ -151,6 +150,17 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
             .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_update)
             .setCancelable(false)
             .callback { viewModel.updateAppClicked() }
+            .build()
+            .show()
+    }
+
+    private fun showNoInternetConnectionAlert() {
+        AlertBottomSheet.Builder(this)
+            .setTitle(jp.co.soramitsu.feature_wallet_impl.R.string.common_connection_problems)
+            .setMessage(jp.co.soramitsu.feature_wallet_impl.R.string.connection_problems_alert_message)
+            .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_retry)
+            .setCancelable(false)
+            .callback { viewModel.retryLoadConfigClicked() }
             .build()
             .show()
     }
@@ -169,16 +179,18 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
         }
 
         val errorColor = getColor(R.color.colorAccent)
-        rootNetworkBar.setText(R.string.network_status_connecting)
-        rootNetworkBar.setBackgroundColor(errorColor)
+        findViewById<TextView>(R.id.rootNetworkBar).apply {
+            setText(R.string.network_status_connecting)
+            setBackgroundColor(errorColor)
+        }
         val animation = TranslateAnimation(0f, 0f, -ANIM_START_POSITION, 0f)
         animation.duration = ANIM_DURATION
-        rootNetworkBar.startAnimation(animation)
-        rootNetworkBar.isVisible = true
+        findViewById<TextView>(R.id.rootNetworkBar).startAnimation(animation)
+        findViewById<TextView>(R.id.rootNetworkBar).isVisible = true
     }
 
     private fun hideBadConnectionView() {
-        if (!rootNetworkBar.isVisible) {
+        if (!findViewById<TextView>(R.id.rootNetworkBar).isVisible) {
             return
         }
 
@@ -193,17 +205,13 @@ class RootActivity : BaseActivity<RootViewModel>(), SplashBackgroundHolder, Life
             }
 
             override fun onAnimationEnd(p0: Animation?) {
-                rootNetworkBar.isVisible = false
+                findViewById<TextView>(R.id.rootNetworkBar).isVisible = false
             }
 
             override fun onAnimationStart(p0: Animation?) {
             }
         })
-        rootNetworkBar.startAnimation(animation)
-    }
-
-    override fun removeSplashBackground() {
-        mainView.setBackgroundResource(R.color.black)
+        findViewById<TextView>(R.id.rootNetworkBar).startAnimation(animation)
     }
 
     override fun changeLanguage() {

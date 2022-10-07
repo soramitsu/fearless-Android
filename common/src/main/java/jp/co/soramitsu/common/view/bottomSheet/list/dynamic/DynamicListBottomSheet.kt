@@ -2,16 +2,16 @@ package jp.co.soramitsu.common.view.bottomSheet.list.dynamic
 
 import android.content.Context
 import android.os.Bundle
+import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.R
-import kotlinx.android.synthetic.main.bottom_sheet_dynamic_list.dynamicListSheetContent
-import kotlinx.android.synthetic.main.bottom_sheet_dynamic_list.dynamicListSheetTitle
 
 typealias ClickHandler<T> = (T) -> Unit
 
-class ReferentialEqualityDiffCallBack<T> : DiffUtil.ItemCallback<T>() {
+class ReferentialEqualityDiffCallBack<T : Any> : DiffUtil.ItemCallback<T>() {
 
     override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
         return oldItem === newItem
@@ -22,7 +22,7 @@ class ReferentialEqualityDiffCallBack<T> : DiffUtil.ItemCallback<T>() {
     }
 }
 
-abstract class DynamicListBottomSheet<T>(
+abstract class DynamicListBottomSheet<T : Any>(
     context: Context,
     private val payload: Payload<T>,
     private val diffCallback: DiffUtil.ItemCallback<T>,
@@ -36,10 +36,11 @@ abstract class DynamicListBottomSheet<T>(
         setContentView(R.layout.bottom_sheet_dynamic_list)
         super.onCreate(savedInstanceState)
 
-        dynamicListSheetContent.setHasFixedSize(true)
+        val listContent = findViewById<RecyclerView>(R.id.dynamicListSheetContent)
+        listContent?.setHasFixedSize(true)
 
         val adapter = DynamicListSheetAdapter(payload.selected, this, diffCallback, holderCreator())
-        dynamicListSheetContent.adapter = adapter
+        listContent?.adapter = adapter
 
         adapter.submitList(payload.data.toList())
     }
@@ -47,11 +48,13 @@ abstract class DynamicListBottomSheet<T>(
     abstract fun holderCreator(): HolderCreator<T>
 
     override fun setTitle(title: CharSequence?) {
-        dynamicListSheetTitle.text = title
+        val listTitle = findViewById<TextView>(R.id.dynamicListSheetTitle)
+        listTitle?.text = title
     }
 
     override fun setTitle(titleId: Int) {
-        dynamicListSheetTitle.setText(titleId)
+        val listTitle = findViewById<TextView>(R.id.dynamicListSheetTitle)
+        listTitle?.setText(titleId)
     }
 
     override fun itemClicked(item: T) {

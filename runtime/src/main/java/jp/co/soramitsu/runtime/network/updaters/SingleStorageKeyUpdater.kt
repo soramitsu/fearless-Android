@@ -17,11 +17,11 @@ import kotlinx.coroutines.flow.onEach
 
 suspend fun StorageCache.insert(
     storageChange: StorageChange,
-    chainId: String,
+    chainId: String
 ) {
     val storageEntry = StorageEntry(
         storageKey = storageChange.key,
-        content = storageChange.value,
+        content = storageChange.value
     )
 
     insert(storageEntry, chainId)

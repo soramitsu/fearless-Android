@@ -12,17 +12,33 @@
         android:id="@+id/redeemToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:titleText="@string/common_confirm" />
+        app:titleText="@string/parachain_staking_unlock_title" />
 
     <jp.co.soramitsu.common.view.LabeledTextView
-        android:id="@+id/redeemOriginAccount"
+        android:id="@+id/collatorAddressView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:visibility="gone"
         app:actionIcon="@drawable/ic_more_vertical"
-        app:label="@string/account_info_title" />
+        app:enabled="false"
+        app:label="@string/collator"
+        tools:textIcon="@color/colorAccent"
+        tools:visibility="visible" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/accountAddressView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        app:actionIcon="@drawable/ic_more_vertical"
+        app:enabled="false"
+        app:label="@string/common_account"
+        tools:textIcon="@color/colorAccent"
+        tools:visibility="visible" />
 
     <jp.co.soramitsu.common.view.AmountView
         android:id="@+id/redeemAmount"
@@ -39,12 +55,13 @@
         android:layout_weight="1" />
 
     <LinearLayout
+        android:id="@+id/confirmRedeemLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/black4"
         android:orientation="vertical">
 
-        <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+        <jp.co.soramitsu.wallet.api.presentation.view.FeeView
             android:id="@+id/redeemFee"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

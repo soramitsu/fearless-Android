@@ -2,11 +2,11 @@ package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import jp.co.soramitsu.core_db.model.chain.ChainAssetLocal
-import jp.co.soramitsu.core_db.model.chain.ChainExplorerLocal
-import jp.co.soramitsu.core_db.model.chain.ChainLocal
-import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
-import jp.co.soramitsu.core_db.model.chain.JoinedChainInfo
+import jp.co.soramitsu.coredb.model.chain.ChainAssetLocal
+import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
+import jp.co.soramitsu.coredb.model.chain.ChainLocal
+import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
+import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.AssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
@@ -15,6 +15,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainRemote
 private const val ETHEREUM_OPTION = "ethereumBased"
 private const val CROWDLOAN_OPTION = "crowdloans"
 private const val TESTNET_OPTION = "testnet"
+private const val NOMINATION_POOL_OPTION = "poolStaking"
 
 private fun mapSectionTypeRemoteToSectionType(section: String) = when (section) {
     "subquery" -> Chain.ExternalApi.Section.Type.SUBQUERY
@@ -36,6 +37,7 @@ private fun mapStakingStringToStakingType(stakingString: String?): Chain.Asset.S
     return when (stakingString) {
         null -> Chain.Asset.StakingType.UNSUPPORTED
         "relaychain" -> Chain.Asset.StakingType.RELAYCHAIN
+        "parachain" -> Chain.Asset.StakingType.PARACHAIN
         else -> Chain.Asset.StakingType.UNSUPPORTED
     }
 }
@@ -90,27 +92,31 @@ fun mapChainRemoteToChain(
         val assets = chainRemote.assets?.mapNotNull { chainAsset ->
             chainAsset.assetId?.let {
                 val assetRemote = assetsById[chainAsset.assetId]
-                val assetNativeChain = chainsRemote.firstOrNull { it.chainId == assetRemote?.chainId }
                 Chain.Asset(
                     id = chainAsset.assetId,
-                    name = assetNativeChain?.name.orEmpty(),
-                    iconUrl = assetRemote?.icon ?: assetNativeChain?.icon.orEmpty(),
+                    symbol = assetRemote?.symbol.orEmpty(),
+                    displayName = assetRemote?.displayName,
+                    iconUrl = assetRemote?.icon.orEmpty(),
                     chainId = chainRemote.chainId,
                     chainName = chainRemote.name,
                     chainIcon = chainRemote.icon,
-                    nativeChainId = assetNativeChain?.chainId,
                     isTestNet = TESTNET_OPTION in chainRemote.options.orEmpty(),
                     priceId = assetRemote?.priceId,
                     precision = assetRemote?.precision ?: DEFAULT_PRECISION,
                     staking = mapStakingStringToStakingType(chainAsset.staking),
-                    priceProviders = chainAsset.purchaseProviders
+                    priceProviders = chainAsset.purchaseProviders,
+                    supportStakingPool = NOMINATION_POOL_OPTION in chainRemote.options.orEmpty(),
+                    isUtility = chainAsset.isUtility,
+                    type = ChainAssetType.from(chainAsset.type),
+                    currencyId = assetRemote?.currencyId,
+                    existentialDeposit = assetRemote?.existentialDeposit
                 )
             }
         }
 
         val types = chainRemote.types?.let {
             Chain.Types(
-                url = it.url,
+                url = it.androidUrl,
                 overridesCommon = it.overridesCommon
             )
         }
@@ -143,7 +149,8 @@ fun mapChainRemoteToChain(
             addressPrefix = chainRemote.addressPrefix,
             isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty,
             isTestNet = TESTNET_OPTION in optionsOrEmpty,
-            hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty
+            hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
+            supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty
         )
     }
 }
@@ -161,17 +168,22 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
     val assets = chainLocal.assets.map {
         Chain.Asset(
             id = it.id,
-            name = it.name,
+            symbol = it.symbol,
+            displayName = it.displayName,
             iconUrl = it.icon,
             chainId = it.chainId,
-            nativeChainId = it.nativeChainId,
             priceId = it.priceId,
             precision = it.precision,
             staking = mapStakingTypeFromLocal(it.staking),
             priceProviders = mapToList(it.priceProviders),
             chainName = chainLocal.chain.name,
             chainIcon = chainLocal.chain.icon,
-            isTestNet = chainLocal.chain.isTestNet
+            isTestNet = chainLocal.chain.isTestNet,
+            supportStakingPool = chainLocal.chain.supportStakingPool,
+            isUtility = it.isUtility ?: false,
+            type = it.type?.let { ChainAssetType.valueOf(it) },
+            currencyId = it.currencyId,
+            existentialDeposit = it.existentialDeposit
         )
     }
 
@@ -213,7 +225,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             addressPrefix = prefix,
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
-            hasCrowdloans = hasCrowdloans
+            hasCrowdloans = hasCrowdloans,
+            supportStakingPool = supportStakingPool
         )
     }
 }
@@ -232,14 +245,18 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
     val assets = chain.assets.map {
         ChainAssetLocal(
             id = it.id,
+            symbol = it.symbol,
+            displayName = it.displayName,
             icon = it.iconUrl,
             precision = it.precision,
             chainId = chain.id,
-            name = it.name,
             priceId = it.priceId,
             staking = mapStakingTypeToLocal(it.staking),
             priceProviders = it.priceProviders?.let { Gson().toJson(it) },
-            nativeChainId = it.nativeChainId
+            isUtility = it.isUtility,
+            type = it.type?.name,
+            currencyId = it.currencyId,
+            existentialDeposit = it.existentialDeposit
         )
     }
 
@@ -279,7 +296,8 @@ fun mapChainToChainLocal(chain: Chain): JoinedChainInfo {
             externalApi = externalApi,
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
-            hasCrowdloans = hasCrowdloans
+            hasCrowdloans = hasCrowdloans,
+            supportStakingPool = supportStakingPool
         )
     }
 

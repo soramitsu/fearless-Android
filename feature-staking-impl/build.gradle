@@ -1,7 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 apply from: '../scripts/secrets.gradle'
 
@@ -22,16 +23,27 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+        compose = true
+    }
+
     kotlinOptions {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = '1.8'
     }
 
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+        kotlinCompilerVersion kotlinVersion
+    }
+
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
+    namespace 'jp.co.soramitsu.feature_staking_impl'
 }
 
 dependencies {
@@ -40,6 +52,7 @@ dependencies {
     implementation project(':feature-staking-api')
     implementation project(':feature-account-api')
     implementation project(':feature-wallet-api')
+    implementation project(':feature-staking-api')
     implementation project(':runtime')
 
     implementation kotlinDep
@@ -57,6 +70,8 @@ dependencies {
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
 
+    implementation fragmentKtxDep
+
     implementation insetterDep
 
     implementation daggerDep
@@ -66,7 +81,7 @@ dependencies {
     implementation roomDep
     kapt roomKapt
 
-    implementation lifecycleDep
+    implementation lifecycleProcessDep
     kapt lifecycleKapt
 
     testImplementation jUnitDep
@@ -79,4 +94,21 @@ dependencies {
     implementation retrofitDep
 
     implementation shimmerDep
+
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeAnimationDep
+    implementation composeActivityDep
+    implementation composeViewModelDep
+    implementation composeToolingPreviewDep
+    implementation composeShimmerDep
+    implementation composeConstraintLayoutDep
+    debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 }

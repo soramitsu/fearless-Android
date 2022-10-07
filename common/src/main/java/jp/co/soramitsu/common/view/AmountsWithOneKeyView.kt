@@ -10,28 +10,28 @@ import androidx.core.view.isVisible
 import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.databinding.ViewAccountsWithOneKeyBinding
 import jp.co.soramitsu.common.view.shape.getIdleDrawable
 import jp.co.soramitsu.common.view.shape.getSelectedDrawable
-import kotlinx.android.synthetic.main.view_accounts_with_one_key.view.chainIcon
-import kotlinx.android.synthetic.main.view_accounts_with_one_key.view.chainName
-import kotlinx.android.synthetic.main.view_accounts_with_one_key.view.checkMark
-import kotlinx.android.synthetic.main.view_accounts_with_one_key.view.moreChainsBadge
 
 class AmountsWithOneKeyView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyle: Int = 0,
+    defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
 
+    private val binding: ViewAccountsWithOneKeyBinding
+
     init {
-        View.inflate(context, R.layout.view_accounts_with_one_key, this)
+        inflate(context, R.layout.view_accounts_with_one_key, this)
+        binding = ViewAccountsWithOneKeyBinding.bind(this)
 
         setBackground()
 
         applyAttributes(attrs)
     }
 
-    override fun childDrawableStateChanged(child: View?) {
+    override fun childDrawableStateChanged(child: View) {
         refreshDrawableState()
     }
 
@@ -53,22 +53,22 @@ class AmountsWithOneKeyView @JvmOverloads constructor(
     }
 
     override fun setSelected(selected: Boolean) {
-        checkMark.isVisible = selected
+        binding.checkMark.isVisible = selected
         super.setSelected(selected)
     }
 
     fun setBadgeText(text: String?) {
-        moreChainsBadge.isVisible = !text.isNullOrEmpty()
+        binding.moreChainsBadge.isVisible = !text.isNullOrEmpty()
         text?.let {
-            moreChainsBadge.text = it
+            binding.moreChainsBadge.text = it
         }
     }
 
     fun setChainName(name: String?) {
-        name?.let { chainName.text = it }
+        name?.let { binding.chainName.text = it }
     }
 
     fun loadChainIcon(iconUrl: String?, imageLoader: ImageLoader) {
-        chainIcon.load(iconUrl, imageLoader)
+        binding.chainIcon.load(iconUrl, imageLoader)
     }
 }

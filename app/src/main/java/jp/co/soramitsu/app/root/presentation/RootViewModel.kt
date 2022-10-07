@@ -3,9 +3,11 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
+import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -24,12 +26,13 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class RootViewModel(
+@HiltViewModel
+class RootViewModel @Inject constructor(
     private val interactor: RootInteractor,
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ExternalRequirement>,
     private val resourceManager: ResourceManager,
-    private val networkStateMixin: NetworkStateMixin,
+    private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
     companion object {
         private const val IDLE_MINUTES: Long = 20
@@ -41,6 +44,9 @@ class RootViewModel(
     private val _showUnsupportedAppVersionAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedAppVersionAlert: LiveData<Event<Unit>> = _showUnsupportedAppVersionAlert
 
+    private val _showNoInternetConnectionAlert = MutableLiveData<Event<Unit>>()
+    val showNoInternetConnectionAlert: LiveData<Event<Unit>> = _showNoInternetConnectionAlert
+
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
@@ -50,8 +56,35 @@ class RootViewModel(
     private var timer = Timer()
     private var timerTask: TimerTask? = null
 
+    private var shouldHandleResumeInternetConnection = false
+
     init {
         checkAppVersion()
+    }
+
+    private fun checkAppVersion() {
+        viewModelScope.launch {
+            val appConfigResult = interactor.getRemoteConfig()
+            when {
+                appConfigResult.isFailure -> {
+                    shouldHandleResumeInternetConnection = true
+                    _showNoInternetConnectionAlert.value = Event(Unit)
+                }
+                appConfigResult.getOrNull()?.isCurrentVersionSupported == false -> {
+                    _showUnsupportedAppVersionAlert.value = Event(Unit)
+                }
+                else -> {
+                    runBalancesUpdate()
+                }
+            }
+        }
+    }
+
+    private fun runBalancesUpdate() {
+        if (shouldHandleResumeInternetConnection) {
+            shouldHandleResumeInternetConnection = false
+            interactor.chainRegistrySyncUp()
+        }
         interactor.runBalancesUpdate()
             .onEach { handleUpdatesSideEffect(it) }
             .launchIn(this)
@@ -59,16 +92,8 @@ class RootViewModel(
         updatePhishingAddresses()
     }
 
-    private fun checkAppVersion() = viewModelScope.launch {
-        val appConfig = interactor.getRemoteConfig()
-        if (appConfig.isCurrentVersionSupported.not()) {
-            _showUnsupportedAppVersionAlert.value = Event(Unit)
-        }
-    }
-
     private fun handleUpdatesSideEffect(sideEffect: Updater.SideEffect) {
         // pass
-        hashCode()
     }
 
     private fun updatePhishingAddresses() {
@@ -76,8 +101,6 @@ class RootViewModel(
             interactor.updatePhishingAddresses()
         }
     }
-
-    fun jsonFileOpened(content: String?) {}
 
     override fun onCleared() {
         super.onCleared()
@@ -143,5 +166,9 @@ class RootViewModel(
             timeInBackground = null
             rootRouter.openNavGraph()
         }
+    }
+
+    fun retryLoadConfigClicked() {
+        checkAppVersion()
     }
 }

@@ -22,6 +22,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.feature_crowdloan_api'
 }
 
 dependencies {

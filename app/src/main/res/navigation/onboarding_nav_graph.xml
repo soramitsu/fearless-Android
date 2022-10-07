@@ -7,25 +7,25 @@
 
     <fragment
         android:id="@+id/welcomeFragment"
-        android:name="jp.co.soramitsu.feature_onboarding_impl.presentation.welcome.WelcomeFragment"
+        android:name="jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment"
         android:label="fragment_users"
         tools:layout="@layout/fragment_welcome">
 
         <action
             android:id="@+id/action_welcomeFragment_to_createAccountFragment"
             app:destination="@id/createAccountFragment"
-            app:enterAnim="@animator/fragment_open_enter"
-            app:exitAnim="@animator/fragment_open_exit"
-            app:popEnterAnim="@animator/fragment_close_enter"
-            app:popExitAnim="@animator/fragment_close_exit" />
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
         <action
             android:id="@+id/action_welcomeFragment_to_backupMnemonicFragment"
             app:destination="@id/backupMnemonicFragment"
-            app:enterAnim="@animator/fragment_open_enter"
-            app:exitAnim="@animator/fragment_open_exit"
-            app:popEnterAnim="@animator/fragment_close_enter"
-            app:popExitAnim="@animator/fragment_close_exit"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation"
             app:popUpTo="@id/welcomeFragment"
             app:popUpToInclusive="true"
             />
@@ -34,26 +34,26 @@
         <action
             android:id="@+id/importAction"
             app:destination="@id/importAccountFragment"
-            app:enterAnim="@animator/fragment_open_enter"
-            app:exitAnim="@animator/fragment_open_exit"
-            app:popEnterAnim="@animator/fragment_close_enter"
-            app:popExitAnim="@animator/fragment_close_exit" />
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     </fragment>
 
     <fragment
         android:id="@+id/createAccountFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.account.create.CreateAccountFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountFragment"
         android:label="fragment_create_account"
         tools:layout="@layout/fragment_create_account">
 
         <action
             android:id="@+id/action_createAccountFragment_to_backupMnemonicFragment"
             app:destination="@id/backupMnemonicFragment"
-            app:enterAnim="@animator/fragment_open_enter"
-            app:exitAnim="@animator/fragment_open_exit"
-            app:popEnterAnim="@animator/fragment_close_enter"
-            app:popExitAnim="@animator/fragment_close_exit">
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
 
         </action>
 
@@ -62,19 +62,19 @@
 
     <fragment
         android:id="@+id/importAccountFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.importing.ImportAccountFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
         android:label="fragment_import"
         tools:layout="@layout/fragment_import_account">
 
         <action
             android:id="@+id/action_importAccountFragment_to_pincodeFragment"
             app:destination="@id/pincodeFragment"
-            app:enterAnim="@animator/fragment_open_enter"
-            app:exitAnim="@animator/fragment_open_exit"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popUpTo="@id/welcomeFragment"
             app:popUpToInclusive="true"
-            app:popEnterAnim="@animator/fragment_close_enter"
-            app:popExitAnim="@animator/fragment_close_exit">
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
 
         </action>
 
@@ -82,17 +82,17 @@
 
     <fragment
         android:id="@+id/backupMnemonicFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.mnemonic.backup.BackupMnemonicFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.backup.BackupMnemonicFragment"
         android:label="fragment_backup_mnemonic"
         tools:layout="@layout/fragment_backup_mnemonic">
 
         <action
             android:id="@+id/action_backupMnemonicFragment_to_confirmMnemonicFragment"
             app:destination="@id/confirmMnemonicFragment"
-            app:enterAnim="@animator/fragment_open_enter"
-            app:exitAnim="@animator/fragment_open_exit"
-            app:popEnterAnim="@animator/fragment_close_enter"
-            app:popExitAnim="@animator/fragment_close_exit">
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
 
         </action>
 
@@ -100,19 +100,19 @@
 
     <fragment
         android:id="@+id/confirmMnemonicFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicFragment"
         android:label="fragment_confirm_mnemonic"
         tools:layout="@layout/fragment_confirm_mnemonic">
 
         <action
             android:id="@+id/action_confirmMnemonicFragment_to_pincodeFragment"
             app:destination="@id/pincodeFragment"
-            app:enterAnim="@animator/fragment_open_enter"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:popUpTo="@id/welcomeFragment"
             app:popUpToInclusive="true"
-            app:exitAnim="@animator/fragment_open_exit"
-            app:popEnterAnim="@animator/fragment_close_enter"
-            app:popExitAnim="@animator/fragment_close_exit">
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
 
         </action>
 
@@ -120,7 +120,7 @@
 
     <fragment
         android:id="@+id/pincodeFragment"
-        android:name="jp.co.soramitsu.feature_account_impl.presentation.pincode.PincodeFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment"
         android:label="fragment_pincode"
         tools:layout="@layout/fragment_pincode">
 

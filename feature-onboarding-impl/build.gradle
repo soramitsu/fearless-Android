@@ -1,7 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-parcelize'
 apply from: '../tests.gradle'
 
 android {
@@ -22,6 +23,10 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
@@ -32,6 +37,7 @@ android {
 
         jvmTarget = '1.8'
     }
+    namespace 'jp.co.soramitsu.feature_onboarding_impl'
 }
 
 dependencies {
@@ -49,13 +55,15 @@ dependencies {
     implementation materialDep
     implementation constraintDep
 
+    implementation fragmentKtxDep
+
     implementation coroutinesDep
 
     implementation daggerDep
     kapt daggerKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
+    implementation gsonConvertedDep
 
     testImplementation jUnitDep
     testImplementation mockitoDep

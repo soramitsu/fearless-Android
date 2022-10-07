@@ -12,7 +12,7 @@
         style="@style/Widget.Fearless.Input.Primary.External"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/username_setup_choose_title"
+        android:hint="@string/username_setup_choose_title_2_0"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

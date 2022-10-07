@@ -1,7 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -14,8 +15,8 @@ android {
 
         buildConfigField "String", "APP_VERSION_NAME", "\"${rootProject.versionName}\""
 
-        buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/v2/fiat/fiats.json\""
-        buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/v2/android_app_configuration.json\""
+        buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.8/fiat/fiats.json\""
+        buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.8/android_app_configuration.json\""
 
         buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
         buildConfigField "String", "TWITTER_URL", "\"https://twitter.com/fearlesswallet\""
@@ -37,6 +38,7 @@ android {
         buildConfigField "String", "PAYOUTS_LEARN_MORE", "\"https://wiki.polkadot.network/docs/en/learn-simple-payouts\""
 
         buildConfigField "String", "SET_CONTROLLER_LEARN_MORE", "\"https://wiki.polkadot.network/docs/en/maintain-guides-how-to-nominate-polkadot#setting-up-stash-and-controller-keys\""
+        buildConfigField "String", "MOONBEAM_STAKING_LEARN_MORE", "\"https://docs.moonbeam.network/learn/features/staking/#reward-distribution(\""
     }
 
     buildTypes {
@@ -49,6 +51,11 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding = true
+        compose = true
+    }
+
     compileOptions {
         sourceCompatibility 1.8
         targetCompatibility 1.8
@@ -59,6 +66,10 @@ android {
 
         jvmTarget = '1.8'
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+    }
+    namespace 'jp.co.soramitsu.common'
 }
 
 dependencies {
@@ -88,8 +99,8 @@ dependencies {
     implementation daggerDep
     kapt daggerKapt
 
-    implementation lifecycleDep
     kapt lifecycleKapt
+    implementation lifecycleProcessDep
 
     implementation retrofitDep
     implementation gsonConvertedDep
@@ -102,6 +113,23 @@ dependencies {
     implementation progressButtonDep
 
     implementation wsDep
+
+    implementation coilCompose
+    implementation navigationComposeDep
+    implementation hiltNavComposeDep
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeToolingPreviewDep
+    implementation composeShimmerDep
+    implementation composeConstraintLayoutDep
+    debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 
     api coilDep
     api coilSvg

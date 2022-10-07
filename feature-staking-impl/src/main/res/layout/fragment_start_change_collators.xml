@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/startChangeCollatorsContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/startChangeCollatorsToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:titleText="@string/staking_collators" />
+
+    <TextView
+        android:id="@+id/changeRecommendedTitle"
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/staking_start_change_collators_suggested_title" />
+
+    <TextView
+        android:id="@+id/changeRecommendedSubtitle"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/staking_start_change_collators_suggested_subtitle"
+        android:textColor="@color/black1" />
+
+    <LinearLayout
+        android:id="@+id/startChangeCollatorsRecommendedFeatures"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical" />
+
+    <jp.co.soramitsu.common.view.GoNextView
+        android:id="@+id/startChangeCollatorsRecommended"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/staking_select_suggested"
+        app:actionIcon="@drawable/ic_arrow_right_24"
+        app:icon="@drawable/ic_security_shield_ok_24"
+        app:inProgress="true" />
+
+    <TextView
+        android:id="@+id/stakingWithCustomTitle"
+        style="@style/TextAppearance.Soramitsu.Header4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:text="@string/staking_start_change_collators_custom_title" />
+
+    <TextView
+        android:id="@+id/stakingWithCustomSubtitle"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/staking_start_change_collators_custom_subtitle"
+        android:textColor="@color/black1" />
+
+    <jp.co.soramitsu.common.view.GoNextView
+        android:id="@+id/startChangeCollatorsCustom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/staking_select_custom"
+        app:actionIcon="@drawable/ic_arrow_right_24"
+        app:icon="@drawable/ic_dotted_list_24"
+        app:inProgress="true" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="12dp"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <ImageView
+            android:id="@+id/disclaimerIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_warning_filled" />
+
+        <TextView
+            android:id="@+id/disclaimer"
+            style="@style/TextAppearance.Soramitsu.Body3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.02"
+            android:text="@string/select_collators_warning"
+            android:textColor="@color/gray1" />
+    </LinearLayout>
+</LinearLayout>

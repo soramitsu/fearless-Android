@@ -2,19 +2,16 @@ package jp.co.soramitsu.runtime.state
 
 import jp.co.soramitsu.common.data.holders.ChainIdHolder
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 
 private const val DELIMITER = ":"
 
@@ -27,10 +24,10 @@ abstract class SingleAssetSharedState(
 
     data class AssetWithChain(
         val chain: Chain,
-        val asset: Chain.Asset,
+        val asset: Chain.Asset
     )
 
-    val assetWithChain: Flow<AssetWithChain> = preferences.stringFlow(
+    open val assetWithChain: Flow<AssetWithChain> = preferences.stringFlow(
         field = preferencesKey,
         initialValueProducer = {
             val defaultAsset = availableToSelect().first()
@@ -38,6 +35,8 @@ abstract class SingleAssetSharedState(
             encode(defaultAsset.chainId, defaultAsset.id)
         }
     )
+        .distinctUntilChanged()
+        .debounce(100)
         .filterNotNull()
         .map { encoded ->
             val (chainId, chainAssetId) = decode(encoded)
@@ -52,8 +51,6 @@ abstract class SingleAssetSharedState(
 
             AssetWithChain(chain, chainAsset)
         }
-        .inBackground()
-        .shareIn(GlobalScope, started = SharingStarted.Eagerly, replay = 1)
 
     suspend fun availableToSelect(): List<Chain.Asset> {
         val allChains = chainRegistry.currentChains.first()
@@ -65,7 +62,7 @@ abstract class SingleAssetSharedState(
         }.flatten()
     }
 
-    fun update(chainId: ChainId, chainAssetId: String) {
+    open fun update(chainId: ChainId, chainAssetId: String) {
         preferences.putString(preferencesKey, encode(chainId, chainAssetId))
     }
 
@@ -73,11 +70,11 @@ abstract class SingleAssetSharedState(
         return assetWithChain.first().chain.id
     }
 
-    private fun encode(chainId: ChainId, chainAssetId: String): String {
+    protected open fun encode(chainId: ChainId, chainAssetId: String): String {
         return "$chainId$DELIMITER$chainAssetId"
     }
 
-    private fun decode(value: String): Pair<ChainId, String> {
+    protected open fun decode(value: String): Pair<ChainId, String> {
         val (chainId, chainAssetRaw) = value.split(DELIMITER)
 
         return chainId to chainAssetRaw

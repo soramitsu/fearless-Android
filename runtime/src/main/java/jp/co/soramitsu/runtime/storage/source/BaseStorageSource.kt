@@ -30,7 +30,7 @@ abstract class BaseStorageSource(
 
     override suspend fun <K, T> queryByPrefix(
         chainId: String,
-        prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey,
+        prefixKeyBuilder: (RuntimeSnapshot) -> StorageKey?,
         keyExtractor: (String) -> K,
         binding: BinderWithKey<T, K>
     ): Map<K, T> {
@@ -38,17 +38,17 @@ abstract class BaseStorageSource(
 
         val prefix = prefixKeyBuilder(runtime)
 
-        val rawResults = queryByPrefix(prefix, chainId)
+        val rawResults = prefix?.let { queryByPrefix(it, chainId) }
 
-        return rawResults.mapKeys { (fullKey, _) -> keyExtractor(fullKey) }
-            .mapValues { (key, hexRaw) -> binding(hexRaw, runtime, key) }
+        return rawResults?.mapKeys { (fullKey, _) -> keyExtractor(fullKey) }
+            ?.mapValues { (key, hexRaw) -> binding(hexRaw, runtime, key) } ?: emptyMap()
     }
 
     override suspend fun <K, T> queryKeys(
         chainId: String,
         keysBuilder: (RuntimeSnapshot) -> Map<StorageKey, K>,
         at: BlockHash?,
-        binding: Binder<T>,
+        binding: Binder<T>
     ): Map<K, T> = withContext(Dispatchers.Default) {
         val runtime = chainRegistry.getRuntime(chainId)
 
@@ -62,29 +62,31 @@ abstract class BaseStorageSource(
 
     override suspend fun <T> query(
         chainId: String,
-        keyBuilder: (RuntimeSnapshot) -> String,
+        keyBuilder: (RuntimeSnapshot) -> String?,
         at: BlockHash?,
-        binding: Binder<T>,
+        binding: Binder<T>
     ) = withContext(Dispatchers.Default) {
         val runtime = chainRegistry.getRuntime(chainId)
 
         val key = keyBuilder(runtime)
-        val rawResult = query(key, chainId, at)
+        val rawResult = key?.let { query(it, chainId, at) }
 
         binding(rawResult, runtime)
     }
 
     override fun <T> observe(
         chainId: String,
-        keyBuilder: (RuntimeSnapshot) -> String,
-        binder: Binder<T>,
+        keyBuilder: (RuntimeSnapshot) -> String?,
+        binder: Binder<T>
     ) = flow {
         val runtime = chainRegistry.getRuntime(chainId)
         val key = keyBuilder(runtime)
 
-        emitAll(
-            observe(key, chainId).map { binder(it, runtime) }
-        )
+        key?.let { keyValue ->
+            emitAll(
+                observe(keyValue, chainId).map { binder(it, runtime) }
+            )
+        }
     }
 
     override suspend fun <T> queryChildState(

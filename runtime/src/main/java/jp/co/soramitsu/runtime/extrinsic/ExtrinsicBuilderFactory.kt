@@ -1,7 +1,9 @@
 package jp.co.soramitsu.runtime.extrinsic
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.network.runtime.binding.bindMultiAddress
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.core.model.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
@@ -26,7 +28,7 @@ private val FAKE_CRYPTO_TYPE = CryptoType.SR25519
 class ExtrinsicBuilderFactory(
     private val rpcCalls: RpcCalls,
     private val chainRegistry: ChainRegistry,
-    private val mortalityConstructor: MortalityConstructor,
+    private val mortalityConstructor: MortalityConstructor
 ) {
 
     /**
@@ -34,7 +36,7 @@ class ExtrinsicBuilderFactory(
      * Should be primarily used for fee calculation
      */
     suspend fun create(
-        chain: Chain,
+        chain: Chain
     ) = create(chain, generateFakeKeyPair(chain.isEthereumBased), FAKE_CRYPTO_TYPE)
 
     /**
@@ -44,6 +46,7 @@ class ExtrinsicBuilderFactory(
         chain: Chain,
         keypair: Keypair,
         cryptoType: CryptoType,
+        tip: BigInteger? = null
     ): ExtrinsicBuilder {
         val accountAddress = chain.addressFromPublicKey(keypair.publicKey)
 
@@ -75,7 +78,8 @@ class ExtrinsicBuilderFactory(
             blockHash = blockHash ?: genesisHash,
             era = mortality?.era ?: Era.Immortal,
             multiChainEncryption = multiChainEncryption,
-            accountIdentifier = accountIdentifierValue
+            accountIdentifier = accountIdentifierValue,
+            tip = tip.orZero()
         )
     }
 
@@ -84,13 +88,14 @@ class ExtrinsicBuilderFactory(
         val cryptoType = mapCryptoTypeToEncryption(FAKE_CRYPTO_TYPE)
         val emptySeed = ByteArray(size) { 1 }
 
-        if (isEthereumBased)
+        if (isEthereumBased) {
             EthereumKeypairFactory.generate(emptySeed, emptyList())
-        else
+        } else {
             SubstrateKeypairFactory.generate(
                 cryptoType,
                 emptySeed,
                 junctions = emptyList()
             )
+        }
     }
 }

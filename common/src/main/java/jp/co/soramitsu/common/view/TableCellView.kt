@@ -18,7 +18,7 @@ import jp.co.soramitsu.common.utils.setVisible
 open class TableCellView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyle: Int = 0,
+    defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
 
     val title: TextView

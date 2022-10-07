@@ -64,6 +64,7 @@
     <declare-styleable name="InputField">
         <attr name="android:inputType" />
         <attr name="android:text" />
+        <attr name="overrideInputFieldId" />
     </declare-styleable>
 
     <declare-styleable name="AmountView">

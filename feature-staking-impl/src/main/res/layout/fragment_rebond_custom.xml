@@ -23,7 +23,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp" />
 
-    <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+    <jp.co.soramitsu.wallet.api.presentation.view.FeeView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"

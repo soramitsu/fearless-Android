@@ -5,23 +5,32 @@
     <item
         android:id="@+id/walletFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_wallet_24"
+        android:icon="@drawable/ic_nav_wallet"
         android:title="@string/tabbar_wallet_title"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/crowdloanFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_various_rocket"
+        android:icon="@drawable/ic_nav_crowdloans"
         android:title="@string/crowdloan_crowdloan"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/stakingFragment"
         android:enabled="true"
-        android:icon="@drawable/ic_stacking_24"
+        android:icon="@drawable/ic_nav_staking"
         android:title="@string/tabbar_staking_title"
         app:showAsAction="ifRoom" />
+
+<!--
+    <item
+        android:id="@+id/governanceFragment"
+        android:enabled="false"
+        android:icon="@drawable/ic_nav_governance"
+        android:title="@string/tabbar_governance_title"
+        app:showAsAction="ifRoom" />
+-->
 
     <item
         android:id="@+id/profileFragment"

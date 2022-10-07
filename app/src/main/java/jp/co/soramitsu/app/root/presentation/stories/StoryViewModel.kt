@@ -2,17 +2,24 @@ package jp.co.soramitsu.app.root.presentation.stories
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.presentation.StoryElement
+import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.Event
+import javax.inject.Inject
 
 typealias NavigatorBackTransition = () -> Unit
 
-class StoryViewModel(
+@HiltViewModel
+class StoryViewModel @Inject constructor(
     private val back: NavigatorBackTransition,
-    stories: List<StoryElement>
+    private val savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), Browserable {
+
+    private val stories = savedStateHandle.get<StoryGroupModel>(StoryFragment.KEY_STORY)!!.stories
 
     private val _storyLiveData = MutableLiveData(stories)
     val storyLiveData: LiveData<List<StoryElement>> = _storyLiveData
@@ -57,8 +64,8 @@ class StoryViewModel(
     }
 
     fun learnMoreClicked() {
-        (currentStoryLiveData.value as? StoryElement.Staking?)?.let {
-            openBrowserEvent.value = Event(it.url)
+        (currentStoryLiveData.value as? StoryElement.Staking?)?.url?.let {
+            openBrowserEvent.value = Event(it)
         }
     }
 }

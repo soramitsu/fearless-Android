@@ -15,12 +15,12 @@
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
         android:padding="16dp"
+        app:drawableEndCompat="@drawable/ic_chevron_up_white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Kusama network"
-        tools:textColor="@color/white"
-        app:drawableEndCompat="@drawable/ic_chevron_up_white" />
+        tools:textColor="@color/white" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/stakingNetworkCollapsibleView"
@@ -42,7 +42,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/totalStakeView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -51,10 +51,10 @@
             app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-            app:titleText="@string/staking_total_staked"
-            app:startWithLoading="true" />
+            app:startWithLoading="true"
+            app:titleText="@string/staking_total_staked" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/minimumStakeView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -63,10 +63,10 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/totalStakeView"
             app:layout_constraintTop_toBottomOf="@id/stakingStoriesList"
-            app:titleText="@string/staking_main_minimum_stake_title"
-            app:startWithLoading="true" />
+            app:startWithLoading="true"
+            app:titleText="@string/staking_main_minimum_stake_title" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/activeNominatorsView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -76,10 +76,10 @@
             app:layout_constraintEnd_toStartOf="@id/minimumStakeView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-            app:titleText="@string/staking_main_active_nominators_title"
-            app:startWithLoading="true" />
+            app:startWithLoading="true"
+            app:titleText="@string/staking_main_active_nominators_title" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.StakingInfoView
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.StakingInfoView
             android:id="@+id/lockUpPeriodView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -89,8 +89,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/totalStakeView"
             app:layout_constraintTop_toBottomOf="@id/totalStakeView"
-            app:titleText="@string/staking_unbonding_period_v1_9_0"
-            app:startWithLoading="true" />
+            app:startWithLoading="true"
+            app:titleText="@string/staking_unbonding_period_v1_9_0" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

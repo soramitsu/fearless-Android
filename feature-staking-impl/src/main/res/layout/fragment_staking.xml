@@ -3,14 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingBottom="80dp">
 
     <LinearLayout
+        android:id="@+id/stakingContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/stakingContainer"
-        android:paddingBottom="24dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -40,16 +42,14 @@
 
         </FrameLayout>
 
-        <jp.co.soramitsu.feature_wallet_api.presentation.view.AssetSelectorView
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/composeContent"
             android:layout_width="match_parent"
-            android:layout_marginStart="16dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:id="@+id/stakingAssetSelector"
-            android:layout_marginEnd="16dp"
-            app:backgroundStyle="blurred"
-            android:layout_height="wrap_content" />
+            tools:layout_height="48dp" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.NetworkInfoView
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.RelayChainNetworkInfoView
             android:id="@+id/stakingNetworkInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -58,15 +58,26 @@
             android:layout_marginEnd="16dp"
             app:expanded="true" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.view.AlertsView
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.ParachainNetworkInfoView
+            android:id="@+id/parachainStakingNetworkInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:expanded="true"
+            tools:visibility="gone" />
+
+        <jp.co.soramitsu.staking.impl.presentation.view.AlertsView
             android:id="@+id/stakingAlertsInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginEnd="16dp"
+            android:visibility="gone" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.view.StakeSummaryView
+        <jp.co.soramitsu.staking.impl.presentation.view.StakeSummaryView
             android:id="@+id/stakingStakeSummary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -77,7 +88,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:visibility="visible" />
 
-        <jp.co.soramitsu.feature_staking_impl.presentation.staking.main.view.EstimateEarningView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/collatorsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:visibility="gone"
+            tools:itemCount="2"
+            tools:listitem="@layout/item_collator_delegation" />
+
+        <jp.co.soramitsu.staking.impl.presentation.staking.main.view.EstimateEarningView
             android:id="@+id/stakingEstimate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

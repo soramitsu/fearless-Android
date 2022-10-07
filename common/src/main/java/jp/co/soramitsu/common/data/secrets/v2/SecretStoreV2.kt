@@ -13,7 +13,7 @@ import kotlinx.coroutines.withContext
 private const val ACCESS_SECRETS = "ACCESS_SECRETS"
 
 class SecretStoreV2(
-    private val encryptedPreferences: EncryptedPreferences,
+    private val encryptedPreferences: EncryptedPreferences
 ) {
 
     suspend fun putMetaAccountSecrets(metaId: Long, secrets: EncodableStruct<MetaAccountSecrets>) = withContext(Dispatchers.IO) {
@@ -50,7 +50,7 @@ class SecretStoreV2(
 
 suspend fun SecretStoreV2.getChainAccountKeypair(
     metaId: Long,
-    accountId: ByteArray,
+    accountId: ByteArray
 ): Keypair = withContext(Dispatchers.Default) {
     val secrets = getChainAccountSecrets(metaId, accountId) ?: error("No secrets found for meta account $metaId for account ${accountId.toHexString()}")
 

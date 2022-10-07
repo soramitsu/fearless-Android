@@ -1,8 +1,10 @@
 package jp.co.soramitsu.runtime.multiNetwork.runtime
 
 import com.google.gson.Gson
+import java.util.concurrent.Executors
 import jp.co.soramitsu.common.utils.md5
-import jp.co.soramitsu.core_db.dao.ChainDao
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.fearless_utils.runtime.OverriddenConstantsMap
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser
 import jp.co.soramitsu.fearless_utils.runtime.definitions.TypeDefinitionParser.parseBaseDefinitions
@@ -20,7 +22,6 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.RuntimeMetadataSchema
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executors
 
 class ConstructedRuntime(
     val runtime: RuntimeSnapshot,
@@ -28,7 +29,7 @@ class ConstructedRuntime(
     val baseTypesHash: String?,
     val ownTypesHash: String?,
     val runtimeVersion: Int,
-    val typesUsage: TypesUsage,
+    val typesUsage: TypesUsage
 )
 
 object BaseTypesNotInCacheException : Exception()
@@ -38,7 +39,7 @@ object NoRuntimeVersionException : Exception()
 class RuntimeFactory(
     private val runtimeFilesCache: RuntimeFilesCache,
     private val chainDao: ChainDao,
-    private val gson: Gson,
+    private val gson: Gson
 ) {
 
     // Acts as a operation queue due to be single threaded and guarantee of sequential execution
@@ -50,7 +51,7 @@ class RuntimeFactory(
      */
     suspend fun constructRuntime(
         chainId: String,
-        typesUsage: TypesUsage,
+        typesUsage: TypesUsage
     ): ConstructedRuntime? = withContext(dispatcher) {
         val runtimeVersion = chainDao.runtimeInfo(chainId)?.syncedVersion ?: return@withContext null
         val (types, baseHash, ownHash) = when (typesUsage) {
@@ -86,8 +87,10 @@ class RuntimeFactory(
 
         val runtimeMetadata = VersionedRuntimeBuilder.buildMetadata(runtimeMetadataRaw, typeRegistry)
 
+        val overrides = createOverrides(chainId)
+
         ConstructedRuntime(
-            runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata),
+            runtime = RuntimeSnapshot(typeRegistry, runtimeMetadata, overrides),
             metadataHash = metadataRaw.md5(),
             baseTypesHash = baseHash,
             ownTypesHash = ownHash,
@@ -98,7 +101,7 @@ class RuntimeFactory(
 
     private suspend fun constructBaseAndChainTypes(
         chainId: String,
-        runtimeVersion: Int,
+        runtimeVersion: Int
     ): Triple<TypePreset, String, String> {
         val (basePreset, baseHash) = constructBaseTypes()
         val (chainPreset, ownHash) = constructOwnTypes(chainId, runtimeVersion, basePreset)
@@ -106,10 +109,28 @@ class RuntimeFactory(
         return Triple(chainPreset, baseHash, ownHash)
     }
 
+    private suspend fun createOverrides(
+        chainId: String
+    ): OverriddenConstantsMap? {
+        val ownTypesRaw = runCatching { runtimeFilesCache.getChainTypes(chainId) }
+            .getOrElse { throw ChainInfoNotInCacheException }
+
+        val overrides = fromJson(ownTypesRaw).overrides
+        val result = overrides?.mapNotNull {
+            it.constants?.let { constants ->
+                it.module to constants.associate { constant ->
+                    constant.name to constant.value
+                }
+            }
+        }?.toMap()
+
+        return result
+    }
+
     private suspend fun constructOwnTypes(
         chainId: String,
         runtimeVersion: Int,
-        baseTypes: TypePreset = v14Preset(),
+        baseTypes: TypePreset = v14Preset()
     ): Pair<TypePreset, String> {
         val ownTypesRaw = runCatching { runtimeFilesCache.getChainTypes(chainId) }
             .getOrElse { throw ChainInfoNotInCacheException }

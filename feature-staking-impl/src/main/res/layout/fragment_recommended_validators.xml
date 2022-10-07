@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
@@ -11,15 +12,18 @@
         android:id="@+id/recommendedValidatorsToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
         app:titleText="@string/staking_recommended_section_title" />
 
     <FrameLayout
+        android:id="@+id/filtersLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/recommendedValidatorsToolbar">
 
         <TextView
             android:id="@+id/recommendedValidatorsAccounts"
@@ -32,6 +36,7 @@
             android:textColor="@color/gray1" />
 
         <TextView
+            android:id="@+id/recommendedValidatorsRewards"
             style="@style/TextAppearance.Soramitsu.CapsTitle2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,26 +47,35 @@
             android:textColor="@color/gray1" />
     </FrameLayout>
 
-    <ProgressBar
-        android:id="@+id/recommendedValidatorsProgress"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_gravity="center"
-        android:layout_weight="1"
-        android:indeterminate="true"
-        android:indeterminateTint="@color/white" />
-
-    <androidx.recyclerview.widget.RecyclerView xmlns:tools="http://schemas.android.com/tools"
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recommendedValidatorsList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="6dp"
         android:layout_weight="1"
+        android:clipToPadding="false"
         android:orientation="vertical"
-        android:visibility="gone"
+        android:paddingBottom="72dp"
+        android:visibility="visible"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/filtersLayout"
         tools:itemCount="15"
         tools:listitem="@layout/item_validator" />
+
+    <ProgressBar
+        android:id="@+id/recommendedValidatorsProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/white"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/filtersLayout" />
 
     <jp.co.soramitsu.common.view.PrimaryButton
         android:id="@+id/recommendedValidatorsNext"
@@ -74,5 +88,6 @@
         android:layout_marginBottom="22dp"
         android:text="@string/common_continue"
         android:theme="@style/PinkOverlay"
-        android:visibility="gone" />
-</LinearLayout>
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

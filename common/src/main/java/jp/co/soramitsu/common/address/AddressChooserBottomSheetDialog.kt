@@ -3,6 +3,8 @@ package jp.co.soramitsu.common.address
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.recyclerview.widget.DiffUtil
 import jp.co.soramitsu.common.R
@@ -11,9 +13,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.ClickHandler
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListSheetAdapter
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.HolderCreator
-import kotlinx.android.synthetic.main.item_address_chooser.view.accountChecked
-import kotlinx.android.synthetic.main.item_address_chooser.view.accountIcon
-import kotlinx.android.synthetic.main.item_address_chooser.view.accountTitle
 
 class AddressChooserBottomSheetDialog(
     context: Context,
@@ -21,7 +20,10 @@ class AddressChooserBottomSheetDialog(
     clickHandler: ClickHandler<AddressModel>,
     @StringRes val title: Int
 ) : DynamicListBottomSheet<AddressModel>(
-    context, payload, AddressModelDiffCallback, clickHandler
+    context,
+    payload,
+    AddressModelDiffCallback,
+    clickHandler
 ) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,9 +47,9 @@ private class AddressModelHolder(parent: View) : DynamicListSheetAdapter.Holder<
         super.bind(item, isSelected, handler)
 
         with(itemView) {
-            accountTitle.text = item.name ?: item.address
-            accountIcon.setImageDrawable(item.image)
-            accountChecked.visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
+            findViewById<TextView>(R.id.accountTitle).text = item.name ?: item.address
+            findViewById<ImageView>(R.id.accountIcon).setImageDrawable(item.image)
+            findViewById<ImageView>(R.id.accountChecked).visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
         }
     }
 }
