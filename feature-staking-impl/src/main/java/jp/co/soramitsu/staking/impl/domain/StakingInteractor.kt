@@ -49,6 +49,7 @@ class StakingInteractor(
     private val addressIconGenerator: AddressIconGenerator
 ) {
     suspend fun getCurrentMetaAccount() = accountRepository.getSelectedMetaAccount()
+    suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
 
     suspend fun syncStakingRewards(chainId: ChainId, accountAddress: String) = withContext(Dispatchers.IO) {
         runCatching {

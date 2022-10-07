@@ -644,6 +644,16 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmPoolUnbondFragment"
         android:label="poolConfirmUnstakeFragment" />
 
+    <dialog
+        android:id="@+id/createPoolSetupFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.CreatePoolSetupFragment"
+        android:label="createPoolSetupFragment" />
+
+    <dialog
+        android:id="@+id/walletSelectorFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment"
+        android:label="walletSelectorFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"

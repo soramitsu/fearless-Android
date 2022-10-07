@@ -3,12 +3,14 @@ package jp.co.soramitsu.wallet.impl.presentation
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
+import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import kotlinx.coroutines.flow.Flow
 
 interface WalletRouter : SecureRouter {
     fun openAssetDetails(assetPayload: AssetPayload)
@@ -67,4 +69,6 @@ interface WalletRouter : SecureRouter {
     fun openSearchAssets(chainId: String?)
 
     fun openOptionsWallet(walletId: Long)
+
+    fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 }

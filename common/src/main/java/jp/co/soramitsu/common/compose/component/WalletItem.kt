@@ -33,7 +33,8 @@ data class WalletItemViewState(
     val changeBalanceViewState: ChangeBalanceViewState? = null,
     val title: String,
     val walletIcon: Any,
-    val isSelected: Boolean
+    val isSelected: Boolean,
+    val additionalMetadata: String = ""
 )
 
 @Composable

@@ -3,12 +3,12 @@ package jp.co.soramitsu.staking.impl.presentation.setup.compose
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -16,10 +16,8 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AdvancedBlock
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
-import jp.co.soramitsu.common.compose.component.BottomSheetLayout
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.DropDown
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
@@ -30,9 +28,6 @@ import jp.co.soramitsu.common.compose.component.TextInput
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.compose.component.WalletSelectorModal
-import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.feature_staking_impl.R
 
@@ -45,11 +40,9 @@ data class CreatePoolSetupViewState(
     val nominator: String,
     val stateToggler: String,
     val feeInfoViewState: FeeInfoViewState,
-    val createButtonViewState: ButtonViewState,
-    val walletSelectorViewState: WalletSelectorViewState?
+    val createButtonViewState: ButtonViewState
 )
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CreatePoolSetupScreen(
     state: CreatePoolSetupViewState,
@@ -58,24 +51,14 @@ fun CreatePoolSetupScreen(
     onTokenAmountInput: (String) -> Unit,
     onNominatorClick: () -> Unit,
     onStateTogglerClick: () -> Unit,
-    onCreateClick: () -> Unit,
-    onWalletSelected: (WalletItemViewState) -> Unit,
-    onWalletSelectorDismiss: () -> Unit
+    onCreateClick: () -> Unit
 ) {
-    BottomSheetLayout(sheetContent = {
-        state.walletSelectorViewState?.let {
-            WalletSelectorModal(state.walletSelectorViewState, onWalletSelected = onWalletSelected, onBackClicked = onWalletSelectorDismiss)
-        }
-    }, content = { sheetState ->
-        LaunchedEffect(key1 = state.walletSelectorViewState, block = {
-            if (state.walletSelectorViewState == null) {
-                sheetState.hide()
-            } else {
-                sheetState.show()
-            }
-        })
-
-        BottomSheetScreen {
+    BottomSheetScreen {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .imePadding()
+        ) {
             Toolbar(
                 state = ToolbarViewState(
                     title = stringResource(id = R.string.pool_create_title),
@@ -83,35 +66,40 @@ fun CreatePoolSetupScreen(
                 ),
                 onNavigationClick = onNavigationClick
             )
+
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 MarginVertical(margin = 16.dp)
                 TextInput(state = state.poolNameInputViewState, onInput = onPoolNameInput)
                 MarginVertical(margin = 12.dp)
                 AmountInput(state = state.amountInputViewState, onInput = onTokenAmountInput)
                 MarginVertical(margin = 12.dp)
-                AdvancedBlock {
-                    InactiveTextInput(state.poolId, R.string.pool_staking_pool_id)
-                    MarginVertical(margin = 12.dp)
-                    InactiveTextInput(state.depositor, R.string.pool_staking_depositor)
-                    MarginVertical(margin = 12.dp)
-                    InactiveTextInput(state.root, R.string.pool_staking_root)
-                    MarginVertical(margin = 12.dp)
-                    DropDown(
-                        state = DropDownViewState(
-                            state.nominator,
-                            stringResource(id = R.string.pool_staking_nominator)
-                        ),
-                        onClick = onNominatorClick
-                    )
-                    MarginVertical(margin = 12.dp)
-                    DropDown(
-                        state = DropDownViewState(
-                            state.stateToggler,
-                            stringResource(id = R.string.pool_staking_state_toggler)
-                        ),
-                        onClick = onStateTogglerClick
-                    )
-                }
+                AdvancedBlock(
+                    modifier = Modifier,
+                    initialState = false,
+                    Content = {
+                        InactiveTextInput(state.poolId, R.string.pool_staking_pool_id)
+                        MarginVertical(margin = 12.dp)
+                        InactiveTextInput(state.depositor, R.string.pool_staking_depositor)
+                        MarginVertical(margin = 12.dp)
+                        InactiveTextInput(state.root, R.string.pool_staking_root)
+                        MarginVertical(margin = 12.dp)
+                        DropDown(
+                            state = DropDownViewState(
+                                state.nominator,
+                                stringResource(id = R.string.pool_staking_nominator)
+                            ),
+                            onClick = onNominatorClick
+                        )
+                        MarginVertical(margin = 12.dp)
+                        DropDown(
+                            state = DropDownViewState(
+                                state.stateToggler,
+                                stringResource(id = R.string.pool_staking_state_toggler)
+                            ),
+                            onClick = onStateTogglerClick
+                        )
+                    }
+                )
                 MarginVertical(margin = 32.dp)
                 FeeInfo(state = state.feeInfoViewState)
                 MarginVertical(margin = 8.dp)
@@ -125,25 +113,12 @@ fun CreatePoolSetupScreen(
                 MarginVertical(margin = 16.dp)
             }
         }
-    })
+    }
 }
 
 @Composable
 @Preview
 private fun CreatePoolSetupScreenPreview() {
-    val walletState = WalletItemViewState(
-        id = 111,
-        balance = "44400.3",
-        assetSymbol = "$",
-        title = "My Wallet",
-        walletIcon = painterResource(id = jp.co.soramitsu.common.R.drawable.ic_wallet),
-        isSelected = true,
-        changeBalanceViewState = ChangeBalanceViewState(
-            percentChange = "+5.67%",
-            fiatChange = "$2345.32"
-        )
-    )
-
     val viewState = CreatePoolSetupViewState(
         TextInputViewState("entering pool name", "Pool name"), AmountInputViewState(
             tokenName = "KSM",
@@ -161,14 +136,10 @@ private fun CreatePoolSetupScreenPreview() {
             feeAmount = "0.0051 KSM",
             feeAmountFiat = "$0.0009"
         ),
-        ButtonViewState("Create", true),
-        WalletSelectorViewState(
-            wallets = listOf(walletState, walletState),
-            selectedWallet = walletState
-        )
+        ButtonViewState("Create", true)
     )
 
     FearlessTheme {
-        CreatePoolSetupScreen(state = viewState, {}, {}, {}, {}, {}, {}, {}, {})
+        CreatePoolSetupScreen(state = viewState, {}, {}, {}, {}, {}, {})
     }
 }

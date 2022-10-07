@@ -26,9 +26,7 @@ fun BottomSheetScreen(modifier: Modifier = Modifier, Content: @Composable Column
     Column {
         MarginVertical(margin = 12.dp)
         Column(
-            modifier = modifier
-                .background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
-
+            modifier = modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
         ) {
             MarginVertical(margin = 12.dp)
             Content()

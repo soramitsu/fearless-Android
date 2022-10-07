@@ -115,6 +115,7 @@ class StartStakingPoolViewModel @Inject constructor(
         if (setupState.get() == null) {
             setupState.set(StakingPoolJoinFlowState())
         }
+        router.openCreatePoolSetup()
 //        router.openSetupStakingPool()
     }
 }

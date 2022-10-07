@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.scenarios
 
+import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -227,9 +228,11 @@ class StakingPoolInteractor(
     suspend fun claim(address: String) = api.claimPayout(address)
 
     suspend fun estimateCreateFee(
+        poolId: BigInteger,
+        name: String,
         amountInPlanks: BigInteger,
         rootAddress: String,
         nominatorAddress: String,
         stateToggler: String
-    ) = api.estimateCreatePoolFee(amountInPlanks, rootAddress, nominatorAddress, stateToggler)
+    ) = api.estimateCreatePoolFee(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
 }

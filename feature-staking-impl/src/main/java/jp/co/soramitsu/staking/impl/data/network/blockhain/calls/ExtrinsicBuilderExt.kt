@@ -216,15 +216,15 @@ fun ExtrinsicBuilder.joinPool(amount: BigInteger, poolId: BigInteger): Extrinsic
     )
 }
 
-fun ExtrinsicBuilder.createPool(amount: BigInteger, root: AccountId, nominator: AccountId, stateToggler: AccountId): ExtrinsicBuilder {
+fun ExtrinsicBuilder.createPool(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
     return call(
         "NominationPools",
         "create",
         mapOf(
             "amount" to amount,
-            "root" to root,
-            "nominator" to nominator,
-            "state_toggler" to stateToggler
+            "root" to bindMultiAddress(root),
+            "nominator" to bindMultiAddress(nominator),
+            "state_toggler" to bindMultiAddress(stateToggler)
         )
     )
 }

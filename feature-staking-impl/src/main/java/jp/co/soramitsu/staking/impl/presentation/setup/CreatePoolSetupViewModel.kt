@@ -5,26 +5,25 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
-import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.TextInputViewState
-import jp.co.soramitsu.common.compose.component.WalletItemViewState
-import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
+import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.format
-import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.staking.impl.domain.StakingInteractor
+import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.setup.compose.CreatePoolSetupViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
@@ -37,18 +36,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class CreatePoolSetupViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
-    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
+    stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val poolInteractor: StakingPoolInteractor,
+    private val stakingInteractor: StakingInteractor,
     private val getTotalBalanceUseCase: GetTotalBalanceUseCase,
-    private val iconGenerator: AddressIconGenerator
+    private val iconGenerator: AddressIconGenerator,
+    private val router: StakingRouter
 ) : BaseViewModel() {
 
     companion object {
@@ -83,8 +83,6 @@ class CreatePoolSetupViewModel @Inject constructor(
         tokenAmount = minToCreate
     )
 
-    private val defaultWalletSelectorState = WalletSelectorViewState(emptyList(), null)
-
     private val defaultScreenState = CreatePoolSetupViewState(
         defaultPoolNameInoutState,
         defaultAmountInputState,
@@ -94,8 +92,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         "...",
         "...",
         FeeInfoViewState.default,
-        ButtonViewState(resourceManager.getString(R.string.common_create)),
-        defaultWalletSelectorState
+        ButtonViewState(resourceManager.getString(R.string.common_create))
     )
 
     private val enteredAmountFlow = MutableStateFlow(minToCreate)
@@ -118,8 +115,19 @@ class CreatePoolSetupViewModel @Inject constructor(
         poolInteractor.getLastPoolId(asset.token.configuration.chainId).toInt() + 1
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
+    private val selectedNominatorFlow = MutableStateFlow(address)
+    private val selectedStateTogglerFlow = MutableStateFlow(address)
+
     private val addressDisplayFlow = flowOf {
         poolInteractor.getAccountName(address) ?: address
+    }
+
+    private val nominatorDisplayFlow = selectedNominatorFlow.map {
+        poolInteractor.getAccountName(it) ?: it
+    }
+
+    private val stateTogglerDisplayFlow = selectedStateTogglerFlow.map {
+        poolInteractor.getAccountName(it) ?: it
     }
 
     private val enteredPoolNameFlow = MutableStateFlow("")
@@ -128,40 +136,16 @@ class CreatePoolSetupViewModel @Inject constructor(
         defaultPoolNameInoutState.copy(text = it)
     }
 
-    private val lightAccountsFlow = poolInteractor.getLightAccounts().map { lightAccounts ->
-        lightAccounts.map { lightAccount ->
-            val lightAccountAddress = chain.addressOf(lightAccount.substrateAccountId)
-
-            val balanceModel = getTotalBalanceUseCase(lightAccount.id).first()
-            val icon = iconGenerator.createAddressIcon(lightAccount.substrateAccountId, AddressIconGenerator.SIZE_BIG)
-            WalletItemViewState(
-                id = lightAccount.id,
-                title = lightAccount.name,
-                isSelected = lightAccountAddress == currentSelectedAddress,
-                walletIcon = icon,
-                balance = balanceModel.balance.formatAsCurrency(balanceModel.fiatSymbol),
-                changeBalanceViewState = ChangeBalanceViewState(
-                    percentChange = balanceModel.rateChange?.formatAsChange().orEmpty(),
-                    fiatChange = balanceModel.balanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)
-                )
-            )
-        }
-    }.launchIn(viewModelScope)
-
-
-    private val walletSelectorViewState: MutableStateFlow<Pair<String, WalletSelectorViewState>?> = MutableStateFlow(null)
-
-    private val selectedNominatorFlow = MutableStateFlow(address)
-    private val selectedStateTogglerFlow = MutableStateFlow(address)
-
     private val feeInfoViewState = combine(
+        poolIdFlow,
+        enteredPoolNameFlow,
         enteredAmountFlow,
         selectedNominatorFlow,
         selectedStateTogglerFlow
-    ) { enteredAmount, selectedNominator, selectedStateToggler ->
+    ) { poolId, poolName, enteredAmount, selectedNominator, selectedStateToggler ->
         val amountInDecimal = enteredAmount.toBigDecimalOrNull() ?: BigDecimal.ZERO
         val amountInPlanks = asset.token.planksFromAmount(amountInDecimal)
-        val feeInPlanks = poolInteractor.estimateCreateFee(amountInPlanks, address, selectedNominator, selectedStateToggler)
+        val feeInPlanks = poolInteractor.estimateCreateFee(poolId.toBigInteger(), poolName, amountInPlanks, address, selectedNominator, selectedStateToggler)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
         val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
         val feeFiat = fee.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
@@ -169,13 +153,15 @@ class CreatePoolSetupViewModel @Inject constructor(
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
-    val viewState: StateFlow<CreatePoolSetupViewState> = combine(
+    val viewState: StateFlow<CreatePoolSetupViewState> = jp.co.soramitsu.common.utils.combine(
         amountInputViewState,
         poolIdFlow,
         poolNameInputStateFlow,
         addressDisplayFlow,
-        feeInfoViewState
-    ) { amountInputState, poolId, poolNameInput, currentAddressDisplay, feeInfo ->
+        feeInfoViewState,
+        nominatorDisplayFlow,
+        stateTogglerDisplayFlow
+    ) { amountInputState, poolId, poolNameInput, currentAddressDisplay, feeInfo, selectedNominator, selectedStateToggler ->
         val isButtonEnabled =
             poolNameInput.text.isNotEmpty() && amountInputState.tokenAmount.toBigDecimalOrNull() != null &&
                 feeInfo.feeAmount.isNullOrEmpty().not()
@@ -186,13 +172,20 @@ class CreatePoolSetupViewModel @Inject constructor(
             poolId = poolId.toString(),
             depositor = currentAddressDisplay,
             root = currentAddressDisplay,
-            nominator = currentAddressDisplay,
-            stateToggler = currentAddressDisplay,
+            nominator = selectedNominator,
+            stateToggler = selectedStateToggler,
             feeInfoViewState = feeInfo,
-            createButtonViewState = ButtonViewState(resourceManager.getString(R.string.common_create), isButtonEnabled),
-            walletSelectorViewState = defaultWalletSelectorState
+            createButtonViewState = ButtonViewState(resourceManager.getString(R.string.common_create), isButtonEnabled)
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
+
+    init {
+        viewModelScope.launch {
+            router.walletSelectorPayloadFlow.collect { payload ->
+                payload?.let { onWalletSelected(it) }
+            }
+        }
+    }
 
     fun onPoolNameInput(poolName: String) {
         enteredPoolNameFlow.value = poolName
@@ -203,10 +196,34 @@ class CreatePoolSetupViewModel @Inject constructor(
     }
 
     fun onNominatorClick() {
-
+        router.openWalletSelector(NOMINATOR_WALLET_SELECTOR_TAG)
     }
 
     fun onStateTogglerClick() {
+        router.openWalletSelector(STATE_TOGGLER_WALLET_SELECTOR_TAG)
+    }
 
+    fun onBackClicked() {
+        router.back()
+    }
+
+    fun onCreateClick() {
+
+    }
+
+    private fun onWalletSelected(item: WalletSelectorPayload) {
+        viewModelScope.launch {
+            val (tag, selectedWalletId) = item
+            val metaAccount = stakingInteractor.getMetaAccount(selectedWalletId)
+            val address = metaAccount.address(chain) ?: return@launch
+            when (tag) {
+                NOMINATOR_WALLET_SELECTOR_TAG -> {
+                    selectedNominatorFlow.value = address
+                }
+                STATE_TOGGLER_WALLET_SELECTOR_TAG -> {
+                    selectedStateTogglerFlow.value = address
+                }
+            }
+        }
     }
 }

@@ -48,6 +48,8 @@ class StakingPoolApi(
     }
 
     suspend fun estimateCreatePoolFee(
+        name: String,
+        poolId: BigInteger,
         amountInPlanks: BigInteger,
         rootAddress: String,
         nominatorAddress: String,
@@ -55,12 +57,13 @@ class StakingPoolApi(
     ): BigInteger {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
-            val root = chain.accountIdOf(rootAddress)
-            val nominator = chain.accountIdOf(nominatorAddress)
-            val stateToggler = chain.accountIdOf(stateTogglerAddress)
+            val rootMultiAddress = chain.multiAddressOf(rootAddress)
+            val nominatorMultiAddress = chain.multiAddressOf(nominatorAddress)
+            val stateTogglerMultiAddress = chain.multiAddressOf(stateTogglerAddress)
 
             extrinsicService.estimateFee(chain) {
-                createPool(amountInPlanks, root, nominator, stateToggler)
+                createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
+                setPoolMetadata(poolId, name.encodeToByteArray())
             }
         }
     }
@@ -74,11 +77,13 @@ class StakingPoolApi(
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
             val root = chain.accountIdOf(rootAddress)
-            val nominator = chain.accountIdOf(nominatorAddress)
-            val stateToggler = chain.accountIdOf(stateTogglerAddress)
+
+            val rootMultiAddress = chain.multiAddressOf(rootAddress)
+            val nominatorMultiAddress = chain.multiAddressOf(nominatorAddress)
+            val stateTogglerMultiAddress = chain.multiAddressOf(stateTogglerAddress)
 
             extrinsicService.submitExtrinsic(chain, root) {
-                createPool(amountInPlanks, root, nominator, stateToggler)
+                createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
             }
         }
     }

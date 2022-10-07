@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation
 
 import androidx.lifecycle.Lifecycle
+import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
@@ -15,6 +16,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmU
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import kotlinx.coroutines.flow.Flow
 
 interface StakingRouter {
 
@@ -116,8 +118,18 @@ interface StakingRouter {
     fun openPoolUnstake()
 
     fun openPoolConfirmBondMore()
+
     fun openPoolConfirmClaim()
+
     fun openPoolConfirmRedeem()
+
     fun openPoolConfirmUnstake()
+
     fun returnToManagePoolStake()
+
+    fun openCreatePoolSetup()
+
+    fun openWalletSelector(tag: String)
+
+    val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
 }

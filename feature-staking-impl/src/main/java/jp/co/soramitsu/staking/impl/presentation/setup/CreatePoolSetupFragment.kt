@@ -2,9 +2,11 @@ package jp.co.soramitsu.staking.impl.presentation.setup
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.staking.impl.presentation.setup.compose.CreatePoolSetupScreen
 
 @AndroidEntryPoint
 class CreatePoolSetupFragment : BaseComposeBottomSheetDialogFragment<CreatePoolSetupViewModel>() {
@@ -12,6 +14,15 @@ class CreatePoolSetupFragment : BaseComposeBottomSheetDialogFragment<CreatePoolS
 
     @Composable
     override fun Content(padding: PaddingValues) {
-        TODO("Not yet implemented")
+        val state = viewModel.viewState.collectAsState()
+        CreatePoolSetupScreen(
+            state = state.value,
+            onNavigationClick = viewModel::onBackClicked,
+            onPoolNameInput = viewModel::onPoolNameInput,
+            onTokenAmountInput = viewModel::onAmountInput,
+            onNominatorClick = viewModel::onNominatorClick,
+            onStateTogglerClick = viewModel::onStateTogglerClick,
+            onCreateClick = viewModel::onCreateClick
+        )
     }
 }

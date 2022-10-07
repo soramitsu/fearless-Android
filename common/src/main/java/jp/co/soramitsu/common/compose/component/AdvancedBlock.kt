@@ -15,26 +15,26 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 @Composable
-fun AdvancedBlock(Content: @Composable ColumnScope.() -> Unit) {
-    val isHiddenState = remember { mutableStateOf(false) }
-    val icon = if (isHiddenState.value) {
+fun AdvancedBlock(modifier: Modifier = Modifier, initialState: Boolean = false, Content: @Composable ColumnScope.() -> Unit) {
+    val isExpandedState = remember { mutableStateOf(initialState) }
+    val icon = if (isExpandedState.value) {
         R.drawable.ic_chevron_down_white
     } else {
         R.drawable.ic_chevron_up_white
     }
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickableWithNoIndication { isHiddenState.value = isHiddenState.value.not() }
+                .clickableWithNoIndication { isExpandedState.value = isExpandedState.value.not() }
         ) {
             H5(text = stringResource(id = R.string.common_advanced), modifier = Modifier.weight(1f))
             Image(res = icon, modifier = Modifier.align(Alignment.CenterVertically))
         }
-        if (isHiddenState.value.not()) {
+        if (isExpandedState.value) {
             MarginVertical(margin = 27.dp)
             Content()
         }

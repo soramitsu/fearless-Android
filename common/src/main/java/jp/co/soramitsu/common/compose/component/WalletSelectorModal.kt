@@ -31,7 +31,7 @@ data class WalletSelectorViewState(
 )
 
 @Composable
-fun WalletSelectorModal(
+fun WalletSelectorLight(
     state: WalletSelectorViewState,
     onWalletSelected: (WalletItemViewState) -> Unit,
     onBackClicked: () -> Unit
@@ -119,7 +119,7 @@ private fun SelectWalletScreenPreview() {
     )
 
     FearlessTheme {
-        WalletSelectorModal(
+        WalletSelectorLight(
             state = WalletSelectorViewState(
                 wallets = listOf(walletState, walletState),
                 selectedWallet = walletState
