@@ -14,14 +14,10 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
     val isUpdating = checkIsUpdating()
     val isTokensUpdated = checkIsTokensUpdated()
 
-    val rate = try {
-        when (totalBalance) {
-            BigDecimal.ZERO, null -> BigDecimal.ZERO
-            else -> totalBalanceChange.divide(totalBalance, RoundingMode.HALF_UP).fractionToPercentage()
-        }
-    } catch (e: ArithmeticException) {
-        e.printStackTrace()
-        null
+    val rate = when {
+        totalBalance == null -> null
+        totalBalance.compareTo(BigDecimal.ZERO) == 0 -> BigDecimal.ZERO
+        else -> totalBalanceChange.divide(totalBalance, RoundingMode.HALF_UP).fractionToPercentage()
     }
 
     private fun calculateTotalBalance(): BigDecimal? {
