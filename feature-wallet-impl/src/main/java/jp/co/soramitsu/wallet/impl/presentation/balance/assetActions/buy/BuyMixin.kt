@@ -2,13 +2,13 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
-import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
+import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 
 interface BuyMixin {
     class IntegrationPayload(
@@ -45,7 +45,7 @@ interface BuyMixin {
     }
 }
 
-fun <V> BaseFragment<V>.setupBuyIntegration(viewModel: V) where V : BaseViewModel, V : BuyMixin {
+fun <V> BaseComposeFragment<V>.setupBuyIntegration(viewModel: V) where V : BaseViewModel, V : BuyMixin {
     viewModel.integrateWithBuyProviderEvent.observeEvent {
         (it.provider as? ExternalProvider)?.createIntegrator(it.chainAsset, it.address)?.integrate(requireContext())
     }

@@ -1,134 +1,64 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.detail
 
+import android.os.Bundle
+import android.view.View
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import coil.ImageLoader
-import coil.load
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
-import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.utils.formatAsChange
-import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.base.BaseComposeFragment
+import jp.co.soramitsu.common.compose.component.MainToolbar
+import jp.co.soramitsu.common.compose.component.MainToolbarShimmer
+import jp.co.soramitsu.common.compose.component.MainToolbarViewState
+import jp.co.soramitsu.common.compose.component.MenuIconItem
+import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.hideKeyboard
-import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.setTextColorRes
-import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentBalanceDetailBinding
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.setupBuyIntegration
-import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
-import jp.co.soramitsu.wallet.impl.presentation.transaction.history.showState
+import kotlinx.coroutines.launch
 
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
 @AndroidEntryPoint
-class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.fragment_balance_detail) {
+class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
 
     companion object {
         fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
-    private val binding by viewBinding(FragmentBalanceDetailBinding::bind)
-
     override val viewModel: BalanceDetailViewModel by viewModels()
 
-    @Inject
-    lateinit var imageLoader: ImageLoader
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-    override fun initViews() {
+        subscribe(viewModel)
+
         hideKeyboard()
-
-        with(binding) {
-            transfersContainer.provideImageLoader(imageLoader)
-
-            transfersContainer.initializeBehavior(anchorView = balanceDetailContent)
-
-            transfersContainer.setScrollingListener(viewModel::transactionsScrolled)
-
-            transfersContainer.setSlidingStateListener(::setRefreshEnabled)
-
-            transfersContainer.setTransactionClickListener(viewModel::transactionClicked)
-
-            transfersContainer.setFilterClickListener { viewModel.filterClicked() }
-
-            balanceDetailContainer.setOnRefreshListener {
-                viewModel.sync()
-            }
-
-            balanceDetailBack.setOnClickListener { viewModel.backClicked() }
-            balanceDetailOptions.setOnClickListener {
-                viewModel.accountOptionsClicked()
-            }
-
-            balanceDetaiActions.send.setOnClickListener {
-                viewModel.sendClicked()
-            }
-
-            balanceDetaiActions.receive.setOnClickListener {
-                viewModel.receiveClicked()
-            }
-
-            balanceDetaiActions.buy.setOnClickListener {
-                viewModel.buyClicked()
-            }
-
-            balanceDetailsInfo.lockedTitle.setOnClickListener {
-                viewModel.frozenInfoClicked()
-            }
-        }
     }
 
-    override fun subscribe(viewModel: BalanceDetailViewModel) {
+    private fun subscribe(viewModel: BalanceDetailViewModel) {
         viewModel.sync()
 
-        viewModel.state.observe(binding.transfersContainer::showState)
-
         setupBuyIntegration(viewModel)
-
-        viewModel.assetLiveData.observe { asset ->
-            with(binding) {
-                balanceDetailTokenIcon.load(asset.token.configuration.iconUrl, imageLoader)
-
-                tokenBadge.setIcon(asset.token.configuration.chainIcon, imageLoader)
-
-                balanceDetailTokenName.text = asset.token.configuration.symbolToShow.uppercase()
-                tokenBadge.setText(asset.token.configuration.chainName)
-                balanceDetailRate.text = asset.token.fiatRate?.formatAsCurrency(asset.token.fiatSymbol) ?: ""
-                balanceDetailRate.isVisible = asset.token.fiatRate != null
-
-                asset.token.recentRateChange?.let {
-                    balanceDetailRateChange.setTextColorRes(asset.token.rateChangeColorRes)
-                    balanceDetailRateChange.text = it.formatAsChange()
-                }
-                balanceDetailRateChange.isVisible = asset.token.recentRateChange != null
-
-                balanceDetailsInfo.total.text = asset.total.orZero().formatTokenAmount(asset.token.configuration)
-                balanceDetailsInfo.totalFiat.setTextOrHide(asset.totalFiat?.formatAsCurrency(asset.token.fiatSymbol))
-
-                balanceDetailsInfo.transferable.text = asset.available?.formatTokenAmount(asset.token.configuration)
-                balanceDetailsInfo.transferableFiat.setTextOrHide(asset.availableFiat?.formatAsCurrency(asset.token.fiatSymbol))
-
-                balanceDetailsInfo.locked.text = asset.frozen?.formatTokenAmount(asset.token.configuration)
-                balanceDetailsInfo.lockedFiat.setTextOrHide(asset.frozenFiat?.formatAsCurrency(asset.token.fiatSymbol))
-            }
-        }
-
-        viewModel.hideRefreshEvent.observeEvent {
-            binding.balanceDetailContainer.isRefreshing = false
-        }
-
-        viewModel.showFrozenDetailsEvent.observeEvent(::showFrozenDetails)
-
-        binding.balanceDetaiActions.buy.isEnabled = viewModel.buyEnabled
 
         viewModel.showExportSourceChooser.observeEvent(::showExportSourceChooser)
 
@@ -145,15 +75,6 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.frag
         ).show()
     }
 
-    private fun setRefreshEnabled(bottomSheetState: Int) {
-        val bottomSheetCollapsed = BottomSheetBehavior.STATE_COLLAPSED == bottomSheetState
-        binding.balanceDetailContainer.isEnabled = bottomSheetCollapsed
-    }
-
-    private fun showFrozenDetails(model: AssetModel) {
-        FrozenTokensBottomSheet(requireContext(), model).show()
-    }
-
     private fun showExportSourceChooser(payload: ExportSourceChooserPayload) {
         SourceTypeChooserBottomSheetDialog(
             titleRes = R.string.select_save_type,
@@ -161,5 +82,62 @@ class BalanceDetailFragment : BaseFragment<BalanceDetailViewModel>(R.layout.frag
             payload = DynamicListBottomSheet.Payload(payload.sources),
             onClicked = { viewModel.exportTypeSelected(it, payload.chainId) }
         ).show()
+    }
+
+    @ExperimentalMaterialApi
+    @Composable
+    override fun Toolbar(modalBottomSheetState: ModalBottomSheetState) {
+        val toolbarState by viewModel.toolbarState.collectAsState()
+        val coroutineScope = rememberCoroutineScope()
+
+        when (toolbarState) {
+            is LoadingState.Loading<MainToolbarViewState> -> {
+                MainToolbarShimmer(
+                    homeIconState = ToolbarHomeIconState(navigationIcon = jp.co.soramitsu.common.R.drawable.ic_arrow_back_24dp),
+                    menuItems = listOf(
+                        MenuIconItem(icon = jp.co.soramitsu.common.R.drawable.ic_dots_horizontal_24, {})
+                    )
+                )
+            }
+            is LoadingState.Loaded<MainToolbarViewState> -> {
+                MainToolbar(
+                    state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
+                    menuItems = listOf(
+                        MenuIconItem(
+                            icon = jp.co.soramitsu.common.R.drawable.ic_dots_horizontal_24,
+                            viewModel::accountOptionsClicked
+                        )
+                    ),
+                    onChangeChainClick = {
+                        coroutineScope.launch {
+                            modalBottomSheetState.show()
+                        }
+                    },
+                    onNavigationClick = {
+                        viewModel.backClicked()
+                    }
+                )
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterialApi::class)
+    @Composable
+    override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
+        BalanceDetailsScreen(viewModel, modalBottomSheetState)
+    }
+
+    @Composable
+    override fun Background() {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Image(
+                modifier = Modifier.fillMaxSize(),
+                painter = painterResource(id = R.drawable.drawable_background_image),
+                contentScale = ContentScale.FillBounds,
+                contentDescription = null
+            )
+        }
     }
 }

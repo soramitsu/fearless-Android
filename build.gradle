@@ -115,6 +115,7 @@ buildscript {
         composeViewModelDep = "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1"
         composeShimmerDep = "com.valentinilk.shimmer:compose-shimmer:1.0.3"
         composeConstraintLayoutDep = "androidx.constraintlayout:constraintlayout-compose:1.0.1"
+        composeAccompanist = "com.google.accompanist:accompanist-swiperefresh:0.26.5-rc"
 
         //fix compose preview https://stackoverflow.com/a/71830120
         customviewDep = "androidx.customview:customview:1.2.0-alpha01"

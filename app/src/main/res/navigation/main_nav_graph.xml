@@ -610,6 +610,11 @@
         android:label="optionsWalletFragment" />
 
     <dialog
+        android:id="@+id/frozenTokensFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment"
+        android:label="frozenTokensFragment" />
+
+    <dialog
         android:id="@+id/poolClaimFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.staking.claim.PoolClaimFragment"
         android:label="poolClaimFragment" />

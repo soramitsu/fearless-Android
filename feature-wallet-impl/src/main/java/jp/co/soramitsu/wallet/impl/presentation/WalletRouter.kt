@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
@@ -70,4 +71,6 @@ interface WalletRouter : SecureRouter {
     fun openOptionsWallet(walletId: Long)
 
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
+
+    fun openFrozenTokens(payload: FrozenAssetPayload)
 }

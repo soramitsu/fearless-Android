@@ -48,6 +48,21 @@ fun Shimmer(modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+fun ShimmerRectangle(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .shimmer(),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(shimmerColor, RoundedCornerShape(size = 16.dp))
+        )
+    }
+}
+
 @Preview
 @Composable
 private fun ShimmerPreview() {

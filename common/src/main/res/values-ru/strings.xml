@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="common_next">Далее</string>
     <string name="common_cancel">Отмена</string>
     <string name="common_skip">Пропустить</string>
@@ -784,6 +784,7 @@
     <string name="common_action_teleport">Телепорт</string>
     <string name="common_action_hide">Скрыть</string>
     <string name="common_action_show">Показать</string>
+    <string name="common_action_buy">Купить</string>
 
     <string name="pool_staking_confirm_join_title"></string>
     <string name="pool_staking_number_of_members"></string>

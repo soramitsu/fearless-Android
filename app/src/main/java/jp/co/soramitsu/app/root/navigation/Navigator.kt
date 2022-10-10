@@ -84,6 +84,8 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDeta
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
@@ -733,6 +735,11 @@ class Navigator :
     override fun openOptionsWallet(walletId: Long) {
         val bundle = OptionsWalletFragment.getBundle(walletId)
         navController?.navigate(R.id.optionsWalletFragment, bundle)
+    }
+
+    override fun openFrozenTokens(payload: FrozenAssetPayload) {
+        val bundle = FrozenTokensFragment.getBundle(payload)
+        navController?.navigate(R.id.frozenTokensFragment, bundle)
     }
 
     fun educationalStoriesCompleted() {
