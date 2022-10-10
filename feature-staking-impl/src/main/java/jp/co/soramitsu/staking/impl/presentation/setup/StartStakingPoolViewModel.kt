@@ -13,6 +13,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolCreateFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
@@ -111,11 +112,10 @@ class StartStakingPoolViewModel @Inject constructor(
     }
 
     fun onCreatePool() {
-        val setupState = flowStateProvider.joinFlowState
+        val setupState = flowStateProvider.createFlowState
         if (setupState.get() == null) {
-            setupState.set(StakingPoolJoinFlowState())
+            setupState.set(StakingPoolCreateFlowState())
         }
         router.openCreatePoolSetup()
-//        router.openSetupStakingPool()
     }
 }

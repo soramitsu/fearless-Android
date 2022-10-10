@@ -17,7 +17,8 @@ data class StakingPoolCreateFlowState(
     val poolName: String? = null,
     val amount: BigDecimal? = null,
     val poolId: Int? = null,
-
+    val nominatorAddress: String? = null,
+    val stateTogglerAddress: String? = null
 )
 
 data class StakingPoolManageFlowState(
@@ -31,7 +32,8 @@ data class StakingPoolState(
     val chain: Chain? = null,
     val asset: Asset? = null,
     val chainAsset: Chain.Asset? = null,
-    val address: String? = null
+    val address: String? = null,
+    val amount: BigDecimal? = null
 ) {
     val accountId = address?.let { chain?.accountIdOf(it) }
 }
