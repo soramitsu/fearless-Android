@@ -131,5 +131,7 @@ interface StakingRouter {
 
     fun openWalletSelector(tag: String)
 
+    fun openCreatePoolConfirm()
+
     val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
 }

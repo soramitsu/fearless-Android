@@ -17,11 +17,13 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-open class BaseConfirmViewModel(
+abstract class BaseConfirmViewModel(
     private val resourceManager: ResourceManager,
     protected val asset: Asset,
     protected val address: String,
@@ -48,7 +50,7 @@ open class BaseConfirmViewModel(
         address
     )
 
-    private val addressViewStateFlow = flowOf {
+    protected val addressViewStateFlow = flowOf {
         val name = accountNameProvider(address)
         if (name.isNullOrEmpty()) {
             defaultAddressViewState.copy(value = address, additionalValue = null)
@@ -57,7 +59,7 @@ open class BaseConfirmViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultAddressViewState)
 
-    private val amountViewState = TitleValueViewState(
+    protected val amountViewState = TitleValueViewState(
         resourceManager.getString(R.string.common_amount),
         amountFormatted,
         amountFiat
@@ -80,17 +82,22 @@ open class BaseConfirmViewModel(
         defaultFeeState
     )
 
-    val viewState = combine(feeViewStateFlow, addressViewStateFlow) { feeViewState, addressViewState ->
-        ConfirmScreenViewState(
-            toolbarViewState,
-            addressViewState,
-            amountViewState,
-            feeViewState,
-            asset.token.configuration.iconUrl,
-            titleRes,
-            additionalMessageRes
-        )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
+    open val tableItemsFlow: StateFlow<List<TitleValueViewState>> = combine(feeViewStateFlow, addressViewStateFlow) { feeViewState, addressViewState ->
+        listOf(addressViewState, amountViewState, feeViewState)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val viewState by lazy {
+        tableItemsFlow.map { tableItems ->
+            ConfirmScreenViewState(
+                toolbarViewState,
+                amount = requireNotNull(amountViewState.value),
+                tableItems = tableItems,
+                asset.token.configuration.iconUrl,
+                titleRes,
+                additionalMessageRes
+            )
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
+    }
 
     fun onConfirm() {
         launch {
@@ -112,9 +119,12 @@ open class BaseConfirmViewModel(
     private val defaultScreenState
         get() = ConfirmScreenViewState(
             toolbarViewState,
-            defaultAddressViewState,
-            amountViewState,
-            defaultFeeState,
+            amountViewState.value.orEmpty(),
+            listOf(
+                defaultAddressViewState,
+                amountViewState,
+                defaultFeeState
+            ),
             asset.token.configuration.iconUrl,
             titleRes,
             additionalMessageRes

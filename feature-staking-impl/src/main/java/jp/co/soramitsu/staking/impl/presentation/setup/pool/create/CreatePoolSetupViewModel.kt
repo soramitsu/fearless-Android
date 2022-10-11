@@ -1,4 +1,4 @@
-package jp.co.soramitsu.staking.impl.presentation.setup
+package jp.co.soramitsu.staking.impl.presentation.setup.pool.create
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +24,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
-import jp.co.soramitsu.staking.impl.presentation.setup.compose.CreatePoolSetupViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -208,7 +207,8 @@ class CreatePoolSetupViewModel @Inject constructor(
     fun onCreateClick() {
         val poolName = enteredPoolNameFlow.value
         val poolId = poolIdFlow.value
-        val amount = enteredAmountFlow.value.toBigDecimalOrNull()
+        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+        val amountInPlanks = asset.token.planksFromAmount(amount)
         val nominatorAddress = selectedNominatorFlow.value
         val stateTogglerAddress = selectedStateTogglerFlow.value
 
@@ -217,12 +217,13 @@ class CreatePoolSetupViewModel @Inject constructor(
             val state = requireNotNull(nullableState)
             state.copy(
                 poolName = poolName,
-                amount = amount,
+                amountInPlanks = amountInPlanks,
                 poolId = poolId,
                 nominatorAddress = nominatorAddress,
                 stateTogglerAddress = stateTogglerAddress
             )
         }
+        router.openCreatePoolConfirm()
     }
 
     private fun onWalletSelected(item: WalletSelectorPayload) {

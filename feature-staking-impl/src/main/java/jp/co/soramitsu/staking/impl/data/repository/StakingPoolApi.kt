@@ -69,6 +69,8 @@ class StakingPoolApi(
     }
 
     suspend fun createPool(
+        name: String,
+        poolId: BigInteger,
         amountInPlanks: BigInteger,
         rootAddress: String,
         nominatorAddress: String,
@@ -84,6 +86,7 @@ class StakingPoolApi(
 
             extrinsicService.submitExtrinsic(chain, root) {
                 createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
+                setPoolMetadata(poolId, name.encodeToByteArray())
             }
         }
     }

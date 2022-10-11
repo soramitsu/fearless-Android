@@ -566,12 +566,12 @@
 
     <dialog
         android:id="@+id/startStakingPoolFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.setup.StartStakingPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.StartStakingPoolFragment"
         android:label="startStakingPoolFragment" />
 
     <dialog
         android:id="@+id/setupStakingPoolFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.join.SetupStakingPoolFragment"
         android:label="setupStakingPoolFragment" />
 
     <dialog
@@ -581,7 +581,7 @@
 
     <dialog
         android:id="@+id/confirmJoinPoolFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.ConfirmJoinPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.join.ConfirmJoinPoolFragment"
         android:label="confirmJoinPoolFragment" />
 
     <dialog
@@ -646,13 +646,18 @@
 
     <dialog
         android:id="@+id/createPoolSetupFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.setup.CreatePoolSetupFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.create.CreatePoolSetupFragment"
         android:label="createPoolSetupFragment" />
 
     <dialog
         android:id="@+id/walletSelectorFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment"
         android:label="walletSelectorFragment" />
+
+    <dialog
+        android:id="@+id/confirmCreatePoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.create.ConfirmCreatePoolFragment"
+        android:label="confirmCreatePoolFragment" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"

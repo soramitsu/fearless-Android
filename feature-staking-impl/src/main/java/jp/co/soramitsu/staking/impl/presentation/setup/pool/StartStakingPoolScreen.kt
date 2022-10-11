@@ -1,4 +1,4 @@
-package jp.co.soramitsu.staking.impl.presentation.setup.compose
+package jp.co.soramitsu.staking.impl.presentation.setup.pool
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -47,7 +47,7 @@ import jp.co.soramitsu.common.compose.theme.purple
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.presentation.setup.StartStakingPoolViewModel
+import jp.co.soramitsu.staking.impl.presentation.setup.pool.StartStakingPoolViewModel
 
 data class SetupStakingPoolViewState(
     val toolbarViewState: ToolbarViewState,

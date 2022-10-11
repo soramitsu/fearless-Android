@@ -15,11 +15,22 @@ data class StakingPoolJoinFlowState(
 
 data class StakingPoolCreateFlowState(
     val poolName: String? = null,
-    val amount: BigDecimal? = null,
+    val amountInPlanks: BigInteger? = null,
     val poolId: Int? = null,
     val nominatorAddress: String? = null,
     val stateTogglerAddress: String? = null
-)
+) {
+    val requirePoolName
+        get() = requireNotNull(poolName)
+    val requireAmountInPlanks
+        get() = requireNotNull(amountInPlanks)
+    val requirePoolId
+        get() = requireNotNull(poolId)
+    val requireNominatorAddress
+        get() = requireNotNull(nominatorAddress)
+    val requireStateTogglerAddress
+        get() = requireNotNull(stateTogglerAddress)
+}
 
 data class StakingPoolManageFlowState(
     val redeemInPlanks: BigInteger,
@@ -36,6 +47,14 @@ data class StakingPoolState(
     val amount: BigDecimal? = null
 ) {
     val accountId = address?.let { chain?.accountIdOf(it) }
+    val requireAddress
+        get() = requireNotNull(address)
+    val requireAsset
+        get() = requireNotNull(asset)
+    val requireChain
+        get() = requireNotNull(chain)
+    val requireAmount
+        get() = requireNotNull(amount)
 }
 
 class StakingPoolSharedState<T> {

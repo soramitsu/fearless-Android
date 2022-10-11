@@ -1,4 +1,4 @@
-package jp.co.soramitsu.staking.impl.presentation.confirm.compose
+package jp.co.soramitsu.staking.impl.presentation.confirm.pool.join
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

@@ -283,6 +283,10 @@ class Navigator :
         navController?.navigate(R.id.createPoolSetupFragment)
     }
 
+    override fun openCreatePoolConfirm() {
+        navController?.navigate(R.id.confirmCreatePoolFragment)
+    }
+
     override fun openWalletSelector(tag: String) {
         navController?.navigate(R.id.walletSelectorFragment, WalletSelectorFragment.buildArguments(tag))
     }

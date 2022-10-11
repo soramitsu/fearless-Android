@@ -1,4 +1,4 @@
-package jp.co.soramitsu.staking.impl.presentation.setup
+package jp.co.soramitsu.staking.impl.presentation.setup.pool.join
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +25,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
-import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingScreenViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -54,12 +53,11 @@ class SetupStakingPoolViewModel @Inject constructor(
     private val initialAmount: String
 
     init {
-        val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
-        val setupState = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
+        val mainState = stakingPoolSharedStateProvider.requireMainState
 
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
-        initialAmount = setupState.amount?.format() ?: "10"
+        initialAmount = mainState.requireAmount.format()
     }
 
     private val toolbarViewState = ToolbarViewState(resourceManager.getString(R.string.pool_staking_join_title), R.drawable.ic_arrow_back_24dp)
@@ -141,7 +139,7 @@ class SetupStakingPoolViewModel @Inject constructor(
     }
 
     fun onNextClick() {
-        val setupFlow = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
+        val setupFlow = stakingPoolSharedStateProvider.requireJoinState
         val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
 
         isValid(amount).fold({

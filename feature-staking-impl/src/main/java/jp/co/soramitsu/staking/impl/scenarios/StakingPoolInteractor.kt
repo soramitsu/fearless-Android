@@ -235,4 +235,13 @@ class StakingPoolInteractor(
         nominatorAddress: String,
         stateToggler: String
     ) = api.estimateCreatePoolFee(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
+
+    suspend fun createPool(
+        poolId: BigInteger,
+        name: String,
+        amountInPlanks: BigInteger,
+        rootAddress: String,
+        nominatorAddress: String,
+        stateToggler: String
+    ) = api.createPool(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
 }

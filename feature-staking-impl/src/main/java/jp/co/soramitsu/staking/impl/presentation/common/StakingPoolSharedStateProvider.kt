@@ -5,4 +5,11 @@ class StakingPoolSharedStateProvider {
     val joinFlowState by lazy { StakingPoolSharedState<StakingPoolJoinFlowState>() }
     val createFlowState by lazy { StakingPoolSharedState<StakingPoolCreateFlowState>() }
     val manageState by lazy { StakingPoolSharedState<StakingPoolManageFlowState>() }
+
+    val requireMainState: StakingPoolState
+        get() = requireNotNull(mainState.get())
+    val requireCreateState: StakingPoolCreateFlowState
+        get() = requireNotNull(createFlowState.get())
+    val requireJoinState: StakingPoolJoinFlowState
+        get() = requireNotNull(joinFlowState.get())
 }
