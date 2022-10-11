@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -328,7 +329,7 @@ class StakingViewModel @Inject constructor(
         val meta = interactor.getCurrentMetaAccount()
         val address = requireNotNull(meta.address(chain))
         val amount = scenarioViewModelFlow.first().enteredAmountFlow.value
-        val amountDecimal = amount.toBigDecimalOrNull()
+        val amountDecimal = amount.toBigDecimalOrNull().orZero()
 
         stakingPoolSharedStateProvider.mainState.mutate {
             StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address, amount = amountDecimal)

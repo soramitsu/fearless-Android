@@ -45,12 +45,12 @@ abstract class BaseConfirmViewModel(
         R.drawable.ic_arrow_back_24dp
     )
 
-    private val defaultAddressViewState = TitleValueViewState(
+    protected val defaultAddressViewState = TitleValueViewState(
         resourceManager.getString(R.string.transaction_details_from),
         address
     )
 
-    protected val addressViewStateFlow = flowOf {
+    private val addressViewStateFlow = flowOf {
         val name = accountNameProvider(address)
         if (name.isNullOrEmpty()) {
             defaultAddressViewState.copy(value = address, additionalValue = null)

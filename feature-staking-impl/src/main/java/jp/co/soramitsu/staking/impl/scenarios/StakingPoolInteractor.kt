@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.scenarios
 
-import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -28,6 +27,7 @@ import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
@@ -194,16 +194,20 @@ class StakingPoolInteractor(
     }
 
     suspend fun getAccountName(address: String): String? {
+        Dispatchers.Default
         val chain = stakingInteractor.getSelectedChain()
         val accountId = chain.accountIdOf(address)
-        val identities = getIdentities(listOf(accountId))
-        val map = identities.mapNotNull {
-            chain.accountFromMapKey(it.key) to it.value?.display
-        }.toMap()
-        return map[address]
+        val metaAccount = accountRepository.findMetaAccount(accountId)
+        return if (metaAccount != null) {
+            metaAccount.name
+        } else {
+            val identities = getIdentities(listOf(accountId))
+            val map = identities.mapNotNull {
+                chain.accountFromMapKey(it.key) to it.value?.display
+            }.toMap()
+            map[address]
+        }
     }
-
-    fun getLightAccounts() = accountRepository.lightMetaAccountsFlow()
 
     suspend fun getLastPoolId(chainId: ChainId) = dataSource.lastPoolId(chainId)
 

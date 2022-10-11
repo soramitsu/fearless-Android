@@ -147,6 +147,5 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isDraggable = false
         behavior.isHideable = false
-
     }
 }

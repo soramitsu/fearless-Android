@@ -46,7 +46,8 @@ data class StakingPoolState(
     val address: String? = null,
     val amount: BigDecimal? = null
 ) {
-    val accountId = address?.let { chain?.accountIdOf(it) }
+    val accountId
+        get() = requireChain.accountIdOf(requireAddress)
     val requireAddress
         get() = requireNotNull(address)
     val requireAsset

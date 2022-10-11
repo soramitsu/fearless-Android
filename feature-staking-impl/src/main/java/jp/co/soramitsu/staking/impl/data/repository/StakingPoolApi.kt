@@ -60,10 +60,19 @@ class StakingPoolApi(
             val rootMultiAddress = chain.multiAddressOf(rootAddress)
             val nominatorMultiAddress = chain.multiAddressOf(nominatorAddress)
             val stateTogglerMultiAddress = chain.multiAddressOf(stateTogglerAddress)
-
-            extrinsicService.estimateFee(chain) {
-                createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
-                setPoolMetadata(poolId, name.encodeToByteArray())
+            try {
+                extrinsicService.estimateFee(chain, useBatchAll = true) {
+                    createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
+                    setPoolMetadata(poolId, name.encodeToByteArray())
+                }
+            } catch (e: Exception) {
+                val rootAccountId = chain.accountIdOf(rootAddress)
+                val nominatorAccountId = chain.accountIdOf(nominatorAddress)
+                val stateTogglerAccountId = chain.accountIdOf(stateTogglerAddress)
+                extrinsicService.estimateFee(chain, useBatchAll = true) {
+                    createPool(amountInPlanks, rootAccountId, nominatorAccountId, stateTogglerAccountId)
+                    setPoolMetadata(poolId, name.encodeToByteArray())
+                }
             }
         }
     }
@@ -84,7 +93,7 @@ class StakingPoolApi(
             val nominatorMultiAddress = chain.multiAddressOf(nominatorAddress)
             val stateTogglerMultiAddress = chain.multiAddressOf(stateTogglerAddress)
 
-            extrinsicService.submitExtrinsic(chain, root) {
+            extrinsicService.submitExtrinsic(chain, root, useBatchAll = true) {
                 createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
                 setPoolMetadata(poolId, name.encodeToByteArray())
             }

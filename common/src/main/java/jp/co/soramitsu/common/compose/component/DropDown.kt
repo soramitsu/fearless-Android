@@ -54,7 +54,6 @@ fun DropDown(
             ) {
                 H5(text = state.hint, color = black2)
                 B1(text = state.text, color = textColorState, maxLines = 1)
-
             }
             Image(res = R.drawable.ic_chevron_down_white, modifier = Modifier.align(Alignment.CenterVertically), tint = textColorState)
             MarginHorizontal(margin = 16.dp)

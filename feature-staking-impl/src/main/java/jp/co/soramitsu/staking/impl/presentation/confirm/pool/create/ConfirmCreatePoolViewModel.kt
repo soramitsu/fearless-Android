@@ -6,6 +6,8 @@ import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.domain.GetIdentitiesUseCase
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -14,7 +16,7 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
@@ -23,7 +25,8 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
     private val router: StakingRouter,
-    private val getIdentities: GetIdentitiesUseCase
+    private val getIdentities: GetIdentitiesUseCase,
+    private val poolInteractor: StakingPoolInteractor
 ) : BaseConfirmViewModel(
     address = poolSharedStateProvider.requireMainState.requireAddress,
     resourceManager = resourceManager,
@@ -31,7 +34,7 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     amountInPlanks = poolSharedStateProvider.requireCreateState.requireAmountInPlanks,
     feeEstimator = { stakingPoolInteractor.estimateCreatePoolFee(poolSharedStateProvider) },
     executeOperation = { address, _ -> stakingPoolInteractor.createPool(poolSharedStateProvider, address) },
-    onOperationSuccess = { router.returnToManagePoolStake() },
+    onOperationSuccess = { router.returnToMain() },
     accountNameProvider = {
         val chain = poolSharedStateProvider.requireMainState.requireChain
         getIdentities(chain, it).mapNotNull { pair ->
@@ -40,14 +43,31 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     },
     titleRes = R.string.pool_stakeng_create_confirm_title
 ) {
-    override val tableItemsFlow: StateFlow<List<TitleValueViewState>> = addressViewStateFlow.map { addressState ->
+    private val addressDisplayFlow = flowOf {
+        poolInteractor.getAccountName(address) ?: address
+    }.inBackground()
+    private val nominatorDisplayFlow = flowOf {
+        val nominatorAddress = poolSharedStateProvider.requireCreateState.requireNominatorAddress
+        poolInteractor.getAccountName(nominatorAddress) ?: nominatorAddress
+    }.inBackground()
+    private val stateTogglerDisplayFlow = flowOf {
+        val stateTogglerAddress = poolSharedStateProvider.requireCreateState.requireStateTogglerAddress
+        poolInteractor.getAccountName(stateTogglerAddress) ?: stateTogglerAddress
+    }.inBackground()
+
+    override val tableItemsFlow: StateFlow<List<TitleValueViewState>> = combine(
+        addressDisplayFlow,
+        nominatorDisplayFlow,
+        stateTogglerDisplayFlow
+    ) { addressDisplay, nominatorDisplay, stateTogglerDisplay ->
         val createState = poolSharedStateProvider.requireCreateState
 
         val poolId = TitleValueViewState(resourceManager.getString(R.string.pool_staking_pool_id), createState.requirePoolId.toString())
-        val depositor = TitleValueViewState(resourceManager.getString(R.string.pool_staking_depositor), address)
-        val root = TitleValueViewState(resourceManager.getString(R.string.pool_staking_root), address)
-        val nominator = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), createState.requireNominatorAddress)
-        val stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), createState.requireStateTogglerAddress)
+        val addressState = defaultAddressViewState.copy(value = addressDisplay)
+        val depositor = TitleValueViewState(resourceManager.getString(R.string.pool_staking_depositor), addressDisplay)
+        val root = TitleValueViewState(resourceManager.getString(R.string.pool_staking_root), addressDisplay)
+        val nominator = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), nominatorDisplay)
+        val stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), stateTogglerDisplay)
         listOf(addressState, amountViewState, poolId, depositor, root, nominator, stateToggler)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

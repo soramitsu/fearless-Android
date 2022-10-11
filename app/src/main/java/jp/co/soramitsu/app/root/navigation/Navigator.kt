@@ -31,10 +31,10 @@ import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.app.R
-import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.postToUiThread
@@ -99,6 +99,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.parcelize.Parcelize
 
@@ -751,11 +752,11 @@ class Navigator :
         }
 
     override fun setWalletSelectorPayload(payload: WalletSelectorPayload) {
-        navController!!.previousBackStackEntry!!.savedStateHandle.set(WalletSelectorPayload::class.java.name, payload)
+        navController?.previousBackStackEntry?.savedStateHandle?.set(WalletSelectorPayload::class.java.name, payload)
     }
 
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
-        get() = navController!!.currentBackStackEntry!!.savedStateHandle
-            .getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
-            .asFlow()
+        get() = navController?.currentBackStackEntry?.savedStateHandle
+            ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
+            ?.asFlow() ?: emptyFlow()
 }

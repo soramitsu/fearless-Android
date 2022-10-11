@@ -805,4 +805,7 @@
     <string name="common_claimable">Claimable</string>
     <string name="pool_create_title">Создать пулл</string>
     <string name="common_create">Создать</string>
+    <string name="min_to_create_pool_threshold_error_title">Извините, указанной суммы недостаточно для создания пула</string>
+    <string name="min_to_create_pool_threshold_error_message">Минимальная сумма - %s</string>
+
 </resources>

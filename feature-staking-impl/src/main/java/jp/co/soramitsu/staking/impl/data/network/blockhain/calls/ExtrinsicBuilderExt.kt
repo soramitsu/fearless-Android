@@ -229,6 +229,19 @@ fun ExtrinsicBuilder.createPool(amount: BigInteger, root: MultiAddress, nominato
     )
 }
 
+fun ExtrinsicBuilder.createPool(amount: BigInteger, root: AccountId, nominator: AccountId, stateToggler: AccountId): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "create",
+        mapOf(
+            "amount" to amount,
+            "root" to root,
+            "nominator" to nominator,
+            "state_toggler" to stateToggler
+        )
+    )
+}
+
 fun ExtrinsicBuilder.setPoolMetadata(poolId: BigInteger, poolName: ByteArray): ExtrinsicBuilder {
     return call(
         "NominationPools",

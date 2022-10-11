@@ -10,7 +10,6 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
-import kotlinx.coroutines.flow.Flow
 
 interface WalletRouter : SecureRouter {
     fun openAssetDetails(assetPayload: AssetPayload)

@@ -125,7 +125,7 @@ private fun SelectWalletScreenPreview() {
                 selectedWallet = walletState
             ),
             onWalletSelected = {},
-            onBackClicked = {},
+            onBackClicked = {}
         )
     }
 }

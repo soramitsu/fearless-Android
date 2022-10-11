@@ -47,7 +47,6 @@ import jp.co.soramitsu.common.compose.theme.purple
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.presentation.setup.pool.StartStakingPoolViewModel
 
 data class SetupStakingPoolViewState(
     val toolbarViewState: ToolbarViewState,
@@ -77,7 +76,11 @@ fun StartStakingPoolScreen(
     joinPool: () -> Unit,
     createPool: () -> Unit
 ) {
-    BottomSheetScreen(Modifier.fillMaxHeight().verticalScroll(rememberScrollState())) {
+    BottomSheetScreen(
+        Modifier
+            .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
+    ) {
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
         Column(
             modifier = Modifier
@@ -207,7 +210,7 @@ private fun SetupStakingPoolScreenPreview() {
         ToolbarViewState("Pool staking", R.drawable.ic_arrow_back_24dp),
         "KSM",
         "2 days",
-        "181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818181818%",
+        "18%",
         "7 days"
     )
     FearlessTheme {

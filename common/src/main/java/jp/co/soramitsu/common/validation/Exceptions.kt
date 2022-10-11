@@ -13,3 +13,8 @@ class InsufficientStakeBalanceException(resourceManager: ResourceManager) : Vali
     resourceManager.getString(R.string.common_not_enough_funds_title),
     resourceManager.getString(R.string.pool_staking_unstake_error)
 )
+
+class MinPoolCreationThresholdException(resourceManager: ResourceManager, minToCreateAmount: String) : ValidationException(
+    resourceManager.getString(R.string.min_to_create_pool_threshold_error_title),
+    resourceManager.getString(R.string.min_to_create_pool_threshold_error_message, minToCreateAmount)
+)
