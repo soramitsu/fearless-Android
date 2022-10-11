@@ -1,4 +1,4 @@
-package jp.co.soramitsu.staking.impl.presentation.confirm
+package jp.co.soramitsu.staking.impl.presentation.confirm.pool.join
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +14,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
-import jp.co.soramitsu.staking.impl.presentation.confirm.compose.ConfirmJoinPoolScreenViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -40,7 +39,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
     private val address: String
 
     init {
-        val setupState = requireNotNull(stakingPoolSharedStateProvider.setupState.get())
+        val setupState = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
         val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
@@ -102,7 +101,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
         launch {
             val amountInPlanks = asset.token.planksFromAmount(amount)
             poolInteractor.joinPool(address, amountInPlanks, selectedPool.poolId).fold({
-                stakingPoolSharedStateProvider.setupState.complete()
+                stakingPoolSharedStateProvider.joinFlowState.complete()
                 router.returnToMain()
             }, {
                 showError(it)

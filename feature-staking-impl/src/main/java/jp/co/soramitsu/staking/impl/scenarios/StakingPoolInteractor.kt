@@ -7,6 +7,8 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.runtime.ext.accountFromMapKey
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -25,6 +27,7 @@ import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
@@ -190,6 +193,24 @@ class StakingPoolInteractor(
         return identitiesRepositoryImpl.getIdentitiesFromIds(chain, accountIds.map { it.toHexString(false) })
     }
 
+    suspend fun getAccountName(address: String): String? {
+        Dispatchers.Default
+        val chain = stakingInteractor.getSelectedChain()
+        val accountId = chain.accountIdOf(address)
+        val metaAccount = accountRepository.findMetaAccount(accountId)
+        return if (metaAccount != null) {
+            metaAccount.name
+        } else {
+            val identities = getIdentities(listOf(accountId))
+            val map = identities.mapNotNull {
+                chain.accountFromMapKey(it.key) to it.value?.display
+            }.toMap()
+            map[address]
+        }
+    }
+
+    suspend fun getLastPoolId(chainId: ChainId) = dataSource.lastPoolId(chainId)
+
     suspend fun estimateJoinFee(amount: BigInteger, poolId: BigInteger = BigInteger.ZERO) = api.estimateJoinFee(amount, poolId)
 
     suspend fun joinPool(address: String, amount: BigInteger, poolId: BigInteger) = api.joinPool(address, amount, poolId)
@@ -209,4 +230,22 @@ class StakingPoolInteractor(
     suspend fun estimateClaimFee() = api.estimateClaimPayoutFee()
 
     suspend fun claim(address: String) = api.claimPayout(address)
+
+    suspend fun estimateCreateFee(
+        poolId: BigInteger,
+        name: String,
+        amountInPlanks: BigInteger,
+        rootAddress: String,
+        nominatorAddress: String,
+        stateToggler: String
+    ) = api.estimateCreatePoolFee(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
+
+    suspend fun createPool(
+        poolId: BigInteger,
+        name: String,
+        amountInPlanks: BigInteger,
+        rootAddress: String,
+        nominatorAddress: String,
+        stateToggler: String
+    ) = api.createPool(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
 }

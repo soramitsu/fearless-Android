@@ -1,10 +1,11 @@
-package jp.co.soramitsu.staking.impl.presentation.setup.compose
+package jp.co.soramitsu.staking.impl.presentation.setup.pool
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,7 +47,6 @@ import jp.co.soramitsu.common.compose.theme.purple
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.presentation.setup.StartStakingPoolViewModel
 
 data class SetupStakingPoolViewState(
     val toolbarViewState: ToolbarViewState,
@@ -75,7 +76,11 @@ fun StartStakingPoolScreen(
     joinPool: () -> Unit,
     createPool: () -> Unit
 ) {
-    BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
+    BottomSheetScreen(
+        Modifier
+            .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
+    ) {
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
         Column(
             modifier = Modifier
@@ -190,7 +195,9 @@ private fun SingleValueInfoCard(@DrawableRes icon: Int, @StringRes text: Int, va
                 },
                 modifier = Modifier
                     .align(CenterVertically)
-                    .weight(1f)
+                    .weight(1f),
+                maxLines = 5,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

@@ -1,9 +1,9 @@
-package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector
+package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
@@ -25,16 +26,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
-
 @HiltViewModel
-class SelectWalletViewModel @Inject constructor(
-    private val accountListingMixin: AccountListingMixin,
-    private val accountInteractor: AccountInteractor,
+class WalletSelectorViewModel @Inject constructor(
+    accountListingMixin: AccountListingMixin,
     private val router: WalletRouter,
     private val updatesMixin: UpdatesMixin,
-    private val getTotalBalanceUseCase: GetTotalBalanceUseCase
+    private val getTotalBalanceUseCase: GetTotalBalanceUseCase,
+    savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
+
+    private val tag = savedStateHandle.get<String>(WalletSelectorFragment.TAG_ARGUMENT_KEY)!!
 
     private val walletItemsFlow = accountListingMixin.accountsFlow(AddressIconGenerator.SIZE_BIG).mapList {
         val balanceModel = getTotalBalanceUseCase.invoke(it.id).first()
@@ -74,25 +75,13 @@ class SelectWalletViewModel @Inject constructor(
 
     fun onWalletSelected(item: WalletItemViewState) {
         viewModelScope.launch {
-            accountInteractor.selectMetaAccount(item.id)
             selectedWalletItem.value = item
+            router.setWalletSelectorPayload(WalletSelectorPayload(tag, item.id))
             router.back()
         }
     }
 
-    fun addNewWallet() {
-        router.openAddAccount()
-    }
-
-    fun importWallet() {
-        router.openImportAccountScreen(SUBSTRATE_BLOCKCHAIN_TYPE)
-    }
-
     fun onBackClicked() {
         router.back()
-    }
-
-    fun onWalletOptionsClick(item: WalletItemViewState) {
-        router.openOptionsWallet(item.id)
     }
 }

@@ -29,13 +29,13 @@ data class FeeInfoViewState(
 }
 
 @Composable
-fun FeeInfo(state: FeeInfoViewState) {
+fun FeeInfo(state: FeeInfoViewState, modifier: Modifier = Modifier) {
     val verticalPadding = if (state.feeAmount.isNullOrEmpty()) {
         16.dp
     } else 8.dp
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = verticalPadding)
     ) {

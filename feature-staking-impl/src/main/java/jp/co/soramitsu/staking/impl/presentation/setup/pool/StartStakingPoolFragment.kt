@@ -1,11 +1,10 @@
-package jp.co.soramitsu.staking.impl.presentation.setup
+package jp.co.soramitsu.staking.impl.presentation.setup.pool
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.staking.impl.presentation.setup.compose.StartStakingPoolScreen
 
 @AndroidEntryPoint
 class StartStakingPoolFragment : BaseComposeBottomSheetDialogFragment<StartStakingPoolViewModel>() {

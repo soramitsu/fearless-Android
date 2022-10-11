@@ -34,6 +34,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.postToUiThread
@@ -85,6 +86,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
@@ -97,6 +99,7 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.parcelize.Parcelize
 
@@ -275,6 +278,18 @@ class Navigator :
 
     override fun returnToManagePoolStake() {
         navController?.navigate(R.id.action_return_to_pool_staking_balance)
+    }
+
+    override fun openCreatePoolSetup() {
+        navController?.navigate(R.id.createPoolSetupFragment)
+    }
+
+    override fun openCreatePoolConfirm() {
+        navController?.navigate(R.id.confirmCreatePoolFragment)
+    }
+
+    override fun openWalletSelector(tag: String) {
+        navController?.navigate(R.id.walletSelectorFragment, WalletSelectorFragment.buildArguments(tag))
     }
 
     override fun openSelectUnbond(payload: SelectUnbondPayload) {
@@ -735,4 +750,13 @@ class Navigator :
                 }
             ).asFlow()
         }
+
+    override fun setWalletSelectorPayload(payload: WalletSelectorPayload) {
+        navController?.previousBackStackEntry?.savedStateHandle?.set(WalletSelectorPayload::class.java.name, payload)
+    }
+
+    override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
+        get() = navController?.currentBackStackEntry?.savedStateHandle
+            ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
+            ?.asFlow() ?: emptyFlow()
 }

@@ -1,4 +1,4 @@
-package jp.co.soramitsu.staking.impl.presentation.setup
+package jp.co.soramitsu.staking.impl.presentation.setup.pool
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,10 +13,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolCreateFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
-import jp.co.soramitsu.staking.impl.presentation.setup.compose.SetupStakingPoolViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.PERIOD_YEAR
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -103,12 +103,18 @@ class StartStakingPoolViewModel @Inject constructor(
     fun onInstructionsClick() {}
 
     fun onJoinPool() {
-        val setupState = flowStateProvider.setupState
+        val setupState = flowStateProvider.joinFlowState
         if (setupState.get() == null) {
             setupState.set(StakingPoolJoinFlowState())
         }
         router.openSetupStakingPool()
     }
 
-    fun onCreatePool() {}
+    fun onCreatePool() {
+        val setupState = flowStateProvider.createFlowState
+        if (setupState.get() == null) {
+            setupState.set(StakingPoolCreateFlowState())
+        }
+        router.openCreatePoolSetup()
+    }
 }
