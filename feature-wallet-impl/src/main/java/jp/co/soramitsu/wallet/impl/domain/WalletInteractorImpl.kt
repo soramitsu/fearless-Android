@@ -92,7 +92,6 @@ class WalletInteractorImpl(
     }
 
     override fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset> {
-
         return accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!

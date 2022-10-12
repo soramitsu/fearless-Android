@@ -51,7 +51,6 @@ abstract class ChainDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract suspend fun insertChainNode(nodes: ChainNodeLocal)
 
-
     @Query("SELECT * FROM chain_nodes WHERE chainId = :chainId")
     abstract fun nodesFlow(chainId: String): Flow<List<ChainNodeLocal>>
 

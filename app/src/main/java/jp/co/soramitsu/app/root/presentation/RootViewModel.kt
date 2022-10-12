@@ -33,7 +33,6 @@ class RootViewModel @Inject constructor(
     private val externalConnectionRequirementFlow: MutableStateFlow<ExternalRequirement>,
     private val resourceManager: ResourceManager,
 
-
     private val networkStateMixin: NetworkStateMixin
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
     companion object {

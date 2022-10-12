@@ -75,7 +75,6 @@ fun NetworkIssuesBadge(onClick: () -> Unit) {
     }
 }
 
-
 @Composable
 @Preview
 private fun NetworkIssuesBadgePreview() {

@@ -124,14 +124,12 @@ fun NetworkIssueItem(
                     text = actionLabel,
                     colors = customButtonColors(state.type.actionColor),
                     onClick = {
-
                     }
                 )
             }
         }
     }
 }
-
 
 @Composable
 @Preview

@@ -44,7 +44,6 @@ class NetworkIssuesViewModel @Inject constructor(
         )
 
     fun onIssueClicked(issue: NetworkIssueItemState) {
-
         println("!!! CLICKED ISSUE: ${issue.title}")
     }
 

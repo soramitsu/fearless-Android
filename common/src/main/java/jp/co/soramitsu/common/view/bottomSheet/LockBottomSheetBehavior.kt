@@ -19,6 +19,7 @@ class LockBottomSheetBehavior<V : View> @JvmOverloads constructor(
                 throw IllegalArgumentException("The view is not a child of CoordinatorLayout")
             } else {
                 val behavior = params.behavior
+                @Suppress("UNCHECKED_CAST")
                 return behavior as? LockBottomSheetBehavior<V>
                     ?: throw IllegalArgumentException("The view is not associated with BottomSheetBehavior")
             }

@@ -25,8 +25,8 @@ abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(contex
         super.onCreate(savedInstanceState)
     }
 
-    final override fun setContentView(layoutResId: Int) {
-        super.setContentView(layoutResId)
+    final override fun setContentView(layoutResID: Int) {
+        super.setContentView(layoutResID)
     }
 
     override fun setTitle(@StringRes titleRes: Int) {
