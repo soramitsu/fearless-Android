@@ -50,7 +50,7 @@ class BalancesUpdateSystem(
                         logError(chain, it)
                     }
                 }
-            }.merge()
+            }          .         merge()
             mergedFlow
         }.flowOn(Dispatchers.Default)
     }

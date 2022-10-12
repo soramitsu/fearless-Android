@@ -605,6 +605,11 @@
         android:label="selectWalletFragment" />
 
     <dialog
+        android:id="@+id/networkIssuesFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.NetworkIssuesFragment"
+        android:label="networkIssuesFragment" />
+
+    <dialog
         android:id="@+id/optionsWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment"
         android:label="optionsWalletFragment" />

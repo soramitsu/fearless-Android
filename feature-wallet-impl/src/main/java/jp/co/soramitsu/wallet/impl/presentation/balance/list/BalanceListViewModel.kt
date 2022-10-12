@@ -31,6 +31,8 @@ import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.get
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
@@ -39,6 +41,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.orZero
@@ -84,8 +87,9 @@ class BalanceListViewModel @Inject constructor(
     private val router: WalletRouter,
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
-    private val updatesMixin: UpdatesMixin
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin {
+    private val updatesMixin: UpdatesMixin,
+    private val networkStateMixin: NetworkStateMixin
+) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin {
 
     private val accountAddressToChainItemMap = mutableMapOf<String, ChainItemState?>(polkadotChainId to null)
 
@@ -94,6 +98,9 @@ class BalanceListViewModel @Inject constructor(
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
+
+    private val _showManageNoAccount = MutableLiveData<Event<Unit>>()
+    val showManageNoAccount: LiveData<Event<Unit>> = _showManageNoAccount
 
     private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
@@ -176,7 +183,7 @@ class BalanceListViewModel @Inject constructor(
     ) { assets: List<AssetWithStatus>, chains: List<JoinedChainInfo>, selectedChain: ChainItemState? ->
         val assetStates = mutableListOf<AssetListItemViewState>()
         assets
-            .filter { it.hasAccount }
+            .filter { it.hasAccount || it.asset.enabled }
             .filter { selectedChain?.id == null || selectedChain.id == it.asset.token.configuration.chainId }
             .sortedWith(defaultAssetListSort())
             .map { assetWithStatus ->
@@ -209,7 +216,8 @@ class BalanceListViewModel @Inject constructor(
                         chainId = chain?.id.orEmpty(),
                         chainAssetId = chainAsset.id,
                         isSupported = isSupported,
-                        isHidden = !assetWithStatus.asset.enabled
+                        isHidden = !assetWithStatus.asset.enabled,
+                        hasAccount = assetWithStatus.hasAccount
                     )
 
                     assetStates.add(assetListItemViewState)
@@ -224,17 +232,19 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.asset.token.configuration.chainId.defaultChainSort() }
         .thenBy { it.asset.token.configuration.chainName }
 
-    val state = combine(
+    val state = jp.co.soramitsu.common.utils.combine(
         assetStates,
         assetTypeSelectorState.asFlow(),
         balanceLiveData.asFlow(),
         hiddenAssetsState.asFlow(),
-        enteredChainQueryFlow
+        enteredChainQueryFlow,
+        networkStateMixin.networkIssuesLiveData.map { it.isNotEmpty() }.asFlow()
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
         balanceModel: BalanceModel,
         hiddenState: HiddenItemState,
-        selectedChainId: String? ->
+        selectedChainId: String?,
+        hasNetworkIssues: Boolean ->
 
         if (assetsListItemStates.isEmpty() || balanceModel.isShowLoading) {
             return@combine LoadingState.Loading()
@@ -255,7 +265,8 @@ class BalanceListViewModel @Inject constructor(
                 multiToggleButtonState,
                 assetsListItemStates,
                 balanceState,
-                hiddenState
+                hiddenState,
+                hasNetworkIssues
             )
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
@@ -347,6 +358,10 @@ class BalanceListViewModel @Inject constructor(
     }
 
     fun assetClicked(asset: AssetListItemViewState) {
+        if (!asset.hasAccount) {
+            _showManageNoAccount.value = Event(Unit)
+            return
+        }
         if (asset.isSupported.not()) {
             _showUnsupportedChainAlert.value = Event(Unit)
             return
@@ -426,6 +441,10 @@ class BalanceListViewModel @Inject constructor(
             val selectedItem = currencies.first { it.id == selected }
             _showFiatChooser.value = FiatChooserEvent(DynamicListBottomSheet.Payload(currencies, selectedItem))
         }
+    }
+
+    fun onNetworkIssuesClicked() {
+        router.openNetworkIssues()
     }
 
     fun onFiatSelected(item: FiatCurrency) {

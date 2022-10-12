@@ -101,7 +101,8 @@ class SearchAssetsViewModel @Inject constructor(
                         chainId = chain?.id.orEmpty(),
                         chainAssetId = chainAsset.id,
                         isSupported = isSupported,
-                        isHidden = !assetWithStatus.asset.enabled
+                        isHidden = !assetWithStatus.asset.enabled,
+                        hasAccount = assetWithStatus.hasAccount
                     )
 
                     assetStates.add(assetListItemViewState)

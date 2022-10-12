@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TextButton
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
@@ -46,7 +47,7 @@ fun OptionsWalletContent(
             MarginVertical(margin = 8.dp)
             H3(text = stringResource(id = R.string.common_title_wallet_option))
             MarginVertical(margin = 28.dp)
-            TextButton(
+            GrayButton(
                 text = stringResource(id = R.string.common_details_wallet),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -55,7 +56,7 @@ fun OptionsWalletContent(
                 openWalletDetails()
             }
             MarginVertical(margin = 12.dp)
-            TextButton(
+            GrayButton(
                 text = stringResource(id = R.string.common_export_wallet),
                 modifier = Modifier
                     .fillMaxWidth()

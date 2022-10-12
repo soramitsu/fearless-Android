@@ -4,7 +4,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.switchMap
 import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
 import javax.inject.Provider
+import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
+import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.utils.asLiveData
@@ -16,7 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import javax.inject.Inject
+import kotlinx.coroutines.flow.map
 
 class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
@@ -29,6 +32,35 @@ class ConnectionPool @Inject constructor(
     private val connectionWatcher = MutableLiveData<Unit>()
 
     init {
+        connectionWatcher.switchMap {
+            val connListFlow = pool.map {
+                it.value.isConnecting.map { isConnecting ->
+                    it.value.chain to isConnecting
+                }
+            }
+            val connChainsListFlow = combine(connListFlow) { chains ->
+                println("!!! combine ${chains.size} chains ")
+                val issues = chains.filter { (_, isConnecting) -> isConnecting }.map { (chain, _) ->
+                    println("!!! ${chain.name}: map to issue")
+                    NetworkIssueItemState(
+                        iconUrl = chain.icon,
+                        title = chain.name,
+                        type = when {
+                            chain.nodes.size > 1 -> NetworkIssueType.Node
+                            else -> NetworkIssueType.Network
+                        }
+                    )
+                }
+                issues
+            }
+
+            connChainsListFlow.asLiveData(this)
+        }
+            .observeForever {
+                println("!!! issues = ${it.size}")
+                networkStateMixin.updateNetworkIssues(it)
+            }
+
         connectionWatcher.switchMap {
             val isConnectedListFlow = pool.map { it.value.isConnected }
             val hasConnectionsFlow = combine(isConnectedListFlow) { it.any { it } }
@@ -55,6 +87,7 @@ class ConnectionPool @Inject constructor(
         val connection = pool.getOrPut(chain.id) {
             isNew = true
             ChainConnection(
+                chain = chain,
                 socketService = socketServiceProvider.get(),
                 initialNodes = chain.nodes,
                 externalRequirementFlow = externalRequirementFlow,

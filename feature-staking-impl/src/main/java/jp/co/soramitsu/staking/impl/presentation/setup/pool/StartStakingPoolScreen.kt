@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ColoredTextButton
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.H4
@@ -37,7 +38,6 @@ import jp.co.soramitsu.common.compose.component.H6
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -119,7 +119,7 @@ fun StartStakingPoolScreen(
                 onClick = joinPool
             )
             MarginVertical(margin = 8.dp)
-            TextButton(
+            GrayButton(
                 text = stringResource(id = R.string.staking_pool_start_create_button_title),
                 modifier = Modifier
                     .fillMaxWidth()

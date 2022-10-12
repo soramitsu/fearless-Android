@@ -65,6 +65,8 @@ interface WalletRouter : SecureRouter {
 
     fun openSelectWallet()
 
+    fun openNetworkIssues()
+
     fun openSearchAssets(chainId: String?)
 
     fun openOptionsWallet(walletId: Long)

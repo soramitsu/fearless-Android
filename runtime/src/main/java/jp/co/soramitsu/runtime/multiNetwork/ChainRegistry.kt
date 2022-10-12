@@ -61,9 +61,8 @@ class ChainRegistry @Inject constructor(
                 connectionPool.removeConnection(chainId)
             }
 
-            updatesMixin.startChainsSyncUp(addedOrModified.filter { !it.nodes.isNullOrEmpty() }.map { it.id })
-            addedOrModified.filter { !it.nodes.isNullOrEmpty() }.forEach { chain ->
-
+            updatesMixin.startChainsSyncUp(addedOrModified.filter { it.nodes.isNotEmpty() }.map { it.id })
+            addedOrModified.filter { it.nodes.isNotEmpty() }.forEach { chain ->
                 val connection = connectionPool.setupConnection(
                     chain,
                     onSelectedNodeChange = { chainId, newNodeUrl ->

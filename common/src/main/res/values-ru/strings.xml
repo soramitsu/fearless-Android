@@ -808,4 +808,13 @@
     <string name="min_to_create_pool_threshold_error_title">Извините, указанной суммы недостаточно для создания пула</string>
     <string name="min_to_create_pool_threshold_error_message">Минимальная сумма - %s</string>
 
+    <string name="network_issue_stub">Проблемы с сетью</string>
+    <string name="common_close">Закрыть</string>
+    <string name="notification">Уведомление</string>
+    <string name="network_issue_node_unavailable">Нода недоступна</string>
+    <string name="network_issue_network_unavailable">Сеть недоступна</string>
+    <string name="network_issue_add_an_account">Добавить аккаунт</string>
+    <string name="network_issue_action_switch_node">Выбрать Ноду</string>
+    <string name="network_issue_action_add_account">Добавить Аккаунт</string>
+
 </resources>

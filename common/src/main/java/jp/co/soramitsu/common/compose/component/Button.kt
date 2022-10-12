@@ -32,28 +32,29 @@ data class ButtonViewState(
 
 @Composable
 fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(state.text, state.enabled, accentButtonColors, modifier, onClick)
+    TextButton(text = state.text, enabled = state.enabled, colors = accentButtonColors, modifier = modifier, onClick = onClick)
 }
 
 @Composable
 fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text, enabled, accentButtonColors, modifier, onClick)
+    TextButton(text = text, enabled = enabled, colors = accentButtonColors, modifier = modifier, onClick = onClick)
 }
 
 @Composable
-fun TextButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text, enabled, customButtonColors(grayButtonBackground), modifier, onClick)
+fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    TextButton(text = text, enabled = enabled, colors = customButtonColors(grayButtonBackground), modifier = modifier, onClick = onClick)
 }
 
 @Composable
 fun TextButton(
     text: String,
     enabled: Boolean = true,
+    textStyle: TextStyle = MaterialTheme.customTypography.header3,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    FearlessButton(text = text, enabled = enabled, colors = colors, modifier = modifier, onClick = onClick)
+    FearlessButton(text = text, enabled = enabled, textStyle = textStyle, colors = colors, modifier = modifier, onClick = onClick)
 }
 
 @Composable
@@ -63,6 +64,7 @@ fun TextButtonSmall(
     textStyle: TextStyle = MaterialTheme.customTypography.capsTitle2,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onClick: () -> Unit
 ) {
     TextButton(
@@ -71,7 +73,7 @@ fun TextButtonSmall(
         shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
         colors = colors,
         enabled = enabled,
-        contentPadding = PaddingValues(0.dp)
+        contentPadding = contentPadding
     ) {
         Text(
             text = text,
@@ -151,7 +153,7 @@ private fun ButtonPreview() {
                 modifier = Modifier
             ) {}
             MarginVertical(margin = 16.dp)
-            TextButton(
+            GrayButton(
                 "Create pool",
                 modifier = Modifier
                     .width(200.dp)

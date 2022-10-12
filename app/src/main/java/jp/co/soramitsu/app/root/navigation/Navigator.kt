@@ -725,6 +725,10 @@ class Navigator :
         navController?.navigate(R.id.selectWalletFragment)
     }
 
+    override fun openNetworkIssues() {
+        navController?.navigate(R.id.networkIssuesFragment)
+    }
+
     override fun openSearchAssets(chainId: String?) {
         val bundle = SearchAssetsFragment.getBundle(chainId)
         navController?.navigate(R.id.searchAssetsFragment, bundle)
