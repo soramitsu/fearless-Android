@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
@@ -111,9 +112,15 @@ class StakingPoolViewModel(
     }
 
     private suspend fun getReturns(id: ChainId, amount: BigDecimal): ReturnsModel {
-        val calculator = rewardCalculatorFactory.createManual(id)
+        // todo hardcoded returns for demo
+        val kusamaOnTestNodeChainId = "f95f9821674aec3a20383a31a28db18670df0c2874ec5f3aa20fddeccf86efb0"
+        val chainId = if (id == kusamaOnTestNodeChainId) {
+            polkadotChainId
+        } else {
+            id
+        }
+        val calculator = rewardCalculatorFactory.createManual(chainId)
         val asset = stakingInteractor.currentAssetFlow().first()
-        val chainId = asset.token.configuration.chainId
         val monthly = calculator.calculateReturns(amount, PERIOD_MONTH, true, chainId)
         val yearly = calculator.calculateReturns(amount, PERIOD_YEAR, true, chainId)
 
