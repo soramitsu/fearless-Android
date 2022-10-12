@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -47,9 +48,14 @@ class StartStakingPoolViewModel @Inject constructor(
 
     private val yearlyReturnsFlow = flowOf {
         val asset = stakingSharedState.currentAssetFlow().first()
-        val chainId = asset.token.configuration.chainId
+        // todo hardcoded returns for demo
+        val kusamaOnTestNodeChainId = "f95f9821674aec3a20383a31a28db18670df0c2874ec5f3aa20fddeccf86efb0"
+        val chainId = if (asset.token.configuration.chainId == kusamaOnTestNodeChainId) {
+            polkadotChainId
+        } else {
+            asset.token.configuration.chainId
+        }
         val rewardCalculator = rewardCalculatorFactory.createManual(chainId)
-
         val yearly = rewardCalculator.calculateReturns(BigDecimal.ONE, PERIOD_YEAR, true, chainId)
 
         mapPeriodReturnsToRewardEstimation(yearly, asset.token, resourceManager)
