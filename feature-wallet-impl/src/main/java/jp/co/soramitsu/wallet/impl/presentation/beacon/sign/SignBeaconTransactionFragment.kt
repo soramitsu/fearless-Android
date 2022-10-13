@@ -1,36 +1,25 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign
+package jp.co.soramitsu.wallet.impl.presentation.beacon.sign
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.view.dialog.warningDialog
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.DAppMetadataModel
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionAmount
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionConfirm
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionContainer
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionDappName
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionFee
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionNetwork
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionOrigin
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionRawData
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionReceiver
-import kotlinx.android.synthetic.main.fragment_sign_beacon_transaction.signBeaconTransactionToolbar
+import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentSignBeaconTransactionBinding
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 
-private const val SIGN_PAYLOAD_KEY = "SIGN_PAYLOAD_KEY"
+const val SIGN_PAYLOAD_KEY = "SIGN_PAYLOAD_KEY"
 
-class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewModel>() {
+@AndroidEntryPoint
+class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewModel>(R.layout.fragment_sign_beacon_transaction) {
 
     companion object {
-
         const val SIGN_RESULT_KEY = "SIGN_STATUS_KEY"
         const val METADATA_KEY = "METADATA_KEY"
 
@@ -46,24 +35,21 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_sign_beacon_transaction, container, false)
+    override val viewModel: SignBeaconTransactionViewModel by viewModels()
+    private val binding by viewBinding(FragmentSignBeaconTransactionBinding::bind)
 
     override fun initViews() {
-        signBeaconTransactionContainer.applyInsetter {
+        binding.signBeaconTransactionContainer.applyInsetter {
             type(statusBars = true) {
                 margin()
             }
         }
 
-        signBeaconTransactionToolbar.setHomeButtonListener { openExitDialog() }
+        binding.signBeaconTransactionToolbar.setHomeButtonListener { openExitDialog() }
         onBackPressed { openExitDialog() }
 
-        signBeaconTransactionConfirm.setOnClickListener { viewModel.confirmClicked() }
-        signBeaconTransactionRawData.setOnClickListener { viewModel.rawDataClicked() }
+        binding.signBeaconTransactionConfirm.setOnClickListener { viewModel.confirmClicked() }
+        binding.signBeaconTransactionRawData.setOnClickListener { viewModel.rawDataClicked() }
     }
 
     private fun openExitDialog() {
@@ -76,49 +62,39 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
         }
     }
 
-    override fun inject() {
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .signBeaconTransactionFactory()
-            .create(this, argument(SIGN_PAYLOAD_KEY), argument(METADATA_KEY))
-            .inject(this)
-    }
-
     override fun subscribe(viewModel: SignBeaconTransactionViewModel) {
         viewModel.operationModel.observe {
             when (it) {
                 is SignableOperationModel.Success -> {
-                    signBeaconTransactionAmount.showValueOrHide(it.amount?.token, it.amount?.fiat)
-                    signBeaconTransactionDappName.showValueOrHide(viewModel.dAppMetadataModel.name)
-                    signBeaconTransactionNetwork.showValueOrHide(it.chainName)
+                    binding.signBeaconTransactionAmount.showValueOrHide(it.amount?.token, it.amount?.fiat)
+                    binding.signBeaconTransactionDappName.showValueOrHide(viewModel.dAppMetadataModel.name)
+                    binding.signBeaconTransactionNetwork.showValueOrHide(it.chainName)
                 }
                 is SignableOperationModel.Failure -> {
-                    signBeaconTransactionAmount.makeGone()
-                    signBeaconTransactionRawData.makeGone()
-                    signBeaconTransactionFee.makeGone()
+                    binding.signBeaconTransactionAmount.makeGone()
+                    binding.signBeaconTransactionRawData.makeGone()
+                    binding.signBeaconTransactionFee.makeGone()
                 }
             }
         }
 
-        viewModel.feeLiveData.observe(signBeaconTransactionFee::setFeeStatus)
+        viewModel.feeLiveData.observe(binding.signBeaconTransactionFee::setFeeStatus)
 
         viewModel.currentAccountAddressModel.observe {
-            signBeaconTransactionOrigin.setTitle(it.name ?: "")
-            signBeaconTransactionOrigin.setAccountIcon(it.image)
+            binding.signBeaconTransactionOrigin.setTitle(it.name ?: "")
+            binding.signBeaconTransactionOrigin.setAccountIcon(it.image)
         }
 
         viewModel.totalBalanceLiveData.observe {
-            signBeaconTransactionOrigin.setText(it)
+            binding.signBeaconTransactionOrigin.setText(it)
         }
 
         viewModel.receiver.observe {
-            signBeaconTransactionReceiver.isVisible = it != null
+            binding.signBeaconTransactionReceiver.isVisible = it != null
             it ?: return@observe
-            signBeaconTransactionReceiver.setAccountIcon(it.image)
-            signBeaconTransactionReceiver.setTitle("To")
-            signBeaconTransactionReceiver.setText(it.address)
+            binding.signBeaconTransactionReceiver.setAccountIcon(it.image)
+            binding.signBeaconTransactionReceiver.setTitle("To")
+            binding.signBeaconTransactionReceiver.setText(it.address)
         }
     }
 }

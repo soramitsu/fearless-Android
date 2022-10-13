@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.Navigation.findNavController
 import jp.co.soramitsu.feature_account_impl.R
 
 class SuccessfulFragment : Fragment() {
@@ -19,11 +19,11 @@ class SuccessfulFragment : Fragment() {
     }
 
     private val successAccountIcon: ImageView
-        get() = findViewById(R.id.successAccountIcon)
+        get() = requireView().findViewById(R.id.successAccountIcon)
     private val successBackButton: ImageView
-        get() = findViewById(R.id.successBackButton)
+        get() = requireView().findViewById(R.id.successBackButton)
     private val successRootView: View
-        get() = findViewById(R.id.successRootView)
+        get() = requireView().findViewById(R.id.successRootView)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,7 +35,7 @@ class SuccessfulFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val navController = findNavController()
+        val navController = findNavController(requireView())
 
         avatar?.let { successAccountIcon.setImageDrawable(it) }
         successAccountIcon.isVisible = avatar != null

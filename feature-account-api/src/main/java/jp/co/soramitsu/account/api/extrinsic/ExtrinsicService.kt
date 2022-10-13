@@ -44,7 +44,7 @@ class ExtrinsicService(
         runtime: RuntimeSnapshot,
         encryption: EncryptionType,
         keypair: Keypair,
-        message: String,
+        message: String
     ): String {
         val signatureWrapper = Signer.sign(MultiChainEncryption.Substrate(encryption), message.fromHex(), keypair)
         val multiSignature = MultiSignature(encryption, signatureWrapper.signature).prepareForEncoding()

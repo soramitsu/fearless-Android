@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.domain.beacon
+package jp.co.soramitsu.wallet.impl.domain.beacon
 
 import android.net.Uri
 import com.google.gson.Gson
@@ -16,6 +16,9 @@ import it.airgap.beaconsdk.core.message.BeaconRequest
 import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import java.math.BigInteger
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
@@ -31,9 +34,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEn
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
-import jp.co.soramitsu.feature_account_api.data.extrinsic.ExtrinsicService
-import jp.co.soramitsu.feature_account_api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.feature_account_api.domain.model.address
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
@@ -56,7 +56,7 @@ class BeaconInteractor(
     private val chainRegistry: ChainRegistry,
     private val preferences: Preferences,
     private val extrinsicService: ExtrinsicService,
-    private val beaconSharedState: BeaconSharedState,
+    private val beaconSharedState: BeaconSharedState
 ) {
 
     companion object {
@@ -173,7 +173,7 @@ class BeaconInteractor(
             runtime,
             encryption,
             keypair,
-            payload,
+            payload
         )
         val response = SignPayloadSubstrateResponse.from(request, transactionHash = null, signature = signature, payload = payload)
         beaconClient().respond(response)

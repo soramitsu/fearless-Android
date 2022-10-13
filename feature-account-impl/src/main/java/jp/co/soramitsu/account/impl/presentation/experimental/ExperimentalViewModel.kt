@@ -5,17 +5,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.impl.domain.BeaconConnectedUseCase
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.ViewState
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.feature_account_impl.domain.BeaconConnectedUseCase
 
 @HiltViewModel
-class ExperimentalViewModel
-    @Inject constructor(
+class ExperimentalViewModel @Inject constructor(
     private val router: AccountRouter,
     private val isBeaconConnected: BeaconConnectedUseCase
 ) : BaseViewModel() {

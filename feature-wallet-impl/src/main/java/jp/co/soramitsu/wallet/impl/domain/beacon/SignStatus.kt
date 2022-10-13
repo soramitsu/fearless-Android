@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.domain.beacon
+package jp.co.soramitsu.wallet.impl.domain.beacon
 
 enum class SignStatus {
     APPROVED, DECLINED

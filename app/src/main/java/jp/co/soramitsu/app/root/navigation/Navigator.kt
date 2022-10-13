@@ -32,6 +32,7 @@ import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
@@ -48,6 +49,8 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -87,6 +90,9 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft

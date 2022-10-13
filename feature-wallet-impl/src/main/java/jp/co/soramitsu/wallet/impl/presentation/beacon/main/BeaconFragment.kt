@@ -1,33 +1,25 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
+package jp.co.soramitsu.wallet.impl.presentation.beacon.main
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import coil.load
 import com.google.zxing.integration.android.IntentIntegrator
+import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.di.FeatureUtils
 import jp.co.soramitsu.common.qrScanner.QrScannerActivity
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.dialog.warningDialog
-import jp.co.soramitsu.feature_wallet_api.di.WalletFeatureApi
+import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.di.WalletFeatureComponent
-import kotlinx.android.synthetic.main.fragment_beacon.beaconAppIcon
-import kotlinx.android.synthetic.main.fragment_beacon.beaconAppName
-import kotlinx.android.synthetic.main.fragment_beacon.beaconAppUrl
-import kotlinx.android.synthetic.main.fragment_beacon.beaconConnect
-import kotlinx.android.synthetic.main.fragment_beacon.beaconContainer
-import kotlinx.android.synthetic.main.fragment_beacon.beaconSelectedAccount
-import kotlinx.android.synthetic.main.fragment_beacon.beaconToolbar
-import kotlinx.android.synthetic.main.fragment_beacon.beaconWarningGroup
+import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentBeaconBinding
 
-private const val QR_CONTENT_KEY = "QR_CONTENT_KEY"
+const val QR_CONTENT_KEY = "QR_CONTENT_KEY"
 
-class BeaconFragment : BaseFragment<BeaconViewModel>() {
+@AndroidEntryPoint
+class BeaconFragment : BaseFragment<BeaconViewModel>(R.layout.fragment_beacon) {
 
     companion object {
 
@@ -36,23 +28,20 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ) = layoutInflater.inflate(R.layout.fragment_beacon, container, false)
+    override val viewModel: BeaconViewModel by viewModels()
+    private val binding by viewBinding(FragmentBeaconBinding::bind)
 
     override fun initViews() {
-        beaconContainer.applyInsetter {
+        binding.beaconContainer.applyInsetter {
             type(statusBars = true) {
                 margin()
             }
         }
 
-        beaconToolbar.setHomeButtonListener { viewModel.back() }
+        binding.beaconToolbar.setHomeButtonListener { viewModel.back() }
         onBackPressed { viewModel.back() }
-        beaconConnect.prepareForProgress(viewLifecycleOwner)
-        beaconConnect.setOnClickListener { viewModel.connectClicked() }
+        binding.beaconConnect.prepareForProgress(viewLifecycleOwner)
+        binding.beaconConnect.setOnClickListener { viewModel.connectClicked() }
     }
 
     private fun openExitDialog() {
@@ -65,76 +54,65 @@ class BeaconFragment : BaseFragment<BeaconViewModel>() {
         }
     }
 
-    override fun inject() {
-        val qrContent = arguments?.getString(QR_CONTENT_KEY)
-        FeatureUtils.getFeature<WalletFeatureComponent>(
-            requireContext(),
-            WalletFeatureApi::class.java
-        )
-            .beaconComponentFactory()
-            .create(this, qrContent)
-            .inject(this)
-    }
-
     override fun subscribe(viewModel: BeaconViewModel) {
         viewModel.state.observe {
             when (it) {
                 is BeaconStateMachine.State.Connected -> {
                     val metadata = it.dAppMetadata
 
-                    beaconAppName.text = metadata.name
-                    metadata.icon?.let(beaconAppIcon::load)
+                    binding.beaconAppName.text = metadata.name
+                    metadata.icon?.let(binding.beaconAppIcon::load)
 
-                    beaconAppUrl.showValueOrHide(metadata.url)
+                    binding.beaconAppUrl.showValueOrHide(metadata.url)
 
-                    beaconConnect.setState(ButtonState.NORMAL)
-                    beaconConnect.setText(R.string.common_disconnect)
-                    beaconWarningGroup.isVisible = false
+                    binding.beaconConnect.setState(ButtonState.NORMAL)
+                    binding.beaconConnect.setText(R.string.common_disconnect)
+                    binding.beaconWarningGroup.isVisible = false
                 }
                 is BeaconStateMachine.State.Initializing -> {
-                    beaconConnect.setState(ButtonState.PROGRESS)
-                    beaconConnect.setText(R.string.common_connect)
-                    beaconAppUrl.showValueOrHide("")
+                    binding.beaconConnect.setState(ButtonState.PROGRESS)
+                    binding.beaconConnect.setText(R.string.common_connect)
+                    binding.beaconAppUrl.showValueOrHide("")
                 }
                 is BeaconStateMachine.State.AwaitingPermissionsApproval -> {
-                    beaconConnect.setState(ButtonState.NORMAL)
-                    beaconConnect.setText(R.string.common_connect)
+                    binding.beaconConnect.setState(ButtonState.NORMAL)
+                    binding.beaconConnect.setText(R.string.common_connect)
                     val metadata = it.dAppMetadata
 
-                    beaconAppName.text = metadata.name
-                    metadata.icon?.let(beaconAppIcon::load)
+                    binding.beaconAppName.text = metadata.name
+                    metadata.icon?.let(binding.beaconAppIcon::load)
 
-                    beaconAppUrl.showValueOrHide(metadata.url)
-                    beaconWarningGroup.isVisible = true
+                    binding.beaconAppUrl.showValueOrHide(metadata.url)
+                    binding.beaconWarningGroup.isVisible = true
                 }
                 is BeaconStateMachine.State.Reconnecting -> {
-                    beaconConnect.setState(ButtonState.PROGRESS)
-                    beaconConnect.setText(R.string.common_connect)
-                    beaconAppUrl.showValueOrHide("")
+                    binding.beaconConnect.setState(ButtonState.PROGRESS)
+                    binding.beaconConnect.setText(R.string.common_connect)
+                    binding.beaconAppUrl.showValueOrHide("")
                 }
                 is BeaconStateMachine.State.AwaitingInitialize -> {
-                    beaconConnect.setState(ButtonState.PROGRESS)
-                    beaconConnect.setText(R.string.common_connect)
+                    binding.beaconConnect.setState(ButtonState.PROGRESS)
+                    binding.beaconConnect.setText(R.string.common_connect)
                     val metadata = it.dAppMetadata
 
-                    beaconAppName.text = metadata.name
-                    metadata.icon?.let(beaconAppIcon::load)
+                    binding.beaconAppName.text = metadata.name
+                    metadata.icon?.let(binding.beaconAppIcon::load)
 
-                    beaconAppUrl.showValueOrHide(metadata.url)
+                    binding.beaconAppUrl.showValueOrHide(metadata.url)
                 }
                 else -> {
-                    beaconAppUrl.showValueOrHide("")
+                    binding.beaconAppUrl.showValueOrHide("")
                 }
             }
         }
 
         viewModel.currentAccountAddressModel.observe {
-            beaconSelectedAccount.setTitle(it.name ?: "")
-            beaconSelectedAccount.setAccountIcon(it.image)
+            binding.beaconSelectedAccount.setTitle(it.name ?: "")
+            binding.beaconSelectedAccount.setAccountIcon(it.image)
         }
 
         viewModel.totalBalanceLiveData.observe {
-            beaconSelectedAccount.setText(it)
+            binding.beaconSelectedAccount.setText(it)
         }
 
         viewModel.scanBeaconQrEvent.observeEvent {

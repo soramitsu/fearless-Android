@@ -1,32 +1,33 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
+package jp.co.soramitsu.wallet.impl.presentation.beacon.main
 
 import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateNetwork
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
-import jp.co.soramitsu.feature_account_api.domain.model.MetaAccount
-import jp.co.soramitsu.feature_account_api.domain.model.TotalBalance
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.format
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
-import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
-import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.SideEffect
-import kotlinx.android.parcel.Parcelize
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.SideEffect
+import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class DAppMetadataModel(
@@ -44,16 +46,18 @@ class DAppMetadataModel(
     val name: String
 ) : Parcelable
 
-class BeaconViewModel(
+@HiltViewModel
+class BeaconViewModel @Inject constructor(
     private val beaconInteractor: BeaconInteractor,
     private val router: WalletRouter,
     walletInteractor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     totalBalance: GetTotalBalanceUseCase,
-    qrContent: String?
+    savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
 
+    private val qrContent = savedStateHandle.get<String>(QR_CONTENT_KEY)
     private val stateMachine = BeaconStateMachine()
 
     val state = stateMachine.currentState
@@ -66,7 +70,7 @@ class BeaconViewModel(
     }.inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance().map(TotalBalance::format).asLiveData()
+    val totalBalanceLiveData = totalBalance().map { it.balance.format() }.asLiveData()
 
     private val _scanBeaconQrEvent = MutableLiveData<Event<Unit>>()
     val scanBeaconQrEvent: LiveData<Event<Unit>> = _scanBeaconQrEvent
@@ -98,7 +102,6 @@ class BeaconViewModel(
                 }
 
                 is SideEffect.AskSignApproval -> {
-
                     router.openSignBeaconTransaction(it.request.payload, it.dAppMetadata)
                 }
 
@@ -202,6 +205,10 @@ class BeaconViewModel(
                     is SignPayloadSubstrateRequest -> {
                         stateMachine.transition(BeaconStateMachine.Event.ReceivedSigningRequest(it))
                     }
+//                    is PermissionBeaconRequest -> TODO()
+//                    is BlockchainBeaconRequest -> TODO()
+//                    null -> TODO()
+                    else -> {}
                 }
             }.launchIn(viewModelScope)
     }

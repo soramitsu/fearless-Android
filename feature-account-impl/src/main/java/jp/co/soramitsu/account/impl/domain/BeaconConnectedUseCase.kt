@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_account_impl.domain
+package jp.co.soramitsu.account.impl.domain
 
 import jp.co.soramitsu.common.data.storage.Preferences
 

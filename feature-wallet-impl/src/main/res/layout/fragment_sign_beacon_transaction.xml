@@ -133,7 +133,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/signBeaconTransactionConfirm"
         app:layout_constraintTop_toTopOf="@+id/signBeaconTransactionFee" />
 
-    <jp.co.soramitsu.feature_wallet_api.presentation.view.FeeView
+    <jp.co.soramitsu.wallet.api.presentation.view.FeeView
         android:id="@+id/signBeaconTransactionFee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

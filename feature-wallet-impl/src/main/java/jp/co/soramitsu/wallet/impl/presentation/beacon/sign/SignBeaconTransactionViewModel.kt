@@ -1,32 +1,34 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign
+package jp.co.soramitsu.wallet.impl.presentation.beacon.sign
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.feature_account_api.domain.interfaces.GetTotalBalanceUseCase
-import jp.co.soramitsu.feature_account_api.domain.model.TotalBalance
-import jp.co.soramitsu.feature_account_impl.presentation.account.model.format
-import jp.co.soramitsu.feature_wallet_api.data.mappers.mapFeeToFeeModel
-import jp.co.soramitsu.feature_wallet_api.domain.interfaces.WalletInteractor
-import jp.co.soramitsu.feature_wallet_api.domain.model.Asset
-import jp.co.soramitsu.feature_wallet_api.domain.model.amountFromPlanks
-import jp.co.soramitsu.feature_wallet_api.presentation.mixin.fee.FeeStatus
-import jp.co.soramitsu.feature_wallet_api.presentation.model.AmountModel
-import jp.co.soramitsu.feature_wallet_api.presentation.model.mapAmountToAmountModel
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.domain.beacon.BeaconInteractor
-import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignStatus
-import jp.co.soramitsu.feature_wallet_impl.domain.beacon.SignableOperation
-import jp.co.soramitsu.feature_wallet_impl.domain.beacon.WithAmount
-import jp.co.soramitsu.feature_wallet_impl.presentation.WalletRouter
-import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignableOperation
+import jp.co.soramitsu.wallet.impl.domain.beacon.WithAmount
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
+import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.wallet.api.presentation.model.AmountModel
+import jp.co.soramitsu.wallet.api.presentation.model.mapAmountToAmountModel
+import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -50,16 +52,19 @@ sealed class SignableOperationModel {
     object Failure : SignableOperationModel()
 }
 
-class SignBeaconTransactionViewModel(
+@HiltViewModel
+class SignBeaconTransactionViewModel @Inject constructor(
     private val beaconInteractor: BeaconInteractor,
     private val router: WalletRouter,
     private val interactor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
-    private val payloadToSign: String,
     private val resourceManager: ResourceManager,
-    val dAppMetadataModel: DAppMetadataModel,
     totalBalance: GetTotalBalanceUseCase,
+    savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
+
+    private val payloadToSign = savedStateHandle.get<String>(SIGN_PAYLOAD_KEY)!!
+    val dAppMetadataModel = savedStateHandle.get<DAppMetadataModel>(SignBeaconTransactionFragment.METADATA_KEY)!!
 
     private val currentAccount = interactor.selectedAccountFlow(polkadotChainId)
         .inBackground()
@@ -70,7 +75,7 @@ class SignBeaconTransactionViewModel(
         .inBackground()
         .share()
 
-    val totalBalanceLiveData = totalBalance().map(TotalBalance::format).asLiveData()
+    val totalBalanceLiveData = totalBalance().map { it.balance.format() }.asLiveData()
 
     private val decodedOperation = flow {
         val result = if (payloadToSign.isEmpty()) {
@@ -97,7 +102,7 @@ class SignBeaconTransactionViewModel(
         beaconInteractor.getBeaconRegisteredChain()
     }.flatMapLatest {
         it ?: flowOf { null }
-        val assetId = it!!.assets.first().symbol.lowercase()
+        val assetId = it!!.assets.first().id
         interactor.assetFlow(it.id, assetId)
     }
 

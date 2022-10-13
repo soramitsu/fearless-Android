@@ -1,11 +1,11 @@
-package jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main
+package jp.co.soramitsu.wallet.impl.presentation.beacon.main
 
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import jp.co.soramitsu.common.utils.StateMachine
-import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.Event
-import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.SideEffect
-import jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconStateMachine.State
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.Event
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.SideEffect
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.State
 
 class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initializing) {
 

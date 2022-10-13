@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.domain.beacon
+package jp.co.soramitsu.wallet.impl.domain.beacon
 
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -9,7 +9,7 @@ private const val BEACON_SHARED_STATE = "BEACON_SHARED_STATE"
 
 class BeaconSharedState(
     chainRegistry: ChainRegistry,
-    preferences: Preferences,
+    preferences: Preferences
 ) : SingleAssetSharedState(
     preferences = preferences,
     chainRegistry = chainRegistry,

@@ -22,6 +22,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
@@ -342,6 +343,17 @@ class WalletInteractorImpl(
                 assetSymbol = assetSymbol,
                 isHidden = false
             )
+        }
+    }
+
+    override fun selectedMetaAccountFlow(): Flow<MetaAccount> {
+        return accountRepository.selectedMetaAccountFlow()
+    }
+
+    override fun polkadotAddressForSelectedAccountFlow(): Flow<String> {
+        return selectedMetaAccountFlow().map {
+            val chain = chainRegistry.getChain(polkadotChainId)
+            it.address(chain) ?: ""
         }
     }
 }

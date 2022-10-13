@@ -1136,7 +1136,7 @@
 
     <fragment
         android:id="@+id/beaconFragment"
-        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.main.BeaconFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment"
         android:label="BeaconFragment"
         tools:layout="@layout/fragment_beacon">
 
@@ -1151,7 +1151,7 @@
 
     <fragment
         android:id="@+id/signBeaconTransactionFragment"
-        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.SignBeaconTransactionFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment"
         android:label="SignBeaconTransactionFragment"
         tools:layout="@layout/fragment_beacon" />
 
@@ -1169,7 +1169,7 @@
 
     <fragment
         android:id="@+id/transactionRawDataFragment"
-        android:name="jp.co.soramitsu.feature_wallet_impl.presentation.beacon.sign.TransactionRawDataFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment"
         android:label="TransactionRawDataFragment"/>
 
 </navigation>

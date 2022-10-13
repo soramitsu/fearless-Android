@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.di
 
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,6 +19,7 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
@@ -25,6 +27,8 @@ import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingAddressDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
+import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
+import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconSharedState
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
@@ -32,6 +36,8 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecksProvider
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
@@ -46,7 +52,9 @@ import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
+import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -226,7 +234,7 @@ class WalletFeatureModule {
         CurrentAccountAddressUseCase(accountRepository, chainRegistry)
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideBeaconApi(
         gson: Gson,
         accountRepository: AccountRepository,
@@ -236,38 +244,35 @@ class WalletFeatureModule {
         beaconSharedState: BeaconSharedState
     ) = BeaconInteractor(gson, accountRepository, chainRegistry, preferences, extrinsicService, beaconSharedState)
 
-    @Provides
-    @FeatureScope
-    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
+//    @Provides
+//    @Singleton
+//    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
+//
+//    @Provides
+//    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
 
     @Provides
-    @FeatureScope
-    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
-
-    @Provides
-    @FeatureScope
     fun provideFeeLoaderMixin(
         resourceManager: ResourceManager,
-        tokenUseCase: TokenUseCase,
+        tokenUseCase: TokenUseCase
     ): FeeLoaderMixin.Presentation = FeeLoaderProvider(
         resourceManager,
         tokenUseCase
     )
 
     @Provides
-    @FeatureScope
     fun provideTokenUseCase(
         tokenRepository: TokenRepository,
-        sharedState: BeaconSharedState,
+        sharedState: BeaconSharedState
     ): TokenUseCase = TokenUseCaseImpl(
         tokenRepository,
         sharedState
     )
 
     @Provides
-    @FeatureScope
+    @Singleton
     fun provideBeaconSharedState(
         chainRegistry: ChainRegistry,
-        preferences: Preferences,
+        preferences: Preferences
     ): BeaconSharedState = BeaconSharedState(chainRegistry, preferences)
 }

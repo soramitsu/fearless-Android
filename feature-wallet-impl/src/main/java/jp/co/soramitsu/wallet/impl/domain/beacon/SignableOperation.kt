@@ -1,4 +1,4 @@
-package jp.co.soramitsu.feature_wallet_impl.domain.beacon
+package jp.co.soramitsu.wallet.impl.domain.beacon
 
 import java.math.BigInteger
 
@@ -20,7 +20,7 @@ sealed class SignableOperation(
         args: Map<String, Any?>,
         rawData: String,
         val destination: String,
-        override val amount: BigInteger,
+        override val amount: BigInteger
     ) : SignableOperation(module, call, args, rawData), WithAmount
 
     class Other(
