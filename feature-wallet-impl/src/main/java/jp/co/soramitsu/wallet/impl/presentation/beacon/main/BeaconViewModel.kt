@@ -208,7 +208,9 @@ class BeaconViewModel @Inject constructor(
 //                    is PermissionBeaconRequest -> TODO()
 //                    is BlockchainBeaconRequest -> TODO()
 //                    null -> TODO()
-                    else -> {}
+                    else -> {
+                        Log.d("&&&", "Received something from beacon ${it.toString()}")
+                    }
                 }
             }.launchIn(viewModelScope)
     }

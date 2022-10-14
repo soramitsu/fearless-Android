@@ -3,6 +3,8 @@ package jp.co.soramitsu.wallet.impl.domain.beacon
 import android.net.Uri
 import com.google.gson.Gson
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAppMetadata
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstratePermission
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
@@ -11,9 +13,11 @@ import it.airgap.beaconsdk.blockchain.substrate.message.response.SignPayloadSubs
 import it.airgap.beaconsdk.blockchain.substrate.substrate
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
 import it.airgap.beaconsdk.core.data.BeaconError
+import it.airgap.beaconsdk.core.data.Origin
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
+import it.airgap.beaconsdk.core.message.PermissionBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -27,15 +31,23 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
+import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.isTransfer
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.AdditionalExtras
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.SignedExtras
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -157,8 +169,83 @@ class BeaconInteractor(
     suspend fun signPayload(
         request: SignPayloadSubstrateRequest
     ) {
-        val chain = getBeaconRegisteredChain() ?: return
-        val payload = (request.payload as? SubstrateSignerPayload.Raw)?.data ?: return
+        val payload = request.payload
+        val signature = when (payload) {
+            is SubstrateSignerPayload.Json -> signJsonPayload(payload)
+            is SubstrateSignerPayload.Raw -> signRawPayload(payload)
+        }
+
+        val response =
+            SignPayloadSubstrateResponse.from(
+                request,
+                transactionHash = null,
+                signature = signature,
+                payload = (payload as? SubstrateSignerPayload.Raw)?.data
+            )
+        beaconClient().respond(response)
+    }
+
+    private suspend fun signJsonPayload(payload: SubstrateSignerPayload.Json): String {
+        val blockHash = payload.blockHash.fromHex().decodeToString()
+        val blockNumber = payload.blockNumber
+        val era = payload.era.fromHex().decodeToInt()
+        val genesisHash = payload.genesisHash
+        val method = payload.method
+        val nonce = payload.nonce.fromHex().decodeToInt()
+        val specVersion = payload.specVersion.fromHex().decodeToInt()
+        val tip = payload.tip.fromHex().decodeToInt()
+        val transactionVersion = payload.transactionVersion.fromHex().decodeToInt()
+        val signedExtensions = payload.signedExtensions
+        val version = payload.version
+        val runtime = chainRegistry.getRuntime(genesisHash)
+        val chain = chainRegistry.getChain(genesisHash)
+        val call = GenericCall.fromHex(runtime, method)
+
+        val signedExtrasInstance = mapOf(
+            SignedExtras.ERA to era,
+            SignedExtras.NONCE to nonce,
+            SignedExtras.TIP to tip,
+            SignedExtras.ASSET_TX_PAYMENT to listOf(BigInteger.ZERO, null)
+        )
+
+        val additionalExtrasInstance = mapOf(
+            AdditionalExtras.BLOCK_HASH to blockHash,
+            AdditionalExtras.GENESIS to genesisHash,
+            AdditionalExtras.SPEC_VERSION to specVersion,
+            AdditionalExtras.TX_VERSION to transactionVersion
+        )
+
+        val payloadBytes = useScaleWriter {
+            GenericCall.encode(this, runtime, call)
+            SignedExtras.encode(this, runtime, signedExtrasInstance)
+            AdditionalExtras.encode(this, runtime, additionalExtrasInstance)
+        }
+
+        val messageToSign = if (payloadBytes.size > 256) {
+            payloadBytes.blake2b256()
+        } else {
+            payloadBytes
+        }
+
+        val currentMetaAccount = accountRepository.getSelectedMetaAccount()
+        val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
+        val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
+        val publicKey = keypairSchema[KeyPairSchema.PublicKey]
+        val privateKey = keypairSchema[KeyPairSchema.PrivateKey]
+        val nonce1 = keypairSchema[KeyPairSchema.Nonce]
+        val keypair = Keypair(publicKey, privateKey, nonce1)
+        val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
+
+        return extrinsicService.createSignature(
+            runtime,
+            encryption,
+            keypair,
+            messageToSign.toHexString()
+        )
+    }
+
+    private suspend fun signRawPayload(payload: SubstrateSignerPayload.Raw): String {
+        val chain = getBeaconRegisteredChain() ?: return ""
         val currentMetaAccount = accountRepository.getSelectedMetaAccount()
         val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
         val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
@@ -169,29 +256,38 @@ class BeaconInteractor(
         val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
         val runtime = chainRegistry.getRuntime(chain.id)
 
-        val signature = extrinsicService.createSignature(
+        return extrinsicService.createSignature(
             runtime,
             encryption,
             keypair,
-            payload
+            payload.data
         )
-        val response = SignPayloadSubstrateResponse.from(request, transactionHash = null, signature = signature, payload = payload)
-        beaconClient().respond(response)
     }
 
     suspend fun allowPermissions(
         forRequest: PermissionSubstrateRequest
     ) {
         val account = accountRepository.getSelectedMetaAccount()
+        val polkadotChain = chainRegistry.getChain(polkadotChainId)
+        val polkadotAddress = account.address(polkadotChain)
         val accounts = forRequest.networks.map {
-            val chain = chainRegistry.getChain(it.genesisHash)
-            val pubKey = (if (chain.isEthereumBased) account.ethereumPublicKey else account.substratePublicKey) ?: return@map null
-            val address = account.address(chain) ?: return@map null
-            return@map SubstrateAccount(network = it, publicKey = pubKey.toHexString(), address = address)
+            val chainId = it.genesisHash.requireHexPrefix().removePrefix("0x")
+            val chain = getChainSafe(chainId)
+            val pubKey = (if (chain?.isEthereumBased == true) account.ethereumPublicKey else account.substratePublicKey)
+            val address = chain?.let { chainValue -> account.address(chainValue) }
+            return@map SubstrateAccount(network = it, publicKey = pubKey?.toHexString().orEmpty(), address = address.orEmpty())
         }.filterNotNull()
 
         val response = PermissionSubstrateResponse.from(forRequest, accounts)
         beaconClient().respond(response)
+    }
+
+    private suspend fun getChainSafe(chainId: String): Chain? {
+        return try {
+            chainRegistry.getChain(chainId)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     suspend fun disconnect() {
@@ -248,3 +344,37 @@ class BeaconInteractor(
 }
 
 class BeaconConnectionHasNoPeerException : Exception("There are no peers matching the app name")
+
+data class PermissionFearlessResponse internal constructor(
+    override val id: String,
+    override val version: String,
+    override val requestOrigin: Origin,
+    override val blockchainIdentifier: String,
+    val appMetadata: SubstrateAppMetadata,
+    val scopes: List<SubstratePermission.Scope>,
+    val accounts: List<SubstrateAccount>,
+    val substrateAddress: String,
+    val ethereumAddress: String
+) : PermissionBeaconResponse() {
+    companion object {
+
+        fun from(
+            request: PermissionSubstrateRequest,
+            accounts: List<SubstrateAccount>,
+            scopes: List<SubstratePermission.Scope> = request.scopes,
+            substrateAddress: String,
+            ethereumAddress: String
+        ): PermissionFearlessResponse =
+            PermissionFearlessResponse(
+                request.id,
+                request.version,
+                request.origin,
+                request.blockchainIdentifier,
+                request.appMetadata,
+                scopes,
+                accounts,
+                substrateAddress,
+                ethereumAddress
+            )
+    }
+}

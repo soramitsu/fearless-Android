@@ -22,7 +22,6 @@ const val QR_CONTENT_KEY = "QR_CONTENT_KEY"
 class BeaconFragment : BaseFragment<BeaconViewModel>(R.layout.fragment_beacon) {
 
     companion object {
-
         fun getBundle(qrContent: String) = Bundle().apply {
             putString(QR_CONTENT_KEY, qrContent)
         }
