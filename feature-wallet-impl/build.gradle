@@ -124,6 +124,7 @@ dependencies {
     implementation composeActivityDep
     implementation composeViewModelDep
     implementation composeToolingPreviewDep
+    implementation composeAccompanist
     debugImplementation composeToolingDep
     debugImplementation customviewDep
     debugImplementation customviewPoolingcontainerDep

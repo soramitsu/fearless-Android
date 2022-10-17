@@ -20,7 +20,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="tabbar_governance_title">Governance</string>
     <string name="tabbar_extrinsics_title">Extrinsics</string>
     <string name="transfers_empty">Incoming and outgoing
-operations will appear here</string>
+operations\nwill appear here</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
     <string name="about_version">App version</string>
@@ -848,6 +848,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_teleport">Teleport</string>
     <string name="common_action_hide">Hide</string>
     <string name="common_action_show">Show</string>
+    <string name="common_action_buy">Buy</string>
 
     <string name="common_title_wallet">Wallet</string>
     <string name="common_title_wallet_option">Wallet option</string>
@@ -858,6 +859,13 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_delete_wallet">Delete Wallet</string>
     <string name="common_search_assets_alert_title">Sumimasen!</string>
     <string name="common_search_assets_alert_description">No networks or asset were found :(</string>
+    <string name="common_all_transactions">All Transactions</string>
+    <string name="common_title_frozen_token">Locked %s</string>
+    <string name="common_title_frozen_loked">Locked</string>
+    <string name="common_title_frozen_staked">Staked</string>
+    <string name="common_title_frozen_reserved">Reserved</string>
+    <string name="common_title_frozen_redeemable">Redeemable</string>
+    <string name="common_title_frozen_unstaking">Unstaking</string>
 
     <string name="pool_staking_confirm_join_title">Joining to pool</string>
     <string name="pool_staking_number_of_members">Number of members</string>
