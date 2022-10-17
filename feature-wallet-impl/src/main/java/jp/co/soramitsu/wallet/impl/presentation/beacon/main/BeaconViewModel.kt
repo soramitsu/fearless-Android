@@ -10,8 +10,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateNetwork
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.request.TransferSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.response.TransferSubstrateResponse
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
+import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -28,6 +31,7 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.S
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -50,7 +54,7 @@ class DAppMetadataModel(
 class BeaconViewModel @Inject constructor(
     private val beaconInteractor: BeaconInteractor,
     private val router: WalletRouter,
-    walletInteractor: WalletInteractor,
+    private val walletInteractor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
     private val resourceManager: ResourceManager,
     totalBalance: GetTotalBalanceUseCase,
@@ -103,6 +107,20 @@ class BeaconViewModel @Inject constructor(
 
                 is SideEffect.AskSignApproval -> {
                     router.openSignBeaconTransaction(it.request.payload, it.dAppMetadata)
+                }
+
+                is SideEffect.AskTransferApproval -> {
+                    val request = it.request
+                    val chainId = request.network.genesisHash
+                    val amount = BigDecimal(request.amount)
+                    val chain = walletInteractor.getChain(chainId)
+                    TransferSubstrateResponse
+                    val draft = TransferDraft(
+                        amount = amount,
+                        fee = BigDecimal.ZERO,
+
+                    )
+                    router.openConfirmTransfer()
                 }
 
                 is SideEffect.RespondApprovedPermissions -> {
@@ -204,6 +222,9 @@ class BeaconViewModel @Inject constructor(
 
                     is SignPayloadSubstrateRequest -> {
                         stateMachine.transition(BeaconStateMachine.Event.ReceivedSigningRequest(it))
+                    }
+                    is TransferSubstrateRequest -> {
+                        stateMachine.transition(BeaconStateMachine.Event.ReceivedTransferRequest(it))
                     }
 //                    is PermissionBeaconRequest -> TODO()
 //                    is BlockchainBeaconRequest -> TODO()

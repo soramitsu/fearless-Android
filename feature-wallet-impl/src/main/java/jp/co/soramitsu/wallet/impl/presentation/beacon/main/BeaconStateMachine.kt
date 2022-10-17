@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.beacon.main
 
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
+import it.airgap.beaconsdk.blockchain.substrate.message.request.TransferSubstrateRequest
 import jp.co.soramitsu.common.utils.StateMachine
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.Event
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconStateMachine.SideEffect
@@ -24,6 +25,11 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
             val dAppMetadata: DAppMetadataModel
         ) : State()
 
+        class AwaitingTransferApproval(
+            val awaitingRequest: TransferSubstrateRequest,
+            val dAppMetadata: DAppMetadataModel
+        ) : State()
+
         object Finished : State()
 
         object Reconnecting : State()
@@ -42,6 +48,8 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
         class ReceivedSigningRequest(val request: SignPayloadSubstrateRequest) : Event()
 
+        class ReceivedTransferRequest(val request: TransferSubstrateRequest) : Event()
+
         object ApprovedSigning : Event()
 
         object DeclinedSigning : Event()
@@ -55,6 +63,8 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
         class AskPermissionsApproval(val request: PermissionSubstrateRequest) : SideEffect()
 
         class AskSignApproval(val request: SignPayloadSubstrateRequest, val dAppMetadata: DAppMetadataModel) : SideEffect()
+
+        class AskTransferApproval(val request: TransferSubstrateRequest, val dAppMetadata: DAppMetadataModel) : SideEffect()
 
         class RespondApprovedPermissions(val request: PermissionSubstrateRequest) : SideEffect()
 
@@ -145,6 +155,16 @@ class BeaconStateMachine : StateMachine<State, Event, SideEffect>(State.Initiali
 
             Event.ConnectToExistingPeer -> {
                 State.Reconnecting
+            }
+            is Event.ReceivedTransferRequest -> when (state) {
+                is State.Connected -> {
+                    event.request
+                    sideEffect(SideEffect.AskTransferApproval(event.request, state.dAppMetadata))
+
+                    State.AwaitingTransferApproval(event.request, state.dAppMetadata)
+                }
+
+                else -> state
             }
         }
     }
