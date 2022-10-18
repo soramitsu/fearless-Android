@@ -1,8 +1,5 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.distinctUntilChanged
-import androidx.lifecycle.switchMap
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Provider
@@ -10,7 +7,7 @@ import jp.co.soramitsu.common.compose.component.NetworkIssueItemState
 import jp.co.soramitsu.common.compose.component.NetworkIssueType
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
-import jp.co.soramitsu.common.utils.asLiveData
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -20,7 +17,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
@@ -30,9 +31,9 @@ class ConnectionPool @Inject constructor(
 ) : NetworkStateUi by networkStateMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val pool = ConcurrentHashMap<String, ChainConnection>()
-    private val connectionWatcher = MutableLiveData<Unit>()
+    private val connectionWatcher = MutableStateFlow(Event(Unit))
 
-    private val connections = connectionWatcher.switchMap {
+    private val connections = connectionWatcher.flatMapLatest {
         val connListFlow = pool.map {
             it.value.isConnecting.map { isConnecting ->
                 it.value.chain.id to isConnecting
@@ -41,59 +42,61 @@ class ConnectionPool @Inject constructor(
         val connChainsListFlow = combine(connListFlow) { chains ->
             chains.toMap()
         }
-        connChainsListFlow.asLiveData(this)
+        connChainsListFlow
     }
 
+    private val connectionIssues = connectionWatcher.flatMapLatest {
+        val connListFlow = pool.map {
+            it.value.isConnecting.map { isConnecting ->
+                it.value.chain to isConnecting
+            }
+        }
+        val connectionIssues = combine(connListFlow) { chains ->
+            val issues = chains.filter { (_, isConnecting) -> isConnecting }.map { (chain, _) ->
+                NetworkIssueItemState(
+                    iconUrl = chain.icon,
+                    title = chain.name,
+                    type = when {
+                        chain.nodes.size > 1 -> NetworkIssueType.Node
+                        else -> NetworkIssueType.Network
+                    },
+                    chainId = chain.id,
+                    chainName = chain.name,
+                    assetId = chain.utilityAsset.id,
+                    priceId = chain.utilityAsset.priceId
+                )
+            }
+            issues
+        }
+
+        connectionIssues
+    }
+
+    private val showConnecting = connectionWatcher.flatMapLatest {
+        val isConnectedListFlow = pool.map { it.value.isConnected }
+        val hasConnectionsFlow = combine(isConnectedListFlow) { it.any { it } }
+
+        val isConnectingListFlow = pool.map { it.value.isConnecting }
+        val hasConnectingFlow = combine(isConnectingListFlow) { it.any { it } }
+        val showConnecting = combine(hasConnectionsFlow, hasConnectingFlow) { connected, connecting ->
+            !connected && connecting
+        }
+        showConnecting
+    }
+        .distinctUntilChanged()
+
     init {
-        connections.observeForever {
+        connections.onEach {
             networkStateMixin.updateChainConnection(it)
-        }
+        }.launchIn(scope = this)
 
-        connectionWatcher.switchMap {
-            val connListFlow = pool.map {
-                it.value.isConnecting.map { isConnecting ->
-                    it.value.chain to isConnecting
-                }
-            }
-            val connChainsListFlow = combine(connListFlow) { chains ->
-                val issues = chains.filter { (_, isConnecting) -> isConnecting }.map { (chain, _) ->
-                    NetworkIssueItemState(
-                        iconUrl = chain.icon,
-                        title = chain.name,
-                        type = when {
-                            chain.nodes.size > 1 -> NetworkIssueType.Node
-                            else -> NetworkIssueType.Network
-                        },
-                        chainId = chain.id,
-                        chainName = chain.name,
-                        assetId = chain.utilityAsset.id,
-                        priceId = chain.utilityAsset.priceId
-                    )
-                }
-                issues
-            }
+        connectionIssues.onEach {
+            networkStateMixin.updateNetworkIssues(it)
+        }.launchIn(this)
 
-            connChainsListFlow.asLiveData(this)
-        }
-            .observeForever {
-                networkStateMixin.updateNetworkIssues(it)
-            }
-
-        connectionWatcher.switchMap {
-            val isConnectedListFlow = pool.map { it.value.isConnected }
-            val hasConnectionsFlow = combine(isConnectedListFlow) { it.any { it } }
-
-            val isConnectingListFlow = pool.map { it.value.isConnecting }
-            val hasConnectingFlow = combine(isConnectingListFlow) { it.any { it } }
-            val showConnecting = combine(hasConnectionsFlow, hasConnectingFlow) { connected, connecting ->
-                !connected && connecting
-            }
-            showConnecting.asLiveData(this)
-        }
-            .distinctUntilChanged()
-            .observeForever {
-                networkStateMixin.updateShowConnecting(it)
-            }
+        showConnecting.onEach {
+            networkStateMixin.updateShowConnecting(it)
+        }.launchIn(this)
     }
 
     fun getConnection(chainId: ChainId): ChainConnection = pool.getValue(chainId)
@@ -115,7 +118,7 @@ class ConnectionPool @Inject constructor(
         }
 
         if (isNew) {
-            connectionWatcher.postValue(Unit)
+            connectionWatcher.tryEmit(Event(Unit))
         }
 
         connection.considerUpdateNodes(chain.nodes)
@@ -125,6 +128,6 @@ class ConnectionPool @Inject constructor(
 
     fun removeConnection(chainId: ChainId) {
         pool.remove(chainId)?.apply { finish() }
-        connectionWatcher.postValue(Unit)
+        connectionWatcher.tryEmit(Event(Unit))
     }
 }
