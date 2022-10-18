@@ -35,9 +35,28 @@ dependencies {
     implementation project(':runtime')
     implementation project(":common")
 
+    implementation fragmentKtxDep
     implementation liveDataKtxDep
     implementation androidDep
     implementation materialDep
+
+    implementation coilCompose
+    implementation navigationComposeDep
+    implementation hiltNavComposeDep
+    implementation composeUiDep
+    implementation composeLiveDataDep
+    implementation composeRuntimeDep
+    implementation composeCompilerDep
+    implementation composeThemeAdapterDep
+    implementation composeFoundationDep
+    implementation composeMaterialDep
+    implementation composeAnimationDep
+    implementation composeActivityDep
+    implementation composeViewModelDep
+    implementation composeToolingPreviewDep
+    debugImplementation composeToolingDep
+    debugImplementation customviewDep
+    debugImplementation customviewPoolingcontainerDep
 
     api fearlessLibDep
 

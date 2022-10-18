@@ -13,5 +13,8 @@ data class AssetListItemViewState(
     val chainId: String,
     val chainAssetId: String,
     val isSupported: Boolean,
-    val isHidden: Boolean
+    val isHidden: Boolean,
+    val hasAccount: Boolean,
+    val priceId: String?,
+    val hasNetworkIssue: Boolean
 )

@@ -47,14 +47,9 @@ class GetTotalBalanceUseCaseImpl(
 
                     val balance = acc.balance + totalBalanceToAdd
                     val balanceChange = acc.balanceChange + balanceChangeToAdd
-                    val rate = try {
-                        when (balance) {
-                            BigDecimal.ZERO -> BigDecimal.ZERO
-                            else -> balanceChange.divide(balance, RoundingMode.HALF_UP).fractionToPercentage()
-                        }
-                    } catch (e: ArithmeticException) {
-                        e.printStackTrace()
-                        null
+                    val rate = when {
+                        balance.compareTo(BigDecimal.ZERO) == 0 -> BigDecimal.ZERO
+                        else -> balanceChange.divide(balance, RoundingMode.HALF_UP).fractionToPercentage()
                     }
 
                     TotalBalance(

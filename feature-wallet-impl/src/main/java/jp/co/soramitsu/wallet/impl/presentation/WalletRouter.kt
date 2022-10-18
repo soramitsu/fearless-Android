@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
@@ -65,6 +66,12 @@ interface WalletRouter : SecureRouter {
     fun openEducationalStories(stories: StoryGroupModel)
 
     fun openSelectWallet()
+
+    fun openNetworkIssues()
+
+    fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
+
+    fun openNetworkUnavailable(chainName: String?)
 
     fun openSearchAssets(chainId: String?)
 

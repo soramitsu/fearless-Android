@@ -169,7 +169,10 @@ private fun AssetItemSwipeBoxPreview() {
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        displayName = assetSymbol
+        displayName = assetSymbol,
+        hasAccount = true,
+        priceId = null,
+        hasNetworkIssue = false
     )
 
     FearlessThemeBlackBg {

@@ -7,6 +7,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.HiddenItemState
@@ -14,11 +18,14 @@ import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
+import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
@@ -40,16 +47,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 @HiltViewModel
 class SearchAssetsViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val interactor: WalletInteractor,
     private val chainInteractor: ChainInteractor,
-    private val router: WalletRouter
-) : BaseViewModel() {
+    private val accountRepository: AccountRepository,
+    private val router: WalletRouter,
+    private val networkStateMixin: NetworkStateMixin
+) : BaseViewModel(), NetworkStateUi by networkStateMixin {
 
     private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
     val showUnsupportedChainAlert: LiveData<Event<Unit>> = _showUnsupportedChainAlert
@@ -60,10 +67,15 @@ class SearchAssetsViewModel @Inject constructor(
     private val enteredAssetQueryFlow = MutableStateFlow("")
     private val hiddenAssetsState = MutableLiveData(HiddenItemState(isExpanded = false))
 
+    private val connectingChainIdsFlow = networkStateMixin.chainConnectionsLiveData.map {
+        it.filter { (_, isConnecting) -> isConnecting }.keys
+    }.asFlow()
+
     private val assetStates = combine(
         interactor.assetsFlow(),
-        chainInteractor.getChainsFlow()
-    ) { assets: List<AssetWithStatus>, chains: List<JoinedChainInfo> ->
+        chainInteractor.getChainsFlow(),
+        connectingChainIdsFlow
+    ) { assets: List<AssetWithStatus>, chains: List<JoinedChainInfo>, chainConnectings: Set<ChainId> ->
         val selectedChainId = savedStateHandle.get<String?>(SearchAssetsFragment.KEY_CHAIN_ID)
         val assetStates = mutableListOf<AssetListItemViewState>()
 
@@ -83,6 +95,8 @@ class SearchAssetsViewModel @Inject constructor(
                     else -> AppVersion.isSupported(chain.minSupportedVersion)
                 }
 
+                val hasNetworkIssue = token.configuration.chainId in chainConnectings
+
                 val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
                     .associate { it.chain.id to it.chain.icon }
 
@@ -101,7 +115,10 @@ class SearchAssetsViewModel @Inject constructor(
                         chainId = chain?.id.orEmpty(),
                         chainAssetId = chainAsset.id,
                         isSupported = isSupported,
-                        isHidden = !assetWithStatus.asset.enabled
+                        isHidden = !assetWithStatus.asset.enabled,
+                        hasAccount = assetWithStatus.hasAccount,
+                        priceId = chainAsset.priceId,
+                        hasNetworkIssue = hasNetworkIssue
                     )
 
                     assetStates.add(assetListItemViewState)
@@ -224,6 +241,33 @@ class SearchAssetsViewModel @Inject constructor(
     }
 
     fun assetClicked(asset: AssetListItemViewState) {
+        if (asset.hasNetworkIssue) {
+            launch {
+                val chain = interactor.getChain(asset.chainId)
+                if (chain.nodes.size > 1) {
+                    router.openNodes(asset.chainId)
+                } else {
+                    router.openNetworkUnavailable(chain.name)
+                }
+            }
+            return
+        }
+        if (!asset.hasAccount) {
+            launch {
+                val meta = accountRepository.getSelectedMetaAccount()
+                val payload = AddAccountBottomSheet.Payload(
+                    metaId = meta.id,
+                    chainId = asset.chainId,
+                    chainName = asset.assetChainName,
+                    assetId = asset.chainAssetId,
+                    priceId = asset.priceId,
+                    markedAsNotNeed = false
+                )
+                router.openOptionsAddAccount(payload)
+            }
+            return
+        }
+
         if (asset.isSupported.not()) {
             _showUnsupportedChainAlert.value = Event(Unit)
             return

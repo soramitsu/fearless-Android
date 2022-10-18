@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Divider
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -23,11 +24,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.valentinilk.shimmer.shimmer
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
@@ -40,6 +44,8 @@ fun AssetListItem(
     modifier: Modifier = Modifier,
     onClick: (AssetListItemViewState) -> Unit
 ) {
+    val hasIssues = !state.hasAccount
+
     BackgroundCornered(
         modifier = modifier
             .testTag("AssetListItem_${state.assetSymbol}_${state.assetChainName}")
@@ -120,39 +126,52 @@ fun AssetListItem(
                     .weight(1.0f)
             )
 
-            Column(
-                Modifier
-                    .padding(vertical = 8.dp)
-                    .align(CenterVertically)
-            ) {
-                if (state.assetChainUrls.size > 1) {
-                    AssetChainsBadge(
-                        urls = state.assetChainUrls.values.toList(),
+            if (hasIssues) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_alert_16),
+                    tint = alertYellow,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .size(24.dp)
+                        .align(CenterVertically)
+                        .testTag("AssetListItem_${state.assetSymbol}_alert_icon"),
+                    contentDescription = null
+                )
+            } else {
+                Column(
+                    Modifier
+                        .padding(vertical = 8.dp)
+                        .align(CenterVertically)
+                ) {
+                    if (state.assetChainUrls.size > 1) {
+                        AssetChainsBadge(
+                            urls = state.assetChainUrls.values.toList(),
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .testTag("AssetListItem_${state.assetSymbol}_chains")
+                        )
+                    } else {
+                        Box(modifier = Modifier.height(16.dp))
+                    }
+                    Text(
+                        text = state.assetBalance,
+                        style = MaterialTheme.customTypography.header3,
                         modifier = Modifier
+                            .padding(vertical = 4.dp)
+                            .padding(start = 4.dp)
                             .align(Alignment.End)
-                            .testTag("AssetListItem_${state.assetSymbol}_chains")
+                            .testTag("AssetListItem_${state.assetSymbol}_balance")
                     )
-                } else {
-                    Box(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = state.assetBalanceFiat.orEmpty(),
+                        style = MaterialTheme.customTypography.body1,
+                        modifier = Modifier
+                            .alpha(0.64f)
+                            .padding(start = 4.dp)
+                            .align(Alignment.End)
+                            .testTag("AssetListItem_${state.assetSymbol}_balance_fiat")
+                    )
                 }
-                Text(
-                    text = state.assetBalance,
-                    style = MaterialTheme.customTypography.header3,
-                    modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .padding(start = 4.dp)
-                        .align(Alignment.End)
-                        .testTag("AssetListItem_${state.assetSymbol}_balance")
-                )
-                Text(
-                    text = state.assetBalanceFiat.orEmpty(),
-                    style = MaterialTheme.customTypography.body1,
-                    modifier = Modifier
-                        .alpha(0.64f)
-                        .padding(start = 4.dp)
-                        .align(Alignment.End)
-                        .testTag("AssetListItem_${state.assetSymbol}_balance_fiat")
-                )
             }
         }
     }
@@ -292,12 +311,16 @@ private fun PreviewAssetListItem() {
         chainAssetId = "",
         isSupported = true,
         isHidden = false,
-        displayName = assetSymbol
+        displayName = assetSymbol,
+        hasAccount = true,
+        priceId = null,
+        hasNetworkIssue = false
     )
     FearlessTheme {
         Box(modifier = Modifier.background(Color.Black)) {
             Column {
                 AssetListItem(state) {}
+                AssetListItem(state.copy(hasAccount = false)) {}
                 AssetListItemShimmer(
                     state = AssetListItemShimmerViewState(assetIconUrl, assetChainUrlsMap.values.toList())
                 )

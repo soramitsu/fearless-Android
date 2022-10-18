@@ -892,5 +892,15 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_stakeng_create_confirm_title">Creating pool</string>
     <string name="min_to_create_pool_threshold_error_title">Sorry, the specified amount is not enough to create a pool</string>
     <string name="min_to_create_pool_threshold_error_message">Minimum amount is %s</string>
+    <string name="network_issue_stub">Network issues</string>
+    <string name="common_close">Close</string>
+    <string name="notification">Notification</string>
+    <string name="network_issue_node_unavailable">Node is unavailable</string>
+    <string name="network_issue_network_unavailable">Network is unavailable</string>
+    <string name="network_issue_add_an_account">Add an account</string>
+    <string name="network_issue_action_switch_node">Switch Node</string>
+    <string name="network_issue_action_add_account">Add Account</string>
+    <string name="network_issue_unavailable">The network is unavailable, you can wait or ask a question to the community</string>
+    <string name="top_up">Top Up</string>
 
 </resources>
