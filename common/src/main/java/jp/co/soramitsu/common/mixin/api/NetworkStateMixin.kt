@@ -10,7 +10,11 @@ interface NetworkStateUi {
 
     val networkIssuesLiveData: LiveData<List<NetworkIssueItemState>>
 
+    val chainConnectionsLiveData: LiveData<Map<String, Boolean>>
+
     fun updateShowConnecting(isShow: Boolean)
 
     fun updateNetworkIssues(list: List<NetworkIssueItemState>)
+
+    fun updateChainConnection(map: Map<String, Boolean>)
 }

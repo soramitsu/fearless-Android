@@ -15,5 +15,6 @@ data class AssetListItemViewState(
     val isSupported: Boolean,
     val isHidden: Boolean,
     val hasAccount: Boolean,
-    val priceId: String?
+    val priceId: String?,
+    val hasNetworkIssue: Boolean
 )

@@ -40,7 +40,6 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -114,6 +113,10 @@ class BalanceListViewModel @Inject constructor(
 
     private val enteredChainQueryFlow = MutableStateFlow("")
 
+    private val connectingChainIdsFlow = networkStateMixin.chainConnectionsLiveData.map {
+        it.filter { (_, isConnecting) -> isConnecting }.keys
+    }.asFlow()
+
     private val fiatSymbolFlow = combine(selectedFiat.flow(), getAvailableFiatCurrencies.flow()) { selectedFiat: String, fiatCurrencies: FiatCurrencies ->
         fiatCurrencies[selectedFiat]?.symbol
     }.onEach {
@@ -180,8 +183,9 @@ class BalanceListViewModel @Inject constructor(
     private val assetStates = combine(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
-        selectedChainItem
-    ) { assets: List<AssetWithStatus>, chains: List<JoinedChainInfo>, selectedChain: ChainItemState? ->
+        selectedChainItem,
+        connectingChainIdsFlow
+    ) { assets: List<AssetWithStatus>, chains: List<JoinedChainInfo>, selectedChain: ChainItemState?, chainConnecting: Set<ChainId> ->
         val assetStates = mutableListOf<AssetListItemViewState>()
         assets
             .filter { it.hasAccount || !it.asset.markedNotNeed }
@@ -198,6 +202,8 @@ class BalanceListViewModel @Inject constructor(
                     null -> true
                     else -> AppVersion.isSupported(chain.minSupportedVersion)
                 }
+
+                val hasNetworkIssue = token.configuration.chainId in chainConnecting
 
                 val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
                     .associate { it.chain.id to it.chain.icon }
@@ -219,7 +225,8 @@ class BalanceListViewModel @Inject constructor(
                         isSupported = isSupported,
                         isHidden = !assetWithStatus.asset.enabled,
                         hasAccount = assetWithStatus.hasAccount,
-                        priceId = chainAsset.priceId
+                        priceId = chainAsset.priceId,
+                        hasNetworkIssue = hasNetworkIssue
                     )
 
                     assetStates.add(assetListItemViewState)
@@ -234,21 +241,17 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.asset.token.configuration.chainId.defaultChainSort() }
         .thenBy { it.asset.token.configuration.chainName }
 
-    private val hasNetworkIssuesFlow = networkStateMixin.networkIssuesLiveData.map { it.isNotEmpty() }.asFlow()
-
     val state = combine(
         assetStates,
         assetTypeSelectorState.asFlow(),
         balanceLiveData.asFlow(),
         hiddenAssetsState.asFlow(),
-        enteredChainQueryFlow,
-        hasNetworkIssuesFlow
+        enteredChainQueryFlow
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
         balanceModel: BalanceModel,
         hiddenState: HiddenItemState,
-        selectedChainId: String?,
-        hasNetworkIssues: Boolean ->
+        selectedChainId: String? ->
 
         if (assetsListItemStates.isEmpty() || balanceModel.isShowLoading) {
             return@combine LoadingState.Loading()
@@ -263,7 +266,7 @@ class BalanceListViewModel @Inject constructor(
             )
         )
 
-        val hasAssetsWithoutAccount = assetsListItemStates.any { !it.hasAccount }
+        val hasNetworkIssues = assetsListItemStates.any { !it.hasAccount || it.hasNetworkIssue }
 
         LoadingState.Loaded(
             WalletState(
@@ -271,7 +274,7 @@ class BalanceListViewModel @Inject constructor(
                 assetsListItemStates,
                 balanceState,
                 hiddenState,
-                hasNetworkIssues || hasAssetsWithoutAccount
+                hasNetworkIssues
             )
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
@@ -364,6 +367,17 @@ class BalanceListViewModel @Inject constructor(
     }
 
     fun assetClicked(asset: AssetListItemViewState) {
+        if (asset.hasNetworkIssue) {
+            launch {
+                val chain = interactor.getChain(asset.chainId)
+                if (chain.nodes.size > 1) {
+                    router.openNodes(asset.chainId)
+                } else {
+                    router.openNetworkUnavailable(chain.name)
+                }
+            }
+            return
+        }
         if (!asset.hasAccount) {
             launch {
                 val meta = accountRepository.getSelectedMetaAccount()

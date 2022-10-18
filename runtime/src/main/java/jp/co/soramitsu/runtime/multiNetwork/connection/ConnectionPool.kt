@@ -32,7 +32,23 @@ class ConnectionPool @Inject constructor(
     private val pool = ConcurrentHashMap<String, ChainConnection>()
     private val connectionWatcher = MutableLiveData<Unit>()
 
+    private val connections = connectionWatcher.switchMap {
+        val connListFlow = pool.map {
+            it.value.isConnecting.map { isConnecting ->
+                it.value.chain.id to isConnecting
+            }
+        }
+        val connChainsListFlow = combine(connListFlow) { chains ->
+            chains.toMap()
+        }
+        connChainsListFlow.asLiveData(this)
+    }
+
     init {
+        connections.observeForever {
+            networkStateMixin.updateChainConnection(it)
+        }
+
         connectionWatcher.switchMap {
             val connListFlow = pool.map {
                 it.value.isConnecting.map { isConnecting ->

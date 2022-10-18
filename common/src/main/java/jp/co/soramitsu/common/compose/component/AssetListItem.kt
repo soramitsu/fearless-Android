@@ -313,7 +313,8 @@ private fun PreviewAssetListItem() {
         isHidden = false,
         displayName = assetSymbol,
         hasAccount = true,
-        priceId = null
+        priceId = null,
+        hasNetworkIssue = false
     )
     FearlessTheme {
         Box(modifier = Modifier.background(Color.Black)) {

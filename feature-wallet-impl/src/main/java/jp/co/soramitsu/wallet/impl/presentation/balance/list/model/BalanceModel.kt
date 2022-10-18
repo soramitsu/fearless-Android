@@ -49,7 +49,7 @@ class BalanceModel(val assetModels: List<AssetWithStateModel>, val fiatSymbol: S
         val amountOfCurrentBalanceUpdating = assetModels.filter { it.state.isBalanceUpdating }.size
 
         val assumedAmountOfUpdated = amountTotal - amountOfCurrentBalanceUpdating
-        val isLoading = amountTotal == 0 || assumedAmountOfUpdated < pareto * amountTotal
+        val isLoading = assumedAmountOfUpdated < amountTotal * pareto
         return isLoading
     }
 
