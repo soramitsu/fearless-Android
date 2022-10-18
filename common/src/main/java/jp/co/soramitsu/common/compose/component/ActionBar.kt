@@ -78,7 +78,7 @@ private fun ActionBarPreview() {
     val state = ActionBarViewState(
         chainId = "",
         chainAssetId = "",
-        actionItems = ActionItemType.values().asList().take(3),
+        actionItems = ActionItemType.values().asList().take(3)
     )
 
     FearlessTheme {
