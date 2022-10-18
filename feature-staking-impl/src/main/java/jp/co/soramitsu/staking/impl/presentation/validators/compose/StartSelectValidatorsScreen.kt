@@ -10,6 +10,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.RecommendedValidatorsAdditionalInfo
 import jp.co.soramitsu.common.compose.component.SelectValidatorsVariantPanel
@@ -21,7 +22,8 @@ import jp.co.soramitsu.feature_staking_impl.R
 
 data class StartSelectValidatorsViewState(
     val recommendedPanelState: SelectValidatorsVariantPanelViewState<List<String>>,
-    val manualPanelState: SelectValidatorsVariantPanelViewState<Nothing>
+    val manualPanelState: SelectValidatorsVariantPanelViewState<Nothing>,
+    val isLoading: Boolean
 )
 
 @Composable
@@ -41,17 +43,19 @@ fun StartSelectValidatorsScreen(
                 onNavigationClick = onBackClick
             )
             MarginVertical(margin = 24.dp)
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                SelectValidatorsVariantPanel(
-                    state.recommendedPanelState,
-                    AdditionalInfo = {
-                        RecommendedValidatorsAdditionalInfo(it)
-                    },
-                    onButtonClick = onRecommendedClick
-                )
-                MarginVertical(margin = 20.dp)
-                SelectValidatorsVariantPanel(state.manualPanelState, onButtonClick = onManualClick)
-                MarginVertical(margin = 20.dp)
+            FullScreenLoading(state.isLoading) {
+                Column(Modifier.padding(horizontal = 16.dp)) {
+                    SelectValidatorsVariantPanel(
+                        state.recommendedPanelState,
+                        AdditionalInfo = {
+                            RecommendedValidatorsAdditionalInfo(it)
+                        },
+                        onButtonClick = onRecommendedClick
+                    )
+                    MarginVertical(margin = 20.dp)
+                    SelectValidatorsVariantPanel(state.manualPanelState, onButtonClick = onManualClick)
+                    MarginVertical(margin = 20.dp)
+                }
             }
         }
     }
@@ -71,7 +75,7 @@ private fun StartSelectValidatorsScreenPreview() {
         buttonText = "Select suggested",
         additionalInfo = listOf("Most profitable", "Not oversubscribed", "Having onchain identity", "Not slashed", "Limit of 2 validators per identity")
     )
-    val state = StartSelectValidatorsViewState(recommendedState, manualState)
+    val state = StartSelectValidatorsViewState(recommendedState, manualState, true)
     FearlessTheme {
         StartSelectValidatorsScreen(state, {}, {}, {})
     }

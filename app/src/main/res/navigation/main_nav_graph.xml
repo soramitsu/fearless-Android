@@ -679,6 +679,11 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.create.ConfirmCreatePoolFragment"
         android:label="confirmCreatePoolFragment" />
 
+    <dialog
+        android:id="@+id/startSelectValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.StartSelectValidatorsFragment"
+        android:label="startSelectValidatorsFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"

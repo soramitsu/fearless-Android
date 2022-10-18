@@ -2,6 +2,8 @@ package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
@@ -12,8 +14,12 @@ class StartSelectValidatorsFragment : BaseComposeBottomSheetDialogFragment<Start
 
     @Composable
     override fun Content(padding: PaddingValues) {
-//        StartSelectValidatorsScreen(state =, onRecommendedClick = { /*TODO*/ }, onManualClick = { /*TODO*/ }) {
-//
-//        }
+        val state by viewModel.state.collectAsState()
+        StartSelectValidatorsScreen(
+            state = state,
+            onRecommendedClick = viewModel::onRecommendedClick,
+            onManualClick = viewModel::onManualClick,
+            onBackClick = viewModel::onBackClick
+        )
     }
 }

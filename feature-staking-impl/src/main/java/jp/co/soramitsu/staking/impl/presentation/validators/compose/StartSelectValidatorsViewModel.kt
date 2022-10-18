@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -8,13 +9,15 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class StartSelectValidatorsViewModel @Inject constructor(
-    private val resourceManager: ResourceManager,
+    resourceManager: ResourceManager,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val router: StakingRouter
 ) : BaseViewModel() {
@@ -31,16 +34,35 @@ class StartSelectValidatorsViewModel @Inject constructor(
         )
     )
 
+    private val manualState = SelectValidatorsVariantPanelViewState<Nothing>(
+        title = resourceManager.getString(R.string.staking_start_change_validators_custom_title),
+        description = resourceManager.getString(R.string.staking_start_change_validators_custom_subtitle),
+        buttonText = resourceManager.getString(R.string.staking_select_custom),
+    )
 
-    val state = combine(flowOf(1), flowOf(2)) { a1, a2 ->
+    private val loadingState = MutableStateFlow(true)
 
-    }
+    val state = loadingState.map {
+        StartSelectValidatorsViewState(recommendedState, manualState, it)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, StartSelectValidatorsViewState(recommendedState, manualState, loadingState.value))
 
     init {
         launch {
             validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
 
-//            validatorsLoading.value = false
+            loadingState.value = false
         }
+    }
+
+    fun onRecommendedClick() {
+
+    }
+
+    fun onManualClick() {
+
+    }
+
+    fun onBackClick() {
+        router.back()
     }
 }
