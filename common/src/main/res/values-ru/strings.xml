@@ -818,5 +818,6 @@
     <string name="network_issue_action_switch_node">Выбрать Ноду</string>
     <string name="network_issue_action_add_account">Добавить Аккаунт</string>
     <string name="network_issue_unavailable">Сеть недоступна, вы можете подождать или задать вопрос сообществу</string>
+    <string name="top_up"></string>
 
 </resources>

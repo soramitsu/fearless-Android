@@ -17,8 +17,10 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class NetworkIssuesViewModel @Inject constructor(
@@ -62,18 +64,17 @@ class NetworkIssuesViewModel @Inject constructor(
             NetworkIssueType.Network -> {
                 walletRouter.openNetworkUnavailable(issue.chainName)
             }
-            NetworkIssueType.Account -> {
-                accountInteractor.selectedMetaAccountFlow().asLiveData().observeForever { meta ->
-                    val payload = AddAccountBottomSheet.Payload(
-                        metaId = meta.id,
-                        chainId = issue.chainId,
-                        chainName = issue.chainName,
-                        assetId = issue.assetId,
-                        priceId = issue.priceId,
-                        markedAsNotNeed = false
-                    )
-                    walletRouter.openOptionsAddAccount(payload)
-                }
+            NetworkIssueType.Account -> launch {
+                val meta = accountInteractor.selectedMetaAccountFlow().first()
+                val payload = AddAccountBottomSheet.Payload(
+                    metaId = meta.id,
+                    chainId = issue.chainId,
+                    chainName = issue.chainName,
+                    assetId = issue.assetId,
+                    priceId = issue.priceId,
+                    markedAsNotNeed = false
+                )
+                walletRouter.openOptionsAddAccount(payload)
             }
         }
     }

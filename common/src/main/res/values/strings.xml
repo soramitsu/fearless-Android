@@ -901,5 +901,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="network_issue_action_switch_node">Switch Node</string>
     <string name="network_issue_action_add_account">Add Account</string>
     <string name="network_issue_unavailable">The network is unavailable, you can wait or ask a question to the community</string>
+    <string name="top_up">Top Up</string>
 
 </resources>

@@ -75,7 +75,7 @@ fun NetworkUnavailableContent(
             )
             MarginVertical(margin = 24.dp)
             AccentButton(
-                "Top Up",
+                text = stringResource(id = R.string.top_up),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
