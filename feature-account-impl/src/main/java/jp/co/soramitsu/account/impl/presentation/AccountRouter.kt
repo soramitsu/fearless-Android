@@ -1,14 +1,15 @@
 package jp.co.soramitsu.account.impl.presentation
 
-import jp.co.soramitsu.common.navigation.DelayedNavigation
-import jp.co.soramitsu.common.navigation.PinRequired
-import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.ConfirmMnemonicPayload
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
+import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.navigation.PinRequired
+import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 interface AccountRouter : SecureRouter {
@@ -75,4 +76,6 @@ interface AccountRouter : SecureRouter {
     fun openChangePinCode()
 
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
+
+    fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
 }

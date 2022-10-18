@@ -19,6 +19,7 @@ private const val NODE_SWITCHING_FREQUENCY = 3 // switch node every n attempt
 private const val ATTEMPT_THRESHOLD = 1
 
 class ChainConnection(
+    val chain: Chain,
     val socketService: SocketService,
     externalRequirementFlow: Flow<ExternalRequirement>,
     initialNodes: List<Chain.Node>,

@@ -7,6 +7,7 @@ import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment
@@ -27,6 +28,7 @@ import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
+import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
@@ -86,6 +88,7 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
@@ -725,6 +728,20 @@ class Navigator :
 
     override fun openSelectWallet() {
         navController?.navigate(R.id.selectWalletFragment)
+    }
+
+    override fun openNetworkIssues() {
+        navController?.navigate(R.id.networkIssuesFragment)
+    }
+
+    override fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload) {
+        val bundle = OptionsAddAccountFragment.getBundle(payload)
+        navController?.navigate(R.id.optionsAddAccountFragment, bundle)
+    }
+
+    override fun openNetworkUnavailable(chainName: String?) {
+        val bundle = chainName?.let { NetworkUnavailableFragment.getBundle(chainName) }
+        navController?.navigate(R.id.networkUnavailableFragment, bundle)
     }
 
     override fun openSearchAssets(chainId: String?) {

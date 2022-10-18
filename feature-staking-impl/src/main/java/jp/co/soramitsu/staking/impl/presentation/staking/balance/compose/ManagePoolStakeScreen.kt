@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BottomSheetLayout
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.ListDialog
@@ -28,7 +29,6 @@ import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.Notification
 import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.Shimmer
-import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
@@ -141,9 +141,9 @@ fun ManagePoolStakeScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                     ) {
-                        TextButton(text = stringResource(id = R.string.staking_bond_more_v1_9_0), onClick = onStakeMoreClick, modifier = Modifier.weight(1f))
+                        GrayButton(text = stringResource(id = R.string.staking_bond_more_v1_9_0), onClick = onStakeMoreClick, modifier = Modifier.weight(1f))
                         MarginHorizontal(margin = 16.dp)
-                        TextButton(text = stringResource(id = R.string.staking_unbond_v1_9_0), onClick = onUnstakeClick, modifier = Modifier.weight(1f))
+                        GrayButton(text = stringResource(id = R.string.staking_unbond_v1_9_0), onClick = onUnstakeClick, modifier = Modifier.weight(1f))
                     }
                     MarginVertical(margin = 16.dp)
                 }

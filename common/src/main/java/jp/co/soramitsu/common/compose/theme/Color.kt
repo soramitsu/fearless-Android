@@ -59,6 +59,7 @@ val shimmerColor = Color(0x80DBDBDB)
 val accountIconLight = Color(0xFFEEEEEE)
 val accountIconDark = Color(0xFF000000)
 val errorRed = Color(0xFFFF3B30)
+val alertYellow = Color(0xFFEE7700)
 
 val transparent = Color(0xffffff)
 
@@ -78,6 +79,11 @@ val accentButtonColors = object : ButtonColors {
 
 fun customButtonColors(
     backgroundColor: Color
+) = customButtonColors(backgroundColor, Color.White)
+
+fun customButtonColors(
+    backgroundColor: Color,
+    fontColor: Color
 ) = object : ButtonColors {
     @Composable
     override fun backgroundColor(enabled: Boolean): State<Color> {
@@ -86,7 +92,7 @@ fun customButtonColors(
 
     @Composable
     override fun contentColor(enabled: Boolean): State<Color> {
-        return rememberUpdatedState(if (enabled) white else white64)
+        return rememberUpdatedState(if (enabled) fontColor else fontColor.copy(alpha = 0.64f))
     }
 }
 

@@ -57,9 +57,6 @@ class AccountDetailsViewModel @Inject constructor(
 
     private val metaId = savedStateHandle.get<Long>(ACCOUNT_ID_KEY)!!
 
-    private val _showAddAccountChooser = MutableLiveData<Event<AddAccountBottomSheet.Payload>>()
-    val showAddAccountChooser: LiveData<Event<AddAccountBottomSheet.Payload>> = _showAddAccountChooser
-
     private val _showExportSourceChooser = MutableLiveData<Event<ExportSourceChooserPayload>>()
     val showExportSourceChooser: LiveData<Event<ExportSourceChooserPayload>> = _showExportSourceChooser
 
@@ -189,16 +186,16 @@ class AccountDetailsViewModel @Inject constructor(
             val supportedExplorers = chainRegistry.getChain(item.chainId).explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, item.address)
             externalAccountActions.showExternalActions(ExternalAccountActions.Payload(item.address, item.chainId, item.chainName, supportedExplorers))
         } else {
-            _showAddAccountChooser.value = Event(
-                AddAccountBottomSheet.Payload(
-                    metaId = metaId,
-                    chainId = item.chainId,
-                    chainName = item.chainName,
-                    assetId = chainRegistry.getChain(item.chainId).utilityAsset.id,
-                    priceId = chainRegistry.getChain(item.chainId).utilityAsset.priceId,
-                    markedAsNotNeed = item.markedAsNotNeed
-                )
+            val utilityAsset = chainRegistry.getChain(item.chainId).utilityAsset
+            val payload = AddAccountBottomSheet.Payload(
+                metaId = metaId,
+                chainId = item.chainId,
+                chainName = item.chainName,
+                assetId = utilityAsset.id,
+                priceId = utilityAsset.priceId,
+                markedAsNotNeed = item.markedAsNotNeed
             )
+            accountRouter.openOptionsAddAccount(payload)
         }
     }
 

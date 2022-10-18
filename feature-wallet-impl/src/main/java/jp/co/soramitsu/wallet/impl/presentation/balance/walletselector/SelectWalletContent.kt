@@ -27,7 +27,7 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.TextButton
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
@@ -109,7 +109,7 @@ fun SelectWalletContent(
                     .height(48.dp)
             )
             MarginVertical(margin = 12.dp)
-            TextButton(
+            GrayButton(
                 text = stringResource(id = R.string.common_import_wallet),
                 onClick = importWallet,
                 modifier = Modifier

@@ -605,6 +605,21 @@
         android:label="selectWalletFragment" />
 
     <dialog
+        android:id="@+id/networkIssuesFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.NetworkIssuesFragment"
+        android:label="networkIssuesFragment" />
+
+    <dialog
+        android:id="@+id/networkUnavailableFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment"
+        android:label="networkUnavailableFragment" />
+
+    <dialog
+        android:id="@+id/optionsAddAccountFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment"
+        android:label="optionsAddAccountFragment" />
+
+    <dialog
         android:id="@+id/optionsWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment"
         android:label="optionsWalletFragment" />
