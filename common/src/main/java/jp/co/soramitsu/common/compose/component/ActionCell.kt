@@ -29,10 +29,11 @@ data class ActionCellViewState(
 @Composable
 fun ActionCell(
     state: ActionCellViewState,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clickable(
                 role = Role.Button,
                 onClick = onClick

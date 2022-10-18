@@ -30,8 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -171,7 +169,7 @@ private fun ShimmerBalanceDetailScreen() {
                 modifier = Modifier.padding(all = 12.dp)
             ) {
                 Row(
-                    verticalAlignment = CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Shimmer(
                         Modifier
@@ -229,6 +227,7 @@ private fun ContentBalanceDetailsScreen(
                 chainId = data.selectedChainId,
                 chainAssetId = data.chainAssetId
             ),
+            fillMaxWidth = true,
             onItemClick = viewModel::actionItemClicked
         )
         MarginVertical(margin = 16.dp)
@@ -237,7 +236,7 @@ private fun ContentBalanceDetailsScreen(
                 modifier = Modifier.padding(all = 12.dp)
             ) {
                 Row(
-                    verticalAlignment = CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     H5(
                         text = stringResource(id = R.string.common_all_transactions),
@@ -284,7 +283,7 @@ private fun ShimmerTransactionHistory() {
                     Modifier
                         .height(IntrinsicSize.Min)
                         .fillMaxWidth(),
-                    verticalAlignment = CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Shimmer(Modifier.size(30.dp))
                     MarginHorizontal(margin = 8.dp)
@@ -384,7 +383,7 @@ private fun TransactionHistory(
         }
         is TransactionHistoryUi.State.Empty -> {
             Column(
-                horizontalAlignment = CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 MarginVertical(margin = 12.dp)
                 H5(
@@ -449,7 +448,7 @@ private fun TransactionItem(
                 if (item.statusAppearance != OperationStatusAppearance.COMPLETED) {
                     Image(
                         res = item.statusAppearance.icon,
-                        modifier = Modifier.align(CenterVertically)
+                        modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
             }
