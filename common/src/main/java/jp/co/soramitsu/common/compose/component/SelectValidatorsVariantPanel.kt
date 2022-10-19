@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,7 +32,11 @@ fun <T> SelectValidatorsVariantPanel(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
             H4(text = state.title)
             MarginVertical(margin = 12.dp)
             B2(text = state.description)
@@ -80,7 +86,9 @@ fun RecommendedValidatorsAdditionalInfo(state: List<String>) {
     Column {
         state.forEach { item ->
             Row {
-                Image(res = R.drawable.ic_selected, tint = selectedGreen)
+                Image(res = R.drawable.ic_selected, tint = selectedGreen, modifier = Modifier
+                    .size(12.dp)
+                    .align(Alignment.CenterVertically))
                 MarginHorizontal(margin = 8.dp)
                 B2(text = item)
             }

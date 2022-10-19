@@ -23,12 +23,11 @@ import jp.co.soramitsu.common.compose.theme.black50
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.transparent
-import jp.co.soramitsu.common.compose.theme.white04
 import jp.co.soramitsu.common.compose.theme.white08
 
 @Composable
 fun FullScreenLoading(isLoading: Boolean, BlurredContent: @Composable () -> Unit) {
-    if (!isLoading) return
+    val blurModifier = if (isLoading) Modifier.blur(10.dp) else Modifier
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -36,48 +35,50 @@ fun FullScreenLoading(isLoading: Boolean, BlurredContent: @Composable () -> Unit
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .blur(10.dp)
+                .then(blurModifier)
         ) {
             BlurredContent()
         }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(black50)
-        )
-        Box(
-            modifier = Modifier
-                .size(88.dp)
-                .align(Alignment.Center)
-                .background(grayButtonBackground.copy(alpha = 0.7f), RoundedCornerShape(size = 16.dp))
-        ) {
+        if (isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(8.dp)
-                    .border(4.dp, white08, shape = CircleShape)
-                    .background(transparent, shape = CircleShape)
+                    .background(black50)
             )
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .blur(1.dp)
-                    .padding(8.dp)
+                    .size(88.dp)
+                    .align(Alignment.Center)
+                    .background(grayButtonBackground.copy(alpha = 0.7f), RoundedCornerShape(size = 16.dp))
             ) {
-                CircularProgressIndicator(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .align(Alignment.Center),
-                    color = colorAccentDark,
-                    strokeWidth = 4.dp
+                        .padding(8.dp)
+                        .border(4.dp, white08, shape = CircleShape)
+                        .background(transparent, shape = CircleShape)
                 )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(1.dp)
+                        .padding(8.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .align(Alignment.Center),
+                        color = colorAccentDark,
+                        strokeWidth = 4.dp
+                    )
 
+                }
+                Image(
+                    res = R.drawable.ic_fearless_logo, tint = colorAccentDark, modifier = Modifier
+                        .size(50.dp)
+                        .align(Alignment.Center)
+                )
             }
-            Image(
-                res = R.drawable.ic_fearless_logo, tint = colorAccentDark, modifier = Modifier
-                    .size(50.dp)
-                    .align(Alignment.Center)
-            )
         }
     }
 }

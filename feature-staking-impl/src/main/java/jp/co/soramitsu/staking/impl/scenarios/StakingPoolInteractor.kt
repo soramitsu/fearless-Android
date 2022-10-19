@@ -15,6 +15,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Identity
 import jp.co.soramitsu.staking.api.domain.model.NominationPool
+import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.api.domain.model.PoolUnbonding
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -68,7 +69,11 @@ class StakingPoolInteractor(
     ): Flow<NominationPool?> {
         return dataSource.observePoolMembers(chain.id, accountId).flatMapConcat { poolMember ->
             poolMember ?: return@flatMapConcat flowOf(null)
-            combine(dataSource.observePool(chain.id, poolMember.poolId), dataSource.observePoolRewards(chain.id, poolMember.poolId)) { bondedPool, rewardPool ->
+            combine(
+                dataSource.observePool(chain.id, poolMember.poolId),
+                dataSource.observePoolRewards(chain.id, poolMember.poolId),
+                relayChainRepository.electedExposuresInActiveEra(chain.id)
+            ) { bondedPool, rewardPool, exposures ->
                 bondedPool ?: return@combine null
                 val pendingRewards = calculatePendingRewards(chain, poolMember, bondedPool, rewardPool)
 
@@ -77,9 +82,21 @@ class StakingPoolInteractor(
                 val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
                 val redeemable = unbondingEras.filter { it.era < currentEra }.sumOf { it.amount }
                 val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
-                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding, poolMember.points, pendingRewards)
+
+                val poolStashAccount = generatePoolStashAccount(chain, poolMember.poolId)
+                val hasValidators = exposures.values.map { it.others }.flatten().any { it.who.contentEquals(poolStashAccount) }
+                val state = when {
+                    hasValidators.not() -> NominationPoolState.HasNoValidators
+                    else -> NominationPoolState.from(bondedPool.state.name)
+                }
+
+                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding, poolMember.points, pendingRewards, state)
             }
         }
+    }
+
+    private suspend fun getValidatorsForPool(chainId: ChainId) {
+        val exposures = relayChainRepository.electedExposuresInActiveEra(chainId)
     }
 
     private suspend fun calculatePendingRewards(chain: Chain, poolMember: PoolMember, bondedPool: BondedPool, rewardPool: PoolRewards?): BigInteger {
@@ -118,7 +135,8 @@ class StakingPoolInteractor(
         redeemable: BigInteger,
         unbonding: BigInteger,
         myStakedPoints: BigInteger,
-        myPendingRewards: BigInteger
+        myPendingRewards: BigInteger,
+        state: NominationPoolState
     ): NominationPool {
         return NominationPool(
             poolId = poolMember.poolId,
@@ -173,11 +191,12 @@ class StakingPoolInteractor(
         return pools.mapNotNull { (id, pool) ->
             pool ?: return@mapNotNull null
             val name = poolsMetadata[id] ?: "Pool #$id"
+            val state = NominationPoolState.from(pool.state.name)
             PoolInfo(
                 id,
                 name,
                 pool.points,
-                pool.state,
+                state,
                 pool.memberCounter,
                 pool.depositor,
                 pool.root,

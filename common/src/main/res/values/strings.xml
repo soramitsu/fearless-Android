@@ -892,6 +892,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_stakeng_create_confirm_title">Creating pool</string>
     <string name="min_to_create_pool_threshold_error_title">Sorry, the specified amount is not enough to create a pool</string>
     <string name="min_to_create_pool_threshold_error_message">Minimum amount is %s</string>
+    <string name="pool_select_validators_notification_title">Select pool validators</string>
+    <string name="pool_select_validators_notification_message">To continue you should select validators</string>
     <string name="network_issue_stub">Network issues</string>
     <string name="common_close">Close</string>
     <string name="notification">Notification</string>

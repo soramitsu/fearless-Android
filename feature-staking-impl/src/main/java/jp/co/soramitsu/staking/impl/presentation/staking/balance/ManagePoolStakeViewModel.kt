@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolManageFlowState
@@ -76,6 +77,7 @@ class ManagePoolStakeViewModel @Inject constructor(
         null,
         null,
         null,
+        null,
         defaultAvailableState,
         defaultUnstakingState,
         defaultPoolInfoState,
@@ -113,6 +115,20 @@ class ManagePoolStakeViewModel @Inject constructor(
                 colorAccent
             )
         }
+        val canNominate = accountId.contentEquals(pool.nominator) || accountId.contentEquals(pool.root)
+        val selectValidatorsNotification = pool.state == NominationPoolState.HasNoValidators && canNominate
+        val noValidatorsNotification = if (selectValidatorsNotification) {
+            NotificationState(
+                R.drawable.ic_status_warning_16,
+                R.string.pool_select_validators_notification_title,
+                resourceManager.getString(R.string.pool_select_validators_notification_message),
+                R.string.common_select,
+                colorAccent
+            )
+        } else {
+            null
+        }
+
         val available = asset.transferable.formatTokenAmount(asset.token.configuration)
         val availableFiat = asset.transferable.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
         val availableState = defaultAvailableState.copy(value = available, additionalValue = availableFiat)
@@ -130,6 +146,7 @@ class ManagePoolStakeViewModel @Inject constructor(
             totalFormatted,
             claimNotification,
             redeemableNotification,
+            noValidatorsNotification,
             availableState,
             unstakingState,
             poolInfoViewState,
@@ -165,4 +182,8 @@ class ManagePoolStakeViewModel @Inject constructor(
     }
 
     fun onNominationsClick() {}
+
+    fun onSelectValidatorsClick() {
+         router.openStartSelectValidators()
+    }
 }
