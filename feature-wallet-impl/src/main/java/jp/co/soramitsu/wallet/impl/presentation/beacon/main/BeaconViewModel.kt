@@ -114,13 +114,14 @@ class BeaconViewModel @Inject constructor(
                     val chainId = request.network.genesisHash
                     val amount = BigDecimal(request.amount)
                     val chain = walletInteractor.getChain(chainId)
-                    TransferSubstrateResponse
-                    val draft = TransferDraft(
-                        amount = amount,
-                        fee = BigDecimal.ZERO,
-
-                    )
-                    router.openConfirmTransfer()
+                    //todo complete transfer flow
+//                    TransferSubstrateResponse
+//                    val draft = TransferDraft(
+//                        amount = amount,
+//                        fee = BigDecimal.ZERO,
+//
+//                    )
+//                    router.openConfirmTransfer()
                 }
 
                 is SideEffect.RespondApprovedPermissions -> {
@@ -214,6 +215,7 @@ class BeaconViewModel @Inject constructor(
         requestsFlow
             .distinctUntilChanged()
             .onEach {
+                hashCode()
                 when (it) {
                     is PermissionSubstrateRequest -> {
                         beaconRequestedNetworks = it.networks

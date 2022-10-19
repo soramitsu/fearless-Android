@@ -1,6 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.beacon.sign
 
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,21 +18,71 @@ import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 
 const val SIGN_PAYLOAD_KEY = "SIGN_PAYLOAD_KEY"
 
+class ParcelableJsonPayload(val payload: SubstrateSignerPayload.Json) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        SubstrateSignerPayload.Json(
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.createStringArrayList() ?: listOf(),
+            parcel.readLong()
+        )
+    ) {
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(payload.blockHash)
+        parcel.writeString(payload.blockNumber)
+        parcel.writeString(payload.era)
+        parcel.writeString(payload.genesisHash)
+        parcel.writeString(payload.method)
+        parcel.writeString(payload.nonce)
+        parcel.writeString(payload.specVersion)
+        parcel.writeString(payload.tip)
+        parcel.writeString(payload.transactionVersion)
+        parcel.writeStringList(payload.signedExtensions)
+        parcel.writeLong(payload.version)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ParcelableJsonPayload> {
+        override fun createFromParcel(parcel: Parcel): ParcelableJsonPayload {
+            return ParcelableJsonPayload(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ParcelableJsonPayload?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
+
 @AndroidEntryPoint
 class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewModel>(R.layout.fragment_sign_beacon_transaction) {
 
     companion object {
         const val SIGN_RESULT_KEY = "SIGN_STATUS_KEY"
         const val METADATA_KEY = "METADATA_KEY"
+        const val JSON_PAYLOAD_KEY = "JSON_PAYLOAD_KEY"
 
         fun getBundle(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel) = Bundle().apply {
-            val result = when (payload) {
+            when (payload) {
                 is SubstrateSignerPayload.Raw -> {
-                    payload.data
+                    putString(SIGN_PAYLOAD_KEY, payload.data)
                 }
-                else -> ""
+                is SubstrateSignerPayload.Json -> {
+                    putParcelable(JSON_PAYLOAD_KEY, ParcelableJsonPayload(payload))
+                }
             }
-            putString(SIGN_PAYLOAD_KEY, result)
+
             putParcelable(METADATA_KEY, dAppMetadata)
         }
     }

@@ -31,16 +31,18 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
-import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.isTransfer
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.AdditionalExtras
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Era
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.EraType
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.SignedExtras
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
@@ -154,6 +156,17 @@ class BeaconInteractor(
         mapCallToSignableOperation(call, chain.addressPrefix)
     }
 
+    suspend fun decodeOperation(payload: SubstrateSignerPayload.Json): Result<SignableOperation> {
+        return runCatching {
+            val currentRegisteredNetwork = getBeaconRegisteredNetwork()
+            requireNotNull(currentRegisteredNetwork)
+            val runtime = chainRegistry.getRuntime(currentRegisteredNetwork)
+            val chain = chainRegistry.getChain(currentRegisteredNetwork)
+            val call = GenericCall.fromHex(runtime, payload.method)
+            mapCallToSignableOperation(call, chain.addressPrefix)
+        }
+    }
+
     suspend fun reportSignDeclined(
         request: SignPayloadSubstrateRequest
     ) {
@@ -186,23 +199,22 @@ class BeaconInteractor(
     }
 
     private suspend fun signJsonPayload(payload: SubstrateSignerPayload.Json): String {
-        val blockHash = payload.blockHash.fromHex().decodeToString()
-        val blockNumber = payload.blockNumber
-        val era = payload.era.fromHex().decodeToInt()
-        val genesisHash = payload.genesisHash
-        val method = payload.method
-        val nonce = payload.nonce.fromHex().decodeToInt()
-        val specVersion = payload.specVersion.fromHex().decodeToInt()
-        val tip = payload.tip.fromHex().decodeToInt()
-        val transactionVersion = payload.transactionVersion.fromHex().decodeToInt()
-        val signedExtensions = payload.signedExtensions
-        val version = payload.version
+        val blockHash = payload.blockHash.fromHex()
+        val era = payload.era
+        val genesisHash = payload.genesisHash.requireHexPrefix().removePrefix("0x")
         val runtime = chainRegistry.getRuntime(genesisHash)
-        val chain = chainRegistry.getChain(genesisHash)
+
+        val method = payload.method
+        val nonce = payload.nonce.fromHex().fromUnsignedBytes()
+        val specVersion = payload.specVersion.fromHex().fromUnsignedBytes()
+        val tip = payload.tip.fromHex().fromUnsignedBytes()
+        val transactionVersion = payload.transactionVersion.fromHex().fromUnsignedBytes()
+
         val call = GenericCall.fromHex(runtime, method)
 
+        val eraDecoded = EraType.fromHex(runtime, era)
         val signedExtrasInstance = mapOf(
-            SignedExtras.ERA to era,
+            SignedExtras.ERA to eraDecoded,
             SignedExtras.NONCE to nonce,
             SignedExtras.TIP to tip,
             SignedExtras.ASSET_TX_PAYMENT to listOf(BigInteger.ZERO, null)
@@ -210,7 +222,7 @@ class BeaconInteractor(
 
         val additionalExtrasInstance = mapOf(
             AdditionalExtras.BLOCK_HASH to blockHash,
-            AdditionalExtras.GENESIS to genesisHash,
+            AdditionalExtras.GENESIS to genesisHash.requireHexPrefix().fromHex(),
             AdditionalExtras.SPEC_VERSION to specVersion,
             AdditionalExtras.TX_VERSION to transactionVersion
         )
