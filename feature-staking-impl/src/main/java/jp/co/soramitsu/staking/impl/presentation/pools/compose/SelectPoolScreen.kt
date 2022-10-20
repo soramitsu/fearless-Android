@@ -11,9 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetLayout
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
@@ -24,6 +26,8 @@ import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.black1
+import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.coroutines.launch
 
@@ -36,18 +40,18 @@ enum class PoolSorting : ListDialogState.Item {
     }
 }
 
-data class SelectPoolScreenViewState(
-    val pools: List<PoolItemState>,
-    val selectedPool: PoolItemState?
+data class SelectListItemViewState<ItemIdType>(
+    val items: List<SelectableListItemState<ItemIdType>>,
+    val selectedItem: SelectableListItemState<ItemIdType>?
 )
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SelectPoolScreen(
-    state: SelectPoolScreenViewState,
+    state: SelectListItemViewState<Int>,
     onNavigationClick: () -> Unit,
-    onPoolSelected: (PoolItemState) -> Unit,
-    onInfoClick: (PoolItemState) -> Unit,
+    onPoolSelected: (SelectableListItemState<Int>) -> Unit,
+    onInfoClick: (SelectableListItemState<Int>) -> Unit,
     onChooseClick: () -> Unit,
     onSortingSelected: (PoolSorting) -> Unit
 ) {
@@ -55,10 +59,13 @@ fun SelectPoolScreen(
 
     BottomSheetLayout(
         sheetContent = { sheetState ->
-            ListDialog(state = ListDialogState(R.string.common_sort_by, PoolSorting.values().toList()), onSelected = {
-                scope.launch { sheetState.hide() }
-                onSortingSelected(it)
-            })
+            ListDialog(
+                state = ListDialogState(R.string.common_sort_by, PoolSorting.values().toList()),
+                onSelected = {
+                    scope.launch { sheetState.hide() }
+                    onSortingSelected(it)
+                }
+            )
         },
         content = { sheetState ->
             BottomSheetScreen {
@@ -79,8 +86,8 @@ fun SelectPoolScreen(
                 )
                 MarginVertical(margin = 8.dp)
                 LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(state.pools.map { it.copy(isSelected = it.id == state.selectedPool?.id) }) { pool ->
-                        PoolItem(
+                    items(items = state.items.map { it.copy(isSelected = it.id == state.selectedItem?.id) }) { pool ->
+                        SelectableListItem(
                             state = pool,
                             onSelected = onPoolSelected,
                             onInfoClick = { onInfoClick(pool) }
@@ -90,7 +97,7 @@ fun SelectPoolScreen(
                 AccentButton(
                     text = stringResource(id = R.string.pool_staking_choosepool_button_title),
                     onClick = onChooseClick,
-                    enabled = state.selectedPool != null,
+                    enabled = state.selectedItem != null,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
@@ -105,27 +112,35 @@ fun SelectPoolScreen(
 @Preview
 @Composable
 private fun SelectPoolScreenPreview() {
+    val stakedText = buildAnnotatedString {
+        withStyle(style = SpanStyle(color = black1)) {
+            append("${stringResource(R.string.pool_staking_choosepool_staked_title)} ")
+        }
+        withStyle(style = SpanStyle(color = greenText)) {
+            append("20k KSM")
+        }
+    }
+    val subtitle = stringResource(R.string.pool_staking_choosepool_members_count_title, 15)
+
     val items = listOf(
-        PoolItemState(
+        SelectableListItemState(
             id = 1,
-            name = "Polkadot js plus",
-            membersCount = 15,
-            staked = "20k KSM",
-            isSelected = true,
-            stakedAmount = BigDecimal.ZERO
+            title = "Polkadot js plus",
+            subtitle = subtitle,
+            caption = stakedText,
+            isSelected = true
         ),
-        PoolItemState(
+        SelectableListItemState(
             id = 2,
-            name = "POOL NUMBER ONE",
-            membersCount = 7,
-            staked = "10k KSM",
-            isSelected = false,
-            stakedAmount = BigDecimal.ZERO
+            title = "POOL NUMBER ONE",
+            subtitle = subtitle,
+            caption = stakedText,
+            isSelected = false
         )
     )
-    val state = SelectPoolScreenViewState(
-        pools = items,
-        selectedPool = items.first()
+    val state = SelectListItemViewState(
+        items = items,
+        selectedItem = items.first()
     )
     FearlessTheme {
         Column {

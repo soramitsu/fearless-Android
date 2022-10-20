@@ -1,21 +1,24 @@
 package jp.co.soramitsu.staking.impl.presentation.pools.compose
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.CapsTitle
 import jp.co.soramitsu.common.compose.component.FearlessRadioButton
@@ -25,35 +28,32 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.accentRadioButtonColors
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
+import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
 
-data class PoolItemState(
-    val id: Int,
-    val name: String,
-    val membersCount: Int,
-    val stakedAmount: BigDecimal,
-    val staked: String,
-    val isSelected: Boolean
-)
+data class SelectableListItemState<T>(
+    val id: T,
+    val title: String,
+    val subtitle: String,
+    val caption: AnnotatedString,
+    val isSelected: Boolean,
+    val additionalStatuses: List<SelectableListItemAdditionalStatus> = listOf()
+) {
+    enum class SelectableListItemAdditionalStatus(@DrawableRes val iconRes: Int, val iconTintColor: Color) {
+        WARNING(R.drawable.ic_screen_warning, warningOrange)
+    }
+}
+
 
 @Composable
-fun PoolItem(state: PoolItemState, onSelected: (PoolItemState) -> Unit, onInfoClick: () -> Unit) {
+fun <T> SelectableListItem(state: SelectableListItemState<T>, onSelected: (SelectableListItemState<T>) -> Unit, onInfoClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clickableWithNoIndication { onSelected(state) }
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        val stakedText = buildAnnotatedString {
-            withStyle(style = SpanStyle(color = black1)) {
-                append("${stringResource(id = R.string.pool_staking_choosepool_staked_title)} ")
-            }
-            withStyle(style = SpanStyle(color = greenText)) {
-                append(state.staked)
-            }
-        }
-
         FearlessRadioButton(
             selected = state.isSelected,
             onClick = { onSelected(state) },
@@ -62,9 +62,14 @@ fun PoolItem(state: PoolItemState, onSelected: (PoolItemState) -> Unit, onInfoCl
         )
         MarginHorizontal(margin = 14.dp)
         Column(modifier = Modifier.weight(1f)) {
-            CapsTitle(text = state.name)
-            B2(text = stringResource(id = R.string.pool_staking_choosepool_members_count_title, state.membersCount), color = black1)
-            B2(text = stakedText)
+            CapsTitle(text = state.title)
+            B2(text = state.subtitle, color = black1)
+            B2(text = state.caption)
+        }
+        state.additionalStatuses.takeIf { it.isNotEmpty() }?.let { items ->
+            items.forEach {
+                Image(modifier = Modifier.size(12.dp).align(CenterVertically), res = it.iconRes, tint = it.iconTintColor)
+            }
         }
         Box(
             modifier = Modifier
@@ -82,25 +87,33 @@ fun PoolItem(state: PoolItemState, onSelected: (PoolItemState) -> Unit, onInfoCl
 fun PoolItemPreview() {
     FearlessTheme {
         Column(modifier = Modifier.padding(16.dp)) {
-            PoolItem(
-                PoolItemState(
+            val stakedText = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = black1)) {
+                    append("${stringResource(R.string.pool_staking_choosepool_staked_title)} ")
+                }
+                withStyle(style = SpanStyle(color = greenText)) {
+                    append("20k KSM")
+                }
+            }
+            val subtitle = stringResource(R.string.pool_staking_choosepool_members_count_title, 15)
+            SelectableListItem(
+                SelectableListItemState(
                     id = 1,
-                    name = "Polkadot js plus",
-                    membersCount = 15,
-                    staked = "20k KSM",
-                    stakedAmount = BigDecimal.ZERO,
-                    isSelected = true
+                    title = "Polkadot js plus",
+                    subtitle = subtitle,
+                    caption = stakedText,
+                    isSelected = true,
+                    additionalStatuses = listOf(SelectableListItemState.SelectableListItemAdditionalStatus.WARNING)
                 ),
                 {},
                 {}
             )
-            PoolItem(
-                PoolItemState(
+            SelectableListItem(
+                SelectableListItemState(
                     id = 2,
-                    name = "FIRST POOL",
-                    membersCount = 7,
-                    staked = "10k KSM",
-                    stakedAmount = BigDecimal.ZERO,
+                    title = "FIRST POOL",
+                    subtitle = subtitle,
+                    caption = stakedText,
                     isSelected = false
                 ),
                 {},

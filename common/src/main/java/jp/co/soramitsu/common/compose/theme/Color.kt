@@ -61,6 +61,7 @@ val shimmerColor = Color(0x80DBDBDB)
 val accountIconLight = Color(0xFFEEEEEE)
 val accountIconDark = Color(0xFF000000)
 val errorRed = Color(0xFFFF3B30)
+val warningOrange = Color(0xFFEE7700)
 val alertYellow = Color(0xFFEE7700)
 
 val transparent = Color(0xffffff)
