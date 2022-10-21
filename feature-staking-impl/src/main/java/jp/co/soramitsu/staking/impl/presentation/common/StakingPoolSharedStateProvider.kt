@@ -5,6 +5,7 @@ class StakingPoolSharedStateProvider {
     val joinFlowState by lazy { StakingPoolSharedState<StakingPoolJoinFlowState>() }
     val createFlowState by lazy { StakingPoolSharedState<StakingPoolCreateFlowState>() }
     val manageState by lazy { StakingPoolSharedState<StakingPoolManageFlowState>() }
+    val selectValidatorsState by lazy { StakingPoolSharedState<SelectValidatorFlowState>() }
 
     val requireMainState: StakingPoolState
         get() = requireNotNull(mainState.get())

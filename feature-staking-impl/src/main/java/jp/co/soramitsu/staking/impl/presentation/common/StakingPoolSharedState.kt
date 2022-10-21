@@ -5,6 +5,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
+import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -57,6 +58,10 @@ data class StakingPoolState(
     val requireAmount
         get() = requireNotNull(amount)
 }
+
+data class SelectValidatorFlowState(
+    val selectedValidators: List<Validator> = emptyList()
+)
 
 class StakingPoolSharedState<T> {
 

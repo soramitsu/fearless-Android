@@ -30,15 +30,15 @@ import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListIte
 
 data class SelectValidatorsScreenViewState(
     val toolbarTitle: String,
-    val listState: SelectListItemViewState<Int>
+    val listState: SelectListItemViewState<String>
 )
 
 @Composable
 fun SelectValidatorsScreen(
     state: SelectValidatorsScreenViewState,
     onNavigationClick: () -> Unit,
-    onSelected: (SelectableListItemState<Int>) -> Unit,
-    onInfoClick: (SelectableListItemState<Int>) -> Unit,
+    onSelected: (SelectableListItemState<String>) -> Unit,
+    onInfoClick: (SelectableListItemState<String>) -> Unit,
     onChooseClick: () -> Unit,
     onOptionsClick: () -> Unit
 ) {
