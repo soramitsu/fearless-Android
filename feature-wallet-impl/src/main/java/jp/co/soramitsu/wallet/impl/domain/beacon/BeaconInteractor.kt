@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.domain.beacon
 
 import android.net.Uri
 import com.google.gson.Gson
+import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAppMetadata
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstratePermission
@@ -31,26 +32,30 @@ import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.utils.Base58Ext.fromBase58Check
+import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.isTransfer
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
+import jp.co.soramitsu.fearless_utils.extensions.toHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.AdditionalExtras
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Era
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.EraType
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.SignedExtras
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
+import jp.co.soramitsu.fearless_utils.scale.dataType.byte
+import jp.co.soramitsu.fearless_utils.scale.utils.directWrite
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -198,26 +203,42 @@ class BeaconInteractor(
         beaconClient().respond(response)
     }
 
+    private fun decodeEra(eraScale: String): Era {
+        val reader = ScaleCodecReader(eraScale.fromHex())
+        val firstByte = byte.read(reader).toHex()
+
+        return if (firstByte == "00") {
+            Era.Immortal
+        } else {
+            val secondByte = byte.read(reader).toHex()
+            val encoded = (secondByte + firstByte).toInt(16)
+            val period = 2 shl (encoded % 16)
+            val quantizeFactor = max(1, period shr 12)
+            val phase = (encoded shr 4) * quantizeFactor
+
+            Era.Mortal(period, phase)
+        }
+    }
+
     private suspend fun signJsonPayload(payload: SubstrateSignerPayload.Json): String {
         val blockHash = payload.blockHash.fromHex()
         val era = payload.era
         val genesisHash = payload.genesisHash.requireHexPrefix().removePrefix("0x")
-        val runtime = chainRegistry.getRuntime(genesisHash)
+//        val runtime = chainRegistry.getRuntime(genesisHash)
 
         val method = payload.method
         val nonce = payload.nonce.fromHex().fromUnsignedBytes()
         val specVersion = payload.specVersion.fromHex().fromUnsignedBytes()
         val tip = payload.tip.fromHex().fromUnsignedBytes()
         val transactionVersion = payload.transactionVersion.fromHex().fromUnsignedBytes()
+//        val call = GenericCall.fromHex(runtime, method)
 
-        val call = GenericCall.fromHex(runtime, method)
-
-        val eraDecoded = EraType.fromHex(runtime, era)
+        val eraDecoded = decodeEra(era)
         val signedExtrasInstance = mapOf(
-            SignedExtras.ERA to eraDecoded,
-            SignedExtras.NONCE to nonce,
-            SignedExtras.TIP to tip,
-            SignedExtras.ASSET_TX_PAYMENT to listOf(BigInteger.ZERO, null)
+            SignedExtras.ERA to eraDecoded,//"CheckMortality"
+            SignedExtras.NONCE to nonce,//"CheckNonce"
+            SignedExtras.TIP to tip,//"ChargeTransactionPayment"
+            SignedExtras.ASSET_TX_PAYMENT to listOf(BigInteger.ZERO, null)//"ChargeAssetTxPayment"
         )
 
         val additionalExtrasInstance = mapOf(
@@ -228,11 +249,21 @@ class BeaconInteractor(
         )
 
         val payloadBytes = useScaleWriter {
-            GenericCall.encode(this, runtime, call)
-            SignedExtras.encode(this, runtime, signedExtrasInstance)
-            AdditionalExtras.encode(this, runtime, additionalExtrasInstance)
+            directWrite(payload.method.fromHex())
+            directWrite(era.fromHex())
+            writeCompact(payload.nonce.fromHex().decodeToInt())
+            writeCompact(payload.tip.fromHex().decodeToInt())
+            writeUint32(payload.specVersion.fromHex().decodeToInt())
+            writeUint32(payload.transactionVersion.fromHex().decodeToInt())
+            directWrite(genesisHash.requireHexPrefix().fromHex())
+            directWrite(blockHash)
         }
 
+//        val payloadBytes = useScaleWriter {
+//            GenericCall.encode(this, runtime, call)
+//            SignedExtras.encode(this, runtime, signedExtrasInstance)
+//            AdditionalExtras.encode(this, runtime, additionalExtrasInstance)
+//        }
         val messageToSign = if (payloadBytes.size > 256) {
             payloadBytes.blake2b256()
         } else {
@@ -249,7 +280,6 @@ class BeaconInteractor(
         val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
 
         return extrinsicService.createSignature(
-            runtime,
             encryption,
             keypair,
             messageToSign.toHexString()
@@ -257,7 +287,6 @@ class BeaconInteractor(
     }
 
     private suspend fun signRawPayload(payload: SubstrateSignerPayload.Raw): String {
-        val chain = getBeaconRegisteredChain() ?: return ""
         val currentMetaAccount = accountRepository.getSelectedMetaAccount()
         val secrets = accountRepository.getMetaAccountSecrets(currentMetaAccount.id) ?: error("There are no secrets for metaId: ${currentMetaAccount.id}")
         val keypairSchema = secrets[MetaAccountSecrets.SubstrateKeypair]
@@ -266,10 +295,8 @@ class BeaconInteractor(
         val nonce = keypairSchema[KeyPairSchema.Nonce]
         val keypair = Keypair(publicKey, privateKey, nonce)
         val encryption = mapCryptoTypeToEncryption(currentMetaAccount.substrateCryptoType)
-        val runtime = chainRegistry.getRuntime(chain.id)
 
         return extrinsicService.createSignature(
-            runtime,
             encryption,
             keypair,
             payload.data

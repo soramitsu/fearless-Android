@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.api.extrinsic
 
+import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -18,8 +19,11 @@ import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.MultiSignature
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.prepareForEncoding
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.runtime.metadata.event
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
@@ -41,14 +45,25 @@ class ExtrinsicService(
 ) {
 
     fun createSignature(
-        runtime: RuntimeSnapshot,
         encryption: EncryptionType,
         keypair: Keypair,
         message: String
     ): String {
         val signatureWrapper = Signer.sign(MultiChainEncryption.Substrate(encryption), message.fromHex(), keypair)
-        val multiSignature = MultiSignature(encryption, signatureWrapper.signature).prepareForEncoding()
-        val bytes = runtime.typeRegistry["ExtrinsicSignature"]?.bytes(runtime, multiSignature) ?: error("createSignature error occurred")
+//        val multiSignature = MultiSignature(encryption, signatureWrapper.signature).prepareForEncoding()
+
+        val siga = DictEnum.Entry(encryption.rawName.capitalize(), signatureWrapper.signature)
+
+//        val type = runtime.typeRegistry["ExtrinsicSignature"]
+//        Log.d("&&&", "ExtrinsicSignature type = ${type?.name.orEmpty()}, ${type?.toString().orEmpty()}")
+        // DictEnum
+        val bytes = //type?.bytes(runtime, multiSignature) ?: error("createSignature error occurred")
+        useScaleWriter {
+            writeByte(1)
+            directWrite(siga.value, 0, siga.value.size) // size must be 64
+//            type.encodeUnsafe(this, runtime, siga.value)
+        }
+        hashCode()
         return bytes.toHexString(true)
     }
 
