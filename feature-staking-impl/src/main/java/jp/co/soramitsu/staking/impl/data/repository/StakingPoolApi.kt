@@ -143,8 +143,8 @@ class StakingPoolApi(
 
     suspend fun nominatePool(
         poolId: BigInteger,
-        vararg validators: AccountId,
-        accountAddress: String
+        accountAddress: String,
+        vararg validators: AccountId
     ): Result<String> {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()

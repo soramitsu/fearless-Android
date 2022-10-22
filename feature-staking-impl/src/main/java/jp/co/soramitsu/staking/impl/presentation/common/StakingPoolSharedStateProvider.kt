@@ -13,4 +13,6 @@ class StakingPoolSharedStateProvider {
         get() = requireNotNull(createFlowState.get())
     val requireJoinState: StakingPoolJoinFlowState
         get() = requireNotNull(joinFlowState.get())
+    val requireSelectValidatorsState: SelectValidatorFlowState
+        get() = requireNotNull(selectValidatorsState.get())
 }

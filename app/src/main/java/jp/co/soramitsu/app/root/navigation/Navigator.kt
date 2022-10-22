@@ -783,6 +783,14 @@ class Navigator :
         navController?.navigate(R.id.startSelectValidatorsFragment)
     }
 
+    override fun openSelectRecommendedValidators() {
+        navController?.navigate(R.id.selectRecommendedValidatorsFragment)
+    }
+
+    override fun openConfirmSelectValidators() {
+        navController?.navigate(R.id.confirmSelectValidatorsFragment)
+    }
+
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)

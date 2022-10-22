@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.validators.compose
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -14,18 +15,23 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
-import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectListItemViewState
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
 import jp.co.soramitsu.wallet.api.presentation.formatters.tokenAmountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class SelectRecommendedValidatorsViewModel @Inject constructor(
@@ -39,10 +45,14 @@ class SelectRecommendedValidatorsViewModel @Inject constructor(
     private val asset: Asset
     private val chain: Chain
 
+    private val selectedItems: MutableStateFlow<List<String>>
+    private val selectValidatorsState = stakingPoolSharedStateProvider.requireSelectValidatorsState
+
     init {
         val mainState = stakingPoolSharedStateProvider.requireMainState
         asset = mainState.requireAsset
         chain = mainState.requireChain
+        selectedItems = MutableStateFlow(selectValidatorsState.selectedValidators.map { it.toHexString(false) })
     }
 
     private val recommendedSettings by lazyAsync {
@@ -56,29 +66,74 @@ class SelectRecommendedValidatorsViewModel @Inject constructor(
         emit(validators)
     }.inBackground().share()
 
-    private val viewState = recommendedValidators.map { validators ->
+    val state = combine(recommendedValidators, selectedItems) { validators, selectedValidators ->
         val items = validators.map {
-            val totalStake = it.electedInfo?.totalStake.orZero().tokenAmountFromPlanks(asset)
-
-            val apyText = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = black1)) {
-                    append("${resourceManager.getString(R.string.staking_only_apy)} ")
-                }
-                withStyle(style = SpanStyle(color = greenText)) {
-                    append(it.electedInfo?.apy.orZero().formatAsPercentage())
-                }
-            }
-            SelectableListItemState(
-                id = it.accountIdHex,
-                title = it.identity?.display ?: it.accountIdHex,
-                subtitle = resourceManager.getString(R.string.staking_validator_total_stake_token, totalStake),
-                caption = apyText
-            )
+            it.toModel(it.accountIdHex in selectedValidators)
         }
-        val listState = SelectListItemViewState<String>(items,)
+        val selectedItems = items.filter { it.isSelected }
+        val listState = MultiSelectListItemViewState(items, selectedItems)
         SelectValidatorsScreenViewState(
             toolbarTitle = resourceManager.getString(R.string.staking_select_suggested),
-
+            listState
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        SelectValidatorsScreenViewState(
+            resourceManager.getString(R.string.staking_select_suggested), MultiSelectListItemViewState(
+                emptyList(),
+                emptyList()
             )
+        )
+    )
+
+    private fun Validator.toModel(isSelected: Boolean): SelectableListItemState<String> {
+        val totalStake = electedInfo?.totalStake.orZero().tokenAmountFromPlanks(asset)
+
+        val apyText = buildAnnotatedString {
+            withStyle(style = SpanStyle(color = black1)) {
+                append("${resourceManager.getString(R.string.staking_only_apy)} ")
+            }
+            withStyle(style = SpanStyle(color = greenText)) {
+                append(electedInfo?.apy.orZero().formatAsPercentage())
+            }
+        }
+        return SelectableListItemState(
+            id = accountIdHex,
+            title = identity?.display ?: address,
+            subtitle = resourceManager.getString(R.string.staking_validator_total_stake_token, totalStake),
+            caption = apyText,
+            isSelected = isSelected
+        )
+    }
+
+    fun onBackClicked() {
+        router.back()
+    }
+
+    fun onValidatorSelected(item: SelectableListItemState<String>) {
+        val selectedIds = selectedItems.value
+        val selectedListClone = selectedItems.value.toMutableList()
+        if (item.id in selectedIds) {
+            selectedListClone.removeIf { it == item.id }
+        } else {
+            selectedListClone.add(item.id)
+        }
+        selectedItems.value = selectedListClone
+    }
+
+    fun onValidatorInfoClick(item: SelectableListItemState<String>) {
+
+    }
+
+    fun onCompleteClick() {
+        stakingPoolSharedStateProvider.selectValidatorsState.mutate {
+            requireNotNull(it).copy(selectedValidators = selectedItems.value.map(String::fromHex))
+        }
+        router.openConfirmSelectValidators()
+    }
+
+    fun onOptionsClick() {
+
     }
 }

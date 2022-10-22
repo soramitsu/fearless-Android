@@ -55,7 +55,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
     }
 
     fun onRecommendedClick() {
-
+        router.openSelectRecommendedValidators()
     }
 
     fun onManualClick() {

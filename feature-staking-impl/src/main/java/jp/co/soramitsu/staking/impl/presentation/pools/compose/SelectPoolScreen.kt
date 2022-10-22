@@ -40,7 +40,7 @@ enum class PoolSorting : ListDialogState.Item {
     }
 }
 
-data class SelectListItemViewState<ItemIdType>(
+data class SingleSelectListItemViewState<ItemIdType>(
     val items: List<SelectableListItemState<ItemIdType>>,
     val selectedItem: SelectableListItemState<ItemIdType>?
 )
@@ -48,7 +48,7 @@ data class SelectListItemViewState<ItemIdType>(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SelectPoolScreen(
-    state: SelectListItemViewState<Int>,
+    state: SingleSelectListItemViewState<Int>,
     onNavigationClick: () -> Unit,
     onPoolSelected: (SelectableListItemState<Int>) -> Unit,
     onInfoClick: (SelectableListItemState<Int>) -> Unit,
@@ -138,7 +138,7 @@ private fun SelectPoolScreenPreview() {
             isSelected = false
         )
     )
-    val state = SelectListItemViewState(
+    val state = SingleSelectListItemViewState(
         items = items,
         selectedItem = items.first()
     )

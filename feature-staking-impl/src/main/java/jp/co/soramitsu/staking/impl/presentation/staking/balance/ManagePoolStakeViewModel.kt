@@ -16,6 +16,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolManageFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeViewState
@@ -184,6 +185,8 @@ class ManagePoolStakeViewModel @Inject constructor(
     fun onNominationsClick() {}
 
     fun onSelectValidatorsClick() {
+        poolStateFlow.value?.name
+        stakingPoolSharedStateProvider.selectValidatorsState.set(SelectValidatorFlowState())
          router.openStartSelectValidators()
     }
 }

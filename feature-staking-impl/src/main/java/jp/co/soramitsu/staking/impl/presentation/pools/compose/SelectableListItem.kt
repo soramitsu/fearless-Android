@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.CapsTitle
 import jp.co.soramitsu.common.compose.component.FearlessRadioButton
+import jp.co.soramitsu.common.compose.component.H6
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -62,7 +63,7 @@ fun <T> SelectableListItem(state: SelectableListItemState<T>, onSelected: (Selec
         )
         MarginHorizontal(margin = 14.dp)
         Column(modifier = Modifier.weight(1f)) {
-            CapsTitle(text = state.title)
+            H6(text = state.title)
             B2(text = state.subtitle, color = black1)
             B2(text = state.caption)
         }

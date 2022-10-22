@@ -684,6 +684,16 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.StartSelectValidatorsFragment"
         android:label="startSelectValidatorsFragment" />
 
+    <dialog
+        android:id="@+id/selectRecommendedValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectRecommendedValidatorsFragment"
+        android:label="selectRecommendedValidatorsFragment" />
+
+    <dialog
+        android:id="@+id/confirmSelectValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.ConfirmSelectValidatorsFragment"
+        android:label="confirmSelectValidatorsFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"

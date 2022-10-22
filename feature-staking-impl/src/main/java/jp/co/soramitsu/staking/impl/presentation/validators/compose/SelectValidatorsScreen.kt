@@ -24,13 +24,17 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectListItemViewState
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItem
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
 
 data class SelectValidatorsScreenViewState(
     val toolbarTitle: String,
-    val listState: SelectListItemViewState<String>
+    val listState: MultiSelectListItemViewState<String>
+)
+
+data class MultiSelectListItemViewState<ItemIdType>(
+    val items: List<SelectableListItemState<ItemIdType>>,
+    val selectedItems: List<SelectableListItemState<ItemIdType>>
 )
 
 @Composable
@@ -58,7 +62,9 @@ fun SelectValidatorsScreen(
         )
         MarginVertical(margin = 8.dp)
         LazyColumn(modifier = Modifier.weight(1f)) {
-            items(items = state.listState.items.map { it.copy(isSelected = it.id == state.listState.selectedItem?.id) }) { pool ->
+            val selectedIds = state.listState.selectedItems.map { it.id }
+            val items = state.listState.items.map { it.copy(isSelected = it.id in selectedIds) }
+            items(items = items) { pool ->
                 SelectableListItem(
                     state = pool,
                     onSelected = onSelected,
@@ -69,7 +75,7 @@ fun SelectValidatorsScreen(
         AccentButton(
             text = stringResource(id = R.string.pool_staking_choosepool_button_title),
             onClick = onChooseClick,
-            enabled = state.listState.selectedItem != null,
+            enabled = state.listState.selectedItems.isNotEmpty(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
@@ -94,14 +100,14 @@ private fun SelectValidatorsScreenPreview() {
 
     val items = listOf(
         SelectableListItemState(
-            id = 1,
+            id = "1",
             title = "Polkadot js plus",
             subtitle = subtitle,
             caption = stakedText,
             isSelected = true
         ),
         SelectableListItemState(
-            id = 2,
+            id = "2",
             title = "POOL NUMBER ONE",
             subtitle = subtitle,
             caption = stakedText,
@@ -109,9 +115,9 @@ private fun SelectValidatorsScreenPreview() {
             additionalStatuses = listOf(SelectableListItemState.SelectableListItemAdditionalStatus.WARNING)
         )
     )
-    val state = SelectListItemViewState(
+    val state = MultiSelectListItemViewState(
         items = items,
-        selectedItem = items.first()
+        selectedItems = listOf(items.first())
     )
     FearlessTheme {
         Column {

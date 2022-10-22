@@ -17,7 +17,7 @@ import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolSorting
-import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectListItemViewState
+import jp.co.soramitsu.staking.impl.presentation.pools.compose.SingleSelectListItemViewState
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -66,8 +66,8 @@ class SelectPoolViewModel @Inject constructor(
         }
 
     val viewState = combine(poolItemsFlow, selectedItem) { poolItems, selectedPool ->
-        SelectListItemViewState(poolItems, selectedPool)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, SelectListItemViewState(listOf(), null))
+        SingleSelectListItemViewState(poolItems, selectedPool)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, SingleSelectListItemViewState(listOf(), null))
 
     private fun PoolInfo.toState(asset: Asset, isSelected: Boolean): SelectableListItemState<Int> {
         val staked = asset.token.amountFromPlanks(stakedInPlanks)

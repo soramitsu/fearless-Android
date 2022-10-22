@@ -22,8 +22,8 @@ class ConfirmPoolUnbondViewModel @Inject constructor(
     resourceManager = resourceManager,
     asset = requireNotNull(poolSharedStateProvider.mainState.get()?.asset),
     amountInPlanks = requireNotNull(poolSharedStateProvider.manageState.get()?.amountInPlanks),
-    feeEstimator = { stakingPoolInteractor.estimateUnstakeFee(requireNotNull(poolSharedStateProvider.mainState.get()?.address), it) },
-    executeOperation = { address, amount -> stakingPoolInteractor.unstake(address, amount) },
+    feeEstimator = { stakingPoolInteractor.estimateUnstakeFee(requireNotNull(poolSharedStateProvider.mainState.get()?.address), requireNotNull(it)) },
+    executeOperation = { address, amount -> stakingPoolInteractor.unstake(address, requireNotNull(amount)) },
     onOperationSuccess = { router.returnToManagePoolStake() },
     accountNameProvider = {
         val chain = requireNotNull(poolSharedStateProvider.mainState.get()?.chain)
