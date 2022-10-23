@@ -81,7 +81,6 @@ buildscript {
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
-        coilCompose = "io.coil-kt:coil-compose:$coilVersion"
 
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
@@ -98,7 +97,6 @@ buildscript {
 
         daggerDep = "com.google.dagger:hilt-android:$daggerVersion"
         daggerKapt = "com.google.dagger:hilt-compiler:$daggerVersion"
-        hiltNavComposeDep = "androidx.hilt:hilt-navigation-compose:1.0.0"
 
         compose = [
                 "androidx.compose.runtime:runtime:$composeVersion",
@@ -116,7 +114,9 @@ buildscript {
                 "com.valentinilk.shimmer:compose-shimmer:1.0.3",
                 "androidx.constraintlayout:constraintlayout-compose:1.0.1",
                 "com.google.accompanist:accompanist-swiperefresh:0.26.5-rc",
-
+                "io.coil-kt:coil-compose:$coilVersion",
+                "androidx.navigation:navigation-compose:$navControllerVersion",
+                "androidx.hilt:hilt-navigation-compose:1.0.0"
         ]
         composeDebug = [
                 "androidx.compose.ui:ui-tooling:$composeVersion",
@@ -149,7 +149,6 @@ buildscript {
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
-        navigationComposeDep = "androidx.navigation:navigation-compose:$navControllerVersion"
 
         bouncyCastleDep = "org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion"
 
