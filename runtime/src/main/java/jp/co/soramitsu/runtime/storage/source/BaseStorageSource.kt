@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.storage.source
 
+import android.util.Log
 import jp.co.soramitsu.common.data.network.rpc.childStateKey
 import jp.co.soramitsu.common.data.network.runtime.binding.Binder
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithKey
@@ -71,7 +72,14 @@ abstract class BaseStorageSource(
         val key = keyBuilder(runtime)
         val rawResult = key?.let { query(it, chainId, at) }
 
-        binding(rawResult, runtime)
+        return@withContext try {
+            binding(rawResult, runtime)
+        } catch (e: Exception) {
+            val s = e.message
+            Log.d("&&&", "${e.message}")
+            hashCode()
+            binding(rawResult, runtime)
+        }
     }
 
     override fun <T> observe(

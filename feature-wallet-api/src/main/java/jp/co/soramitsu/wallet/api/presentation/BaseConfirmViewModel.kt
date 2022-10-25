@@ -65,7 +65,7 @@ abstract class BaseConfirmViewModel(
         amountFiat
     )
 
-    private val feeViewStateFlow = flowOf {
+    val feeViewStateFlow = flowOf {
         val amountInPlanks = amount?.let { asset.token.planksFromAmount(it) }
         val feeInPlanks = feeEstimator(amountInPlanks)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
@@ -90,7 +90,7 @@ abstract class BaseConfirmViewModel(
         tableItemsFlow.map { tableItems ->
             ConfirmScreenViewState(
                 toolbarViewState,
-                amount = requireNotNull(amountViewState.value),
+                amount = amountViewState.value,
                 tableItems = tableItems,
                 asset.token.configuration.iconUrl,
                 titleRes,

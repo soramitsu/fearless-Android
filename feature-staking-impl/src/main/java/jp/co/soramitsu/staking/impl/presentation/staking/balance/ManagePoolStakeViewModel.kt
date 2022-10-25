@@ -185,8 +185,13 @@ class ManagePoolStakeViewModel @Inject constructor(
     fun onNominationsClick() {}
 
     fun onSelectValidatorsClick() {
-        poolStateFlow.value?.name
-        stakingPoolSharedStateProvider.selectValidatorsState.set(SelectValidatorFlowState())
-         router.openStartSelectValidators()
+        val pool = requireNotNull(poolStateFlow.value)
+        stakingPoolSharedStateProvider.selectValidatorsState.set(
+            SelectValidatorFlowState(
+                poolName = pool.name,
+                poolId = pool.poolId
+            )
+        )
+        router.openStartSelectValidators()
     }
 }

@@ -6,7 +6,6 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
-import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -62,8 +61,11 @@ data class StakingPoolState(
 
 data class SelectValidatorFlowState(
     val selectedValidators: List<AccountId> = emptyList(),
-    val poolName: String?
+    val poolName: String?,
+    val poolId: BigInteger?
 ) {
+    val requirePoolId: BigInteger
+        get() = requireNotNull(poolId)
     val requirePoolName
         get() = requireNotNull(poolName)
 }
