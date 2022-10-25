@@ -23,6 +23,7 @@ import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
 import jp.co.soramitsu.wallet.api.presentation.formatters.tokenAmountFromPlanks
@@ -34,7 +35,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
-class SelectRecommendedValidatorsViewModel @Inject constructor(
+
+class SelectValidatorsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
@@ -47,6 +49,7 @@ class SelectRecommendedValidatorsViewModel @Inject constructor(
 
     private val selectedItems: MutableStateFlow<List<String>>
     private val selectValidatorsState = stakingPoolSharedStateProvider.requireSelectValidatorsState
+    private val selectMode = selectValidatorsState.requireSelectMode
 
     init {
         val mainState = stakingPoolSharedStateProvider.requireMainState
@@ -56,7 +59,11 @@ class SelectRecommendedValidatorsViewModel @Inject constructor(
     }
 
     private val recommendedSettings by lazyAsync {
-        recommendationSettingsProviderFactory.createRelayChain(router.currentStackEntryLifecycle).defaultSettings()
+        val settingsProvider = recommendationSettingsProviderFactory.createRelayChain(router.currentStackEntryLifecycle)
+        when (selectMode) {
+            SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> settingsProvider.currentSettings()
+            SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> settingsProvider.defaultSettings()
+        }
     }
 
     private val recommendedValidators = flow {
@@ -66,6 +73,12 @@ class SelectRecommendedValidatorsViewModel @Inject constructor(
         emit(validators)
     }.inBackground().share()
 
+    private val toolbarTitle: String
+        get() = when (selectMode) {
+            SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> resourceManager.getString(R.string.staking_select_custom)
+            SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> resourceManager.getString(R.string.staking_select_suggested)
+        }
+
     val state = combine(recommendedValidators, selectedItems) { validators, selectedValidators ->
         val items = validators.map {
             it.toModel(it.accountIdHex in selectedValidators)
@@ -73,14 +86,14 @@ class SelectRecommendedValidatorsViewModel @Inject constructor(
         val selectedItems = items.filter { it.isSelected }
         val listState = MultiSelectListItemViewState(items, selectedItems)
         SelectValidatorsScreenViewState(
-            toolbarTitle = resourceManager.getString(R.string.staking_select_suggested),
+            toolbarTitle = toolbarTitle,
             listState
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
         SelectValidatorsScreenViewState(
-            resourceManager.getString(R.string.staking_select_suggested), MultiSelectListItemViewState(
+            toolbarTitle, MultiSelectListItemViewState(
                 emptyList(),
                 emptyList()
             )

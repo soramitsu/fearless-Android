@@ -9,8 +9,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 
 @AndroidEntryPoint
-class SelectRecommendedValidatorsFragment : BaseComposeBottomSheetDialogFragment<SelectRecommendedValidatorsViewModel>() {
-    override val viewModel: SelectRecommendedValidatorsViewModel by viewModels()
+class SelectValidatorsFragment : BaseComposeBottomSheetDialogFragment<SelectValidatorsViewModel>() {
+    override val viewModel: SelectValidatorsViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {

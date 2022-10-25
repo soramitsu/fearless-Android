@@ -135,7 +135,7 @@ interface StakingRouter {
 
     fun openStartSelectValidators()
 
-    fun openSelectRecommendedValidators()
+    fun openSelectValidators()
 
     fun openConfirmSelectValidators()
 

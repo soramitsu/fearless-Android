@@ -62,12 +62,19 @@ data class StakingPoolState(
 data class SelectValidatorFlowState(
     val selectedValidators: List<AccountId> = emptyList(),
     val poolName: String?,
-    val poolId: BigInteger?
+    val poolId: BigInteger?,
+    val selectMode: ValidatorSelectMode? = null
 ) {
+    enum class ValidatorSelectMode {
+        CUSTOM, RECOMMENDED
+    }
+
     val requirePoolId: BigInteger
         get() = requireNotNull(poolId)
     val requirePoolName
         get() = requireNotNull(poolName)
+    val requireSelectMode
+        get() = requireNotNull(selectMode)
 }
 
 class StakingPoolSharedState<T> {

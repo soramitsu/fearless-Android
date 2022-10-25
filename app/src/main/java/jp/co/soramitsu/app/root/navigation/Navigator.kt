@@ -783,8 +783,8 @@ class Navigator :
         navController?.navigate(R.id.startSelectValidatorsFragment)
     }
 
-    override fun openSelectRecommendedValidators() {
-        navController?.navigate(R.id.selectRecommendedValidatorsFragment)
+    override fun openSelectValidators() {
+        navController?.navigate(R.id.selectValidatorsFragment)
     }
 
     override fun openConfirmSelectValidators() {

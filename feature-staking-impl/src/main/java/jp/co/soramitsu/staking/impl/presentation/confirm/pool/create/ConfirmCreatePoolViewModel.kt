@@ -42,6 +42,7 @@ class ConfirmCreatePoolViewModel @Inject constructor(
                 poolId = poolSharedStateProvider.requireCreateState.requirePoolId.toBigInteger()
             )
         )
+        router.returnToMain()
         router.openStartSelectValidators()
     },
     accountNameProvider = {
@@ -55,10 +56,12 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     private val addressDisplayFlow = flowOf {
         poolInteractor.getAccountName(address) ?: address
     }.inBackground()
+
     private val nominatorDisplayFlow = flowOf {
         val nominatorAddress = poolSharedStateProvider.requireCreateState.requireNominatorAddress
         poolInteractor.getAccountName(nominatorAddress) ?: nominatorAddress
     }.inBackground()
+
     private val stateTogglerDisplayFlow = flowOf {
         val stateTogglerAddress = poolSharedStateProvider.requireCreateState.requireStateTogglerAddress
         poolInteractor.getAccountName(stateTogglerAddress) ?: stateTogglerAddress

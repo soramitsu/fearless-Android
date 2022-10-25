@@ -49,7 +49,7 @@ fun SelectValidatorsScreen(
     BottomSheetScreen {
         Toolbar(
             state = ToolbarViewState(
-                title = stringResource(R.string.staking_select_suggested),
+                title = state.toolbarTitle,
                 navigationIcon = R.drawable.ic_arrow_back_24dp,
                 menuItems = listOf(
                     MenuIconItem(

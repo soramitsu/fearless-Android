@@ -9,6 +9,8 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendatorFactory
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
+import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -19,7 +21,8 @@ import kotlinx.coroutines.launch
 class StartSelectValidatorsViewModel @Inject constructor(
     resourceManager: ResourceManager,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
-    private val router: StakingRouter
+    private val router: StakingRouter,
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel() {
 
     private val recommendedState = SelectValidatorsVariantPanelViewState(
@@ -55,11 +58,19 @@ class StartSelectValidatorsViewModel @Inject constructor(
     }
 
     fun onRecommendedClick() {
-        router.openSelectRecommendedValidators()
+        setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
+        router.openSelectValidators()
     }
 
     fun onManualClick() {
+        setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.CUSTOM)
+        router.openSelectValidators()
+    }
 
+    private fun setSelectMode(mode: SelectValidatorFlowState.ValidatorSelectMode) {
+        stakingPoolSharedStateProvider.selectValidatorsState.mutate {
+            requireNotNull(it?.copy(selectMode = mode))
+        }
     }
 
     fun onBackClick() {
