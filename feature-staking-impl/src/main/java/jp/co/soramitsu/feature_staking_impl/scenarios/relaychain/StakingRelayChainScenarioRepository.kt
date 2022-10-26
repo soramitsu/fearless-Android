@@ -136,11 +136,31 @@ class StakingRelayChainScenarioRepository(
         chainId = chainId
     )
 
-    suspend fun getHistoryDepth(chainId: ChainId): BigInteger = localStorage.queryNonNull(
+    suspend fun getHistoryDepth(chainId: ChainId): BigInteger {
+        return try {
+            // for runtime version < 9290
+            remoteStorage.queryNonNull(
+                keyBuilder = { it.metadata.staking().storage("HistoryDepth").storageKey() },
+                binding = ::bindHistoryDepth,
+                chainId = chainId
+            )
+        } catch (e: NoSuchElementException) {
+            // for runtime version >= 9290
+            getHistoryDepthFromConstants(chainId)
+        }
+    }
+
+    @Deprecated("Will be removed in runtime version 9290")
+    suspend fun getHistoryDepthFromStorage(chainId: ChainId): BigInteger = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("HistoryDepth").storageKey() },
         binding = ::bindHistoryDepth,
         chainId = chainId
     )
+
+    suspend fun getHistoryDepthFromConstants(chainId: ChainId): BigInteger {
+        val runtime = runtimeFor(chainId)
+        return runtime.metadata.staking().numberConstant("HistoryDepth", runtime)
+    }
 
     fun observeActiveEraIndex(chainId: String): Flow<BigInteger> {
         return localStorage.observeNonNull(
