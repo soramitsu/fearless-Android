@@ -203,50 +203,10 @@ class BeaconInteractor(
         beaconClient().respond(response)
     }
 
-    private fun decodeEra(eraScale: String): Era {
-        val reader = ScaleCodecReader(eraScale.fromHex())
-        val firstByte = byte.read(reader).toHex()
-
-        return if (firstByte == "00") {
-            Era.Immortal
-        } else {
-            val secondByte = byte.read(reader).toHex()
-            val encoded = (secondByte + firstByte).toInt(16)
-            val period = 2 shl (encoded % 16)
-            val quantizeFactor = max(1, period shr 12)
-            val phase = (encoded shr 4) * quantizeFactor
-
-            Era.Mortal(period, phase)
-        }
-    }
-
     private suspend fun signJsonPayload(payload: SubstrateSignerPayload.Json): String {
         val blockHash = payload.blockHash.fromHex()
         val era = payload.era
         val genesisHash = payload.genesisHash.requireHexPrefix().removePrefix("0x")
-//        val runtime = chainRegistry.getRuntime(genesisHash)
-
-        val method = payload.method
-        val nonce = payload.nonce.fromHex().fromUnsignedBytes()
-        val specVersion = payload.specVersion.fromHex().fromUnsignedBytes()
-        val tip = payload.tip.fromHex().fromUnsignedBytes()
-        val transactionVersion = payload.transactionVersion.fromHex().fromUnsignedBytes()
-//        val call = GenericCall.fromHex(runtime, method)
-
-        val eraDecoded = decodeEra(era)
-        val signedExtrasInstance = mapOf(
-            SignedExtras.ERA to eraDecoded,//"CheckMortality"
-            SignedExtras.NONCE to nonce,//"CheckNonce"
-            SignedExtras.TIP to tip,//"ChargeTransactionPayment"
-            SignedExtras.ASSET_TX_PAYMENT to listOf(BigInteger.ZERO, null)//"ChargeAssetTxPayment"
-        )
-
-        val additionalExtrasInstance = mapOf(
-            AdditionalExtras.BLOCK_HASH to blockHash,
-            AdditionalExtras.GENESIS to genesisHash.requireHexPrefix().fromHex(),
-            AdditionalExtras.SPEC_VERSION to specVersion,
-            AdditionalExtras.TX_VERSION to transactionVersion
-        )
 
         val payloadBytes = useScaleWriter {
             directWrite(payload.method.fromHex())
@@ -259,11 +219,6 @@ class BeaconInteractor(
             directWrite(blockHash)
         }
 
-//        val payloadBytes = useScaleWriter {
-//            GenericCall.encode(this, runtime, call)
-//            SignedExtras.encode(this, runtime, signedExtrasInstance)
-//            AdditionalExtras.encode(this, runtime, additionalExtrasInstance)
-//        }
         val messageToSign = if (payloadBytes.size > 256) {
             payloadBytes.blake2b256()
         } else {

@@ -50,20 +50,12 @@ class ExtrinsicService(
         message: String
     ): String {
         val signatureWrapper = Signer.sign(MultiChainEncryption.Substrate(encryption), message.fromHex(), keypair)
-//        val multiSignature = MultiSignature(encryption, signatureWrapper.signature).prepareForEncoding()
 
-        val siga = DictEnum.Entry(encryption.rawName.capitalize(), signatureWrapper.signature)
-
-//        val type = runtime.typeRegistry["ExtrinsicSignature"]
-//        Log.d("&&&", "ExtrinsicSignature type = ${type?.name.orEmpty()}, ${type?.toString().orEmpty()}")
-        // DictEnum
-        val bytes = //type?.bytes(runtime, multiSignature) ?: error("createSignature error occurred")
-        useScaleWriter {
+        val bytes = useScaleWriter {
             writeByte(1)
-            directWrite(siga.value, 0, siga.value.size) // size must be 64
-//            type.encodeUnsafe(this, runtime, siga.value)
+            directWrite(signatureWrapper.signature, 0, signatureWrapper.signature.size)
         }
-        hashCode()
+
         return bytes.toHexString(true)
     }
 
