@@ -39,6 +39,7 @@ android {
         }
         staging {
             initWith debug
+            signingConfig signingConfigs.ci
             matchingFallbacks = ['debug']
             versionNameSuffix '-staging'
             applicationIdSuffix '.staging'

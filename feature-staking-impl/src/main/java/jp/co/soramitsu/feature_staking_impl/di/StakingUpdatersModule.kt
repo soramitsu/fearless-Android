@@ -303,7 +303,7 @@ class StakingUpdatersModule {
             accountValidatorPrefsUpdater,
             accountNominationsUpdater,
             rewardDestinationUpdater,
-            historyDepthUpdater,
+//            historyDepthUpdater,
             historicalUpdateMediator,
             accountControllerBalanceUpdater,
             minBondUpdater,
