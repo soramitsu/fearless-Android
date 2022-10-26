@@ -574,6 +574,7 @@ to your account to avoid remaining stake.</string>
     <string name="wallet_title_stash_details">Slash details</string>
     <string name="common_event">Event</string>
     <string name="common_copy_id">Copy id</string>
+    <string name="common_copy">Copy</string>
     <string name="common_details">Details</string>
     <string name="wallet_assets">Assets</string>
     <string name="username_setup_choose_title_2_0">Wallet nickname</string>
@@ -884,6 +885,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_your_total_stake">Your total stake</string>
     <string name="pool_account_for_join">Account for join</string>
     <string name="common_note">Note: </string>
+    <string name="common_middle_dots">1%s…2%s</string>
     <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
     <string name="pool_staking_unstake_error">No redeemable tokens found</string>
     <string name="common_claimable">Claimable</string>
@@ -904,5 +906,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="network_issue_action_add_account">Add Account</string>
     <string name="network_issue_unavailable">The network is unavailable, you can wait or ask a question to the community</string>
     <string name="top_up">Top Up</string>
+    <string name="common_receive_alert_description">This is Polkadot wallet. Please only send assets\non the Polkadot blockchain.</string>
 
 </resources>
