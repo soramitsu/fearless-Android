@@ -41,10 +41,10 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val router: StakingRouter
 ) : BaseViewModel() {
 
-    private val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
-    private val chain = requireNotNull(mainState.chain)
-    private val asset = requireNotNull(mainState.asset)
-    private val accountId = requireNotNull(mainState.accountId)
+    private val mainState = stakingPoolSharedStateProvider.requireMainState
+    private val chain = mainState.requireChain
+    private val asset = mainState.requireAsset
+    private val accountId = mainState.accountId
 
     private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain, accountId).onEach { pool ->
         stakingPoolSharedStateProvider.manageState.mutate {

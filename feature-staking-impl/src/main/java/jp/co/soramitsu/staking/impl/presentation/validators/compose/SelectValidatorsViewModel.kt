@@ -10,10 +10,9 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.inBackground
-import jp.co.soramitsu.common.utils.invoke
-import jp.co.soramitsu.common.utils.lazyAsync
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -31,11 +30,12 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flattenConcat
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
-
 class SelectValidatorsViewModel @Inject constructor(
     private val router: StakingRouter,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
@@ -58,19 +58,19 @@ class SelectValidatorsViewModel @Inject constructor(
         selectedItems = MutableStateFlow(selectValidatorsState.selectedValidators.map { it.toHexString(false) })
     }
 
-    private val recommendedSettings by lazyAsync {
+    private val recommendedSettings = flowOf {
         val settingsProvider = recommendationSettingsProviderFactory.createRelayChain(router.currentStackEntryLifecycle)
         when (selectMode) {
-            SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> settingsProvider.currentSettings()
-            SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> settingsProvider.defaultSettings()
+            SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> settingsProvider.observeRecommendationSettings()
+            SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> flowOf(settingsProvider.defaultSettings())
         }
-    }
+    }.flattenConcat()
 
-    private val recommendedValidators = flow {
+    private val recommendedValidators = recommendedSettings.map { settings ->
         val validatorRecommendator = validatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
-        val validators = validatorRecommendator.recommendations(recommendedSettings())
+        val validators = validatorRecommendator.recommendations(settings)
 
-        emit(validators)
+        validators
     }.inBackground().share()
 
     private val toolbarTitle: String
@@ -147,6 +147,6 @@ class SelectValidatorsViewModel @Inject constructor(
     }
 
     fun onOptionsClick() {
-
+        router.openValidatorsSettings()
     }
 }

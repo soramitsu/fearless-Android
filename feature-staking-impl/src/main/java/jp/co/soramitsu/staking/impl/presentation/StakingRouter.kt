@@ -137,6 +137,8 @@ interface StakingRouter {
 
     fun openSelectValidators()
 
+    fun openValidatorsSettings()
+
     fun openConfirmSelectValidators()
 
     val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>

@@ -787,6 +787,10 @@ class Navigator :
         navController?.navigate(R.id.selectValidatorsFragment)
     }
 
+    override fun openValidatorsSettings() {
+        navController?.navigate(R.id.validatorsSettingsFragment)
+    }
+
     override fun openConfirmSelectValidators() {
         navController?.navigate(R.id.confirmSelectValidatorsFragment)
     }

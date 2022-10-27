@@ -34,6 +34,25 @@ fun BottomSheetScreen(modifier: Modifier = Modifier, Content: @Composable Column
     }
 }
 
+@Composable
+fun BottomSheetDialog(modifier: Modifier = Modifier, Content: @Composable ColumnScope.() -> Unit) {
+    val sheetBackground = modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
+    Column {
+        MarginVertical(margin = 12.dp)
+        Column(
+            modifier = sheetBackground
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    MarginVertical(margin = 12.dp)
+                    Content()
+                }
+                Grip(Modifier.align(Alignment.TopCenter))
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BottomSheetLayout(

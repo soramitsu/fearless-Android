@@ -84,7 +84,15 @@ sealed class StakingViewStateOld
 data class ReturnsModel(
     val monthly: RewardEstimation,
     val yearly: RewardEstimation
-)
+) {
+    companion object
+}
+
+val ReturnsModel.Companion.default
+    get() = ReturnsModel(
+        RewardEstimation("...", "...", "..."),
+        RewardEstimation("...", "...", "...")
+    )
 
 class StakeSummaryModel<S>(
     val status: S,
