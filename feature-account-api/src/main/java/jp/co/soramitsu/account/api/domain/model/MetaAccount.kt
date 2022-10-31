@@ -97,3 +97,16 @@ fun MetaAccount.accountId(chain: Chain): ByteArray? {
         else -> substrateAccountId
     }
 }
+
+fun MetaAccount.userAddress(chain: Chain): String? {
+    val accountId = when {
+        hasChainAccount(chain.id) -> chainAccounts.getValue(chain.id).accountId
+        chain.isEthereumBased -> ethereumAddress
+        else -> substrateAccountId
+    }
+
+    return when {
+        chain.isEthereumBased -> accountId?.ethereumAddressToHex()
+        else -> accountId?.toAddress(chain.addressPrefix.toShort())
+    }
+}

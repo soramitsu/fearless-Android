@@ -2,9 +2,8 @@ package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
@@ -30,15 +29,17 @@ import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.utils.withNoFontPadding
 
 @Composable
-fun TextFieldHint(
+fun InputWithHint(
     state: String?,
     cursorBrush: Brush = SolidColor(white),
+    modifier: Modifier = Modifier,
+    inputFieldModifier: Modifier = Modifier,
     onInput: (String) -> Unit,
     Hint: @Composable () -> Unit
 ) {
     var focusedState by remember { mutableStateOf(false) }
-    Box(Modifier.height(32.dp)) {
-        if (!focusedState && state.isNullOrEmpty()) {
+    Box(modifier) {
+        if (state.isNullOrEmpty()) {
             Box(Modifier.align(Alignment.CenterStart)) {
                 Hint()
             }
@@ -50,9 +51,8 @@ fun TextFieldHint(
             textStyle = MaterialTheme.customTypography.body1.copy(textAlign = TextAlign.Start, background = Color.Unspecified),
             singleLine = true,
             keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Text, imeAction = ImeAction.None),
-            modifier = Modifier
+            modifier = inputFieldModifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
                 .align(Alignment.CenterStart)
                 .onFocusChanged {
                     focusedState = it.isFocused
@@ -64,13 +64,18 @@ fun TextFieldHint(
 
 @Preview
 @Composable
-private fun PreviewTextFieldHint() {
+private fun PreviewInputWithHint() {
     Box(Modifier.background(Color.Black)) {
-        TextFieldHint(
+        InputWithHint(
             state = "",
             cursorBrush = SolidColor(colorAccentDark),
             onInput = { },
-            Hint = { B1(text = "Public address".withNoFontPadding()) }
+            Hint = {
+                Row {
+                    MarginHorizontal(margin = 6.dp)
+                    B1(text = "Public address".withNoFontPadding())
+                }
+            }
         )
     }
 }

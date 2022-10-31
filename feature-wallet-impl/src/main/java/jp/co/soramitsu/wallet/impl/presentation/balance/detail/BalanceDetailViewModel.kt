@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -41,7 +43,7 @@ import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.SelectChainScreenViewState
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
@@ -63,8 +65,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
-import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -151,19 +151,19 @@ class BalanceDetailViewModel @Inject constructor(
 
         val chains = chainItems
             .filter {
-                it.tokenSymbols.any { it.contains(assetSymbol) }
+                it.tokenSymbols.any { it.second.contains(assetSymbol) }
             }
             .filter {
-                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || it.tokenSymbols.any { it.contains(searchQuery, true) }
+                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || it.tokenSymbols.any { it.second.contains(searchQuery, true) }
             }
             .sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
 
-        SelectChainScreenViewState(
+        ChainSelectScreenViewState(
             chains = chains,
-            selectedChain = selectedChain ?: chains.firstOrNull { it.id == assetPayload.value.chainId },
+            selectedChainId = assetPayload.value.chainId,
             searchQuery = searchQuery
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, SelectChainScreenViewState(emptyList(), null, null))
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
     private val transactionHistoryMixin = TransactionHistoryProvider(
         interactor,
@@ -274,7 +274,7 @@ class BalanceDetailViewModel @Inject constructor(
     }
 
     private fun sendClicked(assetPayload: AssetPayload) {
-        router.openChooseRecipient(assetPayload)
+        router.openSend(assetPayload)
     }
 
     private fun receiveClicked(assetPayload: AssetPayload) {

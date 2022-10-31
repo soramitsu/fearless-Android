@@ -680,6 +680,7 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="moonbeam_ethereum_address_incorrect">Moonbeam Ethereum address format is incorrect, please try again</string>
     <string name="moonbeam_ethereum_reward">Rewards will be paid out to this address. You can use an existing Ethereum address. PLEASE ENSURE YOU HAVE THE PRIVATE KEYS FOR THIS ADDRESS.</string>
     <string name="manage_assets_search_hint">Search by token or network</string>
+    <string name="assets_search_hint">Search by token</string>
     <string name="crowdloan_email_hint">Email address</string>
     <string name="crowdloan_referral_code_hint">Referral code</string>
     <string name="crowdloan_astar_referral_code_hint">Referral address (Polkadot addresses only)</string>
@@ -807,6 +808,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="chain_selection_all_networks">All networks</string>
     <string name="hidden_assets">Hidden assets</string>
     <string name="common_select_network">Select Network</string>
+    <string name="common_select_asset">Select Asset</string>
 
     <string name="staking_pool_rewards_delay_text">Stake at anytime. You will start earning interests after %s</string>
     <string name="staking_pool_start_apr_text">Earn %s per year</string>
@@ -907,5 +909,14 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="network_issue_unavailable">The network is unavailable, you can wait or ask a question to the community</string>
     <string name="top_up">Top Up</string>
     <string name="common_receive_alert_description">This is Polkadot wallet. Please only send assets\non the Polkadot blockchain.</string>
+
+    <string name="send_fund">Send Fund</string>
+    <string name="send_to">Send to</string>
+    <string name="chip_scan">Scan</string>
+    <string name="chip_history">History</string>
+    <string name="chip_paste">Paste</string>
+    <string name="address_not_valid_error_title">Is not network address</string>
+    <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
+
 
 </resources>

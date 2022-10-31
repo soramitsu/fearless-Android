@@ -229,7 +229,7 @@ class SearchAssetsViewModel @Inject constructor(
     }
 
     private fun sendClicked(assetPayload: AssetPayload) {
-        router.openChooseRecipient(assetPayload)
+        router.openSend(assetPayload)
     }
 
     private fun receiveClicked(assetPayload: AssetPayload) {

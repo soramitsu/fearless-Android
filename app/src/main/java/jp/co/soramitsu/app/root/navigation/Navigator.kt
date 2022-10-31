@@ -85,6 +85,8 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetai
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
@@ -97,7 +99,7 @@ import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmTransferFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.recipient.ChooseRecipientFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -505,10 +507,20 @@ class Navigator :
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openChooseRecipient(assetPayload: AssetPayload) {
-        val bundle = ChooseRecipientFragment.getBundle(assetPayload)
+    override fun openSend(assetPayload: AssetPayload) {
+        val bundle = SendSetupFragment.getBundle(assetPayload)
 
         navController?.navigate(R.id.action_open_send, bundle)
+    }
+
+    override fun openSelectChain(assetId: ChainId) {
+        val bundle = ChainSelectFragment.getBundle(assetId)
+        navController?.navigate(R.id.action_open_chain_select, bundle)
+    }
+
+    override fun openSelectAsset(selectedAssetId: String) {
+        val bundle = AssetSelectFragment.getBundle(selectedAssetId)
+        navController?.navigate(R.id.action_open_asset_select, bundle)
     }
 
     override fun openFilter() {
@@ -757,6 +769,9 @@ class Navigator :
     override fun openFrozenTokens(payload: FrozenAssetPayload) {
         val bundle = FrozenTokensFragment.getBundle(payload)
         navController?.navigate(R.id.frozenTokensFragment, bundle)
+    }
+
+    override fun openSendConfirm() {
     }
 
     fun educationalStoriesCompleted() {

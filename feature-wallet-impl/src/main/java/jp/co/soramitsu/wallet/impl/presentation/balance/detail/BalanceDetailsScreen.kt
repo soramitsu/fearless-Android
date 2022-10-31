@@ -67,7 +67,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.SelectChainContent
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
@@ -98,7 +98,7 @@ fun BalanceDetailsScreen(
         sheetBackgroundColor = black4,
         sheetState = modalBottomSheetState,
         sheetContent = {
-            SelectChainContent(
+            ChainSelectContent(
                 state = chainsState,
                 onChainSelected = { item ->
                     scope.launch {

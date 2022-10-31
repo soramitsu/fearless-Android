@@ -18,7 +18,11 @@ interface WalletRouter : SecureRouter {
 
     fun back()
 
-    fun openChooseRecipient(assetPayload: AssetPayload)
+    fun openSend(assetPayload: AssetPayload)
+
+    fun openSelectChain(assetId: String)
+
+    fun openSelectAsset(selectedAssetId: String)
 
     fun openFilter()
 
@@ -80,4 +84,6 @@ interface WalletRouter : SecureRouter {
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
     fun openFrozenTokens(payload: FrozenAssetPayload)
+
+    fun openSendConfirm()
 }

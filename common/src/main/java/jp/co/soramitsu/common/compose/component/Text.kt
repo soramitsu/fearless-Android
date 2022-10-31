@@ -31,6 +31,26 @@ fun B1(
 }
 
 @Composable
+fun B1(
+    modifier: Modifier = Modifier,
+    text: AnnotatedString,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
+) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.body1,
+        modifier = modifier,
+        color = color,
+        overflow = overflow,
+        maxLines = maxLines
+    )
+}
+
+@Composable
 fun B2(
     modifier: Modifier = Modifier,
     text: String,
@@ -153,6 +173,26 @@ fun H2(
 @Composable
 fun H3(
     modifier: Modifier = Modifier,
+    text: AnnotatedString,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
+) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.header3,
+        modifier = modifier,
+        color = color,
+        overflow = overflow,
+        maxLines = maxLines
+    )
+}
+
+@Composable
+fun H3(
+    modifier: Modifier = Modifier,
     text: String,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
@@ -214,6 +254,26 @@ fun H4(
 fun H5(
     modifier: Modifier = Modifier,
     text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
+) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.header5,
+        modifier = modifier,
+        color = color,
+        overflow = overflow,
+        maxLines = maxLines
+    )
+}
+
+@Composable
+fun H5(
+    modifier: Modifier = Modifier,
+    text: AnnotatedString,
     textAlign: TextAlign? = null,
     color: Color = Color.Unspecified,
     overflow: TextOverflow = TextOverflow.Clip,

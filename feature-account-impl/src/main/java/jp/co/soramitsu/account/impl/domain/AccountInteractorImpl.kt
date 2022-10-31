@@ -1,15 +1,16 @@
 package jp.co.soramitsu.account.impl.domain
 
 import java.io.File
-import jp.co.soramitsu.common.interfaces.FileProvider
-import jp.co.soramitsu.core.model.CryptoType
-import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.account.api.domain.model.userAddress
+import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.core.model.CryptoType
+import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -256,5 +257,11 @@ class AccountInteractorImpl(
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> = runCatching {
         fileProvider.getFileInExternalCacheStorage(fileName)
+    }
+
+    override suspend fun getSelfAddress(chainId: ChainId): String? {
+        val chain = getChain(chainId)
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        return metaAccount.userAddress(chain)
     }
 }
