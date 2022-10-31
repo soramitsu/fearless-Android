@@ -15,11 +15,6 @@ class ValidatorsSettingsFragment : BaseComposeBottomSheetDialogFragment<Validato
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.viewState.collectAsState()
-        ValidatorsSettingsScreen(
-            state = state,
-            onCloseClick = viewModel::backClicked,
-            onFilterSelectClick = viewModel::onFilterChecked,
-            onSortingSelectClick = viewModel::onSortingChecked
-        )
+        ValidatorsSettingsScreen(state = state, viewModel)
     }
 }

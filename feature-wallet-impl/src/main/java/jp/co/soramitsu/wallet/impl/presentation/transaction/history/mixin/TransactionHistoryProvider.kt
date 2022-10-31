@@ -137,7 +137,6 @@ class TransactionHistoryProvider(
                 is TransactionStateMachine.SideEffect.TriggerCache -> triggerCache(sideEffect)
             }
         }
-        Log.d("&&&", newState.toString())
         domainState.value = newState
     }
 

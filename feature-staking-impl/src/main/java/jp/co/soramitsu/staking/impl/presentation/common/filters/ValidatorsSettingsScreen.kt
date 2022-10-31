@@ -55,31 +55,35 @@ data class SortingItemViewState(
     val sorting: Sorting
 )
 
+interface ValidatorsSettingsScreenInterface {
+    fun onClose()
+    fun onFilterSelected(item: FilterItemViewState)
+    fun onSortingSelected(item: SortingItemViewState)
+}
+
 @Composable
 fun ValidatorsSettingsScreen(
     state: ValidatorsSettingsViewState,
-    onCloseClick: () -> Unit,
-    onFilterSelectClick: (FilterItemViewState) -> Unit,
-    onSortingSelectClick: (SortingItemViewState) -> Unit
+    callback: ValidatorsSettingsScreenInterface
 ) {
     BottomSheetDialog {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 H3(text = stringResource(id = R.string.wallet_filters_title))
                 Spacer(modifier = Modifier.weight(1f))
-                Image(res = R.drawable.ic_close, modifier = Modifier.clickable(onClick = onCloseClick))
+                Image(res = R.drawable.ic_close, modifier = Modifier.clickable(onClick = callback::onClose))
             }
             MarginVertical(margin = 13.dp)
             if (state.filters.isNotEmpty()) {
                 H3(text = stringResource(id = R.string.wallet_filters_header))
                 state.filters.forEach {
-                    FilterItem(it, onFilterSelectClick)
+                    FilterItem(it, callback::onFilterSelected)
                 }
             }
             if (state.sortings.isNotEmpty()) {
                 H3(text = stringResource(id = R.string.common_filter_sort_header))
                 state.sortings.forEach {
-                    SortingItem(it, onSortingSelectClick)
+                    SortingItem(it, callback::onSortingSelected)
                 }
             }
         }
@@ -153,18 +157,25 @@ private fun ValidatorsSettingsScreenPreview() {
             )
         )
     }
+    val callbacks = object : ValidatorsSettingsScreenInterface {
+        override fun onClose() = Unit
 
-    ValidatorsSettingsScreen(state.value, {}, {
-        val index = state.value.filters.indexOf(it)
-        val newFilters = state.value.filters.toMutableList()
-        newFilters.removeAt(index)
-        newFilters.add(index, it.copy(isSelected = it.isSelected.not()))
-        state.value = state.value.copy(filters = newFilters)
-    }, {
-        val index = state.value.sortings.indexOf(it)
-        val newSortings = state.value.sortings.toMutableList()
-        newSortings.removeAt(index)
-        newSortings.add(index, it.copy(isSelected = it.isSelected.not()))
-        state.value = state.value.copy(sortings = newSortings)
-    })
+        override fun onFilterSelected(item: FilterItemViewState) {
+            val index = state.value.filters.indexOf(item)
+            val newFilters = state.value.filters.toMutableList()
+            newFilters.removeAt(index)
+            newFilters.add(index, item.copy(isSelected = item.isSelected.not()))
+            state.value = state.value.copy(filters = newFilters)
+        }
+
+        override fun onSortingSelected(item: SortingItemViewState) {
+            val index = state.value.sortings.indexOf(item)
+            val newSortings = state.value.sortings.toMutableList()
+            newSortings.removeAt(index)
+            newSortings.add(index, item.copy(isSelected = item.isSelected.not()))
+            state.value = state.value.copy(sortings = newSortings)
+        }
+
+    }
+    ValidatorsSettingsScreen(state.value, callbacks)
 }

@@ -12,8 +12,6 @@ import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettingsProvider
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.RecommendationSettingsProviderFactory
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.SettingsStorage
-import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Filters
-import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Sorting
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.validators.change.custom.settings.SettingsSchema
 import kotlinx.coroutines.Deferred
@@ -23,21 +21,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private val filtersSet = setOf(Filters.HavingOnChainIdentity, Filters.NotSlashedFilter, Filters.NotOverSubscribed)
-private val sortingSet = setOf(Sorting.EstimatedRewards, Sorting.TotalStake, Sorting.ValidatorsOwnStake)
-
 @HiltViewModel
 class ValidatorsSettingsViewModel @Inject constructor(
     private val settingsStorage: SettingsStorage,
     private val router: StakingRouter,
     private val recommendationSettingsProviderFactory: RecommendationSettingsProviderFactory,
     private val resourceManager: ResourceManager
-) : BaseViewModel() {
-
-    init {
-        settingsStorage.currentFiltersSet.value = filtersSet
-        settingsStorage.currentSortingSet.value = sortingSet
-    }
+) : BaseViewModel(), ValidatorsSettingsScreenInterface {
 
     private val recommendationSettingsProvider: Deferred<RecommendationSettingsProvider<Validator>> by lazyAsync {
         recommendationSettingsProviderFactory.createRelayChain(router.currentStackEntryLifecycle)
@@ -52,23 +42,23 @@ class ValidatorsSettingsViewModel @Inject constructor(
     private fun SettingsSchema.Filter.toViewState() = FilterItemViewState(resourceManager.getString(title), checked, filter)
     private fun SettingsSchema.Sorting.toViewState() = SortingItemViewState(resourceManager.getString(title), checked, sorting)
 
-    fun backClicked() {
-        applyChanges()
+    override fun onClose() {
         router.back()
     }
 
-    private fun applyChanges() {
+    override fun onFilterSelected(item: FilterItemViewState) {
         viewModelScope.launch {
-            recommendationSettingsProvider().settingsChanged(settingsStorage.schema.first(), BigInteger.ZERO)
-            router.back()
+            settingsStorage.filterSelected(item.filter)
+            val settingsProvider = recommendationSettingsProvider()
+            settingsProvider.settingsChanged(settingsStorage.schema.first(), BigInteger.ZERO)
         }
     }
 
-    fun onFilterChecked(checkedFilter: FilterItemViewState) {
-        settingsStorage.filterSelected(checkedFilter.filter)
-    }
-
-    fun onSortingChecked(checkedSorting: SortingItemViewState) {
-        settingsStorage.sortingSelected(checkedSorting.sorting)
+    override fun onSortingSelected(item: SortingItemViewState) {
+        viewModelScope.launch {
+            settingsStorage.sortingSelected(item.sorting)
+            val settingsProvider = recommendationSettingsProvider()
+            settingsProvider.settingsChanged(settingsStorage.schema.first(), BigInteger.ZERO)
+        }
     }
 }

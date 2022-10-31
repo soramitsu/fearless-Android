@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.base
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View

@@ -906,7 +906,7 @@
         app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
-    <fragment
+    <dialog
         android:id="@+id/validatorDetailsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment"
         android:label="validatorDetailsFragment"

@@ -42,6 +42,7 @@ fun BottomSheetDialog(modifier: Modifier = Modifier, Content: @Composable Column
         Column(
             modifier = sheetBackground
         ) {
+            MarginVertical(margin = 2.dp)
             Box(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     MarginVertical(margin = 12.dp)

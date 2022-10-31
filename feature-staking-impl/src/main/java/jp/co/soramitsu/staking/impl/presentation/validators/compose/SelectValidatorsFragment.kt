@@ -17,11 +17,7 @@ class SelectValidatorsFragment : BaseComposeBottomSheetDialogFragment<SelectVali
         val state by viewModel.state.collectAsState()
         SelectValidatorsScreen(
             state = state,
-            onNavigationClick = viewModel::onBackClicked,
-            onSelected = viewModel::onValidatorSelected,
-            onInfoClick = viewModel::onValidatorInfoClick,
-            onChooseClick = viewModel::onCompleteClick,
-            onOptionsClick = viewModel::onOptionsClick
+            viewModel
         )
     }
 }
