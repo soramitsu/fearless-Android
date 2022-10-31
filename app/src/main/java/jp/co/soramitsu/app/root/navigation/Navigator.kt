@@ -498,7 +498,7 @@ class Navigator :
     }
 
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
-        navController?.navigate(R.id.open_validator_details, ValidatorDetailsFragment.getBundle(validatorDetails))
+        navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
     override fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel) {
@@ -777,6 +777,22 @@ class Navigator :
 
     override fun setWalletSelectorPayload(payload: WalletSelectorPayload) {
         navController?.previousBackStackEntry?.savedStateHandle?.set(WalletSelectorPayload::class.java.name, payload)
+    }
+
+    override fun openStartSelectValidators() {
+        navController?.navigate(R.id.startSelectValidatorsFragment)
+    }
+
+    override fun openSelectValidators() {
+        navController?.navigate(R.id.selectValidatorsFragment)
+    }
+
+    override fun openValidatorsSettings() {
+        navController?.navigate(R.id.validatorsSettingsFragment)
+    }
+
+    override fun openConfirmSelectValidators() {
+        navController?.navigate(R.id.confirmSelectValidatorsFragment)
     }
 
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>

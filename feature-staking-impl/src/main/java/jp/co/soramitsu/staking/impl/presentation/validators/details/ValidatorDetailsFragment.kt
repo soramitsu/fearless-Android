@@ -1,20 +1,21 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.details
 
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
+import jp.co.soramitsu.common.base.BaseBottomSheetDialogFragment
 import jp.co.soramitsu.common.utils.createSendEmailIntent
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
-import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentValidatorDetailsBinding
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 
 @AndroidEntryPoint
-class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>(R.layout.fragment_validator_details) {
+class ValidatorDetailsFragment : BaseBottomSheetDialogFragment<ValidatorDetailsViewModel>(R.layout.fragment_validator_details) {
 
     companion object {
         const val KEY_VALIDATOR = "validator"
@@ -28,7 +29,13 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>(R.layou
 
     override val viewModel: ValidatorDetailsViewModel by viewModels()
 
-    private val binding by viewBinding(FragmentValidatorDetailsBinding::bind)
+    private lateinit var binding: FragmentValidatorDetailsBinding
+
+    override fun provideView(): View {
+        val inflater = LayoutInflater.from(requireContext())
+        binding = FragmentValidatorDetailsBinding.inflate(inflater)
+        return binding.root
+    }
 
     override fun initViews() {
         with(binding) {
@@ -59,6 +66,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>(R.layou
 
         viewModel.validatorDetails.observe { validator ->
             with(validator.stake) {
+                binding.validatorInfo.visibility = View.VISIBLE
                 binding.validatorInfo.setStatus(statusText, statusColorRes)
 
                 if (activeStakeModel != null) {
@@ -75,7 +83,7 @@ class ValidatorDetailsFragment : BaseFragment<ValidatorDetailsViewModel>(R.layou
                 }
             }
 
-            if (validator.identity == null) {
+            if (validator.identity == null || validator.identity.isEmptyExceptName) {
                 binding.validatorIdentity.makeGone()
             } else {
                 binding.validatorIdentity.makeVisible()

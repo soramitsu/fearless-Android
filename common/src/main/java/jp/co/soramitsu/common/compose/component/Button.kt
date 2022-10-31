@@ -129,7 +129,7 @@ fun ColoredTextButton(
 
 @Composable
 @Preview
-private fun ButtonPreview() {
+fun ButtonPreview() {
     FearlessTheme {
         Column(modifier = Modifier.padding(16.dp)) {
             AccentButton(

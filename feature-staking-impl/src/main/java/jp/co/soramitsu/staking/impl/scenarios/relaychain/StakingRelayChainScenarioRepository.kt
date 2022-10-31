@@ -351,6 +351,16 @@ class StakingRelayChainScenarioRepository(
         )
     }
 
+    fun observeRemoteAccountNominations(chainId: ChainId, stashId: AccountId): Flow<Nominations?> {
+        return remoteStorage.observe(
+            chainId = chainId,
+            keyBuilder = { it.metadata.staking().storage("Nominators").storageKey(it, stashId) },
+            binder = { scale, runtime ->
+                scale?.let { bindNominations(it, runtime) }
+            }
+        )
+    }
+
     suspend fun ledgerFlow(stakingState: StakingState.Stash): Flow<StakingLedger> {
         return localStorage.observe(
             keyBuilder = { it.metadata.staking().storage("Ledger").storageKey(it, stakingState.controllerId) },

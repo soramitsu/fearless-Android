@@ -28,6 +28,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.toViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.default
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -60,7 +61,12 @@ class StakingPoolViewModel(
 
     override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
 
-    @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
+    @Deprecated(
+        "Don't use this method, use the getStakingViewStateFlow instead",
+        ReplaceWith(
+            "jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.getStakingViewStateFlow()"
+        )
+    )
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
         return kotlinx.coroutines.flow.flowOf(Pool)
     }
@@ -85,7 +91,7 @@ class StakingPoolViewModel(
         val asset = stakingInteractor.currentAssetFlow().first()
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         getReturns(asset.token.configuration.chainId, amount)
-    }
+    }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, ReturnsModel.default)
 
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
         return combine(stakingStateFlow, amountInputViewState, estimatedEarningsViewState) { state, inputState, returns ->

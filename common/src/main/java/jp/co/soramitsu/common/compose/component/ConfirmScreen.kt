@@ -27,7 +27,7 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 
 data class ConfirmScreenViewState(
     val toolbarViewState: ToolbarViewState,
-    val amount: String,
+    val amount: String?,
     val tableItems: List<TitleValueViewState>,
     val assetIcon: String,
     @StringRes val titleRes: Int,
@@ -50,8 +50,10 @@ fun ConfirmScreen(state: ConfirmScreenViewState, onNavigationClick: () -> Unit, 
                 color = black2
             )
             MarginVertical(margin = 8.dp)
-            H1(text = requireNotNull(state.amount), modifier = Modifier.align(Alignment.CenterHorizontally))
-            MarginVertical(margin = 24.dp)
+            state.amount?.let {
+                H1(text = it, modifier = Modifier.align(Alignment.CenterHorizontally))
+                MarginVertical(margin = 24.dp)
+            }
             InfoTable(state.tableItems)
             MarginVertical(margin = 24.dp)
             state.additionalMessageRes?.let {

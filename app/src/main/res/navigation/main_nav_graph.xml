@@ -679,6 +679,26 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.create.ConfirmCreatePoolFragment"
         android:label="confirmCreatePoolFragment" />
 
+    <dialog
+        android:id="@+id/startSelectValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.StartSelectValidatorsFragment"
+        android:label="startSelectValidatorsFragment" />
+
+    <dialog
+        android:id="@+id/selectValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectValidatorsFragment"
+        android:label="selectValidatorsFragment" />
+
+    <dialog
+        android:id="@+id/confirmSelectValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.ConfirmSelectValidatorsFragment"
+        android:label="confirmSelectValidatorsFragment" />
+
+    <dialog
+        android:id="@+id/validatorsSettingsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.common.filters.ValidatorsSettingsFragment"
+        android:label="validatorsSettingsFragment" />
+
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
         app:destination="@id/startChangeValidatorsFragment"
@@ -886,7 +906,7 @@
         app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
-    <fragment
+    <dialog
         android:id="@+id/validatorDetailsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment"
         android:label="validatorDetailsFragment"

@@ -143,8 +143,8 @@ class StakingPoolApi(
 
     suspend fun nominatePool(
         poolId: BigInteger,
-        vararg validators: AccountId,
-        accountAddress: String
+        accountAddress: String,
+        vararg validators: AccountId
     ): Result<String> {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
@@ -209,7 +209,9 @@ class StakingPoolApi(
                     extrinsicService.submitExtrinsic(chain, accountId) {
                         withdrawUnbondedFromPool(accountId)
                     }
-                } else result
+                } else {
+                    result
+                }
             } catch (e: Exception) {
                 extrinsicService.submitExtrinsic(chain, accountId) {
                     withdrawUnbondedFromPool(accountId)
@@ -250,7 +252,9 @@ class StakingPoolApi(
                     extrinsicService.submitExtrinsic(chain, accountId) {
                         unbondFromPool(accountId, unbondingAmount)
                     }
-                } else result
+                } else {
+                    result
+                }
             } catch (e: Exception) {
                 extrinsicService.submitExtrinsic(chain, accountId) {
                     unbondFromPool(accountId, unbondingAmount)

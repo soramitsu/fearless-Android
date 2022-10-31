@@ -30,7 +30,7 @@ class StakingRepositoryImpl(
     )
 
     override suspend fun getAccountInfo(chainId: ChainId, accountId: AccountId): AccountInfo {
-        return remoteStorageSource.queryNonNull(
+        return remoteStorageSource.query(
             chainId = chainId,
             keyBuilder = { it.metadata.system().storage("Account").storageKey(it, accountId) },
             binding = ::bindAccountInfoOrDefault

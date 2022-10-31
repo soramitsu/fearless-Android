@@ -43,4 +43,5 @@
     <color name="account_icon_dark">@color/black</color>
 
     <color name="error_red">#FF3B30</color>
+    <color name="warning_orange">#EE7700</color>
 </resources>

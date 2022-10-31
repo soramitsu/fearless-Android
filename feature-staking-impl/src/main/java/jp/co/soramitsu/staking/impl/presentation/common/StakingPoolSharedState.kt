@@ -2,6 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation.common
 
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
@@ -56,6 +57,24 @@ data class StakingPoolState(
         get() = requireNotNull(chain)
     val requireAmount
         get() = requireNotNull(amount)
+}
+
+data class SelectValidatorFlowState(
+    val selectedValidators: List<AccountId> = emptyList(),
+    val poolName: String?,
+    val poolId: BigInteger?,
+    val selectMode: ValidatorSelectMode? = null
+) {
+    enum class ValidatorSelectMode {
+        CUSTOM, RECOMMENDED
+    }
+
+    val requirePoolId: BigInteger
+        get() = requireNotNull(poolId)
+    val requirePoolName
+        get() = requireNotNull(poolName)
+    val requireSelectMode
+        get() = requireNotNull(selectMode)
 }
 
 class StakingPoolSharedState<T> {

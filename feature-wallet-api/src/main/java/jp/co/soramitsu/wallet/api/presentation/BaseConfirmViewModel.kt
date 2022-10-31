@@ -27,18 +27,18 @@ abstract class BaseConfirmViewModel(
     private val resourceManager: ResourceManager,
     protected val asset: Asset,
     protected val address: String,
-    protected val amountInPlanks: BigInteger,
+    protected val amountInPlanks: BigInteger? = null,
     @StringRes protected val titleRes: Int,
     @StringRes protected val additionalMessageRes: Int? = null,
-    private val feeEstimator: suspend (BigInteger) -> BigInteger,
-    private val executeOperation: suspend (String, BigInteger) -> Result<Any>,
+    private val feeEstimator: suspend (BigInteger?) -> BigInteger,
+    private val executeOperation: suspend (String, BigInteger?) -> Result<Any>,
     private val accountNameProvider: suspend (String) -> String?,
     private val onOperationSuccess: () -> Unit
 ) : BaseViewModel() {
 
-    private val amount = asset.token.amountFromPlanks(amountInPlanks)
-    private val amountFormatted = amount.formatTokenAmount(asset.token.configuration)
-    private val amountFiat = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+    private val amount = amountInPlanks?.let { asset.token.amountFromPlanks(it) }
+    private val amountFormatted = amount?.formatTokenAmount(asset.token.configuration)
+    private val amountFiat = amount?.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
     private val toolbarViewState = ToolbarViewState(
         resourceManager.getString(R.string.common_confirm),
@@ -50,7 +50,7 @@ abstract class BaseConfirmViewModel(
         address
     )
 
-    private val addressViewStateFlow = flowOf {
+    protected val addressViewStateFlow = flowOf {
         val name = accountNameProvider(address)
         if (name.isNullOrEmpty()) {
             defaultAddressViewState.copy(value = address, additionalValue = null)
@@ -65,8 +65,8 @@ abstract class BaseConfirmViewModel(
         amountFiat
     )
 
-    private val feeViewStateFlow = flowOf {
-        val amountInPlanks = asset.token.planksFromAmount(amount)
+    val feeViewStateFlow = flowOf {
+        val amountInPlanks = amount?.let { asset.token.planksFromAmount(it) }
         val feeInPlanks = feeEstimator(amountInPlanks)
         val fee = asset.token.amountFromPlanks(feeInPlanks)
         val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
@@ -90,7 +90,7 @@ abstract class BaseConfirmViewModel(
         tableItemsFlow.map { tableItems ->
             ConfirmScreenViewState(
                 toolbarViewState,
-                amount = requireNotNull(amountViewState.value),
+                amount = amountViewState.value,
                 tableItems = tableItems,
                 asset.token.configuration.iconUrl,
                 titleRes,

@@ -17,8 +17,8 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEn
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
+import jp.co.soramitsu.staking.impl.data.model.BondedPoolState
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.model.PoolRewards
 import jp.co.soramitsu.staking.impl.data.model.PoolUnbonding
@@ -107,7 +107,7 @@ fun bindBondedPool(
     val decoded = returnType.fromHexOrNull(runtime, scale) as? Struct.Instance ?: incompatible()
 
     val points = bindNumber(decoded.getTyped("points"))
-    val state = NominationPoolState.from(decoded.getTyped<DictEnum.Entry<*>>("state").name)
+    val state = BondedPoolState.from(decoded.getTyped<DictEnum.Entry<*>>("state").name)
     val memberCounter = bindNumber(decoded.getTyped("memberCounter"))
     val roles = decoded.getTyped<Struct.Instance>("roles")
     val depositor = roles.get<ByteArray>("depositor") ?: error("Cannot bind BondedPool.depositor")

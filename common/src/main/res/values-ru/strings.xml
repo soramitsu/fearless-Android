@@ -809,6 +809,8 @@
     <string name="min_to_create_pool_threshold_error_title">Извините, указанной суммы недостаточно для создания пула</string>
     <string name="min_to_create_pool_threshold_error_message">Минимальная сумма - %s</string>
 
+    <string name="pool_select_validators_notification_title">Выберите валидаторов</string>
+    <string name="pool_select_validators_notification_message">Чтобы продолжить, вы должны выбрать валидаторов</string>
     <string name="network_issue_stub">Проблемы с сетью</string>
     <string name="common_close">Закрыть</string>
     <string name="notification">Уведомление</string>

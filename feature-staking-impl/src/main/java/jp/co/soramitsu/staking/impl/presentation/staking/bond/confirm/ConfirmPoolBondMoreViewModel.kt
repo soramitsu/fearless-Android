@@ -22,8 +22,8 @@ class ConfirmPoolBondMoreViewModel @Inject constructor(
     resourceManager = resourceManager,
     asset = requireNotNull(poolSharedStateProvider.mainState.get()?.asset),
     amountInPlanks = requireNotNull(poolSharedStateProvider.manageState.get()?.amountInPlanks),
-    feeEstimator = { amount -> stakingPoolInteractor.estimateBondMoreFee(amount) },
-    executeOperation = { address, amount -> stakingPoolInteractor.bondMore(address, amount) },
+    feeEstimator = { amount -> stakingPoolInteractor.estimateBondMoreFee(requireNotNull(amount)) },
+    executeOperation = { address, amount -> stakingPoolInteractor.bondMore(address, requireNotNull(amount)) },
     onOperationSuccess = { router.returnToManagePoolStake() },
     accountNameProvider = {
         val chain = requireNotNull(poolSharedStateProvider.mainState.get()?.chain)

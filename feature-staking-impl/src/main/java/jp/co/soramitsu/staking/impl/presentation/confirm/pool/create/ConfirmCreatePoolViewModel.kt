@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.domain.GetIdentitiesUseCase
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
@@ -34,7 +35,16 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     amountInPlanks = poolSharedStateProvider.requireCreateState.requireAmountInPlanks,
     feeEstimator = { stakingPoolInteractor.estimateCreatePoolFee(poolSharedStateProvider) },
     executeOperation = { address, _ -> stakingPoolInteractor.createPool(poolSharedStateProvider, address) },
-    onOperationSuccess = { router.returnToMain() },
+    onOperationSuccess = {
+        poolSharedStateProvider.selectValidatorsState.set(
+            SelectValidatorFlowState(
+                poolName = poolSharedStateProvider.requireCreateState.requirePoolName,
+                poolId = poolSharedStateProvider.requireCreateState.requirePoolId.toBigInteger()
+            )
+        )
+        router.returnToMain()
+        router.openStartSelectValidators()
+    },
     accountNameProvider = {
         val chain = poolSharedStateProvider.requireMainState.requireChain
         getIdentities(chain, it).mapNotNull { pair ->
@@ -46,10 +56,12 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     private val addressDisplayFlow = flowOf {
         poolInteractor.getAccountName(address) ?: address
     }.inBackground()
+
     private val nominatorDisplayFlow = flowOf {
         val nominatorAddress = poolSharedStateProvider.requireCreateState.requireNominatorAddress
         poolInteractor.getAccountName(nominatorAddress) ?: nominatorAddress
     }.inBackground()
+
     private val stateTogglerDisplayFlow = flowOf {
         val stateTogglerAddress = poolSharedStateProvider.requireCreateState.requireStateTogglerAddress
         poolInteractor.getAccountName(stateTogglerAddress) ?: stateTogglerAddress

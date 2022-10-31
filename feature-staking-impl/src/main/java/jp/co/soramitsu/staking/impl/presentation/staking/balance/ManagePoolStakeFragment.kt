@@ -24,7 +24,8 @@ class ManagePoolStakeFragment : BaseComposeBottomSheetDialogFragment<ManagePoolS
             onPoolInfoClick = viewModel::onPoolInfoClick,
             onStakeMoreClick = viewModel::onStakeMoreClick,
             onUnstakeClick = viewModel::onUnstakeClick,
-            onNominationsClick = viewModel::onNominationsClick
+            onNominationsClick = viewModel::onNominationsClick,
+            onSelectValidatorsClick = viewModel::onSelectValidatorsClick
         )
     }
 }

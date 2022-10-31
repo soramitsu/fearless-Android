@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.combine
 
 class SettingsStorage {
 
-    private val defaultSelectedFilters: Set<Filters> = setOf(
+    private val defaultSelectedFilters: MutableSet<Filters> = mutableSetOf(
         Filters.HavingOnChainIdentity,
         Filters.NotOverSubscribed
     )
@@ -34,11 +34,15 @@ class SettingsStorage {
             selectedFilters,
             selectedSorting
         ) { filters, sorting, selectedFilters, selectedSorting ->
-            SettingsSchema( // todo move mapping to settings viewModel and pass token name here
+            SettingsSchema(
                 filters.toFiltersSchema(selectedFilters),
                 sorting.toSortingSchema(selectedSorting)
             )
         }
+
+    fun setDefaultSelectedFilters(filters: Set<Filters>) {
+        selectedFilters.value = filters
+    }
 
     fun resetFilters() {
         selectedFilters.value = defaultSelectedFilters

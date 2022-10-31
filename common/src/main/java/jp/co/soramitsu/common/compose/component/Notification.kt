@@ -34,7 +34,7 @@ fun Notification(state: NotificationState, onAction: () -> Unit) {
             Image(res = state.iconRes, modifier = Modifier.align(Alignment.Top), tint = state.color)
             MarginHorizontal(margin = 8.dp)
             Column(Modifier.weight(1f)) {
-                CapsTitle(text = stringResource(id = state.titleRes), color = state.color)
+                H6(text = stringResource(id = state.titleRes), color = state.color)
                 B1(text = state.value, color = white50)
             }
             TextButtonSmall(
