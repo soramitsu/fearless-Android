@@ -52,7 +52,6 @@ fun <T> BaseBottomSheetDialogFragment<T>.showAccountExternalActions(
     ).show()
 }
 
-
 fun <T> T.copyAddressClicked(address: String) where T : BaseViewModel, T : ExternalAccountActions {
     copyAddress(address, ::showMessage)
 }

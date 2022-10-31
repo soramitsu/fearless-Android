@@ -40,7 +40,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
     private val manualState = SelectValidatorsVariantPanelViewState<Nothing>(
         title = resourceManager.getString(R.string.staking_start_change_validators_custom_title),
         description = resourceManager.getString(R.string.staking_start_change_validators_custom_subtitle),
-        buttonText = resourceManager.getString(R.string.staking_select_custom),
+        buttonText = resourceManager.getString(R.string.staking_select_custom)
     )
 
     private val loadingState = MutableStateFlow(true)

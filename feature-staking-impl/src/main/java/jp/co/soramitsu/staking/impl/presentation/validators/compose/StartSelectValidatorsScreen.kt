@@ -66,7 +66,8 @@ fun StartSelectValidatorsScreen(
 private fun StartSelectValidatorsScreenPreview() {
     val manualState = SelectValidatorsVariantPanelViewState<Nothing>(
         title = "Stake with your validators",
-        description = "You should trust your nominations to act competently and honest, basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.",
+        description = "You should trust your nominations to act competently and honest, basing your decision purely on their current profitability " +
+            "could lead to reduced profits or even loss of funds.",
         buttonText = "Select manual"
     )
     val recommendedState = SelectValidatorsVariantPanelViewState(

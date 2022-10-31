@@ -53,7 +53,6 @@ abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes priva
         }
 
         viewModel.messageLiveData.observeEvent(::showMessage)
-
     }
 
     protected fun showMessage(text: String) {

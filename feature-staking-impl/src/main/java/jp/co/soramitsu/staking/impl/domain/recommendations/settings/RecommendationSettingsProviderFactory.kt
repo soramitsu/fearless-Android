@@ -2,10 +2,9 @@ package jp.co.soramitsu.staking.impl.domain.recommendations.settings
 
 import androidx.lifecycle.Lifecycle
 import jp.co.soramitsu.common.data.memory.ComputationalCache
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 private const val SETTINGS_PROVIDER_KEY = "SETTINGS_PROVIDER_KEY"
 
@@ -34,6 +33,7 @@ class RecommendationSettingsProviderFactory(
             )
         }
     }
+
     suspend fun createRelayChain(lifecycle: Lifecycle): RecommendationSettingsProvider.RelayChain {
         return computationalCache.useCache(SETTINGS_PROVIDER_KEY, lifecycle) {
             val chainId = sharedState.chainId()

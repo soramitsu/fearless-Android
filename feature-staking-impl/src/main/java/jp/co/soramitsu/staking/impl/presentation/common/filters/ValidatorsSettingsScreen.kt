@@ -107,7 +107,8 @@ fun FilterItem(state: FilterItemViewState, onSelectClick: (FilterItemViewState) 
     Row(
         Modifier
             .padding(vertical = 12.dp)
-            .clickableWithNoIndication { onSelectClick(state) }) {
+            .clickableWithNoIndication { onSelectClick(state) }
+    ) {
         H5(text = state.title, color = black2)
         Spacer(modifier = Modifier.weight(1f))
         val trackColor = if (state.isSelected) colorAccent else black3
@@ -129,7 +130,8 @@ fun SortingItem(state: SortingItemViewState, onSelectClick: (SortingItemViewStat
     Row(
         Modifier
             .padding(vertical = 12.dp)
-            .clickableWithNoIndication { onSelectClick(state) }) {
+            .clickableWithNoIndication { onSelectClick(state) }
+    ) {
         H5(text = state.title, color = black2)
         Spacer(modifier = Modifier.weight(1f))
         if (state.isSelected) {
@@ -175,7 +177,6 @@ private fun ValidatorsSettingsScreenPreview() {
             newSortings.add(index, item.copy(isSelected = item.isSelected.not()))
             state.value = state.value.copy(sortings = newSortings)
         }
-
     }
     ValidatorsSettingsScreen(state.value, callbacks)
 }

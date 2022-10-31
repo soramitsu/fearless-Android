@@ -53,4 +53,3 @@ enum class BondedPoolState {
         }
     }
 }
-

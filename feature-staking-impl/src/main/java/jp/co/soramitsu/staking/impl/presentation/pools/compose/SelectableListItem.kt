@@ -20,7 +20,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.B2
-import jp.co.soramitsu.common.compose.component.CapsTitle
 import jp.co.soramitsu.common.compose.component.FearlessRadioButton
 import jp.co.soramitsu.common.compose.component.H6
 import jp.co.soramitsu.common.compose.component.Image
@@ -46,7 +45,6 @@ data class SelectableListItemState<T>(
     }
 }
 
-
 @Composable
 fun <T> SelectableListItem(state: SelectableListItemState<T>, onSelected: (SelectableListItemState<T>) -> Unit, onInfoClick: () -> Unit) {
     Row(
@@ -69,7 +67,13 @@ fun <T> SelectableListItem(state: SelectableListItemState<T>, onSelected: (Selec
         }
         state.additionalStatuses.takeIf { it.isNotEmpty() }?.let { items ->
             items.forEach {
-                Image(modifier = Modifier.size(12.dp).align(CenterVertically), res = it.iconRes, tint = it.iconTintColor)
+                Image(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .align(CenterVertically),
+                    res = it.iconRes,
+                    tint = it.iconTintColor
+                )
             }
         }
         Box(

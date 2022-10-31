@@ -61,7 +61,8 @@ fun <T> SelectValidatorsVariantPanel(
 private fun SelectValidatorsVariantPanelPreview() {
     val manualState = SelectValidatorsVariantPanelViewState<Nothing>(
         title = "Stake with your validators",
-        description = "You should trust your nominations to act competently and honest, basing your decision purely on their current profitability could lead to reduced profits or even loss of funds.",
+        description = "You should trust your nominations to act competently and honest, basing your decision purely on their current" +
+            " profitability could lead to reduced profits or even loss of funds.",
         buttonText = "Select manual"
     )
     val recommendedState = SelectValidatorsVariantPanelViewState(
@@ -86,9 +87,13 @@ fun RecommendedValidatorsAdditionalInfo(state: List<String>) {
     Column {
         state.forEach { item ->
             Row {
-                Image(res = R.drawable.ic_selected, tint = selectedGreen, modifier = Modifier
-                    .size(12.dp)
-                    .align(Alignment.CenterVertically))
+                Image(
+                    res = R.drawable.ic_selected,
+                    tint = selectedGreen,
+                    modifier = Modifier
+                        .size(12.dp)
+                        .align(Alignment.CenterVertically)
+                )
                 MarginHorizontal(margin = 8.dp)
                 B2(text = item)
             }

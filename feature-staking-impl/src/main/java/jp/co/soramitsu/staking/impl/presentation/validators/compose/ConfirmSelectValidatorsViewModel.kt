@@ -22,7 +22,7 @@ class ConfirmSelectValidatorsViewModel @Inject constructor(
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
     private val router: StakingRouter,
-    private val getIdentities: GetIdentitiesUseCase,
+    private val getIdentities: GetIdentitiesUseCase
 ) : BaseConfirmViewModel(
     address = poolSharedStateProvider.requireMainState.requireAddress,
     resourceManager = resourceManager,

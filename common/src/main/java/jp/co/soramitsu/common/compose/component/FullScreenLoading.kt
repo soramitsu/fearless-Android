@@ -71,10 +71,11 @@ fun FullScreenLoading(isLoading: Boolean, BlurredContent: @Composable () -> Unit
                         color = colorAccentDark,
                         strokeWidth = 4.dp
                     )
-
                 }
                 Image(
-                    res = R.drawable.ic_fearless_logo, tint = colorAccentDark, modifier = Modifier
+                    res = R.drawable.ic_fearless_logo,
+                    tint = colorAccentDark,
+                    modifier = Modifier
                         .size(50.dp)
                         .align(Alignment.Center)
                 )

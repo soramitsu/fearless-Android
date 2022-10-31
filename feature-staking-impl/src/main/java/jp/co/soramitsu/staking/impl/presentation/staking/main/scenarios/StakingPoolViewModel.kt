@@ -29,7 +29,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOl
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.toViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.default
-import jp.co.soramitsu.staking.impl.presentation.staking.main.model.RewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -63,7 +62,8 @@ class StakingPoolViewModel(
     override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
 
     @Deprecated(
-        "Don't use this method, use the getStakingViewStateFlow instead", ReplaceWith(
+        "Don't use this method, use the getStakingViewStateFlow instead",
+        ReplaceWith(
             "jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.getStakingViewStateFlow()"
         )
     )

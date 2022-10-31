@@ -17,7 +17,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEn
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.BondedPoolState
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
