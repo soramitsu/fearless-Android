@@ -450,12 +450,6 @@
     </fragment>
 
     <fragment
-        android:id="@+id/receiveFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment"
-        android:label="ReceiveFragment"
-        tools:layout="@layout/fragment_receive" />
-
-    <fragment
         android:id="@+id/chooseAmountFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment"
         android:label="ChooseAmountFragment"
@@ -678,6 +672,11 @@
         android:id="@+id/confirmCreatePoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.create.ConfirmCreatePoolFragment"
         android:label="confirmCreatePoolFragment" />
+
+    <dialog
+        android:id="@+id/receiveFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment"
+        android:label="ReceiveFragment" />
 
     <dialog
         android:id="@+id/startSelectValidatorsFragment"

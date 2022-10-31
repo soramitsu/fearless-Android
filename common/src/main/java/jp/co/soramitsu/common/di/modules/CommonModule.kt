@@ -11,9 +11,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import java.security.SecureRandom
-import java.util.Random
-import javax.inject.Qualifier
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.CachingAddressIconGenerator
 import jp.co.soramitsu.common.address.StatelessAddressIconGenerator
@@ -43,6 +40,9 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
+import java.security.SecureRandom
+import java.util.Random
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
@@ -152,8 +152,8 @@ class CommonModule {
 
     @Provides
     @Singleton
-    fun provideQrCodeGenerator(): QrCodeGenerator {
-        return QrCodeGenerator(Color.BLACK, Color.WHITE)
+    fun provideQrCodeGenerator(resourceManager: ResourceManager): QrCodeGenerator {
+        return QrCodeGenerator(Color.BLACK, Color.WHITE, resourceManager)
     }
 
     @Provides

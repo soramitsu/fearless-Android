@@ -1,61 +1,56 @@
 package jp.co.soramitsu.wallet.impl.presentation.receive
 
 import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.widget.FrameLayout
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
-import jp.co.soramitsu.common.base.BaseFragment
-import jp.co.soramitsu.common.view.viewBinding
+import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.feature_wallet_impl.databinding.FragmentReceiveBinding
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.receive.model.QrSharingPayload
 
-const val KEY_ASSET_PAYLOAD = "assetPayload"
-
 @AndroidEntryPoint
-class ReceiveFragment : BaseFragment<ReceiveViewModel>(R.layout.fragment_receive) {
+class ReceiveFragment : BaseComposeBottomSheetDialogFragment<ReceiveViewModel>() {
+
     companion object {
+        const val KEY_ASSET_PAYLOAD = "assetPayload"
+
         fun getBundle(assetPayload: AssetPayload) = bundleOf(KEY_ASSET_PAYLOAD to assetPayload)
     }
 
-    private val binding by viewBinding(FragmentReceiveBinding::bind)
-
     override val viewModel: ReceiveViewModel by viewModels()
 
-    override fun initViews() {
-        binding.accountView.setWholeClickListener { viewModel.recipientClicked() }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        binding.fearlessToolbar.setHomeButtonListener {
-            viewModel.backClicked()
-        }
-
-        binding.fearlessToolbar.setRightActionClickListener {
-            viewModel.shareButtonClicked()
-        }
-    }
-
-    override fun subscribe(viewModel: ReceiveViewModel) {
         setupExternalActions(viewModel)
 
-        viewModel.qrBitmapLiveData.observe {
-            binding.qrImg.setImageBitmap(it)
-        }
-
-        viewModel.accountLiveData.observe { account ->
-            account.name?.let(binding.accountView::setTitle)
-            binding.accountView.setText(account.address)
-        }
-
-        viewModel.accountIconLiveData.observe {
-            binding.accountView.setAccountIcon(it.image)
-        }
-
         viewModel.shareEvent.observeEvent(::startQrSharingIntent)
+    }
 
-        binding.fearlessToolbar.setTitle(getString(R.string.wallet_asset_receive_template, viewModel.assetSymbolToShow?.uppercase()))
+    @Composable
+    override fun Content(padding: PaddingValues) {
+        val state by viewModel.state.collectAsState()
+
+        ReceiveScreen(
+            state = state,
+            receiveScreenInterface = viewModel.receiveScreenInterface
+        )
+    }
+
+    override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        behavior.isHideable = true
     }
 
     private fun startQrSharingIntent(qrSharingPayload: QrSharingPayload) {
