@@ -6,4 +6,4 @@ root = true
 max_line_length = 160
 insert_final_newline = true
 indent_size = 4
-disabled_rules = import-ordering
+ktlint_disabled_rules = import-ordering

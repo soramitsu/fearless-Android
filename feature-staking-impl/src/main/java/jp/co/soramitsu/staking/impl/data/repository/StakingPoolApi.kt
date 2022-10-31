@@ -209,7 +209,9 @@ class StakingPoolApi(
                     extrinsicService.submitExtrinsic(chain, accountId) {
                         withdrawUnbondedFromPool(accountId)
                     }
-                } else result
+                } else {
+                    result
+                }
             } catch (e: Exception) {
                 extrinsicService.submitExtrinsic(chain, accountId) {
                     withdrawUnbondedFromPool(accountId)
@@ -250,7 +252,9 @@ class StakingPoolApi(
                     extrinsicService.submitExtrinsic(chain, accountId) {
                         unbondFromPool(accountId, unbondingAmount)
                     }
-                } else result
+                } else {
+                    result
+                }
             } catch (e: Exception) {
                 extrinsicService.submitExtrinsic(chain, accountId) {
                     unbondFromPool(accountId, unbondingAmount)

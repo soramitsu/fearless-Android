@@ -98,7 +98,9 @@ class RpcCalls(
                             }
                         }
                         eventRecordList
-                    } else emptyList()
+                    } else {
+                        emptyList()
+                    }
                 }
         }.getOrElse {
             emptyList()

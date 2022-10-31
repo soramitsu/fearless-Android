@@ -10,5 +10,5 @@ enum class OperationStatusAppearance(
 ) {
     COMPLETED(R.drawable.ic_transaction_completed, R.string.transaction_status_completed),
     PENDING(R.drawable.ic_transaction_pending, R.string.transaction_status_pending),
-    FAILED(R.drawable.ic_red_cross, R.string.transaction_status_failed),
+    FAILED(R.drawable.ic_red_cross, R.string.transaction_status_failed)
 }

@@ -32,7 +32,9 @@ data class FeeInfoViewState(
 fun FeeInfo(state: FeeInfoViewState, modifier: Modifier = Modifier) {
     val verticalPadding = if (state.feeAmount.isNullOrEmpty()) {
         16.dp
-    } else 8.dp
+    } else {
+        8.dp
+    }
 
     Row(
         modifier = modifier

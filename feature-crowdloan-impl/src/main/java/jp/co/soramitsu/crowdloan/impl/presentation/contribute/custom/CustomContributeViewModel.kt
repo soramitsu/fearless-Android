@@ -390,9 +390,13 @@ class CustomContributeViewModel @Inject constructor(
                         feeLoaderMixin.loadFee(
                             coroutineScope = viewModelScope,
                             feeConstructor = { asset ->
-                                val additional = if (isCorrectAndOld.second.not()) payloadMoonbeam?.let {
-                                    additionalOnChainSubmission(it, customFlowType, BigDecimal.ZERO, customContributeManager)
-                                } else null
+                                val additional = if (isCorrectAndOld.second.not()) {
+                                    payloadMoonbeam?.let {
+                                        additionalOnChainSubmission(it, customFlowType, BigDecimal.ZERO, customContributeManager)
+                                    }
+                                } else {
+                                    null
+                                }
                                 val useBatchAll = additional != null
                                 contributionInteractor.estimateFee(payload.paraId, amount, additional, useBatchAll, signature)
                             },
