@@ -33,7 +33,8 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         BottomSheetScreen {
             ChainSelectContent(
                 state = state,
-                callback = viewModel
+                onChainSelected = viewModel::onChainSelected,
+                onSearchInput = viewModel::onSearchInput
             )
         }
     }

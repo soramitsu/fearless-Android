@@ -58,9 +58,7 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContentInterface
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import kotlinx.coroutines.launch
 
@@ -76,20 +74,6 @@ fun WalletScreen(
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val screenCallback = object : ChainSelectContentInterface {
-        override fun onChainSelected(chainItemState: ChainItemState?) {
-            scope.launch {
-                viewModel.onChainSelected(chainItemState)
-                modalBottomSheetState.hide()
-            }
-            keyboardController?.hide()
-        }
-
-        override fun onSearchInput(input: String) {
-            viewModel.onChainSearchEntered(input)
-        }
-    }
-
     ModalBottomSheetLayout(
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
         sheetBackgroundColor = black4,
@@ -97,7 +81,14 @@ fun WalletScreen(
         sheetContent = {
             ChainSelectContent(
                 state = chainsState,
-                callback = screenCallback
+                onChainSelected = { chainItemState ->
+                    scope.launch {
+                        viewModel.onChainSelected(chainItemState)
+                        modalBottomSheetState.hide()
+                    }
+                    keyboardController?.hide()
+                },
+                onSearchInput = viewModel::onChainSearchEntered
             )
         },
         content = {

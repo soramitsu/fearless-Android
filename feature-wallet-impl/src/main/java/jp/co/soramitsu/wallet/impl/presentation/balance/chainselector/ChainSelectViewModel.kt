@@ -28,7 +28,7 @@ class ChainSelectViewModel @Inject constructor(
     private val chainInteractor: ChainInteractor,
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState
-) : BaseViewModel(), ChainSelectContentInterface {
+) : BaseViewModel() {
 
     private val initialSelectedChainId: ChainId? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_CHAIN_ID]
     private val selectedChainId = MutableStateFlow(initialSelectedChainId)
@@ -80,7 +80,7 @@ class ChainSelectViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
-    override fun onChainSelected(chainItemState: ChainItemState?) {
+    fun onChainSelected(chainItemState: ChainItemState?) {
         if (selectedChainId.value != chainItemState?.id) {
             selectedChainId.value = chainItemState?.id
             val assetId = chainItemState?.tokenSymbols?.firstOrNull { it.second == symbolFlow.value }?.first
@@ -100,7 +100,7 @@ class ChainSelectViewModel @Inject constructor(
         walletRouter.back()
     }
 
-    override fun onSearchInput(input: String) {
+    fun onSearchInput(input: String) {
         enteredChainQueryFlow.value = input
     }
 

@@ -137,6 +137,4 @@ interface AccountInteractor {
     suspend fun getChain(chainId: ChainId): Chain
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
-
-    suspend fun getSelfAddress(chainId: ChainId): String?
 }

@@ -16,30 +16,6 @@
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <action
-        android:id="@+id/action_open_send"
-        app:destination="@id/sendSetupFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
-        android:id="@+id/action_open_chain_select"
-        app:destination="@id/chainSelectFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
-        android:id="@+id/action_open_asset_select"
-        app:destination="@id/assetSelectFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_open_receive"
         app:destination="@id/receiveFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"

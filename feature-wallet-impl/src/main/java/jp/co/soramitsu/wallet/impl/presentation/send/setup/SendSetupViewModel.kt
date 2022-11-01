@@ -35,6 +35,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.wallet.api.presentation.Validation
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -73,7 +74,8 @@ class SendSetupViewModel @Inject constructor(
     private val router: WalletRouter,
     private val qrBitmapDecoder: QrBitmapDecoder,
     private val clipboardManager: ClipboardManager,
-    private val addressIconGenerator: AddressIconGenerator
+    private val addressIconGenerator: AddressIconGenerator,
+    private val currentAccountAddressUseCase: CurrentAccountAddressUseCase
 ) : BaseViewModel(), SendSetupScreenInterface {
 
     private val _showChooserEvent = MutableLiveData<Event<Unit>>()
@@ -402,7 +404,7 @@ class SendSetupViewModel @Inject constructor(
 
                 val amountToTransfer = (allAmount * input.toBigDecimal()) - tipAmount
 
-                val selfAddress = accountInteractor.getSelfAddress(payload.chainId) ?: return@collect
+                val selfAddress = currentAccountAddressUseCase(payload.chainId) ?: return@collect
 
                 val transfer = Transfer(
                     recipient = selfAddress,

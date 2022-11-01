@@ -510,17 +510,17 @@ class Navigator :
     override fun openSend(assetPayload: AssetPayload) {
         val bundle = SendSetupFragment.getBundle(assetPayload)
 
-        navController?.navigate(R.id.action_open_send, bundle)
+        navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
     override fun openSelectChain(assetId: ChainId) {
         val bundle = ChainSelectFragment.getBundle(assetId)
-        navController?.navigate(R.id.action_open_chain_select, bundle)
+        navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
     override fun openSelectAsset(selectedAssetId: String) {
         val bundle = AssetSelectFragment.getBundle(selectedAssetId)
-        navController?.navigate(R.id.action_open_asset_select, bundle)
+        navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 
     override fun openFilter() {

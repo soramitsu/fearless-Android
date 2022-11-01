@@ -67,9 +67,7 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContentInterface
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
@@ -94,19 +92,6 @@ fun BalanceDetailsScreen(
 
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
-    val screenCallback = object : ChainSelectContentInterface {
-        override fun onChainSelected(chainItemState: ChainItemState?) {
-            scope.launch {
-                viewModel.onChainSelected(chainItemState)
-                modalBottomSheetState.hide()
-            }
-            keyboardController?.hide()
-        }
-
-        override fun onSearchInput(input: String) {
-            viewModel.onChainSearchEntered(input)
-        }
-    }
 
     ModalBottomSheetLayout(
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
@@ -115,7 +100,14 @@ fun BalanceDetailsScreen(
         sheetContent = {
             ChainSelectContent(
                 state = chainsState,
-                callback = screenCallback
+                onChainSelected = { chainItemState ->
+                    scope.launch {
+                        viewModel.onChainSelected(chainItemState)
+                        modalBottomSheetState.hide()
+                    }
+                    keyboardController?.hide()
+                },
+                onSearchInput = viewModel::onChainSearchEntered
             )
         },
         content = {

@@ -20,6 +20,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -45,7 +46,8 @@ class ConfirmTransferViewModel @Inject constructor(
     private val externalAccountActions: ExternalAccountActions.Presentation,
     private val walletConstants: WalletConstants,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val currentAccountAddressUseCase: CurrentAccountAddressUseCase
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
@@ -55,7 +57,7 @@ class ConfirmTransferViewModel @Inject constructor(
     val recipientModel = liveData { emit(getAddressIcon(transferDraft.recipientAddress)) }
 
     val senderModel = liveData {
-        val address = interactor.getSenderAddress(transferDraft.assetPayload.chainId) ?: return@liveData
+        val address = currentAccountAddressUseCase(transferDraft.assetPayload.chainId) ?: return@liveData
         emit(getAddressIcon(address))
     }
 

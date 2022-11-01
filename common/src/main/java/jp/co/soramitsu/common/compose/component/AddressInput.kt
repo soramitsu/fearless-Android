@@ -46,21 +46,6 @@ fun AddressInput(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.ic_address_placeholder),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .size(32.dp)
-//                    .align(Alignment.CenterVertically)
-//            )
-
-//            AsyncImage(
-//                model = getImageRequest(LocalContext.current, (state.image as? String).orEmpty()),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .size(32.dp)
-//                    .align(CenterVertically)
-//            )
             Icon(
                 painter = rememberAsyncImagePainter(model = state.image),
                 contentDescription = null,
