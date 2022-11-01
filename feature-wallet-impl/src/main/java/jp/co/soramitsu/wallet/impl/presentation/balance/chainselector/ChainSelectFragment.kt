@@ -17,11 +17,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectViewModel>() {
     companion object {
         const val KEY_SELECTED_CHAIN_ID = "KEY_SELECTED_CHAIN_ID"
-        const val KEY_NARROW_BY_ASSET_ID = "KEY_NARROW_BY_ASSET_ID"
-        const val KEY_NARROW_BY_ASSET_SYMBOL = "KEY_NARROW_BY_ASSET_SYMBOL"
+        const val KEY_SELECTED_ASSET_ID = "KEY_SELECTED_ASSET_ID"
 
         fun getBundle(assetId: String, chainId: ChainId? = null) = bundleOf(
-            KEY_NARROW_BY_ASSET_ID to assetId,
+            KEY_SELECTED_ASSET_ID to assetId,
             KEY_SELECTED_CHAIN_ID to chainId
         )
     }
@@ -34,8 +33,7 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         BottomSheetScreen {
             ChainSelectContent(
                 state = state,
-                onChainSelected = viewModel::onChainSelected,
-                onInput = viewModel::onChainSearchEntered
+                callback = viewModel
             )
         }
     }

@@ -16,10 +16,10 @@ class PoolBondMoreFragment : BaseComposeBottomSheetDialogFragment<PoolBondMoreVi
 
     @Composable
     override fun Content(padding: PaddingValues) {
-        val state = viewModel.state.collectAsState()
+        val state by viewModel.state.collectAsState()
         BottomSheetScreen {
             EnterAmountScreen(
-                state = state.value,
+                state = state,
                 onNavigationClick = viewModel::onBackClick,
                 onAmountInput = viewModel::onAmountInput,
                 onNextClick = viewModel::onNextClick

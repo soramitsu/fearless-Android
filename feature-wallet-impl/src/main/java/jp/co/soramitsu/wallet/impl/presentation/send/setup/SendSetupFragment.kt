@@ -41,18 +41,7 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
         val state by viewModel.state.collectAsState()
         SendSetupContent(
             state = state,
-            onNavigationClick = viewModel::onBackClick,
-            onAddressInput = viewModel::onAddressInput,
-            onAddressInputClear = viewModel::onAddressInputClear,
-            onAmountInput = viewModel::onAmountInput,
-            onNextClick = viewModel::onNextClick,
-            onChainClick = viewModel::onChainClick,
-            onTokenClick = viewModel::onTokenClick,
-            onScanClick = viewModel::onScanClick,
-            onHistoryClick = viewModel::onHistoryClick,
-            onPasteClick = viewModel::onPasteClick,
-            onAmountFocusChanged = viewModel::onAmountFocusChanged,
-            onQuickAmountInput = viewModel::quickInputSelected
+            callback = viewModel
         )
     }
 

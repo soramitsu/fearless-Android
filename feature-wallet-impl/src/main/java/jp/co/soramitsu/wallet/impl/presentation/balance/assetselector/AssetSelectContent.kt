@@ -48,11 +48,15 @@ data class AssetSelectScreenViewState(
     }
 }
 
+interface AssetSelectContentInterface {
+    fun onAssetSelected(assetItemState: AssetItemState)
+    fun onSearchInput(input: String)
+}
+
 @Composable
 fun AssetSelectContent(
     state: AssetSelectScreenViewState,
-    onAssetSelected: (AssetItemState) -> Unit = {},
-    onInput: (String) -> Unit = {}
+    callback: AssetSelectContentInterface
 ) {
     Column(
         modifier = Modifier
@@ -64,12 +68,12 @@ fun AssetSelectContent(
         MarginVertical(margin = 8.dp)
         H3(text = stringResource(id = R.string.common_select_asset))
         MarginVertical(margin = 16.dp)
-        CorneredInput(state = state.searchQuery, onInput = onInput, hintLabel = stringResource(id = R.string.assets_search_hint))
+        CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput, hintLabel = stringResource(id = R.string.assets_search_hint))
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(state.assets.map { it.copy(isSelected = it.id == state.selectedAssetId) }) { chain ->
                 AssetItem(
                     state = chain,
-                    onSelected = onAssetSelected
+                    onSelected = callback::onAssetSelected
                 )
             }
         }
@@ -168,7 +172,11 @@ private fun SelectAssetScreenPreview() {
             Modifier.background(black4)
         ) {
             AssetSelectContent(
-                state = state
+                state = state,
+                callback = object : AssetSelectContentInterface {
+                    override fun onAssetSelected(assetItemState: AssetItemState) {}
+                    override fun onSearchInput(input: String) {}
+                }
             )
         }
     }

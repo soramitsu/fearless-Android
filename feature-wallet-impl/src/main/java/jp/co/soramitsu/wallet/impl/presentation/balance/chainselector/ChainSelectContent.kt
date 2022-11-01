@@ -46,11 +46,15 @@ data class ChainSelectScreenViewState(
     }
 }
 
+interface ChainSelectContentInterface {
+    fun onChainSelected(chainItemState: ChainItemState? = null)
+    fun onSearchInput(input: String)
+}
+
 @Composable
 fun ChainSelectContent(
     state: ChainSelectScreenViewState,
-    onChainSelected: (ChainItemState?) -> Unit,
-    onInput: (String) -> Unit
+    callback: ChainSelectContentInterface
 ) {
     Column(
         modifier = Modifier
@@ -62,20 +66,20 @@ fun ChainSelectContent(
         MarginVertical(margin = 8.dp)
         H3(text = stringResource(id = R.string.common_select_network))
         MarginVertical(margin = 16.dp)
-        CorneredInput(state = state.searchQuery, onInput = onInput)
+        CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput)
         LazyColumn(modifier = Modifier.weight(1f)) {
             if (state.showAllChains) {
                 item {
                     ChainAllItem(
                         isSelected = state.selectedChainId == null,
-                        onSelected = onChainSelected
+                        onSelected = callback::onChainSelected
                     )
                 }
             }
             items(state.chains.map { it.copy(isSelected = it.id == state.selectedChainId) }) { chain ->
                 ChainItem(
                     state = chain,
-                    onSelected = onChainSelected
+                    onSelected = callback::onChainSelected
                 )
             }
         }
@@ -194,8 +198,10 @@ private fun SelectChainScreenPreview() {
         ) {
             ChainSelectContent(
                 state = state,
-                onChainSelected = {},
-                onInput = {}
+                callback = object : ChainSelectContentInterface {
+                    override fun onChainSelected(chainItemState: ChainItemState?) {}
+                    override fun onSearchInput(input: String) {}
+                }
             )
         }
     }

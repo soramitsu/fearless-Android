@@ -74,7 +74,7 @@ class SendSetupViewModel @Inject constructor(
     private val qrBitmapDecoder: QrBitmapDecoder,
     private val clipboardManager: ClipboardManager,
     private val addressIconGenerator: AddressIconGenerator
-) : BaseViewModel() {
+) : BaseViewModel(), SendSetupScreenInterface {
 
     private val _showChooserEvent = MutableLiveData<Event<Unit>>()
     val showChooserEvent: LiveData<Event<Unit>> = _showChooserEvent
@@ -278,19 +278,19 @@ class SendSetupViewModel @Inject constructor(
         sharedState.update(payload.chainId, payload.chainAssetId)
     }
 
-    fun onAmountInput(amount: String) {
-        enteredAmountFlow.value = amount.replace(',', '.')
+    override fun onAmountInput(input: String) {
+        enteredAmountFlow.value = input.replace(',', '.')
     }
 
-    fun onAddressInput(input: String) {
+    override fun onAddressInput(input: String) {
         addressInputFlow.value = input
     }
 
-    fun onAddressInputClear() {
+    override fun onAddressInputClear() {
         addressInputFlow.value = ""
     }
 
-    fun onNextClick() {
+    override fun onNextClick() {
         assetFlow.value?.let { asset ->
             val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
             val inPlanks = asset.token.planksFromAmount(amount)
@@ -333,38 +333,38 @@ class SendSetupViewModel @Inject constructor(
         showMessage("NEXT CLICKED") // todo next step
     }
 
-    fun onChainClick() {
+    override fun onChainClick() {
         sharedState.assetId?.let { assetId ->
             router.openSelectChain(assetId)
         }
     }
 
-    fun onTokenClick() {
+    override fun onTokenClick() {
         sharedState.assetId?.let { assetId ->
             router.openSelectAsset(assetId)
         }
     }
 
-    fun onBackClick() {
+    override fun onNavigationClick() {
         router.back()
     }
 
-    fun onScanClick() {
+    override fun onScanClick() {
         _showChooserEvent.value = Event(Unit)
     }
 
-    fun onHistoryClick() {
+    override fun onHistoryClick() {
         showMessage("On history clicked")
     }
 
-    fun onPasteClick() {
+    override fun onPasteClick() {
         clipboardManager.getFromClipboard()?.let { buffer ->
             addressInputFlow.value = buffer
         }
     }
 
-    fun onAmountFocusChanged(amountInputFocus: FocusState) {
-        amountInputFocusFlow.value = amountInputFocus.isFocused
+    override fun onAmountFocusChanged(focusState: FocusState) {
+        amountInputFocusFlow.value = focusState.isFocused
     }
 
     fun qrCodeScanned(content: String) {
@@ -391,7 +391,7 @@ class SendSetupViewModel @Inject constructor(
         walletConstants.tip(payload.chainId)
     }
 
-    fun quickInputSelected(value: Double) {
+    override fun onQuickAmountInput(input: Double) {
         launch {
             combine(assetFlow, tipFlow) { asset, tip ->
                 asset to tip
@@ -400,13 +400,13 @@ class SendSetupViewModel @Inject constructor(
 
                 val tipAmount = asset.token.amountFromPlanks(tip.orZero())
 
-                val amountToTransfer = (allAmount * value.toBigDecimal()) - tipAmount
+                val amountToTransfer = (allAmount * input.toBigDecimal()) - tipAmount
 
                 val selfAddress = accountInteractor.getSelfAddress(payload.chainId) ?: return@collect
 
                 val transfer = Transfer(
                     recipient = selfAddress,
-                    amount = value.toBigDecimal(),
+                    amount = input.toBigDecimal(),
                     chainAsset = asset.token.configuration
                 )
                 val fee = walletInteractor.getTransferFee(transfer)

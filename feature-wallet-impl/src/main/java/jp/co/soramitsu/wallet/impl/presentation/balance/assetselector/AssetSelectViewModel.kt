@@ -26,7 +26,7 @@ class AssetSelectViewModel @Inject constructor(
     private val walletInteractor: WalletInteractor,
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState
-) : BaseViewModel() {
+) : BaseViewModel(), AssetSelectContentInterface {
 
     private val initialSelectedAssetId: String? = savedStateHandle[AssetSelectFragment.KEY_SELECTED_ASSET_ID]
     private val selectedAssetIdFlow = MutableStateFlow(initialSelectedAssetId)
@@ -73,18 +73,18 @@ class AssetSelectViewModel @Inject constructor(
         chainId = token.configuration.chainId
     )
 
-    fun onAssetSelected(item: AssetItemState) {
-        if (selectedAssetIdFlow.value != item.id) {
-            selectedAssetIdFlow.value = item.id
+    override fun onAssetSelected(assetItemState: AssetItemState) {
+        if (selectedAssetIdFlow.value != assetItemState.id) {
+            selectedAssetIdFlow.value = assetItemState.id
 
-            sharedSendState.update(chainId = item.chainId, assetId = item.id)
+            sharedSendState.update(chainId = assetItemState.chainId, assetId = assetItemState.id)
         }
 
         walletRouter.back()
     }
 
-    fun onTokenSearchEntered(query: String) {
-        enteredTokenQueryFlow.value = query
+    override fun onSearchInput(input: String) {
+        enteredTokenQueryFlow.value = input
     }
 
     fun onBackClicked() {

@@ -28,12 +28,12 @@ class ChainSelectViewModel @Inject constructor(
     private val chainInteractor: ChainInteractor,
     savedStateHandle: SavedStateHandle,
     private val sharedSendState: SendSharedState
-) : BaseViewModel() {
+) : BaseViewModel(), ChainSelectContentInterface {
 
     private val initialSelectedChainId: ChainId? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_CHAIN_ID]
     private val selectedChainId = MutableStateFlow(initialSelectedChainId)
 
-    private val initialSelectedAssetId: String? = savedStateHandle[ChainSelectFragment.KEY_NARROW_BY_ASSET_ID]
+    private val initialSelectedAssetId: String? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_ASSET_ID]
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapNotNull { chains ->
         if (initialSelectedAssetId != null) {
@@ -80,12 +80,12 @@ class ChainSelectViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
-    fun onChainSelected(item: ChainItemState? = null) {
-        if (selectedChainId.value != item?.id) {
-            selectedChainId.value = item?.id
-            val assetId = item?.tokenSymbols?.firstOrNull { it.second == symbolFlow.value }?.first
+    override fun onChainSelected(chainItemState: ChainItemState?) {
+        if (selectedChainId.value != chainItemState?.id) {
+            selectedChainId.value = chainItemState?.id
+            val assetId = chainItemState?.tokenSymbols?.firstOrNull { it.second == symbolFlow.value }?.first
 
-            item?.id?.let {
+            chainItemState?.id?.let {
                 if (assetId != null) {
                     sharedSendState.update(chainId = it, assetId = assetId)
                 } else {
@@ -100,8 +100,8 @@ class ChainSelectViewModel @Inject constructor(
         walletRouter.back()
     }
 
-    fun onChainSearchEntered(query: String) {
-        enteredChainQueryFlow.value = query
+    override fun onSearchInput(input: String) {
+        enteredChainQueryFlow.value = input
     }
 
     fun onBackClicked() {

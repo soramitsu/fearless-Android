@@ -28,8 +28,7 @@ class AssetSelectFragment : BaseComposeBottomSheetDialogFragment<AssetSelectView
         BottomSheetScreen {
             AssetSelectContent(
                 state = state,
-                onAssetSelected = viewModel::onAssetSelected,
-                onInput = viewModel::onTokenSearchEntered
+                callback = viewModel
             )
         }
     }

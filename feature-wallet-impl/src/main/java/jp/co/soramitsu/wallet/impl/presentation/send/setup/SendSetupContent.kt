@@ -62,22 +62,26 @@ data class SendSetupViewState(
     val buttonState: ButtonViewState
 )
 
+interface SendSetupScreenInterface {
+    fun onNavigationClick()
+    fun onAddressInput(input: String)
+    fun onAddressInputClear()
+    fun onAmountInput(input: String)
+    fun onChainClick()
+    fun onTokenClick()
+    fun onNextClick()
+    fun onScanClick()
+    fun onHistoryClick()
+    fun onPasteClick()
+    fun onAmountFocusChanged(focusState: FocusState)
+    fun onQuickAmountInput(input: Double)
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SendSetupContent(
     state: SendSetupViewState,
-    onNavigationClick: () -> Unit = {},
-    onAddressInput: (String) -> Unit = {},
-    onAddressInputClear: () -> Unit = {},
-    onAmountInput: (String) -> Unit = {},
-    onChainClick: () -> Unit = {},
-    onTokenClick: () -> Unit = {},
-    onNextClick: () -> Unit = {},
-    onScanClick: () -> Unit = {},
-    onHistoryClick: () -> Unit = {},
-    onPasteClick: () -> Unit = {},
-    onAmountFocusChanged: (FocusState) -> Unit = {},
-    onQuickAmountInput: (amount: Double) -> Unit = {}
+    callback: SendSetupScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -90,46 +94,46 @@ fun SendSetupContent(
             ) {
                 ToolbarBottomSheet(
                     title = stringResource(id = R.string.send_fund),
-                    onNavigationClicked = { onNavigationClick() }
+                    onNavigationClicked = { callback.onNavigationClick() }
                 )
                 MarginVertical(margin = 20.dp)
                 AddressInput(
                     state = state.addressInputState,
-                    onInput = onAddressInput,
-                    onInputClear = onAddressInputClear
+                    onInput = callback::onAddressInput,
+                    onInputClear = callback::onAddressInputClear
                 )
 
                 MarginVertical(margin = 12.dp)
                 AmountInput(
                     state = state.amountInputState,
                     borderColorFocused = colorAccentDark,
-                    onInput = onAmountInput,
-                    onInputFocusChange = onAmountFocusChanged,
-                    onTokenClick = onTokenClick
+                    onInput = callback::onAmountInput,
+                    onInputFocusChange = callback::onAmountFocusChanged,
+                    onTokenClick = callback::onTokenClick
                 )
 
                 MarginVertical(margin = 12.dp)
                 SelectorWithBorder(
                     state = state.chainSelectorState,
-                    onClick = onChainClick
+                    onClick = callback::onChainClick
                 )
                 MarginVertical(margin = 8.dp)
                 FeeInfo(state = state.feeInfoState)
 
                 Spacer(modifier = Modifier.weight(1f))
                 Row {
-                    Badge(R.drawable.ic_scan, R.string.chip_scan, onScanClick)
+                    Badge(R.drawable.ic_scan, R.string.chip_scan, callback::onScanClick)
                     MarginHorizontal(margin = 12.dp)
-                    Badge(R.drawable.ic_history_16, R.string.chip_history, onHistoryClick)
+                    Badge(R.drawable.ic_history_16, R.string.chip_history, callback::onHistoryClick)
                     MarginHorizontal(margin = 12.dp)
-                    Badge(R.drawable.ic_copy_16, R.string.chip_paste, onPasteClick)
+                    Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick)
                 }
                 MarginVertical(margin = 12.dp)
                 AccentButton(
                     state = state.buttonState,
                     onClick = {
                         keyboardController?.hide()
-                        onNextClick()
+                        callback.onNextClick()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -148,7 +152,7 @@ fun SendSetupContent(
                         .imePadding(),
                     onQuickAmountInput = {
                         keyboardController?.hide()
-                        onQuickAmountInput(it)
+                        callback.onQuickAmountInput(it)
                     }
                 )
             }
@@ -199,9 +203,25 @@ private fun SendSetupPreview() {
         buttonState = ButtonViewState("Continue", true)
     )
 
+    val emptyCallback = object : SendSetupScreenInterface {
+        override fun onNavigationClick() {}
+        override fun onAddressInput(input: String) {}
+        override fun onAddressInputClear() {}
+        override fun onAmountInput(input: String) {}
+        override fun onChainClick() {}
+        override fun onTokenClick() {}
+        override fun onNextClick() {}
+        override fun onScanClick() {}
+        override fun onHistoryClick() {}
+        override fun onPasteClick() {}
+        override fun onAmountFocusChanged(focusState: FocusState) {}
+        override fun onQuickAmountInput(input: Double) {}
+    }
+
     FearlessTheme {
         SendSetupContent(
-            state = state
+            state = state,
+            callback = emptyCallback
         )
     }
 }
