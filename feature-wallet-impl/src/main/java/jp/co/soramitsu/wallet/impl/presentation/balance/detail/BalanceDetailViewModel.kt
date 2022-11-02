@@ -5,8 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -65,6 +63,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -200,11 +200,13 @@ class BalanceDetailViewModel @Inject constructor(
         transactionHistory,
         assetModelFlow,
         enteredChainQueryFlow,
-        assetModelsFlow()
+        assetModelsFlow(),
+        interactor.selectedAccountFlow(assetPayload.value.chainId)
     ) { transactionHistory: TransactionHistoryUi.State,
         balanceModel: Asset,
         searchQuery,
-        assetModels: List<AssetModel> ->
+        assetModels: List<AssetModel>,
+        walletAccount: WalletAccount ->
 
         if (transactionHistory is TransactionHistoryUi.State.EmptyProgress) {
             return@combine LoadingState.Loading()
@@ -212,7 +214,7 @@ class BalanceDetailViewModel @Inject constructor(
 
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.total.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
-            address = "",
+            address = walletAccount.address,
             isInfoEnabled = true,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),

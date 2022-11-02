@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
@@ -95,7 +96,7 @@ private fun ContentSearchAssetsScreen(
             Box(
                 contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
-                    .weight(5f)
+                    .weight(1f)
             ) {
                 CorneredInput(
                     state = data.searchQuery,
@@ -106,7 +107,7 @@ private fun ContentSearchAssetsScreen(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .weight(1f)
+                    .wrapContentWidth()
                     .semantics { role = Role.Button }
                     .clickable {
                         onNavigationClick()

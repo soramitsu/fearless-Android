@@ -1,7 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.assetselector
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,18 +9,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.Grip
@@ -33,6 +37,7 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black4
+import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -69,12 +74,34 @@ fun AssetSelectContent(
         H3(text = stringResource(id = R.string.common_select_asset))
         MarginVertical(margin = 16.dp)
         CorneredInput(state = state.searchQuery, onInput = callback::onSearchInput, hintLabel = stringResource(id = R.string.assets_search_hint))
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(state.assets.map { it.copy(isSelected = it.id == state.selectedAssetId) }) { chain ->
-                AssetItem(
-                    state = chain,
-                    onSelected = callback::onAssetSelected
+        if (state.assets.isEmpty()) {
+            MarginVertical(margin = 16.dp)
+            Column(
+                horizontalAlignment = CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .align(CenterHorizontally)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_alert),
+                    contentDescription = null,
+                    tint = gray2
                 )
+                H3(text = stringResource(id = R.string.common_search_assets_alert_title))
+                B0(
+                    text = stringResource(id = R.string.common_search_assets_alert_description),
+                    color = gray2
+                )
+            }
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(state.assets.map { it.copy(isSelected = it.id == state.selectedAssetId) }) { chain ->
+                    AssetItem(
+                        state = chain,
+                        onSelected = callback::onAssetSelected
+                    )
+                }
             }
         }
         MarginVertical(margin = 52.dp)
@@ -97,12 +124,16 @@ fun AssetItem(
     state: AssetItemState,
     onSelected: (AssetItemState) -> Unit
 ) {
-    Box {
+    Row(
+        verticalAlignment = CenterVertically,
+        modifier = Modifier
+            .height(48.dp)
+            .fillMaxWidth()
+    ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = CenterVertically,
             modifier = Modifier
-                .height(48.dp)
-                .fillMaxWidth()
+                .weight(1f)
                 .clickableWithNoIndication { onSelected(state) }
         ) {
             AsyncImage(
@@ -126,12 +157,13 @@ fun AssetItem(
                 }
             }
         }
+        MarginHorizontal(margin = 10.dp)
         if (state.isSelected) {
             Image(
                 res = R.drawable.ic_selected,
                 modifier = Modifier
+                    .wrapContentWidth()
                     .testTag("ChainItem_image_selected")
-                    .align(Alignment.CenterEnd)
                     .size(24.dp)
             )
         }
