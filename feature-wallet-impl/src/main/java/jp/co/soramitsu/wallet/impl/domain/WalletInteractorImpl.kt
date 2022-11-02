@@ -340,4 +340,9 @@ class WalletInteractorImpl(
     }
 
     override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
+
+    override suspend fun hasAssetInChain(inChain: ChainId, chainAssetId: String): Boolean {
+        val chain = chainRegistry.getChain(inChain)
+        return chain.assetsById.containsKey(chainAssetId)
+    }
 }

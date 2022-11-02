@@ -140,10 +140,14 @@ class SendSetupViewModel @Inject constructor(
             chainId to assetId
         }
             .mapNotNull { (chainId, assetId) ->
-                when {
+                val pair = when {
                     chainId == null -> null
                     assetId == null -> null
                     else -> chainId to assetId
+                }
+                pair?.let {
+                    val hasAssetInChain = walletInteractor.hasAssetInChain(it.first, it.second)
+                    if(hasAssetInChain) it else null
                 }
             }
             .distinctUntilChanged()

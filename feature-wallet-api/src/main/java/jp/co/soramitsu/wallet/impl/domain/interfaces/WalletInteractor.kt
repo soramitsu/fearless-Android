@@ -95,4 +95,6 @@ interface WalletInteractor {
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
 
     fun getChains(): Flow<List<Chain>>
+
+    suspend fun hasAssetInChain(inChain: ChainId, chainAssetId: String): Boolean
 }
