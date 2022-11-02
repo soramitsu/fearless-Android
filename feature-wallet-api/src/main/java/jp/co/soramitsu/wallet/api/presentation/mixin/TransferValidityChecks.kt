@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.api.presentation.mixin
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.utils.Event
@@ -67,6 +68,51 @@ private fun BaseFragment<*>.showTransferError(
 }
 
 private fun BaseFragment<*>.showTransferWarning(
+    status: TransferValidityLevel.Warning.Status,
+    warningConfirmed: DialogClickHandler
+) {
+    val (title, message) = when (status) {
+        TransferValidityLevel.Warning.Status.WillRemoveAccount -> {
+            R.string.wallet_send_existential_warning_title to R.string.wallet_send_existential_warning_message
+        }
+    }
+
+    warningDialog(requireContext(), warningConfirmed) {
+        setTitle(title)
+        setMessage(message)
+    }
+}
+
+fun <T> BaseComposeBottomSheetDialogFragment<T>.observeTransferChecks(
+    viewModel: T,
+    warningConfirmed: DialogClickHandler,
+    errorConfirmed: DialogClickHandler? = null
+) where T : BaseViewModel, T : TransferValidityChecks {
+    viewModel.showTransferWarning.observeEvent {
+        showTransferWarning(it, warningConfirmed)
+    }
+
+    viewModel.showTransferError.observeEvent {
+        showTransferError(it, errorConfirmed)
+    }
+}
+
+private fun BaseComposeBottomSheetDialogFragment<*>.showTransferError(
+    status: TransferValidityLevel.Error.Status,
+    errorConfirmed: DialogClickHandler?
+) {
+    val (titleRes, messageRes) = when (status) {
+        TransferValidityLevel.Error.Status.NotEnoughFunds -> R.string.common_error_general_title to R.string.choose_amount_error_too_big
+        TransferValidityLevel.Error.Status.DeadRecipient -> R.string.common_amount_low to R.string.wallet_send_dead_recipient_message
+    }
+
+    errorDialog(requireContext(), errorConfirmed) {
+        setTitle(titleRes)
+        setMessage(messageRes)
+    }
+}
+
+private fun BaseComposeBottomSheetDialogFragment<*>.showTransferWarning(
     status: TransferValidityLevel.Warning.Status,
     warningConfirmed: DialogClickHandler
 ) {

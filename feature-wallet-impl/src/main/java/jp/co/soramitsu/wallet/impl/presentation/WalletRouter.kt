@@ -29,6 +29,7 @@ interface WalletRouter : SecureRouter {
     fun openChooseAmount(recipientAddress: String, assetPayload: AssetPayload)
 
     fun openConfirmTransfer(transferDraft: TransferDraft)
+    fun openSendConfirm(transferDraft: TransferDraft)
 
     fun finishSendFlow()
 
@@ -84,6 +85,4 @@ interface WalletRouter : SecureRouter {
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
     fun openFrozenTokens(payload: FrozenAssetPayload)
-
-    fun openSendConfirm()
 }

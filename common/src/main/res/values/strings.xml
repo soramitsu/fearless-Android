@@ -917,6 +917,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="chip_paste">Paste</string>
     <string name="address_not_valid_error_title">Is not network address</string>
     <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
+    <string name="preview">Preview</string>
 
 
 </resources>

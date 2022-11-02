@@ -47,7 +47,7 @@ class ConfirmTransferViewModel @Inject constructor(
     private val walletConstants: WalletConstants,
     private val transferValidityChecks: TransferValidityChecks.Presentation,
     private val savedStateHandle: SavedStateHandle,
-    private val currentAccountAddressUseCase: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : BaseViewModel(),
     ExternalAccountActions by externalAccountActions,
     TransferValidityChecks by transferValidityChecks {
@@ -57,7 +57,7 @@ class ConfirmTransferViewModel @Inject constructor(
     val recipientModel = liveData { emit(getAddressIcon(transferDraft.recipientAddress)) }
 
     val senderModel = liveData {
-        val address = currentAccountAddressUseCase(transferDraft.assetPayload.chainId) ?: return@liveData
+        val address = currentAccountAddress(transferDraft.assetPayload.chainId) ?: return@liveData
         emit(getAddressIcon(address))
     }
 

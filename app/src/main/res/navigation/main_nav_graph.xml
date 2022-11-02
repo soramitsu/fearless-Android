@@ -349,10 +349,10 @@
             app:destination="@id/pincodeFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/welcomeFragment"
-            app:popUpToInclusive="true"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true">
 
         </action>
 
@@ -549,6 +549,19 @@
         android:id="@+id/searchAssetsFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment"
         android:label="searchAssetsFragment" />
+
+    <dialog
+        android:id="@+id/confirmSendFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
+        android:label="confirmSendFragment">
+        <action
+            android:id="@+id/finish_send_flow"
+            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popUpTo="@id/mainFragment" />
+    </dialog>
 
     <dialog
         android:id="@+id/startStakingPoolFragment"

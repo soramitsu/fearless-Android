@@ -46,6 +46,7 @@ import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
+import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -75,7 +77,7 @@ class SendSetupViewModel @Inject constructor(
     private val qrBitmapDecoder: QrBitmapDecoder,
     private val clipboardManager: ClipboardManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val currentAccountAddressUseCase: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : BaseViewModel(), SendSetupScreenInterface {
 
     private val _showChooserEvent = MutableLiveData<Event<Unit>>()
@@ -196,41 +198,47 @@ class SendSetupViewModel @Inject constructor(
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
+    private val feeAmountFlow = combine(
         addressInputFlow,
         isInputAddressValidFlow,
         enteredAmountFlow,
-        assetFlow.mapNotNull { it }.flatMapLatest { asset ->
-            val chain = walletInteractor.getChain(asset.token.configuration.chainId)
-            walletInteractor.assetFlow(chain.id, chain.utilityAsset.id).map { utilityAsset ->
-                asset to utilityAsset
-            }
+        assetFlow.mapNotNull { it }
+    ) { address, isAddressValid, enteredAmount, asset ->
+
+        val feeRequestAddress = when {
+            isAddressValid -> address
+            else -> currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
         }
-    ) { address, isAddressValid, enteredAmount, (asset, utilityAsset) ->
-        if (!isAddressValid) {
-            FeeInfoViewState.default
-        } else {
-            val amount = enteredAmount.toBigDecimalOrNull().orZero()
 
-            val transfer = Transfer(
-                recipient = address,
-                amount = amount,
-                chainAsset = asset.token.configuration
-            )
-            val fee = walletInteractor.getTransferFee(transfer)
-            val feeAmount = fee.feeAmount
-
-            val feeFormatted = feeAmount.formatTokenAmount(utilityAsset.token.configuration)
-
-            val feeFiat = feeAmount.applyFiatRate(utilityAsset.token.fiatRate)?.formatAsCurrency(utilityAsset.token.fiatSymbol)
-
-            FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
-        }
+        val amount = enteredAmount.toBigDecimalOrNull().orZero()
+        val transfer = Transfer(
+            recipient = feeRequestAddress,
+            amount = amount,
+            chainAsset = asset.token.configuration
+        )
+        val fee = walletInteractor.getTransferFee(transfer)
+        fee.feeAmount
     }
         .retry(RETRY_TIMES)
         .catch {
-            emit(FeeInfoViewState.default)
+            emit(null)
         }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
+        val chain = walletInteractor.getChain(asset.token.configuration.chainId)
+        walletInteractor.assetFlow(chain.id, chain.utilityAsset.id)
+    }
+
+    private val feeInfoViewStateFlow: Flow<FeeInfoViewState> = combine(
+        feeAmountFlow,
+        utilityAssetFlow
+    ) { feeAmount, utilityAsset ->
+        val feeFormatted = feeAmount?.formatTokenAmount(utilityAsset.token.configuration)
+        val feeFiat = feeAmount?.applyFiatRate(utilityAsset.token.fiatRate)?.formatAsCurrency(utilityAsset.token.fiatSymbol)
+
+        FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
 
     private val buttonStateFlow = combine(
@@ -297,7 +305,10 @@ class SendSetupViewModel @Inject constructor(
             val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
             val inPlanks = asset.token.planksFromAmount(amount)
             isValid(amount).fold({
+
                 onNextStep(inPlanks)
+
+
             }, {
                 showError(it)
             })
@@ -332,8 +343,31 @@ class SendSetupViewModel @Inject constructor(
     }
 
     fun onNextStep(amoutInPlanks: BigInteger) {
-        showMessage("NEXT CLICKED") // todo next step
+        launch {
+            val transferDraft = buildTransferDraft() ?: return@launch
+
+            router.openSendConfirm(transferDraft)
+        }
+//        router.openConfirmTransfer()
     }
+
+    private val tipFlow = flowOf { walletConstants.tip(payload.chainId) }
+    private val tipAmountFlow = combine(tipFlow, assetFlow) { tip: BigInteger?, asset: Asset? ->
+        tip?.let {
+            asset?.token?.amountFromPlanks(it)
+        }
+    }
+
+    private suspend fun buildTransferDraft(): TransferDraft? {
+        val recipientAddress = addressInputFlow.firstOrNull() ?: return null
+        val feeAmount = feeAmountFlow.firstOrNull() ?: return null
+        val tip = tipAmountFlow.firstOrNull()
+
+        val amount = enteredAmountFlow.firstOrNull()?.toBigDecimalOrNull().orZero()
+
+        return TransferDraft(amount, feeAmount, payload, recipientAddress, tip)
+    }
+
 
     override fun onChainClick() {
         sharedState.assetId?.let { assetId ->
@@ -389,10 +423,6 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val tipFlow = flowOf {
-        walletConstants.tip(payload.chainId)
-    }
-
     override fun onQuickAmountInput(input: Double) {
         launch {
             combine(assetFlow, tipFlow) { asset, tip ->
@@ -404,7 +434,7 @@ class SendSetupViewModel @Inject constructor(
 
                 val amountToTransfer = (allAmount * input.toBigDecimal()) - tipAmount
 
-                val selfAddress = currentAccountAddressUseCase(payload.chainId) ?: return@collect
+                val selfAddress = currentAccountAddress(payload.chainId) ?: return@collect
 
                 val transfer = Transfer(
                     recipient = selfAddress,

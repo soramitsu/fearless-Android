@@ -98,6 +98,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmTransferFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
@@ -533,7 +534,13 @@ class Navigator :
         navController?.navigate(R.id.action_chooseRecipientFragment_to_chooseAmountFragment, bundle)
     }
 
-    override fun openConfirmTransfer(transferDraft: TransferDraft) {
+    override fun openSendConfirm(transferDraft: TransferDraft) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft)
+
+        navController?.navigate(R.id.confirmSendFragment, bundle)
+    }
+
+    override fun openConfirmTransfer(transferDraft: TransferDraft) { // todo remove
         val bundle = ConfirmTransferFragment.getBundle(transferDraft)
 
         navController?.navigate(R.id.action_chooseAmountFragment_to_confirmTransferFragment, bundle)
@@ -769,9 +776,6 @@ class Navigator :
     override fun openFrozenTokens(payload: FrozenAssetPayload) {
         val bundle = FrozenTokensFragment.getBundle(payload)
         navController?.navigate(R.id.frozenTokensFragment, bundle)
-    }
-
-    override fun openSendConfirm() {
     }
 
     fun educationalStoriesCompleted() {

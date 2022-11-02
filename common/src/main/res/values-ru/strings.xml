@@ -831,5 +831,6 @@
     <string name="chip_paste">Из буфера</string>
     <string name="address_not_valid_error_title">Не адрес сети</string>
     <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
+    <string name="preview">Предпросмотр</string>
 
 </resources>
