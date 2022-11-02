@@ -53,7 +53,7 @@ class ChainSelectViewModel @Inject constructor(
     }
 
     private val symbolFlow = chainInteractor.getChainsFlow().map { chains ->
-        initialSelectedAssetId?.let {
+        (initialSelectedAssetId ?: sharedSendState.assetId)?.let {
             chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
                 selectedChainId.value = chainOfTheAsset.chain.id
 
