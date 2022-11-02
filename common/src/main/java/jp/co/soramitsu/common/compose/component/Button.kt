@@ -1,7 +1,9 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -125,6 +127,28 @@ fun ColoredTextButton(
     ) {
         CapsTitle(text = text)
     }
+}
+
+@Composable
+fun ColoredButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    backgroundColor: Color,
+    border: BorderStroke? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+    onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit
+) {
+    TextButton(
+        modifier = modifier,
+        onClick = onClick,
+        shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
+        colors = customButtonColors(backgroundColor),
+        border = border,
+        enabled = enabled,
+        contentPadding = contentPadding,
+        content = content
+    )
 }
 
 @Composable

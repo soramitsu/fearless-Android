@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.bond.select
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
@@ -15,10 +16,10 @@ class PoolBondMoreFragment : BaseComposeBottomSheetDialogFragment<PoolBondMoreVi
 
     @Composable
     override fun Content(padding: PaddingValues) {
-        val state = viewModel.state.collectAsState()
+        val state by viewModel.state.collectAsState()
         BottomSheetScreen {
             EnterAmountScreen(
-                state = state.value,
+                state = state,
                 onNavigationClick = viewModel::onBackClick,
                 onAmountInput = viewModel::onAmountInput,
                 onNextClick = viewModel::onNextClick

@@ -240,12 +240,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getSenderAddress(chainId: ChainId): String? {
-        val metaAccount = accountRepository.getSelectedMetaAccount()
-        val chain = chainRegistry.getChain(chainId)
-        return metaAccount.address(chain)
-    }
-
     override suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus> {
         return runCatching {
             val metaAccount = accountRepository.getSelectedMetaAccount()

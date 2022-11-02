@@ -58,7 +58,7 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.SelectChainContent
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import kotlinx.coroutines.launch
 
@@ -79,16 +79,16 @@ fun WalletScreen(
         sheetBackgroundColor = black4,
         sheetState = modalBottomSheetState,
         sheetContent = {
-            SelectChainContent(
+            ChainSelectContent(
                 state = chainsState,
-                onChainSelected = { item ->
+                onChainSelected = { chainItemState ->
                     scope.launch {
-                        viewModel.onChainSelected(item)
+                        viewModel.onChainSelected(chainItemState)
                         modalBottomSheetState.hide()
                     }
                     keyboardController?.hide()
                 },
-                onInput = viewModel::onChainSearchEntered
+                onSearchInput = viewModel::onChainSearchEntered
             )
         },
         content = {

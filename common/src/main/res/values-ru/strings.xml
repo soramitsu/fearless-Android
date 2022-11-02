@@ -653,6 +653,7 @@
     <string name="moonbeam_ethereum_address_incorrect">Формат адреса Moonbeam Ethereum неверен, попробуйте еще раз</string>
     <string name="moonbeam_ethereum_reward">Вознаграждения будут выплачиваться на этот адрес. Вы можете использовать существующий адрес Ethereum. ПОЖАЛУЙСТА, УБЕДИТЕСЬ, ЧТО У ВАС ЕСТЬ ПРИВАТНЫЕ КЛЮЧИ ДЛЯ ЭТОГО АДРЕСА.</string>
     <string name="manage_assets_search_hint">Поиск по токену или сети</string>
+    <string name="assets_search_hint">Поиск по токену</string>
     <string name="crowdloan_email_hint">Адрес электронной почты</string>
     <string name="crowdloan_referral_code_hint">Реферальный код</string>
     <string name="label_link">Ссылка</string>
@@ -742,6 +743,7 @@
     <string name="chain_selection_all_networks">Все сети</string>
     <string name="hidden_assets">Скрытые активы</string>
     <string name="common_select_network">Выбрать Сеть</string>
+    <string name="common_select_asset">Выбрать Актив</string>
 
     <string name="staking_pool_rewards_delay_text"></string>
     <string name="staking_pool_start_apr_text"></string>
@@ -821,5 +823,13 @@
     <string name="network_issue_action_add_account">Добавить Аккаунт</string>
     <string name="network_issue_unavailable">Сеть недоступна, вы можете подождать или задать вопрос сообществу</string>
     <string name="top_up"></string>
+
+    <string name="send_fund">Отправить Средства</string>
+    <string name="send_to">Отправить</string>
+    <string name="chip_scan">Сканер</string>
+    <string name="chip_history">История</string>
+    <string name="chip_paste">Из буфера</string>
+    <string name="address_not_valid_error_title">Не адрес сети</string>
+    <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
 
 </resources>

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,8 +13,11 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -38,7 +42,9 @@ data class AmountInputViewState(
     val fiatAmount: String?,
     val tokenAmount: String,
     val title: String? = null,
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val isFocused: Boolean = false,
+    val allowAssetChoose: Boolean = false
 )
 
 @Composable
@@ -47,18 +53,28 @@ fun AmountInput(
     modifier: Modifier = Modifier,
     backgroundColor: Color = black05,
     borderColor: Color = white24,
-    onInput: (String) -> Unit
+    borderColorFocused: Color = Color.Unspecified,
+    onInput: (String) -> Unit = {},
+    onInputFocusChange: (FocusState) -> Unit = {},
+    onTokenClick: () -> Unit = {}
 ) {
     val textColorState = if (state.isActive) {
         white
     } else {
         black2
     }
+
+    val borderColorState = when {
+        !state.isFocused -> borderColor
+        borderColorFocused.isUnspecified -> borderColor
+        else -> borderColorFocused
+    }
+
     BackgroundCorneredWithBorder(
         modifier = modifier
             .fillMaxWidth(),
         backgroundColor = backgroundColor,
-        borderColor = borderColor
+        borderColor = borderColorState
     ) {
         Column(
             modifier = Modifier
@@ -76,7 +92,17 @@ fun AmountInput(
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = if (state.allowAssetChoose) {
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onTokenClick()
+                        }
+                } else {
+                    Modifier.fillMaxWidth()
+                }
+            ) {
                 AsyncImage(
                     model = getImageRequest(LocalContext.current, state.tokenImage),
                     contentDescription = null,
@@ -88,6 +114,14 @@ fun AmountInput(
                 MarginHorizontal(margin = 4.dp)
                 H3(text = state.tokenName.uppercase(), modifier = Modifier.align(CenterVertically), color = textColorState)
                 MarginHorizontal(margin = 8.dp)
+                if (state.allowAssetChoose) {
+                    Image(
+                        res = R.drawable.ic_arrow_down,
+                        modifier = Modifier
+                            .align(CenterVertically)
+                            .padding(top = 4.dp, end = 4.dp)
+                    )
+                }
                 BasicTextField(
                     value = state.tokenAmount,
                     enabled = state.isActive,
@@ -98,6 +132,9 @@ fun AmountInput(
                     keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Decimal, imeAction = ImeAction.None),
                     modifier = Modifier
                         .background(color = transparent)
+                        .onFocusChanged {
+                            onInputFocusChange(it)
+                        }
                         .weight(1f),
                     cursorBrush = SolidColor(white)
                 )
@@ -116,9 +153,10 @@ private fun AmountInputPreview() {
         tokenImage = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
         totalBalance = "Balance: 20.0",
         fiatAmount = "$120.0",
-        tokenAmount = "0.1"
+        tokenAmount = "0.1",
+        allowAssetChoose = true
     )
     FearlessTheme {
-        AmountInput(state, onInput = {})
+        AmountInput(state)
     }
 }

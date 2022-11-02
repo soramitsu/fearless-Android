@@ -18,3 +18,8 @@ class MinPoolCreationThresholdException(resourceManager: ResourceManager, minToC
     resourceManager.getString(R.string.min_to_create_pool_threshold_error_title),
     resourceManager.getString(R.string.min_to_create_pool_threshold_error_message, minToCreateAmount)
 )
+
+class AddressNotValidException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.address_not_valid_error_title),
+    resourceManager.getString(R.string.address_not_valid_error_message)
+)

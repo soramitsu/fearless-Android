@@ -33,18 +33,24 @@ import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
-data class SelectChainScreenViewState(
+data class ChainSelectScreenViewState(
     val chains: List<ChainItemState>,
-    val selectedChain: ChainItemState?,
-    val searchQuery: String? = null
-)
+    val selectedChainId: ChainId?,
+    val searchQuery: String? = null,
+    val showAllChains: Boolean = true
+) {
+    companion object {
+        val default = ChainSelectScreenViewState(emptyList(), null)
+    }
+}
 
 @Composable
-fun SelectChainContent(
-    state: SelectChainScreenViewState,
-    onChainSelected: (ChainItemState?) -> Unit,
-    onInput: (String) -> Unit
+fun ChainSelectContent(
+    state: ChainSelectScreenViewState,
+    onChainSelected: (chainItemState: ChainItemState?) -> Unit = {},
+    onSearchInput: (input: String) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -56,15 +62,17 @@ fun SelectChainContent(
         MarginVertical(margin = 8.dp)
         H3(text = stringResource(id = R.string.common_select_network))
         MarginVertical(margin = 16.dp)
-        CorneredInput(state = state.searchQuery, onInput = onInput)
+        CorneredInput(state = state.searchQuery, onInput = onSearchInput)
         LazyColumn(modifier = Modifier.weight(1f)) {
-            item {
-                ChainAllItem(
-                    isSelected = state.selectedChain?.id == null,
-                    onSelected = onChainSelected
-                )
+            if (state.showAllChains) {
+                item {
+                    ChainAllItem(
+                        isSelected = state.selectedChainId == null,
+                        onSelected = onChainSelected
+                    )
+                }
             }
-            items(state.chains.map { it.copy(isSelected = it.id == state.selectedChain?.id) }) { chain ->
+            items(state.chains.map { it.copy(isSelected = it.id == state.selectedChainId) }) { chain ->
                 ChainItem(
                     state = chain,
                     onSelected = onChainSelected
@@ -80,7 +88,7 @@ data class ChainItemState(
     val imageUrl: String?,
     val title: String,
     val isSelected: Boolean = false,
-    val tokenSymbols: List<String> = listOf()
+    val tokenSymbols: List<Pair<String, String>> = listOf()
 )
 
 fun JoinedChainInfo.toChainItemState() = ChainItemState(
@@ -88,7 +96,7 @@ fun JoinedChainInfo.toChainItemState() = ChainItemState(
     imageUrl = chain.icon,
     title = chain.name,
     isSelected = false,
-    tokenSymbols = assets.map { it.symbol }
+    tokenSymbols = assets.map { it.id to it.symbol }
 )
 
 @Composable
@@ -175,20 +183,16 @@ private fun SelectChainScreenPreview() {
             title = "Moonriver"
         )
     )
-    val state = SelectChainScreenViewState(
+    val state = ChainSelectScreenViewState(
         chains = items,
-        selectedChain = null,
+        selectedChainId = null,
         searchQuery = null
     )
     FearlessThemeBlackBg {
         Column(
             Modifier.background(black4)
         ) {
-            SelectChainContent(
-                state = state,
-                onChainSelected = {},
-                onInput = {}
-            )
+            ChainSelectContent(state = state)
         }
     }
 }

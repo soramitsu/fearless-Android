@@ -16,14 +16,6 @@
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <action
-        android:id="@+id/action_open_send"
-        app:destination="@id/chooseRecipientFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_open_receive"
         app:destination="@id/receiveFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -697,6 +689,21 @@
         android:id="@+id/validatorsSettingsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.common.filters.ValidatorsSettingsFragment"
         android:label="validatorsSettingsFragment" />
+
+    <dialog
+        android:id="@+id/sendSetupFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment"
+        android:label="sendSetupFragment" />
+
+    <dialog
+        android:id="@+id/chainSelectFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment"
+        android:label="chainSelectFragment" />
+
+    <dialog
+        android:id="@+id/assetSelectFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
+        android:label="assetSelectFragment" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
