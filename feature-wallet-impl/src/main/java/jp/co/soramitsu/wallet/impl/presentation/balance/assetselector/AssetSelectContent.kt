@@ -78,21 +78,11 @@ fun AssetSelectContent(
             MarginVertical(margin = 16.dp)
             Column(
                 horizontalAlignment = CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .weight(1f)
                     .align(CenterHorizontally)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_alert),
-                    contentDescription = null,
-                    tint = gray2
-                )
-                H3(text = stringResource(id = R.string.common_search_assets_alert_title))
-                B0(
-                    text = stringResource(id = R.string.common_search_assets_alert_description),
-                    color = gray2
-                )
+                EmptyResultContent()
             }
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {
@@ -105,6 +95,25 @@ fun AssetSelectContent(
             }
         }
         MarginVertical(margin = 52.dp)
+    }
+}
+
+@Composable
+fun EmptyResultContent() {
+    Column(
+        horizontalAlignment = CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_alert),
+            contentDescription = null,
+            tint = gray2
+        )
+        H3(text = stringResource(id = R.string.common_search_assets_alert_title))
+        B0(
+            text = stringResource(id = R.string.common_search_assets_alert_description),
+            color = gray2
+        )
     }
 }
 

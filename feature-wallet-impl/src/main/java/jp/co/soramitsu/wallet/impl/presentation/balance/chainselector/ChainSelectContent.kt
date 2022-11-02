@@ -34,6 +34,7 @@ import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.EmptyResultContent
 
 data class ChainSelectScreenViewState(
     val chains: List<ChainItemState>,
@@ -63,20 +64,32 @@ fun ChainSelectContent(
         H3(text = stringResource(id = R.string.common_select_network))
         MarginVertical(margin = 16.dp)
         CorneredInput(state = state.searchQuery, onInput = onSearchInput)
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            if (state.showAllChains) {
-                item {
-                    ChainAllItem(
-                        isSelected = state.selectedChainId == null,
+        if (state.chains.isEmpty()) {
+            MarginVertical(margin = 16.dp)
+            Column(
+                horizontalAlignment = CenterHorizontally,
+                modifier = Modifier
+                    .weight(1f)
+                    .align(CenterHorizontally)
+            ) {
+                EmptyResultContent()
+            }
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                if (state.showAllChains) {
+                    item {
+                        ChainAllItem(
+                            isSelected = state.selectedChainId == null,
+                            onSelected = onChainSelected
+                        )
+                    }
+                }
+                items(state.chains.map { it.copy(isSelected = it.id == state.selectedChainId) }) { chain ->
+                    ChainItem(
+                        state = chain,
                         onSelected = onChainSelected
                     )
                 }
-            }
-            items(state.chains.map { it.copy(isSelected = it.id == state.selectedChainId) }) { chain ->
-                ChainItem(
-                    state = chain,
-                    onSelected = onChainSelected
-                )
             }
         }
         MarginVertical(margin = 52.dp)
