@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,10 +30,15 @@ data class ConfirmScreenViewState(
     val toolbarViewState: ToolbarViewState,
     val amount: String?,
     val tableItems: List<TitleValueViewState>,
-    val assetIcon: String,
+    val assetIcon: Icon,
     @StringRes val titleRes: Int,
     @StringRes val additionalMessageRes: Int? = null
-)
+) {
+    sealed class Icon {
+        class Remote(val url: String) : Icon()
+        class Local(@DrawableRes val res: Int) : Icon()
+    }
+}
 
 @Composable
 fun ConfirmScreen(state: ConfirmScreenViewState, onNavigationClick: () -> Unit, onConfirm: () -> Unit) {
@@ -106,7 +112,7 @@ private fun ConfirmJoinPoolScreenPreview() {
             TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32")
         ),
         amount = "10KSM",
-        assetIcon = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
+        assetIcon = ConfirmScreenViewState.Icon.Remote("https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg"),
         titleRes = R.string.common_confirm,
         additionalMessageRes = R.string.pool_staking_unstake_alert
     )

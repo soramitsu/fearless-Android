@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.ConfirmScreenViewState
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H2
@@ -33,7 +34,7 @@ data class ConfirmJoinPoolScreenViewState(
     val address: TitleValueViewState,
     val selectedPool: TitleValueViewState,
     val networkFee: TitleValueViewState,
-    val assetIcon: String
+    val assetIcon: ConfirmScreenViewState.Icon
 )
 
 @Composable
@@ -77,7 +78,7 @@ private fun ConfirmJoinPoolScreenPreview() {
         address = TitleValueViewState("From", "Account for join", "0x3784348729384923849223423"),
         selectedPool = TitleValueViewState("Selected Pool", "Pool #1", "id: 1"),
         networkFee = TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32"),
-        assetIcon = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg"
+        assetIcon = ConfirmScreenViewState.Icon.Remote("https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg")
     )
     FearlessTheme {
         ConfirmJoinPoolScreen(state, {}, {})

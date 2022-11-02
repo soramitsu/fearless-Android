@@ -84,11 +84,11 @@ class StakingSharedState(
 
     suspend fun availableAssetsToSelect(): List<Asset> {
         val metaAccount = accountRepository.getSelectedMetaAccount()
-        val availableChainAssets = availableToSelect()
-        val availableAssetIds = availableChainAssets.map { it.chainAssetId }
+        val availableChainAssets = availableToSelect().associate { it.chainId to it.chainAssetId }
+        val allAssets = walletRepository.getAssets(metaAccount.id)
 
-        return walletRepository.getAssets(metaAccount.id).filter {
-            it.token.configuration.id in availableAssetIds
+        return allAssets.filter {
+            it.token.configuration.id in availableChainAssets.values && it.token.configuration.chainId in availableChainAssets.keys
         }.sortedBy {
             it.token.configuration.orderInStaking
         }
