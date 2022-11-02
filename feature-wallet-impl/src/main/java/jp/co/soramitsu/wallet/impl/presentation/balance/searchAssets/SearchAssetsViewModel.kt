@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.domain.AppVersion
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
@@ -29,6 +30,7 @@ import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -36,6 +38,7 @@ import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
@@ -55,7 +58,8 @@ class SearchAssetsViewModel @Inject constructor(
     private val chainInteractor: ChainInteractor,
     private val accountRepository: AccountRepository,
     private val router: WalletRouter,
-    private val networkStateMixin: NetworkStateMixin
+    private val networkStateMixin: NetworkStateMixin,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), NetworkStateUi by networkStateMixin {
 
     private val _showUnsupportedChainAlert = MutableLiveData<Event<Unit>>()
@@ -247,7 +251,13 @@ class SearchAssetsViewModel @Inject constructor(
                 if (chain.nodes.size > 1) {
                     router.openNodes(asset.chainId)
                 } else {
-                    router.openNetworkUnavailable(chain.name)
+                    val payload = AlertViewState(
+                        resourceManager.getString(R.string.staking_main_network_title, chain.name),
+                        resourceManager.getString(R.string.network_issue_unavailable),
+                        resourceManager.getString(R.string.top_up),
+                        R.drawable.ic_alert_16
+                    )
+                    router.openAlert(payload)
                 }
             }
             return

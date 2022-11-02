@@ -233,6 +233,9 @@
     <string name="staking_year_period_title">ежегодно</string>
     <string name="staking_recommended_title">Валидаторы</string>
     <string name="staking_recommended_section_title">Рекомендованные валидаторы</string>
+    <string name="staking_suggested_collators_title">Рекомендованные коллаторы</string>
+    <string name="staking_suggested_validators_title">Рекомендованные валидаторы</string>
+    <string name="staking_select_collator_title">Select a collator</string>
     <string name="staking_recommended_feature_1">Самые доходные</string>
     <string name="staking_recommended_feature_2">Не превышен лимит номинаторов</string>
     <string name="staking_recommended_feature_3">Идентифицирован в сети</string>
@@ -820,6 +823,9 @@
     <string name="network_issue_action_add_account">Добавить Аккаунт</string>
     <string name="network_issue_unavailable">Сеть недоступна, вы можете подождать или задать вопрос сообществу</string>
     <string name="top_up"></string>
+    <string name="alert_oversubscribed_alert_title">Превышен лимит номинаторов для валидатора</string>
+    <string name="alert_oversubscribed_alert_message">Вы не будете получать награды от этого валидатора в этой эре</string>
+
 
     <string name="send_fund">Отправить Средства</string>
     <string name="send_to">Отправить</string>

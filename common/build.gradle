@@ -97,6 +97,7 @@ dependencies {
     implementation viewModelKtxDep
 
     implementation daggerDep
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
     kapt daggerKapt
 
     kapt lifecycleKapt

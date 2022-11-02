@@ -561,9 +561,9 @@
         android:label="networkIssuesFragment" />
 
     <dialog
-        android:id="@+id/networkUnavailableFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment"
-        android:label="networkUnavailableFragment" />
+        android:id="@+id/alertFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.AlertFragment"
+        android:label="alertFragment" />
 
     <dialog
         android:id="@+id/scamWarningFragment"

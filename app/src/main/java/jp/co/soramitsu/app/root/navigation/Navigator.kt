@@ -3,9 +3,11 @@ package jp.co.soramitsu.app.root.navigation
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
+import coil.request.GlobalLifecycle.addObserver
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
@@ -33,8 +35,10 @@ import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -91,7 +95,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelec
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
@@ -108,8 +111,12 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -765,9 +772,9 @@ class Navigator :
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
     }
 
-    override fun openNetworkUnavailable(chainName: String?) {
-        val bundle = chainName?.let { NetworkUnavailableFragment.getBundle(chainName) }
-        navController?.navigate(R.id.networkUnavailableFragment, bundle)
+    override fun openAlert(payload: AlertViewState) {
+        val bundle = AlertFragment.getBundle(payload)
+        navController?.navigate(R.id.alertFragment, bundle)
     }
 
     override fun openScamWarning(symbol: String) {
@@ -842,4 +849,65 @@ class Navigator :
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
             ?.asFlow() ?: emptyFlow()
+
+    override val alertResultFlow: Flow<Result<Unit>>
+        get() {
+            val currentEntry = navController?.currentBackStackEntry
+            val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+
+            return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+                if(currentEntry?.savedStateHandle?.contains(AlertFragment.KEY_RESULT) == true) {
+                    val result = currentEntry.savedStateHandle.get<Result<Unit>?>(AlertFragment.KEY_RESULT)
+                    currentEntry.savedStateHandle.set<Result<Unit>?>(AlertFragment.KEY_RESULT, null)
+//                    currentEntry?.lifecycle?.removeObserver(onResumeObserver)
+                    result
+                } else {
+                    null
+                }
+            }.filterNotNull()
+//            return combineTransform(
+//                currentEntry?.lifecycle?.onResumeObserver()?.asFlow() ?: emptyFlow(),
+//                currentEntry?.savedStateHandle?.getStateFlow<Result<Unit>?>(AlertFragment.KEY_RESULT, null) ?: emptyFlow(),
+//            ) { isResumed, result ->
+//                if (isResumed && result != null) {
+//                    emit(result)
+//                    currentEntry?.savedStateHandle?.set(AlertFragment.KEY_RESULT, null)
+//                    currentEntry?.savedStateHandle?.remove<Result<Unit>?>(AlertFragment.KEY_RESULT)
+//                }
+//            }
+        }
+
+//    fun observeAlertResult(listenInDestination: Int): Flow<Result<Unit>?> {
+//        return flow<Result<Unit>?> {
+//            val navBackStackEntry = navController?.getBackStackEntry(listenInDestination)
+//
+//            val observer = LifecycleEventObserver { _, event ->
+//                if (event == Lifecycle.Event.ON_RESUME
+//                    && navBackStackEntry?.savedStateHandle?.contains(AlertFragment.KEY_RESULT) == true
+//                ) {
+//                    val result = navBackStackEntry.savedStateHandle.get<Result<Unit>?>(AlertFragment.KEY_RESULT)
+//                    emit(result)
+//                }
+//            }
+//            navBackStackEntry?.lifecycle?.addObserver(observer)
+//        }
+//
+////        viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+////            if (event == Lifecycle.Event.ON_DESTROY) {
+////                navBackStackEntry.lifecycle.removeObserver(observer)
+////            }
+////        })
+//    }
+
+    fun setAlertResult(result: Result<Unit>) {
+        val previousBackStackEntry = navController?.previousBackStackEntry
+        previousBackStackEntry?.savedStateHandle?.set(AlertFragment.KEY_RESULT, result)
+//        navController?.currentBackStackEntry?.lifecycle?.addObserver(LifecycleEventObserver { _, event ->
+//            if (event == Lifecycle.Event.ON_DESTROY) {
+//                previousBackStackEntry?.savedStateHandle?.remove<Result<Unit>?>(AlertFragment.KEY_RESULT)
+//                previousBackStackEntry?.lifecycle?.removeObserver(observer)
+//            }
+//        })
+//        hashCode()
+    }
 }

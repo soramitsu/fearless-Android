@@ -1,8 +1,10 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.SelectValidatorsVariantPanelViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -19,7 +21,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class StartSelectValidatorsViewModel @Inject constructor(
-    resourceManager: ResourceManager,
+    private val resourceManager: ResourceManager,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val router: StakingRouter,
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
@@ -54,12 +56,27 @@ class StartSelectValidatorsViewModel @Inject constructor(
             validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
 
             loadingState.value = false
+            launch {
+                router.alertResultFlow.collect {
+                    Log.d("&&&", "alertResultFlow collected")
+                    if(it.isSuccess) {
+                        Log.d("&&&", "alertResultFlow is success")
+                        setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
+                        router.openSelectValidators()
+                    }
+                }
+            }
         }
     }
 
-    fun onRecommendedClick() {
-        setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
-        router.openSelectValidators()
+    fun onRecommendedClick() = viewModelScope.launch {
+        val payload = AlertViewState(
+            resourceManager.getString(R.string.staking_suggested_validators_title),
+            resourceManager.getString(R.string.alert_suggested_validators),
+            resourceManager.getString(R.string.common_continue),
+            R.drawable.ic_alert_16
+        )
+        router.openAlert(payload)
     }
 
     fun onManualClick() {

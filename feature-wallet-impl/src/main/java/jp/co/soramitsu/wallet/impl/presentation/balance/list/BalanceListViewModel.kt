@@ -39,6 +39,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
@@ -49,6 +50,7 @@ import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -59,6 +61,7 @@ import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
@@ -93,7 +96,8 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val accountRepository: AccountRepository,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin
+    private val networkStateMixin: NetworkStateMixin,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin {
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
@@ -381,7 +385,13 @@ class BalanceListViewModel @Inject constructor(
                 if (chain.nodes.size > 1) {
                     router.openNodes(asset.chainId)
                 } else {
-                    router.openNetworkUnavailable(chain.name)
+                    val payload = AlertViewState(
+                        resourceManager.getString(R.string.staking_main_network_title, chain.name),
+                        resourceManager.getString(R.string.network_issue_unavailable),
+                        resourceManager.getString(R.string.top_up),
+                        R.drawable.ic_alert_16
+                    )
+                    router.openAlert(payload)
                 }
             }
             return

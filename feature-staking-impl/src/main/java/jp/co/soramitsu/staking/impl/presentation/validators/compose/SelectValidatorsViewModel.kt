@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
+import android.util.Log
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -7,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigInteger
 import javax.inject.Inject
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
@@ -74,8 +76,8 @@ class SelectValidatorsViewModel @Inject constructor(
     private val searchQueryFlow = MutableStateFlow("")
 
     init {
+        Log.d("&&&", "SelectValidatorsViewModel init")
         setupFilters()
-
         val mainState = stakingPoolSharedStateProvider.requireMainState
         asset = mainState.requireAsset
         chain = mainState.requireChain
@@ -102,6 +104,7 @@ class SelectValidatorsViewModel @Inject constructor(
         }.collect {
             recommendedSettings.value = it
         }
+        Log.d("&&&", "SelectValidatorsViewModel subscribeOnSettings")
     }
 
     private val recommendedValidators = recommendedSettings.mapNotNull { settings ->
@@ -149,6 +152,11 @@ class SelectValidatorsViewModel @Inject constructor(
 
     override fun onSelected(item: SelectableListItemState<String>) {
         val selectedIds = selectedItems.value
+        val isOverSubscribed = item.additionalStatuses.contains(SelectableListItemState.SelectableListItemAdditionalStatus.OVERSUBSCRIBED)
+        if (isOverSubscribed && selectedIds.contains(item.id).not()) {
+            openOversubscribedAlert()
+        }
+
         val selectedListClone = selectedItems.value.toMutableList()
         if (item.id in selectedIds) {
             selectedListClone.removeIf { it == item.id }
@@ -156,6 +164,16 @@ class SelectValidatorsViewModel @Inject constructor(
             selectedListClone.add(item.id)
         }
         selectedItems.value = selectedListClone
+    }
+
+    private fun openOversubscribedAlert() {
+        val payload = AlertViewState(
+            resourceManager.getString(R.string.alert_oversubscribed_alert_title),
+            resourceManager.getString(R.string.alert_oversubscribed_alert_message),
+            resourceManager.getString(R.string.common_close),
+            R.drawable.ic_alert_16
+        )
+        router.openAlert(payload)
     }
 
     override fun onInfoClick(item: SelectableListItemState<String>) {

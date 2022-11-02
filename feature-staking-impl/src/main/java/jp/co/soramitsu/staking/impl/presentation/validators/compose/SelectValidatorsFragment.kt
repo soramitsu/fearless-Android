@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
+import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,5 +20,15 @@ class SelectValidatorsFragment : BaseComposeBottomSheetDialogFragment<SelectVali
             state = state,
             viewModel
         )
+    }
+
+    override fun onPause() {
+        Log.d("&&&", "SelectValidatorsFragment onPause")
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        Log.d("&&&", "SelectValidatorsFragment onDestroy")
+        super.onDestroy()
     }
 }

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
@@ -12,6 +13,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
+import kotlinx.coroutines.flow.Flow
 
 interface WalletRouter : SecureRouter {
     fun openAssetDetails(assetPayload: AssetPayload)
@@ -79,7 +81,7 @@ interface WalletRouter : SecureRouter {
 
     fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
 
-    fun openNetworkUnavailable(chainName: String?)
+    fun openAlert(payload: AlertViewState)
 
     fun openSearchAssets(chainId: String?)
 
@@ -88,6 +90,8 @@ interface WalletRouter : SecureRouter {
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
     fun openFrozenTokens(payload: FrozenAssetPayload)
+
+    val alertResultFlow: Flow<Result<Unit>>
 
     fun openScamWarning(symbol: String)
 }
