@@ -31,5 +31,4 @@ class ConfirmTransferFragment : BaseFragment<ConfirmTransferViewModel>(R.layout.
 
         return base
     }
-
 }

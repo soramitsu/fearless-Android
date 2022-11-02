@@ -305,10 +305,7 @@ class SendSetupViewModel @Inject constructor(
             val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
             val inPlanks = asset.token.planksFromAmount(amount)
             isValid(amount).fold({
-
                 onNextStep(inPlanks)
-
-
             }, {
                 showError(it)
             })
@@ -367,7 +364,6 @@ class SendSetupViewModel @Inject constructor(
 
         return TransferDraft(amount, feeAmount, payload, recipientAddress, tip)
     }
-
 
     override fun onChainClick() {
         sharedState.assetId?.let { assetId ->
