@@ -1,8 +1,8 @@
 package jp.co.soramitsu.account.api.presentation.actions
 
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.base.BaseBottomSheetDialogFragment
+import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
