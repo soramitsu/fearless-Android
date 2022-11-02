@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.presentation.send.setup
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -121,7 +122,10 @@ fun SendSetupContent(
                 FeeInfo(state = state.feeInfoState)
 
                 Spacer(modifier = Modifier.weight(1f))
-                Row {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     Badge(R.drawable.ic_scan, R.string.chip_scan, callback::onScanClick)
                     MarginHorizontal(margin = 12.dp)
                     Badge(R.drawable.ic_history_16, R.string.chip_history, callback::onHistoryClick)
