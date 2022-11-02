@@ -5,6 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.ConfirmScreenViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -89,7 +90,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             addressViewState,
             poolViewState,
             feeViewState,
-            asset.token.configuration.iconUrl
+            ConfirmScreenViewState.Icon.Local(R.drawable.ic_vector)
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
 
@@ -123,6 +124,6 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             addressViewState,
             poolViewState,
             defaultFeeState,
-            asset.token.configuration.iconUrl
+            ConfirmScreenViewState.Icon.Local(R.drawable.ic_vector)
         )
 }

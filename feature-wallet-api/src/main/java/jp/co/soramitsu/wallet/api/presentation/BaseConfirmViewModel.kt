@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.api.presentation
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import java.math.BigInteger
@@ -30,6 +31,7 @@ abstract class BaseConfirmViewModel(
     protected val amountInPlanks: BigInteger? = null,
     @StringRes protected val titleRes: Int,
     @StringRes protected val additionalMessageRes: Int? = null,
+    @DrawableRes protected val customIcon: Int? = null,
     private val feeEstimator: suspend (BigInteger?) -> BigInteger,
     private val executeOperation: suspend (String, BigInteger?) -> Result<Any>,
     private val accountNameProvider: suspend (String) -> String?,
@@ -88,11 +90,17 @@ abstract class BaseConfirmViewModel(
 
     val viewState by lazy {
         tableItemsFlow.map { tableItems ->
+            val icon = if (customIcon != null) {
+                ConfirmScreenViewState.Icon.Local(customIcon)
+            } else {
+                ConfirmScreenViewState.Icon.Remote(asset.token.configuration.iconUrl)
+            }
+
             ConfirmScreenViewState(
                 toolbarViewState,
                 amount = amountViewState.value,
                 tableItems = tableItems,
-                asset.token.configuration.iconUrl,
+                icon,
                 titleRes,
                 additionalMessageRes
             )
@@ -125,7 +133,7 @@ abstract class BaseConfirmViewModel(
                 amountViewState,
                 defaultFeeState
             ),
-            asset.token.configuration.iconUrl,
+            ConfirmScreenViewState.Icon.Remote(asset.token.configuration.iconUrl),
             titleRes,
             additionalMessageRes
         )

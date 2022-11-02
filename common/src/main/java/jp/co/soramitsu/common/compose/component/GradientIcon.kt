@@ -72,6 +72,18 @@ fun GradientIcon(icon: String, color: Color, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun GradientIcon(icon: ConfirmScreenViewState.Icon, color: Color, modifier: Modifier = Modifier) {
+    when (icon) {
+        is ConfirmScreenViewState.Icon.Remote -> {
+            GradientIcon(icon = icon.url, color = color, modifier = modifier)
+        }
+        is ConfirmScreenViewState.Icon.Local -> {
+            GradientIcon(iconRes = icon.res, color = color, modifier = modifier)
+        }
+    }
+}
+
+@Composable
 @Preview
 private fun GradientIconPreview() {
     FearlessTheme {

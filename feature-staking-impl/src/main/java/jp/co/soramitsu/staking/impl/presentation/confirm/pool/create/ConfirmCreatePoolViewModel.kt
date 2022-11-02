@@ -33,6 +33,7 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     resourceManager = resourceManager,
     asset = poolSharedStateProvider.requireMainState.requireAsset,
     amountInPlanks = poolSharedStateProvider.requireCreateState.requireAmountInPlanks,
+    customIcon = R.drawable.ic_vector,
     feeEstimator = { stakingPoolInteractor.estimateCreatePoolFee(poolSharedStateProvider) },
     executeOperation = { address, _ -> stakingPoolInteractor.createPool(poolSharedStateProvider, address) },
     onOperationSuccess = {
@@ -70,8 +71,9 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     override val tableItemsFlow: StateFlow<List<TitleValueViewState>> = combine(
         addressDisplayFlow,
         nominatorDisplayFlow,
-        stateTogglerDisplayFlow
-    ) { addressDisplay, nominatorDisplay, stateTogglerDisplay ->
+        stateTogglerDisplayFlow,
+        feeViewStateFlow
+    ) { addressDisplay, nominatorDisplay, stateTogglerDisplay, feeViewState ->
         val createState = poolSharedStateProvider.requireCreateState
 
         val poolId = TitleValueViewState(resourceManager.getString(R.string.pool_staking_pool_id), createState.requirePoolId.toString())
@@ -79,8 +81,8 @@ class ConfirmCreatePoolViewModel @Inject constructor(
         val depositor = TitleValueViewState(resourceManager.getString(R.string.pool_staking_depositor), addressDisplay)
         val root = TitleValueViewState(resourceManager.getString(R.string.pool_staking_root), addressDisplay)
         val nominator = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), nominatorDisplay)
-        val stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), stateTogglerDisplay)
-        listOf(addressState, amountViewState, poolId, depositor, root, nominator, stateToggler)
+        val stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_state_toggler), stateTogglerDisplay)
+        listOf(addressState, amountViewState, poolId, depositor, root, nominator, stateToggler, feeViewState)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onBackClick() {
