@@ -11,6 +11,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.security.SecureRandom
+import java.util.Random
+import javax.inject.Qualifier
+import javax.inject.Singleton
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.CachingAddressIconGenerator
 import jp.co.soramitsu.common.address.StatelessAddressIconGenerator
@@ -26,8 +30,10 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.interfaces.FileProvider
+import jp.co.soramitsu.common.mixin.api.DemoMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.mixin.impl.DemoProvider
 import jp.co.soramitsu.common.mixin.impl.NetworkStateProvider
 import jp.co.soramitsu.common.mixin.impl.UpdatesProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -40,10 +46,6 @@ import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.icon.IconGenerator
-import java.security.SecureRandom
-import java.util.Random
-import javax.inject.Qualifier
-import javax.inject.Singleton
 
 const val SHARED_PREFERENCES_FILE = "fearless_prefs"
 
@@ -207,4 +209,8 @@ class CommonModule {
     @Provides
     @Singleton
     fun provideNetworkStateMixin(): NetworkStateMixin = NetworkStateProvider()
+
+    @Provides
+    @Singleton
+    fun provideDemoMixin(): DemoMixin = DemoProvider()
 }

@@ -33,6 +33,8 @@ import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.get
+import jp.co.soramitsu.common.mixin.api.DemoMixin
+import jp.co.soramitsu.common.mixin.api.DemoUi
 import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
@@ -40,6 +42,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -92,8 +95,9 @@ class BalanceListViewModel @Inject constructor(
     private val selectedFiat: SelectedFiat,
     private val accountRepository: AccountRepository,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin {
+    private val networkStateMixin: NetworkStateMixin,
+    private val demoMixin: DemoMixin
+) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin, DemoUi by demoMixin {
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
@@ -247,12 +251,14 @@ class BalanceListViewModel @Inject constructor(
         assetTypeSelectorState.asFlow(),
         balanceLiveData.asFlow(),
         hiddenAssetsState.asFlow(),
-        enteredChainQueryFlow
+        enteredChainQueryFlow,
+        enableDemoWarningsFlow
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
         balanceModel: BalanceModel,
         hiddenState: HiddenItemState,
-        selectedChainId: String? ->
+        selectedChainId: String?,
+        enableDemoWarnings: Boolean ->
 
         if (assetsListItemStates.isEmpty() || balanceModel.isShowLoading) {
             return@combine LoadingState.Loading()
@@ -267,7 +273,7 @@ class BalanceListViewModel @Inject constructor(
             )
         )
 
-        val hasNetworkIssues = assetsListItemStates.any { !it.hasAccount || it.hasNetworkIssue }
+        val hasNetworkIssues = enableDemoWarnings || assetsListItemStates.any { !it.hasAccount || it.hasNetworkIssue }
 
         LoadingState.Loaded(
             WalletState(

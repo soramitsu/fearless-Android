@@ -36,6 +36,7 @@ import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.common.askPermissionsSafely
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -72,7 +73,13 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                 MainToolbar(
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
                     menuItems = listOf(
-                        MenuIconItem(icon = R.drawable.ic_scan) { requestCameraPermission() },
+                        MenuIconItem(icon = R.drawable.ic_scan) {
+//                            requestCameraPermission()
+                            coroutineScope.launch {
+                                val enable = viewModel.enableDemoWarningsFlow.firstOrNull() == false
+                                viewModel.updateEnableDemoWarnings(enable)
+                            }
+                        },
                         MenuIconItem(icon = R.drawable.ic_search) {
                             viewModel.openSearchAssets()
                         }

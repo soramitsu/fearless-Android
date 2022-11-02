@@ -338,4 +338,6 @@ class WalletInteractorImpl(
             )
         }
     }
+
+    override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
 }
