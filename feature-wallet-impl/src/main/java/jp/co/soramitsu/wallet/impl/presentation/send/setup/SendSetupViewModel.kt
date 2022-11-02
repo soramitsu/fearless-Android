@@ -147,7 +147,7 @@ class SendSetupViewModel @Inject constructor(
                 }
                 pair?.let {
                     val hasAssetInChain = walletInteractor.hasAssetInChain(it.first, it.second)
-                    if(hasAssetInChain) it else null
+                    if (hasAssetInChain) it else null
                 }
             }
             .distinctUntilChanged()
