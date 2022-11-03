@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -54,18 +53,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
     init {
         launch {
             validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
-
             loadingState.value = false
-            launch {
-                router.alertResultFlow.collect {
-                    Log.d("&&&", "alertResultFlow collected")
-                    if(it.isSuccess) {
-                        Log.d("&&&", "alertResultFlow is success")
-                        setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
-                        router.openSelectValidators()
-                    }
-                }
-            }
         }
     }
 
@@ -92,5 +80,12 @@ class StartSelectValidatorsViewModel @Inject constructor(
 
     fun onBackClick() {
         router.back()
+    }
+
+    fun onAlertResult(result: Result<Unit>) {
+        if (result.isSuccess) {
+            setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
+            router.openSelectValidators()
+        }
     }
 }

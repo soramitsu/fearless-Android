@@ -1,13 +1,15 @@
 package jp.co.soramitsu.app.root.navigation
 
 import android.os.Bundle
+import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
-import coil.request.GlobalLifecycle.addObserver
+import androidx.navigation.fragment.findNavController
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
@@ -111,10 +113,8 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.parcelize.Parcelize
@@ -856,58 +856,13 @@ class Navigator :
             val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
 
             return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
-                if(currentEntry?.savedStateHandle?.contains(AlertFragment.KEY_RESULT) == true) {
+                if (currentEntry?.savedStateHandle?.contains(AlertFragment.KEY_RESULT) == true) {
                     val result = currentEntry.savedStateHandle.get<Result<Unit>?>(AlertFragment.KEY_RESULT)
                     currentEntry.savedStateHandle.set<Result<Unit>?>(AlertFragment.KEY_RESULT, null)
-//                    currentEntry?.lifecycle?.removeObserver(onResumeObserver)
                     result
                 } else {
                     null
                 }
             }.filterNotNull()
-//            return combineTransform(
-//                currentEntry?.lifecycle?.onResumeObserver()?.asFlow() ?: emptyFlow(),
-//                currentEntry?.savedStateHandle?.getStateFlow<Result<Unit>?>(AlertFragment.KEY_RESULT, null) ?: emptyFlow(),
-//            ) { isResumed, result ->
-//                if (isResumed && result != null) {
-//                    emit(result)
-//                    currentEntry?.savedStateHandle?.set(AlertFragment.KEY_RESULT, null)
-//                    currentEntry?.savedStateHandle?.remove<Result<Unit>?>(AlertFragment.KEY_RESULT)
-//                }
-//            }
         }
-
-//    fun observeAlertResult(listenInDestination: Int): Flow<Result<Unit>?> {
-//        return flow<Result<Unit>?> {
-//            val navBackStackEntry = navController?.getBackStackEntry(listenInDestination)
-//
-//            val observer = LifecycleEventObserver { _, event ->
-//                if (event == Lifecycle.Event.ON_RESUME
-//                    && navBackStackEntry?.savedStateHandle?.contains(AlertFragment.KEY_RESULT) == true
-//                ) {
-//                    val result = navBackStackEntry.savedStateHandle.get<Result<Unit>?>(AlertFragment.KEY_RESULT)
-//                    emit(result)
-//                }
-//            }
-//            navBackStackEntry?.lifecycle?.addObserver(observer)
-//        }
-//
-////        viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
-////            if (event == Lifecycle.Event.ON_DESTROY) {
-////                navBackStackEntry.lifecycle.removeObserver(observer)
-////            }
-////        })
-//    }
-
-    fun setAlertResult(result: Result<Unit>) {
-        val previousBackStackEntry = navController?.previousBackStackEntry
-        previousBackStackEntry?.savedStateHandle?.set(AlertFragment.KEY_RESULT, result)
-//        navController?.currentBackStackEntry?.lifecycle?.addObserver(LifecycleEventObserver { _, event ->
-//            if (event == Lifecycle.Event.ON_DESTROY) {
-//                previousBackStackEntry?.savedStateHandle?.remove<Result<Unit>?>(AlertFragment.KEY_RESULT)
-//                previousBackStackEntry?.lifecycle?.removeObserver(observer)
-//            }
-//        })
-//        hashCode()
-    }
 }
