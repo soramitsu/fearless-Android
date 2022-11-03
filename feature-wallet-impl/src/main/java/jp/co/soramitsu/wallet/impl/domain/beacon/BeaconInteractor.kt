@@ -2,23 +2,17 @@ package jp.co.soramitsu.wallet.impl.domain.beacon
 
 import android.net.Uri
 import com.google.gson.Gson
-import io.emeraldpay.polkaj.scale.ScaleCodecReader
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAppMetadata
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstratePermission
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.message.response.SignPayloadSubstrateResponse
 import it.airgap.beaconsdk.blockchain.substrate.substrate
+import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
-import it.airgap.beaconsdk.core.data.BeaconError
-import it.airgap.beaconsdk.core.data.Origin
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
-import it.airgap.beaconsdk.core.message.ErrorBeaconResponse
-import it.airgap.beaconsdk.core.message.PermissionBeaconResponse
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -36,26 +30,19 @@ import jp.co.soramitsu.common.utils.decodeToInt
 import jp.co.soramitsu.common.utils.isTransfer
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
-import jp.co.soramitsu.fearless_utils.extensions.toHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.AdditionalExtras
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Era
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.SignedExtras
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
-import jp.co.soramitsu.fearless_utils.scale.dataType.byte
 import jp.co.soramitsu.fearless_utils.scale.utils.directWrite
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
-import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -86,7 +73,7 @@ class BeaconInteractor(
     private val beaconClient by lazy {
         GlobalScope.async {
             BeaconWalletClient("Fearless Wallet") {
-                support(substrate())
+                support(substrate(), tezos())
                 use(p2pMatrix())
                 ignoreUnsupportedBlockchains = true
             }
@@ -175,13 +162,21 @@ class BeaconInteractor(
     suspend fun reportSignDeclined(
         request: SignPayloadSubstrateRequest
     ) {
-        beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
+//        beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
+        beaconClient().respond(
+            SignPayloadSubstrateResponse.from(
+                request, transactionHash = null,
+                signature = "",
+                payload = null
+            )
+        )
     }
 
     suspend fun reportPermissionsDeclined(
         request: PermissionSubstrateRequest
     ) {
-        beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
+//        beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
+        beaconClient().respond(PermissionSubstrateResponse.from(request.copy(scopes = emptyList()), emptyList()))
     }
 
     suspend fun signPayload(
@@ -269,7 +264,8 @@ class BeaconInteractor(
             val chain = getChainSafe(chainId)
             val pubKey = (if (chain?.isEthereumBased == true) account.ethereumPublicKey else account.substratePublicKey)
             val address = chain?.let { chainValue -> account.address(chainValue) }
-            return@map SubstrateAccount(network = it, publicKey = pubKey?.toHexString().orEmpty(), address = address.orEmpty())
+
+            return@map SubstrateAccount(network = it, publicKey = pubKey?.toHexString().orEmpty(), address = address.orEmpty(), client = beaconClient())
         }.filterNotNull()
 
         val response = PermissionSubstrateResponse.from(forRequest, accounts)
@@ -338,37 +334,3 @@ class BeaconInteractor(
 }
 
 class BeaconConnectionHasNoPeerException : Exception("There are no peers matching the app name")
-
-data class PermissionFearlessResponse internal constructor(
-    override val id: String,
-    override val version: String,
-    override val requestOrigin: Origin,
-    override val blockchainIdentifier: String,
-    val appMetadata: SubstrateAppMetadata,
-    val scopes: List<SubstratePermission.Scope>,
-    val accounts: List<SubstrateAccount>,
-    val substrateAddress: String,
-    val ethereumAddress: String
-) : PermissionBeaconResponse() {
-    companion object {
-
-        fun from(
-            request: PermissionSubstrateRequest,
-            accounts: List<SubstrateAccount>,
-            scopes: List<SubstratePermission.Scope> = request.scopes,
-            substrateAddress: String,
-            ethereumAddress: String
-        ): PermissionFearlessResponse =
-            PermissionFearlessResponse(
-                request.id,
-                request.version,
-                request.origin,
-                request.blockchainIdentifier,
-                request.appMetadata,
-                scopes,
-                accounts,
-                substrateAddress,
-                ethereumAddress
-            )
-    }
-}
