@@ -48,6 +48,14 @@ data class ConfirmSendViewState(
             buttonState = ButtonViewState("", false)
         )
     }
+
+    val tableItems = listOf(
+        fromInfoItem,
+        toInfoItem,
+        amountInfoItem,
+        tipInfoItem,
+        feeInfoItem
+    ).mapNotNull { it }
 }
 
 interface ConfirmSendScreenInterface {
@@ -106,15 +114,7 @@ fun ConfirmSendContent(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 MarginVertical(margin = 24.dp)
-                InfoTable(
-                    items = listOf(
-                        state.fromInfoItem,
-                        state.toInfoItem,
-                        state.amountInfoItem,
-                        state.tipInfoItem,
-                        state.feeInfoItem
-                    ).mapNotNull { it }
-                )
+                InfoTable(items = state.tableItems)
                 Spacer(modifier = Modifier.weight(1f))
                 MarginVertical(margin = 12.dp)
 
