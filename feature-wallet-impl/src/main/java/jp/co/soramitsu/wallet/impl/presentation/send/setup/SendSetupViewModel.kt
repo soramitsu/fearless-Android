@@ -48,12 +48,15 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemS
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -139,15 +142,12 @@ class SendSetupViewModel @Inject constructor(
         combine(sharedState.chainIdFlow, sharedState.assetIdFlow) { chainId, assetId ->
             chainId to assetId
         }
+            .debounce(200.toDuration(DurationUnit.MILLISECONDS))
             .mapNotNull { (chainId, assetId) ->
-                val pair = when {
+                when {
                     chainId == null -> null
                     assetId == null -> null
                     else -> chainId to assetId
-                }
-                pair?.let {
-                    val hasAssetInChain = walletInteractor.hasAssetInChain(it.first, it.second)
-                    if (hasAssetInChain) it else null
                 }
             }
             .distinctUntilChanged()

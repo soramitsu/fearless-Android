@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ButtonViewState
+import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
@@ -19,7 +20,6 @@ import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
@@ -107,21 +107,47 @@ class ConfirmSendViewModel @Inject constructor(
         utilityAssetFlow,
         buttonStateFlow
     ) { recipient, sender, asset, utilityAsset, buttonState ->
+        val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
+        val fromInfoItem = TitleValueViewState(
+            title = resourceManager.getString(R.string.transaction_details_from),
+            value = if (isSenderNameSpecified) sender?.name else sender?.address?.shorten(),
+            additionalValue = if (isSenderNameSpecified) sender?.address?.shorten() else null
+        )
+
+        val isRecipientNameSpecified = !recipient.name.isNullOrEmpty()
+        val toInfoItem = TitleValueViewState(
+            title = resourceManager.getString(R.string.choose_amount_to),
+            value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
+            additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
+        )
+
+        val amountInfoItem = TitleValueViewState(
+            title = resourceManager.getString(R.string.common_amount),
+            value = asset.formatTokenAmount(transferDraft.amount),
+            additionalValue = asset.getAsFiatWithCurrency(transferDraft.amount)
+        )
+
+        val tipInfoItem = transferDraft.tip?.let {
+            TitleValueViewState(
+                title = resourceManager.getString(R.string.choose_amount_tip),
+                value = utilityAsset.formatTokenAmount(transferDraft.tip),
+                additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.tip)
+            )
+        }
+
+        val feeInfoItem = TitleValueViewState(
+            title = resourceManager.getString(R.string.network_fee),
+            value = utilityAsset.formatTokenAmount(transferDraft.fee),
+            additionalValue = utilityAsset.getAsFiatWithCurrency(transferDraft.fee)
+        )
+
         ConfirmSendViewState(
             chainIconUrl = asset.token.configuration.chainIcon ?: asset.token.configuration.iconUrl,
-            fromName = sender?.name,
-            fromAddress = sender?.address?.shorten(),
-            toName = recipient.name,
-            toAddress = recipient.address.shorten(),
-            amount = asset.formatTokenAmount(transferDraft.amount),
-            amountFiat = asset.getAsFiatWithCurrency(transferDraft.amount),
-            fee = utilityAsset.formatTokenAmount(transferDraft.fee),
-            feeFiat = utilityAsset.getAsFiatWithCurrency(transferDraft.fee),
-            tip = transferDraft.tip?.formatTokenAmount(asset.token.configuration),
-            tipFiat = when {
-                asset.token.fiatRate == null || transferDraft.tip == null -> null
-                else -> asset.getAsFiatWithCurrency(transferDraft.tip)
-            },
+            fromInfoItem = fromInfoItem,
+            toInfoItem = toInfoItem,
+            amountInfoItem = amountInfoItem,
+            tipInfoItem = tipInfoItem,
+            feeInfoItem = feeInfoItem,
             buttonState = buttonState
         )
     }.stateIn(this, SharingStarted.Eagerly, ConfirmSendViewState.default)
