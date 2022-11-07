@@ -58,7 +58,7 @@ data class Chain(
         val staking: StakingType,
         val priceProviders: List<String>?,
         val supportStakingPool: Boolean,
-        val isUtility: Boolean?,
+        val isUtility: Boolean,
         val type: ChainAssetType?,
         val currencyId: String?,
         val existentialDeposit: String?

@@ -106,7 +106,7 @@ fun mapChainRemoteToChain(
                     staking = mapStakingStringToStakingType(chainAsset.staking),
                     priceProviders = chainAsset.purchaseProviders,
                     supportStakingPool = NOMINATION_POOL_OPTION in chainRemote.options.orEmpty(),
-                    isUtility = chainAsset.isUtility,
+                    isUtility = chainAsset.isUtility ?: false,
                     type = ChainAssetType.from(chainAsset.type),
                     currencyId = assetRemote?.currencyId,
                     existentialDeposit = assetRemote?.existentialDeposit
