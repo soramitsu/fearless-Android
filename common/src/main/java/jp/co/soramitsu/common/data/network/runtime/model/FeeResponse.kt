@@ -22,7 +22,7 @@ class FeeResponse(
 class InclusionFee(
     private val baseFee: String?,
     private val lenFee: String?,
-    private val adjustedWeightFee: String?,
+    private val adjustedWeightFee: String?
 ) {
     val sum: BigInteger
         get() = baseFee.decodeBigInt() + lenFee.decodeBigInt() + adjustedWeightFee.decodeBigInt()
