@@ -427,21 +427,6 @@
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <fragment
-        android:id="@+id/chooseRecipientFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.recipient.ChooseRecipientFragment"
-        android:label="ChooseRecipientFragment"
-        tools:layout="@layout/fragment_choose_recipient">
-
-        <action
-            android:id="@+id/action_chooseRecipientFragment_to_chooseAmountFragment"
-            app:destination="@id/chooseAmountFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
-
-    <fragment
         android:id="@+id/chooseAmountFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment"
         android:label="ChooseAmountFragment"
@@ -562,6 +547,11 @@
             app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popUpTo="@id/mainFragment" />
     </dialog>
+
+    <dialog
+        android:id="@+id/sendSuccessFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment"
+        android:label="sendSuccessFragment" />
 
     <dialog
         android:id="@+id/startStakingPoolFragment"

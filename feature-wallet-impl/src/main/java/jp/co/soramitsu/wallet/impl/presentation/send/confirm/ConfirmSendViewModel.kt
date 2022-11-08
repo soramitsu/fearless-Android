@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -37,7 +38,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -74,14 +74,14 @@ class ConfirmSendViewModel @Inject constructor(
         }
     }
 
-    private val _transferSubmittingFlow = MutableStateFlow(false)
+    private val transferSubmittingFlow = MutableStateFlow(false)
 
     private val defaultButtonState = ButtonViewState(
         resourceManager.getString(R.string.common_confirm),
         true
     )
 
-    private val buttonStateFlow = _transferSubmittingFlow.map { submitting ->
+    private val buttonStateFlow = transferSubmittingFlow.map { submitting ->
         ButtonViewState(
             text = resourceManager.getString(R.string.common_confirm),
             enabled = !submitting
@@ -105,8 +105,9 @@ class ConfirmSendViewModel @Inject constructor(
         senderFlow,
         assetFlow,
         utilityAssetFlow,
-        buttonStateFlow
-    ) { recipient, sender, asset, utilityAsset, buttonState ->
+        buttonStateFlow,
+        transferSubmittingFlow
+    ) { recipient, sender, asset, utilityAsset, buttonState, isSubmitting ->
         val isSenderNameSpecified = !sender?.name.isNullOrEmpty()
         val fromInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.transaction_details_from),
@@ -118,7 +119,7 @@ class ConfirmSendViewModel @Inject constructor(
         val toInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.choose_amount_to),
             value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
-            additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
+            additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null
         )
 
         val amountInfoItem = TitleValueViewState(
@@ -148,7 +149,8 @@ class ConfirmSendViewModel @Inject constructor(
             amountInfoItem = amountInfoItem,
             tipInfoItem = tipInfoItem,
             feeInfoItem = feeInfoItem,
-            buttonState = buttonState
+            buttonState = buttonState,
+            isLoading = isSubmitting
         )
     }.stateIn(this, SharingStarted.Eagerly, ConfirmSendViewState.default)
 
@@ -189,14 +191,16 @@ class ConfirmSendViewModel @Inject constructor(
             val token = assetFlow.firstOrNull()?.token?.configuration ?: return@launch
             val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
 
-            _transferSubmittingFlow.value = true
+            transferSubmittingFlow.value = true
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
                 interactor.performTransfer(createTransfer(token), transferDraft.fee, maxAllowedStatusLevel, tipInPlanks)
             }
             if (result.isSuccess) {
+                val operationHash = result.getOrNull()
                 router.finishSendFlow()
+                router.openSendSuccess(operationHash, token.chainId)
             } else {
                 val error = result.requireException()
 
@@ -207,7 +211,7 @@ class ConfirmSendViewModel @Inject constructor(
                 }
             }
 
-            _transferSubmittingFlow.value = false
+            transferSubmittingFlow.value = false
         }
     }
 

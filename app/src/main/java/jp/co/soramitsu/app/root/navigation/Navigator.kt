@@ -101,6 +101,7 @@ import jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmTransferFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -528,19 +529,19 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openChooseAmount(recipientAddress: String, assetPayload: AssetPayload) {
-        val bundle = ChooseAmountFragment.getBundle(recipientAddress, assetPayload)
-
-        navController?.navigate(R.id.action_chooseRecipientFragment_to_chooseAmountFragment, bundle)
-    }
-
     override fun openSendConfirm(transferDraft: TransferDraft) {
         val bundle = ConfirmSendFragment.getBundle(transferDraft)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }
 
-    override fun openConfirmTransfer(transferDraft: TransferDraft) { // todo remove
+    override fun openSendSuccess(operationHash: String?, chainId: ChainId) {
+        val bundle = SendSuccessFragment.getBundle(operationHash, chainId)
+
+        navController?.navigate(R.id.sendSuccessFragment, bundle)
+    }
+
+    override fun openConfirmTransfer(transferDraft: TransferDraft) {
         val bundle = ConfirmTransferFragment.getBundle(transferDraft)
 
         navController?.navigate(R.id.action_chooseAmountFragment_to_confirmTransferFragment, bundle)

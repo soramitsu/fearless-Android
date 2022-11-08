@@ -15,7 +15,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
-import jp.co.soramitsu.wallet.impl.domain.model.RecipientSearchResult
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
@@ -53,8 +52,6 @@ interface WalletInteractor {
 
     fun selectedAccountFlow(chainId: ChainId): Flow<WalletAccount>
 
-    suspend fun getRecipients(query: String, chainId: ChainId): RecipientSearchResult
-
     suspend fun validateSendAddress(chainId: ChainId, address: String): Boolean
 
     suspend fun isAddressFromPhishingList(address: String): Boolean
@@ -66,7 +63,7 @@ interface WalletInteractor {
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel = TransferValidityLevel.Ok,
         tipInPlanks: BigInteger?
-    ): Result<Unit>
+    ): Result<String>
 
     suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
 

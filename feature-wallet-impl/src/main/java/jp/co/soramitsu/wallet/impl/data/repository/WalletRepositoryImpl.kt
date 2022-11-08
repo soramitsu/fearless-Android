@@ -307,7 +307,7 @@ class WalletRepositoryImpl(
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
-    ) {
+    ): String {
         val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
         val accountAddress = chain.addressOf(accountId)
 
@@ -320,6 +320,7 @@ class WalletRepositoryImpl(
         )
 
         operationDao.insert(operation)
+        return operationHash
     }
 
     override suspend fun checkTransferValidity(

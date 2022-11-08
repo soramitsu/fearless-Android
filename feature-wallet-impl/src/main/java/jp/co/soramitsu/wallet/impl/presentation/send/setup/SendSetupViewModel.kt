@@ -349,7 +349,6 @@ class SendSetupViewModel @Inject constructor(
 
             router.openSendConfirm(transferDraft)
         }
-//        router.openConfirmTransfer()
     }
 
     private val tipFlow = flowOf { walletConstants.tip(payload.chainId) }

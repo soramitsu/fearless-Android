@@ -21,6 +21,7 @@ import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
+import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H2
@@ -40,7 +41,8 @@ data class ConfirmSendViewState(
     val amountInfoItem: TitleValueViewState? = null,
     val tipInfoItem: TitleValueViewState? = null,
     val feeInfoItem: TitleValueViewState? = null,
-    val buttonState: ButtonViewState
+    val buttonState: ButtonViewState,
+    val isLoading: Boolean = false
 ) {
     companion object {
         val default = ConfirmSendViewState(
@@ -71,65 +73,66 @@ fun ConfirmSendContent(
     callback: ConfirmSendScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    BottomSheetScreen {
-        Box(Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                ToolbarBottomSheet(
-                    title = stringResource(id = R.string.preview),
-                    onNavigationClicked = callback::onNavigationClick
-                )
-
-                MarginVertical(margin = 24.dp)
-
-                if (state.chainIconUrl.isNullOrEmpty()) {
-                    GradientIcon(
-                        iconRes = R.drawable.ic_fearless_logo,
-                        color = colorAccentDark,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .shimmer()
+    FullScreenLoading(isLoading = state.isLoading) {
+        BottomSheetScreen {
+            Box(Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    ToolbarBottomSheet(
+                        title = stringResource(id = R.string.preview),
+                        onNavigationClicked = callback::onNavigationClick
                     )
-                } else {
-                    GradientIcon(
-                        icon = state.chainIconUrl,
-                        color = colorAccentDark,
+
+                    MarginVertical(margin = 24.dp)
+
+                    if (state.chainIconUrl.isNullOrEmpty()) {
+                        GradientIcon(
+                            iconRes = R.drawable.ic_fearless_logo,
+                            color = colorAccentDark,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .shimmer()
+                        )
+                    } else {
+                        GradientIcon(
+                            icon = state.chainIconUrl,
+                            color = colorAccentDark,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
+                    MarginVertical(margin = 16.dp)
+                    H2(
+                        text = "Sending",
+                        color = black2,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
+                    MarginVertical(margin = 8.dp)
+                    H1(
+                        text = state.amountInfoItem?.value.orEmpty(),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                    MarginVertical(margin = 24.dp)
+                    InfoTable(items = state.tableItems)
+                    Spacer(modifier = Modifier.weight(1f))
+                    MarginVertical(margin = 12.dp)
+
+                    AccentButton(
+                        state = state.buttonState,
+                        onClick = {
+                            keyboardController?.hide()
+                            callback.onNextClick()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    )
+
+                    MarginVertical(margin = 12.dp)
                 }
-                MarginVertical(margin = 16.dp)
-                H2(
-                    text = "Sending",
-                    color = black2,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                MarginVertical(margin = 8.dp)
-                H1(
-                    text = state.amountInfoItem?.value.orEmpty(),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                MarginVertical(margin = 24.dp)
-                InfoTable(items = state.tableItems)
-                Spacer(modifier = Modifier.weight(1f))
-                MarginVertical(margin = 12.dp)
-
-                AccentButton(
-                    state = state.buttonState,
-                    onClick = {
-                        keyboardController?.hide()
-                        callback.onNextClick()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                )
-
-                MarginVertical(margin = 12.dp)
             }
         }
     }
@@ -147,7 +150,7 @@ private fun ConfirmSendPreview() {
         ),
         toInfoItem = TitleValueViewState(
             title = "To",
-            value = "EBN4KURhvkEBN4KURhvkEBN4KURhvkEBN4KURhvk",
+            value = "EBN4KURhvkEBN4KURhvkEBN4KURhvkEBN4KURhvk"
         ),
         amountInfoItem = TitleValueViewState(
             title = "Amount",

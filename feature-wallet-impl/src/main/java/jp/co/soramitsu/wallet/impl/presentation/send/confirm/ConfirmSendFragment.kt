@@ -41,14 +41,4 @@ class ConfirmSendFragment : BaseComposeBottomSheetDialogFragment<ConfirmSendView
             callback = viewModel
         )
     }
-
-//    override fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
-//        val base = super.buildErrorDialog(title, errorMessage)
-//
-//        base.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.common_ok)) { _, _ ->
-//            viewModel.errorAcknowledged()
-//        }
-//
-//        return base
-//    }
 }

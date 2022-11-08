@@ -121,7 +121,6 @@
     <string name="common_continue">Продолжить</string>
     <string name="common_amount">Сумма</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
-    <string name="search_recipient_welcome">Здесь появятся ваши аккаунты и контакты, которым вы отправляли переводы</string>
     <string name="wallet_search_empty_title">Убедитесь, что адрес
 из правильной сети</string>
     <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
@@ -832,5 +831,9 @@
     <string name="address_not_valid_error_title">Не адрес сети</string>
     <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
     <string name="preview">Предпросмотр</string>
+    <string name="hash">Хэш</string>
+    <string name="result">Результат</string>
+    <string name="all_done">Все готово</string>
+    <string name="send_success_message">Теперь Вы можете вернуться в приложение и заняться чем обычно</string>
 
 </resources>
