@@ -10,7 +10,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AddressInputState
@@ -70,10 +69,9 @@ private const val RETRY_TIMES = 3L
 
 @HiltViewModel
 class SendSetupViewModel @Inject constructor(
-    val sharedState: SendSharedState,
+    private val sharedState: SendSharedState,
     val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
-    private val accountInteractor: AccountInteractor,
     private val walletInteractor: WalletInteractor,
     private val walletConstants: WalletConstants,
     private val router: WalletRouter,
@@ -87,6 +85,7 @@ class SendSetupViewModel @Inject constructor(
     val showChooserEvent: LiveData<Event<Unit>> = _showChooserEvent
 
     val payload: AssetPayload = savedStateHandle[SendSetupFragment.KEY_PAYLOAD] ?: error("Asset not specified")
+    val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
 
     private val initialAmount = "0"
 
@@ -158,7 +157,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val amountInputFocusFlow = MutableStateFlow(false)
 
-    private val addressInputFlow = MutableStateFlow("")
+    private val addressInputFlow = MutableStateFlow(initSendToAddress.orEmpty())
 
     private val isInputAddressValidFlow = combine(addressInputFlow, sharedState.chainIdFlow) { addressInput, chainId ->
         when (chainId) {

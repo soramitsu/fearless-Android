@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -13,16 +15,14 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
 
 private const val ICON_SIZE_DP = 32
 
@@ -78,7 +78,7 @@ class TransactionDetailViewModel @Inject constructor(
     fun repeatTransaction() {
         val retryAddress = retryAddressModelLiveData.value?.address ?: return
 
-        router.openRepeatTransaction(retryAddress, assetPayload)
+        router.openSend(assetPayload, retryAddress)
     }
 
     private suspend fun getIcon(address: String) = addressIconGenerator.createAddressModel(address, ICON_SIZE_DP, addressDisplayUseCase(address))

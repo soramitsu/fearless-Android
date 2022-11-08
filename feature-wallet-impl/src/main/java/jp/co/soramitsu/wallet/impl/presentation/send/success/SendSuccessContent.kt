@@ -33,7 +33,6 @@ import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessViewState.Companion.CODE_HASH_CLICK
 
 data class SendSuccessViewState(
     val tableItems: List<TitleValueViewState>
@@ -46,7 +45,7 @@ data class SendSuccessViewState(
 
 interface SendSuccessScreenInterface {
     fun onClose()
-    fun onHashClick()
+    fun onItemClick(code: Int)
 }
 
 @Composable
@@ -98,11 +97,7 @@ fun SendSuccessContent(
                 MarginVertical(margin = 24.dp)
                 InfoTable(
                     items = state.tableItems,
-                    onItemClick = {
-                        when (it) {
-                            CODE_HASH_CLICK -> callback.onHashClick()
-                        }
-                    }
+                    onItemClick = callback::onItemClick
                 )
                 MarginVertical(margin = 12.dp)
             }
@@ -129,7 +124,7 @@ private fun SendSuccessPreview() {
 
     val emptyCallback = object : SendSuccessScreenInterface {
         override fun onClose() {}
-        override fun onHashClick() {}
+        override fun onItemClick(code: Int) {}
     }
 
     FearlessTheme {

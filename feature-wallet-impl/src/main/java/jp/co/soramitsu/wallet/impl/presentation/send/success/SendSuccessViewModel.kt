@@ -61,8 +61,10 @@ class SendSuccessViewModel @Inject constructor(
         router.back()
     }
 
-    override fun onHashClick() {
-        _showHashActions.value = Event(Unit)
+    override fun onItemClick(code: Int) {
+        when (code) {
+            SendSuccessViewState.CODE_HASH_CLICK -> _showHashActions.value = Event(Unit)
+        }
     }
 
     private val chainExplorers = flow {
