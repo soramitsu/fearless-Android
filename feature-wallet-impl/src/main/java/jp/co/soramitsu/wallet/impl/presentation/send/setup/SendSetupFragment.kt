@@ -31,7 +31,11 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
         private const val QR_CODE_IMAGE_TYPE = "image/*"
 
         const val KEY_PAYLOAD = "payload"
-        fun getBundle(payload: AssetPayload) = bundleOf(KEY_PAYLOAD to payload)
+        const val KEY_INITIAL_ADDRESS = "KEY_INITIAL_ADDRESS"
+        fun getBundle(payload: AssetPayload, initSendToAddress: String?) = bundleOf(
+            KEY_PAYLOAD to payload,
+            KEY_INITIAL_ADDRESS to initSendToAddress
+        )
     }
 
     override val viewModel: SendSetupViewModel by viewModels()

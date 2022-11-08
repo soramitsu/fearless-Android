@@ -90,8 +90,8 @@ data class ReturnsModel(
 
 val ReturnsModel.Companion.default
     get() = ReturnsModel(
-        RewardEstimation("...", "...", "..."),
-        RewardEstimation("...", "...", "...")
+        RewardEstimation("", "", ""),
+        RewardEstimation("", "", "")
     )
 
 class StakeSummaryModel<S>(

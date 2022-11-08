@@ -97,9 +97,9 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.Wal
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
-import jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmTransferFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -507,8 +507,8 @@ class Navigator :
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openSend(assetPayload: AssetPayload) {
-        val bundle = SendSetupFragment.getBundle(assetPayload)
+    override fun openSend(assetPayload: AssetPayload, initialSendToAddress: String?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
@@ -527,26 +527,20 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openChooseAmount(recipientAddress: String, assetPayload: AssetPayload) {
-        val bundle = ChooseAmountFragment.getBundle(recipientAddress, assetPayload)
+    override fun openSendConfirm(transferDraft: TransferDraft) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft)
 
-        navController?.navigate(R.id.action_chooseRecipientFragment_to_chooseAmountFragment, bundle)
+        navController?.navigate(R.id.confirmSendFragment, bundle)
     }
 
-    override fun openConfirmTransfer(transferDraft: TransferDraft) {
-        val bundle = ConfirmTransferFragment.getBundle(transferDraft)
+    override fun openSendSuccess(operationHash: String?, chainId: ChainId) {
+        val bundle = SendSuccessFragment.getBundle(operationHash, chainId)
 
-        navController?.navigate(R.id.action_chooseAmountFragment_to_confirmTransferFragment, bundle)
+        navController?.navigate(R.id.sendSuccessFragment, bundle)
     }
 
     override fun finishSendFlow() {
         navController?.navigate(R.id.finish_send_flow)
-    }
-
-    override fun openRepeatTransaction(recipientAddress: String, assetPayload: AssetPayload) {
-        val bundle = ChooseAmountFragment.getBundle(recipientAddress, assetPayload)
-
-        navController?.navigate(R.id.openSelectAmount, bundle)
     }
 
     override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) {
@@ -769,9 +763,6 @@ class Navigator :
     override fun openFrozenTokens(payload: FrozenAssetPayload) {
         val bundle = FrozenTokensFragment.getBundle(payload)
         navController?.navigate(R.id.frozenTokensFragment, bundle)
-    }
-
-    override fun openSendConfirm() {
     }
 
     fun educationalStoriesCompleted() {

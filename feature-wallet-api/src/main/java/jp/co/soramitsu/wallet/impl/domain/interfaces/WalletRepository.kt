@@ -76,7 +76,7 @@ interface WalletRepository {
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
         batchAll: Boolean = false
-    )
+    ): String
 
     suspend fun checkTransferValidity(
         metaId: Long,

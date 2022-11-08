@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.di
 
+import android.content.ContentResolver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -55,6 +56,9 @@ import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
+import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.api.PhishingWarningMixin
+import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.impl.PhishingWarningProvider
+import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 
 @InstallIn(SingletonComponent::class)
@@ -230,4 +234,14 @@ class WalletFeatureModule {
     @Provides
     @Singleton
     fun provideSendSharedState() = SendSharedState()
+
+    @Provides
+    fun provideQrCodeDecoder(contentResolver: ContentResolver): QrBitmapDecoder {
+        return QrBitmapDecoder(contentResolver)
+    }
+
+    @Provides
+    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarningMixin {
+        return PhishingWarningProvider(interactor)
+    }
 }

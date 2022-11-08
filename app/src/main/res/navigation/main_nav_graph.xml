@@ -349,10 +349,10 @@
             app:destination="@id/pincodeFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/welcomeFragment"
-            app:popUpToInclusive="true"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true">
 
         </action>
 
@@ -419,44 +419,6 @@
         tools:layout="@layout/fragment_reward_slash_details" />
 
     <action
-        android:id="@+id/openSelectAmount"
-        app:destination="@id/chooseAmountFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <fragment
-        android:id="@+id/chooseRecipientFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.recipient.ChooseRecipientFragment"
-        android:label="ChooseRecipientFragment"
-        tools:layout="@layout/fragment_choose_recipient">
-
-        <action
-            android:id="@+id/action_chooseRecipientFragment_to_chooseAmountFragment"
-            app:destination="@id/chooseAmountFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/chooseAmountFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment"
-        android:label="ChooseAmountFragment"
-        tools:layout="@layout/fragment_choose_amount">
-
-        <action
-            android:id="@+id/action_chooseAmountFragment_to_confirmTransferFragment"
-            app:destination="@id/confirmTransferFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
-
-    <action
         android:id="@+id/action_mainFragment_to_filterFragment"
         app:destination="@id/transactionHistoryFilterFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -468,21 +430,6 @@
         android:id="@+id/transactionHistoryFilterFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.filter.TransactionHistoryFilterFragment"
         android:label="TransactionHistoryFilterFragment" />
-
-    <fragment
-        android:id="@+id/confirmTransferFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmTransferFragment"
-        android:label="ConfirmTransferFragment"
-        tools:layout="@layout/fragment_confirm_transfer">
-
-        <action
-            android:id="@+id/finish_send_flow"
-            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/mainFragment" />
-    </fragment>
 
     <fragment
         android:id="@+id/exportMnemonicFragment"
@@ -549,6 +496,24 @@
         android:id="@+id/searchAssetsFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment"
         android:label="searchAssetsFragment" />
+
+    <dialog
+        android:id="@+id/confirmSendFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
+        android:label="confirmSendFragment">
+        <action
+            android:id="@+id/finish_send_flow"
+            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popUpTo="@id/mainFragment" />
+    </dialog>
+
+    <dialog
+        android:id="@+id/sendSuccessFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment"
+        android:label="sendSuccessFragment" />
 
     <dialog
         android:id="@+id/startStakingPoolFragment"

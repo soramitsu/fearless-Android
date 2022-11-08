@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
@@ -87,8 +88,7 @@ class StakingPoolViewModel(
         )
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val estimatedEarningsViewState = enteredAmountFlow.map { enteredAmount ->
-        val asset = stakingInteractor.currentAssetFlow().first()
+    private val estimatedEarningsViewState = combine(enteredAmountFlow, currentAssetFlow) { enteredAmount, asset ->
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         getReturns(asset.token.configuration.chainId, amount)
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, ReturnsModel.default)
@@ -102,9 +102,13 @@ class StakingPoolViewModel(
                     StakingViewState.Pool.PoolMember(poolViewState)
                 }
                 is StakingState.Pool.None -> {
+                    val monthly =
+                        returns.monthly.gain.nullIfEmpty()?.let { TitleValueViewState(it, returns.monthly.amount.nullIfEmpty(), returns.monthly.fiatAmount) }
+                    val yearly =
+                        returns.yearly.gain.nullIfEmpty()?.let { TitleValueViewState(it, returns.yearly.amount.nullIfEmpty(), returns.yearly.fiatAmount) }
                     val returnsViewState = EstimatedEarningsViewState(
-                        monthlyChange = TitleValueViewState(returns.monthly.gain, returns.monthly.amount, returns.monthly.fiatAmount),
-                        yearlyChange = TitleValueViewState(returns.yearly.gain, returns.yearly.amount, returns.yearly.fiatAmount),
+                        monthlyChange = monthly,
+                        yearlyChange = yearly,
                         inputState
                     )
                     StakingViewState.Pool.Welcome(returnsViewState)

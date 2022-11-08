@@ -13,7 +13,6 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -32,8 +31,6 @@ class ReceiveFragment : BaseComposeBottomSheetDialogFragment<ReceiveViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        setupExternalActions(viewModel)
 
         viewModel.shareEvent.observeEvent(::startQrSharingIntent)
     }

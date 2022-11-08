@@ -6,9 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -18,7 +19,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.write
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val QR_TEMP_IMAGE_NAME = "address.png"
 
@@ -89,16 +88,8 @@ class ReceiveViewModel @Inject constructor(
 
     private fun copyAddress() = launch {
         val account = accountFlow.firstOrNull() ?: return@launch
-        val chain = chainRegistry.getChain(assetPayload.chainId)
-        val supportedExplorers = chain.explorers.getSupportedExplorers(BlockExplorerUrlBuilder.Type.ACCOUNT, account.address)
-        val externalActionsPayload = ExternalAccountActions.Payload(
-            value = account.address,
-            chainId = assetPayload.chainId,
-            chainName = chain.name,
-            explorers = supportedExplorers
-        )
 
-        externalAccountActions.showExternalActions(externalActionsPayload)
+        copyAddressClicked(account.address)
     }
 
     fun backClicked() {

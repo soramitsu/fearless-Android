@@ -18,7 +18,7 @@ interface WalletRouter : SecureRouter {
 
     fun back()
 
-    fun openSend(assetPayload: AssetPayload)
+    fun openSend(assetPayload: AssetPayload, initialSendToAddress: String? = null)
 
     fun openSelectChain(assetId: String)
 
@@ -26,13 +26,11 @@ interface WalletRouter : SecureRouter {
 
     fun openFilter()
 
-    fun openChooseAmount(recipientAddress: String, assetPayload: AssetPayload)
+    fun openSendSuccess(operationHash: String?, chainId: ChainId)
 
-    fun openConfirmTransfer(transferDraft: TransferDraft)
+    fun openSendConfirm(transferDraft: TransferDraft)
 
     fun finishSendFlow()
-
-    fun openRepeatTransaction(recipientAddress: String, assetPayload: AssetPayload)
 
     fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload)
 
@@ -84,6 +82,4 @@ interface WalletRouter : SecureRouter {
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
     fun openFrozenTokens(payload: FrozenAssetPayload)
-
-    fun openSendConfirm()
 }

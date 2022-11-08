@@ -307,7 +307,7 @@ class WalletRepositoryImpl(
         tip: BigInteger?,
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
-    ) {
+    ): String {
         val operationHash = substrateSource.performTransfer(accountId, chain, transfer, tip, additional, batchAll)
         val accountAddress = chain.addressOf(accountId)
 
@@ -320,6 +320,7 @@ class WalletRepositoryImpl(
         )
 
         operationDao.insert(operation)
+        return operationHash
     }
 
     override suspend fun checkTransferValidity(
@@ -344,10 +345,26 @@ class WalletRepositoryImpl(
         val existentialDepositInPlanks = walletConstants.existentialDeposit(chainAsset).orZero()
         val existentialDeposit = chainAsset.amountFromPlanks(existentialDepositInPlanks)
 
-        val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()
-        val tip = tipInPlanks?.let { chainAsset.amountFromPlanks(it) }
+        val utilityAssetLocal = assetCache.getAsset(metaId, accountId, chainAsset.chainId, chain.utilityAsset.id)!!
+        val utilityAsset = mapAssetLocalToAsset(utilityAssetLocal, chain.utilityAsset, chain.minSupportedVersion)
 
-        return transfer.validityStatus(asset.transferable, asset.total.orZero(), feeResponse.feeAmount, totalRecipientBalance, existentialDeposit, tip)
+        val utilityExistentialDepositInPlanks = walletConstants.existentialDeposit(chain.utilityAsset).orZero()
+        val utilityExistentialDeposit = chain.utilityAsset.amountFromPlanks(utilityExistentialDepositInPlanks)
+
+        val tipInPlanks = kotlin.runCatching { walletConstants.tip(chain.id) }.getOrNull()
+        val tip = tipInPlanks?.let { chain.utilityAsset.amountFromPlanks(it) }
+
+        return transfer.validityStatus(
+            senderTransferable = asset.transferable,
+            senderTotal = asset.total.orZero(),
+            fee = feeResponse.feeAmount,
+            recipientBalance = totalRecipientBalance,
+            existentialDeposit = existentialDeposit,
+            isUtilityToken = chainAsset.isUtility,
+            senderUtilityBalance = utilityAsset.total.orZero(),
+            utilityExistentialDeposit = utilityExistentialDeposit,
+            tip = tip
+        )
     }
 
     // TODO adapt for ethereum chains
