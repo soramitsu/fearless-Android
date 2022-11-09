@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.data.network.runtime.calls.NextAccountIndexRequest
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock.Block.Header
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
@@ -34,6 +35,8 @@ import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.runtime.network.RuntimeCall
+import jp.co.soramitsu.runtime.network.toRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -123,6 +126,21 @@ class RpcCalls(
             mapper = pojo<String>().nonNull(),
             deliveryType = DeliveryType.AT_MOST_ONCE
         )
+    }
+
+    suspend fun executeRuntimeCall(chainId: ChainId, call: RuntimeCall<*>): Result<ByteArray> {
+        val request = call.toRequest()
+        val result = kotlin.runCatching {
+            socketFor(chainId).executeAsync(
+                request,
+                deliveryType = DeliveryType.AT_MOST_ONCE
+            )
+        }
+        return result.mapCatching { response ->
+            response.error?.let {
+                throw RpcException(it)
+            } ?: (response.result as String).fromHex()
+        }
     }
 
     suspend fun getNonce(chainId: ChainId, accountAddress: String): BigInteger {
