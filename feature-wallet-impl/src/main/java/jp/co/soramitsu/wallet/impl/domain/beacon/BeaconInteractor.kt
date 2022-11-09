@@ -4,6 +4,7 @@ import android.net.Uri
 import com.google.gson.Gson
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import it.airgap.beaconsdk.blockchain.substrate.extensions.respondToSubstrateSignPayloadRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
@@ -11,6 +12,7 @@ import it.airgap.beaconsdk.blockchain.substrate.message.response.SignPayloadSubs
 import it.airgap.beaconsdk.blockchain.substrate.substrate
 import it.airgap.beaconsdk.blockchain.tezos.tezos
 import it.airgap.beaconsdk.client.wallet.BeaconWalletClient
+import it.airgap.beaconsdk.client.wallet.compat.stop
 import it.airgap.beaconsdk.core.data.P2pPeer
 import it.airgap.beaconsdk.core.message.BeaconRequest
 import it.airgap.beaconsdk.transport.p2p.matrix.p2pMatrix
@@ -175,8 +177,9 @@ class BeaconInteractor(
     suspend fun reportPermissionsDeclined(
         request: PermissionSubstrateRequest
     ) {
-//        beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
-        beaconClient().respond(PermissionSubstrateResponse.from(request.copy(scopes = emptyList()), emptyList()))
+        val client = beaconClient()
+        val account = SubstrateAccount(network = null, publicKey = "", address = "", client = client)
+        beaconClient().respond(PermissionSubstrateResponse.from(request = request.copy(scopes = emptyList()), accounts = listOf(account), scopes = emptyList()))
     }
 
     suspend fun signPayload(
@@ -281,7 +284,10 @@ class BeaconInteractor(
     }
 
     suspend fun disconnect() {
-        beaconClient().removeAllPeers()
+        val client = beaconClient()
+        client.removeAllPermissions()
+        client.stop()
+        client.removeAllPeers()
         preferences.putBoolean(BEACON_CONNECTED_KEY, false)
     }
 
