@@ -19,7 +19,7 @@ class ChainSyncService(
         val chains = chainFetcher.getChains().filter { it.chainId != genshiroChainId } // genshiro has metadata v12 - not supported
         val assets = chainFetcher.getAssets()
 
-        val remoteChains = mapChainRemoteToChain(chains, assets)
+        val remoteChains = mapChainsRemoteToChains(chains, assets)
 
         val localChains = localChainsJoinedInfo.map(::mapChainLocalToChain)
 
