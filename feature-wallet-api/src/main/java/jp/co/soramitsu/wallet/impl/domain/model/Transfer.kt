@@ -19,14 +19,24 @@ class Transfer(
         fee: BigDecimal,
         recipientBalance: BigDecimal,
         existentialDeposit: BigDecimal,
+        isUtilityToken: Boolean,
+        senderUtilityBalance: BigDecimal,
+        utilityExistentialDeposit: BigDecimal,
         tip: BigDecimal? = null
     ): TransferValidityStatus {
-        val transactionTotal = fee + amount + tip.orZero()
+        val extraSpends = fee + tip.orZero()
+
+        val transactionTotal = amount + if (isUtilityToken) {
+            extraSpends
+        } else {
+            BigDecimal.ZERO
+        }
 
         return when {
             transactionTotal > senderTransferable -> TransferValidityLevel.Error.Status.NotEnoughFunds
             recipientBalance + amount < existentialDeposit -> TransferValidityLevel.Error.Status.DeadRecipient
             senderTotal - transactionTotal < existentialDeposit -> TransferValidityLevel.Warning.Status.WillRemoveAccount
+            !isUtilityToken && (senderUtilityBalance - extraSpends < utilityExistentialDeposit) -> TransferValidityLevel.Warning.Status.WillRemoveAccount
             else -> TransferValidityLevel.Ok
         }
     }

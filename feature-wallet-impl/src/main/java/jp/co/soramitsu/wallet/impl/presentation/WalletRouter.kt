@@ -2,13 +2,16 @@ package jp.co.soramitsu.wallet.impl.presentation
 
 import android.graphics.drawable.Drawable
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
@@ -20,17 +23,19 @@ interface WalletRouter : SecureRouter {
 
     fun back()
 
-    fun openChooseRecipient(assetPayload: AssetPayload)
+    fun openSend(assetPayload: AssetPayload, initialSendToAddress: String? = null)
+
+    fun openSelectChain(assetId: String)
+
+    fun openSelectAsset(selectedAssetId: String)
 
     fun openFilter()
 
-    fun openChooseAmount(recipientAddress: String, assetPayload: AssetPayload)
+    fun openSendSuccess(operationHash: String?, chainId: ChainId)
 
-    fun openConfirmTransfer(transferDraft: TransferDraft)
+    fun openSendConfirm(transferDraft: TransferDraft)
 
     fun finishSendFlow()
-
-    fun openRepeatTransaction(recipientAddress: String, assetPayload: AssetPayload)
 
     fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload)
 
@@ -79,7 +84,17 @@ interface WalletRouter : SecureRouter {
 
     fun openSelectWallet()
 
+    fun openNetworkIssues()
+
+    fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload)
+
+    fun openNetworkUnavailable(chainName: String?)
+
     fun openSearchAssets(chainId: String?)
 
     fun openOptionsWallet(walletId: Long)
+
+    fun setWalletSelectorPayload(payload: WalletSelectorPayload)
+
+    fun openFrozenTokens(payload: FrozenAssetPayload)
 }

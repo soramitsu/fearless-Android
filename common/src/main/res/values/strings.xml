@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="common_next">Next</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_skip">Skip</string>
@@ -20,7 +20,7 @@ Terms and Conditions and Privacy Policy</string>
     <string name="tabbar_governance_title">Governance</string>
     <string name="tabbar_extrinsics_title">Extrinsics</string>
     <string name="transfers_empty">Incoming and outgoing
-operations will appear here</string>
+operations\nwill appear here</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_language_title">Language</string>
     <string name="about_version">App version</string>
@@ -125,7 +125,6 @@ operations will appear here</string>
     <string name="common_continue">Continue</string>
     <string name="common_amount">Amount</string>
     <string name="wallet_send_confirm_transfer">Confirm transfer</string>
-    <string name="search_recipient_welcome">Your accounts and contacts to whom you were sending transfers will appear here</string>
     <string name="wallet_search_empty_title">Make sure that the address is
 from the right network</string>
     <string name="search_recipient_hint">Account address or account name</string>
@@ -574,6 +573,7 @@ to your account to avoid remaining stake.</string>
     <string name="wallet_title_stash_details">Slash details</string>
     <string name="common_event">Event</string>
     <string name="common_copy_id">Copy id</string>
+    <string name="common_copy">Copy</string>
     <string name="common_details">Details</string>
     <string name="wallet_assets">Assets</string>
     <string name="username_setup_choose_title_2_0">Wallet nickname</string>
@@ -697,6 +697,7 @@ Please note that this signing transaction will be subject to transaction fees on
     <string name="moonbeam_ethereum_address_incorrect">Moonbeam Ethereum address format is incorrect, please try again</string>
     <string name="moonbeam_ethereum_reward">Rewards will be paid out to this address. You can use an existing Ethereum address. PLEASE ENSURE YOU HAVE THE PRIVATE KEYS FOR THIS ADDRESS.</string>
     <string name="manage_assets_search_hint">Search by token or network</string>
+    <string name="assets_search_hint">Search by token</string>
     <string name="crowdloan_email_hint">Email address</string>
     <string name="crowdloan_referral_code_hint">Referral code</string>
     <string name="crowdloan_astar_referral_code_hint">Referral address (Polkadot addresses only)</string>
@@ -838,6 +839,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="chain_selection_all_networks">All networks</string>
     <string name="hidden_assets">Hidden assets</string>
     <string name="common_select_network">Select Network</string>
+    <string name="common_select_asset">Select Asset</string>
 
     <string name="staking_pool_rewards_delay_text">Stake at anytime. You will start earning interests after %s</string>
     <string name="staking_pool_start_apr_text">Earn %s per year</string>
@@ -880,6 +882,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_teleport">Teleport</string>
     <string name="common_action_hide">Hide</string>
     <string name="common_action_show">Show</string>
+    <string name="common_action_buy">Buy</string>
 
     <string name="common_title_wallet">Wallet</string>
     <string name="common_title_wallet_option">Wallet option</string>
@@ -890,6 +893,13 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_delete_wallet">Delete Wallet</string>
     <string name="common_search_assets_alert_title">Sumimasen!</string>
     <string name="common_search_assets_alert_description">No networks or asset were found :(</string>
+    <string name="common_all_transactions">All Transactions</string>
+    <string name="common_title_frozen_token">Locked %s</string>
+    <string name="common_title_frozen_loked">Locked</string>
+    <string name="common_title_frozen_staked">Staked</string>
+    <string name="common_title_frozen_reserved">Reserved</string>
+    <string name="common_title_frozen_redeemable">Redeemable</string>
+    <string name="common_title_frozen_unstaking">Unstaking</string>
 
     <string name="pool_staking_confirm_join_title">Joining to pool</string>
     <string name="pool_staking_number_of_members">Number of members</string>
@@ -908,8 +918,41 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_your_total_stake">Your total stake</string>
     <string name="pool_account_for_join">Account for join</string>
     <string name="common_note">Note: </string>
+    <string name="common_middle_dots">1%s…2%s</string>
     <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
     <string name="pool_staking_unstake_error">No redeemable tokens found</string>
     <string name="common_claimable">Claimable</string>
+    <string name="pool_create_title">Create a pool</string>
+    <string name="common_create">Create</string>
+    <string name="pool_stakeng_create_confirm_title">Creating pool</string>
+    <string name="min_to_create_pool_threshold_error_title">Sorry, the specified amount is not enough to create a pool</string>
+    <string name="min_to_create_pool_threshold_error_message">Minimum amount is %s</string>
+    <string name="pool_select_validators_notification_title">Select pool validators</string>
+    <string name="pool_select_validators_notification_message">To continue you should select validators</string>
+    <string name="network_issue_stub">Network issues</string>
+    <string name="common_close">Close</string>
+    <string name="notification">Notification</string>
+    <string name="network_issue_node_unavailable">Node is unavailable</string>
+    <string name="network_issue_network_unavailable">Network is unavailable</string>
+    <string name="network_issue_add_an_account">Add an account</string>
+    <string name="network_issue_action_switch_node">Switch Node</string>
+    <string name="network_issue_action_add_account">Add Account</string>
+    <string name="network_issue_unavailable">The network is unavailable, you can wait or ask a question to the community</string>
+    <string name="top_up">Top Up</string>
+    <string name="common_receive_alert_description">This is Polkadot wallet. Please only send assets\non the Polkadot blockchain.</string>
+
+    <string name="send_fund">Send Fund</string>
+    <string name="send_to">Send to</string>
+    <string name="chip_scan">Scan</string>
+    <string name="chip_history">History</string>
+    <string name="chip_paste">Paste</string>
+    <string name="address_not_valid_error_title">Is not network address</string>
+    <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
+    <string name="preview">Preview</string>
+    <string name="hash">Hash</string>
+    <string name="result">Result</string>
+    <string name="all_done">All Done</string>
+    <string name="send_success_message">You can now back to your app and\ndo that you\'re usually do</string>
+
 
 </resources>

@@ -85,8 +85,11 @@ fun Long.formatDaysSinceEpoch(context: Context): String? {
     val diff = currentDays - this
 
     if (diff < 0) {
-        Log.e("NumberFormatter", "\"Past date should be less than current. Current days = $currentDays, countingDays = $this\"")
-        return null
+        Log.e(
+            "jp.co.soramitsu.common.utils.NumberFormattersKt.formatDaysSinceEpoch",
+            "Error: diff < 0: ",
+            IllegalArgumentException("Past date should be less than current")
+        )
     }
 
     return when (diff) {

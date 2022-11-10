@@ -8,6 +8,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseFragment
@@ -17,14 +22,8 @@ import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
-import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
-import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentAccountDetailsBinding
-import javax.inject.Inject
 
 const val ACCOUNT_ID_KEY = "ACCOUNT_ADDRESS_KEY"
 
@@ -74,8 +73,6 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(R.layout.fr
         viewModel.showImportChainAccountChooser.observeEvent(::showImportChainAccountChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
-
-        viewModel.showAddAccountChooser.observeEvent(::showAddAccountChooser)
     }
 
     private fun showUnsupportedChainAlert() {
@@ -131,16 +128,6 @@ class AccountDetailsFragment : BaseFragment<AccountDetailsViewModel>(R.layout.fr
             payload = payload,
             onCreateAccount = viewModel::createChainAccount,
             onImportAccount = viewModel::importChainAccount
-        ).show()
-    }
-
-    private fun showAddAccountChooser(payload: AddAccountBottomSheet.Payload) {
-        AddAccountBottomSheet(
-            requireContext(),
-            payload = payload,
-            onCreate = viewModel::createAccount,
-            onImport = viewModel::importAccount,
-            onNoNeed = viewModel::noNeedAccount
         ).show()
     }
 }

@@ -2,11 +2,10 @@ package jp.co.soramitsu.staking.impl.data.model
 
 import java.math.BigInteger
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 
 data class BondedPool(
     val points: BigInteger,
-    val state: NominationPoolState,
+    val state: BondedPoolState,
     val memberCounter: BigInteger,
     val depositor: AccountId,
     val root: AccountId?,
@@ -39,5 +38,18 @@ data class BondedPool(
         result = 31 * result + nominator.contentHashCode()
         result = 31 * result + stateToggler.contentHashCode()
         return result
+    }
+}
+
+enum class BondedPoolState {
+    Open, Blocked, Destroying;
+
+    companion object {
+        fun from(value: String) = when (value) {
+            "Open" -> Open
+            "Blocked" -> Blocked
+            "Destroying" -> Destroying
+            else -> error("Nomination pool state cannot be parsed")
+        }
     }
 }

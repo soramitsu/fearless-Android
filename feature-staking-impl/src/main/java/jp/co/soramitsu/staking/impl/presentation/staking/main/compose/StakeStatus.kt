@@ -34,6 +34,13 @@ sealed class StakeStatus(
         true
     )
 
+    object PoolHasNoValidators : StakeStatus(
+        R.string.staking_set_validators_message,
+        R.color.warning_orange,
+        null,
+        false
+    )
+
     class Waiting(
         override val timeLeft: Long,
         override val hideZeroTimer: Boolean = false

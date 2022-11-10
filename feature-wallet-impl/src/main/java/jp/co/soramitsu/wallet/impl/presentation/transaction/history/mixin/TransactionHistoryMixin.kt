@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin
 
+import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -15,14 +16,17 @@ interface TransactionHistoryUi {
         class Data(val items: List<Any>) : State()
     }
 
-    val state: Flow<State>
+    fun state(): Flow<State>
 
-    fun transactionClicked(transactionModel: OperationModel)
+    fun transactionClicked(
+        transactionModel: OperationModel,
+        assetPayload: AssetPayload
+    )
 }
 
 interface TransactionHistoryMixin : TransactionHistoryUi, CoroutineScope {
 
-    suspend fun syncFirstOperationsPage(): Result<*>
+    suspend fun syncFirstOperationsPage(assetPayload: AssetPayload): Result<*>
 
-    fun scrolled(currentIndex: Int)
+    fun scrolled(currentIndex: Int, assetPayload: AssetPayload)
 }

@@ -8,6 +8,8 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.network.RuntimeCall
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
@@ -31,7 +33,8 @@ class StakingPoolDataSource(
     private val remoteStorage: StorageDataSource,
     private val localStorage: StorageDataSource,
     private val chainRegistry: ChainRegistry,
-    private val walletConstants: WalletConstants
+    private val walletConstants: WalletConstants,
+    private val rpcCalls: RpcCalls
 ) {
     suspend fun minJoinBond(chainId: ChainId): BigInteger {
         return remoteStorage.queryNonNull(
@@ -76,7 +79,7 @@ class StakingPoolDataSource(
     }
 
     suspend fun existingPools(chainId: ChainId): BigInteger {
-        return remoteStorage.queryNonNull(
+        return remoteStorage.query(
             keyBuilder = { it.metadata.nominationPools().storage("CounterForBondedPools").storageKey() },
             binding = ::bindExistingPools,
             chainId = chainId
@@ -152,5 +155,11 @@ class StakingPoolDataSource(
             keyBuilder = { it.metadata.nominationPools().storage("RewardPools").storageKey(it, poolId) },
             binder = ::bindRewardPool
         )
+    }
+
+    suspend fun getPendingRewards(chainId: ChainId, accountId: AccountId): Result<BigInteger> {
+        val call = RuntimeCall.NominationPoolsApi.PendingRewards(accountId)
+        val result = rpcCalls.executeRuntimeCall(chainId, call)
+        return result.map { call.parseResult(it) }
     }
 }

@@ -27,22 +27,18 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.TextButton
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.feature_wallet_impl.R
 
-data class SelectWalletScreenViewState(
-    val wallets: List<WalletItemViewState>,
-    val selectedWallet: WalletItemViewState?
-)
-
 @Composable
 fun SelectWalletContent(
-    state: SelectWalletScreenViewState,
+    state: WalletSelectorViewState,
     onWalletSelected: (WalletItemViewState) -> Unit,
     onWalletOptionsClick: (WalletItemViewState) -> Unit,
     addNewWallet: () -> Unit,
@@ -113,7 +109,7 @@ fun SelectWalletContent(
                     .height(48.dp)
             )
             MarginVertical(margin = 12.dp)
-            TextButton(
+            GrayButton(
                 text = stringResource(id = R.string.common_import_wallet),
                 onClick = importWallet,
                 modifier = Modifier
@@ -152,7 +148,7 @@ private fun SelectWalletScreenPreview() {
 
     FearlessTheme {
         SelectWalletContent(
-            state = SelectWalletScreenViewState(
+            state = WalletSelectorViewState(
                 wallets = listOf(walletState, walletState),
                 selectedWallet = walletState
             ),

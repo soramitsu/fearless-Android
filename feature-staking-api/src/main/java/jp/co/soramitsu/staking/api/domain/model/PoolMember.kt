@@ -97,7 +97,7 @@ fun NominationPool.toPoolInfo(): PoolInfo {
 }
 
 enum class NominationPoolState {
-    Open, Blocked, Destroying;
+    Open, Blocked, Destroying, HasNoValidators;
 
     companion object {
         fun from(value: String) = when (value) {

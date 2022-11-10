@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import com.google.zxing.integration.android.IntentIntegrator
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeFragment
@@ -36,7 +37,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.common.askPermissionsSafely
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
@@ -63,8 +63,8 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                 MainToolbarShimmer(
                     homeIconState = ToolbarHomeIconState(navigationIcon = jp.co.soramitsu.common.R.drawable.ic_wallet),
                     menuItems = listOf(
-                        MenuIconItem(icon = jp.co.soramitsu.common.R.drawable.ic_scan, {}),
-                        MenuIconItem(icon = jp.co.soramitsu.common.R.drawable.ic_search, {})
+                        MenuIconItem(icon = R.drawable.ic_scan) {},
+                        MenuIconItem(icon = R.drawable.ic_search) {}
                     )
                 )
             }

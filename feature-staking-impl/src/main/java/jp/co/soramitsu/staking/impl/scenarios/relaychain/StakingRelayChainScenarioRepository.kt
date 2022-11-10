@@ -147,11 +147,27 @@ class StakingRelayChainScenarioRepository(
         return decoded as ByteArray
     }
 
-    suspend fun getHistoryDepth(chainId: ChainId): BigInteger = localStorage.queryNonNull(
+    suspend fun getHistoryDepth(chainId: ChainId): BigInteger {
+        return try {
+            // for runtime version < 9290
+            getHistoryDepthFromStorage(chainId)
+        } catch (e: Exception) {
+            // for runtime version >= 9290
+            getHistoryDepthFromConstants(chainId)
+        }
+    }
+
+    @Deprecated("Will be removed in runtime version 9290")
+    suspend fun getHistoryDepthFromStorage(chainId: ChainId): BigInteger = remoteStorage.query(
         keyBuilder = { it.metadata.staking().storage("HistoryDepth").storageKey() },
         binding = ::bindHistoryDepth,
         chainId = chainId
     )
+
+    suspend fun getHistoryDepthFromConstants(chainId: ChainId): BigInteger {
+        val runtime = runtimeFor(chainId)
+        return runtime.metadata.staking().numberConstant("HistoryDepth", runtime)
+    }
 
     fun observeActiveEraIndex(chainId: String): Flow<BigInteger> {
         return localStorage.observeNonNull(
@@ -332,6 +348,16 @@ class StakingRelayChainScenarioRepository(
             chainId = chainId,
             keyBuilder = { it.metadata.staking().storage("Nominators").storageKey(it, stashId) },
             binder = { scale, runtime -> scale?.let { bindNominations(it, runtime) } }
+        )
+    }
+
+    fun observeRemoteAccountNominations(chainId: ChainId, stashId: AccountId): Flow<Nominations?> {
+        return remoteStorage.observe(
+            chainId = chainId,
+            keyBuilder = { it.metadata.staking().storage("Nominators").storageKey(it, stashId) },
+            binder = { scale, runtime ->
+                scale?.let { bindNominations(it, runtime) }
+            }
         )
     }
 

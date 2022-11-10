@@ -8,12 +8,14 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
@@ -27,6 +29,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.StakingViewStateOld
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.EstimatedEarningsViewState
 import jp.co.soramitsu.staking.impl.presentation.staking.main.compose.toViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.main.default
 import jp.co.soramitsu.staking.impl.presentation.staking.main.model.StakingNetworkInfoModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -59,7 +62,12 @@ class StakingPoolViewModel(
 
     override val stakingStateFlow: Flow<StakingState> = stakingPoolInteractor.stakingStateFlow()
 
-    @Deprecated("Don't use this method, use the getStakingViewStateFlow instead")
+    @Deprecated(
+        "Don't use this method, use the getStakingViewStateFlow instead",
+        ReplaceWith(
+            "jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.getStakingViewStateFlow()"
+        )
+    )
     override suspend fun getStakingViewStateFlowOld(): Flow<StakingViewStateOld> {
         return kotlinx.coroutines.flow.flowOf(Pool)
     }
@@ -80,11 +88,10 @@ class StakingPoolViewModel(
         )
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, defaultAmountInputState)
 
-    private val estimatedEarningsViewState = enteredAmountFlow.map { enteredAmount ->
-        val asset = stakingInteractor.currentAssetFlow().first()
+    private val estimatedEarningsViewState = combine(enteredAmountFlow, currentAssetFlow) { enteredAmount, asset ->
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         getReturns(asset.token.configuration.chainId, amount)
-    }
+    }.stateIn(baseViewModel.stakingStateScope, SharingStarted.Eagerly, ReturnsModel.default)
 
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState> {
         return combine(stakingStateFlow, amountInputViewState, estimatedEarningsViewState) { state, inputState, returns ->
@@ -95,9 +102,13 @@ class StakingPoolViewModel(
                     StakingViewState.Pool.PoolMember(poolViewState)
                 }
                 is StakingState.Pool.None -> {
+                    val monthly =
+                        returns.monthly.gain.nullIfEmpty()?.let { TitleValueViewState(it, returns.monthly.amount.nullIfEmpty(), returns.monthly.fiatAmount) }
+                    val yearly =
+                        returns.yearly.gain.nullIfEmpty()?.let { TitleValueViewState(it, returns.yearly.amount.nullIfEmpty(), returns.yearly.fiatAmount) }
                     val returnsViewState = EstimatedEarningsViewState(
-                        monthlyChange = TitleValueViewState(returns.monthly.gain, returns.monthly.amount, returns.monthly.fiatAmount),
-                        yearlyChange = TitleValueViewState(returns.yearly.gain, returns.yearly.amount, returns.yearly.fiatAmount),
+                        monthlyChange = monthly,
+                        yearlyChange = yearly,
                         inputState
                     )
                     StakingViewState.Pool.Welcome(returnsViewState)
@@ -111,9 +122,15 @@ class StakingPoolViewModel(
     }
 
     private suspend fun getReturns(id: ChainId, amount: BigDecimal): ReturnsModel {
-        val calculator = rewardCalculatorFactory.createManual(id)
+        // todo hardcoded returns for demo
+        val kusamaOnTestNodeChainId = "f95f9821674aec3a20383a31a28db18670df0c2874ec5f3aa20fddeccf86efb0"
+        val chainId = if (id == kusamaOnTestNodeChainId) {
+            polkadotChainId
+        } else {
+            id
+        }
+        val calculator = rewardCalculatorFactory.createManual(chainId)
         val asset = stakingInteractor.currentAssetFlow().first()
-        val chainId = asset.token.configuration.chainId
         val monthly = calculator.calculateReturns(amount, PERIOD_MONTH, true, chainId)
         val yearly = calculator.calculateReturns(amount, PERIOD_YEAR, true, chainId)
 

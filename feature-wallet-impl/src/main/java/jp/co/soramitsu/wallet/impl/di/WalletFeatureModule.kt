@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.di
 
 import com.google.gson.Gson
+import android.content.ContentResolver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -62,6 +63,10 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
+import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
+import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.api.PhishingWarningMixin
+import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.impl.PhishingWarningProvider
+import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 
 @InstallIn(SingletonComponent::class)
@@ -94,6 +99,7 @@ class WalletFeatureModule {
     }
 
     @Provides
+    @Singleton
     fun provideHistoryFiltersProvider() = HistoryFiltersProvider()
 
     @Provides
@@ -244,13 +250,6 @@ class WalletFeatureModule {
         beaconSharedState: BeaconSharedState
     ) = BeaconInteractor(gson, accountRepository, chainRegistry, preferences, extrinsicService, beaconSharedState)
 
-//    @Provides
-//    @Singleton
-//    fun provideAvailableFiatCurrenciesUseCase(coingeckoApi: CoingeckoApi) = GetAvailableFiatCurrencies(coingeckoApi)
-//
-//    @Provides
-//    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
-
     @Provides
     fun provideFeeLoaderMixin(
         resourceManager: ResourceManager,
@@ -275,4 +274,18 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         preferences: Preferences
     ): BeaconSharedState = BeaconSharedState(chainRegistry, preferences)
+
+    @Provides
+    @Singleton
+    fun provideSendSharedState() = SendSharedState()
+
+    @Provides
+    fun provideQrCodeDecoder(contentResolver: ContentResolver): QrBitmapDecoder {
+        return QrBitmapDecoder(contentResolver)
+    }
+
+    @Provides
+    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarningMixin {
+        return PhishingWarningProvider(interactor)
+    }
 }

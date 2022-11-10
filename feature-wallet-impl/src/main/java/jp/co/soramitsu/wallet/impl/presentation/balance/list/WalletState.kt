@@ -10,7 +10,8 @@ data class WalletState(
     val multiToggleButtonState: MultiToggleButtonState<AssetType>,
     val assets: List<AssetListItemViewState>,
     val balance: AssetBalanceViewState,
-    val hiddenState: HiddenItemState
+    val hiddenState: HiddenItemState,
+    val hasNetworkIssues: Boolean
 ) {
     val visibleAssets = assets.filter { !it.isHidden }
     val hiddenAssets = assets.filter { it.isHidden }

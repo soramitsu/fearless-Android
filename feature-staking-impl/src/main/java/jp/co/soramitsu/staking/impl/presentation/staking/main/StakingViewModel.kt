@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.childScope
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -38,7 +39,6 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingAssetSelector
-import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolState
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.manageStakingActionValidationFailure
@@ -329,13 +329,10 @@ class StakingViewModel @Inject constructor(
         val meta = interactor.getCurrentMetaAccount()
         val address = requireNotNull(meta.address(chain))
         val amount = scenarioViewModelFlow.first().enteredAmountFlow.value
-        val amountDecimal = amount.toBigDecimalOrNull()
+        val amountDecimal = amount.toBigDecimalOrNull().orZero()
 
-        stakingPoolSharedStateProvider.setupState.mutate {
-            StakingPoolJoinFlowState(amount = amountDecimal)
-        }
         stakingPoolSharedStateProvider.mainState.mutate {
-            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address)
+            StakingPoolState(asset = asset, chain = chain, chainAsset = chainAsset, address = address, amount = amountDecimal)
         }
     }
 

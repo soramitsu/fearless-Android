@@ -79,6 +79,7 @@ fun NominationPool.toViewState(asset: Asset, resourceManager: ResourceManager): 
         NominationPoolState.Open -> StakeStatus.PoolActive(10000L, false)
         NominationPoolState.Blocked -> StakeStatus.Inactive("")
         NominationPoolState.Destroying -> StakeStatus.Inactive("")
+        NominationPoolState.HasNoValidators -> StakeStatus.PoolHasNoValidators
     }
 
     val default = StakeInfoViewState.PoolStakeInfoViewState.default(resourceManager)

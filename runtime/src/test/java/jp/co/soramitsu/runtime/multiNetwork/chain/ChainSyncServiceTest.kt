@@ -63,7 +63,7 @@ class ChainSyncServiceTest {
         existentialDeposit = null
     )
 
-    private val LOCAL_CHAIN = mapChainToChainLocal(mapChainRemoteToChain(listOf(REMOTE_CHAIN), listOf(REMOTE_ASSET))[0])
+    private val LOCAL_CHAIN = mapChainToChainLocal(mapChainsRemoteToChains(listOf(REMOTE_CHAIN), listOf(REMOTE_ASSET))[0])
 
     @Mock
     lateinit var dao: ChainDao

@@ -206,6 +206,6 @@
     </style>
 
     <style name="CustomBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
-        <item name="android:background">@android:color/transparent</item>
+        <item name="android:background">@color/black80</item>
     </style>
 </resources>

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
@@ -21,6 +20,7 @@ fun CorneredInput(
     backgroundColor: Color = white04,
     borderColor: Color = white08,
     state: String?,
+    hintLabel: String? = null,
     onInput: (String) -> Unit
 ) {
     BackgroundCorneredWithBorder(
@@ -31,13 +31,13 @@ fun CorneredInput(
         TextFieldHint(
             state = state,
             onInput = onInput,
-            Hint = { SearchHint() }
+            Hint = { SearchHint(hintLabel) }
         )
     }
 }
 
 @Composable
-private fun SearchHint() {
+private fun SearchHint(text: String?) {
     Row {
         MarginHorizontal(margin = 12.dp)
         Image(
@@ -46,10 +46,12 @@ private fun SearchHint() {
             tint = black2
         )
         MarginHorizontal(margin = 8.dp)
-        B1(
-            text = stringResource(id = R.string.manage_assets_search_hint),
-            color = black2
-        )
+        text?.let {
+            B1(
+                text = text,
+                color = black2
+            )
+        }
     }
 }
 

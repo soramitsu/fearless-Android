@@ -1,5 +1,8 @@
 package jp.co.soramitsu.wallet.impl.domain.interfaces
 
+import java.io.File
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
@@ -12,15 +15,11 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
-import jp.co.soramitsu.wallet.impl.domain.model.RecipientSearchResult
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
-import java.io.File
-import java.math.BigDecimal
-import java.math.BigInteger
 
 class NotValidTransferStatus(val status: TransferValidityStatus) : Exception()
 
@@ -53,8 +52,6 @@ interface WalletInteractor {
 
     fun selectedAccountFlow(chainId: ChainId): Flow<WalletAccount>
 
-    suspend fun getRecipients(query: String, chainId: ChainId): RecipientSearchResult
-
     suspend fun validateSendAddress(chainId: ChainId, address: String): Boolean
 
     suspend fun isAddressFromPhishingList(address: String): Boolean
@@ -66,9 +63,7 @@ interface WalletInteractor {
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel = TransferValidityLevel.Ok,
         tipInPlanks: BigInteger?
-    ): Result<Unit>
-
-    suspend fun getSenderAddress(chainId: ChainId): String?
+    ): Result<String>
 
     suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
 
@@ -99,4 +94,6 @@ interface WalletInteractor {
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
 
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
+
+    fun getChains(): Flow<List<Chain>>
 }

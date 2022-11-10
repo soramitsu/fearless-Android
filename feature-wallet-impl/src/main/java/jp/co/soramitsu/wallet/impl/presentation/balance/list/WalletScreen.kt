@@ -36,12 +36,17 @@ import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalance
+import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.AssetListItem
 import jp.co.soramitsu.common.compose.component.AssetListItemShimmer
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
+import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
+import jp.co.soramitsu.common.compose.component.HiddenItemState
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MultiToggleButton
+import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.NftStub
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.SwipeBox
@@ -53,7 +58,7 @@ import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.SelectChainContent
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import kotlinx.coroutines.launch
 
@@ -74,16 +79,16 @@ fun WalletScreen(
         sheetBackgroundColor = black4,
         sheetState = modalBottomSheetState,
         sheetContent = {
-            SelectChainContent(
+            ChainSelectContent(
                 state = chainsState,
-                onChainSelected = { item ->
+                onChainSelected = { chainItemState ->
                     scope.launch {
-                        viewModel.onChainSelected(item)
+                        viewModel.onChainSelected(chainItemState)
                         modalBottomSheetState.hide()
                     }
                     keyboardController?.hide()
                 },
-                onInput = viewModel::onChainSearchEntered
+                onSearchInput = viewModel::onChainSearchEntered
             )
         },
         content = {
@@ -113,6 +118,9 @@ private fun ContentWalletScreen(
             onAddressClick = { },
             onBalanceClick = { viewModel.onBalanceClicked() }
         )
+        if (data.hasNetworkIssues) {
+            NetworkIssuesBadge { viewModel.onNetworkIssuesClicked() }
+        }
         MarginVertical(margin = 24.dp)
         MultiToggleButton(
             state = data.multiToggleButtonState,
@@ -274,15 +282,21 @@ fun ShimmerWalletScreen(items: List<AssetListItemShimmerViewState>) {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Preview
 @Composable
 private fun PreviewWalletScreen() {
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {
 //            ShimmerWalletScreen(defaultWalletShimmerItems())
-            WalletScreen(
-                modalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+            ContentWalletScreen(
+                viewModel = hiltViewModel(),
+                data = WalletState(
+                    multiToggleButtonState = MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)),
+                    assets = emptyList(),
+                    balance = AssetBalanceViewState("BALANCE", "ADDRESS", true, ChangeBalanceViewState("+100%", "+50$")),
+                    hiddenState = HiddenItemState(true),
+                    hasNetworkIssues = true
+                )
             )
         }
     }

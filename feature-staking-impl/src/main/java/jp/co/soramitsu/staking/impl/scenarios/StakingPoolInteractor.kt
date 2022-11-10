@@ -3,16 +3,20 @@ package jp.co.soramitsu.staking.impl.scenarios
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.runtime.ext.accountFromMapKey
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Identity
 import jp.co.soramitsu.staking.api.domain.model.NominationPool
+import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.api.domain.model.PoolUnbonding
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -25,6 +29,7 @@ import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
@@ -65,24 +70,37 @@ class StakingPoolInteractor(
     ): Flow<NominationPool?> {
         return dataSource.observePoolMembers(chain.id, accountId).flatMapConcat { poolMember ->
             poolMember ?: return@flatMapConcat flowOf(null)
-            combine(dataSource.observePool(chain.id, poolMember.poolId), dataSource.observePoolRewards(chain.id, poolMember.poolId)) { bondedPool, rewardPool ->
+
+            val poolStashAccount = generatePoolStashAccount(chain, poolMember.poolId)
+            combine(
+                dataSource.observePool(chain.id, poolMember.poolId),
+                relayChainRepository.observeRemoteAccountNominations(chain.id, poolStashAccount)
+            ) { bondedPool, nominations ->
                 bondedPool ?: return@combine null
-                val pendingRewards = calculatePendingRewards(chain, poolMember, bondedPool, rewardPool)
+                val pendingRewards = dataSource.getPendingRewards(chain.id, accountId).getOrNull().orZero()
 
                 val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
                 val name = dataSource.getPoolMetadata(chain.id, poolMember.poolId)
                 val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
                 val redeemable = unbondingEras.filter { it.era < currentEra }.sumOf { it.amount }
                 val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
-                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding, poolMember.points, pendingRewards)
+
+                val hasValidators = nominations?.targets?.isNotEmpty() == true
+                val state = when {
+                    hasValidators.not() -> NominationPoolState.HasNoValidators
+                    else -> NominationPoolState.from(bondedPool.state.name)
+                }
+
+                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding, poolMember.points, pendingRewards, state)
             }
         }
     }
 
+    @Deprecated("Manual calculating is deprecated", replaceWith = ReplaceWith("dataSource.getPendingRewards"))
     private suspend fun calculatePendingRewards(chain: Chain, poolMember: PoolMember, bondedPool: BondedPool, rewardPool: PoolRewards?): BigInteger {
         rewardPool ?: return BigInteger.ZERO
         val rewardsAccountId = generatePoolRewardAccount(chain, poolMember.poolId)
-        val existentialDeposit = walletConstants.existentialDeposit(chain.utilityAsset)
+        val existentialDeposit = walletConstants.existentialDeposit(chain.utilityAsset).orZero()
         val rewardsAccountBalance = stakingInteractor.getAccountBalance(chain.id, rewardsAccountId).data.free.subtract(existentialDeposit)
         val payoutSinceLastRecord = rewardsAccountBalance.add(rewardPool.totalRewardsClaimed).subtract(rewardPool.lastRecordedTotalPayouts)
         val rewardCounterBase = BigInteger.valueOf(10).pow(18)
@@ -101,11 +119,13 @@ class StakingPoolInteractor(
     private suspend fun generatePoolAccountId(index: Int, chain: Chain, poolId: BigInteger): ByteArray {
         val palletId = relayChainRepository.getNominationPoolPalletId(chain.id)
         val modPrefix = "modl".toByteArray()
-        val indexBytes = byteArrayOf(index.toByte())
-        val poolIdBytes = poolId.toByteArray()
+        val indexBytes = index.toByte()
+        val poolIdBytes = poolId.toByte()
         val empty = ByteArray(32)
         val source = modPrefix + palletId + indexBytes + poolIdBytes + empty
-        return SS58Encoder.encode(source.take(32).toByteArray(), chain.addressPrefix.toShort()).toAccountId()
+        val encoded = SS58Encoder.encode(source.take(32).toByteArray(), chain.addressPrefix.toShort())
+        val result = encoded.toAccountId()
+        return result
     }
 
     private fun BondedPool.toNominationPool(
@@ -115,7 +135,8 @@ class StakingPoolInteractor(
         redeemable: BigInteger,
         unbonding: BigInteger,
         myStakedPoints: BigInteger,
-        myPendingRewards: BigInteger
+        myPendingRewards: BigInteger,
+        state: NominationPoolState
     ): NominationPool {
         return NominationPool(
             poolId = poolMember.poolId,
@@ -160,21 +181,18 @@ class StakingPoolInteractor(
         return dataSource.maxPoolMembers(chainId) ?: BigInteger.ZERO
     }
 
-    suspend fun getPoolMembers(chainId: ChainId, accountId: AccountId): PoolMember? {
-        return dataSource.poolMembers(chainId, accountId)
-    }
-
     suspend fun getAllPools(chainId: ChainId): List<PoolInfo> {
         val poolsMetadata = dataSource.poolsMetadata(chainId)
         val pools = dataSource.bondedPools(chainId)
         return pools.mapNotNull { (id, pool) ->
             pool ?: return@mapNotNull null
             val name = poolsMetadata[id] ?: "Pool #$id"
+            val state = NominationPoolState.from(pool.state.name)
             PoolInfo(
                 id,
                 name,
                 pool.points,
-                pool.state,
+                state,
                 pool.memberCounter,
                 pool.depositor,
                 pool.root,
@@ -189,6 +207,24 @@ class StakingPoolInteractor(
         val chain = stakingInteractor.getSelectedChain()
         return identitiesRepositoryImpl.getIdentitiesFromIds(chain, accountIds.map { it.toHexString(false) })
     }
+
+    suspend fun getAccountName(address: String): String? {
+        Dispatchers.Default
+        val chain = stakingInteractor.getSelectedChain()
+        val accountId = chain.accountIdOf(address)
+        val metaAccount = accountRepository.findMetaAccount(accountId)
+        return if (metaAccount != null) {
+            metaAccount.name
+        } else {
+            val identities = getIdentities(listOf(accountId))
+            val map = identities.mapNotNull {
+                chain.accountFromMapKey(it.key) to it.value?.display
+            }.toMap()
+            map[address]
+        }
+    }
+
+    suspend fun getLastPoolId(chainId: ChainId) = dataSource.lastPoolId(chainId)
 
     suspend fun estimateJoinFee(amount: BigInteger, poolId: BigInteger = BigInteger.ZERO) = api.estimateJoinFee(amount, poolId)
 
@@ -209,4 +245,33 @@ class StakingPoolInteractor(
     suspend fun estimateClaimFee() = api.estimateClaimPayoutFee()
 
     suspend fun claim(address: String) = api.claimPayout(address)
+
+    suspend fun estimateCreateFee(
+        poolId: BigInteger,
+        name: String,
+        amountInPlanks: BigInteger,
+        rootAddress: String,
+        nominatorAddress: String,
+        stateToggler: String
+    ) = api.estimateCreatePoolFee(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
+
+    suspend fun createPool(
+        poolId: BigInteger,
+        name: String,
+        amountInPlanks: BigInteger,
+        rootAddress: String,
+        nominatorAddress: String,
+        stateToggler: String
+    ) = api.createPool(name, poolId, amountInPlanks, rootAddress, nominatorAddress, stateToggler)
+
+    suspend fun estimateNominateFee(
+        poolId: BigInteger,
+        vararg validators: AccountId
+    ) = api.estimateNominatePoolFee(poolId, *validators)
+
+    suspend fun nominate(
+        poolId: BigInteger,
+        accountAddress: String,
+        vararg validators: AccountId
+    ) = api.nominatePool(poolId, accountAddress, *validators)
 }

@@ -33,7 +33,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
-import jp.co.soramitsu.wallet.impl.domain.model.RecipientSearchResult
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
@@ -94,6 +93,7 @@ class WalletInteractorImpl(
 
     override fun assetFlow(chainId: ChainId, chainAssetId: String): Flow<Asset> {
         return accountRepository.selectedMetaAccountFlow().flatMapLatest { metaAccount ->
+
             val (chain, chainAsset) = chainRegistry.chainWithAsset(chainId, chainAssetId)
             val accountId = metaAccount.accountId(chain)!!
 
@@ -177,31 +177,6 @@ class WalletInteractorImpl(
             }
     }
 
-    // TODO wallet
-    override suspend fun getRecipients(query: String, chainId: ChainId): RecipientSearchResult {
-//        val metaAccount = accountRepository.getSelectedMetaAccount()
-//        val chain = chainRegistry.getChain(chainId)
-//        val accountId = metaAccount.accountIdIn(chain)!!
-//
-//        val contacts = walletRepository.getContacts(accountId, chain, query)
-//        val myAccounts = accountRepository.getMyAccounts(query, chain.id)
-//
-//        return withContext(Dispatchers.Default) {
-//            val contactsWithoutMyAccounts = contacts - myAccounts.map { it.address }
-//            val myAddressesWithoutCurrent = myAccounts - metaAccount
-//
-//            RecipientSearchResult(
-//                myAddressesWithoutCurrent.toList().map { mapAccountToWalletAccount(chain, it) },
-//                contactsWithoutMyAccounts.toList()
-//            )
-//        }
-
-        return RecipientSearchResult(
-            myAccounts = emptyList(),
-            contacts = emptyList()
-        )
-    }
-
     override suspend fun validateSendAddress(chainId: ChainId, address: String): Boolean = withContext(Dispatchers.Default) {
         val chain = chainRegistry.getChain(chainId)
 
@@ -225,7 +200,7 @@ class WalletInteractorImpl(
         fee: BigDecimal,
         maxAllowedLevel: TransferValidityLevel,
         tipInPlanks: BigInteger?
-    ): Result<Unit> {
+    ): Result<String> {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
         val accountId = metaAccount.accountId(chain)!!
@@ -239,12 +214,6 @@ class WalletInteractorImpl(
         return runCatching {
             walletRepository.performTransfer(accountId, chain, transfer, fee, tipInPlanks)
         }
-    }
-
-    override suspend fun getSenderAddress(chainId: ChainId): String? {
-        val metaAccount = accountRepository.getSelectedMetaAccount()
-        val chain = chainRegistry.getChain(chainId)
-        return metaAccount.address(chain)
     }
 
     override suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus> {
@@ -356,4 +325,6 @@ class WalletInteractorImpl(
             it.address(chain) ?: ""
         }
     }
+
+    override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
 }

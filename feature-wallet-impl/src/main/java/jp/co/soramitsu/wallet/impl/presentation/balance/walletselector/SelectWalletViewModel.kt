@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
@@ -9,6 +10,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
+import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.formatAsChange
@@ -22,7 +24,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
 
@@ -58,14 +59,14 @@ class SelectWalletViewModel @Inject constructor(
         walletItemsFlow,
         selectedWalletItem
     ) { walletItems, selectedWallet ->
-        SelectWalletScreenViewState(
+        WalletSelectorViewState(
             wallets = walletItems,
             selectedWallet = selectedWallet ?: walletItems.first { it.isSelected }
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
-        SelectWalletScreenViewState(
+        WalletSelectorViewState(
             emptyList(),
             null
         )

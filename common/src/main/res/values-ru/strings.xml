@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="common_next">Далее</string>
     <string name="common_cancel">Отмена</string>
     <string name="common_skip">Пропустить</string>
@@ -121,7 +121,6 @@
     <string name="common_continue">Продолжить</string>
     <string name="common_amount">Сумма</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
-    <string name="search_recipient_welcome">Здесь появятся ваши аккаунты и контакты, которым вы отправляли переводы</string>
     <string name="wallet_search_empty_title">Убедитесь, что адрес
 из правильной сети</string>
     <string name="search_recipient_hint">Адрес аккаунта или имя аккаунта</string>
@@ -653,6 +652,7 @@
     <string name="moonbeam_ethereum_address_incorrect">Формат адреса Moonbeam Ethereum неверен, попробуйте еще раз</string>
     <string name="moonbeam_ethereum_reward">Вознаграждения будут выплачиваться на этот адрес. Вы можете использовать существующий адрес Ethereum. ПОЖАЛУЙСТА, УБЕДИТЕСЬ, ЧТО У ВАС ЕСТЬ ПРИВАТНЫЕ КЛЮЧИ ДЛЯ ЭТОГО АДРЕСА.</string>
     <string name="manage_assets_search_hint">Поиск по токену или сети</string>
+    <string name="assets_search_hint">Поиск по токену</string>
     <string name="crowdloan_email_hint">Адрес электронной почты</string>
     <string name="crowdloan_referral_code_hint">Реферальный код</string>
     <string name="label_link">Ссылка</string>
@@ -753,6 +753,7 @@
     <string name="chain_selection_all_networks">Все сети</string>
     <string name="hidden_assets">Скрытые активы</string>
     <string name="common_select_network">Выбрать Сеть</string>
+    <string name="common_select_asset">Выбрать Актив</string>
 
     <string name="staking_pool_rewards_delay_text"></string>
     <string name="staking_pool_start_apr_text"></string>
@@ -795,6 +796,7 @@
     <string name="common_action_teleport">Телепорт</string>
     <string name="common_action_hide">Скрыть</string>
     <string name="common_action_show">Показать</string>
+    <string name="common_action_buy">Купить</string>
 
     <string name="pool_staking_confirm_join_title"></string>
     <string name="pool_staking_number_of_members"></string>
@@ -814,4 +816,35 @@
     <string name="pool_staking_unstake_alert">Your pending reward will be payment automatically</string>
     <string name="pool_staking_unstake_error">No redeemable tokens found</string>
     <string name="common_claimable">Claimable</string>
+    <string name="pool_create_title">Создать пулл</string>
+    <string name="common_create">Создать</string>
+    <string name="min_to_create_pool_threshold_error_title">Извините, указанной суммы недостаточно для создания пула</string>
+    <string name="min_to_create_pool_threshold_error_message">Минимальная сумма - %s</string>
+
+    <string name="pool_select_validators_notification_title">Выберите валидаторов</string>
+    <string name="pool_select_validators_notification_message">Чтобы продолжить, вы должны выбрать валидаторов</string>
+    <string name="network_issue_stub">Проблемы с сетью</string>
+    <string name="common_close">Закрыть</string>
+    <string name="notification">Уведомление</string>
+    <string name="network_issue_node_unavailable">Нода недоступна</string>
+    <string name="network_issue_network_unavailable">Сеть недоступна</string>
+    <string name="network_issue_add_an_account">Добавить аккаунт</string>
+    <string name="network_issue_action_switch_node">Выбрать Ноду</string>
+    <string name="network_issue_action_add_account">Добавить Аккаунт</string>
+    <string name="network_issue_unavailable">Сеть недоступна, вы можете подождать или задать вопрос сообществу</string>
+    <string name="top_up"></string>
+
+    <string name="send_fund">Отправить Средства</string>
+    <string name="send_to">Отправить</string>
+    <string name="chip_scan">Сканер</string>
+    <string name="chip_history">История</string>
+    <string name="chip_paste">Из буфера</string>
+    <string name="address_not_valid_error_title">Не адрес сети</string>
+    <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
+    <string name="preview">Предпросмотр</string>
+    <string name="hash">Хэш</string>
+    <string name="result">Результат</string>
+    <string name="all_done">Все готово</string>
+    <string name="send_success_message">Теперь Вы можете вернуться в приложение и заняться чем обычно</string>
+
 </resources>

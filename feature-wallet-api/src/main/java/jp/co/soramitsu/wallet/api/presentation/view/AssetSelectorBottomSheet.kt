@@ -25,7 +25,8 @@ class AssetSelectorBottomSheet(
     context,
     payload,
     AssetModel.DIFF_CALLBACK,
-    onClicked
+    onClicked,
+    true
 ) {
 
     override fun onCreate(savedInstanceState: Bundle?) {

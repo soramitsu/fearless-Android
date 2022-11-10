@@ -1,7 +1,9 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -32,28 +34,29 @@ data class ButtonViewState(
 
 @Composable
 fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(state.text, state.enabled, accentButtonColors, modifier, onClick)
+    TextButton(text = state.text, enabled = state.enabled, colors = accentButtonColors, modifier = modifier, onClick = onClick)
 }
 
 @Composable
 fun AccentButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text, enabled, accentButtonColors, modifier, onClick)
+    TextButton(text = text, enabled = enabled, colors = accentButtonColors, modifier = modifier, onClick = onClick)
 }
 
 @Composable
-fun TextButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    TextButton(text, enabled, customButtonColors(grayButtonBackground), modifier, onClick)
+fun GrayButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    TextButton(text = text, enabled = enabled, colors = customButtonColors(grayButtonBackground), modifier = modifier, onClick = onClick)
 }
 
 @Composable
 fun TextButton(
     text: String,
     enabled: Boolean = true,
+    textStyle: TextStyle = MaterialTheme.customTypography.header3,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    FearlessButton(text = text, enabled = enabled, colors = colors, modifier = modifier, onClick = onClick)
+    FearlessButton(text = text, enabled = enabled, textStyle = textStyle, colors = colors, modifier = modifier, onClick = onClick)
 }
 
 @Composable
@@ -63,6 +66,7 @@ fun TextButtonSmall(
     textStyle: TextStyle = MaterialTheme.customTypography.capsTitle2,
     colors: ButtonColors,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onClick: () -> Unit
 ) {
     TextButton(
@@ -71,7 +75,7 @@ fun TextButtonSmall(
         shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
         colors = colors,
         enabled = enabled,
-        contentPadding = PaddingValues(0.dp)
+        contentPadding = contentPadding
     ) {
         Text(
             text = text,
@@ -121,13 +125,35 @@ fun ColoredTextButton(
         enabled = enabled,
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        CapsTitle(text = text.uppercase())
+        CapsTitle(text = text)
     }
 }
 
 @Composable
+fun ColoredButton(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    backgroundColor: Color,
+    border: BorderStroke? = null,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+    onClick: () -> Unit,
+    content: @Composable RowScope.() -> Unit
+) {
+    TextButton(
+        modifier = modifier,
+        onClick = onClick,
+        shape = FearlessCorneredShape(cornerRadius = 4.dp, cornerCutLength = 6.dp),
+        colors = customButtonColors(backgroundColor),
+        border = border,
+        enabled = enabled,
+        contentPadding = contentPadding,
+        content = content
+    )
+}
+
+@Composable
 @Preview
-private fun ButtonPreview() {
+fun ButtonPreview() {
     FearlessTheme {
         Column(modifier = Modifier.padding(16.dp)) {
             AccentButton(
@@ -151,7 +177,7 @@ private fun ButtonPreview() {
                 modifier = Modifier
             ) {}
             MarginVertical(margin = 16.dp)
-            TextButton(
+            GrayButton(
                 "Create pool",
                 modifier = Modifier
                     .width(200.dp)

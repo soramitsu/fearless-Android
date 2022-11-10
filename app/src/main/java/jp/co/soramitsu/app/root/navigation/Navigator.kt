@@ -8,6 +8,7 @@ import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavOptions
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
+import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsFragment
@@ -28,6 +29,7 @@ import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
+import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
@@ -37,6 +39,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.postToUiThread
@@ -87,24 +90,31 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetai
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
+import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
-import jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmTransferFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.recipient.ChooseRecipientFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.parcelize.Parcelize
 
@@ -283,6 +293,18 @@ class Navigator :
 
     override fun returnToManagePoolStake() {
         navController?.navigate(R.id.action_return_to_pool_staking_balance)
+    }
+
+    override fun openCreatePoolSetup() {
+        navController?.navigate(R.id.createPoolSetupFragment)
+    }
+
+    override fun openCreatePoolConfirm() {
+        navController?.navigate(R.id.confirmCreatePoolFragment)
+    }
+
+    override fun openWalletSelector(tag: String) {
+        navController?.navigate(R.id.walletSelectorFragment, WalletSelectorFragment.buildArguments(tag))
     }
 
     override fun openSelectUnbond(payload: SelectUnbondPayload) {
@@ -486,43 +508,47 @@ class Navigator :
     }
 
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
-        navController?.navigate(R.id.open_validator_details, ValidatorDetailsFragment.getBundle(validatorDetails))
+        navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
     override fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel) {
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openChooseRecipient(assetPayload: AssetPayload) {
-        val bundle = ChooseRecipientFragment.getBundle(assetPayload)
+    override fun openSend(assetPayload: AssetPayload, initialSendToAddress: String?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress)
 
-        navController?.navigate(R.id.action_open_send, bundle)
+        navController?.navigate(R.id.sendSetupFragment, bundle)
+    }
+
+    override fun openSelectChain(assetId: ChainId) {
+        val bundle = ChainSelectFragment.getBundle(assetId)
+        navController?.navigate(R.id.chainSelectFragment, bundle)
+    }
+
+    override fun openSelectAsset(selectedAssetId: String) {
+        val bundle = AssetSelectFragment.getBundle(selectedAssetId)
+        navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 
     override fun openFilter() {
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openChooseAmount(recipientAddress: String, assetPayload: AssetPayload) {
-        val bundle = ChooseAmountFragment.getBundle(recipientAddress, assetPayload)
+    override fun openSendConfirm(transferDraft: TransferDraft) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft)
 
-        navController?.navigate(R.id.action_chooseRecipientFragment_to_chooseAmountFragment, bundle)
+        navController?.navigate(R.id.confirmSendFragment, bundle)
     }
 
-    override fun openConfirmTransfer(transferDraft: TransferDraft) {
-        val bundle = ConfirmTransferFragment.getBundle(transferDraft)
+    override fun openSendSuccess(operationHash: String?, chainId: ChainId) {
+        val bundle = SendSuccessFragment.getBundle(operationHash, chainId)
 
-        navController?.navigate(R.id.action_chooseAmountFragment_to_confirmTransferFragment, bundle)
+        navController?.navigate(R.id.sendSuccessFragment, bundle)
     }
 
     override fun finishSendFlow() {
         navController?.navigate(R.id.finish_send_flow)
-    }
-
-    override fun openRepeatTransaction(recipientAddress: String, assetPayload: AssetPayload) {
-        val bundle = ChooseAmountFragment.getBundle(recipientAddress, assetPayload)
-
-        navController?.navigate(R.id.openSelectAmount, bundle)
     }
 
     override fun openTransferDetail(transaction: OperationParcelizeModel.Transfer, assetPayload: AssetPayload) {
@@ -737,6 +763,20 @@ class Navigator :
         navController?.navigate(R.id.selectWalletFragment)
     }
 
+    override fun openNetworkIssues() {
+        navController?.navigate(R.id.networkIssuesFragment)
+    }
+
+    override fun openOptionsAddAccount(payload: AddAccountBottomSheet.Payload) {
+        val bundle = OptionsAddAccountFragment.getBundle(payload)
+        navController?.navigate(R.id.optionsAddAccountFragment, bundle)
+    }
+
+    override fun openNetworkUnavailable(chainName: String?) {
+        val bundle = chainName?.let { NetworkUnavailableFragment.getBundle(chainName) }
+        navController?.navigate(R.id.networkUnavailableFragment, bundle)
+    }
+
     override fun openSearchAssets(chainId: String?) {
         val bundle = SearchAssetsFragment.getBundle(chainId)
         navController?.navigate(R.id.searchAssetsFragment, bundle)
@@ -745,6 +785,11 @@ class Navigator :
     override fun openOptionsWallet(walletId: Long) {
         val bundle = OptionsWalletFragment.getBundle(walletId)
         navController?.navigate(R.id.optionsWalletFragment, bundle)
+    }
+
+    override fun openFrozenTokens(payload: FrozenAssetPayload) {
+        val bundle = FrozenTokensFragment.getBundle(payload)
+        navController?.navigate(R.id.frozenTokensFragment, bundle)
     }
 
     fun educationalStoriesCompleted() {
@@ -776,4 +821,29 @@ class Navigator :
         val bundle = TransactionRawDataFragment.createBundle(rawData)
         navController?.navigate(R.id.transactionRawDataFragment, bundle)
     }
+
+    override fun setWalletSelectorPayload(payload: WalletSelectorPayload) {
+        navController?.previousBackStackEntry?.savedStateHandle?.set(WalletSelectorPayload::class.java.name, payload)
+    }
+
+    override fun openStartSelectValidators() {
+        navController?.navigate(R.id.startSelectValidatorsFragment)
+    }
+
+    override fun openSelectValidators() {
+        navController?.navigate(R.id.selectValidatorsFragment)
+    }
+
+    override fun openValidatorsSettings() {
+        navController?.navigate(R.id.validatorsSettingsFragment)
+    }
+
+    override fun openConfirmSelectValidators() {
+        navController?.navigate(R.id.confirmSelectValidatorsFragment)
+    }
+
+    override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
+        get() = navController?.currentBackStackEntry?.savedStateHandle
+            ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
+            ?.asFlow() ?: emptyFlow()
 }

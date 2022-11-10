@@ -2,7 +2,10 @@ package jp.co.soramitsu.common.compose.component
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -10,6 +13,7 @@ import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +31,7 @@ enum class ActionItemType(
     TELEPORT(R.drawable.ic_common_teleport, R.string.common_action_teleport),
     HIDE(R.drawable.ic_common_hide, R.string.common_action_hide),
     SHOW(R.drawable.ic_common_hide, R.string.common_action_show),
+    BUY(R.drawable.ic_common_buy, R.string.common_action_buy)
 }
 
 data class ActionBarViewState(
@@ -38,6 +43,7 @@ data class ActionBarViewState(
 @Composable
 fun ActionBar(
     state: ActionBarViewState,
+    fillMaxWidth: Boolean = false,
     onItemClick: (ActionItemType, String, String) -> Unit = { _, _, _ -> }
 ) {
     BackgroundCornered {
@@ -48,6 +54,7 @@ fun ActionBar(
                         painter = painterResource(actionItem.iconId),
                         title = stringResource(actionItem.titleId)
                     ),
+                    modifier = if (fillMaxWidth) Modifier.weight(1f) else Modifier,
                     onClick = { onItemClick.invoke(actionItem, state.chainId, state.chainAssetId) }
                 )
 
@@ -71,10 +78,17 @@ private fun ActionBarPreview() {
     val state = ActionBarViewState(
         chainId = "",
         chainAssetId = "",
-        actionItems = ActionItemType.values().asList()
+        actionItems = ActionItemType.values().asList().take(3)
     )
 
     FearlessTheme {
-        ActionBar(state)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            ActionBar(state = state)
+            ActionBar(state = state, fillMaxWidth = true)
+        }
     }
 }

@@ -13,8 +13,10 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolManageFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeViewState
@@ -39,10 +41,10 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val router: StakingRouter
 ) : BaseViewModel() {
 
-    private val mainState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
-    private val chain = requireNotNull(mainState.chain)
-    private val asset = requireNotNull(mainState.asset)
-    private val accountId = requireNotNull(mainState.accountId)
+    private val mainState = stakingPoolSharedStateProvider.requireMainState
+    private val chain = mainState.requireChain
+    private val asset = mainState.requireAsset
+    private val accountId = mainState.accountId
 
     private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain, accountId).onEach { pool ->
         stakingPoolSharedStateProvider.manageState.mutate {
@@ -73,6 +75,7 @@ class ManagePoolStakeViewModel @Inject constructor(
     )
 
     private val defaultScreenViewState = ManagePoolStakeViewState(
+        null,
         null,
         null,
         null,
@@ -113,6 +116,20 @@ class ManagePoolStakeViewModel @Inject constructor(
                 colorAccent
             )
         }
+        val canNominate = accountId.contentEquals(pool.nominator) || accountId.contentEquals(pool.root)
+        val selectValidatorsNotification = pool.state == NominationPoolState.HasNoValidators && canNominate
+        val noValidatorsNotification = if (selectValidatorsNotification) {
+            NotificationState(
+                R.drawable.ic_status_warning_16,
+                R.string.pool_select_validators_notification_title,
+                resourceManager.getString(R.string.pool_select_validators_notification_message),
+                R.string.common_select,
+                colorAccent
+            )
+        } else {
+            null
+        }
+
         val available = asset.transferable.formatTokenAmount(asset.token.configuration)
         val availableFiat = asset.transferable.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
         val availableState = defaultAvailableState.copy(value = available, additionalValue = availableFiat)
@@ -130,6 +147,7 @@ class ManagePoolStakeViewModel @Inject constructor(
             totalFormatted,
             claimNotification,
             redeemableNotification,
+            noValidatorsNotification,
             availableState,
             unstakingState,
             poolInfoViewState,
@@ -165,4 +183,15 @@ class ManagePoolStakeViewModel @Inject constructor(
     }
 
     fun onNominationsClick() {}
+
+    fun onSelectValidatorsClick() {
+        val pool = requireNotNull(poolStateFlow.value)
+        stakingPoolSharedStateProvider.selectValidatorsState.set(
+            SelectValidatorFlowState(
+                poolName = pool.name,
+                poolId = pool.poolId
+            )
+        )
+        router.openStartSelectValidators()
+    }
 }

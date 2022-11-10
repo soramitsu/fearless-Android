@@ -1,8 +1,8 @@
 buildscript {
     ext {
         // App version
-        versionName = '2.0.11'
-        versionCode = 72
+        versionName = '2.0.13'
+        versionCode = 74
 
         // SDK and tools
         compileSdkVersion = 33
@@ -11,7 +11,7 @@ buildscript {
 
         kotlinVersion = '1.7.10'
 
-        ktlintPinterestVersion = '0.46.1'
+        ktlintPinterestVersion = '0.47.1'
 
         supportVersion = '1.6.1'
         cardViewVersion = '1.0.0'
@@ -83,7 +83,6 @@ buildscript {
 
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
-        coilCompose = "io.coil-kt:coil-compose:$coilVersion"
 
         kotlinDep = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
@@ -100,27 +99,33 @@ buildscript {
 
         daggerDep = "com.google.dagger:hilt-android:$daggerVersion"
         daggerKapt = "com.google.dagger:hilt-compiler:$daggerVersion"
-        hiltNavComposeDep = "androidx.hilt:hilt-navigation-compose:1.0.0"
 
-        composeRuntimeDep = "androidx.compose.runtime:runtime:$composeVersion"
-        composeUiDep = "androidx.compose.ui:ui:$composeVersion"
-        composeLiveDataDep = "androidx.compose.runtime:runtime-livedata:$composeVersion"
-        composeCompilerDep = "androidx.compose.compiler:compiler:$composeCompilerVersion"
-        composeFoundationDep = "androidx.compose.foundation:foundation:$composeVersion"
-        composeMaterialDep = "androidx.compose.material:material:$composeVersion"
-        composeThemeAdapterDep = "com.google.android.material:compose-theme-adapter:1.1.1"
-        composeAnimationDep = "androidx.compose.animation:animation:$composeVersion"
-        composeAnimationGraphicsDep = "androidx.compose.animation:animation-graphics:$composeVersion"
-        composeToolingDep = "androidx.compose.ui:ui-tooling:$composeVersion"
-        composeToolingPreviewDep = "androidx.compose.ui:ui-tooling-preview:$composeVersion"
-        composeActivityDep = "androidx.activity:activity-compose:1.5.1"
-        composeViewModelDep = "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1"
-        composeShimmerDep = "com.valentinilk.shimmer:compose-shimmer:1.0.3"
-        composeConstraintLayoutDep = "androidx.constraintlayout:constraintlayout-compose:1.0.1"
-
-        //fix compose preview https://stackoverflow.com/a/71830120
-        customviewDep = "androidx.customview:customview:1.2.0-alpha01"
-        customviewPoolingcontainerDep = "androidx.customview:customview-poolingcontainer:1.0.0"
+        compose = [
+                "androidx.compose.runtime:runtime:$composeVersion",
+                "androidx.compose.ui:ui:$composeVersion",
+                "androidx.compose.runtime:runtime-livedata:$composeVersion",
+                "androidx.compose.compiler:compiler:$composeCompilerVersion",
+                "androidx.compose.foundation:foundation:$composeVersion",
+                "androidx.compose.material:material:$composeVersion",
+                "com.google.android.material:compose-theme-adapter:1.1.1",
+                "androidx.compose.animation:animation:$composeVersion",
+                "androidx.compose.animation:animation-graphics:$composeVersion",
+                "androidx.compose.ui:ui-tooling-preview:$composeVersion",
+                "androidx.activity:activity-compose:1.5.1",
+                "androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1",
+                "com.valentinilk.shimmer:compose-shimmer:1.0.3",
+                "androidx.constraintlayout:constraintlayout-compose:1.0.1",
+                "com.google.accompanist:accompanist-swiperefresh:0.26.5-rc",
+                "io.coil-kt:coil-compose:$coilVersion",
+                "androidx.navigation:navigation-compose:$navControllerVersion",
+                "androidx.hilt:hilt-navigation-compose:1.0.0"
+        ]
+        composeDebug = [
+                "androidx.compose.ui:ui-tooling:$composeVersion",
+                //fix compose preview https://stackoverflow.com/a/71830120
+                "androidx.customview:customview:1.2.0-alpha01",
+                "androidx.customview:customview-poolingcontainer:1.0.0"
+        ]
 
         lifecycleProcessDep = "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
 
@@ -146,7 +151,6 @@ buildscript {
 
         navigationFragmentDep = "androidx.navigation:navigation-fragment-ktx:$navControllerVersion"
         navigationUiDep = "androidx.navigation:navigation-ui-ktx:$navControllerVersion"
-        navigationComposeDep = "androidx.navigation:navigation-compose:$navControllerVersion"
 
         bouncyCastleDep = "org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion"
 

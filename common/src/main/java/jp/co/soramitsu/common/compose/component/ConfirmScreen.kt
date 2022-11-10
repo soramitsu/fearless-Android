@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,13 +28,17 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 
 data class ConfirmScreenViewState(
     val toolbarViewState: ToolbarViewState,
-    val address: TitleValueViewState,
-    val amount: TitleValueViewState,
-    val networkFee: TitleValueViewState,
-    val assetIcon: String,
+    val amount: String?,
+    val tableItems: List<TitleValueViewState>,
+    val assetIcon: Icon,
     @StringRes val titleRes: Int,
     @StringRes val additionalMessageRes: Int? = null
-)
+) {
+    sealed class Icon {
+        class Remote(val url: String) : Icon()
+        class Local(@DrawableRes val res: Int) : Icon()
+    }
+}
 
 @Composable
 fun ConfirmScreen(state: ConfirmScreenViewState, onNavigationClick: () -> Unit, onConfirm: () -> Unit) {
@@ -51,9 +56,11 @@ fun ConfirmScreen(state: ConfirmScreenViewState, onNavigationClick: () -> Unit, 
                 color = black2
             )
             MarginVertical(margin = 8.dp)
-            H1(text = requireNotNull(state.amount.value), modifier = Modifier.align(Alignment.CenterHorizontally))
-            MarginVertical(margin = 24.dp)
-            InfoTable(listOf(state.address, state.amount, state.networkFee))
+            state.amount?.let {
+                H1(text = it, modifier = Modifier.align(Alignment.CenterHorizontally))
+                MarginVertical(margin = 24.dp)
+            }
+            InfoTable(state.tableItems)
             MarginVertical(margin = 24.dp)
             state.additionalMessageRes?.let {
                 AdditionalInfo(message = stringResource(id = it))
@@ -99,10 +106,13 @@ private fun AdditionalInfo(message: String) {
 private fun ConfirmJoinPoolScreenPreview() {
     val state = ConfirmScreenViewState(
         toolbarViewState = ToolbarViewState("Confirm", R.drawable.ic_arrow_back_24dp),
-        address = TitleValueViewState("From", "Account for join", "0x3784348729384923849223423"),
-        amount = TitleValueViewState("Amount", "10KSM", "$30"),
-        networkFee = TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32"),
-        assetIcon = "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
+        tableItems = listOf(
+            TitleValueViewState("From", "Account for join", "0x3784348729384923849223423"),
+            TitleValueViewState("Amount", "10KSM", "$30"),
+            TitleValueViewState("Network Fee", "0.0051 KSM", "$0.32")
+        ),
+        amount = "10KSM",
+        assetIcon = ConfirmScreenViewState.Icon.Remote("https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg"),
         titleRes = R.string.common_confirm,
         additionalMessageRes = R.string.pool_staking_unstake_alert
     )

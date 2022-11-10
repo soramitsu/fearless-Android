@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -102,7 +103,7 @@ private fun TitleToValueShimmer(modifier: Modifier) {
 @Preview
 private fun TitleValuePreview() {
     FearlessTheme {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp).background(Color.Black)) {
             TitleToValue(
                 testTag = "",
                 state = TitleValueViewState("Total staked", "2.5M KSM", "\$380.94M")

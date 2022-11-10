@@ -1,6 +1,18 @@
 package jp.co.soramitsu.account.impl.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
+import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.account.api.domain.model.AuthType
+import jp.co.soramitsu.account.api.domain.model.ImportJsonData
+import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.api.domain.model.cryptoType
+import jp.co.soramitsu.account.api.domain.model.hasChainAccount
+import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.data.mappers.mapEncryptionToCryptoType
@@ -39,18 +51,6 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
-import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.Account
-import jp.co.soramitsu.account.api.domain.model.AuthType
-import jp.co.soramitsu.account.api.domain.model.ImportJsonData
-import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
-import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.account.api.domain.model.cryptoType
-import jp.co.soramitsu.account.api.domain.model.hasChainAccount
-import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -621,7 +621,9 @@ class AccountRepositoryImpl(
                 val ethereumKeypair = EthereumKeypairFactory.generate(ethereumSeed, junctions = decodedEthereumDerivationPath.junctions)
 
                 ethereumKeypair to ethereumDerivationPathOrDefault
-            } else null to null
+            } else {
+                null to null
+            }
 
             val position = metaAccountDao.getNextPosition()
 

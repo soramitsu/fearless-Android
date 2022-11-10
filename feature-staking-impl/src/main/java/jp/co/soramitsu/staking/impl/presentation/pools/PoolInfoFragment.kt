@@ -5,6 +5,7 @@ import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +32,7 @@ class PoolInfoFragment : BaseComposeBottomSheetDialogFragment<PoolInfoViewModel>
 
     @Composable
     override fun Content(padding: PaddingValues) {
-        val state = viewModel.state.collectAsState()
-        PoolInfoScreen(state = state.value, viewModel::onCloseClick)
+        val state by viewModel.state.collectAsState()
+        PoolInfoScreen(state = state, viewModel::onCloseClick)
     }
 }

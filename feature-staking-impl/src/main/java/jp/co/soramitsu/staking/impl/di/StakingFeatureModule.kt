@@ -22,6 +22,7 @@ import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -541,12 +542,14 @@ class StakingFeatureModule {
         @Named(LOCAL_STORAGE_SOURCE)
         localStorage: StorageDataSource,
         chainRegistry: ChainRegistry,
-        walletConstants: WalletConstants
+        walletConstants: WalletConstants,
+        rpcCalls: RpcCalls
     ) = StakingPoolDataSource(
         remoteStorage,
         localStorage,
         chainRegistry,
-        walletConstants
+        walletConstants,
+        rpcCalls
     )
 
     @Provides

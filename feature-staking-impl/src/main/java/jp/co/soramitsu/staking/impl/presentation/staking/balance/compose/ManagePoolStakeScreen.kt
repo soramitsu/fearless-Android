@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BottomSheetLayout
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H2
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.ListDialog
@@ -28,7 +29,6 @@ import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.Notification
 import jp.co.soramitsu.common.compose.component.NotificationState
 import jp.co.soramitsu.common.compose.component.Shimmer
-import jp.co.soramitsu.common.compose.component.TextButton
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
@@ -42,6 +42,7 @@ data class ManagePoolStakeViewState(
     val total: String?,
     val claimNotification: NotificationState?,
     val redeemNotification: NotificationState?,
+    val noValidatorsNotification: NotificationState?,
     val available: TitleValueViewState,
     val unstaking: TitleValueViewState,
     val poolInfo: TitleValueViewState,
@@ -69,7 +70,8 @@ fun ManagePoolStakeScreen(
     onPoolInfoClick: () -> Unit,
     onStakeMoreClick: () -> Unit,
     onUnstakeClick: () -> Unit,
-    onNominationsClick: () -> Unit
+    onNominationsClick: () -> Unit,
+    onSelectValidatorsClick: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     BottomSheetLayout(
@@ -112,6 +114,7 @@ fun ManagePoolStakeScreen(
                                 .width(170.dp)
                                 .align(Alignment.CenterHorizontally)
                         )
+
                         state.claimNotification?.let {
                             MarginVertical(margin = 16.dp)
                             Notification(state = it, onAction = onClaimClick)
@@ -120,6 +123,11 @@ fun ManagePoolStakeScreen(
                             MarginVertical(margin = 16.dp)
                             Notification(state = it, onAction = onRedeemClick)
                         }
+                        state.noValidatorsNotification?.let {
+                            MarginVertical(margin = 16.dp)
+                            Notification(state = it, onAction = onSelectValidatorsClick)
+                        }
+
                         MarginVertical(margin = 16.dp)
                         InfoTable(
                             items = listOf(
@@ -141,9 +149,9 @@ fun ManagePoolStakeScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                     ) {
-                        TextButton(text = stringResource(id = R.string.staking_bond_more_v1_9_0), onClick = onStakeMoreClick, modifier = Modifier.weight(1f))
+                        GrayButton(text = stringResource(id = R.string.staking_bond_more_v1_9_0), onClick = onStakeMoreClick, modifier = Modifier.weight(1f))
                         MarginHorizontal(margin = 16.dp)
-                        TextButton(text = stringResource(id = R.string.staking_unbond_v1_9_0), onClick = onUnstakeClick, modifier = Modifier.weight(1f))
+                        GrayButton(text = stringResource(id = R.string.staking_unbond_v1_9_0), onClick = onUnstakeClick, modifier = Modifier.weight(1f))
                     }
                     MarginVertical(margin = 16.dp)
                 }
@@ -159,12 +167,13 @@ private fun ManagePoolStakeScreenPreview() {
         total = "10.00003 KSM",
         NotificationState(R.drawable.ic_status_warning_16, R.string.staking_alert_redeem_title, "0.49191 KSM", R.string.staking_redeem, colorAccent),
         NotificationState(R.drawable.ic_status_warning_16, R.string.staking_alert_redeem_title, "0.49191 KSM", R.string.staking_redeem, colorAccent),
+        NotificationState(R.drawable.ic_status_warning_16, R.string.staking_alert_redeem_title, "0.49191 KSM", R.string.staking_redeem, colorAccent),
         TitleValueViewState("Available"),
         TitleValueViewState("Unstaking", "1.1000 KSM", "\$1.001"),
         TitleValueViewState("Pool Info", "⚡️Everlight☀️", clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)),
         TitleValueViewState("Time before redeem", "5 days")
     )
     FearlessTheme {
-        ManagePoolStakeScreen(state.copy(total = null), {}, {}, {}, {}, {}, {}, {})
+        ManagePoolStakeScreen(state.copy(total = null), {}, {}, {}, {}, {}, {}, {}, {})
     }
 }

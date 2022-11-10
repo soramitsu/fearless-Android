@@ -16,14 +16,6 @@
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <action
-        android:id="@+id/action_open_send"
-        app:destination="@id/chooseRecipientFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_open_receive"
         app:destination="@id/receiveFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -357,10 +349,10 @@
             app:destination="@id/pincodeFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/welcomeFragment"
-            app:popUpToInclusive="true"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation"
+            app:popUpTo="@id/welcomeFragment"
+            app:popUpToInclusive="true">
 
         </action>
 
@@ -427,50 +419,6 @@
         tools:layout="@layout/fragment_reward_slash_details" />
 
     <action
-        android:id="@+id/openSelectAmount"
-        app:destination="@id/chooseAmountFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <fragment
-        android:id="@+id/chooseRecipientFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.recipient.ChooseRecipientFragment"
-        android:label="ChooseRecipientFragment"
-        tools:layout="@layout/fragment_choose_recipient">
-
-        <action
-            android:id="@+id/action_chooseRecipientFragment_to_chooseAmountFragment"
-            app:destination="@id/chooseAmountFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/receiveFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment"
-        android:label="ReceiveFragment"
-        tools:layout="@layout/fragment_receive" />
-
-    <fragment
-        android:id="@+id/chooseAmountFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.amount.ChooseAmountFragment"
-        android:label="ChooseAmountFragment"
-        tools:layout="@layout/fragment_choose_amount">
-
-        <action
-            android:id="@+id/action_chooseAmountFragment_to_confirmTransferFragment"
-            app:destination="@id/confirmTransferFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
-
-    <action
         android:id="@+id/action_mainFragment_to_filterFragment"
         app:destination="@id/transactionHistoryFilterFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -482,21 +430,6 @@
         android:id="@+id/transactionHistoryFilterFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.transaction.filter.TransactionHistoryFilterFragment"
         android:label="TransactionHistoryFilterFragment" />
-
-    <fragment
-        android:id="@+id/confirmTransferFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmTransferFragment"
-        android:label="ConfirmTransferFragment"
-        tools:layout="@layout/fragment_confirm_transfer">
-
-        <action
-            android:id="@+id/finish_send_flow"
-            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popUpTo="@id/mainFragment" />
-    </fragment>
 
     <fragment
         android:id="@+id/exportMnemonicFragment"
@@ -565,13 +498,31 @@
         android:label="searchAssetsFragment" />
 
     <dialog
+        android:id="@+id/confirmSendFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
+        android:label="confirmSendFragment">
+        <action
+            android:id="@+id/finish_send_flow"
+            app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:exitAnim="?android:attr/fragmentCloseExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popUpTo="@id/mainFragment" />
+    </dialog>
+
+    <dialog
+        android:id="@+id/sendSuccessFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment"
+        android:label="sendSuccessFragment" />
+
+    <dialog
         android:id="@+id/startStakingPoolFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.setup.StartStakingPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.StartStakingPoolFragment"
         android:label="startStakingPoolFragment" />
 
     <dialog
         android:id="@+id/setupStakingPoolFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.setup.SetupStakingPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.join.SetupStakingPoolFragment"
         android:label="setupStakingPoolFragment" />
 
     <dialog
@@ -581,7 +532,7 @@
 
     <dialog
         android:id="@+id/confirmJoinPoolFragment"
-        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.ConfirmJoinPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.join.ConfirmJoinPoolFragment"
         android:label="confirmJoinPoolFragment" />
 
     <dialog
@@ -605,9 +556,29 @@
         android:label="selectWalletFragment" />
 
     <dialog
+        android:id="@+id/networkIssuesFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.NetworkIssuesFragment"
+        android:label="networkIssuesFragment" />
+
+    <dialog
+        android:id="@+id/networkUnavailableFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment"
+        android:label="networkUnavailableFragment" />
+
+    <dialog
+        android:id="@+id/optionsAddAccountFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment"
+        android:label="optionsAddAccountFragment" />
+
+    <dialog
         android:id="@+id/optionsWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment"
         android:label="optionsWalletFragment" />
+
+    <dialog
+        android:id="@+id/frozenTokensFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment"
+        android:label="frozenTokensFragment" />
 
     <dialog
         android:id="@+id/poolClaimFragment"
@@ -643,6 +614,61 @@
         android:id="@+id/poolConfirmUnstakeFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmPoolUnbondFragment"
         android:label="poolConfirmUnstakeFragment" />
+
+    <dialog
+        android:id="@+id/createPoolSetupFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.create.CreatePoolSetupFragment"
+        android:label="createPoolSetupFragment" />
+
+    <dialog
+        android:id="@+id/walletSelectorFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment"
+        android:label="walletSelectorFragment" />
+
+    <dialog
+        android:id="@+id/confirmCreatePoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.confirm.pool.create.ConfirmCreatePoolFragment"
+        android:label="confirmCreatePoolFragment" />
+
+    <dialog
+        android:id="@+id/receiveFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment"
+        android:label="ReceiveFragment" />
+
+    <dialog
+        android:id="@+id/startSelectValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.StartSelectValidatorsFragment"
+        android:label="startSelectValidatorsFragment" />
+
+    <dialog
+        android:id="@+id/selectValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectValidatorsFragment"
+        android:label="selectValidatorsFragment" />
+
+    <dialog
+        android:id="@+id/confirmSelectValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.ConfirmSelectValidatorsFragment"
+        android:label="confirmSelectValidatorsFragment" />
+
+    <dialog
+        android:id="@+id/validatorsSettingsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.common.filters.ValidatorsSettingsFragment"
+        android:label="validatorsSettingsFragment" />
+
+    <dialog
+        android:id="@+id/sendSetupFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment"
+        android:label="sendSetupFragment" />
+
+    <dialog
+        android:id="@+id/chainSelectFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment"
+        android:label="chainSelectFragment" />
+
+    <dialog
+        android:id="@+id/assetSelectFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
+        android:label="assetSelectFragment" />
 
     <action
         android:id="@+id/openStartChangeValidatorsFragment"
@@ -851,7 +877,7 @@
         app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
-    <fragment
+    <dialog
         android:id="@+id/validatorDetailsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment"
         android:label="validatorDetailsFragment"
