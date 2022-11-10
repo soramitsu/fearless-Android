@@ -74,11 +74,10 @@ class StakingPoolInteractor(
             val poolStashAccount = generatePoolStashAccount(chain, poolMember.poolId)
             combine(
                 dataSource.observePool(chain.id, poolMember.poolId),
-                dataSource.observePoolRewards(chain.id, poolMember.poolId),
                 relayChainRepository.observeRemoteAccountNominations(chain.id, poolStashAccount)
-            ) { bondedPool, rewardPool, nominations ->
+            ) { bondedPool, nominations ->
                 bondedPool ?: return@combine null
-                val pendingRewards = calculatePendingRewards(chain, poolMember, bondedPool, rewardPool)
+                val pendingRewards = dataSource.getPendingRewards(chain.id, accountId).getOrNull().orZero()
 
                 val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
                 val name = dataSource.getPoolMetadata(chain.id, poolMember.poolId)
@@ -97,6 +96,7 @@ class StakingPoolInteractor(
         }
     }
 
+    @Deprecated("Manual calculating is deprecated", replaceWith = ReplaceWith("dataSource.getPendingRewards"))
     private suspend fun calculatePendingRewards(chain: Chain, poolMember: PoolMember, bondedPool: BondedPool, rewardPool: PoolRewards?): BigInteger {
         rewardPool ?: return BigInteger.ZERO
         val rewardsAccountId = generatePoolRewardAccount(chain, poolMember.poolId)
