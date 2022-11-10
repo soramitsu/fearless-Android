@@ -4,7 +4,6 @@ import android.net.Uri
 import com.google.gson.Gson
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateAccount
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
-import it.airgap.beaconsdk.blockchain.substrate.extensions.respondToSubstrateSignPayloadRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.PermissionSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.request.SignPayloadSubstrateRequest
 import it.airgap.beaconsdk.blockchain.substrate.message.response.PermissionSubstrateResponse
@@ -43,10 +42,10 @@ import jp.co.soramitsu.fearless_utils.scale.utils.directWrite
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -73,7 +72,7 @@ class BeaconInteractor(
     }
 
     private val beaconClient by lazy {
-        GlobalScope.async {
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).async {
             BeaconWalletClient("Fearless Wallet") {
                 support(substrate(), tezos())
                 use(p2pMatrix())
@@ -164,10 +163,10 @@ class BeaconInteractor(
     suspend fun reportSignDeclined(
         request: SignPayloadSubstrateRequest
     ) {
-//        beaconClient().respond(ErrorBeaconResponse.from(request, BeaconError.Aborted))
         beaconClient().respond(
             SignPayloadSubstrateResponse.from(
-                request, transactionHash = null,
+                request,
+                transactionHash = null,
                 signature = "",
                 payload = null
             )
@@ -260,8 +259,6 @@ class BeaconInteractor(
         forRequest: PermissionSubstrateRequest
     ) {
         val account = accountRepository.getSelectedMetaAccount()
-        val polkadotChain = chainRegistry.getChain(polkadotChainId)
-        val polkadotAddress = account.address(polkadotChain)
         val accounts = forRequest.networks.map {
             val chainId = it.genesisHash.requireHexPrefix().removePrefix("0x")
             val chain = getChainSafe(chainId)
@@ -269,7 +266,7 @@ class BeaconInteractor(
             val address = chain?.let { chainValue -> account.address(chainValue) }
 
             return@map SubstrateAccount(network = it, publicKey = pubKey?.toHexString().orEmpty(), address = address.orEmpty(), client = beaconClient())
-        }.filterNotNull()
+        }
 
         val response = PermissionSubstrateResponse.from(forRequest, accounts)
         beaconClient().respond(response)
