@@ -70,6 +70,7 @@ class WssSubstrateSource(
         ChainAssetType.LiquidCrowdloan,
         ChainAssetType.VToken,
         ChainAssetType.VSToken,
+        ChainAssetType.SoraAsset,
         ChainAssetType.Stable -> {
             getOrmlTokensAccountData(chainAsset, accountId)
         }
@@ -208,6 +209,7 @@ class WssSubstrateSource(
             when (transfer.chainAsset.type) {
                 null, ChainAssetType.Normal -> defaultTransfer(accountId, transfer, typeRegistry)
                 ChainAssetType.OrmlChain -> ormlChainTransfer(accountId, transfer)
+                ChainAssetType.SoraAsset -> soraAssetTransfer(accountId, transfer)
 
                 ChainAssetType.OrmlAsset,
                 ChainAssetType.ForeignAsset,
@@ -245,6 +247,19 @@ class WssSubstrateSource(
         arguments = mapOf(
             "dest" to DictEnum.Entry("Id", accountId),
             "currency_id" to transfer.chainAsset.currency,
+            "amount" to transfer.amountInPlanks
+        )
+    )
+
+    private fun ExtrinsicBuilder.soraAssetTransfer(
+        accountId: AccountId,
+        transfer: Transfer
+    ) = call(
+        moduleName = Modules.CURRENCIES,
+        callName = "transfer",
+        arguments = mapOf(
+            "currency_id" to transfer.chainAsset.currency,
+            "dest" to accountId,
             "amount" to transfer.amountInPlanks
         )
     )

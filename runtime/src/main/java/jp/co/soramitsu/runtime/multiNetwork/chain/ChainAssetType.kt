@@ -11,6 +11,7 @@ enum class ChainAssetType {
     VSToken,
     Stable,
     Equilibrium,
+    SoraAsset,
     Unknown;
 
     companion object {
@@ -26,6 +27,7 @@ enum class ChainAssetType {
                 "vsToken" -> VSToken
                 "stable" -> Stable
                 "equilibrium" -> Equilibrium
+                "soraAsset" -> SoraAsset
                 else -> Unknown
             }
         }
