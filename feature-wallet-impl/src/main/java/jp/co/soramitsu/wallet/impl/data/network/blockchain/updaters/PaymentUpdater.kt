@@ -133,6 +133,7 @@ class PaymentUpdater(
             ChainAssetType.StableAssetPoolToken,
             ChainAssetType.LiquidCrowdloan,
             ChainAssetType.VToken,
+            ChainAssetType.SoraAsset,
             ChainAssetType.VSToken,
             ChainAssetType.Stable -> {
                 val ormlTokensAccountData = bindOrmlTokensAccountDataOrDefault(change.value, runtime)
@@ -175,6 +176,7 @@ class PaymentUpdater(
                 ChainAssetType.Stable,
                 ChainAssetType.ForeignAsset,
                 ChainAssetType.StableAssetPoolToken,
+                ChainAssetType.SoraAsset,
                 ChainAssetType.LiquidCrowdloan -> runtime.metadata.tokens().storage("Accounts").storageKey(runtime, accountId, currency)
                 ChainAssetType.Unknown -> error("Not supported type for token ${asset.symbolToShow} in ${chain.name}")
             }

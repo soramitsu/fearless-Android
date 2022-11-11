@@ -2,7 +2,9 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 
 typealias ChainId = String
@@ -89,6 +91,15 @@ data class Chain(
             ChainAssetType.VToken -> DictEnum.Entry("VToken", DictEnum.Entry(symbol.uppercase(), null))
             ChainAssetType.VSToken -> DictEnum.Entry("VSToken", DictEnum.Entry(symbol.uppercase(), null))
             ChainAssetType.Stable -> DictEnum.Entry("Stable", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.SoraAsset -> {
+                val currencyHexList = currencyId?.fromHex()
+                    ?.toList()
+                    .orEmpty()
+                    .map { it.toInt().toBigInteger() }
+                Struct.Instance(
+                    mapOf("code" to currencyHexList)
+                )
+            }
             ChainAssetType.Equilibrium -> symbol.toBigInteger()
             ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
         }
