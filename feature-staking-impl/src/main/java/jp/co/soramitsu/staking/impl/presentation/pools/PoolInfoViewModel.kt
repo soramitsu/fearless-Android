@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -15,18 +16,23 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
+import jp.co.soramitsu.staking.impl.presentation.common.SelectedValidatorsFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
+import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreenInterface
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreenViewState
+import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolStatusViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
@@ -36,22 +42,26 @@ class PoolInfoViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
     private val stakingPoolInteractor: StakingPoolInteractor
-) : BaseViewModel() {
+) : BaseViewModel(), PoolInfoScreenInterface {
 
     private val chain: Chain
     private val asset: Asset
     private val poolInfo: PoolInfo
     private val staked: String
     private val stakedFiat: String?
+    private val canChangeRoles: Boolean
 
     init {
-        val setupState = requireNotNull(stakingPoolSharedStateProvider.mainState.get())
-        chain = requireNotNull(setupState.chain)
-        asset = requireNotNull(setupState.asset)
+        val mainState = stakingPoolSharedStateProvider.requireMainState
+        chain = mainState.requireChain
+        asset = mainState.requireAsset
+        val currentUserAccountId = chain.accountIdOf(mainState.requireAddress)
         poolInfo = requireNotNull(savedStateHandle.get<PoolInfo>(PoolInfoFragment.POOL_INFO_KEY))
+        canChangeRoles = poolInfo.root.contentEquals(currentUserAccountId)
         val stakedAmount = asset.token.amountFromPlanks(poolInfo.stakedInPlanks)
         staked = stakedAmount.formatTokenAmount(asset.token.configuration)
         stakedFiat = stakedAmount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
+        stakingPoolSharedStateProvider.selectedValidatorsState.set(SelectedValidatorsFlowState())
     }
 
     private val rolesFlow = flowOf {
@@ -62,25 +72,33 @@ class PoolInfoViewModel @Inject constructor(
         }.toMap()
     }
 
-    val state: StateFlow<PoolInfoScreenViewState> = rolesFlow.map { rolesNames ->
-        val depositor = poolInfo.depositor.roleNameOrHex(rolesNames)?.let {
-            TitleValueViewState(resourceManager.getString(R.string.pool_staking_depositor), it)
+    private val validatorsState = flowOf {
+        val validators = stakingPoolInteractor.getValidators(chain, poolInfo.poolId)
+        stakingPoolSharedStateProvider.selectedValidatorsState.mutate { requireNotNull(it).copy(selectedValidators = validators) }
+        TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), validators.count().toString())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), null))
+
+    val state: StateFlow<PoolInfoScreenViewState> = combine(rolesFlow, validatorsState) { rolesNames, validatorsState ->
+
+        val depositor = poolInfo.depositor.roleNameOrHex(rolesNames).let {
+            DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_depositor), text = it)
         }
         val root = poolInfo.root.roleNameOrHex(rolesNames)?.let {
-            TitleValueViewState(resourceManager.getString(R.string.pool_staking_root), it)
+            DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_root), text = it)
         }
         val nominator = poolInfo.nominator.roleNameOrHex(rolesNames)?.let {
-            TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), it)
+            DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_nominator), text = it, isActive = canChangeRoles)
         }
         val stateToggler = poolInfo.stateToggler.roleNameOrHex(rolesNames)?.let {
-            TitleValueViewState(resourceManager.getString(R.string.pool_staking_state_toggler), it)
+            DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_state_toggler), text = it, isActive = canChangeRoles)
         }
 
         defaultScreenState.copy(
             depositor = depositor,
             root = root,
             nominator = nominator,
-            stateToggler = stateToggler
+            stateToggler = stateToggler,
+            validators = validatorsState
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
 
@@ -91,17 +109,40 @@ class PoolInfoViewModel @Inject constructor(
             state = TitleValueViewState(resourceManager.getString(R.string.pool_info_state), poolInfo.state.name),
             staked = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_bonded), staked, stakedFiat),
             members = TitleValueViewState(resourceManager.getString(R.string.pool_info_members), poolInfo.members.toString()),
-            depositor = TitleValueViewState(resourceManager.getString(R.string.pool_staking_depositor), null),
-            root = TitleValueViewState(resourceManager.getString(R.string.pool_staking_root), null),
-            nominator = TitleValueViewState(resourceManager.getString(R.string.pool_staking_nominator), null),
-            stateToggler = TitleValueViewState(resourceManager.getString(R.string.pool_staking_state_toggler), null)
+            validators = TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), null),
+            depositor = DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_depositor), text = null),
+            root = DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_root), text = null),
+            nominator = DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_nominator), text = null, isActive = canChangeRoles),
+            stateToggler = DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_state_toggler), text = null, isActive = canChangeRoles),
+            poolStatus = poolInfo.state.toViewState()
         )
+
+    private fun NominationPoolState.toViewState() = when (this) {
+        NominationPoolState.Open -> PoolStatusViewState.Active
+        NominationPoolState.HasNoValidators -> PoolStatusViewState.ValidatorsAreNotSelected
+        NominationPoolState.Destroying,
+        NominationPoolState.Blocked -> PoolStatusViewState.Inactive
+    }
 
     private fun AccountId?.roleNameOrHex(rolesNames: Map<String, String?>): String? {
         return this?.toHexString().let { rolesNames[it] ?: it?.requireHexPrefix() }
     }
 
-    fun onCloseClick() {
+    override fun onCloseClick() {
         router.back()
+    }
+
+    override fun onTableItemClick(identifier: Int) {
+        if (identifier == PoolInfoScreenViewState.VALIDATORS_CLICK_STATE_IDENTIFIER) {
+            //router.openValidatorsScreen
+        }
+    }
+
+    override fun onNominatorClick() {
+
+    }
+
+    override fun onStateTogglerClick() {
+
     }
 }

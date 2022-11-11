@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,35 +17,49 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.black4
+import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
+private val emptyClick = {}
+
 data class DropDownViewState(
-    val text: String,
+    val text: String?,
     val hint: String,
     val isActive: Boolean = true
+)
+
+private data class DropDownColors(
+    val backgroundColor: Color,
+    val borderColor: Color,
+    val textColor: Color
 )
 
 @Composable
 fun DropDown(
     state: DropDownViewState,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = black05,
-    borderColor: Color = white24,
     onClick: () -> Unit
 ) {
-    val textColorState = if (state.isActive) {
-        white
+    val colors = if (state.isActive) {
+        DropDownColors(backgroundColor = black05, borderColor = white24, textColor = white)
     } else {
-        black2
+        DropDownColors(backgroundColor = black4, borderColor = transparent, textColor = black2)
+    }
+
+    val clickableModifier = if (state.text != null) {
+        Modifier.clickableWithNoIndication(onClick)
+    } else {
+        Modifier
     }
     BackgroundCorneredWithBorder(
         modifier = modifier
             .fillMaxWidth()
-            .clickableWithNoIndication(onClick),
-        backgroundColor = backgroundColor,
-        borderColor = borderColor
+            .then(clickableModifier),
+        backgroundColor = colors.backgroundColor,
+        borderColor = colors.borderColor
     ) {
         Row {
             Column(
@@ -53,23 +68,42 @@ fun DropDown(
                     .padding(12.dp)
             ) {
                 H5(text = state.hint, color = black2)
-                B1(text = state.text, color = textColorState, maxLines = 1)
+                if (state.text != null) {
+                    B1(text = state.text, color = colors.textColor, maxLines = 1)
+                } else {
+                    MarginVertical(margin = 4.dp)
+                    ShimmerB2(modifier = Modifier.width(130.dp))
+                }
+
             }
-            Image(res = R.drawable.ic_chevron_down_white, modifier = Modifier.align(Alignment.CenterVertically), tint = textColorState)
+            if (state.isActive) {
+                Image(
+                    res = R.drawable.ic_chevron_down_white,
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    tint = white
+                )
+            }
             MarginHorizontal(margin = 16.dp)
         }
     }
 }
 
 @Composable
-fun InactiveDropDown(text: String, @StringRes hint: Int) {
-    DropDown(
-        state = DropDownViewState(
+fun InactiveDropDown(text: String?, @StringRes hint: Int) {
+    InactiveDropDown(
+        DropDownViewState(
             text = text,
             stringResource(id = hint),
             isActive = false
-        ),
-        onClick = {}
+        )
+    )
+}
+
+@Composable
+fun InactiveDropDown(state: DropDownViewState) {
+    DropDown(
+        state = state.copy(isActive = false),
+        onClick = emptyClick
     )
 }
 
@@ -80,10 +114,13 @@ private fun DropDownPreview() {
         text = "my best pool",
         hint = "Pool name"
     )
+    val loadingState = state.copy(text = null)
     FearlessTheme {
         Column {
             DropDown(state, onClick = {})
             InactiveDropDown(text = "Inactive value", hint = R.string.staking_redeem)
+            InactiveDropDown(text = null, hint = R.string.staking_redeem)
+            DropDown(loadingState, onClick = {})
         }
     }
 }

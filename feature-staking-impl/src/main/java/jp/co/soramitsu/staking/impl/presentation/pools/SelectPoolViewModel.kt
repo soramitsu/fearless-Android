@@ -51,7 +51,7 @@ class SelectPoolViewModel @Inject constructor(
         selectedItem = MutableStateFlow(setupState.selectedPool?.toState(asset, true))
     }
 
-    private val poolsFlow = flowOf { poolInteractor.getAllPools(chain.id) }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
+    private val poolsFlow = flowOf { poolInteractor.getAllPools(chain) }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
 
     private val sortingFlow = MutableStateFlow(PoolSorting.TotalStake)
 

@@ -107,6 +107,7 @@ interface StakingRouter {
     fun openConfirmJoinPool()
 
     fun openPoolInfo(poolInfo: PoolInfo)
+
     fun openManagePoolStake()
 
     fun openPoolBondMore()

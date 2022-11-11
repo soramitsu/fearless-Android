@@ -207,14 +207,15 @@ private fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun IconButton(
+fun IconButton(
+    modifier: Modifier = Modifier,
     painter: Painter,
     tint: Color = LocalContentColor.current.copy(alpha = LocalContentAlpha.current),
     onClick: () -> Unit
 ) {
     IconButton(
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .clip(CircleShape)
             .background(backgroundBlurColor)
             .size(40.dp)

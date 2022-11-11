@@ -77,6 +77,10 @@ data class SelectValidatorFlowState(
         get() = requireNotNull(selectMode)
 }
 
+data class SelectedValidatorsFlowState(
+    val selectedValidators: List<AccountId> = emptyList(),
+)
+
 class StakingPoolSharedState<T> {
 
     val process = MutableStateFlow<T?>(null)

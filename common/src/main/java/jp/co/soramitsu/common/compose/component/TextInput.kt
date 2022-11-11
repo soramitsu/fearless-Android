@@ -76,18 +76,6 @@ fun TextInput(
 }
 
 @Composable
-fun InactiveTextInput(text: String, @StringRes hint: Int) {
-    TextInput(
-        state = TextInputViewState(
-            text = text,
-            stringResource(id = hint),
-            isActive = false
-        ),
-        onInput = {}
-    )
-}
-
-@Composable
 @Preview
 private fun TextInputPreview() {
     val state = TextInputViewState(
@@ -97,7 +85,6 @@ private fun TextInputPreview() {
     FearlessTheme {
         Column {
             TextInput(state, onInput = {})
-            InactiveTextInput(text = "Inactive value", hint = R.string.staking_redeem)
         }
     }
 }

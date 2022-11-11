@@ -840,4 +840,7 @@
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
     <string name="sending">Отправка</string>
 
+    <string name="staking_pool_status_active">Активный</string>
+    <string name="staking_pool_status_inactive">Неактивный</string>
+    <string name="staking_pool_status_validators_are_not_selected">Валидаторы не выбраны</string>
 </resources>

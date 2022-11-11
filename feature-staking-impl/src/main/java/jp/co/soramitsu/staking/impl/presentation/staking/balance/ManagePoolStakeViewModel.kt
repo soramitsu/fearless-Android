@@ -19,7 +19,9 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolManageFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
+import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeScreenInterface
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.PoolStakeManagementOptions
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -39,7 +41,7 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val router: StakingRouter
-) : BaseViewModel() {
+) : BaseViewModel(), ManagePoolStakeScreenInterface {
 
     private val mainState = stakingPoolSharedStateProvider.requireMainState
     private val chain = mainState.requireChain
@@ -155,36 +157,27 @@ class ManagePoolStakeViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenViewState)
 
-    fun onBackClick() {
+    override fun onBackClick() {
         router.back()
     }
 
-    fun onPoolInfoClick() {
-        viewModelScope.launch {
-            val pool = requireNotNull(poolStateFlow.value)
-            router.openPoolInfo(pool.toPoolInfo())
-        }
-    }
-
-    fun onClaimClick() {
+    override fun onClaimClick() {
         router.openPoolClaim()
     }
 
-    fun onRedeemClick() {
+    override fun onRedeemClick() {
         router.openPoolRedeem()
     }
 
-    fun onStakeMoreClick() {
+    override fun onStakeMoreClick() {
         router.openPoolBondMore()
     }
 
-    fun onUnstakeClick() {
+    override fun onUnstakeClick() {
         router.openPoolUnstake()
     }
 
-    fun onNominationsClick() {}
-
-    fun onSelectValidatorsClick() {
+    override fun onSelectValidatorsClick() {
         val pool = requireNotNull(poolStateFlow.value)
         stakingPoolSharedStateProvider.selectValidatorsState.set(
             SelectValidatorFlowState(
@@ -194,4 +187,26 @@ class ManagePoolStakeViewModel @Inject constructor(
         )
         router.openStartSelectValidators()
     }
+
+    override fun onBottomSheetOptionSelected(option: PoolStakeManagementOptions) {
+        when (option) {
+            PoolStakeManagementOptions.Nominations -> onNominationsClick()
+            PoolStakeManagementOptions.PoolInfo -> onPoolInfoClick()
+        }
+    }
+
+    override fun onInfoTableItemSelected(itemIdentifier: Int) {
+        if (itemIdentifier == ManagePoolStakeViewState.POOL_INFO_CLICK_IDENTIFIER) {
+            onPoolInfoClick()
+        }
+    }
+
+    private fun onPoolInfoClick() {
+        viewModelScope.launch {
+            val pool = requireNotNull(poolStateFlow.value)
+            router.openPoolInfo(pool.toPoolInfo())
+        }
+    }
+
+    private fun onNominationsClick() {}
 }
