@@ -207,8 +207,6 @@ Derivation path: %s</string>
     <string name="common_amount_low">Amount is too low</string>
     <string name="wallet_send_dead_recipient_message">Your transfer will fail since the final amount on the destination account will be less than the minimal balance. Please, try to increase the amount.</string>
     <string name="buy_completed">Purchase initiated! Please wait up to 60 minutes. You can track status on the email.</string>
-    <string name="wallet_send_phishing_warning_text">Following address: %s is known to be used in phishing activities, thus we are not recommending sending tokens to that address. Would you like to proceed anyway?</string>
-    <string name="wallet_send_phishing_warning_title">Scam alert</string>
     <string name="staking_start_title">Start staking</string>
     <string name="staking_setup_title">Setup staking</string>
     <string name="staking_setup_amount">Amount to stake</string>
@@ -911,7 +909,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="send_fund">Send Fund</string>
     <string name="send_to">Send to</string>
-    <string name="chip_scan">Scan</string>
+    <string name="chip_qr">QR сode</string>
     <string name="chip_history">History</string>
     <string name="chip_paste">Paste</string>
     <string name="address_not_valid_error_title">Is not network address</string>
@@ -921,6 +919,12 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="result">Result</string>
     <string name="all_done">All Done</string>
     <string name="send_success_message">You can now back to your app and\ndo that you\'re usually do</string>
+    <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
+    <string name="reason">Reason</string>
+    <string name="additional">Additional</string>
+    <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
+    <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
+    <string name="sending">Sending</string>
 
 
 </resources>

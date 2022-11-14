@@ -46,6 +46,9 @@ dependencies {
 
     implementation viewModelKtxDep
 
+    implementation compose
+    debugImplementation composeDebug
+
     api project(':core-api')
     api project(':core-db')
 

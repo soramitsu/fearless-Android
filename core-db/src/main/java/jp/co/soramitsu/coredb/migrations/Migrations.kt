@@ -3,6 +3,23 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_43_44 = object : Migration(43, 44) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS phishing_addresses")
+        database.execSQL(
+            """
+             CREATE TABLE IF NOT EXISTS `phishing` (
+             `address` TEXT NOT NULL, 
+             `name` TEXT, 
+             `type` TEXT NOT NULL, 
+             `subtype` TEXT, 
+             PRIMARY KEY(`address`, `type`)
+             )
+            """.trimIndent()
+        )
+    }
+}
+
 val Migration_42_43 = object : Migration(42, 43) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("DROP TABLE IF EXISTS chain_assets")

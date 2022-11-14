@@ -45,6 +45,8 @@ data class ConfirmSendViewState(
     val isLoading: Boolean = false
 ) {
     companion object {
+        const val CODE_WARNING_CLICK = 3
+
         val default = ConfirmSendViewState(
             "",
             buttonState = ButtonViewState("", false)
@@ -64,6 +66,7 @@ interface ConfirmSendScreenInterface {
     fun copyRecipientAddressClicked()
     fun onNextClick()
     fun onNavigationClick()
+    fun onItemClick(code: Int)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -106,7 +109,7 @@ fun ConfirmSendContent(
                     }
                     MarginVertical(margin = 16.dp)
                     H2(
-                        text = "Sending",
+                        text = stringResource(id = R.string.sending),
                         color = black2,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
@@ -175,6 +178,7 @@ private fun ConfirmSendPreview() {
         override fun onNavigationClick() {}
         override fun copyRecipientAddressClicked() {}
         override fun onNextClick() {}
+        override fun onItemClick(code: Int) {}
     }
 
     FearlessTheme {

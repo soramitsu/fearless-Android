@@ -15,7 +15,7 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.OperationDao
-import jp.co.soramitsu.coredb.dao.PhishingAddressDao
+import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -54,8 +54,8 @@ class DbModule {
 
     @Provides
     @Singleton
-    fun providePhishingAddressDao(appDatabase: AppDatabase): PhishingAddressDao {
-        return appDatabase.phishingAddressesDao()
+    fun providePhishingDao(appDatabase: AppDatabase): PhishingDao {
+        return appDatabase.phishingDao()
     }
 
     @Provides

@@ -32,10 +32,12 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
+import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
+import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -182,9 +184,12 @@ class WalletInteractorImpl(
         chain.isValidAddress(address)
     }
 
-    // TODO wallet phishing
     override suspend fun isAddressFromPhishingList(address: String): Boolean {
-        return /*walletRepository.isAccountIdFromPhishingList(address)*/ false
+        return walletRepository.isAddressFromPhishingList(address)
+    }
+
+    override suspend fun getPhishingInfo(address: String): PhishingModel? {
+        return walletRepository.getPhishingInfo(address)?.toPhishingModel()
     }
 
     // TODO wallet fee

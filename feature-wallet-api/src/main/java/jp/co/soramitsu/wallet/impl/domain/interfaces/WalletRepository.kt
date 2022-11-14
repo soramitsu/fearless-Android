@@ -6,6 +6,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
+import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -89,7 +90,9 @@ interface WalletRepository {
 
     suspend fun updatePhishingAddresses()
 
-    suspend fun isAccountIdFromPhishingList(accountId: AccountId): Boolean
+    suspend fun isAddressFromPhishingList(address: String): Boolean
+
+    suspend fun getPhishingInfo(address: String): PhishingLocal?
 
     suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
 

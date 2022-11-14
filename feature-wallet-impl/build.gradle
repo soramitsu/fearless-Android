@@ -112,4 +112,6 @@ dependencies {
 
     implementation compose
     debugImplementation composeDebug
+
+    implementation opencsvDep
 }
