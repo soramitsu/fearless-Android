@@ -171,6 +171,7 @@ buildscript {
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
 
         storiesDep = "com.github.shts:StoriesProgressView:$storiesVersion"
+        opencsvDep = "com.opencsv:opencsv:5.7.1"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"

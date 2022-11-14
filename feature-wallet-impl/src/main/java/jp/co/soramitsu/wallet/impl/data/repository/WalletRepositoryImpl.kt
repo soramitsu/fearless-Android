@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
+import com.opencsv.CSVReaderHeaderAware
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -15,16 +16,14 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.dao.OperationDao
-import jp.co.soramitsu.coredb.dao.PhishingAddressDao
+import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.OperationLocal
-import jp.co.soramitsu.coredb.model.PhishingAddressLocal
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
@@ -72,7 +71,7 @@ class WalletRepositoryImpl(
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
     private val walletConstants: WalletConstants,
-    private val phishingAddressDao: PhishingAddressDao,
+    private val phishingDao: PhishingDao,
     private val cursorStorage: TransferCursorStorage,
     private val coingeckoApi: CoingeckoApi,
     private val chainRegistry: ChainRegistry,
@@ -367,22 +366,34 @@ class WalletRepositoryImpl(
         )
     }
 
-    // TODO adapt for ethereum chains
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
-        val accountIds = phishingApi.getPhishingAddresses().values.flatten()
-            .map { it.toAccountId().toHexString(withPrefix = true) }
+        val phishingAddresses = phishingApi.getPhishingAddresses()
+        val phishingLocal = CSVReaderHeaderAware(phishingAddresses.byteStream().bufferedReader()).mapNotNull {
+            try {
+                PhishingLocal(
+                    name = it[0],
+                    address = it[1],
+                    type = it[2],
+                    subtype = it[3]
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
 
-        val phishingAddressesLocal = accountIds.map(::PhishingAddressLocal)
-
-        phishingAddressDao.clearTable()
-        phishingAddressDao.insert(phishingAddressesLocal)
+        phishingDao.clearTable()
+        phishingDao.insert(phishingLocal)
     }
 
-    // TODO adapt for ethereum chains
-    override suspend fun isAccountIdFromPhishingList(accountId: AccountId) = withContext(Dispatchers.Default) {
-        val phishingAddresses = phishingAddressDao.getAllAddresses()
+    override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.Default) {
+        val phishingAddresses = phishingDao.getAllAddresses().map { it.lowercase() }
 
-        phishingAddresses.contains(accountId.toHexString(withPrefix = true))
+        phishingAddresses.contains(address.lowercase())
+    }
+
+    override suspend fun getPhishingInfo(address: String): PhishingLocal? {
+        return phishingDao.getPhishingInfo(address)
     }
 
     override suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId) =

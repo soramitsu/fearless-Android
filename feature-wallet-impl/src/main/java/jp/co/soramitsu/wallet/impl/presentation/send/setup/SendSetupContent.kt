@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +16,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -48,6 +48,8 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
+import jp.co.soramitsu.common.compose.component.WarningInfo
+import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
@@ -60,6 +62,7 @@ data class SendSetupViewState(
     val amountInputState: AmountInputViewState,
     val chainSelectorState: SelectorState,
     val feeInfoState: FeeInfoViewState,
+    val warningInfoState: WarningInfoState?,
     val buttonState: ButtonViewState
 )
 
@@ -71,11 +74,12 @@ interface SendSetupScreenInterface {
     fun onChainClick()
     fun onTokenClick()
     fun onNextClick()
-    fun onScanClick()
+    fun onQrClick()
     fun onHistoryClick()
     fun onPasteClick()
     fun onAmountFocusChanged(focusState: FocusState)
     fun onQuickAmountInput(input: Double)
+    fun onWarningInfoClick()
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -118,19 +122,21 @@ fun SendSetupContent(
                     state = state.chainSelectorState,
                     onClick = callback::onChainClick
                 )
+                state.warningInfoState?.let {
+                    MarginVertical(margin = 8.dp)
+                    WarningInfo(state = it, onClick = callback::onWarningInfoClick)
+                }
                 MarginVertical(margin = 8.dp)
                 FeeInfo(state = state.feeInfoState)
 
                 Spacer(modifier = Modifier.weight(1f))
-                Row(
+                LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
                 ) {
-                    Badge(R.drawable.ic_scan, R.string.chip_scan, callback::onScanClick)
-                    MarginHorizontal(margin = 12.dp)
-                    Badge(R.drawable.ic_history_16, R.string.chip_history, callback::onHistoryClick)
-                    MarginHorizontal(margin = 12.dp)
-                    Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick)
+                    item { Badge(R.drawable.ic_scan, R.string.chip_qr, callback::onQrClick) }
+                    item { Badge(R.drawable.ic_history_16, R.string.chip_history, callback::onHistoryClick) }
+                    item { Badge(R.drawable.ic_copy_16, R.string.chip_paste, callback::onPasteClick) }
                 }
                 MarginVertical(margin = 12.dp)
                 AccentButton(
@@ -204,6 +210,7 @@ private fun SendSetupPreview() {
         ),
         chainSelectorState = SelectorState("Network", null, null),
         feeInfoState = FeeInfoViewState.default,
+        warningInfoState = null,
         buttonState = ButtonViewState("Continue", true)
     )
 
@@ -215,11 +222,12 @@ private fun SendSetupPreview() {
         override fun onChainClick() {}
         override fun onTokenClick() {}
         override fun onNextClick() {}
-        override fun onScanClick() {}
+        override fun onQrClick() {}
         override fun onHistoryClick() {}
         override fun onPasteClick() {}
         override fun onAmountFocusChanged(focusState: FocusState) {}
         override fun onQuickAmountInput(input: Double) {}
+        override fun onWarningInfoClick() {}
     }
 
     FearlessTheme {

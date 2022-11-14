@@ -203,8 +203,6 @@
     <string name="common_amount_low">Сумма слишком мала</string>
     <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем минимальный баланс. Пожалуйста, попробуйте увеличить сумму.</string>
     <string name="buy_completed">Покупка совершена! Ожидайте до 60 минут. Вы можете отслеживать статус по электронной почте.</string>
-    <string name="wallet_send_phishing_warning_text">Следующий адрес: %s как известно, используется для фишинга, поэтому мы не рекомендуем отправлять токены на этот адрес. Вы все равно хотите продолжить?</string>
-    <string name="wallet_send_phishing_warning_title">Предупреждение о мошенничестве</string>
     <string name="staking_start_title">Начать стейкинг</string>
     <string name="staking_setup_title">Настройка стейкинга</string>
     <string name="staking_setup_amount">Сумма стейкинга</string>
@@ -825,7 +823,7 @@
 
     <string name="send_fund">Отправить Средства</string>
     <string name="send_to">Отправить</string>
-    <string name="chip_scan">Сканер</string>
+    <string name="chip_qr">QR код</string>
     <string name="chip_history">История</string>
     <string name="chip_paste">Из буфера</string>
     <string name="address_not_valid_error_title">Не адрес сети</string>
@@ -835,5 +833,11 @@
     <string name="result">Результат</string>
     <string name="all_done">Все готово</string>
     <string name="send_success_message">Теперь Вы можете вернуться в приложение и заняться чем обычно</string>
+    <string name="scam_warning_message">SCAM</string>
+    <string name="reason">Причина</string>
+    <string name="additional">Дополнительно</string>
+    <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
+    <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
+    <string name="sending">Отправка</string>
 
 </resources>

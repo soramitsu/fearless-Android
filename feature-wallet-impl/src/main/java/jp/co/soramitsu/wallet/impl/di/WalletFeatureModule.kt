@@ -23,7 +23,7 @@ import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.OperationDao
-import jp.co.soramitsu.coredb.dao.PhishingAddressDao
+import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
@@ -56,8 +56,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
-import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.api.PhishingWarningMixin
-import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.impl.PhishingWarningProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 
@@ -123,7 +121,7 @@ class WalletFeatureModule {
         subQueryOperationsApi: SubQueryOperationsApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
-        phishingAddressDao: PhishingAddressDao,
+        phishingDao: PhishingDao,
         walletConstants: WalletConstants,
         assetCache: AssetCache,
         coingeckoApi: CoingeckoApi,
@@ -140,7 +138,7 @@ class WalletFeatureModule {
         phishingApi,
         assetCache,
         walletConstants,
-        phishingAddressDao,
+        phishingDao,
         cursorStorage,
         coingeckoApi,
         chainRegistry,
@@ -238,10 +236,5 @@ class WalletFeatureModule {
     @Provides
     fun provideQrCodeDecoder(contentResolver: ContentResolver): QrBitmapDecoder {
         return QrBitmapDecoder(contentResolver)
-    }
-
-    @Provides
-    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarningMixin {
-        return PhishingWarningProvider(interactor)
     }
 }

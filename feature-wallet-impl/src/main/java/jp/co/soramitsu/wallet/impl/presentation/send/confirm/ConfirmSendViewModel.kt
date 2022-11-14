@@ -38,6 +38,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -119,7 +120,8 @@ class ConfirmSendViewModel @Inject constructor(
         val toInfoItem = TitleValueViewState(
             title = resourceManager.getString(R.string.choose_amount_to),
             value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
-            additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null
+            additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
+            clickState = TitleValueViewState.ClickState(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK)
         )
 
         val amountInfoItem = TitleValueViewState(
@@ -176,6 +178,19 @@ class ConfirmSendViewModel @Inject constructor(
 
     override fun onNextClick() {
         performTransfer(suppressWarnings = false)
+    }
+
+    override fun onItemClick(code: Int) {
+        when (code) {
+            ConfirmSendViewState.CODE_WARNING_CLICK -> openWarningAlert()
+        }
+    }
+
+    private fun openWarningAlert() {
+        launch {
+            val symbol = assetFlow.first().token.configuration.symbolToShow
+            router.openScamWarning(symbol)
+        }
     }
 
     fun warningConfirmed() {

@@ -82,4 +82,6 @@ interface WalletRouter : SecureRouter {
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
     fun openFrozenTokens(payload: FrozenAssetPayload)
+
+    fun openScamWarning(symbol: String)
 }

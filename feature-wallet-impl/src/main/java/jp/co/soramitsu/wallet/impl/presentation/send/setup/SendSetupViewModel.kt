@@ -18,10 +18,12 @@ import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
+import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -134,6 +136,7 @@ class SendSetupViewModel @Inject constructor(
         defaultAmountInputState,
         SelectorState.default,
         FeeInfoViewState.default,
+        warningInfoState = null,
         defaultButtonState
     )
 
@@ -228,7 +231,7 @@ class SendSetupViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
+    private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
         walletInteractor.assetFlow(chain.id, chain.utilityAsset.id)
     }
@@ -243,6 +246,28 @@ class SendSetupViewModel @Inject constructor(
         FeeInfoViewState(feeAmount = feeFormatted, feeAmountFiat = feeFiat)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, FeeInfoViewState.default)
+
+    private val isWarningExpanded = MutableStateFlow(false)
+    private val phishingModelFlow = addressInputFlow.map {
+        walletInteractor.getPhishingInfo(it)
+    }
+    private val warningInfoStateFlow = combine(
+        phishingModelFlow,
+        isWarningExpanded
+    ) { phishing, isExpanded ->
+        phishing?.let {
+            WarningInfoState(
+                message = resourceManager.getString(R.string.scam_warning_message),
+                extras = listOf(
+                    phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
+                    phishing.type?.let { resourceManager.getString(R.string.reason) to it },
+                    phishing.subtype?.let { resourceManager.getString(R.string.additional) to it }
+                ).mapNotNull { it },
+                isExpanded = isExpanded,
+                color = phishing.color
+            )
+        }
+    }
 
     private val buttonStateFlow = combine(
         enteredAmountFlow,
@@ -261,9 +286,9 @@ class SendSetupViewModel @Inject constructor(
         chainSelectorStateFlow,
         amountInputViewState,
         feeInfoViewStateFlow,
+        warningInfoStateFlow,
         buttonStateFlow
-    ) { address, chainSelectorState, amountInputState, feeInfoState, buttonState ->
-
+    ) { address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
         val placeholder = resourceManager.getDrawable(R.drawable.ic_address_placeholder)
         val accountImage = if (address.isNotEmpty()) {
             runCatching { address.fromHex() }.getOrNull()?.let { accountId ->
@@ -283,6 +308,7 @@ class SendSetupViewModel @Inject constructor(
             chainSelectorState = chainSelectorState,
             amountInputState = amountInputState,
             feeInfoState = feeInfoState,
+            warningInfoState = warningInfoState,
             buttonState = buttonState
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
@@ -383,7 +409,7 @@ class SendSetupViewModel @Inject constructor(
         router.back()
     }
 
-    override fun onScanClick() {
+    override fun onQrClick() {
         _showChooserEvent.value = Event(Unit)
     }
 
@@ -451,5 +477,9 @@ class SendSetupViewModel @Inject constructor(
                 enteredAmountFlow.value = newAmount.replace(',', '.')
             }
         }
+    }
+
+    override fun onWarningInfoClick() {
+        isWarningExpanded.value = !isWarningExpanded.value
     }
 }

@@ -98,6 +98,7 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
+import jp.co.soramitsu.wallet.impl.presentation.send.scam.ScamWarningFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
@@ -748,6 +749,11 @@ class Navigator :
     override fun openNetworkUnavailable(chainName: String?) {
         val bundle = chainName?.let { NetworkUnavailableFragment.getBundle(chainName) }
         navController?.navigate(R.id.networkUnavailableFragment, bundle)
+    }
+
+    override fun openScamWarning(symbol: String) {
+        val bundle = ScamWarningFragment.getBundle(symbol)
+        navController?.navigate(R.id.scamWarningFragment, bundle)
     }
 
     override fun openSearchAssets(chainId: String?) {

@@ -1,7 +1,9 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -11,8 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 
@@ -35,6 +39,8 @@ fun QuickAmountInput(
     val keyboardController = LocalSoftwareKeyboardController.current
     Row(
         modifier = modifier
+            .background(color = Color(0x4DFFFFFF))
+            .background(color = Color(0x8F000000))
             .height(44.dp)
             .padding(horizontal = 10.dp)
     ) {
@@ -69,5 +75,13 @@ fun QuickAmountInput(
                     .padding(horizontal = 6.dp)
             )
         }
+    }
+}
+
+@Composable
+@Preview
+private fun QuickAmountInputPreview() {
+    Column() {
+        QuickAmountInput()
     }
 }
