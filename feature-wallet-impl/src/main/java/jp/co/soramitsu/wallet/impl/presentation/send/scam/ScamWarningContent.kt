@@ -53,9 +53,7 @@ fun ScamWarningContent(
                 modifier = Modifier
                     .size(24.dp)
                     .align(Alignment.End)
-                    .clickable {
-                        onBackClicked()
-                    }
+                    .clickable(onClick = onBackClicked)
 
             )
             MarginVertical(margin = 44.dp)
@@ -81,10 +79,9 @@ fun ScamWarningContent(
                 text = stringResource(id = R.string.top_up),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                onTopUpClicked()
-            }
+                    .height(52.dp),
+                onClick = onTopUpClicked
+            )
             MarginVertical(margin = 12.dp)
         }
     }
