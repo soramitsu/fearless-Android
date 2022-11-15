@@ -92,13 +92,8 @@ data class Chain(
             ChainAssetType.VSToken -> DictEnum.Entry("VSToken", DictEnum.Entry(symbol.uppercase(), null))
             ChainAssetType.Stable -> DictEnum.Entry("Stable", DictEnum.Entry(symbol.uppercase(), null))
             ChainAssetType.SoraAsset -> {
-                val currencyHexList = currencyId?.fromHex()
-                    ?.toList()
-                    .orEmpty()
-                    .map { it.toInt().toBigInteger() }
-                Struct.Instance(
-                    mapOf("code" to currencyHexList)
-                )
+                val currencyHexList = currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() }.orEmpty()
+                Struct.Instance(mapOf("code" to currencyHexList))
             }
             ChainAssetType.Equilibrium -> symbol.toBigInteger()
             ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")

@@ -20,4 +20,9 @@ class SendSharedState {
         _chainIdFlow.value = chainId
         _assetIdFlow.value = assetId
     }
+
+    fun clear() {
+        _chainIdFlow.value = null
+        _assetIdFlow.value = null
+    }
 }

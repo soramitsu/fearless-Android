@@ -28,6 +28,10 @@ class AssetSelectViewModel @Inject constructor(
     private val sharedSendState: SendSharedState
 ) : BaseViewModel(), AssetSelectContentInterface {
 
+    private var choiceDone = false
+
+    private val filterChainId: String? = savedStateHandle[AssetSelectFragment.KEY_FILTER_CHAIN_ID]
+
     private val initialSelectedAssetId: String? = savedStateHandle[AssetSelectFragment.KEY_SELECTED_ASSET_ID]
     private val selectedAssetIdFlow = MutableStateFlow(initialSelectedAssetId)
 
@@ -46,6 +50,9 @@ class AssetSelectViewModel @Inject constructor(
 
     val state = combine(assetModelsFlow, selectedAssetIdFlow, enteredTokenQueryFlow) { assetModels, selectedAssetId, searchQuery ->
         val assets = assetModels
+            .filter {
+                filterChainId == null || it.token.configuration.chainId == filterChainId
+            }
             .filter {
                 searchQuery.isEmpty() || it.token.configuration.symbolToShow.contains(searchQuery, true)
             }
@@ -74,6 +81,7 @@ class AssetSelectViewModel @Inject constructor(
     )
 
     override fun onAssetSelected(assetItemState: AssetItemState) {
+        choiceDone = true
         if (selectedAssetIdFlow.value != assetItemState.id) {
             selectedAssetIdFlow.value = assetItemState.id
 
@@ -87,7 +95,9 @@ class AssetSelectViewModel @Inject constructor(
         enteredTokenQueryFlow.value = input
     }
 
-    fun onBackClicked() {
-        walletRouter.back()
+    fun onDialogClose() {
+        if (!choiceDone && sharedSendState.assetId == null) {
+            walletRouter.popOutOfSend()
+        }
     }
 }

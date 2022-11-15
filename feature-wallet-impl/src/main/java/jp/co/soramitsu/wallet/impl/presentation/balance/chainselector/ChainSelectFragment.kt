@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.chainselector
 
+import android.content.DialogInterface
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -18,10 +19,15 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
     companion object {
         const val KEY_SELECTED_CHAIN_ID = "KEY_SELECTED_CHAIN_ID"
         const val KEY_SELECTED_ASSET_ID = "KEY_SELECTED_ASSET_ID"
+        const val KEY_FILTER_CHAIN_IDS = "KEY_FILTER_CHAIN_IDS"
 
         fun getBundle(assetId: String, chainId: ChainId? = null) = bundleOf(
             KEY_SELECTED_ASSET_ID to assetId,
             KEY_SELECTED_CHAIN_ID to chainId
+        )
+
+        fun getBundle(filterChainIds: List<ChainId>?) = bundleOf(
+            KEY_FILTER_CHAIN_IDS to filterChainIds
         )
     }
 
@@ -39,8 +45,14 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         }
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        viewModel.onDialogClose()
+    }
+
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true
+        behavior.skipCollapsed = true
     }
 }

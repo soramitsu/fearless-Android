@@ -136,7 +136,7 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="jp.co.soramitsu.app.root.presentation.main.MainFragment"
-        android:label="fragment_profile"
+        android:label="fragment_main"
         tools:layout="@layout/fragment_main">
 
         <action

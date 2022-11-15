@@ -98,10 +98,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
-        viewModel.decodeAddressResult.observeEvent {
-            viewModel.showMessage("SCANNED: $it")
-            // TODO use. old scenario was: place to search field
-        }
     }
 
     fun initViews() {
