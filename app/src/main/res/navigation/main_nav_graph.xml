@@ -651,6 +651,11 @@
         android:label="selectValidatorsFragment" />
 
     <dialog
+        android:id="@+id/selectedValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectedValidatorsFragment"
+        android:label="selectedValidatorsFragment" />
+
+    <dialog
         android:id="@+id/confirmSelectValidatorsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.ConfirmSelectValidatorsFragment"
         android:label="confirmSelectValidatorsFragment" />

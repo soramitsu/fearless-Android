@@ -121,10 +121,10 @@ class SelectValidatorsViewModel @Inject constructor(
             val addressLowerCase = it.address.lowercase()
             identityNameLowerCase.contains(searchQueryLowerCase) || addressLowerCase.contains(searchQueryLowerCase)
         }.map {
-            it.toModel(it.accountIdHex in selectedValidators, settings?.sorting)
+            it.toModel(it.accountIdHex in selectedValidators, settings?.sorting, asset, resourceManager)
         }
         val selectedItems = items.filter { it.isSelected }
-        val listState = MultiSelectListItemViewState(items, selectedItems)
+        val listState = MultiSelectListViewState(items, selectedItems)
         SelectValidatorsScreenViewState(
             toolbarTitle = toolbarTitle,
             isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
@@ -138,42 +138,12 @@ class SelectValidatorsViewModel @Inject constructor(
             toolbarTitle = toolbarTitle,
             isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
             searchQuery = searchQueryFlow.value,
-            listState = MultiSelectListItemViewState(
+            listState = MultiSelectListViewState(
                 emptyList(),
                 emptyList()
             )
         )
     )
-
-    private fun Validator.toModel(isSelected: Boolean, sortingCaption: BlockProducersSorting<Validator>?): SelectableListItemState<String> {
-        val totalStake = electedInfo?.totalStake.orZero().tokenAmountFromPlanks(asset)
-        val ownStake = electedInfo?.ownStake.orZero().tokenAmountFromPlanks(asset)
-
-        val captionHeader = when (sortingCaption) {
-            BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)
-            else -> resourceManager.getString(R.string.staking_rewards_apy)
-        }
-        val captionValue = when (sortingCaption) {
-            BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> ownStake
-            else -> electedInfo?.apy.orZero().formatAsPercentage()
-        }
-        val captionText = buildAnnotatedString {
-            withStyle(style = SpanStyle(color = black1)) {
-                append("$captionHeader ")
-            }
-            withStyle(style = SpanStyle(color = greenText)) {
-                append(captionValue)
-            }
-        }
-
-        return SelectableListItemState(
-            id = accountIdHex,
-            title = identity?.display ?: address,
-            subtitle = resourceManager.getString(R.string.staking_validator_total_stake_token, totalStake),
-            caption = captionText,
-            isSelected = isSelected
-        )
-    }
 
     override fun onNavigationClick() = router.back()
 
@@ -207,4 +177,39 @@ class SelectValidatorsViewModel @Inject constructor(
     override fun onSearchQueryInput(query: String) {
         searchQueryFlow.value = query
     }
+}
+
+fun Validator.toModel(
+    isSelected: Boolean,
+    sortingCaption: BlockProducersSorting<Validator>?,
+    asset: Asset,
+    resourceManager: ResourceManager
+): SelectableListItemState<String> {
+    val totalStake = electedInfo?.totalStake.orZero().tokenAmountFromPlanks(asset)
+    val ownStake = electedInfo?.ownStake.orZero().tokenAmountFromPlanks(asset)
+
+    val captionHeader = when (sortingCaption) {
+        BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> resourceManager.getString(R.string.staking_filter_title_own_stake)
+        else -> resourceManager.getString(R.string.staking_rewards_apy)
+    }
+    val captionValue = when (sortingCaption) {
+        BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> ownStake
+        else -> electedInfo?.apy.orZero().formatAsPercentage()
+    }
+    val captionText = buildAnnotatedString {
+        withStyle(style = SpanStyle(color = black1)) {
+            append("$captionHeader ")
+        }
+        withStyle(style = SpanStyle(color = greenText)) {
+            append(captionValue)
+        }
+    }
+
+    return SelectableListItemState(
+        id = accountIdHex,
+        title = identity?.display ?: address,
+        subtitle = resourceManager.getString(R.string.staking_validator_total_stake_token, totalStake),
+        caption = captionText,
+        isSelected = isSelected
+    )
 }

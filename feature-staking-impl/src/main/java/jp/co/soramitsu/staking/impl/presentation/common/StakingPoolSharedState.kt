@@ -79,7 +79,17 @@ data class SelectValidatorFlowState(
 
 data class SelectedValidatorsFlowState(
     val selectedValidators: List<AccountId> = emptyList(),
-)
+    val canChangeValidators: Boolean? = null,
+    val poolName: String? = null,
+    val poolId: BigInteger? = null
+) {
+    val requireCanChangeValidators: Boolean
+        get() = requireNotNull(canChangeValidators)
+    val requirePoolName: String
+        get() = requireNotNull(poolName)
+    val requirePoolId: BigInteger
+        get() = requireNotNull(poolId)
+}
 
 class StakingPoolSharedState<T> {
 

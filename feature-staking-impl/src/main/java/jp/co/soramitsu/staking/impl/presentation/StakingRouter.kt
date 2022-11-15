@@ -48,6 +48,8 @@ interface StakingRouter {
 
     fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel)
 
+    fun openSelectedValidators()
+
     fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel)
 
     fun openConfirmStaking()

@@ -20,6 +20,7 @@ import jp.co.soramitsu.staking.api.domain.model.OwnPool
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.api.domain.model.PoolUnbonding
 import jp.co.soramitsu.staking.api.domain.model.StakingState
+import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.model.PoolRewards
@@ -27,6 +28,8 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
+import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
+import jp.co.soramitsu.staking.impl.domain.validators.ValidatorSource
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +49,8 @@ class StakingPoolInteractor(
     private val relayChainRepository: StakingRelayChainScenarioRepository,
     private val accountRepository: AccountRepository,
     private val identitiesRepositoryImpl: IdentityRepository,
-    private val walletConstants: WalletConstants
+    private val walletConstants: WalletConstants,
+    private val validatorProvider: ValidatorProvider
 ) {
 
     fun stakingStateFlow(): Flow<StakingState> {
@@ -232,9 +236,16 @@ class StakingPoolInteractor(
         }
     }
 
-    suspend fun getValidators(chain: Chain, poolId: BigInteger): List<AccountId> {
+    suspend fun getValidatorsIds(chain: Chain, poolId: BigInteger): List<AccountId> {
         val poolStashAccount = generatePoolStashAccount(chain, poolId)
         return relayChainRepository.getRemoteAccountNominations(chain.id, poolStashAccount)?.targets ?: emptyList()
+    }
+
+    suspend fun getValidators(chain: Chain, ids: List<AccountId>): List<Validator> {
+        return validatorProvider.getValidators(
+            chain = chain,
+            source = ValidatorSource.Custom(ids.map(AccountId::toHexString))
+        )
     }
 
     suspend fun getLastPoolId(chainId: ChainId) = dataSource.lastPoolId(chainId)

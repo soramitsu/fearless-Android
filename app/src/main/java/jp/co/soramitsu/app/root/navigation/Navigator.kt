@@ -508,6 +508,10 @@ class Navigator :
         navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
+    override fun openSelectedValidators() {
+        navController?.navigate(R.id.selectedValidatorsFragment)
+    }
+
     override fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel) {
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }

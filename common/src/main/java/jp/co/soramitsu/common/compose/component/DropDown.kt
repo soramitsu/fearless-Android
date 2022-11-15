@@ -49,7 +49,7 @@ fun DropDown(
         DropDownColors(backgroundColor = black4, borderColor = transparent, textColor = black2)
     }
 
-    val clickableModifier = if (state.text != null) {
+    val clickableModifier = if (state.text != null && state.isActive) {
         Modifier.clickableWithNoIndication(onClick)
     } else {
         Modifier
@@ -74,7 +74,6 @@ fun DropDown(
                     MarginVertical(margin = 4.dp)
                     ShimmerB2(modifier = Modifier.width(130.dp))
                 }
-
             }
             if (state.isActive) {
                 Image(

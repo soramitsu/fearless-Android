@@ -929,4 +929,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="staking_pool_status_active">Active</string>
     <string name="staking_pool_status_inactive">Inactive</string>
     <string name="staking_pool_status_validators_are_not_selected">Validators are not selected</string>
+    <string name="pool_staking_selected_validators_title">Pool Validators</string>
+    <string name="pool_staking_change_validators_button">Change validators</string>
 </resources>

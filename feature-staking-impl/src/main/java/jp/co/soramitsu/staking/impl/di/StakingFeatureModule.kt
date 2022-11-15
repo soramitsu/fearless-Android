@@ -571,7 +571,8 @@ class StakingFeatureModule {
         accountRepository: AccountRepository,
         relayChainScenarioRepository: StakingRelayChainScenarioRepository,
         identityRepository: IdentityRepository,
-        walletConstants: WalletConstants
+        walletConstants: WalletConstants,
+        validatorProvider: ValidatorProvider
     ) = StakingPoolInteractor(
         api,
         dataSource,
@@ -579,7 +580,8 @@ class StakingFeatureModule {
         relayChainScenarioRepository,
         accountRepository,
         identityRepository,
-        walletConstants
+        walletConstants,
+        validatorProvider
     )
 
     @Provides

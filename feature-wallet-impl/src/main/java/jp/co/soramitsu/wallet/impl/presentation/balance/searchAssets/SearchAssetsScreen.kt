@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -23,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -36,9 +34,8 @@ import jp.co.soramitsu.common.compose.component.ActionBarViewState
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetListItem
 import jp.co.soramitsu.common.compose.component.AssetListItemShimmer
-import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.CorneredInput
-import jp.co.soramitsu.common.compose.component.H3
+import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
@@ -47,7 +44,6 @@ import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.white30
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -124,7 +120,8 @@ private fun ContentSearchAssetsScreen(
         if (data.assets.isNotEmpty()) {
             AssetsList(data, viewModel)
         } else {
-            AssetListEmpty()
+            MarginVertical(margin = 16.dp)
+            EmptyMessage(message = R.string.common_search_assets_alert_description)
         }
     }
 }
@@ -154,25 +151,6 @@ private fun AssetsList(
             }
         }
         item { MarginVertical(margin = 80.dp) }
-    }
-}
-
-@Composable
-private fun AssetListEmpty() {
-    MarginVertical(margin = 16.dp)
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_alert),
-            contentDescription = null
-        )
-        H3(text = stringResource(id = R.string.common_search_assets_alert_title))
-        B0(
-            text = stringResource(id = R.string.common_search_assets_alert_description),
-            color = gray2
-        )
     }
 }
 

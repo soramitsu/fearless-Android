@@ -71,7 +71,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         initialAmount = mainState.requireAmount.format()
     }
 
-    private val defaultPoolNameInoutState = TextInputViewState("", resourceManager.getString(R.string.pool_staking_pool_name))
+    private val defaultPoolNameInputState = TextInputViewState("", resourceManager.getString(R.string.pool_staking_pool_name))
 
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
@@ -82,7 +82,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     )
 
     private val defaultScreenState = CreatePoolSetupViewState(
-        defaultPoolNameInoutState,
+        defaultPoolNameInputState,
         defaultAmountInputState,
         "...",
         "...",
@@ -131,7 +131,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     private val enteredPoolNameFlow = MutableStateFlow("")
 
     private val poolNameInputStateFlow = enteredPoolNameFlow.map {
-        defaultPoolNameInoutState.copy(text = it)
+        defaultPoolNameInputState.copy(text = it)
     }
 
     private val feeInPlanksFlow: MutableStateFlow<BigInteger> = MutableStateFlow(BigInteger.ZERO)

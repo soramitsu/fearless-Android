@@ -109,7 +109,6 @@ fun PoolInfoScreen(state: PoolInfoScreenViewState, screenInterface: PoolInfoScre
     }
 }
 
-
 @Composable
 private fun PoolInfoToolbar(poolState: PoolStatusViewState, modifier: Modifier = Modifier, onNavigationClick: () -> Unit) {
     Box(
