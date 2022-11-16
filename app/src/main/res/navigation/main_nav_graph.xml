@@ -661,6 +661,11 @@
         android:label="confirmSelectValidatorsFragment" />
 
     <dialog
+        android:id="@+id/poolOptionsInfoFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoOptionsFragment"
+        android:label="poolOptionsInfoFragment" />
+
+    <dialog
         android:id="@+id/validatorsSettingsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.common.filters.ValidatorsSettingsFragment"
         android:label="validatorsSettingsFragment" />

@@ -845,4 +845,8 @@
     <string name="staking_pool_status_validators_are_not_selected">Валидаторы не выбраны</string>
     <string name="pool_staking_selected_validators_title">Валидаторы пулла</string>
     <string name="pool_staking_change_validators_button">Сменить валидаторов</string>
+    <string name="common_destroy">Уничтожить</string>
+    <string name="common_block">Заблокировать</string>
+    <string name="pool_options_title">Настройки пулла</string>
+    <string name="pool_edit_title">Редактирование пулла</string>
 </resources>

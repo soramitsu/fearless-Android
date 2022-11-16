@@ -61,6 +61,7 @@ import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPa
 import jp.co.soramitsu.staking.impl.presentation.payouts.detail.PayoutDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoFragment
+import jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoOptionsFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.StakingBalanceFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
@@ -823,6 +824,10 @@ class Navigator :
 
     override fun openConfirmSelectValidators() {
         navController?.navigate(R.id.confirmSelectValidatorsFragment)
+    }
+
+    override fun openPoolInfoOptions(poolInfo: PoolInfo) {
+        navController?.navigate(R.id.poolOptionsInfoFragment, PoolInfoOptionsFragment.getBundle(poolInfo))
     }
 
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>

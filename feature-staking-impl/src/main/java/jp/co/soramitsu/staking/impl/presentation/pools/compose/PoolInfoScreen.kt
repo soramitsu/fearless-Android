@@ -66,7 +66,10 @@ enum class PoolStatusViewState(@StringRes val nameRes: Int, val color: Color) {
 
 interface PoolInfoScreenInterface {
     fun onCloseClick()
+    fun onOptionsClick()
     fun onTableItemClick(identifier: Int)
+    fun onDepositorClick()
+    fun onRootClick()
     fun onNominatorClick()
     fun onStateTogglerClick()
 }
@@ -74,7 +77,11 @@ interface PoolInfoScreenInterface {
 @Composable
 fun PoolInfoScreen(state: PoolInfoScreenViewState, screenInterface: PoolInfoScreenInterface) {
     BottomSheetScreen(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        PoolInfoToolbar(poolState = state.poolStatus, onNavigationClick = screenInterface::onCloseClick)
+        PoolInfoToolbar(
+            poolState = state.poolStatus,
+            onNavigationClick = screenInterface::onCloseClick,
+            onOptionsClick = screenInterface::onOptionsClick
+        )
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             MarginVertical(margin = 8.dp)
             InfoTable(
@@ -91,18 +98,18 @@ fun PoolInfoScreen(state: PoolInfoScreenViewState, screenInterface: PoolInfoScre
             MarginVertical(margin = 14.dp)
             H4(text = stringResource(id = R.string.pool_staking_roles))
             MarginVertical(margin = 8.dp)
-            InactiveDropDown(state = state.depositor)
+            InactiveDropDown(state = state.depositor, onClick = screenInterface::onDepositorClick)
             MarginVertical(margin = 12.dp)
             state.root?.let {
-                InactiveDropDown(state = it)
+                InactiveDropDown(state = it, onClick = screenInterface::onRootClick)
             }
             MarginVertical(margin = 12.dp)
             state.nominator?.let {
-                DropDown(state = it, onClick = screenInterface::onNominatorClick)
+                InactiveDropDown(state = it, onClick = screenInterface::onNominatorClick)
             }
             MarginVertical(margin = 12.dp)
             state.stateToggler?.let {
-                DropDown(state = it, onClick = screenInterface::onStateTogglerClick)
+                InactiveDropDown(state = it, onClick = screenInterface::onStateTogglerClick)
             }
             MarginVertical(margin = 16.dp)
         }
@@ -110,7 +117,12 @@ fun PoolInfoScreen(state: PoolInfoScreenViewState, screenInterface: PoolInfoScre
 }
 
 @Composable
-private fun PoolInfoToolbar(poolState: PoolStatusViewState, modifier: Modifier = Modifier, onNavigationClick: () -> Unit) {
+private fun PoolInfoToolbar(
+    poolState: PoolStatusViewState,
+    modifier: Modifier = Modifier,
+    onNavigationClick: () -> Unit,
+    onOptionsClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -133,6 +145,12 @@ private fun PoolInfoToolbar(poolState: PoolStatusViewState, modifier: Modifier =
             )
             PoolState(state = poolState)
         }
+        jp.co.soramitsu.common.compose.component.IconButton(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
+            tint = Color.Unspecified,
+            onClick = onOptionsClick
+        )
     }
 }
 
@@ -161,8 +179,11 @@ private fun PoolInfoScreenPreview() {
     val emptyInterface = object : PoolInfoScreenInterface {
         override fun onCloseClick() = Unit
         override fun onTableItemClick(identifier: Int) = Unit
+        override fun onDepositorClick() = Unit
+        override fun onRootClick() = Unit
         override fun onNominatorClick() = Unit
         override fun onStateTogglerClick() = Unit
+        override fun onOptionsClick() = Unit
     }
     val state = PoolInfoScreenViewState(
         poolId = TitleValueViewState("Index", "2"),

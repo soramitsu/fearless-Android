@@ -23,13 +23,19 @@ import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
-private val emptyClick = {}
+val emptyClick = {}
 
 data class DropDownViewState(
     val text: String?,
     val hint: String,
-    val isActive: Boolean = true
-)
+    val endIcon: Int = R.drawable.ic_chevron_down_white,
+    val isActive: Boolean = true,
+    val clickableMode: ClickableMode = ClickableMode.DisableOnInactive
+) {
+    enum class ClickableMode {
+        AlwaysClickable, DisableOnInactive
+    }
+}
 
 private data class DropDownColors(
     val backgroundColor: Color,
@@ -49,10 +55,9 @@ fun DropDown(
         DropDownColors(backgroundColor = black4, borderColor = transparent, textColor = black2)
     }
 
-    val clickableModifier = if (state.text != null && state.isActive) {
-        Modifier.clickableWithNoIndication(onClick)
-    } else {
-        Modifier
+    val clickableModifier = when {
+        state.clickableMode == DropDownViewState.ClickableMode.DisableOnInactive && state.isActive.not() -> Modifier
+        else -> Modifier.clickableWithNoIndication(onClick)
     }
     BackgroundCorneredWithBorder(
         modifier = modifier
@@ -75,9 +80,9 @@ fun DropDown(
                     ShimmerB2(modifier = Modifier.width(130.dp))
                 }
             }
-            if (state.isActive) {
+            if (state.isActive || state.clickableMode == DropDownViewState.ClickableMode.AlwaysClickable) {
                 Image(
-                    res = R.drawable.ic_chevron_down_white,
+                    res = state.endIcon,
                     modifier = Modifier.align(Alignment.CenterVertically),
                     tint = white
                 )
@@ -93,16 +98,17 @@ fun InactiveDropDown(text: String?, @StringRes hint: Int) {
         DropDownViewState(
             text = text,
             stringResource(id = hint),
-            isActive = false
+            isActive = false,
+            clickableMode = DropDownViewState.ClickableMode.DisableOnInactive
         )
     )
 }
 
 @Composable
-fun InactiveDropDown(state: DropDownViewState) {
+fun InactiveDropDown(state: DropDownViewState, onClick: () -> Unit = emptyClick) {
     DropDown(
         state = state.copy(isActive = false),
-        onClick = emptyClick
+        onClick = onClick
     )
 }
 

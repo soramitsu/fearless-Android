@@ -931,4 +931,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="staking_pool_status_validators_are_not_selected">Validators are not selected</string>
     <string name="pool_staking_selected_validators_title">Pool Validators</string>
     <string name="pool_staking_change_validators_button">Change validators</string>
+    <string name="common_destroy">Destroy</string>
+    <string name="common_block">Block</string>
+    <string name="pool_options_title">Pool options</string>
+    <string name="pool_edit_title">Edit pool</string>
 </resources>

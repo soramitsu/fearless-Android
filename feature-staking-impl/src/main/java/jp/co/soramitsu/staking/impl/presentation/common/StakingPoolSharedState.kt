@@ -91,6 +91,41 @@ data class SelectedValidatorsFlowState(
         get() = requireNotNull(poolId)
 }
 
+data class EditPoolFlowState(
+    val poolName: String,
+    val poolId: BigInteger,
+    val depositor: AccountId,
+    val root: AccountId?,
+    val nominator: AccountId?,
+    val stateToggler: AccountId?,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as EditPoolFlowState
+
+        if (poolName != other.poolName) return false
+        if (poolId != other.poolId) return false
+        if (!depositor.contentEquals(other.depositor)) return false
+        if (!root.contentEquals(other.root)) return false
+        if (!nominator.contentEquals(other.nominator)) return false
+        if (!stateToggler.contentEquals(other.stateToggler)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = poolName.hashCode()
+        result = 31 * result + poolId.hashCode()
+        result = 31 * result + depositor.contentHashCode()
+        result = 31 * result + root.contentHashCode()
+        result = 31 * result + nominator.contentHashCode()
+        result = 31 * result + stateToggler.contentHashCode()
+        return result
+    }
+}
+
 class StakingPoolSharedState<T> {
 
     val process = MutableStateFlow<T?>(null)

@@ -4,26 +4,23 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
-import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
-import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
-import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectedValidatorsFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
@@ -38,7 +35,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PoolInfoViewModel @Inject constructor(
@@ -47,13 +43,8 @@ class PoolInfoViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val router: StakingRouter,
     private val stakingPoolInteractor: StakingPoolInteractor,
-    private val stakingInteractor: StakingInteractor
+    private val clipboardManager: ClipboardManager
 ) : BaseViewModel(), PoolInfoScreenInterface {
-
-    companion object {
-        private const val NOMINATOR_WALLET_SELECTOR_TAG = "nominator"
-        private const val STATE_TOGGLER_WALLET_SELECTOR_TAG = "state_toggler"
-    }
 
     private val chain: Chain
     private val asset: Asset
@@ -76,7 +67,6 @@ class PoolInfoViewModel @Inject constructor(
         stakedFiat = stakedAmount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         setupSelectedValidatorsSharedState()
-        listenWalletSelectorResult()
     }
 
     private fun setupSelectedValidatorsSharedState() {
@@ -88,12 +78,6 @@ class PoolInfoViewModel @Inject constructor(
                 poolName = poolInfo.name
             )
         )
-    }
-
-    private fun listenWalletSelectorResult() = viewModelScope.launch {
-        router.walletSelectorPayloadFlow.collect { payload ->
-            payload?.let { onWalletSelected(it) }
-        }
     }
 
     private val rolesFlow = flowOf {
@@ -111,17 +95,37 @@ class PoolInfoViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), null))
     val state: StateFlow<PoolInfoScreenViewState> = combine(rolesFlow, validatorsState) { rolesNames, validatorsState ->
 
-        val depositor = poolInfo.depositor.roleNameOrHex(rolesNames).let {
-            DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_depositor), text = it)
+        val depositor = poolInfo.depositor.roleNameOrAddress(rolesNames).let {
+            DropDownViewState(
+                hint = resourceManager.getString(R.string.pool_staking_depositor),
+                text = it,
+                clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
+                endIcon = R.drawable.ic_copy_16
+            )
         }
-        val root = poolInfo.root.roleNameOrHex(rolesNames)?.let {
-            DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_root), text = it)
+        val root = poolInfo.root.roleNameOrAddress(rolesNames)?.let {
+            DropDownViewState(
+                hint = resourceManager.getString(R.string.pool_staking_root),
+                text = it,
+                clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
+                endIcon = R.drawable.ic_copy_16
+            )
         }
-        val nominator = poolInfo.nominator.roleNameOrHex(rolesNames)?.let {
-            DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_nominator), text = it, isActive = canChangeRoles)
+        val nominator = poolInfo.nominator.roleNameOrAddress(rolesNames)?.let {
+            DropDownViewState(
+                hint = resourceManager.getString(R.string.pool_staking_nominator),
+                text = it,
+                clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
+                endIcon = R.drawable.ic_copy_16
+            )
         }
-        val stateToggler = poolInfo.stateToggler.roleNameOrHex(rolesNames)?.let {
-            DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_state_toggler), text = it, isActive = canChangeRoles)
+        val stateToggler = poolInfo.stateToggler.roleNameOrAddress(rolesNames)?.let {
+            DropDownViewState(
+                hint = resourceManager.getString(R.string.pool_staking_state_toggler),
+                text = it,
+                clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
+                endIcon = R.drawable.ic_copy_16
+            )
         }
 
         defaultScreenState.copy(
@@ -141,10 +145,30 @@ class PoolInfoViewModel @Inject constructor(
             staked = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_bonded), staked, stakedFiat),
             members = TitleValueViewState(resourceManager.getString(R.string.pool_info_members), poolInfo.members.toString()),
             validators = TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), null),
-            depositor = DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_depositor), text = null),
-            root = DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_root), text = null),
-            nominator = DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_nominator), text = null, isActive = canChangeRoles),
-            stateToggler = DropDownViewState(hint = resourceManager.getString(R.string.pool_staking_state_toggler), text = null, isActive = canChangeRoles),
+            depositor = DropDownViewState(
+                hint = resourceManager.getString(R.string.pool_staking_depositor),
+                text = null,
+                clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
+                endIcon = R.drawable.ic_copy_16
+            ),
+            root = DropDownViewState(
+                hint = resourceManager.getString(R.string.pool_staking_root),
+                text = null,
+                clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
+                endIcon = R.drawable.ic_copy_16
+            ),
+            nominator = DropDownViewState(
+                hint = resourceManager.getString(R.string.pool_staking_nominator),
+                text = null,
+                clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
+                endIcon = R.drawable.ic_copy_16
+            ),
+            stateToggler = DropDownViewState(
+                hint = resourceManager.getString(R.string.pool_staking_state_toggler),
+                text = null,
+                clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
+                endIcon = R.drawable.ic_copy_16
+            ),
             poolStatus = poolInfo.state.toViewState()
         )
 
@@ -155,8 +179,10 @@ class PoolInfoViewModel @Inject constructor(
         NominationPoolState.Blocked -> PoolStatusViewState.Inactive
     }
 
-    private fun AccountId?.roleNameOrHex(rolesNames: Map<String, String?>): String? {
-        return this?.toHexString().let { rolesNames[it] ?: it?.requireHexPrefix() }
+    private fun AccountId?.roleNameOrAddress(rolesNames: Map<String, String?>): String? {
+        this ?: return null
+        val address = this.toAddress(chain.addressPrefix.toShort())
+        return rolesNames[this.toHexString()] ?: address
     }
 
     override fun onCloseClick() {
@@ -169,28 +195,33 @@ class PoolInfoViewModel @Inject constructor(
         }
     }
 
+    override fun onDepositorClick() {
+        val address = poolInfo.depositor.toAddress(chain.addressPrefix.toShort())
+        copyToClipboard(address)
+    }
+
+    override fun onRootClick() {
+        val address = poolInfo.root?.toAddress(chain.addressPrefix.toShort()) ?: return
+        copyToClipboard(address)
+    }
+
     override fun onNominatorClick() {
-        router.openWalletSelector(NOMINATOR_WALLET_SELECTOR_TAG)
+        val address = poolInfo.nominator?.toAddress(chain.addressPrefix.toShort()) ?: return
+        copyToClipboard(address)
     }
 
     override fun onStateTogglerClick() {
-        router.openWalletSelector(STATE_TOGGLER_WALLET_SELECTOR_TAG)
+        val address = poolInfo.stateToggler?.toAddress(chain.addressPrefix.toShort()) ?: return
+        copyToClipboard(address)
     }
 
-    private fun onWalletSelected(item: WalletSelectorPayload) {
-        viewModelScope.launch {
-            val (tag, selectedWalletId) = item
-            val metaAccount = stakingInteractor.getMetaAccount(selectedWalletId)
-            val accountId = metaAccount.accountId(chain)
-            val address = metaAccount.address(chain) ?: return@launch
-            when (tag) {
-                NOMINATOR_WALLET_SELECTOR_TAG -> {
-                    // todo implement change roles
-                }
-                STATE_TOGGLER_WALLET_SELECTOR_TAG -> {
-                    // todo implement change roles
-                }
-            }
-        }
+    private fun copyToClipboard(text: String) {
+        clipboardManager.addToClipboard(text)
+        val message = resourceManager.getString(jp.co.soramitsu.common.R.string.common_copied)
+        showMessage(message)
+    }
+
+    override fun onOptionsClick() {
+        router.openPoolInfoOptions(poolInfo)
     }
 }
