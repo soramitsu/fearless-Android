@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="common_next">Next</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_skip">Skip</string>
@@ -158,6 +158,7 @@ from the right network</string>
     <string name="wallet_send_existential_warning_message">Your transfer will remove account from blockstore since it will make total balance lower than minimal balance.</string>
     <string name="common_warning">Warning</string>
     <string name="common_unknown">Unknown</string>
+    <string name="create_contact">Create Contact</string>
     <string name="connection_delete_confirm">Delete</string>
     <string name="network_status_connecting">Connecting…</string>
     <string name="network_status_connected">Connected</string>
@@ -203,6 +204,7 @@ Derivation path: %s</string>
     <string name="account_import_wrong_network" formatted="false">Network in JSON is %s, does not match selected %s. The latter will be used to import an account.</string>
     <string name="common_address">Address</string>
     <string name="common_share">Share</string>
+    <string name="common_history">History</string>
     <string name="wallet_asset_buy">Buy</string>
     <string name="common_amount_low">Amount is too low</string>
     <string name="wallet_send_dead_recipient_message">Your transfer will fail since the final amount on the destination account will be less than the minimal balance. Please, try to increase the amount.</string>

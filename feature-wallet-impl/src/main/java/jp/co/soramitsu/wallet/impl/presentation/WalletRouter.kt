@@ -94,4 +94,6 @@ interface WalletRouter : SecureRouter {
     val alertResultFlow: Flow<Result<Unit>>
 
     fun openScamWarning(symbol: String)
+
+    fun openAddressHistory(chainId: ChainId)
 }

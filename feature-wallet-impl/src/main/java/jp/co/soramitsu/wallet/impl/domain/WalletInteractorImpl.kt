@@ -2,8 +2,6 @@ package jp.co.soramitsu.wallet.impl.domain
 
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -46,6 +44,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 private const val QR_PREFIX_SUBSTRATE = "substrate"
@@ -322,4 +322,17 @@ class WalletInteractorImpl(
     }
 
     override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
+
+    override suspend fun getContacts(
+        chainId: ChainId,
+        query: String
+    ): Set<String> {
+        val metaAccount = accountRepository.getSelectedMetaAccount()
+        val chain = chainRegistry.getChain(chainId)
+        val accountId = metaAccount.accountId(chain)
+
+        return accountId?.let {
+            walletRepository.getContacts(accountId, chain, query)
+        } ?: emptySet()
+    }
 }

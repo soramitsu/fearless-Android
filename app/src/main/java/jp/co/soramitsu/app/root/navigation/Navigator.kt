@@ -97,6 +97,7 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenToke
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
+import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
@@ -660,6 +661,12 @@ class Navigator :
         val bundle = BalanceDetailFragment.getBundle(assetPayload)
 
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
+    }
+
+    override fun openAddressHistory(chainId: ChainId) {
+        val bundle = AddressHistoryFragment.getBundle(chainId)
+
+        navController?.navigate(R.id.addressHistoryFragment, bundle)
     }
 
     override fun openAddNode(chainId: ChainId) {
