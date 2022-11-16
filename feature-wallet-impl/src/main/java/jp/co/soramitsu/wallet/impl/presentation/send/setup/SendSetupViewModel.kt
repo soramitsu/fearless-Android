@@ -24,7 +24,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
@@ -32,6 +31,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.AddressNotValidException
 import jp.co.soramitsu.common.validation.InsufficientBalanceException
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.wallet.api.presentation.Validation
@@ -59,6 +59,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -86,8 +87,14 @@ class SendSetupViewModel @Inject constructor(
     private val _showChooserEvent = MutableLiveData<Event<Unit>>()
     val showChooserEvent: LiveData<Event<Unit>> = _showChooserEvent
 
-    val payload: AssetPayload = savedStateHandle[SendSetupFragment.KEY_PAYLOAD] ?: error("Asset not specified")
+    val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
     val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
+
+    val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
+        error("Required data (asset or address) not specified")
+    } else {
+        true
+    }
 
     private val initialAmount = "0"
 
@@ -314,7 +321,35 @@ class SendSetupViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
     init {
-        sharedState.update(payload.chainId, payload.chainAssetId)
+        if (payload == null) {
+            sharedState.clear()
+            if (!initSendToAddress.isNullOrEmpty()) {
+                findChainsForAddress(initSendToAddress)
+            }
+        } else {
+            sharedState.update(payload.chainId, payload.chainAssetId)
+        }
+    }
+
+    private fun findChainsForAddress(address: String) {
+        val addressPrefix = address.addressByte()
+        launch {
+            val chains = walletInteractor.getChains().first()
+            val addressChains = chains.filter {
+                it.addressPrefix.toShort() == addressPrefix
+            }
+            when (addressChains.size) {
+                1 -> {
+                    val chain = addressChains[0]
+                    if (chain.assets.size == 1) {
+                        sharedState.update(chain.id, chain.assets[0].id)
+                    } else {
+                        router.openSelectChainAsset(chain.id)
+                    }
+                }
+                else -> router.openSelectChain(addressChains.map { it.id })
+            }
+        }
     }
 
     override fun onAmountInput(input: String) {
@@ -330,15 +365,12 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onNextClick() {
-        assetFlow.value?.let { asset ->
-            val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
-            val inPlanks = asset.token.planksFromAmount(amount)
-            isValid(amount).fold({
-                onNextStep(inPlanks)
-            }, {
-                showError(it)
-            })
-        }
+        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+        isValid(amount).fold({
+            onNextStep()
+        }, {
+            showError(it)
+        })
     }
 
     private val validations = listOf(
@@ -361,14 +393,14 @@ class SendSetupViewModel @Inject constructor(
     private fun isValid(amount: BigDecimal): Result<Any> {
         val amountInPlanks = assetFlow.value?.token?.planksFromAmount(amount).orZero()
         val allValidations = validations
-        val firstError = allValidations.mapNotNull {
+        val firstError = allValidations.firstNotNullOfOrNull {
             if (it.condition(amountInPlanks)) null else it.error
-        }.firstOrNull()
+        }
 
         return firstError?.let { Result.failure(it) } ?: Result.success(Unit)
     }
 
-    fun onNextStep(amoutInPlanks: BigInteger) {
+    private fun onNextStep() {
         launch {
             val transferDraft = buildTransferDraft() ?: return@launch
 
@@ -376,7 +408,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val tipFlow = flowOf { walletConstants.tip(payload.chainId) }
+    private val tipFlow = sharedState.chainIdFlow.map { it?.let { walletConstants.tip(it) } }
     private val tipAmountFlow = combine(tipFlow, assetFlow) { tip: BigInteger?, asset: Asset? ->
         tip?.let {
             asset?.token?.amountFromPlanks(it)
@@ -389,6 +421,13 @@ class SendSetupViewModel @Inject constructor(
         val tip = tipAmountFlow.firstOrNull()
 
         val amount = enteredAmountFlow.firstOrNull()?.toBigDecimalOrNull().orZero()
+
+        val chainId = sharedState.chainId
+        val assetId = sharedState.assetId
+        val payload = when {
+            chainId == null || assetId == null -> null
+            else -> AssetPayload(chainId, assetId)
+        } ?: return null
 
         return TransferDraft(amount, feeAmount, payload, recipientAddress, tip)
     }
@@ -449,16 +488,22 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onQuickAmountInput(input: Double) {
         launch {
-            combine(assetFlow, tipFlow) { asset, tip ->
-                asset to tip
-            }.collect { (asset, tip) ->
+            combine(utilityAssetFlow, assetFlow, tipFlow) { utilityAsset, asset, tip ->
+                utilityAsset to asset to tip
+            }.collect { (assetsPair, tip) ->
+                val (utilityAsset, asset) = assetsPair
                 val allAmount = asset?.transferable ?: return@collect
 
-                val tipAmount = asset.token.amountFromPlanks(tip.orZero())
+                val tipAmount = utilityAsset.token.amountFromPlanks(tip.orZero())
 
-                val amountToTransfer = (allAmount * input.toBigDecimal()) - tipAmount
+                val utilityTipReserve = when {
+                    asset.token.configuration.isUtility -> tipAmount
+                    else -> BigDecimal.ZERO
+                }
 
-                val selfAddress = currentAccountAddress(payload.chainId) ?: return@collect
+                val amountToTransfer = (allAmount * input.toBigDecimal()) - utilityTipReserve
+
+                val selfAddress = sharedState.chainId?.let { currentAccountAddress(it) } ?: return@collect
 
                 val transfer = Transfer(
                     recipient = selfAddress,
@@ -467,7 +512,11 @@ class SendSetupViewModel @Inject constructor(
                 )
                 val fee = walletInteractor.getTransferFee(transfer)
 
-                val quickAmountWithoutExtraPays = amountToTransfer - fee.feeAmount
+                val utilityFeeReserve = when {
+                    asset.token.configuration.isUtility -> fee.feeAmount
+                    else -> BigDecimal.ZERO
+                }
+                val quickAmountWithoutExtraPays = amountToTransfer - utilityFeeReserve
 
                 if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
                     return@collect

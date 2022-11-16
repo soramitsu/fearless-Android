@@ -34,19 +34,28 @@ class ChainSelectViewModel @Inject constructor(
     private val selectedChainId = MutableStateFlow(initialSelectedChainId)
 
     private val initialSelectedAssetId: String? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_ASSET_ID]
+    private val filterChainIds: List<ChainId>? = savedStateHandle[ChainSelectFragment.KEY_FILTER_CHAIN_IDS]
+
+    private var choiceDone = false
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapNotNull { chains ->
-        if (initialSelectedAssetId != null) {
-            chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
-                selectedChainId.value = chainOfTheAsset.chain.id
+        when {
+            initialSelectedAssetId != null -> {
+                chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
+                    selectedChainId.value = chainOfTheAsset.chain.id
 
-                val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
+                    val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
 
-                val chainsWithAsset = chains.filter { it.assets.any { it.symbolToShow == symbol } }
-                chainsWithAsset
+                    val chainsWithAsset = chains.filter { it.assets.any { it.symbolToShow == symbol } }
+                    chainsWithAsset
+                }
             }
-        } else {
-            chains
+            filterChainIds.isNullOrEmpty() -> {
+                chains
+            }
+            else -> {
+                chains.filter { it.chain.id in filterChainIds }
+            }
         }
     }.map { chains: List<JoinedChainInfo> ->
         chains.map { it.toChainItemState() }
@@ -86,17 +95,32 @@ class ChainSelectViewModel @Inject constructor(
             val assetId = chainItemState?.tokenSymbols?.firstOrNull { it.second == symbolFlow.value }?.first
 
             chainItemState?.id?.let {
-                if (assetId != null) {
-                    sharedSendState.update(chainId = it, assetId = assetId)
-                } else {
-                    launch {
-                        val chain = walletInteractor.getChain(it)
-                        sharedSendState.update(chainId = it, assetId = chain.utilityAsset.id)
+                when {
+                    sharedSendState.assetId == null -> {
+                        if (chainItemState.tokenSymbols.size == 1) {
+                            assetSpecified(assetId = chainItemState.tokenSymbols[0].first, chainId = chainItemState.id)
+                        } else {
+                            walletRouter.back()
+                            walletRouter.openSelectChainAsset(chainItemState.id)
+                        }
+                    }
+                    assetId == null -> {
+                        launch {
+                            val chain = walletInteractor.getChain(it)
+                            assetSpecified(assetId = chain.utilityAsset.id, chainId = it)
+                        }
+                    }
+                    else -> {
+                        assetSpecified(assetId = assetId, chainId = it)
                     }
                 }
             }
         }
+    }
 
+    private fun assetSpecified(assetId: String, chainId: ChainId) {
+        choiceDone = true
+        sharedSendState.update(assetId = assetId, chainId = chainId)
         walletRouter.back()
     }
 
@@ -104,7 +128,9 @@ class ChainSelectViewModel @Inject constructor(
         enteredChainQueryFlow.value = input
     }
 
-    fun onBackClicked() {
-        walletRouter.back()
+    fun onDialogClose() {
+        if (!choiceDone && sharedSendState.assetId == null) {
+            walletRouter.popOutOfSend()
+        }
     }
 }

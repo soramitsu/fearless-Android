@@ -109,9 +109,6 @@ class BalanceListViewModel @Inject constructor(
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
 
-    private val _decodeAddressResult = MutableLiveData<Event<String>>()
-    val decodeAddressResult: LiveData<Event<String>> = _decodeAddressResult
-
     private val enteredChainQueryFlow = MutableStateFlow("")
 
     private val connectingChainIdsFlow = networkStateMixin.chainConnectionsLiveData.map {
@@ -497,8 +494,7 @@ class BalanceListViewModel @Inject constructor(
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
             val result = interactor.getRecipientFromQrCodeContent(content).getOrDefault(content)
-
-            _decodeAddressResult.value = Event(result)
+            router.openSend(assetPayload = null, initialSendToAddress = result)
         }
     }
 

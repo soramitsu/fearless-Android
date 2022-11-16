@@ -18,11 +18,17 @@ interface WalletRouter : SecureRouter {
 
     fun back()
 
-    fun openSend(assetPayload: AssetPayload, initialSendToAddress: String? = null)
+    fun popOutOfSend()
+
+    fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null)
 
     fun openSelectChain(assetId: String)
 
+    fun openSelectChain(filterChainIds: List<ChainId>? = null)
+
     fun openSelectAsset(selectedAssetId: String)
+
+    fun openSelectChainAsset(chainId: ChainId)
 
     fun openFilter()
 

@@ -164,6 +164,10 @@ class Navigator :
         )
     }
 
+    override fun popOutOfSend() {
+        navController?.popBackStack(R.id.sendSetupFragment, true)
+    }
+
     override fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean) {
         val bundle = WelcomeFragment.getBundle(
             displayBack = true,
@@ -508,19 +512,29 @@ class Navigator :
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openSend(assetPayload: AssetPayload, initialSendToAddress: String?) {
+    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?) {
         val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openSelectChain(assetId: ChainId) {
+    override fun openSelectChain(assetId: String) {
         val bundle = ChainSelectFragment.getBundle(assetId)
+        navController?.navigate(R.id.chainSelectFragment, bundle)
+    }
+
+    override fun openSelectChain(filterChainIds: List<ChainId>?) {
+        val bundle = ChainSelectFragment.getBundle(filterChainIds)
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
     override fun openSelectAsset(selectedAssetId: String) {
         val bundle = AssetSelectFragment.getBundle(selectedAssetId)
+        navController?.navigate(R.id.assetSelectFragment, bundle)
+    }
+
+    override fun openSelectChainAsset(chainId: ChainId) {
+        val bundle = AssetSelectFragment.getBundleFilterByChain(chainId)
         navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 
