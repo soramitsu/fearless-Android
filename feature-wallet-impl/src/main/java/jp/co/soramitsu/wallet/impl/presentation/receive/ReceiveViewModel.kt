@@ -19,6 +19,8 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.write
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraKusamaChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -61,7 +63,11 @@ class ReceiveViewModel @Inject constructor(
     private val assetSymbolToShow = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbolToShow
 
     private val qrBitmapFlow = flow {
-        val qrString = interactor.getQrCodeSharingString(assetPayload.chainId)
+        val qrString = if (assetPayload.chainId in listOf(soraKusamaChainId, soraTestChainId)) {
+            interactor.getQrCodeSharingSoraString(assetPayload.chainId, assetPayload.chainAssetId)
+        } else {
+            currentAccountAddress(assetPayload.chainId) ?: return@flow
+        }
 
         emit(qrCodeGenerator.generateQrBitmap(qrString))
     }
