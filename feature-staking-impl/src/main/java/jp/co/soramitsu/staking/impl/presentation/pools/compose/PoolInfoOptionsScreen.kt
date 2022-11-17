@@ -30,7 +30,7 @@ data class PoolInfoOptionsViewState(
     enum class Option(@StringRes val titleRes: Int, val textColor: Color) {
         Edit(R.string.common_edit, white),
         Destroy(R.string.common_destroy, white),
-        Block(R.string.common_block, colorAccentDark),
+        Block(R.string.common_block, colorAccentDark)
     }
 }
 

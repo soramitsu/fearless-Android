@@ -60,7 +60,9 @@ class EditPoolViewModel @Inject constructor(
             continueAvailable = canContinue
         )
     }.stateIn(
-        viewModelScope, SharingStarted.Eagerly, EditPoolViewState(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        EditPoolViewState(
             poolName = poolEditInfo.initialPoolName,
             root = poolEditInfo.initialRoot?.toAddress(chain.addressPrefix.toShort()).orEmpty(),
             depositor = poolEditInfo.depositor.toAddress(chain.addressPrefix.toShort()),
@@ -135,6 +137,6 @@ class EditPoolViewModel @Inject constructor(
                 newStateToggler = newStateToggler
             )
         )
-        // go to confirm
+        router.openEditPoolConfirm()
     }
 }

@@ -93,6 +93,7 @@ class PoolInfoViewModel @Inject constructor(
         stakingPoolSharedStateProvider.selectedValidatorsState.mutate { requireNotNull(it).copy(selectedValidators = validators) }
         TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), validators.count().toString())
     }.stateIn(viewModelScope, SharingStarted.Eagerly, TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), null))
+
     val state: StateFlow<PoolInfoScreenViewState> = combine(rolesFlow, validatorsState) { rolesNames, validatorsState ->
 
         val depositor = poolInfo.depositor.roleNameOrAddress(rolesNames).let {

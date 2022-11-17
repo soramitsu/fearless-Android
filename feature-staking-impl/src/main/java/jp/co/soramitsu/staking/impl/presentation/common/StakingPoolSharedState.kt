@@ -98,7 +98,7 @@ data class EditPoolFlowState(
     val initialRoot: AccountId?,
     val initialNominator: AccountId?,
     val initialStateToggler: AccountId?,
-    val newPoolName: String?,
+    val newPoolName: String? = null,
     val newRoot: AccountId? = null,
     val newNominator: AccountId? = null,
     val newStateToggler: AccountId? = null

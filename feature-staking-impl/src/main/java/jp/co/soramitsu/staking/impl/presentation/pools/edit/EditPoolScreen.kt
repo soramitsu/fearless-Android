@@ -54,9 +54,11 @@ fun EditPoolScreen(state: EditPoolViewState, screenInterface: EditPoolScreenInte
             ),
             onNavigationClick = screenInterface::onCloseClick
         )
-        Column(modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .imePadding()) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .imePadding()
+        ) {
             MarginVertical(margin = 8.dp)
             val nameInputState = TextInputViewState(
                 text = state.poolName,

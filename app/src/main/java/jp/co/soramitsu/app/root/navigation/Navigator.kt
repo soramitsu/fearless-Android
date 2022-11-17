@@ -834,6 +834,10 @@ class Navigator :
         navController?.navigate(R.id.editPoolFragment)
     }
 
+    override fun openEditPoolConfirm() {
+        navController?.navigate(R.id.editPoolConfirmFragment)
+    }
+
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)

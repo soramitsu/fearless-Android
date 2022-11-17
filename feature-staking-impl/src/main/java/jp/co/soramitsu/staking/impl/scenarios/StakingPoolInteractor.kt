@@ -30,9 +30,9 @@ import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.ValidatorSource
+import jp.co.soramitsu.staking.impl.presentation.common.EditPoolFlowState
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
@@ -76,13 +76,13 @@ class StakingPoolInteractor(
         return dataSource.observePoolMembers(chain.id, accountId).flatMapConcat { poolMember ->
             poolMember ?: return@flatMapConcat flowOf(null)
 
-            observePoolInfo(chain, poolMember.poolId).map {
+            observePoolInfo(chain, poolMember.poolId).map { poolInfo ->
                 val pendingRewards = dataSource.getPendingRewards(chain.id, accountId).getOrNull().orZero()
                 val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
                 val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
                 val redeemable = unbondingEras.filter { it.era < currentEra }.sumOf { it.amount }
                 val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
-                it.toOwnPool(poolMember, redeemable, unbonding, pendingRewards)
+                poolInfo.toOwnPool(poolMember, redeemable, unbonding, pendingRewards)
             }
         }
     }
@@ -98,8 +98,10 @@ class StakingPoolInteractor(
             val name = dataSource.getPoolMetadata(chain.id, poolId) ?: "Pool #$poolId"
 
             val hasValidators = nominations?.targets?.isNotEmpty() == true
+            val bondedPoolState = NominationPoolState.from(bondedPool.state.name)
             val state = when {
-                hasValidators.not() -> NominationPoolState.HasNoValidators
+                bondedPoolState == NominationPoolState.Open &&
+                    hasValidators.not() -> NominationPoolState.HasNoValidators
                 else -> NominationPoolState.from(bondedPool.state.name)
             }
             PoolInfo(
@@ -221,7 +223,6 @@ class StakingPoolInteractor(
     }
 
     suspend fun getAccountName(address: String): String? {
-        Dispatchers.Default
         val chain = stakingInteractor.getSelectedChain()
         val accountId = chain.accountIdOf(address)
         val metaAccount = accountRepository.findMetaAccount(accountId)
@@ -298,4 +299,8 @@ class StakingPoolInteractor(
         accountAddress: String,
         vararg validators: AccountId
     ) = api.nominatePool(poolId, accountAddress, *validators)
+
+    suspend fun estimateEditFee(state: EditPoolFlowState) = api.estimateEditPool(state)
+
+    suspend fun edit(state: EditPoolFlowState, address: String) = api.editPool(state, address)
 }

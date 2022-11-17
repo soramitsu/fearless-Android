@@ -671,6 +671,11 @@
         android:label="editPoolFragment" />
 
     <dialog
+        android:id="@+id/editPoolConfirmFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.pools.edit.EditPoolConfirmFragment"
+        android:label="editPoolConfirmFragment" />
+
+    <dialog
         android:id="@+id/validatorsSettingsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.common.filters.ValidatorsSettingsFragment"
         android:label="validatorsSettingsFragment" />

@@ -321,3 +321,21 @@ fun ExtrinsicBuilder.bondExtra(amount: BigInteger): ExtrinsicBuilder {
         )
     )
 }
+
+fun ExtrinsicBuilder.updateRoles(
+    poolId: BigInteger,
+    root: DictEnum.Entry<AccountId?>,
+    nominator: DictEnum.Entry<AccountId?>,
+    stateToggler: DictEnum.Entry<AccountId?>
+): ExtrinsicBuilder {
+    return call(
+        "NominationPools",
+        "update_roles",
+        mapOf(
+            "pool_id" to poolId,
+            "new_root" to root,
+            "new_nominator" to nominator,
+            "new_state_toggler" to stateToggler
+        )
+    )
+}

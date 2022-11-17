@@ -849,4 +849,6 @@
     <string name="common_block">Заблокировать</string>
     <string name="pool_options_title">Настройки пулла</string>
     <string name="pool_edit_title">Редактирование пулла</string>
+    <string name="pool_edit_confirm_warning">ВНИМАНИЕ: Смена роли - необратимая операция. Она может вызвать потерю контроля над пуллом.</string>
+
 </resources>

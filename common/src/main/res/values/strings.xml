@@ -935,4 +935,5 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_block">Block</string>
     <string name="pool_options_title">Pool options</string>
     <string name="pool_edit_title">Edit pool</string>
+    <string name="pool_edit_confirm_warning">WARNING: Changing the role is irreversible and may lead to loss of access to the pool.</string>
 </resources>

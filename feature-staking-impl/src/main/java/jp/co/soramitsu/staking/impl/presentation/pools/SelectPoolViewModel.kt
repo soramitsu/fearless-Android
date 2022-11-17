@@ -13,12 +13,13 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolSorting
-import jp.co.soramitsu.staking.impl.presentation.pools.compose.SingleSelectListItemViewState
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
+import jp.co.soramitsu.staking.impl.presentation.pools.compose.SingleSelectListItemViewState
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -51,7 +52,15 @@ class SelectPoolViewModel @Inject constructor(
         selectedItem = MutableStateFlow(setupState.selectedPool?.toState(asset, true))
     }
 
-    private val poolsFlow = flowOf { poolInteractor.getAllPools(chain) }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
+    private val poolsFlow =
+        flowOf {
+            poolInteractor.getAllPools(chain)
+                .filter { it.state != NominationPoolState.Blocked && it.state != NominationPoolState.Destroying }
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            listOf()
+        )
 
     private val sortingFlow = MutableStateFlow(PoolSorting.TotalStake)
 

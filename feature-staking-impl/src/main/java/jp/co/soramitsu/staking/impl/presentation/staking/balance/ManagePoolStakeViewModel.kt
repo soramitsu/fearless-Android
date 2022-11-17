@@ -30,6 +30,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -56,7 +57,7 @@ class ManagePoolStakeViewModel @Inject constructor(
                 pool?.myStakeInPlanks.orZero()
             )
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    }
 
     private val defaultAvailableState = TitleValueViewState(
         resourceManager.getString(R.string.wallet_balance_available)
@@ -144,7 +145,7 @@ class ManagePoolStakeViewModel @Inject constructor(
         val poolInfoViewState = defaultPoolInfoState.copy(value = pool.name ?: "Pool #${pool.poolId}")
 
         val timeBeforeRedeemState = defaultTimeBeforeRedeemState.copy(value = unstakingPeriod)
-        // todo stub for claim notification
+
         ManagePoolStakeViewState(
             totalFormatted,
             claimNotification,
@@ -178,14 +179,16 @@ class ManagePoolStakeViewModel @Inject constructor(
     }
 
     override fun onSelectValidatorsClick() {
-        val pool = requireNotNull(poolStateFlow.value)
-        stakingPoolSharedStateProvider.selectValidatorsState.set(
-            SelectValidatorFlowState(
-                poolName = pool.name,
-                poolId = pool.poolId
+        viewModelScope.launch {
+            val pool = requireNotNull(poolStateFlow.first())
+            stakingPoolSharedStateProvider.selectValidatorsState.set(
+                SelectValidatorFlowState(
+                    poolName = pool.name,
+                    poolId = pool.poolId
+                )
             )
-        )
-        router.openStartSelectValidators()
+            router.openStartSelectValidators()
+        }
     }
 
     override fun onBottomSheetOptionSelected(option: PoolStakeManagementOptions) {
@@ -203,7 +206,7 @@ class ManagePoolStakeViewModel @Inject constructor(
 
     private fun onPoolInfoClick() {
         viewModelScope.launch {
-            val pool = requireNotNull(poolStateFlow.value)
+            val pool = requireNotNull(poolStateFlow.first())
             router.openPoolInfo(pool.toPoolInfo())
         }
     }
