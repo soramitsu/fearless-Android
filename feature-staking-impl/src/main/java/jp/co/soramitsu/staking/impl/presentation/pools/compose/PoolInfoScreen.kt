@@ -40,7 +40,7 @@ import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.PoolInfoScreenViewState.Companion.VALIDATORS_CLICK_STATE_IDENTIFIER
 
 data class PoolInfoScreenViewState(
-    val poolStatus: PoolStatusViewState,
+    val poolStatus: PoolStatusViewState?,
     val poolId: TitleValueViewState,
     val name: TitleValueViewState,
     val state: TitleValueViewState,
@@ -119,7 +119,7 @@ fun PoolInfoScreen(state: PoolInfoScreenViewState, screenInterface: PoolInfoScre
 
 @Composable
 private fun PoolInfoToolbar(
-    poolState: PoolStatusViewState,
+    poolState: PoolStatusViewState?,
     showOptions: Boolean,
     modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit,
@@ -145,7 +145,7 @@ private fun PoolInfoToolbar(
                 style = MaterialTheme.customTypography.header4,
                 maxLines = 1
             )
-            PoolState(state = poolState)
+            poolState?.let { PoolState(state = it) }
         }
         if (showOptions) {
             jp.co.soramitsu.common.compose.component.IconButton(

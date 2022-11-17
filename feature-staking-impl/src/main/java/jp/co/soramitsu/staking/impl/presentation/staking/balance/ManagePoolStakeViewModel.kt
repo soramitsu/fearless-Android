@@ -180,7 +180,7 @@ class ManagePoolStakeViewModel @Inject constructor(
 
     override fun onSelectValidatorsClick() {
         viewModelScope.launch {
-            val pool = requireNotNull(poolStateFlow.first())
+            val pool = requireNotNull(poolStateFlow.first { it != null })
             stakingPoolSharedStateProvider.selectValidatorsState.set(
                 SelectValidatorFlowState(
                     poolName = pool.name,
@@ -206,7 +206,7 @@ class ManagePoolStakeViewModel @Inject constructor(
 
     private fun onPoolInfoClick() {
         viewModelScope.launch {
-            val pool = requireNotNull(poolStateFlow.first())
+            val pool = requireNotNull(poolStateFlow.first { it != null })
             router.openPoolInfo(pool.toPoolInfo())
         }
     }

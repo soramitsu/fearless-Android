@@ -91,11 +91,11 @@ class PoolInfoViewModel @Inject constructor(
     private val validatorsState = flowOf {
         val validators = stakingPoolInteractor.getValidatorsIds(chain, poolInfo.poolId)
         stakingPoolSharedStateProvider.selectedValidatorsState.mutate { requireNotNull(it).copy(selectedValidators = validators) }
-        TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), validators.count().toString())
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), null))
+        TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), validators.size.toString()) to validators.isNotEmpty()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), null) to false)
 
-    val state: StateFlow<PoolInfoScreenViewState> = combine(rolesFlow, validatorsState) { rolesNames, validatorsState ->
-
+    val state: StateFlow<PoolInfoScreenViewState> = combine(rolesFlow, validatorsState) { rolesNames, validatorsStatePair ->
+        val (validatorsState, hasValidators) = validatorsStatePair
         val depositor = poolInfo.depositor.roleNameOrAddress(rolesNames).let {
             DropDownViewState(
                 hint = resourceManager.getString(R.string.pool_staking_depositor),
@@ -129,12 +129,19 @@ class PoolInfoViewModel @Inject constructor(
             )
         }
 
+        val state = when {
+            poolInfo.state == NominationPoolState.Open && hasValidators.not() -> NominationPoolState.HasNoValidators
+            else -> poolInfo.state
+        }
+
         defaultScreenState.copy(
             depositor = depositor,
             root = root,
             nominator = nominator,
             stateToggler = stateToggler,
-            validators = validatorsState
+            validators = validatorsState,
+            state = TitleValueViewState(resourceManager.getString(R.string.pool_info_state), state.name),
+            poolStatus = state.toViewState()
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
 
@@ -142,7 +149,7 @@ class PoolInfoViewModel @Inject constructor(
         get() = PoolInfoScreenViewState(
             poolId = TitleValueViewState(resourceManager.getString(R.string.pool_info_index), poolInfo.poolId.toString()),
             name = TitleValueViewState(resourceManager.getString(R.string.username_setup_choose_title), poolInfo.name),
-            state = TitleValueViewState(resourceManager.getString(R.string.pool_info_state), poolInfo.state.name),
+            state = TitleValueViewState(resourceManager.getString(R.string.pool_info_state), null),
             staked = TitleValueViewState(resourceManager.getString(R.string.wallet_balance_bonded), staked, stakedFiat),
             members = TitleValueViewState(resourceManager.getString(R.string.pool_info_members), poolInfo.members.toString()),
             validators = TitleValueViewState(resourceManager.getString(R.string.staking_recommended_title), null),
@@ -170,7 +177,7 @@ class PoolInfoViewModel @Inject constructor(
                 clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
                 endIcon = R.drawable.ic_copy_16
             ),
-            poolStatus = poolInfo.state.toViewState(),
+            poolStatus = null,
             showOptions = canChangeRoles
         )
 
