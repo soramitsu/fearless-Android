@@ -31,14 +31,15 @@ class PoolInfoOptionsViewModel @Inject constructor(
         poolInfo.apply {
             poolSharedStateProvider.editPoolState.set(
                 EditPoolFlowState(
-                    poolName = name,
+                    initialPoolName = name,
                     poolId = poolId,
                     depositor = depositor,
-                    root = root,
-                    nominator = nominator,
-                    stateToggler = stateToggler
+                    initialRoot = root,
+                    initialNominator = nominator,
+                    initialStateToggler = stateToggler
                 )
             )
         }
+        router.openEditPool()
     }
 }

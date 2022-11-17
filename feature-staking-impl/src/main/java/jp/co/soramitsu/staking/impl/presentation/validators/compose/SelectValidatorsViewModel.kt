@@ -205,11 +205,18 @@ fun Validator.toModel(
         }
     }
 
+    val additionalStatuses = if (this.slashed) {
+        listOf(SelectableListItemState.SelectableListItemAdditionalStatus.WARNING)
+    } else {
+        emptyList()
+    }
+
     return SelectableListItemState(
         id = accountIdHex,
         title = identity?.display ?: address,
         subtitle = resourceManager.getString(R.string.staking_validator_total_stake_token, totalStake),
         caption = captionText,
-        isSelected = isSelected
+        isSelected = isSelected,
+        additionalStatuses = additionalStatuses
     )
 }

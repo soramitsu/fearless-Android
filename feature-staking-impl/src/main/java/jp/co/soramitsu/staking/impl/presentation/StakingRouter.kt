@@ -146,5 +146,7 @@ interface StakingRouter {
 
     fun openPoolInfoOptions(poolInfo: PoolInfo)
 
+    fun openEditPool()
+
     val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
 }

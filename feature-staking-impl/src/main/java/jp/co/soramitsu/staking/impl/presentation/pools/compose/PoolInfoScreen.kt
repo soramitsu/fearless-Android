@@ -23,7 +23,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.compose.component.DropDown
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.H5Bold
@@ -51,7 +50,8 @@ data class PoolInfoScreenViewState(
     val depositor: DropDownViewState,
     val root: DropDownViewState?,
     val nominator: DropDownViewState?,
-    val stateToggler: DropDownViewState?
+    val stateToggler: DropDownViewState?,
+    val showOptions: Boolean
 ) {
     companion object {
         const val VALIDATORS_CLICK_STATE_IDENTIFIER = 0
@@ -79,6 +79,7 @@ fun PoolInfoScreen(state: PoolInfoScreenViewState, screenInterface: PoolInfoScre
     BottomSheetScreen(modifier = Modifier.verticalScroll(rememberScrollState())) {
         PoolInfoToolbar(
             poolState = state.poolStatus,
+            showOptions = state.showOptions,
             onNavigationClick = screenInterface::onCloseClick,
             onOptionsClick = screenInterface::onOptionsClick
         )
@@ -119,6 +120,7 @@ fun PoolInfoScreen(state: PoolInfoScreenViewState, screenInterface: PoolInfoScre
 @Composable
 private fun PoolInfoToolbar(
     poolState: PoolStatusViewState,
+    showOptions: Boolean,
     modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit,
     onOptionsClick: () -> Unit
@@ -145,12 +147,14 @@ private fun PoolInfoToolbar(
             )
             PoolState(state = poolState)
         }
-        jp.co.soramitsu.common.compose.component.IconButton(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
-            tint = Color.Unspecified,
-            onClick = onOptionsClick
-        )
+        if (showOptions) {
+            jp.co.soramitsu.common.compose.component.IconButton(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                painter = painterResource(id = R.drawable.ic_dots_horizontal_24),
+                tint = Color.Unspecified,
+                onClick = onOptionsClick
+            )
+        }
     }
 }
 
@@ -196,7 +200,8 @@ private fun PoolInfoScreenPreview() {
         root = DropDownViewState(hint = "Root", text = "0x5df782gf3f487h9f238y3847fhty3g8d273gd8213ed"),
         nominator = DropDownViewState(hint = "Nominator", text = "Cool nominator"),
         stateToggler = DropDownViewState(hint = "State toggler", text = "Bad state toggler"),
-        poolStatus = PoolStatusViewState.ValidatorsAreNotSelected
+        poolStatus = PoolStatusViewState.ValidatorsAreNotSelected,
+        showOptions = true
     )
     FearlessTheme {
         PoolInfoScreen(state, emptyInterface)

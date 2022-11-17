@@ -169,7 +169,8 @@ class PoolInfoViewModel @Inject constructor(
                 clickableMode = DropDownViewState.ClickableMode.AlwaysClickable,
                 endIcon = R.drawable.ic_copy_16
             ),
-            poolStatus = poolInfo.state.toViewState()
+            poolStatus = poolInfo.state.toViewState(),
+            showOptions = canChangeRoles
         )
 
     private fun NominationPoolState.toViewState() = when (this) {

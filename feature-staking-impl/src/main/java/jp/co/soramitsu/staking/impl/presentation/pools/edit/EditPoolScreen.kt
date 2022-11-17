@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -49,13 +50,19 @@ fun EditPoolScreen(state: EditPoolViewState, screenInterface: EditPoolScreenInte
         Toolbar(
             state = ToolbarViewState(
                 title = stringResource(id = R.string.pool_edit_title),
-                navigationIcon = R.drawable.ic_close_16_circle
+                navigationIcon = R.drawable.ic_close
             ),
             onNavigationClick = screenInterface::onCloseClick
         )
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .imePadding()) {
             MarginVertical(margin = 8.dp)
-            val nameInputState = TextInputViewState(text = state.poolName, hint = stringResource(id = R.string.pool_staking_pool_name))
+            val nameInputState = TextInputViewState(
+                text = state.poolName,
+                hint = stringResource(id = R.string.pool_staking_pool_name),
+                endIcon = R.drawable.ic_close_16_circle
+            )
             TextInput(state = nameInputState, onInput = screenInterface::onNameInput, onEndIconClick = screenInterface::onClearNameClick)
             MarginVertical(margin = 24.dp)
             H4(text = stringResource(id = R.string.pool_staking_roles))
@@ -80,16 +87,15 @@ fun EditPoolScreen(state: EditPoolViewState, screenInterface: EditPoolScreenInte
             )
             DropDown(state = stateTogglerState, onClick = screenInterface::onStateTogglerClick)
             Spacer(modifier = Modifier.weight(1f))
-            if (state.continueAvailable) {
-                AccentButton(
-                    text = stringResource(id = R.string.common_continue),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    onClick = screenInterface::onNextClick
-                )
-                MarginVertical(margin = 32.dp)
-            }
+            AccentButton(
+                text = stringResource(id = R.string.common_continue),
+                enabled = state.continueAvailable,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                onClick = screenInterface::onNextClick
+            )
+            MarginVertical(margin = 32.dp)
         }
     }
 }

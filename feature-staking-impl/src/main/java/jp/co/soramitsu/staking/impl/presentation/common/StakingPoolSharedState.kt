@@ -92,12 +92,16 @@ data class SelectedValidatorsFlowState(
 }
 
 data class EditPoolFlowState(
-    val poolName: String,
     val poolId: BigInteger,
+    val initialPoolName: String,
     val depositor: AccountId,
-    val root: AccountId?,
-    val nominator: AccountId?,
-    val stateToggler: AccountId?,
+    val initialRoot: AccountId?,
+    val initialNominator: AccountId?,
+    val initialStateToggler: AccountId?,
+    val newPoolName: String?,
+    val newRoot: AccountId? = null,
+    val newNominator: AccountId? = null,
+    val newStateToggler: AccountId? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -105,23 +109,49 @@ data class EditPoolFlowState(
 
         other as EditPoolFlowState
 
-        if (poolName != other.poolName) return false
         if (poolId != other.poolId) return false
+        if (initialPoolName != other.initialPoolName) return false
         if (!depositor.contentEquals(other.depositor)) return false
-        if (!root.contentEquals(other.root)) return false
-        if (!nominator.contentEquals(other.nominator)) return false
-        if (!stateToggler.contentEquals(other.stateToggler)) return false
+        if (initialRoot != null) {
+            if (other.initialRoot == null) return false
+            if (!initialRoot.contentEquals(other.initialRoot)) return false
+        } else if (other.initialRoot != null) return false
+        if (initialNominator != null) {
+            if (other.initialNominator == null) return false
+            if (!initialNominator.contentEquals(other.initialNominator)) return false
+        } else if (other.initialNominator != null) return false
+        if (initialStateToggler != null) {
+            if (other.initialStateToggler == null) return false
+            if (!initialStateToggler.contentEquals(other.initialStateToggler)) return false
+        } else if (other.initialStateToggler != null) return false
+        if (newPoolName != other.newPoolName) return false
+        if (newRoot != null) {
+            if (other.newRoot == null) return false
+            if (!newRoot.contentEquals(other.newRoot)) return false
+        } else if (other.newRoot != null) return false
+        if (newNominator != null) {
+            if (other.newNominator == null) return false
+            if (!newNominator.contentEquals(other.newNominator)) return false
+        } else if (other.newNominator != null) return false
+        if (newStateToggler != null) {
+            if (other.newStateToggler == null) return false
+            if (!newStateToggler.contentEquals(other.newStateToggler)) return false
+        } else if (other.newStateToggler != null) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = poolName.hashCode()
-        result = 31 * result + poolId.hashCode()
+        var result = poolId.hashCode()
+        result = 31 * result + initialPoolName.hashCode()
         result = 31 * result + depositor.contentHashCode()
-        result = 31 * result + root.contentHashCode()
-        result = 31 * result + nominator.contentHashCode()
-        result = 31 * result + stateToggler.contentHashCode()
+        result = 31 * result + (initialRoot?.contentHashCode() ?: 0)
+        result = 31 * result + (initialNominator?.contentHashCode() ?: 0)
+        result = 31 * result + (initialStateToggler?.contentHashCode() ?: 0)
+        result = 31 * result + (newPoolName?.hashCode() ?: 0)
+        result = 31 * result + (newRoot?.contentHashCode() ?: 0)
+        result = 31 * result + (newNominator?.contentHashCode() ?: 0)
+        result = 31 * result + (newStateToggler?.contentHashCode() ?: 0)
         return result
     }
 }
