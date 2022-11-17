@@ -49,6 +49,7 @@ import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -493,8 +494,26 @@ class BalanceListViewModel @Inject constructor(
 
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
-            val result = interactor.getRecipientFromQrCodeContent(content).getOrDefault(content)
-            router.openSend(assetPayload = null, initialSendToAddress = result)
+            val result = interactor.tryReadAddressFromSoraFormat(content) ?: content
+            val qrTokenId = interactor.tryReadTokenIdFromSoraFormat(content)
+            val payloadFromQr = qrTokenId?.let {
+                val addressChains = interactor.getChains().first()
+                    .filter { it.addressPrefix.toShort() == result.addressByteOrNull() }
+                    .filter { it.assets.any { it.currencyId == qrTokenId } }
+                if (addressChains.size == 1) {
+                    val chain = addressChains[0]
+                    val soraAsset = chain.assets.firstOrNull {
+                        it.currencyId == qrTokenId
+                    }
+
+                    soraAsset?.let {
+                        AssetPayload(it.chainId, it.id)
+                    }
+                } else {
+                    null
+                }
+            }
+            router.openSend(assetPayload = payloadFromQr, initialSendToAddress = result)
         }
     }
 

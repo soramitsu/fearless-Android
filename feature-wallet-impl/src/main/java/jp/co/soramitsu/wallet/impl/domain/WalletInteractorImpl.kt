@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
-import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -49,6 +48,7 @@ import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
+private const val QR_PREFIX_SUBSTRATE = "substrate"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -230,33 +230,35 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getQrCodeSharingString(chainId: ChainId): String {
+    override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
+        val asset = chain.assets.firstOrNull { it.id == assetId }
 
         val address = metaAccount.address(chain)
         val pubKey = metaAccount.accountId(chain)
         val name = metaAccount.name
+        val currencyId = asset?.currencyId
 
-        val payload = if (address != null && pubKey != null) {
-            QrSharing.Payload(address, pubKey, name)
+        if (address != null && pubKey != null && currencyId != null) {
+            return "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId"
         } else {
             throw IllegalArgumentException("There is no address for Etherium")
         }
-
-        return accountRepository.createQrAccountContent(payload)
     }
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String) = runCatching {
         fileProvider.getFileInExternalCacheStorage(fileName)
     }
 
-    override suspend fun getRecipientFromQrCodeContent(content: String): Result<String> {
-        return withContext(Dispatchers.Default) {
-            runCatching {
-                QrSharing.decode(content).address
-            }
-        }
+    override fun tryReadAddressFromSoraFormat(content: String): String? {
+        val list = content.split(":")
+        return list.getOrNull(1)
+    }
+
+    override fun tryReadTokenIdFromSoraFormat(content: String): String? {
+        val list = content.split(":")
+        return list.getOrNull(4)
     }
 
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {

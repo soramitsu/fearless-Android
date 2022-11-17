@@ -70,11 +70,13 @@ interface WalletInteractor {
 
     suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
 
-    suspend fun getQrCodeSharingString(chainId: ChainId): String
+    suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 
-    suspend fun getRecipientFromQrCodeContent(content: String): Result<String>
+    fun tryReadAddressFromSoraFormat(content: String): String?
+
+    fun tryReadTokenIdFromSoraFormat(content: String): String?
 
     suspend fun getChain(chainId: ChainId): Chain
 

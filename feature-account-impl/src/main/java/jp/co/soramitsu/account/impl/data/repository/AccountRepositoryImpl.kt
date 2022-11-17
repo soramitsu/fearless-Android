@@ -44,7 +44,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFa
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
-import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -584,10 +583,6 @@ class AccountRepositoryImpl(
 
     override suspend fun changeLanguage(language: Language) {
         return accountDataSource.changeSelectedLanguage(language)
-    }
-
-    override fun createQrAccountContent(payload: QrSharing.Payload): String {
-        return QrSharing.encode(payload)
     }
 
     private suspend fun saveFromMnemonic(
