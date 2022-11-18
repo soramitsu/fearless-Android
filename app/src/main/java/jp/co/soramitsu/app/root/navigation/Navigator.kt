@@ -40,6 +40,7 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.app.root.presentation.WebViewerFragment
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.common.view.onResumeObserver
@@ -868,4 +869,8 @@ class Navigator :
                 }
             }.filterNotNull()
         }
+
+    override fun openWebViewer(title: String, url: String) {
+        navController?.navigate(R.id.webViewerFragment, WebViewerFragment.getBundle(title, url))
+    }
 }

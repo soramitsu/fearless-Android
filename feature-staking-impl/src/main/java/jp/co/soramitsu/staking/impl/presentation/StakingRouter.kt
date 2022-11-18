@@ -154,6 +154,7 @@ interface StakingRouter {
     val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
 
     fun openAlert(payload: AlertViewState)
+    fun openWebViewer(title: String, url: String)
 
     val alertResultFlow: Flow<Result<Unit>>
 }
