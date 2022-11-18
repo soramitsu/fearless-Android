@@ -26,8 +26,8 @@
         android:layout_marginBottom="16dp"
         android:drawablePadding="8dp"
         android:text="@string/staking_your_oversubscribed_message"
-        app:drawableStartCompat="@drawable/ic_warning_filled"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        app:drawableStartCompat="@drawable/ic_warning_filled" />
 
     <View
         android:id="@+id/payoutDivider"
@@ -53,4 +53,23 @@
         android:visibility="gone"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_current_validator" />
+
+    <FrameLayout
+        android:id="@+id/validatorsEmptyState"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            style="@style/TextAppearance.Soramitsu.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:drawableTopCompat="@drawable/ic_alert"
+            android:drawablePadding="26dp"
+            android:gravity="center"
+            android:text="@string/staking_set_validators_message"
+            android:textColor="@color/black1" />
+
+    </FrameLayout>
+
 </LinearLayout>
