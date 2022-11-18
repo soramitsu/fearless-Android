@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.domain.rewards
 
+import android.util.Log
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.utils.fractionToPercentage
@@ -8,14 +9,14 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingAllCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingCollatorsApyRequest
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingLastRoundIdRequest
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlin.math.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -196,12 +197,21 @@ class SubqueryRewardCalculator(
         if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
             throw Exception("Staking for this network is not supported yet")
         }
-        val roundId = stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull()
+        val roundId =
+            kotlin.runCatching { stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull() }
+                .getOrNull()
         val previousRoundId = roundId?.dec()
         val collatorsApyRequest = StakingAllCollatorsApyRequest(previousRoundId)
-        return stakingApi.getAllCollatorsApy(stakingUrl, collatorsApyRequest).data.collatorRounds.nodes.mapNotNull { element ->
-            element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
-        }.toMap().maxOf { it.value ?: BigDecimal.ZERO }.fractionToPercentage()
+
+        val response = runCatching { stakingApi.getAllCollatorsApy(stakingUrl, collatorsApyRequest) }
+        return response.fold({
+            it.data.collatorRounds.nodes.mapNotNull { element ->
+                element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
+            }.toMap().maxOf { it.value ?: BigDecimal.ZERO }.fractionToPercentage()
+        }, {
+            Log.e("SubqueryRewardCalculator::calculateMaxAPY", "SubqueryRewardCalculator::calculateMaxAPY error: ${it.localizedMessage ?: it.message}")
+            BigDecimal.ZERO
+        })
     }
 
     override fun calculateAvgAPY(): BigDecimal {
@@ -238,11 +248,18 @@ class SubqueryRewardCalculator(
         if (stakingUrl == null || chain.externalApi?.staking?.type != Chain.ExternalApi.Section.Type.SUBQUERY) {
             throw Exception("Staking for this network is not supported yet")
         }
-        val roundId = stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull()
+        val roundId =
+            runCatching { stakingApi.getLastRoundId(stakingUrl, StakingLastRoundIdRequest()).data.rounds.nodes.firstOrNull()?.id?.toIntOrNull() }.getOrNull()
         val previousRoundId = roundId?.dec()
         val collatorsApyRequest = StakingCollatorsApyRequest(selectedCandidates, previousRoundId)
-        return stakingApi.getCollatorsApy(stakingUrl, collatorsApyRequest).data.collatorRounds.nodes.mapNotNull { element ->
-            element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
-        }.toMap()
+        val response = runCatching { stakingApi.getCollatorsApy(stakingUrl, collatorsApyRequest) }
+        return response.fold({
+            it.data.collatorRounds.nodes.mapNotNull { element ->
+                element.collatorId?.let { it.fromHex().toHexString(false) to element.apr }
+            }.toMap()
+        }, {
+            Log.e("SubqueryRewardCalculator::getApy", "SubqueryRewardCalculator::getApy error: ${it.localizedMessage ?: it.message}")
+            emptyMap()
+        })
     }
 }
