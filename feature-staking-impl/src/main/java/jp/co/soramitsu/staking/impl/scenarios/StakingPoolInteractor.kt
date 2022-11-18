@@ -33,12 +33,16 @@ import jp.co.soramitsu.staking.impl.domain.validators.ValidatorSource
 import jp.co.soramitsu.staking.impl.presentation.common.EditPoolFlowState
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
@@ -53,11 +57,15 @@ class StakingPoolInteractor(
     private val validatorProvider: ValidatorProvider
 ) {
 
+    @OptIn(FlowPreview::class)
     fun stakingStateFlow(): Flow<StakingState> {
-        return stakingInteractor.selectedChainFlow().filter { it.supportStakingPool }.flatMapConcat { chain ->
-            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        val currentChainFlow = stakingInteractor.selectedChainFlow().filter { it.supportStakingPool }
+        val selectedAccountFlow = accountRepository.selectedMetaAccountFlow()
+
+        return combine(currentChainFlow, selectedAccountFlow) { chain, metaAccount ->
+            val accountId = metaAccount.accountId(chain) ?: error("cannot find accountId")
             stakingPoolStateFlow(chain, accountId)
-        }
+        }.flattenMerge()
     }
 
     private fun stakingPoolStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState> {
@@ -69,13 +77,13 @@ class StakingPoolInteractor(
         }.runCatching { this }.getOrDefault(emptyFlow())
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun observeCurrentPool(
         chain: Chain,
         accountId: AccountId
     ): Flow<OwnPool?> {
-        return dataSource.observePoolMembers(chain.id, accountId).flatMapConcat { poolMember ->
-            poolMember ?: return@flatMapConcat flowOf(null)
-
+        return dataSource.observePoolMembers(chain.id, accountId).distinctUntilChanged().flatMapLatest { poolMember ->
+            poolMember ?: return@flatMapLatest flowOf(null)
             observePoolInfo(chain, poolMember.poolId).map { poolInfo ->
                 val pendingRewards = dataSource.getPendingRewards(chain.id, accountId).getOrNull().orZero()
                 val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
