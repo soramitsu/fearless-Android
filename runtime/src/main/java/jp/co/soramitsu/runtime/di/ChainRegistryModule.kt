@@ -24,7 +24,6 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeFilesCache
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
-import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
 import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,18 +81,10 @@ class ChainRegistryModule {
 
     @Provides
     @Singleton
-    fun provideBaseTypeSynchronizer(
-        typesFetcher: TypesFetcher,
-        runtimeFilesCache: RuntimeFilesCache
-    ) = BaseTypeSynchronizer(runtimeFilesCache, typesFetcher)
-
-    @Provides
-    @Singleton
     fun provideRuntimeProviderPool(
         runtimeFactory: RuntimeFactory,
-        runtimeSyncService: RuntimeSyncService,
-        baseTypeSynchronizer: BaseTypeSynchronizer
-    ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService, baseTypeSynchronizer)
+        runtimeSyncService: RuntimeSyncService
+    ) = RuntimeProviderPool(runtimeFactory, runtimeSyncService)
 
     @Provides
     @Singleton
@@ -127,7 +118,6 @@ class ChainRegistryModule {
         runtimeSubscriptionPool: RuntimeSubscriptionPool,
         chainDao: ChainDao,
         chainSyncService: ChainSyncService,
-        baseTypeSynchronizer: BaseTypeSynchronizer,
         runtimeSyncService: RuntimeSyncService,
         updatesMixin: UpdatesMixin
     ) = ChainRegistry(
@@ -136,7 +126,6 @@ class ChainRegistryModule {
         runtimeSubscriptionPool,
         chainDao,
         chainSyncService,
-        baseTypeSynchronizer,
         runtimeSyncService,
         updatesMixin
     )
