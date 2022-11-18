@@ -220,5 +220,5 @@ fun ChainId.defaultChainSort() = when (this) {
 }
 
 enum class TypesUsage {
-    BASE, OWN, BOTH,
+    ON_CHAIN, UNSUPPORTED
 }

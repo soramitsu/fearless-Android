@@ -21,7 +21,6 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
-import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,7 +42,6 @@ class ChainRegistry @Inject constructor(
     private val runtimeSubscriptionPool: RuntimeSubscriptionPool,
     private val chainDao: ChainDao,
     private val chainSyncService: ChainSyncService,
-    private val baseTypeSynchronizer: BaseTypeSynchronizer,
     private val runtimeSyncService: RuntimeSyncService,
     private val updatesMixin: UpdatesMixin
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
@@ -94,7 +92,6 @@ class ChainRegistry @Inject constructor(
     fun syncUp() {
         launch {
             runCatching { chainSyncService.syncUp() }
-            runCatching { baseTypeSynchronizer.sync() }
         }
     }
 
