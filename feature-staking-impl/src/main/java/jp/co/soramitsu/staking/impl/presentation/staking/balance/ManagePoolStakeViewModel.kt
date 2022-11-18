@@ -17,6 +17,7 @@ import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
+import jp.co.soramitsu.staking.impl.presentation.common.SelectedValidatorsFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolManageFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeScreenInterface
@@ -31,13 +32,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ManagePoolStakeViewModel @Inject constructor(
-    stakingPoolInteractor: StakingPoolInteractor,
+    private val stakingPoolInteractor: StakingPoolInteractor,
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val resourceManager: ResourceManager,
     private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
@@ -58,6 +60,10 @@ class ManagePoolStakeViewModel @Inject constructor(
             )
         }
     }
+
+    private val validatorIdsFlow = poolStateFlow.filterNotNull()
+        .map { pool -> stakingPoolInteractor.getValidatorsIds(chain, pool.poolId) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val defaultAvailableState = TitleValueViewState(
         resourceManager.getString(R.string.wallet_balance_available)
@@ -214,5 +220,20 @@ class ManagePoolStakeViewModel @Inject constructor(
         }
     }
 
-    private fun onNominationsClick() {}
+    private fun onNominationsClick() {
+        viewModelScope.launch {
+            val pool = poolStateFlow.first { it != null } ?: return@launch
+
+            val canChangeValidators = pool.root.contentEquals(accountId) || pool.nominator.contentEquals(accountId)
+            stakingPoolSharedStateProvider.selectedValidatorsState.set(
+                SelectedValidatorsFlowState(
+                    canChangeValidators = canChangeValidators,
+                    poolId = pool.poolId,
+                    poolName = pool.name,
+                    selectedValidators = validatorIdsFlow.value
+                )
+            )
+            router.openSelectedValidators()
+        }
+    }
 }

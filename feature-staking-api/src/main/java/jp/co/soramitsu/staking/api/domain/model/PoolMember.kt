@@ -106,8 +106,3 @@ enum class NominationPoolState {
         }
     }
 }
-
-sealed class PoolFieldUpdate {
-    class Set<T>(value: T) : PoolFieldUpdate()
-    object Keep : PoolFieldUpdate()
-}
