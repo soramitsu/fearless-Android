@@ -85,7 +85,8 @@ class ManagePoolStakeViewModel @Inject constructor(
         defaultAvailableState,
         defaultUnstakingState,
         defaultPoolInfoState,
-        defaultTimeBeforeRedeemState
+        defaultTimeBeforeRedeemState,
+        false
     )
 
     private val unstakingPeriodFlow = jp.co.soramitsu.common.utils.flowOf {
@@ -99,6 +100,7 @@ class ManagePoolStakeViewModel @Inject constructor(
     }
 
     val state = combine(poolStateFlow.filterNotNull(), unstakingPeriodFlow) { pool, unstakingPeriod ->
+        val isFullUnstake = pool.myStakeInPlanks == BigInteger.ZERO
         val total = asset.token.amountFromPlanks(pool.myStakeInPlanks)
         val totalFormatted = total.formatTokenAmount(asset.token.configuration)
 
@@ -147,14 +149,15 @@ class ManagePoolStakeViewModel @Inject constructor(
         val timeBeforeRedeemState = defaultTimeBeforeRedeemState.copy(value = unstakingPeriod)
 
         ManagePoolStakeViewState(
-            totalFormatted,
-            claimNotification,
-            redeemableNotification,
-            noValidatorsNotification,
-            availableState,
-            unstakingState,
-            poolInfoViewState,
-            timeBeforeRedeemState
+            total = totalFormatted,
+            claimNotification = claimNotification,
+            redeemNotification = redeemableNotification,
+            noValidatorsNotification = noValidatorsNotification,
+            available = availableState,
+            unstaking = unstakingState,
+            poolInfo = poolInfoViewState,
+            timeBeforeRedeem = timeBeforeRedeemState,
+            isFullUnstake = isFullUnstake
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenViewState)
 

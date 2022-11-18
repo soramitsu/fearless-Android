@@ -47,7 +47,8 @@ data class ManagePoolStakeViewState(
     val available: TitleValueViewState,
     val unstaking: TitleValueViewState,
     val poolInfo: TitleValueViewState,
-    val timeBeforeRedeem: TitleValueViewState
+    val timeBeforeRedeem: TitleValueViewState,
+    val isFullUnstake: Boolean
 ) {
     companion object {
         const val POOL_INFO_CLICK_IDENTIFIER = 0
@@ -152,13 +153,15 @@ fun ManagePoolStakeScreen(
                         GrayButton(
                             text = stringResource(id = R.string.staking_bond_more_v1_9_0),
                             onClick = screenInterface::onStakeMoreClick,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = state.isFullUnstake.not()
                         )
                         MarginHorizontal(margin = 16.dp)
                         GrayButton(
                             text = stringResource(id = R.string.staking_unbond_v1_9_0),
                             onClick = screenInterface::onUnstakeClick,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = state.isFullUnstake.not()
                         )
                     }
                     MarginVertical(margin = 16.dp)
@@ -179,7 +182,8 @@ private fun ManagePoolStakeScreenPreview() {
         TitleValueViewState("Available"),
         TitleValueViewState("Unstaking", "1.1000 KSM", "\$1.001"),
         TitleValueViewState("Pool Info", "⚡️Everlight☀️", clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)),
-        TitleValueViewState("Time before redeem", "5 days")
+        TitleValueViewState("Time before redeem", "5 days"),
+        false
     )
     val emptyInterface = object : ManagePoolStakeScreenInterface {
         override fun onBackClick() = Unit
