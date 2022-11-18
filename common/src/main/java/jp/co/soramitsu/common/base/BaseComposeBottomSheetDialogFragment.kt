@@ -43,18 +43,6 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, R.style.CustomBottomSheetDialogTheme)
-        viewModel.errorLiveData.observeEvent {
-            openAlertDialogMutableState.value = AlertDialogData(
-                title = resources.getString(R.string.common_error_general_title),
-                message = it
-            )
-        }
-        viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
-            openAlertDialogMutableState.value = AlertDialogData(
-                title = title,
-                message = message
-            )
-        }
     }
 
     @OptIn(ExperimentalComposeUiApi::class)
@@ -88,6 +76,18 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.messageLiveData.observeEvent(::showMessage)
+        viewModel.errorLiveData.observeEvent {
+            openAlertDialogMutableState.value = AlertDialogData(
+                title = resources.getString(R.string.common_error_general_title),
+                message = it
+            )
+        }
+        viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
+            openAlertDialogMutableState.value = AlertDialogData(
+                title = title,
+                message = message
+            )
+        }
     }
 
     protected fun showMessage(text: String) {

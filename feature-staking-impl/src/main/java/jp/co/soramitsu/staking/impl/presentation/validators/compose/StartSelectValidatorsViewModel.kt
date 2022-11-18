@@ -54,15 +54,20 @@ class StartSelectValidatorsViewModel @Inject constructor(
         launch {
             validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
             loadingState.value = false
+
+            router.alertResultFlow.collect {
+                onAlertResult(it)
+            }
         }
     }
 
     fun onRecommendedClick() = viewModelScope.launch {
         val payload = AlertViewState(
-            resourceManager.getString(R.string.staking_suggested_validators_title),
-            resourceManager.getString(R.string.alert_suggested_validators),
-            resourceManager.getString(R.string.common_continue),
-            R.drawable.ic_alert_16
+            title = resourceManager.getString(R.string.staking_suggested_validators_title),
+            message = resourceManager.getString(R.string.alert_suggested_validators),
+            buttonText = resourceManager.getString(R.string.common_continue),
+            textSize = 12,
+            iconRes = R.drawable.ic_alert_16
         )
         router.openAlert(payload)
     }

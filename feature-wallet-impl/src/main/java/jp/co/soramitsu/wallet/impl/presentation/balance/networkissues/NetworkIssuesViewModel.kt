@@ -67,10 +67,10 @@ class NetworkIssuesViewModel @Inject constructor(
             }
             NetworkIssueType.Network -> {
                 val payload = AlertViewState(
-                    resourceManager.getString(R.string.staking_main_network_title, issue.chainName),
-                    resourceManager.getString(R.string.network_issue_unavailable),
-                    resourceManager.getString(R.string.top_up),
-                    R.drawable.ic_alert_16
+                    title = resourceManager.getString(R.string.staking_main_network_title, issue.chainName),
+                    message = resourceManager.getString(R.string.network_issue_unavailable),
+                    buttonText = resourceManager.getString(R.string.top_up),
+                    iconRes = R.drawable.ic_alert_16
                 )
                 walletRouter.openAlert(payload)
             }

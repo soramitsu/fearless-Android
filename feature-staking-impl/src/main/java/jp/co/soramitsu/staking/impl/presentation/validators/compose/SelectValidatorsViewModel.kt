@@ -1,6 +1,5 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
-import android.util.Log
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -76,7 +75,6 @@ class SelectValidatorsViewModel @Inject constructor(
     private val searchQueryFlow = MutableStateFlow("")
 
     init {
-        Log.d("&&&", "SelectValidatorsViewModel init")
         setupFilters()
         val mainState = stakingPoolSharedStateProvider.requireMainState
         asset = mainState.requireAsset
@@ -104,7 +102,6 @@ class SelectValidatorsViewModel @Inject constructor(
         }.collect {
             recommendedSettings.value = it
         }
-        Log.d("&&&", "SelectValidatorsViewModel subscribeOnSettings")
     }
 
     private val recommendedValidators = recommendedSettings.mapNotNull { settings ->
@@ -168,10 +165,11 @@ class SelectValidatorsViewModel @Inject constructor(
 
     private fun openOversubscribedAlert() {
         val payload = AlertViewState(
-            resourceManager.getString(R.string.alert_oversubscribed_alert_title),
-            resourceManager.getString(R.string.alert_oversubscribed_alert_message),
-            resourceManager.getString(R.string.common_close),
-            R.drawable.ic_alert_16
+            title = resourceManager.getString(R.string.alert_oversubscribed_alert_title),
+            message = resourceManager.getString(R.string.alert_oversubscribed_alert_message),
+            buttonText = resourceManager.getString(R.string.common_close),
+            iconRes = R.drawable.ic_alert_16,
+            textSize = 12
         )
         router.openAlert(payload)
     }

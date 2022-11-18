@@ -9,5 +9,6 @@ data class AlertViewState(
     val title: String,
     val message: String,
     val buttonText: String,
+    val textSize: Int = 16,
     @DrawableRes val iconRes: Int
 ) : Parcelable

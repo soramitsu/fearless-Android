@@ -15,11 +15,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import jp.co.soramitsu.app.root.navigation.Navigator
-import jp.co.soramitsu.app.root.navigation.setNavigationResult
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.AlertViewState
-import jp.co.soramitsu.common.navigation.setNavigationResult
 
 @AndroidEntryPoint
 class AlertFragment : BottomSheetDialogFragment() {
@@ -59,11 +57,11 @@ class AlertFragment : BottomSheetDialogFragment() {
                     AlertSheet(
                         state = state,
                         onBackClicked = {
-                            this@AlertFragment.setNavigationResult<Result<Unit>>(KEY_RESULT, Result.failure(Exception()))
+                            navigator.setAlertResult(KEY_RESULT, Result.failure<Unit>(Exception()))
                             dismiss()
                         },
                         onTopUpClicked = {
-                            this@AlertFragment.setNavigationResult(KEY_RESULT, Result.success(Unit))
+                            navigator.setAlertResult(KEY_RESULT, Result.success(Unit))
                             dismiss()
                         }
                     )

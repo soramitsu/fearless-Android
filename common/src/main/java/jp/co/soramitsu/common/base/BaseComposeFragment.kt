@@ -86,7 +86,6 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                                 Content(padding, scrollState, modalBottomSheetState)
 
                                 AlertDialogContent(openAlertDialog)
-
                             }
                         }
                     )
