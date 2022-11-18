@@ -521,6 +521,11 @@
         android:label="startStakingPoolFragment" />
 
     <dialog
+        android:id="@+id/webViewerFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.WebViewerFragment"
+        android:label="WebViewerFragment" />
+
+    <dialog
         android:id="@+id/setupStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.join.SetupStakingPoolFragment"
         android:label="setupStakingPoolFragment" />

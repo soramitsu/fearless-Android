@@ -114,6 +114,7 @@ buildscript {
                 "com.valentinilk.shimmer:compose-shimmer:1.0.3",
                 "androidx.constraintlayout:constraintlayout-compose:1.0.1",
                 "com.google.accompanist:accompanist-swiperefresh:0.26.5-rc",
+                "com.google.accompanist:accompanist-webview:0.27.1",
                 "io.coil-kt:coil-compose:$coilVersion",
                 "androidx.navigation:navigation-compose:$navControllerVersion",
                 "androidx.hilt:hilt-navigation-compose:1.0.0"

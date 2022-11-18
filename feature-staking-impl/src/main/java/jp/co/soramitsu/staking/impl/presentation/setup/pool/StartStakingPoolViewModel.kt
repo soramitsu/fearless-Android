@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -106,7 +107,9 @@ class StartStakingPoolViewModel @Inject constructor(
         router.back()
     }
 
-    fun onInstructionsClick() {}
+    fun onInstructionsClick() {
+        router.openWebViewer(resourceManager.getString(R.string.pool_staking_title), BuildConfig.STAKING_POOL_WIKI)
+    }
 
     fun onJoinPool() {
         val setupState = flowStateProvider.joinFlowState
