@@ -47,6 +47,7 @@ import jp.co.soramitsu.common.utils.EventObserver
 abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
     abstract val viewModel: T
+    private val openAlertDialogMutableState = mutableStateOf(AlertDialogData())
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -60,7 +61,7 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                 FearlessTheme {
                     val scaffoldState = rememberScaffoldState()
                     val scrollState = rememberScrollState()
-                    val openAlertDialog = remember { mutableStateOf(AlertDialogData()) }
+                    val openAlertDialog = remember { openAlertDialogMutableState }
 
                     val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
 
@@ -85,19 +86,6 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                                 Content(padding, scrollState, modalBottomSheetState)
 
                                 AlertDialogContent(openAlertDialog)
-                                val errorTitle = stringResource(id = R.string.common_error_general_title)
-                                viewModel.errorLiveData.observeEvent {
-                                    openAlertDialog.value = AlertDialogData(
-                                        title = errorTitle,
-                                        message = it
-                                    )
-                                }
-                                viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
-                                    openAlertDialog.value = AlertDialogData(
-                                        title = title,
-                                        message = message
-                                    )
-                                }
                             }
                         }
                     )
@@ -109,6 +97,19 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.messageLiveData.observeEvent(::showMessage)
+        val errorTitle = resources.getString(R.string.common_error_general_title)
+        viewModel.errorLiveData.observeEvent {
+            openAlertDialogMutableState.value = AlertDialogData(
+                title = errorTitle,
+                message = it
+            )
+        }
+        viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
+            openAlertDialogMutableState.value = AlertDialogData(
+                title = title,
+                message = message
+            )
+        }
     }
 
     protected fun showMessage(text: String) {

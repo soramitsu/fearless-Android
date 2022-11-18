@@ -38,6 +38,8 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
 
     abstract val viewModel: T
 
+    private val openAlertDialogMutableState = mutableStateOf(AlertDialogData())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, R.style.CustomBottomSheetDialogTheme)
@@ -54,7 +56,7 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessTheme {
-                    val openAlertDialog = remember { mutableStateOf(AlertDialogData()) }
+                    val openAlertDialog = remember { openAlertDialogMutableState }
 
                     Box(
                         modifier = Modifier
@@ -65,19 +67,6 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
                         Content(PaddingValues())
 
                         AlertDialogContent(openAlertDialog)
-                        val errorTitle = stringResource(id = R.string.common_error_general_title)
-                        viewModel.errorLiveData.observeEvent {
-                            openAlertDialog.value = AlertDialogData(
-                                title = errorTitle,
-                                message = it
-                            )
-                        }
-                        viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
-                            openAlertDialog.value = AlertDialogData(
-                                title = title,
-                                message = message
-                            )
-                        }
                     }
                 }
             }
@@ -87,6 +76,18 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.messageLiveData.observeEvent(::showMessage)
+        viewModel.errorLiveData.observeEvent {
+            openAlertDialogMutableState.value = AlertDialogData(
+                title = resources.getString(R.string.common_error_general_title),
+                message = it
+            )
+        }
+        viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
+            openAlertDialogMutableState.value = AlertDialogData(
+                title = title,
+                message = message
+            )
+        }
     }
 
     protected fun showMessage(text: String) {

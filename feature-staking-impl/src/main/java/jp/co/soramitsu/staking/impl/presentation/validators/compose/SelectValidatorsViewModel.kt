@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigInteger
 import javax.inject.Inject
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
@@ -75,7 +76,6 @@ class SelectValidatorsViewModel @Inject constructor(
 
     init {
         setupFilters()
-
         val mainState = stakingPoolSharedStateProvider.requireMainState
         asset = mainState.requireAsset
         chain = mainState.requireChain
@@ -149,6 +149,11 @@ class SelectValidatorsViewModel @Inject constructor(
 
     override fun onSelected(item: SelectableListItemState<String>) {
         val selectedIds = selectedItems.value
+        val isOverSubscribed = item.additionalStatuses.contains(SelectableListItemState.SelectableListItemAdditionalStatus.OVERSUBSCRIBED)
+        if (isOverSubscribed && selectedIds.contains(item.id).not()) {
+            openOversubscribedAlert()
+        }
+
         val selectedListClone = selectedItems.value.toMutableList()
         if (item.id in selectedIds) {
             selectedListClone.removeIf { it == item.id }
@@ -156,6 +161,17 @@ class SelectValidatorsViewModel @Inject constructor(
             selectedListClone.add(item.id)
         }
         selectedItems.value = selectedListClone
+    }
+
+    private fun openOversubscribedAlert() {
+        val payload = AlertViewState(
+            title = resourceManager.getString(R.string.alert_oversubscribed_alert_title),
+            message = resourceManager.getString(R.string.alert_oversubscribed_alert_message),
+            buttonText = resourceManager.getString(R.string.common_close),
+            iconRes = R.drawable.ic_alert_16,
+            textSize = 12
+        )
+        router.openAlert(payload)
     }
 
     override fun onInfoClick(item: SelectableListItemState<String>) {

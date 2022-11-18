@@ -33,8 +33,10 @@ import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -91,7 +93,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelec
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
@@ -109,7 +110,9 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -765,9 +768,9 @@ class Navigator :
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
     }
 
-    override fun openNetworkUnavailable(chainName: String?) {
-        val bundle = chainName?.let { NetworkUnavailableFragment.getBundle(chainName) }
-        navController?.navigate(R.id.networkUnavailableFragment, bundle)
+    override fun openAlert(payload: AlertViewState) {
+        val bundle = AlertFragment.getBundle(payload)
+        navController?.navigate(R.id.alertFragment, bundle)
     }
 
     override fun openScamWarning(symbol: String) {
@@ -842,4 +845,27 @@ class Navigator :
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
             ?.asFlow() ?: emptyFlow()
+
+    fun setAlertResult(key: String, result: Result<*>) {
+        navController?.previousBackStackEntry?.savedStateHandle?.set(
+            key,
+            result
+        )
+    }
+
+    override val alertResultFlow: Flow<Result<Unit>>
+        get() {
+            val currentEntry = navController?.currentBackStackEntry
+            val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+
+            return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+                if (currentEntry?.savedStateHandle?.contains(AlertFragment.KEY_RESULT) == true) {
+                    val result = currentEntry.savedStateHandle.get<Result<Unit>?>(AlertFragment.KEY_RESULT)
+                    currentEntry.savedStateHandle.set<Result<Unit>?>(AlertFragment.KEY_RESULT, null)
+                    result
+                } else {
+                    null
+                }
+            }.filterNotNull()
+        }
 }
