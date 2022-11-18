@@ -1,11 +1,11 @@
 package jp.co.soramitsu.staking.impl.data.network.subquery
 
-import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingDelegatorHistoryRequest
-import jp.co.soramitsu.staking.impl.domain.model.Unbonding
-import jp.co.soramitsu.staking.impl.domain.model.toUnbonding
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingDelegatorHistoryRequest
+import jp.co.soramitsu.staking.impl.domain.model.Unbonding
+import jp.co.soramitsu.staking.impl.domain.model.toUnbonding
 
 class SubQueryDelegationHistoryFetcher(
     private val stakingApi: StakingApi,
@@ -19,13 +19,15 @@ class SubQueryDelegationHistoryFetcher(
             throw Exception("Staking for this network is not supported yet")
         }
 
-        val delegatorHistory = stakingApi.getDelegatorHistory(
-            stakingUrl,
-            StakingDelegatorHistoryRequest(delegatorAddress, collatorAddress)
-        )
+        val delegatorHistory = kotlin.runCatching {
+            stakingApi.getDelegatorHistory(
+                stakingUrl,
+                StakingDelegatorHistoryRequest(delegatorAddress, collatorAddress)
+            )
+        }.getOrNull()
 
-        return delegatorHistory.data.delegatorHistoryElements.nodes.map {
+        return delegatorHistory?.data?.delegatorHistoryElements?.nodes?.map {
             it.toUnbonding()
-        }.distinct()
+        }?.distinct() ?: emptyList()
     }
 }
