@@ -926,5 +926,15 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
     <string name="sending">Sending</string>
 
-
+    <string name="staking_pool_status_active">Active</string>
+    <string name="staking_pool_status_inactive">Inactive</string>
+    <string name="staking_pool_status_validators_are_not_selected">Validators are not selected</string>
+    <string name="pool_staking_selected_validators_title">Pool Validators</string>
+    <string name="pool_staking_change_validators_button">Change validators</string>
+    <string name="common_destroy">Destroy</string>
+    <string name="common_block">Block</string>
+    <string name="pool_options_title">Pool options</string>
+    <string name="pool_edit_title">Edit pool</string>
+    <string name="pool_edit_confirm_warning">WARNING: Changing the role is irreversible and may lead to loss of access to the pool.</string>
+    <string name="pool_join_no_validators_message">The pool hasn\'t chosen any validators yet. If you join it you won\'t get any rewards until validators are selected</string>
 </resources>

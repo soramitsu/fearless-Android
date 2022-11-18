@@ -840,4 +840,15 @@
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
     <string name="sending">Отправка</string>
 
+    <string name="staking_pool_status_active">Активный</string>
+    <string name="staking_pool_status_inactive">Неактивный</string>
+    <string name="staking_pool_status_validators_are_not_selected">Валидаторы не выбраны</string>
+    <string name="pool_staking_selected_validators_title">Валидаторы пулла</string>
+    <string name="pool_staking_change_validators_button">Сменить валидаторов</string>
+    <string name="common_destroy">Уничтожить</string>
+    <string name="common_block">Заблокировать</string>
+    <string name="pool_options_title">Настройки пулла</string>
+    <string name="pool_edit_title">Редактирование пулла</string>
+    <string name="pool_edit_confirm_warning">ВНИМАНИЕ: Смена роли - необратимая операция. Она может вызвать потерю контроля над пуллом.</string>
+
 </resources>

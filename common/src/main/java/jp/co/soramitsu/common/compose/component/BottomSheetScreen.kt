@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -35,16 +36,16 @@ fun BottomSheetScreen(modifier: Modifier = Modifier, Content: @Composable Column
 }
 
 @Composable
-fun BottomSheetDialog(modifier: Modifier = Modifier, Content: @Composable ColumnScope.() -> Unit) {
-    val sheetBackground = modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
+fun BottomSheetDialog(modifier: Modifier = Modifier, verticalArrangement: Arrangement.Vertical = Arrangement.Top, Content: @Composable ColumnScope.() -> Unit) {
+    val sheetBackgroundModifier = Modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
     Column {
         MarginVertical(margin = 12.dp)
         Column(
-            modifier = sheetBackground
+            modifier = sheetBackgroundModifier.then(modifier)
         ) {
             MarginVertical(margin = 2.dp)
             Box(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = verticalArrangement) {
                     MarginVertical(margin = 12.dp)
                     Content()
                 }

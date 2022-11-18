@@ -48,6 +48,8 @@ interface StakingRouter {
 
     fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel)
 
+    fun openSelectedValidators()
+
     fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel)
 
     fun openConfirmStaking()
@@ -107,6 +109,7 @@ interface StakingRouter {
     fun openConfirmJoinPool()
 
     fun openPoolInfo(poolInfo: PoolInfo)
+
     fun openManagePoolStake()
 
     fun openPoolBondMore()
@@ -140,6 +143,12 @@ interface StakingRouter {
     fun openValidatorsSettings()
 
     fun openConfirmSelectValidators()
+
+    fun openPoolInfoOptions(poolInfo: PoolInfo)
+
+    fun openEditPool()
+
+    fun openEditPoolConfirm()
 
     val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
 }

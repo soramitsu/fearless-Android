@@ -33,6 +33,6 @@ class PoolInfoFragment : BaseComposeBottomSheetDialogFragment<PoolInfoViewModel>
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        PoolInfoScreen(state = state, viewModel::onCloseClick)
+        PoolInfoScreen(state = state, viewModel)
     }
 }

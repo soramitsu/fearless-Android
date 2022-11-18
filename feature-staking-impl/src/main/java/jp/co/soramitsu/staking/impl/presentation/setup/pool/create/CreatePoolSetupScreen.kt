@@ -22,7 +22,7 @@ import jp.co.soramitsu.common.compose.component.DropDown
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
-import jp.co.soramitsu.common.compose.component.InactiveTextInput
+import jp.co.soramitsu.common.compose.component.InactiveDropDown
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TextInput
 import jp.co.soramitsu.common.compose.component.TextInputViewState
@@ -77,11 +77,11 @@ fun CreatePoolSetupScreen(
                     modifier = Modifier,
                     initialState = false,
                     Content = {
-                        InactiveTextInput(state.poolId, R.string.pool_staking_pool_id)
+                        InactiveDropDown(state.poolId, R.string.pool_staking_pool_id)
                         MarginVertical(margin = 12.dp)
-                        InactiveTextInput(state.depositor, R.string.pool_staking_depositor)
+                        InactiveDropDown(state.depositor, R.string.pool_staking_depositor)
                         MarginVertical(margin = 12.dp)
-                        InactiveTextInput(state.root, R.string.pool_staking_root)
+                        InactiveDropDown(state.root, R.string.pool_staking_root)
                         MarginVertical(margin = 12.dp)
                         DropDown(
                             state = DropDownViewState(

@@ -16,16 +16,6 @@ class ManagePoolStakeFragment : BaseComposeBottomSheetDialogFragment<ManagePoolS
     @Composable
     override fun Content(padding: PaddingValues) {
         val state = viewModel.state.collectAsState()
-        ManagePoolStakeScreen(
-            state = state.value,
-            onBackClick = viewModel::onBackClick,
-            onClaimClick = viewModel::onClaimClick,
-            onRedeemClick = viewModel::onRedeemClick,
-            onPoolInfoClick = viewModel::onPoolInfoClick,
-            onStakeMoreClick = viewModel::onStakeMoreClick,
-            onUnstakeClick = viewModel::onUnstakeClick,
-            onNominationsClick = viewModel::onNominationsClick,
-            onSelectValidatorsClick = viewModel::onSelectValidatorsClick
-        )
+        ManagePoolStakeScreen(state.value, viewModel)
     }
 }

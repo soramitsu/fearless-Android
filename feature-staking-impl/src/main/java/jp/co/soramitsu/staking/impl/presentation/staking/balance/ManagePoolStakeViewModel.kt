@@ -17,9 +17,12 @@ import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
+import jp.co.soramitsu.staking.impl.presentation.common.SelectedValidatorsFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolManageFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
+import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeScreenInterface
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeViewState
+import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.PoolStakeManagementOptions
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -28,18 +31,20 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ManagePoolStakeViewModel @Inject constructor(
-    stakingPoolInteractor: StakingPoolInteractor,
+    private val stakingPoolInteractor: StakingPoolInteractor,
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
     private val resourceManager: ResourceManager,
     private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val router: StakingRouter
-) : BaseViewModel() {
+) : BaseViewModel(), ManagePoolStakeScreenInterface {
 
     private val mainState = stakingPoolSharedStateProvider.requireMainState
     private val chain = mainState.requireChain
@@ -54,7 +59,11 @@ class ManagePoolStakeViewModel @Inject constructor(
                 pool?.myStakeInPlanks.orZero()
             )
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    }
+
+    private val validatorIdsFlow = poolStateFlow.filterNotNull()
+        .map { pool -> stakingPoolInteractor.getValidatorsIds(chain, pool.poolId) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val defaultAvailableState = TitleValueViewState(
         resourceManager.getString(R.string.wallet_balance_available)
@@ -82,7 +91,8 @@ class ManagePoolStakeViewModel @Inject constructor(
         defaultAvailableState,
         defaultUnstakingState,
         defaultPoolInfoState,
-        defaultTimeBeforeRedeemState
+        defaultTimeBeforeRedeemState,
+        false
     )
 
     private val unstakingPeriodFlow = jp.co.soramitsu.common.utils.flowOf {
@@ -96,6 +106,7 @@ class ManagePoolStakeViewModel @Inject constructor(
     }
 
     val state = combine(poolStateFlow.filterNotNull(), unstakingPeriodFlow) { pool, unstakingPeriod ->
+        val isFullUnstake = pool.myStakeInPlanks == BigInteger.ZERO
         val total = asset.token.amountFromPlanks(pool.myStakeInPlanks)
         val totalFormatted = total.formatTokenAmount(asset.token.configuration)
 
@@ -142,56 +153,87 @@ class ManagePoolStakeViewModel @Inject constructor(
         val poolInfoViewState = defaultPoolInfoState.copy(value = pool.name ?: "Pool #${pool.poolId}")
 
         val timeBeforeRedeemState = defaultTimeBeforeRedeemState.copy(value = unstakingPeriod)
-        // todo stub for claim notification
+
         ManagePoolStakeViewState(
-            totalFormatted,
-            claimNotification,
-            redeemableNotification,
-            noValidatorsNotification,
-            availableState,
-            unstakingState,
-            poolInfoViewState,
-            timeBeforeRedeemState
+            total = totalFormatted,
+            claimNotification = claimNotification,
+            redeemNotification = redeemableNotification,
+            noValidatorsNotification = noValidatorsNotification,
+            available = availableState,
+            unstaking = unstakingState,
+            poolInfo = poolInfoViewState,
+            timeBeforeRedeem = timeBeforeRedeemState,
+            isFullUnstake = isFullUnstake
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenViewState)
 
-    fun onBackClick() {
+    override fun onBackClick() {
         router.back()
     }
 
-    fun onPoolInfoClick() {
+    override fun onClaimClick() {
+        router.openPoolClaim()
+    }
+
+    override fun onRedeemClick() {
+        router.openPoolRedeem()
+    }
+
+    override fun onStakeMoreClick() {
+        router.openPoolBondMore()
+    }
+
+    override fun onUnstakeClick() {
+        router.openPoolUnstake()
+    }
+
+    override fun onSelectValidatorsClick() {
         viewModelScope.launch {
-            val pool = requireNotNull(poolStateFlow.value)
+            val pool = requireNotNull(poolStateFlow.first { it != null })
+            stakingPoolSharedStateProvider.selectValidatorsState.set(
+                SelectValidatorFlowState(
+                    poolName = pool.name,
+                    poolId = pool.poolId
+                )
+            )
+            router.openStartSelectValidators()
+        }
+    }
+
+    override fun onBottomSheetOptionSelected(option: PoolStakeManagementOptions) {
+        when (option) {
+            PoolStakeManagementOptions.Nominations -> onNominationsClick()
+            PoolStakeManagementOptions.PoolInfo -> onPoolInfoClick()
+        }
+    }
+
+    override fun onInfoTableItemSelected(itemIdentifier: Int) {
+        if (itemIdentifier == ManagePoolStakeViewState.POOL_INFO_CLICK_IDENTIFIER) {
+            onPoolInfoClick()
+        }
+    }
+
+    private fun onPoolInfoClick() {
+        viewModelScope.launch {
+            val pool = requireNotNull(poolStateFlow.first { it != null })
             router.openPoolInfo(pool.toPoolInfo())
         }
     }
 
-    fun onClaimClick() {
-        router.openPoolClaim()
-    }
+    private fun onNominationsClick() {
+        viewModelScope.launch {
+            val pool = poolStateFlow.first { it != null } ?: return@launch
 
-    fun onRedeemClick() {
-        router.openPoolRedeem()
-    }
-
-    fun onStakeMoreClick() {
-        router.openPoolBondMore()
-    }
-
-    fun onUnstakeClick() {
-        router.openPoolUnstake()
-    }
-
-    fun onNominationsClick() {}
-
-    fun onSelectValidatorsClick() {
-        val pool = requireNotNull(poolStateFlow.value)
-        stakingPoolSharedStateProvider.selectValidatorsState.set(
-            SelectValidatorFlowState(
-                poolName = pool.name,
-                poolId = pool.poolId
+            val canChangeValidators = pool.root.contentEquals(accountId) || pool.nominator.contentEquals(accountId)
+            stakingPoolSharedStateProvider.selectedValidatorsState.set(
+                SelectedValidatorsFlowState(
+                    canChangeValidators = canChangeValidators,
+                    poolId = pool.poolId,
+                    poolName = pool.name,
+                    selectedValidators = validatorIdsFlow.value
+                )
             )
-        )
-        router.openStartSelectValidators()
+            router.openSelectedValidators()
+        }
     }
 }

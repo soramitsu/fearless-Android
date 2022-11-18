@@ -36,6 +36,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.impl.presentation.staking.balance.compose.ManagePoolStakeViewState.Companion.POOL_INFO_CLICK_IDENTIFIER
 import kotlinx.coroutines.launch
 
 data class ManagePoolStakeViewState(
@@ -46,10 +47,13 @@ data class ManagePoolStakeViewState(
     val available: TitleValueViewState,
     val unstaking: TitleValueViewState,
     val poolInfo: TitleValueViewState,
-    val timeBeforeRedeem: TitleValueViewState
-)
-
-private const val POOL_INFO_CLICK_IDENTIFIER = 0
+    val timeBeforeRedeem: TitleValueViewState,
+    val isFullUnstake: Boolean
+) {
+    companion object {
+        const val POOL_INFO_CLICK_IDENTIFIER = 0
+    }
+}
 
 enum class PoolStakeManagementOptions : ListDialogState.Item {
     Nominations {
@@ -60,28 +64,29 @@ enum class PoolStakeManagementOptions : ListDialogState.Item {
     }
 }
 
+interface ManagePoolStakeScreenInterface {
+    fun onBackClick()
+    fun onClaimClick()
+    fun onRedeemClick()
+    fun onStakeMoreClick()
+    fun onUnstakeClick()
+    fun onSelectValidatorsClick()
+    fun onBottomSheetOptionSelected(option: PoolStakeManagementOptions)
+    fun onInfoTableItemSelected(itemIdentifier: Int)
+}
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ManagePoolStakeScreen(
     state: ManagePoolStakeViewState,
-    onBackClick: () -> Unit,
-    onClaimClick: () -> Unit,
-    onRedeemClick: () -> Unit,
-    onPoolInfoClick: () -> Unit,
-    onStakeMoreClick: () -> Unit,
-    onUnstakeClick: () -> Unit,
-    onNominationsClick: () -> Unit,
-    onSelectValidatorsClick: () -> Unit
+    screenInterface: ManagePoolStakeScreenInterface
 ) {
     val scope = rememberCoroutineScope()
     BottomSheetLayout(
         sheetContent = { sheetState ->
             ListDialog(state = ListDialogState(R.string.common_options, PoolStakeManagementOptions.values().toList()), onSelected = {
                 scope.launch { sheetState.hide() }
-                when (it) {
-                    PoolStakeManagementOptions.Nominations -> onNominationsClick()
-                    PoolStakeManagementOptions.PoolInfo -> onPoolInfoClick()
-                }
+                screenInterface.onBottomSheetOptionSelected(it)
             })
         },
         content = { sheetState ->
@@ -96,7 +101,7 @@ fun ManagePoolStakeScreen(
                             R.drawable.ic_arrow_back_24dp,
                             listOf(MenuIconItem(R.drawable.ic_dots_horizontal_24, onClick = { scope.launch { sheetState.show() } }))
                         ),
-                        onNavigationClick = onBackClick
+                        onNavigationClick = screenInterface::onBackClick
                     )
                     Column(
                         Modifier
@@ -117,15 +122,15 @@ fun ManagePoolStakeScreen(
 
                         state.claimNotification?.let {
                             MarginVertical(margin = 16.dp)
-                            Notification(state = it, onAction = onClaimClick)
+                            Notification(state = it, onAction = screenInterface::onClaimClick)
                         }
                         state.redeemNotification?.let {
                             MarginVertical(margin = 16.dp)
-                            Notification(state = it, onAction = onRedeemClick)
+                            Notification(state = it, onAction = screenInterface::onRedeemClick)
                         }
                         state.noValidatorsNotification?.let {
                             MarginVertical(margin = 16.dp)
-                            Notification(state = it, onAction = onSelectValidatorsClick)
+                            Notification(state = it, onAction = screenInterface::onSelectValidatorsClick)
                         }
 
                         MarginVertical(margin = 16.dp)
@@ -133,14 +138,10 @@ fun ManagePoolStakeScreen(
                             items = listOf(
                                 state.available,
                                 state.unstaking,
-                                state.poolInfo.copy(clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, POOL_INFO_CLICK_IDENTIFIER)),
+                                state.poolInfo.copy(clickState = TitleValueViewState.ClickState(R.drawable.ic_chevron_right, POOL_INFO_CLICK_IDENTIFIER)),
                                 state.timeBeforeRedeem
                             ),
-                            onItemClick = { identifier ->
-                                if (identifier == POOL_INFO_CLICK_IDENTIFIER) {
-                                    onPoolInfoClick()
-                                }
-                            }
+                            onItemClick = screenInterface::onInfoTableItemSelected
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
@@ -149,9 +150,19 @@ fun ManagePoolStakeScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                     ) {
-                        GrayButton(text = stringResource(id = R.string.staking_bond_more_v1_9_0), onClick = onStakeMoreClick, modifier = Modifier.weight(1f))
+                        GrayButton(
+                            text = stringResource(id = R.string.staking_bond_more_v1_9_0),
+                            onClick = screenInterface::onStakeMoreClick,
+                            modifier = Modifier.weight(1f),
+                            enabled = state.isFullUnstake.not()
+                        )
                         MarginHorizontal(margin = 16.dp)
-                        GrayButton(text = stringResource(id = R.string.staking_unbond_v1_9_0), onClick = onUnstakeClick, modifier = Modifier.weight(1f))
+                        GrayButton(
+                            text = stringResource(id = R.string.staking_unbond_v1_9_0),
+                            onClick = screenInterface::onUnstakeClick,
+                            modifier = Modifier.weight(1f),
+                            enabled = state.isFullUnstake.not()
+                        )
                     }
                     MarginVertical(margin = 16.dp)
                 }
@@ -171,9 +182,20 @@ private fun ManagePoolStakeScreenPreview() {
         TitleValueViewState("Available"),
         TitleValueViewState("Unstaking", "1.1000 KSM", "\$1.001"),
         TitleValueViewState("Pool Info", "⚡️Everlight☀️", clickState = TitleValueViewState.ClickState(R.drawable.ic_info_14, 1)),
-        TitleValueViewState("Time before redeem", "5 days")
+        TitleValueViewState("Time before redeem", "5 days"),
+        false
     )
+    val emptyInterface = object : ManagePoolStakeScreenInterface {
+        override fun onBackClick() = Unit
+        override fun onClaimClick() = Unit
+        override fun onRedeemClick() = Unit
+        override fun onStakeMoreClick() = Unit
+        override fun onUnstakeClick() = Unit
+        override fun onSelectValidatorsClick() = Unit
+        override fun onBottomSheetOptionSelected(option: PoolStakeManagementOptions) = Unit
+        override fun onInfoTableItemSelected(itemIdentifier: Int) = Unit
+    }
     FearlessTheme {
-        ManagePoolStakeScreen(state.copy(total = null), {}, {}, {}, {}, {}, {}, {}, {})
+        ManagePoolStakeScreen(state.copy(total = null), emptyInterface)
     }
 }

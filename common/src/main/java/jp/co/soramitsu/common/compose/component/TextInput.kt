@@ -1,7 +1,8 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.annotation.StringRes
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,10 +10,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,10 +26,12 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class TextInputViewState(
     val text: String,
     val hint: String,
+    @DrawableRes val endIcon: Int? = null,
     val isActive: Boolean = true
 )
 
@@ -38,7 +41,8 @@ fun TextInput(
     modifier: Modifier = Modifier,
     backgroundColor: Color = black05,
     borderColor: Color = white24,
-    onInput: (String) -> Unit
+    onInput: (String) -> Unit,
+    onEndIconClick: () -> Unit = emptyClick
 ) {
     val textColorState = if (state.isActive) {
         white
@@ -72,19 +76,17 @@ fun TextInput(
             )
             MarginVertical(margin = 4.dp)
         }
+        state.endIcon?.let {
+            Box(
+                modifier = Modifier
+                    .clickableWithNoIndication(onEndIconClick)
+                    .align(Alignment.CenterEnd)
+                    .padding(12.dp)
+            ) {
+                Image(res = it)
+            }
+        }
     }
-}
-
-@Composable
-fun InactiveTextInput(text: String, @StringRes hint: Int) {
-    TextInput(
-        state = TextInputViewState(
-            text = text,
-            stringResource(id = hint),
-            isActive = false
-        ),
-        onInput = {}
-    )
 }
 
 @Composable
@@ -92,12 +94,12 @@ fun InactiveTextInput(text: String, @StringRes hint: Int) {
 private fun TextInputPreview() {
     val state = TextInputViewState(
         text = "my best pool",
-        hint = "Pool name"
+        hint = "Pool name",
+        endIcon = R.drawable.ic_close_16_circle
     )
     FearlessTheme {
         Column {
             TextInput(state, onInput = {})
-            InactiveTextInput(text = "Inactive value", hint = R.string.staking_redeem)
         }
     }
 }

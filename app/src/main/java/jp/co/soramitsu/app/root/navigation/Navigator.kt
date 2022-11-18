@@ -61,6 +61,7 @@ import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPa
 import jp.co.soramitsu.staking.impl.presentation.payouts.detail.PayoutDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoFragment
+import jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoOptionsFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.StakingBalanceFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
@@ -508,6 +509,10 @@ class Navigator :
         navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
+    override fun openSelectedValidators() {
+        navController?.navigate(R.id.selectedValidatorsFragment)
+    }
+
     override fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel) {
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
@@ -819,6 +824,18 @@ class Navigator :
 
     override fun openConfirmSelectValidators() {
         navController?.navigate(R.id.confirmSelectValidatorsFragment)
+    }
+
+    override fun openPoolInfoOptions(poolInfo: PoolInfo) {
+        navController?.navigate(R.id.poolOptionsInfoFragment, PoolInfoOptionsFragment.getBundle(poolInfo))
+    }
+
+    override fun openEditPool() {
+        navController?.navigate(R.id.editPoolFragment)
+    }
+
+    override fun openEditPoolConfirm() {
+        navController?.navigate(R.id.editPoolConfirmFragment)
     }
 
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
