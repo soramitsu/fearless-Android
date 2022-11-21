@@ -12,6 +12,7 @@ import jp.co.soramitsu.coredb.converters.LongMathConverters
 import jp.co.soramitsu.coredb.converters.OperationConverters
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
+import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -51,6 +52,7 @@ import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.coredb.migrations.V2Migration
 import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
+import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
@@ -66,9 +68,10 @@ import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 44,
+    version = 45,
     entities = [
         AccountLocal::class,
+        AddressBookContact::class,
         AssetLocal::class,
         TokenPriceLocal::class,
         PhishingLocal::class,
@@ -152,4 +155,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun chainDao(): ChainDao
 
     abstract fun metaAccountDao(): MetaAccountDao
+
+    abstract fun addressBookDao(): AddressBookDao
 }

@@ -22,6 +22,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -52,6 +53,7 @@ private const val QR_PREFIX_SUBSTRATE = "substrate"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
+    private val addressBookRepository: AddressBookRepository,
     private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
     private val fileProvider: FileProvider,
@@ -322,4 +324,12 @@ class WalletInteractorImpl(
     }
 
     override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
+
+    override fun getOperationAddressWithChainIdFlow(limit: Int?): Flow<Map<String, ChainId>> = walletRepository.getOperationAddressWithChainIdFlow(limit)
+
+    override suspend fun saveAddress(name: String, address: String, chainId: String) {
+        addressBookRepository.saveAddress(name, address, chainId)
+    }
+
+    override fun observeAddressBook() = addressBookRepository.observeAddressBook()
 }

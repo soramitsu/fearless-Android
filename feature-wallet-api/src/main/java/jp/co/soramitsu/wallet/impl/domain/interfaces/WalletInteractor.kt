@@ -6,6 +6,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -97,4 +98,10 @@ interface WalletInteractor {
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
 
     fun getChains(): Flow<List<Chain>>
+
+    fun getOperationAddressWithChainIdFlow(limit: Int?): Flow<Map<String, ChainId>>
+
+    suspend fun saveAddress(name: String, address: String, selectedChainId: String)
+
+    fun observeAddressBook(): Flow<List<AddressBookContact>>
 }

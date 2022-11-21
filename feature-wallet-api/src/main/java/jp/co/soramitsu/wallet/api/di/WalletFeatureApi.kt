@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.api.di
 
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -18,6 +19,8 @@ interface WalletFeatureApi {
     fun provideAssetCache(): AssetCache
 
     fun provideWallConstants(): WalletConstants
+
+    fun provideAddressBookRepository(): AddressBookRepository
 
     @Wallet
     fun provideWalletUpdateSystem(): UpdateSystem

@@ -35,6 +35,7 @@ class ChainSelectViewModel @Inject constructor(
 
     private val initialSelectedAssetId: String? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_ASSET_ID]
     private val filterChainIds: List<ChainId>? = savedStateHandle[ChainSelectFragment.KEY_FILTER_CHAIN_IDS]
+    private val chooserMode: Boolean = savedStateHandle[ChainSelectFragment.KEY_CHOOSER_MODE] ?: false
 
     private var choiceDone = false
 
@@ -92,6 +93,12 @@ class ChainSelectViewModel @Inject constructor(
     fun onChainSelected(chainItemState: ChainItemState?) {
         if (selectedChainId.value != chainItemState?.id) {
             selectedChainId.value = chainItemState?.id
+            walletRouter.setChainSelectorPayload(chainItemState?.id)
+            if (chooserMode) {
+                walletRouter.back()
+                return
+            }
+
             val assetId = chainItemState?.tokenSymbols?.firstOrNull { it.second == symbolFlow.value }?.first
 
             chainItemState?.id?.let {

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
 import com.opencsv.CSVReaderHeaderAware
+import java.lang.Integer.min
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -42,6 +43,7 @@ import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.wallet.impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -59,6 +61,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -77,7 +80,8 @@ class WalletRepositoryImpl(
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher
+    private val remoteConfigFetcher: RemoteConfigFetcher,
+    private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
@@ -276,12 +280,33 @@ class WalletRepositoryImpl(
             }
     }
 
-    override suspend fun getContacts(
-        accountId: AccountId,
-        chain: Chain,
-        query: String
-    ): Set<String> {
-        return operationDao.getContacts(query, chain.addressOf(accountId), chain.id).toSet()
+    override fun getOperationAddressWithChainIdFlow(limit: Int?): Flow<Map<String, ChainId>> {
+        return operationDao.observeOperations().mapList { operation ->
+            val accountAddress = currentAccountAddress.invoke(operation.chainId)
+            if (operation.address == accountAddress) {
+                val receiver = when (operation.receiver) {
+                    null, operation.address -> null
+                    else -> operation.receiver
+                }
+                val sender = when (operation.sender) {
+                    null, operation.address -> null
+                    else -> operation.sender
+                }
+                (receiver ?: sender)?.let { it to operation.chainId }
+            } else {
+                null
+            }
+        }
+            .map {
+                it.filterNotNull()
+            }
+            .map {
+                when {
+                    limit == null || limit < 0 -> it
+                    else -> it.subList(0, min(limit, it.size))
+                }
+                    .toMap()
+            }
     }
 
     override suspend fun getTransferFee(

@@ -62,8 +62,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -329,6 +331,12 @@ class SendSetupViewModel @Inject constructor(
         } else {
             sharedState.update(payload.chainId, payload.chainAssetId)
         }
+        initSendToAddress?.let { sharedState.updateAddress(it) }
+        sharedState.addressFlow.distinctUntilChanged()
+            .onEach {
+                it?.let { addressInputFlow.value = it }
+            }
+            .launchIn(this)
     }
 
     private fun findChainsForAddress(address: String) {
@@ -347,7 +355,7 @@ class SendSetupViewModel @Inject constructor(
                         router.openSelectChainAsset(chain.id)
                     }
                 }
-                else -> router.openSelectChain(addressChains.map { it.id })
+                else -> router.openSelectChain(addressChains.map { it.id }, false)
             }
         }
     }
@@ -453,7 +461,9 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onHistoryClick() {
-        showMessage("On history clicked")
+        sharedState.chainId?.let {
+            router.openAddressHistory(it)
+        }
     }
 
     override fun onPasteClick() {
