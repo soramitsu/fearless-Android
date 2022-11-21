@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
+import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -92,5 +93,11 @@ class DbModule {
     @Singleton
     fun provideMetaAccountDao(appDatabase: AppDatabase): MetaAccountDao {
         return appDatabase.metaAccountDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddressBookDao(appDatabase: AppDatabase): AddressBookDao {
+        return appDatabase.addressBookDao()
     }
 }

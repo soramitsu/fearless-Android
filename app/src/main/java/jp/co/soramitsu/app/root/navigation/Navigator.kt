@@ -35,12 +35,12 @@ import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
+import jp.co.soramitsu.app.root.presentation.WebViewerFragment
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
-import jp.co.soramitsu.app.root.presentation.WebViewerFragment
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.postToUiThread
 import jp.co.soramitsu.common.view.onResumeObserver
@@ -89,6 +89,7 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetai
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
@@ -533,8 +534,8 @@ class Navigator :
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
-    override fun openSelectChain(filterChainIds: List<ChainId>?) {
-        val bundle = ChainSelectFragment.getBundle(filterChainIds)
+    override fun openSelectChain(filterChainIds: List<ChainId>?, chooserMode: Boolean) {
+        val bundle = ChainSelectFragment.getBundle(filterChainIds, chooserMode)
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
@@ -667,6 +668,12 @@ class Navigator :
         val bundle = AddressHistoryFragment.getBundle(chainId)
 
         navController?.navigate(R.id.addressHistoryFragment, bundle)
+    }
+
+    override fun openCreateContact(chainId: ChainId?, address: String?) {
+        val bundle = CreateContactFragment.getBundle(chainId, address)
+
+        navController?.navigate(R.id.createContactFragment, bundle)
     }
 
     override fun openAddNode(chainId: ChainId) {
@@ -880,4 +887,13 @@ class Navigator :
     override fun openWebViewer(title: String, url: String) {
         navController?.navigate(R.id.webViewerFragment, WebViewerFragment.getBundle(title, url))
     }
+
+    override fun setChainSelectorPayload(chainId: ChainId?) {
+        navController?.previousBackStackEntry?.savedStateHandle?.set(ChainSelectFragment.KEY_SELECTED_CHAIN_ID, chainId)
+    }
+
+    override val chainSelectorPayloadFlow: Flow<ChainId?>
+        get() = navController?.currentBackStackEntry?.savedStateHandle
+            ?.getLiveData<ChainId?>(ChainSelectFragment.KEY_SELECTED_CHAIN_ID)
+            ?.asFlow() ?: emptyFlow()
 }

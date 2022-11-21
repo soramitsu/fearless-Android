@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.history
+package jp.co.soramitsu.wallet.impl.presentation.addressbook
 
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,22 +13,24 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 @AndroidEntryPoint
-class AddressHistoryFragment : BaseComposeBottomSheetDialogFragment<AddressHistoryViewModel>() {
+class CreateContactFragment : BaseComposeBottomSheetDialogFragment<CreateContactViewModel>() {
 
     companion object {
+        const val KEY_CHAIN_ID = "chain_id"
         const val KEY_PAYLOAD = "payload"
 
-        fun getBundle(chainId: ChainId) = bundleOf(
-            KEY_PAYLOAD to chainId
+        fun getBundle(chainId: ChainId?, address: String?) = bundleOf(
+            KEY_CHAIN_ID to chainId,
+            KEY_PAYLOAD to address
         )
     }
 
-    override val viewModel: AddressHistoryViewModel by viewModels()
+    override val viewModel: CreateContactViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        AddressHistoryContent(
+        CreateContactContent(
             state = state,
             callback = viewModel
         )

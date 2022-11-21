@@ -56,11 +56,7 @@ interface WalletRepository {
         chainAsset: Chain.Asset
     ): Flow<CursorPage<Operation>>
 
-    suspend fun getContacts(
-        accountId: AccountId,
-        chain: Chain,
-        query: String
-    ): Set<String>
+    fun getOperationAddressWithChainIdFlow(limit: Int?): Flow<Map<String, ChainId>>
 
     suspend fun getTransferFee(
         chain: Chain,

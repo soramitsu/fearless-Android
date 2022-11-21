@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.OperationDao
@@ -41,6 +42,7 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpda
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.PaymentUpdaterFactory
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.SubQueryOperationsApi
+import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
@@ -48,6 +50,7 @@ import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -129,7 +132,8 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
-        remoteConfigFetcher: RemoteConfigFetcher
+        remoteConfigFetcher: RemoteConfigFetcher,
+        currentAccountAddressUseCase: CurrentAccountAddressUseCase
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -144,12 +148,14 @@ class WalletFeatureModule {
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher
+        remoteConfigFetcher,
+        currentAccountAddressUseCase
     )
 
     @Provides
     fun provideWalletInteractor(
         walletRepository: WalletRepository,
+        addressBookRepository: AddressBookRepository,
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
         fileProvider: FileProvider,
@@ -158,6 +164,7 @@ class WalletFeatureModule {
         updatesMixin: UpdatesMixin
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
+        addressBookRepository,
         accountRepository,
         chainRegistry,
         fileProvider,
@@ -237,4 +244,10 @@ class WalletFeatureModule {
     fun provideQrCodeDecoder(contentResolver: ContentResolver): QrBitmapDecoder {
         return QrBitmapDecoder(contentResolver)
     }
+
+    @Provides
+    @Singleton
+    fun provideAddressBookRepository(
+        addressBookDao: AddressBookDao
+    ): AddressBookRepository = AddressBookRepositoryImpl(addressBookDao)
 }

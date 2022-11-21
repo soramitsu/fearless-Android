@@ -20,14 +20,17 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         const val KEY_SELECTED_CHAIN_ID = "KEY_SELECTED_CHAIN_ID"
         const val KEY_SELECTED_ASSET_ID = "KEY_SELECTED_ASSET_ID"
         const val KEY_FILTER_CHAIN_IDS = "KEY_FILTER_CHAIN_IDS"
+        const val KEY_CHOOSER_MODE = "KEY_CHOOSER_MODE"
 
-        fun getBundle(assetId: String, chainId: ChainId? = null) = bundleOf(
+        fun getBundle(assetId: String, chainId: ChainId? = null, chooserMode: Boolean = false) = bundleOf(
             KEY_SELECTED_ASSET_ID to assetId,
-            KEY_SELECTED_CHAIN_ID to chainId
+            KEY_SELECTED_CHAIN_ID to chainId,
+            KEY_CHOOSER_MODE to chooserMode
         )
 
-        fun getBundle(filterChainIds: List<ChainId>?) = bundleOf(
-            KEY_FILTER_CHAIN_IDS to filterChainIds
+        fun getBundle(filterChainIds: List<ChainId>?, chooserMode: Boolean = true) = bundleOf(
+            KEY_FILTER_CHAIN_IDS to filterChainIds,
+            KEY_CHOOSER_MODE to chooserMode
         )
     }
 

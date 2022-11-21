@@ -2,6 +2,8 @@ package jp.co.soramitsu.wallet.impl.domain
 
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
+import java.math.BigDecimal
+import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -20,6 +22,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -44,14 +47,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
+    private val addressBookRepository: AddressBookRepository,
     private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
     private val fileProvider: FileProvider,
@@ -323,16 +325,11 @@ class WalletInteractorImpl(
 
     override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
 
-    override suspend fun getContacts(
-        chainId: ChainId,
-        query: String
-    ): Set<String> {
-        val metaAccount = accountRepository.getSelectedMetaAccount()
-        val chain = chainRegistry.getChain(chainId)
-        val accountId = metaAccount.accountId(chain)
+    override fun getOperationAddressWithChainIdFlow(limit: Int?): Flow<Map<String, ChainId>> = walletRepository.getOperationAddressWithChainIdFlow(limit)
 
-        return accountId?.let {
-            walletRepository.getContacts(accountId, chain, query)
-        } ?: emptySet()
+    override suspend fun saveAddress(name: String, address: String, chainId: String) {
+        addressBookRepository.saveAddress(name, address, chainId)
     }
+
+    override fun observeAddressBook() = addressBookRepository.observeAddressBook()
 }

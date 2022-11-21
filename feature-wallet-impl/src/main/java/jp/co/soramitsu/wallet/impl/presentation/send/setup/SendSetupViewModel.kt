@@ -7,6 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AddressInputState
@@ -46,6 +49,8 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemS
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,11 +67,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 private const val RETRY_TIMES = 3L
 
@@ -329,6 +329,12 @@ class SendSetupViewModel @Inject constructor(
         } else {
             sharedState.update(payload.chainId, payload.chainAssetId)
         }
+        initSendToAddress?.let { sharedState.updateAddress(it) }
+        launch {
+            sharedState.addressFlow.distinctUntilChanged().collect {
+                it?.let { addressInputFlow.value = it }
+            }
+        }
     }
 
     private fun findChainsForAddress(address: String) {
@@ -347,7 +353,7 @@ class SendSetupViewModel @Inject constructor(
                         router.openSelectChainAsset(chain.id)
                     }
                 }
-                else -> router.openSelectChain(addressChains.map { it.id })
+                else -> router.openSelectChain(addressChains.map { it.id }, false)
             }
         }
     }

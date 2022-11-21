@@ -26,7 +26,7 @@ interface WalletRouter : SecureRouter {
 
     fun openSelectChain(assetId: String)
 
-    fun openSelectChain(filterChainIds: List<ChainId>? = null)
+    fun openSelectChain(filterChainIds: List<ChainId>? = null, chooserMode: Boolean = true)
 
     fun openSelectAsset(selectedAssetId: String)
 
@@ -96,4 +96,10 @@ interface WalletRouter : SecureRouter {
     fun openScamWarning(symbol: String)
 
     fun openAddressHistory(chainId: ChainId)
+
+    fun openCreateContact(chainId: ChainId?, address: String?)
+
+    val chainSelectorPayloadFlow: Flow<ChainId?>
+
+    fun setChainSelectorPayload(chainId: ChainId?)
 }

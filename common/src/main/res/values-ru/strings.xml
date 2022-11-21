@@ -857,4 +857,10 @@
     <string name="pool_edit_title">Редактирование пулла</string>
     <string name="pool_edit_confirm_warning">ВНИМАНИЕ: Смена роли - необратимая операция. Она может вызвать потерю контроля над пуллом.</string>
 
+    <string name="common_history">История</string>
+    <string name="create_contact">Создать Контакт</string>
+    <string name="contact_name">Имя Контакта</string>
+    <string name="contact_address">Адрес Контакта</string>
+    <string name="recent">Недавние</string>
+
 </resources>
