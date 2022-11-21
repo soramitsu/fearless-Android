@@ -99,7 +99,7 @@ fun SendSetupContent(
             ) {
                 ToolbarBottomSheet(
                     title = stringResource(id = R.string.send_fund),
-                    onNavigationClicked = { callback.onNavigationClick() }
+                    onNavigationClicked = callback::onNavigationClick
                 )
                 MarginVertical(margin = 20.dp)
                 AddressInput(

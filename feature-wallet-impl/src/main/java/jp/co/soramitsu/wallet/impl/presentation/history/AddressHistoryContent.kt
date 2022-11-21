@@ -75,7 +75,7 @@ fun AddressHistoryContent(
             ) {
                 ToolbarBottomSheet(
                     title = stringResource(id = R.string.common_history),
-                    onNavigationClicked = { callback.onNavigationClick() }
+                    onNavigationClicked = callback::onNavigationClick
                 )
                 MarginVertical(margin = 24.dp)
                 LazyColumn(
