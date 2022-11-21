@@ -62,8 +62,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -330,11 +332,11 @@ class SendSetupViewModel @Inject constructor(
             sharedState.update(payload.chainId, payload.chainAssetId)
         }
         initSendToAddress?.let { sharedState.updateAddress(it) }
-        launch {
-            sharedState.addressFlow.distinctUntilChanged().collect {
+        sharedState.addressFlow.distinctUntilChanged()
+            .onEach {
                 it?.let { addressInputFlow.value = it }
             }
-        }
+            .launchIn(this)
     }
 
     private fun findChainsForAddress(address: String) {
