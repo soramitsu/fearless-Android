@@ -701,11 +701,6 @@
         android:label="createContactFragment" />
 
     <dialog
-        android:id="@+id/addressHistoryFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment"
-        android:label="addressHistoryFragment" />
-
-    <dialog
         android:id="@+id/chainSelectFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment"
         android:label="chainSelectFragment" />
