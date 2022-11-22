@@ -11,6 +11,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -30,7 +31,6 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.AddressNotValidException
 import jp.co.soramitsu.common.validation.InsufficientBalanceException
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.utilityAsset
@@ -100,19 +100,21 @@ class SendSetupViewModel @Inject constructor(
 
     private val initialAmount = "0"
 
-    private val selectedChainItem = sharedState.chainIdFlow
-        .map { chainId ->
-            chainId?.let {
-                val chain = walletInteractor.getChain(it)
-                ChainItemState(
-                    id = chain.id,
-                    imageUrl = chain.icon,
-                    title = chain.name,
-                    isSelected = false,
-                    tokenSymbols = chain.assets.map { it.id to it.symbol }
-                )
-            }
+    private val selectedChain = sharedState.chainIdFlow.map { chainId ->
+        chainId?.let { walletInteractor.getChain(it) }
+    }
+
+    private val selectedChainItem = selectedChain.map { chain ->
+        chain?.let {
+            ChainItemState(
+                id = chain.id,
+                imageUrl = chain.icon,
+                title = chain.name,
+                isSelected = false,
+                tokenSymbols = chain.assets.map { it.id to it.symbol }
+            )
         }
+    }
 
     private val defaultAddressInputState = AddressInputState(
         title = resourceManager.getString(R.string.send_fund),
@@ -291,20 +293,18 @@ class SendSetupViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
     val state = combine(
+        selectedChain,
         addressInputFlow,
         chainSelectorStateFlow,
         amountInputViewState,
         feeInfoViewStateFlow,
         warningInfoStateFlow,
         buttonStateFlow
-    ) { address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
         val placeholder = resourceManager.getDrawable(R.drawable.ic_address_placeholder)
-        val accountImage = if (address.isNotEmpty()) {
-            runCatching { address.fromHex() }.getOrNull()?.let { accountId ->
-                addressIconGenerator.createAddressIcon(accountId, AddressIconGenerator.SIZE_BIG)
-            }
-        } else {
-            null
+
+        val accountImage = address.ifEmpty { null }?.let {
+            addressIconGenerator.createAddressIcon(chain?.isEthereumBased == true, address, AddressIconGenerator.SIZE_BIG)
         }
 
         SendSetupViewState(

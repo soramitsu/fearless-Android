@@ -65,7 +65,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         when (toolbarState) {
             is LoadingState.Loading<MainToolbarViewState> -> {
                 MainToolbarShimmer(
-                    homeIconState = ToolbarHomeIconState(navigationIcon = jp.co.soramitsu.common.R.drawable.ic_wallet),
+                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
                     menuItems = listOf(
                         MenuIconItem(icon = R.drawable.ic_scan) {},
                         MenuIconItem(icon = R.drawable.ic_search) {}

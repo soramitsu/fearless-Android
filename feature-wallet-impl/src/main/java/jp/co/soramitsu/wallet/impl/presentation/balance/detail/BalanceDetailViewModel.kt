@@ -107,9 +107,18 @@ class BalanceDetailViewModel @Inject constructor(
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapList { it.toChainItemState() }
+    private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
+        .mapList {
+            when {
+                it.hasAccount -> it.asset
+                else -> null
+            }
+        }
+        .map { it.filterNotNull() }
+        .mapList { mapAssetToAssetModel(it) }
 
     private val assetModelFlow = combine(
-        assetModelsFlow(),
+        assetModelsFlow,
         chainsFlow,
         selectedChainItem
     ) { assetModels: List<AssetModel>,
@@ -148,7 +157,7 @@ class BalanceDetailViewModel @Inject constructor(
         chainsFlow,
         selectedChainItem,
         enteredChainQueryFlow,
-        assetModelsFlow()
+        assetModelsFlow
     ) { chainItems, selectedChain, searchQuery, assetModels: List<AssetModel> ->
         val assetSymbol = assetModels.first {
             it.token.configuration.id == assetPayloadInitial.chainAssetId
@@ -205,7 +214,7 @@ class BalanceDetailViewModel @Inject constructor(
         transactionHistory,
         assetModelFlow,
         enteredChainQueryFlow,
-        assetModelsFlow(),
+        assetModelsFlow,
         interactor.selectedAccountFlow(assetPayload.value.chainId)
     ) { transactionHistory: TransactionHistoryUi.State,
         balanceModel: Asset,
@@ -349,17 +358,6 @@ class BalanceDetailViewModel @Inject constructor(
         val message = resourceManager.getString(jp.co.soramitsu.common.R.string.common_copied)
         showMessage(message)
     }
-
-    private fun assetModelsFlow(): Flow<List<AssetModel>> =
-        interactor.assetsFlow()
-            .mapList {
-                when {
-                    it.hasAccount -> it.asset
-                    else -> null
-                }
-            }
-            .map { it.filterNotNull() }
-            .mapList { mapAssetToAssetModel(it) }
 
     fun switchNode() {
         router.openNodes(assetPayload.value.chainId)

@@ -106,9 +106,12 @@ class ChainSelectViewModel @Inject constructor(
                     sharedSendState.assetId == null -> {
                         if (chainItemState.tokenSymbols.size == 1) {
                             assetSpecified(assetId = chainItemState.tokenSymbols[0].first, chainId = chainItemState.id)
-                        } else {
+                        }
+                        if (chainItemState.tokenSymbols.size > 1) {
                             walletRouter.back()
                             walletRouter.openSelectChainAsset(chainItemState.id)
+                        } else {
+                            null
                         }
                     }
                     assetId == null -> {
