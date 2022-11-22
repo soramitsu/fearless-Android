@@ -11,6 +11,7 @@ import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -50,8 +51,8 @@ import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
-import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -61,7 +62,6 @@ import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
-import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
@@ -98,7 +98,7 @@ class BalanceListViewModel @Inject constructor(
     private val updatesMixin: UpdatesMixin,
     private val networkStateMixin: NetworkStateMixin,
     private val resourceManager: ResourceManager
-) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin {
+) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin, WalletScreenInterface {
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
 
@@ -337,7 +337,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalMaterialApi::class)
-    fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {
+    override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) {
         val payload = AssetPayload(chainId, chainAssetId)
         launch {
             swipeableState.snapTo(SwipeState.INITIAL)
@@ -378,7 +378,7 @@ class BalanceListViewModel @Inject constructor(
         router.openReceive(assetPayload)
     }
 
-    fun assetClicked(asset: AssetListItemViewState) {
+    override fun assetClicked(asset: AssetListItemViewState) {
         if (asset.hasNetworkIssue) {
             launch {
                 val chain = interactor.getChain(asset.chainId)
@@ -436,7 +436,7 @@ class BalanceListViewModel @Inject constructor(
         enteredChainQueryFlow.value = query
     }
 
-    fun onHiddenAssetClicked() {
+    override fun onHiddenAssetClicked() {
         hiddenAssetsState.value = HiddenItemState(
             isExpanded = hiddenAssetsState.value?.isExpanded?.not() ?: false
         )
@@ -474,7 +474,7 @@ class BalanceListViewModel @Inject constructor(
         router.openManageAssets()
     }
 
-    fun onBalanceClicked() {
+    override fun onBalanceClicked() {
         viewModelScope.launch {
             val currencies = getAvailableFiatCurrencies()
             if (currencies.isEmpty()) return@launch
@@ -484,7 +484,7 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    fun onNetworkIssuesClicked() {
+    override fun onNetworkIssuesClicked() {
         router.openNetworkIssues()
     }
 
@@ -498,7 +498,7 @@ class BalanceListViewModel @Inject constructor(
         _openPlayMarket.value = Event(Unit)
     }
 
-    fun assetTypeChanged(type: AssetType) {
+    override fun assetTypeChanged(type: AssetType) {
         assetTypeSelectorState.value = assetTypeSelectorState.value?.copy(currentSelection = type)
     }
 
