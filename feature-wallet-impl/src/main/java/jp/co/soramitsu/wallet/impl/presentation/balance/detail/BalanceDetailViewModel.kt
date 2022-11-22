@@ -37,6 +37,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -81,7 +82,8 @@ class BalanceDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
-    addressDisplayUseCase: AddressDisplayUseCase
+    addressDisplayUseCase: AddressDisplayUseCase,
+    private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : BaseViewModel(),
     BalanceDetailsScreenInterface,
     ExternalAccountActions by externalAccountActions,
@@ -217,7 +219,7 @@ class BalanceDetailViewModel @Inject constructor(
 
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.total.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
-            address = walletAccount.address,
+            address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
             isInfoEnabled = true,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
