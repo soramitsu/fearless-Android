@@ -21,8 +21,6 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -61,18 +59,30 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import kotlinx.coroutines.launch
+
+interface WalletScreenInterface {
+    fun onBalanceClicked()
+    fun onNetworkIssuesClicked()
+    fun assetTypeChanged(type: AssetType)
+
+    @OptIn(ExperimentalMaterialApi::class)
+    fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>)
+    fun assetClicked(asset: AssetListItemViewState)
+    fun onHiddenAssetClicked()
+}
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun WalletScreen(
+    mainState: LoadingState<WalletState>,
+    shimmerItemsState: List<AssetListItemShimmerViewState>,
+    chainsState: ChainSelectScreenViewState,
     viewModel: BalanceListViewModel = hiltViewModel(),
     modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 ) {
-    val state by viewModel.state.collectAsState()
-    val shimmerItems by viewModel.assetShimmerItems.collectAsState()
-    val chainsState by viewModel.chainsState.collectAsState()
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -94,29 +104,17 @@ fun WalletScreen(
             )
         },
         content = {
-            when (state) {
+            when (mainState) {
                 is LoadingState.Loading<WalletState> -> {
-                    ShimmerWalletScreen(shimmerItems)
+                    ShimmerWalletScreen(shimmerItemsState)
                 }
                 is LoadingState.Loaded<WalletState> -> {
-                    val data = (state as LoadingState.Loaded<WalletState>).data
-                    ContentWalletScreen(data, viewModel)
+                    ContentWalletScreen(mainState.data, viewModel)
                 }
             }
         },
         scrimColor = Color.Black.copy(alpha = 0.32f) // https://issuetracker.google.com/issues/183697056
     )
-}
-
-interface WalletScreenInterface {
-    fun onBalanceClicked()
-    fun onNetworkIssuesClicked()
-    fun assetTypeChanged(type: AssetType)
-
-    @OptIn(ExperimentalMaterialApi::class)
-    fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>)
-    fun assetClicked(asset: AssetListItemViewState)
-    fun onHiddenAssetClicked()
 }
 
 @OptIn(ExperimentalMaterialApi::class)

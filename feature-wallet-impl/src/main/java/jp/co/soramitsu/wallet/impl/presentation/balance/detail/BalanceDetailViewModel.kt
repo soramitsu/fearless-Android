@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
@@ -21,6 +23,7 @@ import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
@@ -63,8 +66,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
-import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -78,9 +79,11 @@ class BalanceDetailViewModel @Inject constructor(
     private val chainInteractor: ChainInteractor,
     private val historyFiltersProvider: HistoryFiltersProvider,
     savedStateHandle: SavedStateHandle,
-    resourceManager: ResourceManager,
+    private val resourceManager: ResourceManager,
+    private val clipboardManager: ClipboardManager,
     addressDisplayUseCase: AddressDisplayUseCase
 ) : BaseViewModel(),
+    BalanceDetailsScreenInterface,
     ExternalAccountActions by externalAccountActions,
     BuyMixin by buyMixin {
 
@@ -132,7 +135,7 @@ class BalanceDetailViewModel @Inject constructor(
         )
     }.shareIn(this, SharingStarted.Eagerly, replay = 1)
 
-    fun buyEnabled(): Boolean {
+    override fun buyEnabled(): Boolean {
         return buyMixin.isBuyEnabled(
             assetPayload.value.chainId,
             assetPayload.value.chainAssetId
@@ -238,7 +241,7 @@ class BalanceDetailViewModel @Inject constructor(
         transactionHistoryMixin.cancel()
     }
 
-    fun transactionsScrolled(index: Int) {
+    override fun transactionsScrolled(index: Int) {
         transactionHistoryMixin.scrolled(
             index,
             AssetPayload(
@@ -248,11 +251,11 @@ class BalanceDetailViewModel @Inject constructor(
         )
     }
 
-    fun filterClicked() {
+    override fun filterClicked() {
         router.openFilter()
     }
 
-    fun sync() {
+    override fun sync() {
         viewModelScope.launch {
             isRefreshing.value = true
             async {
@@ -299,7 +302,13 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    fun frozenInfoClicked() {
+    override fun onAddressClick() {
+        (state.value as? LoadingState.Loaded)?.data?.balance?.address?.let { address ->
+            copyToClipboard(address)
+        }
+    }
+
+    override fun onBalanceClick() {
         launch {
             val assetModel = assetModelFlow.first()
             router.openFrozenTokens(
@@ -313,7 +322,7 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {
+    override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {
         val payload = AssetPayload(chainId, chainAssetId)
         when (actionType) {
             ActionItemType.SEND -> {
@@ -330,6 +339,13 @@ class BalanceDetailViewModel @Inject constructor(
             }
             else -> {}
         }
+    }
+
+    private fun copyToClipboard(text: String) {
+        clipboardManager.addToClipboard(text)
+
+        val message = resourceManager.getString(jp.co.soramitsu.common.R.string.common_copied)
+        showMessage(message)
     }
 
     private fun assetModelsFlow(): Flow<List<AssetModel>> =
@@ -388,7 +404,7 @@ class BalanceDetailViewModel @Inject constructor(
             .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
     }
 
-    fun onChainSelected(item: ChainItemState? = null) {
+    override fun onChainSelected(item: ChainItemState?) {
         selectedChainItem.value = item
         viewModelScope.launch {
             val currentAddress = interactor.selectedAccountFlow(polkadotChainId).first().address
@@ -396,7 +412,7 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    fun onChainSearchEntered(query: String) {
+    override fun onChainSearchEntered(query: String) {
         enteredChainQueryFlow.value = query
     }
 
@@ -404,7 +420,7 @@ class BalanceDetailViewModel @Inject constructor(
         return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
     }
 
-    fun transactionClicked(transactionModel: OperationModel) {
+    override fun transactionClicked(transactionModel: OperationModel) {
         transactionHistoryMixin.transactionClicked(
             transactionModel,
             AssetPayload(

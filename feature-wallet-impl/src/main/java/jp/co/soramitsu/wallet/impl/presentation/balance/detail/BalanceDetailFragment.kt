@@ -124,7 +124,17 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
-        BalanceDetailsScreen(viewModel, modalBottomSheetState)
+        val state by viewModel.state.collectAsState()
+        val chainsState by viewModel.chainsState.collectAsState()
+        val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+        BalanceDetailsScreen(
+            state = state,
+            chainsState = chainsState,
+            isRefreshing = isRefreshing,
+            modalBottomSheetState = modalBottomSheetState,
+            callback = viewModel
+        )
     }
 
     @Composable

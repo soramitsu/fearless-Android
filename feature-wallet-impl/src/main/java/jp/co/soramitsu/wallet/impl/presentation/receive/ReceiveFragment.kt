@@ -41,7 +41,7 @@ class ReceiveFragment : BaseComposeBottomSheetDialogFragment<ReceiveViewModel>()
 
         ReceiveScreen(
             state = state,
-            receiveScreenInterface = viewModel.receiveScreenInterface
+            callback = viewModel
         )
     }
 
