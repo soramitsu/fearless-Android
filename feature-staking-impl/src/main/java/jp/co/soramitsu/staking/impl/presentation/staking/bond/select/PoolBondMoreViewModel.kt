@@ -21,6 +21,7 @@ class PoolBondMoreViewModel @Inject constructor(
 ) : BaseEnterAmountViewModel(
     nextButtonTextRes = R.string.common_continue,
     toolbarTextRes = R.string.staking_bond_more_v1_9_0,
+    balanceHintRes = R.string.common_available_format,
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
     resourceManager = resourceManager,
     feeEstimator = stakingPoolInteractor::estimateBondMoreFee,

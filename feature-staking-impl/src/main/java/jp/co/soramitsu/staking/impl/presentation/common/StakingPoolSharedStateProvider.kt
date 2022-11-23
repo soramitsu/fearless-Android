@@ -21,4 +21,6 @@ class StakingPoolSharedStateProvider {
         get() = requireNotNull(selectedValidatorsState.get())
     val requireEditPoolState: EditPoolFlowState
         get() = requireNotNull(editPoolState.get())
+    val requireManageState: StakingPoolManageFlowState
+        get() = requireNotNull(manageState.get())
 }

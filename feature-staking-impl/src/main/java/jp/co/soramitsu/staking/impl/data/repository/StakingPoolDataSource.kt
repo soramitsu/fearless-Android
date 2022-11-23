@@ -62,7 +62,7 @@ class StakingPoolDataSource(
 
     suspend fun maxPoolMembers(chainId: ChainId): BigInteger? {
         return remoteStorage.query(
-            keyBuilder = { it.metadata.nominationPools().storage("MaxPoolMembersPerPool").storageKey() },
+            keyBuilder = { it.metadata.nominationPools().storage("MaxPoolMembers").storageKey() },
             binding = { scale, runtime ->
                 scale?.let { bindMaxPoolMembers(it, runtime) }
             },
@@ -72,7 +72,7 @@ class StakingPoolDataSource(
 
     suspend fun maxMembersInPool(chainId: ChainId): BigInteger? {
         return remoteStorage.query(
-            keyBuilder = { it.metadata.nominationPools().storage("MaxPoolMembers").storageKey() },
+            keyBuilder = { it.metadata.nominationPools().storage("MaxPoolMembersPerPool").storageKey() },
             binding = ::bindMaxMembersInPool,
             chainId = chainId
         )

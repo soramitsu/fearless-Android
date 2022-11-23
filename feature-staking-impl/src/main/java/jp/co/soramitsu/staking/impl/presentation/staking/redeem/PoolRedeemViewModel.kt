@@ -20,6 +20,7 @@ class PoolRedeemViewModel @Inject constructor(
 ) : BaseEnterAmountViewModel(
     nextButtonTextRes = R.string.common_continue,
     toolbarTextRes = R.string.staking_redeem,
+    balanceHintRes = R.string.common_balance_format,
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
     initialAmount = requireNotNull(stakingPoolSharedStateProvider.manageState.get()?.redeemInPlanks).let {
         val asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset)

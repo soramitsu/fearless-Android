@@ -92,7 +92,7 @@ class ManagePoolStakeViewModel @Inject constructor(
         defaultUnstakingState,
         defaultPoolInfoState,
         defaultTimeBeforeRedeemState,
-        false
+        true
     )
 
     private val unstakingPeriodFlow = jp.co.soramitsu.common.utils.flowOf {
