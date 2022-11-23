@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +27,7 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.BackgroundCorneredWithBorder
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -34,6 +36,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.withNoFontPadding
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -53,6 +56,9 @@ data class AddressHistoryViewState(
     companion object {
         val default = AddressHistoryViewState(emptySet(), emptyMap())
     }
+
+    val isEmpty: Boolean
+        get() = recentAddresses.isEmpty() && addressBookAddresses.isEmpty()
 }
 
 interface AddressHistoryScreenInterface {
@@ -63,7 +69,7 @@ interface AddressHistoryScreenInterface {
 
 @Composable
 fun AddressHistoryContent(
-    state: AddressHistoryViewState,
+    state: LoadingState<AddressHistoryViewState>,
     callback: AddressHistoryScreenInterface
 ) {
     BottomSheetScreen {
@@ -78,33 +84,13 @@ fun AddressHistoryContent(
                     onNavigationClicked = callback::onNavigationClick
                 )
                 MarginVertical(margin = 24.dp)
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    if (state.recentAddresses.isNotEmpty()) {
-                        item {
-                            AddressGroupItem(stringResource(id = R.string.recent))
-                        }
-                        items(state.recentAddresses.toList()) { address ->
-                            AddressItem(
-                                address = address,
-                                onItemClick = callback::onAddressClick,
-                                onCreateContactClick = callback::onCreateContactClick
-                            )
-                        }
+
+                when {
+                    state is LoadingState.Loaded && state.data.isEmpty -> {
+                        EmptyState()
                     }
-                    state.addressBookAddresses.map {
-                        item {
-                            AddressGroupItem(it.key)
-                        }
-                        items(it.value) { address ->
-                            AddressItem(
-                                address = address,
-                                onItemClick = callback::onAddressClick,
-                                onCreateContactClick = callback::onCreateContactClick
-                            )
-                        }
+                    state is LoadingState.Loaded && state.data.isEmpty.not() -> {
+                        Content(state = state.data, callback = callback)
                     }
                 }
                 MarginVertical(margin = 12.dp)
@@ -116,6 +102,50 @@ fun AddressHistoryContent(
                     onClick = callback::onCreateContactClick
                 )
                 MarginVertical(margin = 12.dp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.EmptyState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f)
+    ) {
+        EmptyMessage(message = R.string.address_history_empty_message, modifier = Modifier.align(Alignment.Center))
+    }
+}
+
+@Composable
+private fun ColumnScope.Content(state: AddressHistoryViewState, callback: AddressHistoryScreenInterface) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.weight(1f)
+    ) {
+        if (state.recentAddresses.isNotEmpty()) {
+            item {
+                AddressGroupItem(stringResource(id = R.string.recent))
+            }
+            items(state.recentAddresses.toList()) { address ->
+                AddressItem(
+                    address = address,
+                    onItemClick = callback::onAddressClick,
+                    onCreateContactClick = callback::onCreateContactClick
+                )
+            }
+        }
+        state.addressBookAddresses.map {
+            item {
+                AddressGroupItem(it.key)
+            }
+            items(it.value) { address ->
+                AddressItem(
+                    address = address,
+                    onItemClick = callback::onAddressClick,
+                    onCreateContactClick = callback::onCreateContactClick
+                )
             }
         }
     }
@@ -206,7 +236,7 @@ fun PreviewAddressHistoryContent() {
     )
     val addressBookAddresses = mapOf<String?, List<Address>>("J" to addressSet.toList().subList(0, 1))
 
-    val state = AddressHistoryViewState(addressSet, addressBookAddresses)
+    val state = LoadingState.Loaded(AddressHistoryViewState(addressSet, addressBookAddresses))
     val callback = object : AddressHistoryScreenInterface {
         override fun onAddressClick(address: Address) {}
         override fun onNavigationClick() {}
