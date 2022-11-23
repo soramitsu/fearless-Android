@@ -269,7 +269,7 @@ class SendSetupViewModel @Inject constructor(
     ) { phishing, isExpanded ->
         phishing?.let {
             WarningInfoState(
-                message = resourceManager.getString(R.string.scam_warning_message),
+                message = getPhishingMessage(phishing?.type),
                 extras = listOf(
                     phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
                     phishing.type?.let { resourceManager.getString(R.string.reason) to it },
@@ -278,6 +278,16 @@ class SendSetupViewModel @Inject constructor(
                 isExpanded = isExpanded,
                 color = phishing.color
             )
+        }
+    }
+
+    private fun getPhishingMessage(type: String?): String {
+        return when {
+            type.equals("scam", true) -> resourceManager.getString(R.string.scam_warning_message)
+            type.equals("exchange", true) -> resourceManager.getString(R.string.exchange_warning_message)
+            type.equals("donation", true) -> resourceManager.getString(R.string.donation_warning_message)
+            type.equals("sanctions", true) -> resourceManager.getString(R.string.sanction_warning_message)
+            else -> resourceManager.getString(R.string.scam_warning_message)
         }
     }
 
