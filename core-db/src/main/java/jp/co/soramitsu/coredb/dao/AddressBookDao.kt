@@ -16,6 +16,6 @@ interface AddressBookDao {
     @Query("delete from address_book")
     suspend fun clearTable()
 
-    @Query("select * from address_book")
-    fun observeAddressBook(): Flow<List<AddressBookContact>>
+    @Query("select * from address_book where :chainId = chainId")
+    fun observeAddressBook(chainId: String): Flow<List<AddressBookContact>>
 }

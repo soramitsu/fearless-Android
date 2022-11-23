@@ -948,5 +948,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="contact_name">Contact Name</string>
     <string name="contact_address">Contact Address</string>
     <string name="recent">Recent</string>
+    <string name="address_history_empty_message">No history found</string>
 
 </resources>

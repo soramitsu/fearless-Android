@@ -99,9 +99,9 @@ interface WalletInteractor {
 
     fun getChains(): Flow<List<Chain>>
 
-    fun getOperationAddressWithChainIdFlow(limit: Int?): Flow<Map<String, ChainId>>
+    fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>>
 
     suspend fun saveAddress(name: String, address: String, selectedChainId: String)
 
-    fun observeAddressBook(): Flow<List<AddressBookContact>>
+    fun observeAddressBook(chainId: ChainId): Flow<List<AddressBookContact>>
 }

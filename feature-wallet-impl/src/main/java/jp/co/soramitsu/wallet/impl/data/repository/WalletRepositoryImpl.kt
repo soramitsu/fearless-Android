@@ -221,12 +221,18 @@ class WalletRepositoryImpl(
         chainAsset: Chain.Asset
     ) {
         val accountAddress = chain.addressOf(accountId)
-        val page = getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
+        val page = kotlin.runCatching {
+            getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
+        }.getOrDefault(CursorPage(null, emptyList()))
 
         val elements = page.map { mapOperationToOperationLocalDb(it, chainAsset, OperationLocal.Source.SUBQUERY) }
 
         operationDao.insertFromSubquery(accountAddress, chain.id, chainAsset.id, elements)
         cursorStorage.saveCursor(chain.id, chainAsset.id, accountId, page.nextCursor)
+
+        if (elements.isEmpty() && chainAsset.isUtility.not()) {
+            syncOperationsFirstPage(pageSize, filters, accountId, chain, chain.utilityAsset)
+        }
     }
 
     override suspend fun getOperations(
@@ -280,32 +286,29 @@ class WalletRepositoryImpl(
             }
     }
 
-    override fun getOperationAddressWithChainIdFlow(limit: Int?): Flow<Map<String, ChainId>> {
-        return operationDao.observeOperations().mapList { operation ->
-            val accountAddress = currentAccountAddress.invoke(operation.chainId)
+    override fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>> {
+        return operationDao.observeOperations(chainId).mapList { operation ->
+            val accountAddress = currentAccountAddress.invoke(chainId)
             if (operation.address == accountAddress) {
                 val receiver = when (operation.receiver) {
-                    null, operation.address -> null
+                    null, accountAddress -> null
                     else -> operation.receiver
                 }
                 val sender = when (operation.sender) {
-                    null, operation.address -> null
+                    null, accountAddress -> null
                     else -> operation.sender
                 }
-                (receiver ?: sender)?.let { it to operation.chainId }
+                receiver ?: sender
             } else {
                 null
             }
         }
             .map {
-                it.filterNotNull()
-            }
-            .map {
+                val nonNullList = it.filterNotNull()
                 when {
-                    limit == null || limit < 0 -> it
-                    else -> it.subList(0, min(limit, it.size))
-                }
-                    .toMap()
+                    limit == null || limit < 0 -> nonNullList
+                    else -> nonNullList.subList(0, min(limit, it.size))
+                }.toSet()
             }
     }
 

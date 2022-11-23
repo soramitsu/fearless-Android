@@ -6,6 +6,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -33,11 +34,11 @@ class AddressHistoryViewModel @Inject constructor(
 
     val chainId: ChainId = savedStateHandle[AddressHistoryFragment.KEY_PAYLOAD] ?: error("ChainId not specified")
 
-    val state: StateFlow<AddressHistoryViewState> = combine(
-        walletInteractor.getOperationAddressWithChainIdFlow(RECENT_SIZE),
-        walletInteractor.observeAddressBook()
+    val state: StateFlow<LoadingState<AddressHistoryViewState>> = combine(
+        walletInteractor.getOperationAddressWithChainIdFlow(RECENT_SIZE, chainId),
+        walletInteractor.observeAddressBook(chainId)
     ) { recentAddressesInfo, addressBook ->
-        val recentAddresses: Set<Address> = recentAddressesInfo.map { (address, chainId) ->
+        val recentAddresses: Set<Address> = recentAddressesInfo.map { address ->
             val placeholder = resourceManager.getDrawable(R.drawable.ic_wallet)
             val chain = walletInteractor.getChain(chainId)
             val accountImage = address.ifEmpty { null }?.let {
@@ -70,11 +71,13 @@ class AddressHistoryViewModel @Inject constructor(
             it.name.firstOrNull()?.uppercase()
         }
 
-        AddressHistoryViewState(
-            recentAddresses = recentAddresses,
-            addressBookAddresses = addressBookAddresses
+        LoadingState.Loaded(
+            AddressHistoryViewState(
+                recentAddresses = recentAddresses,
+                addressBookAddresses = addressBookAddresses
+            )
         )
-    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = AddressHistoryViewState.default)
+    }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
     override fun onAddressClick(address: Address) {
         sharedState.updateAddress(address.address)

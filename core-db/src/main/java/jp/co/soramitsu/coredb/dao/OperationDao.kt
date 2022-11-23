@@ -40,6 +40,9 @@ abstract class OperationDao {
     @Query("SELECT * FROM operations ORDER BY time DESC")
     abstract fun observeOperations(): Flow<List<OperationLocal>>
 
+    @Query("SELECT * FROM operations WHERE :chainId = chainId ORDER BY time DESC")
+    abstract fun observeOperations(chainId: String): Flow<List<OperationLocal>>
+
     @Transaction
     open suspend fun insertFromSubquery(
         accountAddress: String,
