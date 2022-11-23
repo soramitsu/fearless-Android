@@ -65,14 +65,10 @@ fun ScamWarningContent(
             )
 
             MarginVertical(margin = 8.dp)
-            H3(text = state.title, modifier = Modifier.align(Alignment.CenterHorizontally))
+            H3(text = state.title, textAlign = TextAlign.Center)
             state.message?.let {
                 MarginVertical(margin = 8.dp)
-                B0(
-                    text = it,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                B0(text = it, textAlign = TextAlign.Center)
             }
             MarginVertical(margin = 24.dp)
             AccentButton(

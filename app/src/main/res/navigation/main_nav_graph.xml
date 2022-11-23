@@ -572,7 +572,7 @@
 
     <dialog
         android:id="@+id/scamWarningFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.scam.warning.ScamWarningFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.send.scam.ScamWarningFragment"
         android:label="scamWarningFragment" />
 
     <dialog

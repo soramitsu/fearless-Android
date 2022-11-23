@@ -119,7 +119,7 @@ fun ConfirmSendContent(
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                     MarginVertical(margin = 24.dp)
-                    InfoTable(items = state.tableItems)
+                    InfoTable(items = state.tableItems, onItemClick = callback::onItemClick)
                     Spacer(modifier = Modifier.weight(1f))
                     MarginVertical(margin = 12.dp)
 
