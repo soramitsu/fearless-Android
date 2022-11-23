@@ -50,8 +50,9 @@ class StartStakingPoolViewModel @Inject constructor(
     private val yearlyReturnsFlow = flowOf {
         val asset = stakingSharedState.currentAssetFlow().first()
         // todo hardcoded returns for demo
-        val kusamaOnTestNodeChainId = "f95f9821674aec3a20383a31a28db18670df0c2874ec5f3aa20fddeccf86efb0"
-        val chainId = if (asset.token.configuration.chainId == kusamaOnTestNodeChainId) {
+        val kusamaOnTestNodeChainId = "164c079774f45db5dd99a1b0b99752ec509c9573a1e99ca61c44b152753d7905"
+        val polkadotOnTestNodeChainId = "3736d07814d0b72e39d036b28ba782b121abea3cabb4cef9778e68454af20473"
+        val chainId = if (asset.token.configuration.chainId == kusamaOnTestNodeChainId || asset.token.configuration.chainId == polkadotOnTestNodeChainId) {
             polkadotChainId
         } else {
             asset.token.configuration.chainId
