@@ -12,12 +12,10 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class EditPoolConfirmViewModel @Inject constructor(
@@ -69,13 +67,11 @@ class EditPoolConfirmViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private suspend fun createRoleState(role: AccountId?, prefix: Short, title: String): TitleValueViewState {
-        return withContext(Dispatchers.Default) {
-            val address = role?.toAddress(prefix)
-            val name = address?.let { stakingPoolInteractor.getAccountName(it) }
-            val value = (name ?: address).orEmpty()
-            val subValue = name?.let { address }
-            TitleValueViewState(title, value, subValue)
-        }
+        val address = role?.toAddress(prefix)
+        val name = address?.let { stakingPoolInteractor.getAccountName(it) }
+        val value = (name ?: address).orEmpty()
+        val subValue = name?.let { address }
+        return TitleValueViewState(title, value, subValue)
     }
 
     fun onBackClick() {

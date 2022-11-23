@@ -33,6 +33,7 @@ import jp.co.soramitsu.staking.impl.domain.validators.ValidatorSource
 import jp.co.soramitsu.staking.impl.presentation.common.EditPoolFlowState
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -45,6 +46,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class StakingPoolInteractor(
     private val api: StakingPoolApi,
@@ -231,17 +233,19 @@ class StakingPoolInteractor(
     }
 
     suspend fun getAccountName(address: String): String? {
-        val chain = stakingInteractor.getSelectedChain()
-        val accountId = chain.accountIdOf(address)
-        val metaAccount = accountRepository.findMetaAccount(accountId)
-        return if (metaAccount != null) {
-            metaAccount.name
-        } else {
-            val identities = getIdentities(listOf(accountId))
-            val map = identities.mapNotNull {
-                chain.accountFromMapKey(it.key) to it.value?.display
-            }.toMap()
-            map[address]
+        return withContext(Dispatchers.Default) {
+            val chain = stakingInteractor.getSelectedChain()
+            val accountId = chain.accountIdOf(address)
+            val metaAccount = accountRepository.findMetaAccount(accountId)
+            if (metaAccount != null) {
+                metaAccount.name
+            } else {
+                val identities = getIdentities(listOf(accountId))
+                val map = identities.mapNotNull {
+                    chain.accountFromMapKey(it.key) to it.value?.display
+                }.toMap()
+                map[address]
+            }
         }
     }
 
