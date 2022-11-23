@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.stateIn
 open class BaseEnterAmountViewModel(
     @StringRes private val nextButtonTextRes: Int = R.string.common_continue,
     @StringRes private val toolbarTextRes: Int = R.string.staking_bond_more_v1_9_0,
+    @StringRes private val balanceHintRes: Int,
     initialAmount: String = "0",
     isInputActive: Boolean = true,
     protected val asset: Asset,
@@ -37,13 +38,14 @@ open class BaseEnterAmountViewModel(
     private val feeEstimator: suspend (BigInteger) -> BigInteger,
     private val onNextStep: (BigInteger) -> Unit,
     private vararg val validations: Validation,
-    private val buttonValidation: (BigInteger) -> Boolean = { it != BigInteger.ZERO }
+    private val buttonValidation: (BigInteger) -> Boolean = { it != BigInteger.ZERO },
+    private val availableAmountForOperation: suspend (Asset) -> BigDecimal = { it.transferable }
 ) : BaseViewModel() {
 
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
         tokenImage = "",
-        totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
+        totalBalance = resourceManager.getString(balanceHintRes, "..."),
         fiatAmount = "",
         tokenAmount = initialAmount
     )
@@ -68,14 +70,14 @@ open class BaseEnterAmountViewModel(
     private val enteredAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = enteredAmountFlow.map { enteredAmount ->
-        val tokenBalance = asset.transferable.formatTokenAmount(asset.token.configuration)
+        val tokenBalance = availableAmountForOperation(asset).formatTokenAmount(asset.token.configuration)
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val fiatAmount = amount.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
 
         AmountInputViewState(
             tokenName = asset.token.configuration.symbolToShow,
             tokenImage = asset.token.configuration.iconUrl,
-            totalBalance = resourceManager.getString(R.string.common_balance_format, tokenBalance),
+            totalBalance = resourceManager.getString(balanceHintRes, tokenBalance),
             fiatAmount = fiatAmount,
             tokenAmount = enteredAmount,
             isActive = isInputActive

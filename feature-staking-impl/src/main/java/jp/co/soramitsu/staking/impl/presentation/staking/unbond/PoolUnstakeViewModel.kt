@@ -10,6 +10,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStatePr
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.api.presentation.BaseEnterAmountViewModel
 import jp.co.soramitsu.wallet.api.presentation.Validation
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 
 @HiltViewModel
 class PoolUnstakeViewModel @Inject constructor(
@@ -20,6 +21,7 @@ class PoolUnstakeViewModel @Inject constructor(
 ) : BaseEnterAmountViewModel(
     nextButtonTextRes = R.string.common_continue,
     toolbarTextRes = R.string.staking_unbond_v1_9_0,
+    balanceHintRes = R.string.common_available_format,
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
     resourceManager = resourceManager,
     feeEstimator = {
@@ -40,7 +42,8 @@ class PoolUnstakeViewModel @Inject constructor(
             },
             error = InsufficientStakeBalanceException(resourceManager)
         )
-    )
+    ),
+    availableAmountForOperation = { it.token.amountFromPlanks(stakingPoolSharedStateProvider.requireManageState.stakedInPlanks) }
 ) {
     fun onBackClick() {
         router.back()
