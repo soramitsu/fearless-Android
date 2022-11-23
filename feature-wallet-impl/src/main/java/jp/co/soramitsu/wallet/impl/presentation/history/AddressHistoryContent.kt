@@ -170,7 +170,6 @@ fun AddressItem(
     Row(
         Modifier
             .fillMaxWidth()
-            .height(40.dp)
             .clickable {
                 onItemClick?.invoke(address)
             }

@@ -307,7 +307,7 @@ class WalletRepositoryImpl(
                 val nonNullList = it.filterNotNull()
                 when {
                     limit == null || limit < 0 -> nonNullList
-                    else -> nonNullList.subList(0, min(limit, it.size))
+                    else -> nonNullList.subList(0, min(limit, nonNullList.size))
                 }.toSet()
             }
     }
