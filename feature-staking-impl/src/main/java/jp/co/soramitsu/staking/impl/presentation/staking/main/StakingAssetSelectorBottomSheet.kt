@@ -27,7 +27,8 @@ class StakingAssetSelectorBottomSheet(
     context,
     payload,
     StakingAssetSelector.StakingAssetSelectorModel.DIFF_CALLBACK,
-    onClicked
+    onClicked,
+    expandedOnStart = true
 ) {
 
     override fun onCreate(savedInstanceState: Bundle?) {

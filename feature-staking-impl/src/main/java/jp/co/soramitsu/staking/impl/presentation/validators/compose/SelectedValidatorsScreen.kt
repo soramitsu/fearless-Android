@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.EmptyMessage
+import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
@@ -52,34 +53,36 @@ fun SelectedValidatorsScreen(
             ),
             onNavigationClick = screenInterface::onBackClick
         )
-        if (state is LoadingState.Loaded) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (state.data.listState.items.isEmpty()) {
-                    EmptyMessage(
-                        modifier = Modifier.align(Alignment.Center),
-                        message = R.string.staking_set_validators_message
-                    )
-                } else {
-                    ValidatorsList(
-                        listState = state.data.listState,
-                        paddingValues = PaddingValues(bottom = 106.dp),
-                        onSelected = {},
-                        onInfoClick = screenInterface::onInfoClick
-                    )
-                }
-                if (state.data.canChangeValidators) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 46.dp, start = 16.dp, end = 16.dp)
-                    ) {
-                        AccentButton(
-                            text = stringResource(id = R.string.pool_staking_change_validators_button),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp),
-                            onClick = screenInterface::onChangeValidatorsClick
+        FullScreenLoading(isLoading = state is LoadingState.Loading) {
+            if (state is LoadingState.Loaded) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    if (state.data.listState.items.isEmpty()) {
+                        EmptyMessage(
+                            modifier = Modifier.align(Alignment.Center),
+                            message = R.string.staking_set_validators_message
                         )
+                    } else {
+                        ValidatorsList(
+                            listState = state.data.listState,
+                            paddingValues = PaddingValues(bottom = 106.dp),
+                            onSelected = {},
+                            onInfoClick = screenInterface::onInfoClick
+                        )
+                    }
+                    if (state.data.canChangeValidators) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 46.dp, start = 16.dp, end = 16.dp)
+                        ) {
+                            AccentButton(
+                                text = stringResource(id = R.string.pool_staking_change_validators_button),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp),
+                                onClick = screenInterface::onChangeValidatorsClick
+                            )
+                        }
                     }
                 }
             }

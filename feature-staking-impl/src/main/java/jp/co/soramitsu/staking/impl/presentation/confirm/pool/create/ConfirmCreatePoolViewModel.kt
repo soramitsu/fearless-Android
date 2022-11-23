@@ -9,7 +9,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.domain.GetIdentitiesUseCase
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
@@ -26,7 +25,6 @@ class ConfirmCreatePoolViewModel @Inject constructor(
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
     private val router: StakingRouter,
-    private val getIdentities: GetIdentitiesUseCase,
     private val poolInteractor: StakingPoolInteractor
 ) : BaseConfirmViewModel(
     address = poolSharedStateProvider.requireMainState.requireAddress,
@@ -46,12 +44,7 @@ class ConfirmCreatePoolViewModel @Inject constructor(
         router.returnToMain()
         router.openStartSelectValidators()
     },
-    accountNameProvider = {
-        val chain = poolSharedStateProvider.requireMainState.requireChain
-        getIdentities(chain, it).mapNotNull { pair ->
-            pair.value?.display
-        }.firstOrNull()
-    },
+    accountNameProvider = { stakingPoolInteractor.getAccountName(it) },
     titleRes = R.string.pool_stakeng_create_confirm_title
 ) {
     private val addressDisplayFlow = flowOf {

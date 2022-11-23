@@ -85,7 +85,7 @@ fun OwnPool.toViewState(asset: Asset, resourceManager: ResourceManager): StakeIn
     val default = StakeInfoViewState.PoolStakeInfoViewState.default(resourceManager)
 
     return default.copy(
-        title = name ?: poolId.toString(),
+        title = resourceManager.getString(R.string.staking_pool_stake_title),
         staked = default.staked.copy(value = stakedFormatted, additionalValue = stakedFiat),
         rewarded = default.rewarded.copy(value = rewardedFormatted, additionalValue = rewardedFiat),
         redeemable = default.redeemable.copy(value = redeemableFormatted, additionalValue = redeemableFiat),
