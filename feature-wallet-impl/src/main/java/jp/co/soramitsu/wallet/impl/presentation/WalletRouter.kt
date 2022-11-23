@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.navigation.SecureRouter
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
@@ -36,7 +37,7 @@ interface WalletRouter : SecureRouter {
 
     fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 
-    fun openSendConfirm(transferDraft: TransferDraft)
+    fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?)
 
     fun finishSendFlow()
 
@@ -92,8 +93,6 @@ interface WalletRouter : SecureRouter {
     fun openFrozenTokens(payload: FrozenAssetPayload)
 
     val alertResultFlow: Flow<Result<Unit>>
-
-    fun openScamWarning(symbol: String)
 
     fun openAddressHistory(chainId: ChainId)
 

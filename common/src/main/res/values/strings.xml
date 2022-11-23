@@ -924,13 +924,17 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="all_done">All Done</string>
     <string name="send_success_message">You can now back to your app and\ndo that you\'re usually do</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
-    <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may different.</string>
+    <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may differ.</string>
     <string name="donation_warning_message">This address has been suspicious. We strongly recommend that you don\'t send DOT to this account.</string>
     <string name="sanction_warning_message">This address has been flagged due to entity related to Russia. We strongly recommend that you don\'t send DOT to this account.</string>
     <string name="reason">Reason</string>
     <string name="additional">Additional</string>
     <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
+    <string name="exchange_alert_title">This address is marked as an exchange</string>
+    <string name="exchange_alert_message">Be careful the deposit and withdrawal addresses may differ.</string>
+    <string name="donation_alert_title">This address has been suspicious.</string>
+    <string name="sanction_alert_title">This address has been flagged due to entity related to Russia.</string>
     <string name="sending">Sending</string>
 
     <string name="staking_pool_stake_title">Your Pool Staking</string>

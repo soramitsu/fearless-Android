@@ -571,11 +571,6 @@
         android:label="alertFragment" />
 
     <dialog
-        android:id="@+id/scamWarningFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.scam.ScamWarningFragment"
-        android:label="scamWarningFragment" />
-
-    <dialog
         android:id="@+id/optionsAddAccountFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment"
         android:label="optionsAddAccountFragment" />

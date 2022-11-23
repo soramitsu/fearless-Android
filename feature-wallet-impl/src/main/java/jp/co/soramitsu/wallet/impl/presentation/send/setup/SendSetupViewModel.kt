@@ -40,6 +40,7 @@ import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
@@ -269,10 +270,10 @@ class SendSetupViewModel @Inject constructor(
     ) { phishing, isExpanded ->
         phishing?.let {
             WarningInfoState(
-                message = getPhishingMessage(phishing?.type),
+                message = getPhishingMessage(phishing.type),
                 extras = listOf(
                     phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
-                    phishing.type?.let { resourceManager.getString(R.string.reason) to it },
+                    phishing.type?.let { resourceManager.getString(R.string.reason) to it.title() },
                     phishing.subtype?.let { resourceManager.getString(R.string.additional) to it }
                 ).mapNotNull { it },
                 isExpanded = isExpanded,
@@ -281,12 +282,12 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private fun getPhishingMessage(type: String?): String {
-        return when {
-            type.equals("scam", true) -> resourceManager.getString(R.string.scam_warning_message)
-            type.equals("exchange", true) -> resourceManager.getString(R.string.exchange_warning_message)
-            type.equals("donation", true) -> resourceManager.getString(R.string.donation_warning_message)
-            type.equals("sanctions", true) -> resourceManager.getString(R.string.sanction_warning_message)
+    private fun getPhishingMessage(type: PhishingType): String {
+        return when (type) {
+            PhishingType.SCAM -> resourceManager.getString(R.string.scam_warning_message)
+            PhishingType.EXCHANGE -> resourceManager.getString(R.string.exchange_warning_message)
+            PhishingType.DONATION -> resourceManager.getString(R.string.donation_warning_message)
+            PhishingType.SANCTIONS -> resourceManager.getString(R.string.sanction_warning_message)
             else -> resourceManager.getString(R.string.scam_warning_message)
         }
     }
@@ -423,8 +424,9 @@ class SendSetupViewModel @Inject constructor(
     private fun onNextStep() {
         launch {
             val transferDraft = buildTransferDraft() ?: return@launch
+            val phishingType = phishingModelFlow.firstOrNull()?.type
 
-            router.openSendConfirm(transferDraft)
+            router.openSendConfirm(transferDraft, phishingType)
         }
     }
 
