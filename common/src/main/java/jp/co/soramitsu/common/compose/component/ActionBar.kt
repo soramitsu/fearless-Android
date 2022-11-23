@@ -37,7 +37,8 @@ enum class ActionItemType(
 data class ActionBarViewState(
     val chainId: String,
     val chainAssetId: String,
-    val actionItems: List<ActionItemType>
+    val actionItems: List<ActionItemType>,
+    val disabledItems: List<ActionItemType> = emptyList()
 )
 
 @Composable
@@ -52,10 +53,11 @@ fun ActionBar(
                 ActionCell(
                     state = ActionCellViewState(
                         painter = painterResource(actionItem.iconId),
-                        title = stringResource(actionItem.titleId)
+                        title = stringResource(actionItem.titleId),
+                        isEnabled = actionItem !in state.disabledItems
                     ),
                     modifier = if (fillMaxWidth) Modifier.weight(1f) else Modifier,
-                    onClick = { onItemClick.invoke(actionItem, state.chainId, state.chainAssetId) }
+                    onClick = { onItemClick(actionItem, state.chainId, state.chainAssetId) }
                 )
 
                 if (index < state.actionItems.size - 1) {

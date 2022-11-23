@@ -22,11 +22,11 @@ interface WalletRouter : SecureRouter {
 
     fun popOutOfSend()
 
-    fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null)
+    fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null)
 
     fun openSelectChain(assetId: String)
 
-    fun openSelectChain(filterChainIds: List<ChainId>? = null, chooserMode: Boolean = true)
+    fun openSelectChain(filterChainIds: List<ChainId>? = null, chooserMode: Boolean = true, currencyId: String? = null)
 
     fun openSelectAsset(selectedAssetId: String)
 

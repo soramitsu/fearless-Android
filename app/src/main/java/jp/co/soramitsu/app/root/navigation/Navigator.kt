@@ -523,8 +523,8 @@ class Navigator :
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?) {
-        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress)
+    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
@@ -534,8 +534,8 @@ class Navigator :
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
-    override fun openSelectChain(filterChainIds: List<ChainId>?, chooserMode: Boolean) {
-        val bundle = ChainSelectFragment.getBundle(filterChainIds, chooserMode)
+    override fun openSelectChain(filterChainIds: List<ChainId>?, chooserMode: Boolean, currencyId: String?) {
+        val bundle = ChainSelectFragment.getBundle(filterChainIds, chooserMode, currencyId)
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
