@@ -145,26 +145,26 @@ fun ManagePoolStakeScreen(
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                    ) {
-                        GrayButton(
-                            text = stringResource(id = R.string.staking_bond_more_v1_9_0),
-                            onClick = screenInterface::onStakeMoreClick,
-                            modifier = Modifier.weight(1f),
-                            enabled = state.isFullUnstake.not()
-                        )
-                        MarginHorizontal(margin = 16.dp)
-                        GrayButton(
-                            text = stringResource(id = R.string.staking_unbond_v1_9_0),
-                            onClick = screenInterface::onUnstakeClick,
-                            modifier = Modifier.weight(1f),
-                            enabled = state.isFullUnstake.not()
-                        )
+                    if (state.isFullUnstake.not()) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            GrayButton(
+                                text = stringResource(id = R.string.staking_bond_more_v1_9_0),
+                                onClick = screenInterface::onStakeMoreClick,
+                                modifier = Modifier.weight(1f)
+                            )
+                            MarginHorizontal(margin = 16.dp)
+                            GrayButton(
+                                text = stringResource(id = R.string.staking_unbond_v1_9_0),
+                                onClick = screenInterface::onUnstakeClick,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        MarginVertical(margin = 16.dp)
                     }
-                    MarginVertical(margin = 16.dp)
                 }
             }
         }
