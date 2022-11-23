@@ -20,6 +20,7 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
         const val KEY_SELECTED_CHAIN_ID = "KEY_SELECTED_CHAIN_ID"
         const val KEY_SELECTED_ASSET_ID = "KEY_SELECTED_ASSET_ID"
         const val KEY_FILTER_CHAIN_IDS = "KEY_FILTER_CHAIN_IDS"
+        const val KEY_CURRENCY_ID = "KEY_CURRENCY_ID"
         const val KEY_CHOOSER_MODE = "KEY_CHOOSER_MODE"
 
         fun getBundle(assetId: String, chainId: ChainId? = null, chooserMode: Boolean = false) = bundleOf(
@@ -28,9 +29,10 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             KEY_CHOOSER_MODE to chooserMode
         )
 
-        fun getBundle(filterChainIds: List<ChainId>?, chooserMode: Boolean = true) = bundleOf(
+        fun getBundle(filterChainIds: List<ChainId>?, chooserMode: Boolean = true, currencyId: String?) = bundleOf(
             KEY_FILTER_CHAIN_IDS to filterChainIds,
-            KEY_CHOOSER_MODE to chooserMode
+            KEY_CHOOSER_MODE to chooserMode,
+            KEY_CURRENCY_ID to currencyId
         )
     }
 
