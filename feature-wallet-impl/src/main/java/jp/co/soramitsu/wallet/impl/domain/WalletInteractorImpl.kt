@@ -325,11 +325,12 @@ class WalletInteractorImpl(
 
     override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
 
-    override fun getOperationAddressWithChainIdFlow(limit: Int?): Flow<Map<String, ChainId>> = walletRepository.getOperationAddressWithChainIdFlow(limit)
+    override fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>> =
+        walletRepository.getOperationAddressWithChainIdFlow(limit, chainId)
 
-    override suspend fun saveAddress(name: String, address: String, chainId: String) {
-        addressBookRepository.saveAddress(name, address, chainId)
+    override suspend fun saveAddress(name: String, address: String, selectedChainId: String) {
+        addressBookRepository.saveAddress(name, address, selectedChainId)
     }
 
-    override fun observeAddressBook() = addressBookRepository.observeAddressBook()
+    override fun observeAddressBook(chainId: ChainId) = addressBookRepository.observeAddressBook(chainId)
 }

@@ -91,6 +91,7 @@ class SendSetupViewModel @Inject constructor(
 
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
     val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
+    private val tokenCurrencyId: String? = savedStateHandle[SendSetupFragment.KEY_TOKEN_ID]
 
     val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
         error("Required data (asset or address) not specified")
@@ -346,16 +347,17 @@ class SendSetupViewModel @Inject constructor(
             val addressChains = chains.filter {
                 it.addressPrefix.toShort() == addressPrefix
             }
-            when (addressChains.size) {
-                1 -> {
+            when {
+                addressChains.size == 1 -> {
                     val chain = addressChains[0]
-                    if (chain.assets.size == 1) {
-                        sharedState.update(chain.id, chain.assets[0].id)
-                    } else {
-                        router.openSelectChainAsset(chain.id)
+                    when {
+                        chain.assets.size == 1 -> sharedState.update(chain.id, chain.assets[0].id)
+                        else -> router.openSelectChainAsset(chain.id)
                     }
                 }
-                else -> router.openSelectChain(addressChains.map { it.id }, false)
+                else -> {
+                    router.openSelectChain(addressChains.map { it.id }, false, tokenCurrencyId)
+                }
             }
         }
     }

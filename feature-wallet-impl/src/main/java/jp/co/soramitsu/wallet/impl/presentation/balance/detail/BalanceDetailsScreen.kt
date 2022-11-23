@@ -237,9 +237,12 @@ private fun ContentBalanceDetailsScreen(
                 actionItems = mutableListOf(
                     ActionItemType.SEND,
                     ActionItemType.RECEIVE,
-                    ActionItemType.TELEPORT
-                ).apply {
-                    if (callback.buyEnabled()) add(ActionItemType.BUY)
+                    ActionItemType.BUY
+                ),
+                disabledItems = if (!callback.buyEnabled()) {
+                    listOf(ActionItemType.BUY)
+                } else {
+                    emptyList()
                 },
                 chainId = data.selectedChainId,
                 chainAssetId = data.chainAssetId

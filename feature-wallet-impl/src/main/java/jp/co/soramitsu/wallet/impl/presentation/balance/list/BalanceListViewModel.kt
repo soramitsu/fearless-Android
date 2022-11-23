@@ -523,7 +523,7 @@ class BalanceListViewModel @Inject constructor(
                     null
                 }
             }
-            router.openSend(assetPayload = payloadFromQr, initialSendToAddress = result)
+            router.openSend(assetPayload = payloadFromQr, initialSendToAddress = result, currencyId = qrTokenId)
         }
     }
 
