@@ -263,9 +263,7 @@ private fun ContentBalanceDetailsScreen(
                     )
                     Image(
                         res = R.drawable.ic_filter_list_24,
-                        modifier = Modifier.clickable {
-                            callback.filterClicked()
-                        }
+                        modifier = Modifier.clickable(onClick = callback::filterClicked)
                     )
                 }
                 MarginVertical(margin = 12.dp)
