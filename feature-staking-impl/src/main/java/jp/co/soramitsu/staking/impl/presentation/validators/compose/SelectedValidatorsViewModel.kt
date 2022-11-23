@@ -19,7 +19,6 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -37,18 +36,15 @@ class SelectedValidatorsViewModel @Inject constructor(
     private val chain: Chain = poolSharedStateProvider.requireMainState.requireChain
     private val asset: Asset = poolSharedStateProvider.requireMainState.requireAsset
 
-    private val validatorsFlow = flowOf { poolInteractor.getValidators(chain, validatorsToShow) }
+    private val validatorsFlow = flowOf { poolInteractor.getValidators(chain, validatorsToShow) }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val state: StateFlow<LoadingState<SelectedValidatorsScreenViewState>> = validatorsFlow.map { validators ->
+        validators ?: return@map LoadingState.Loading()
         val items = validators.map { it.toModel(true, BlockProducersSorting.ValidatorSorting.APYSorting, asset, resourceManager) }
         val listState = MultiSelectListViewState(items, items)
 
         LoadingState.Loaded(SelectedValidatorsScreenViewState(listState, canChangeValidators))
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        LoadingState.Loading()
-    )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
 
     override fun onBackClick() {
         router.back()
@@ -58,18 +54,14 @@ class SelectedValidatorsViewModel @Inject constructor(
         val poolId = poolSharedStateProvider.requireSelectedValidatorsState.requirePoolId
         val poolName = poolSharedStateProvider.requireSelectedValidatorsState.requirePoolName
         poolSharedStateProvider.selectValidatorsState.set(
-            SelectValidatorFlowState(
-                selectedValidators = validatorsToShow,
-                poolName = poolName,
-                poolId = poolId
-            )
+            SelectValidatorFlowState(selectedValidators = validatorsToShow, poolName = poolName, poolId = poolId)
         )
         router.openStartSelectValidators()
     }
 
     override fun onInfoClick(item: SelectableListItemState<String>) {
         viewModelScope.launch {
-            val validator = validatorsFlow.first().find { it.accountIdHex == item.id }
+            val validator = validatorsFlow.value?.find { it.accountIdHex == item.id }
             router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(requireNotNull(validator)))
         }
     }

@@ -123,7 +123,7 @@ class StakingPoolViewModel(
 
     private suspend fun getReturns(id: ChainId, amount: BigDecimal): ReturnsModel {
         // todo hardcoded returns for demo
-        val kusamaOnTestNodeChainId = "f95f9821674aec3a20383a31a28db18670df0c2874ec5f3aa20fddeccf86efb0"
+        val kusamaOnTestNodeChainId = "164c079774f45db5dd99a1b0b99752ec509c9573a1e99ca61c44b152753d7905"
         val chainId = if (id == kusamaOnTestNodeChainId) {
             polkadotChainId
         } else {
