@@ -43,13 +43,18 @@ suspend fun AddressIconGenerator.createAddressModel(
     sizeInDp: Int,
     accountName: String? = null
 ): AddressModel {
-    val icon = if (isEthereumBased) {
-        createEthereumAddressIcon(accountAddress, sizeInDp)
-    } else {
-        createAddressIcon(accountAddress, sizeInDp)
-    }
+    val icon = createAddressIcon(isEthereumBased, accountAddress, sizeInDp)
 
     return AddressModel(accountAddress, icon, accountName)
+}
+
+private suspend fun AddressIconGenerator.createAddressIcon(
+    isEthereumBased: Boolean,
+    accountAddress: String,
+    sizeInDp: Int
+) = when {
+    isEthereumBased -> createEthereumAddressIcon(accountAddress, sizeInDp)
+    else -> createAddressIcon(accountAddress, sizeInDp)
 }
 
 @Throws(AddressFormatException::class)

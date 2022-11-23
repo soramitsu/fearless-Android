@@ -49,7 +49,11 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
-        WalletScreen(viewModel, modalBottomSheetState)
+        val state by viewModel.state.collectAsState()
+        val shimmerItems by viewModel.assetShimmerItems.collectAsState()
+        val chainsState by viewModel.chainsState.collectAsState()
+
+        WalletScreen(state, shimmerItems, chainsState, viewModel, modalBottomSheetState)
     }
 
     @ExperimentalMaterialApi
@@ -61,7 +65,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         when (toolbarState) {
             is LoadingState.Loading<MainToolbarViewState> -> {
                 MainToolbarShimmer(
-                    homeIconState = ToolbarHomeIconState(navigationIcon = jp.co.soramitsu.common.R.drawable.ic_wallet),
+                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
                     menuItems = listOf(
                         MenuIconItem(icon = R.drawable.ic_scan) {},
                         MenuIconItem(icon = R.drawable.ic_search) {}

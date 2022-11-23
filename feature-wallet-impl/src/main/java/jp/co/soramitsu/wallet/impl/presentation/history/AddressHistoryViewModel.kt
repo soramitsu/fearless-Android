@@ -4,9 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -39,12 +39,9 @@ class AddressHistoryViewModel @Inject constructor(
     ) { recentAddressesInfo, addressBook ->
         val recentAddresses: Set<Address> = recentAddressesInfo.map { (address, chainId) ->
             val placeholder = resourceManager.getDrawable(R.drawable.ic_wallet)
-            val accountImage = if (address.isNotEmpty()) {
-                runCatching { address.fromHex() }.getOrNull()?.let { accountId ->
-                    addressIconGenerator.createAddressIcon(accountId, AddressIconGenerator.SIZE_BIG)
-                }
-            } else {
-                null
+            val chain = walletInteractor.getChain(chainId)
+            val accountImage = address.ifEmpty { null }?.let {
+                addressIconGenerator.createAddressIcon(chain.isEthereumBased, address, AddressIconGenerator.SIZE_BIG)
             }
 
             Address(
@@ -58,12 +55,9 @@ class AddressHistoryViewModel @Inject constructor(
 
         val addressBookAddresses = addressBook.map { contact ->
             val placeholder = resourceManager.getDrawable(R.drawable.ic_wallet)
-            val accountImage = if (contact.address.isNotEmpty()) {
-                runCatching { contact.address.fromHex() }.getOrNull()?.let { accountId ->
-                    addressIconGenerator.createAddressIcon(accountId, AddressIconGenerator.SIZE_BIG)
-                }
-            } else {
-                null
+            val chain = walletInteractor.getChain(contact.chainId)
+            val accountImage = contact.address.ifEmpty { null }?.let {
+                addressIconGenerator.createAddressIcon(chain.isEthereumBased, contact.address, AddressIconGenerator.SIZE_BIG)
             }
             Address(
                 name = contact.name.orEmpty(),

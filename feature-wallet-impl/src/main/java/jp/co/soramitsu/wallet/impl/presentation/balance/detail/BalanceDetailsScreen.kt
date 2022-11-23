@@ -26,8 +26,6 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -38,8 +36,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -52,6 +50,7 @@ import jp.co.soramitsu.common.compose.component.B1
 import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.CapsTitle2
+import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
@@ -59,6 +58,7 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.ShimmerRectangle
 import jp.co.soramitsu.common.compose.component.getImageRequest
+import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.customColors
@@ -67,7 +67,10 @@ import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
@@ -81,17 +84,38 @@ data class BalanceDetailsState(
     val transactionHistory: TransactionHistoryUi.State
 )
 
+interface BalanceDetailsScreenInterface {
+    fun onAddressClick()
+    fun onBalanceClick()
+    fun buyEnabled(): Boolean
+    fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String)
+    fun filterClicked()
+    fun transactionClicked(transactionModel: OperationModel)
+    fun sync()
+    fun transactionsScrolled(index: Int)
+    fun onChainSelected(item: ChainItemState? = null)
+    fun onChainSearchEntered(query: String)
+}
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun BalanceDetailsScreen(
-    viewModel: BalanceDetailViewModel = hiltViewModel(),
-    modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    state: LoadingState<BalanceDetailsState>,
+    chainsState: ChainSelectScreenViewState,
+    isRefreshing: Boolean,
+    modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden),
+    callback: BalanceDetailsScreenInterface
 ) {
-    val state by viewModel.state.collectAsState()
-    val chainsState by viewModel.chainsState.collectAsState()
-
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    fun onChainSelected(chainItemState: ChainItemState?) {
+        scope.launch {
+            callback.onChainSelected(chainItemState)
+            modalBottomSheetState.hide()
+        }
+        keyboardController?.hide()
+    }
 
     ModalBottomSheetLayout(
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
@@ -100,14 +124,8 @@ fun BalanceDetailsScreen(
         sheetContent = {
             ChainSelectContent(
                 state = chainsState,
-                onChainSelected = { chainItemState ->
-                    scope.launch {
-                        viewModel.onChainSelected(chainItemState)
-                        modalBottomSheetState.hide()
-                    }
-                    keyboardController?.hide()
-                },
-                onSearchInput = viewModel::onChainSearchEntered
+                onChainSelected = ::onChainSelected,
+                onSearchInput = callback::onChainSearchEntered
             )
         },
         content = {
@@ -116,10 +134,8 @@ fun BalanceDetailsScreen(
                     ShimmerBalanceDetailScreen()
                 }
                 is LoadingState.Loaded<BalanceDetailsState> -> {
-                    val data = (state as LoadingState.Loaded<BalanceDetailsState>).data
-                    ContentBalanceDetailsScreen(viewModel, data)
+                    ContentBalanceDetailsScreen(state.data, isRefreshing, callback)
                 }
-                else -> {}
             }
         },
         scrimColor = Color.Black.copy(alpha = 0.32f) // https://issuetracker.google.com/issues/183697056
@@ -199,8 +215,9 @@ private fun ShimmerBalanceDetailScreen() {
 
 @Composable
 private fun ContentBalanceDetailsScreen(
-    viewModel: BalanceDetailViewModel,
-    data: BalanceDetailsState
+    data: BalanceDetailsState,
+    isRefreshing: Boolean,
+    callback: BalanceDetailsScreenInterface
 ) {
     Column(
         modifier = Modifier
@@ -211,8 +228,8 @@ private fun ContentBalanceDetailsScreen(
         MarginVertical(margin = 16.dp)
         AssetBalance(
             state = data.balance,
-            onAddressClick = { },
-            onBalanceClick = viewModel::frozenInfoClicked
+            onAddressClick = callback::onAddressClick,
+            onBalanceClick = callback::onBalanceClick
         )
         MarginVertical(margin = 24.dp)
         ActionBar(
@@ -222,13 +239,13 @@ private fun ContentBalanceDetailsScreen(
                     ActionItemType.RECEIVE,
                     ActionItemType.TELEPORT
                 ).apply {
-                    if (viewModel.buyEnabled()) add(ActionItemType.BUY)
+                    if (callback.buyEnabled()) add(ActionItemType.BUY)
                 },
                 chainId = data.selectedChainId,
                 chainAssetId = data.chainAssetId
             ),
             fillMaxWidth = true,
-            onItemClick = viewModel::actionItemClicked
+            onItemClick = callback::actionItemClicked
         )
         MarginVertical(margin = 16.dp)
         BackgroundCornered {
@@ -246,9 +263,7 @@ private fun ContentBalanceDetailsScreen(
                     )
                     Image(
                         res = R.drawable.ic_filter_list_24,
-                        modifier = Modifier.clickable {
-                            viewModel.filterClicked()
-                        }
+                        modifier = Modifier.clickable(onClick = callback::filterClicked)
                     )
                 }
                 MarginVertical(margin = 12.dp)
@@ -260,8 +275,11 @@ private fun ContentBalanceDetailsScreen(
                 )
                 MarginVertical(margin = 12.dp)
                 TransactionHistory(
-                    viewModel = viewModel,
-                    history = data.transactionHistory
+                    history = data.transactionHistory,
+                    isRefreshing = isRefreshing,
+                    transactionClicked = callback::transactionClicked,
+                    onRefresh = callback::sync,
+                    transactionsScrolled = callback::transactionsScrolled
                 )
             }
         }
@@ -329,18 +347,20 @@ private fun ShimmerTransactionHistory() {
 
 @Composable
 private fun TransactionHistory(
-    viewModel: BalanceDetailViewModel,
-    history: TransactionHistoryUi.State
+    history: TransactionHistoryUi.State,
+    isRefreshing: Boolean,
+    transactionClicked: (OperationModel) -> Unit,
+    onRefresh: () -> Unit,
+    transactionsScrolled: (index: Int) -> Unit
 ) {
     when (history) {
         is TransactionHistoryUi.State.Data -> {
-            val isRefreshing by viewModel.isRefreshing.collectAsState()
             val listState = rememberLazyListState()
             val transactions = history.items
 
             SwipeRefresh(
                 state = rememberSwipeRefreshState(isRefreshing),
-                onRefresh = viewModel::sync
+                onRefresh = onRefresh
             ) {
                 LazyColumn(
                     state = listState,
@@ -350,7 +370,7 @@ private fun TransactionHistory(
                             orientation = Orientation.Vertical,
                             state = rememberScrollableState { delta ->
                                 listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.let {
-                                    viewModel.transactionsScrolled(it)
+                                    transactionsScrolled(it)
                                 }
                                 delta
                             }
@@ -369,8 +389,8 @@ private fun TransactionHistory(
                             }
                             is OperationModel -> {
                                 TransactionItem(
-                                    viewModel = viewModel,
-                                    item = item
+                                    item = item,
+                                    transactionClicked = transactionClicked
                                 )
                             }
                         }
@@ -398,13 +418,13 @@ private fun TransactionHistory(
 
 @Composable
 private fun TransactionItem(
-    viewModel: BalanceDetailViewModel,
-    item: OperationModel
+    item: OperationModel,
+    transactionClicked: (OperationModel) -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.clickable {
-            viewModel.transactionClicked(item)
+            transactionClicked(item)
         }
     ) {
         AsyncImage(
@@ -459,5 +479,51 @@ private fun TransactionItem(
                 color = Color.White.copy(alpha = 0.64f)
             )
         }
+    }
+}
+
+@Composable
+@Preview
+private fun PreviewBalanceDetailScreenContent() {
+    val percentChange = "+5.67%"
+    val assetBalance = "44400.3"
+    val assetBalanceFiat = "$2345.32"
+    val address = "0x32141235qwegtf24315reqwerfasdgqwert243rfasdvgergsdf"
+
+    val assetBalanceViewState = AssetBalanceViewState(
+        balance = assetBalance,
+        address = address,
+        isInfoEnabled = true,
+        changeViewState = ChangeBalanceViewState(
+            percentChange = percentChange,
+            fiatChange = assetBalanceFiat
+        )
+    )
+
+    val state = BalanceDetailsState(
+        balance = assetBalanceViewState,
+        selectedChainId = "",
+        chainAssetId = "",
+        transactionHistory = TransactionHistoryUi.State.Empty()
+    )
+
+    val empty = object : BalanceDetailsScreenInterface {
+        override fun onAddressClick() {}
+        override fun onBalanceClick() {}
+        override fun buyEnabled(): Boolean {
+            return true
+        }
+
+        override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {}
+        override fun filterClicked() {}
+        override fun transactionClicked(transactionModel: OperationModel) {}
+        override fun sync() {}
+        override fun transactionsScrolled(index: Int) {}
+        override fun onChainSelected(item: ChainItemState?) {}
+        override fun onChainSearchEntered(query: String) {}
+    }
+
+    return FearlessTheme {
+        ContentBalanceDetailsScreen(data = state, isRefreshing = true, callback = empty)
     }
 }
