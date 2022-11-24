@@ -124,7 +124,7 @@ class ConfirmSendViewModel @Inject constructor(
             title = resourceManager.getString(R.string.choose_amount_to),
             value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
             additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
-            clickState = TitleValueViewState.ClickState(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK)
+            clickState = phishingType?.let { TitleValueViewState.ClickState(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
         )
 
         val amountInfoItem = TitleValueViewState(

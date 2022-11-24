@@ -212,7 +212,7 @@ class SendSetupViewModel @Inject constructor(
                 tokenAmount = enteredAmount,
                 isActive = true,
                 isFocused = isAmountInputFocused,
-                allowAssetChoose = true // chain.assets.size > 1
+                allowAssetChoose = true
             )
         }
     }.stateIn(this, SharingStarted.Eagerly, defaultAmountInputState)
