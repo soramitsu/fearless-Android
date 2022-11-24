@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -192,7 +193,9 @@ fun AddressItem(
             }
             H5(
                 text = name.withNoFontPadding(),
-                color = black2
+                color = black2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             MarginVertical(margin = 4.dp)
             B1(
@@ -230,8 +233,8 @@ fun AddressItem(
 @Preview
 fun PreviewAddressHistoryContent() {
     val addressSet = setOf(
-        Address("" ?: "Address 1 name", "address1qasd32dqa32e32r3qqed", R.drawable.ic_plus_circle, "", true),
-        Address("John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false)
+        Address("Address 1 name of a very long text to show how it looks in UI", "address1qasd32dqa32e32r3qqed", R.drawable.ic_plus_circle, "", true),
+        Address("" ?: "John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false)
     )
     val addressBookAddresses = mapOf<String?, List<Address>>("J" to addressSet.toList().subList(0, 1))
 
