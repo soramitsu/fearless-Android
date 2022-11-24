@@ -367,7 +367,7 @@ class SendSetupViewModel @Inject constructor(
                     }
                 }
                 else -> {
-                    router.openSelectChain(addressChains.map { it.id }, false, tokenCurrencyId)
+                    router.openSelectChain(filterChainIds = addressChains.map { it.id }, chooserMode = false, currencyId = tokenCurrencyId)
                 }
             }
         }

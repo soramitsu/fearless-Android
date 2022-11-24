@@ -29,7 +29,8 @@ class ChainSelectFragment : BaseComposeBottomSheetDialogFragment<ChainSelectView
             KEY_CHOOSER_MODE to chooserMode
         )
 
-        fun getBundle(filterChainIds: List<ChainId>?, chooserMode: Boolean = true, currencyId: String?) = bundleOf(
+        fun getBundle(selectedChainId: ChainId?, filterChainIds: List<ChainId>?, chooserMode: Boolean = true, currencyId: String?) = bundleOf(
+            KEY_SELECTED_CHAIN_ID to selectedChainId,
             KEY_FILTER_CHAIN_IDS to filterChainIds,
             KEY_CHOOSER_MODE to chooserMode,
             KEY_CURRENCY_ID to currencyId

@@ -88,7 +88,7 @@ class AddressHistoryViewModel @Inject constructor(
         router.back()
     }
 
-    override fun onCreateContactClick(chainId: ChainId?, address: String?) {
-        router.openCreateContact(chainId, address)
+    override fun onCreateContactClick(addressChainId: ChainId?, address: String?) {
+        router.openCreateContact(addressChainId ?: chainId, address)
     }
 }

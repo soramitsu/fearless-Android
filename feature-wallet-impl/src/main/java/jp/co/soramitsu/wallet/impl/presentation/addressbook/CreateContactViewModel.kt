@@ -95,7 +95,8 @@ class CreateContactViewModel @Inject constructor(
     }
 
     override fun onChainClick() {
-        router.openSelectChain()
+        val selectedChainId = chainIdFlow.value
+        router.openSelectChain(selectedChainId)
     }
 
     override fun onNameInput(input: String) {

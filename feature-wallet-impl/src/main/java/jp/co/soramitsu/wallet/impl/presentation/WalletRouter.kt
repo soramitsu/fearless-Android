@@ -27,7 +27,7 @@ interface WalletRouter : SecureRouter {
 
     fun openSelectChain(assetId: String)
 
-    fun openSelectChain(filterChainIds: List<ChainId>? = null, chooserMode: Boolean = true, currencyId: String? = null)
+    fun openSelectChain(selectedChainId: ChainId? = null, filterChainIds: List<ChainId>? = null, chooserMode: Boolean = true, currencyId: String? = null)
 
     fun openSelectAsset(selectedAssetId: String)
 
