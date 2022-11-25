@@ -90,7 +90,7 @@ class StakingPoolInteractor(
                 val pendingRewards = dataSource.getPendingRewards(chain.id, accountId).getOrNull().orZero()
                 val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
                 val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
-                val redeemable = unbondingEras.filter { it.era < currentEra }.sumOf { it.amount }
+                val redeemable = unbondingEras.filter { it.era <= currentEra }.sumOf { it.amount }
                 val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
                 poolInfo.toOwnPool(poolMember, redeemable, unbonding, pendingRewards)
             }
