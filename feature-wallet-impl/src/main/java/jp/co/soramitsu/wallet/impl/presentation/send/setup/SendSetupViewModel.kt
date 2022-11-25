@@ -335,8 +335,8 @@ class SendSetupViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
     init {
+        sharedState.clear()
         if (payload == null) {
-            sharedState.clear()
             if (!initSendToAddress.isNullOrEmpty()) {
                 findChainsForAddress(initSendToAddress)
             }
