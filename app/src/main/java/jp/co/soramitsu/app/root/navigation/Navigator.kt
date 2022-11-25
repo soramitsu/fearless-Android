@@ -87,6 +87,7 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDeta
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
@@ -103,7 +104,6 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.scam.ScamWarningFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
@@ -534,8 +534,8 @@ class Navigator :
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
-    override fun openSelectChain(filterChainIds: List<ChainId>?, chooserMode: Boolean, currencyId: String?) {
-        val bundle = ChainSelectFragment.getBundle(filterChainIds, chooserMode, currencyId)
+    override fun openSelectChain(selectedChainId: ChainId?, filterChainIds: List<ChainId>?, chooserMode: Boolean, currencyId: String?) {
+        val bundle = ChainSelectFragment.getBundle(selectedChainId, filterChainIds, chooserMode, currencyId)
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
@@ -553,8 +553,8 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openSendConfirm(transferDraft: TransferDraft) {
-        val bundle = ConfirmSendFragment.getBundle(transferDraft)
+    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }
@@ -786,11 +786,6 @@ class Navigator :
     override fun openAlert(payload: AlertViewState) {
         val bundle = AlertFragment.getBundle(payload)
         navController?.navigate(R.id.alertFragment, bundle)
-    }
-
-    override fun openScamWarning(symbol: String) {
-        val bundle = ScamWarningFragment.getBundle(symbol)
-        navController?.navigate(R.id.scamWarningFragment, bundle)
     }
 
     override fun openSearchAssets(chainId: String?) {

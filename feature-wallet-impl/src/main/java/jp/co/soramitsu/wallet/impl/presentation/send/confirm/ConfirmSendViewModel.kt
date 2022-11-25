@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -27,6 +28,7 @@ import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
@@ -65,7 +67,8 @@ class ConfirmSendViewModel @Inject constructor(
     TransferValidityChecks by transferValidityChecks,
     ConfirmSendScreenInterface {
 
-    private val transferDraft = savedStateHandle.get<TransferDraft>(KEY_DRAFT) ?: error("Required data not provided for send confirmation")
+    private val transferDraft = savedStateHandle.get<TransferDraft>(ConfirmSendFragment.KEY_DRAFT) ?: error("Required data not provided for send confirmation")
+    private val phishingType = savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
 
     private val recipientFlow = flowOf { getAddressModel(transferDraft.recipientAddress) }
 
@@ -121,7 +124,7 @@ class ConfirmSendViewModel @Inject constructor(
             title = resourceManager.getString(R.string.choose_amount_to),
             value = if (isRecipientNameSpecified) recipient.name else recipient.address.shorten(),
             additionalValue = if (isRecipientNameSpecified) recipient.address.shorten() else null,
-            clickState = TitleValueViewState.ClickState(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK)
+            clickState = phishingType?.let { TitleValueViewState.ClickState(R.drawable.ic_alert_16, ConfirmSendViewState.CODE_WARNING_CLICK) }
         )
 
         val amountInfoItem = TitleValueViewState(
@@ -189,7 +192,31 @@ class ConfirmSendViewModel @Inject constructor(
     private fun openWarningAlert() {
         launch {
             val symbol = assetFlow.first().token.configuration.symbolToShow
-            router.openScamWarning(symbol)
+
+            val payload = AlertViewState(
+                title = getPhishingTitle(phishingType),
+                message = getPhishingMessage(phishingType, symbol),
+                buttonText = resourceManager.getString(R.string.top_up),
+                iconRes = R.drawable.ic_alert_16
+            )
+            router.openAlert(payload)
+        }
+    }
+
+    private fun getPhishingTitle(phishingType: PhishingType?): String {
+        return when (phishingType) {
+            PhishingType.SCAM -> resourceManager.getString(R.string.scam_alert_title)
+            PhishingType.EXCHANGE -> resourceManager.getString(R.string.exchange_alert_title)
+            PhishingType.DONATION -> resourceManager.getString(R.string.donation_alert_title)
+            PhishingType.SANCTIONS -> resourceManager.getString(R.string.sanction_alert_title)
+            else -> resourceManager.getString(R.string.donation_alert_title)
+        }
+    }
+
+    private fun getPhishingMessage(phishingType: PhishingType?, symbol: String): String {
+        return when (phishingType) {
+            PhishingType.EXCHANGE -> resourceManager.getString(R.string.exchange_alert_message)
+            else -> resourceManager.getString(R.string.scam_alert_message_format, symbol)
         }
     }
 
