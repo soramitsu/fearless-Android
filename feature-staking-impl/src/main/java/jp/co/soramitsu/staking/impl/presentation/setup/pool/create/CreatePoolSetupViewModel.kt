@@ -48,7 +48,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     private val poolInteractor: StakingPoolInteractor,
     private val stakingInteractor: StakingInteractor,
     private val router: StakingRouter
-) : BaseViewModel() {
+) : BaseViewModel(), CreatePoolSetupScreenInterface {
 
     companion object {
         private const val NOMINATOR_WALLET_SELECTOR_TAG = "nominator"
@@ -188,27 +188,27 @@ class CreatePoolSetupViewModel @Inject constructor(
         }
     }
 
-    fun onPoolNameInput(poolName: String) {
-        enteredPoolNameFlow.value = poolName
-    }
-
-    fun onAmountInput(amount: String) {
-        enteredAmountFlow.value = amount
-    }
-
-    fun onNominatorClick() {
-        router.openWalletSelector(NOMINATOR_WALLET_SELECTOR_TAG)
-    }
-
-    fun onStateTogglerClick() {
-        router.openWalletSelector(STATE_TOGGLER_WALLET_SELECTOR_TAG)
-    }
-
-    fun onBackClicked() {
+    override fun onNavigationClick() {
         router.back()
     }
 
-    fun onCreateClick() {
+    override fun onPoolNameInput(text: String) {
+        enteredPoolNameFlow.value = text
+    }
+
+    override fun onTokenAmountInput(text: String) {
+        enteredAmountFlow.value = text
+    }
+
+    override fun onNominatorClick() {
+        router.openWalletSelector(NOMINATOR_WALLET_SELECTOR_TAG)
+    }
+
+    override fun onStateTogglerClick() {
+        router.openWalletSelector(STATE_TOGGLER_WALLET_SELECTOR_TAG)
+    }
+
+    override fun onCreateClick() {
         viewModelScope.launch {
             val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
             val amountInPlanks = asset.token.planksFromAmount(amount)

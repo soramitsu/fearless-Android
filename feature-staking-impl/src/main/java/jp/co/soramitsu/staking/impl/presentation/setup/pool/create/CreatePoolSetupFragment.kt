@@ -16,12 +16,7 @@ class CreatePoolSetupFragment : BaseComposeBottomSheetDialogFragment<CreatePoolS
         val state = viewModel.viewState.collectAsState()
         CreatePoolSetupScreen(
             state = state.value,
-            onNavigationClick = viewModel::onBackClicked,
-            onPoolNameInput = viewModel::onPoolNameInput,
-            onTokenAmountInput = viewModel::onAmountInput,
-            onNominatorClick = viewModel::onNominatorClick,
-            onStateTogglerClick = viewModel::onStateTogglerClick,
-            onCreateClick = viewModel::onCreateClick
+            screenInterface = viewModel
         )
     }
 }
