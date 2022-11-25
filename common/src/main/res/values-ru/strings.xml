@@ -836,7 +836,6 @@
     <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
     <string name="preview">Предпросмотр</string>
     <string name="hash">Хэш</string>
-    <string name="result">Результат</string>
     <string name="all_done">Все готово</string>
     <string name="send_success_message">Теперь Вы можете вернуться в приложение и заняться чем обычно</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>

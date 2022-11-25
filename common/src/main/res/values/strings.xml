@@ -920,7 +920,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
     <string name="preview">Preview</string>
     <string name="hash">Hash</string>
-    <string name="result">Result</string>
     <string name="all_done">All Done</string>
     <string name="send_success_message">You can now back to your app and\ndo that you\'re usually do</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
