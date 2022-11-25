@@ -33,9 +33,9 @@ abstract class BaseConfirmViewModel(
     @StringRes protected val additionalMessageRes: Int? = null,
     @DrawableRes protected val customIcon: Int? = null,
     private val feeEstimator: suspend (BigInteger?) -> BigInteger,
-    private val executeOperation: suspend (String, BigInteger?) -> Result<Any>,
+    private val executeOperation: suspend (String, BigInteger?) -> Result<String>,
     private val accountNameProvider: suspend (String) -> String?,
-    private val onOperationSuccess: () -> Unit
+    private val onOperationSuccess: (String) -> Unit
 ) : BaseViewModel() {
 
     private val amount = amountInPlanks?.let { asset.token.amountFromPlanks(it) }
@@ -110,7 +110,7 @@ abstract class BaseConfirmViewModel(
     fun onConfirm() {
         launch {
             executeOperation(address, amountInPlanks).fold({
-                onOperationSuccess()
+                onOperationSuccess(it)
             }, {
                 showError(it)
             })

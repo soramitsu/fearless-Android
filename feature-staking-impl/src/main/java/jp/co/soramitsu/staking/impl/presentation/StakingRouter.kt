@@ -17,6 +17,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnb
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.common.AlertViewState
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 interface StakingRouter {
@@ -154,7 +155,10 @@ interface StakingRouter {
     val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
 
     fun openAlert(payload: AlertViewState)
+
     fun openWebViewer(title: String, url: String)
 
     val alertResultFlow: Flow<Result<Unit>>
+
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 }

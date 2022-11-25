@@ -6,10 +6,10 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -21,7 +21,8 @@ class ConfirmSelectValidatorsViewModel @Inject constructor(
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
     private val router: StakingRouter
-) : BaseConfirmViewModel(
+) : StakingConfirmViewModel(
+    router = router,
     address = poolSharedStateProvider.requireMainState.requireAddress,
     resourceManager = resourceManager,
     asset = poolSharedStateProvider.requireMainState.requireAsset,
