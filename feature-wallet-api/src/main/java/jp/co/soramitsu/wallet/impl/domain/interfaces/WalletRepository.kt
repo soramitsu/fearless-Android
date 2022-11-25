@@ -31,7 +31,12 @@ interface WalletRepository {
 
     suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset?
 
-    suspend fun updateAssetHidden(metaId: Long, accountId: AccountId, chainId: ChainId, assetSymbol: String, isHidden: Boolean)
+    suspend fun updateAssetHidden(
+        metaId: Long,
+        accountId: AccountId,
+        isHidden: Boolean,
+        chainAsset: Chain.Asset
+    )
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,

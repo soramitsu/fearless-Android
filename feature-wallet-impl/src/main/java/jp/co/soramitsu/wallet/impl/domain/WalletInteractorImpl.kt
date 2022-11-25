@@ -293,14 +293,13 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
         val accountId = metaAccount.accountId(chain)
-        val assetSymbol = getCurrentAsset(chainId, chainAssetId).token.configuration.symbolToShow
+        val chainAsset = chain.assetsById[chainAssetId] ?: return
 
         accountId?.let {
             walletRepository.updateAssetHidden(
+                chainAsset = chainAsset,
                 metaId = metaAccount.id,
                 accountId = it,
-                chainId = chainId,
-                assetSymbol = assetSymbol,
                 isHidden = true
             )
         }
@@ -310,14 +309,13 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
         val accountId = metaAccount.accountId(chain)
-        val assetSymbol = getCurrentAsset(chainId, chainAssetId).token.configuration.symbolToShow
+        val chainAsset = chain.assetsById[chainAssetId] ?: return
 
         accountId?.let {
             walletRepository.updateAssetHidden(
+                chainAsset = chainAsset,
                 metaId = metaAccount.id,
                 accountId = it,
-                chainId = chainId,
-                assetSymbol = assetSymbol,
                 isHidden = false
             )
         }
