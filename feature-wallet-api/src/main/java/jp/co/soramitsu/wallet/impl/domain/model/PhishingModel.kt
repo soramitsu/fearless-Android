@@ -1,13 +1,14 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
 import androidx.compose.ui.graphics.Color
-import java.util.Locale
 import jp.co.soramitsu.common.compose.theme.errorRed
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.coredb.model.PhishingLocal
 
 enum class PhishingType {
     SCAM, EXCHANGE, DONATION, SANCTIONS, UNKNOWN;
+
+    val capitalizedName: String = name.lowercase().replaceFirstChar { it.titlecase() }
 
     companion object {
         fun from(value: String) = when (value.lowercase()) {
@@ -17,10 +18,6 @@ enum class PhishingType {
             "sanctions" -> SANCTIONS
             else -> UNKNOWN
         }
-    }
-
-    fun title(): String {
-        return name.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     }
 }
 

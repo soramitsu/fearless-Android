@@ -273,7 +273,7 @@ class SendSetupViewModel @Inject constructor(
                 message = getPhishingMessage(phishing.type),
                 extras = listOf(
                     phishing.name?.let { resourceManager.getString(R.string.username_setup_choose_title) to it },
-                    phishing.type?.let { resourceManager.getString(R.string.reason) to it.title() },
+                    phishing.type?.let { resourceManager.getString(R.string.reason) to it.capitalizedName },
                     phishing.subtype?.let { resourceManager.getString(R.string.additional) to it }
                 ).mapNotNull { it },
                 isExpanded = isExpanded,
@@ -300,7 +300,7 @@ class SendSetupViewModel @Inject constructor(
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
-            enabled = amountInPlanks.compareTo(BigInteger.ZERO) != 0
+            enabled = true
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -335,8 +335,8 @@ class SendSetupViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultState)
 
     init {
+        sharedState.clear()
         if (payload == null) {
-            sharedState.clear()
             if (!initSendToAddress.isNullOrEmpty()) {
                 findChainsForAddress(initSendToAddress)
             }
@@ -386,12 +386,7 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onNextClick() {
-        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
-        isValid(amount).fold({
-            onNextStep()
-        }, {
-            showError(it)
-        })
+        onNextStep()
     }
 
     private val validations = listOf(
