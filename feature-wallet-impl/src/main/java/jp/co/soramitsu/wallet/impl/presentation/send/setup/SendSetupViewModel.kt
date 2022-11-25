@@ -300,7 +300,7 @@ class SendSetupViewModel @Inject constructor(
         val amountInPlanks = asset?.token?.planksFromAmount(amount).orZero()
         ButtonViewState(
             text = resourceManager.getString(R.string.common_continue),
-            enabled = true
+            enabled = amountInPlanks.compareTo(BigInteger.ZERO) != 0
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultButtonState)
 
@@ -386,7 +386,12 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onNextClick() {
-        onNextStep()
+        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+        isValid(amount).fold({
+            onNextStep()
+        }, {
+            showError(it)
+        })
     }
 
     private val validations = listOf(

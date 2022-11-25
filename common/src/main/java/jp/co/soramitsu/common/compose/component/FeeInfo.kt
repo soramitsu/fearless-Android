@@ -49,9 +49,6 @@ fun FeeInfo(state: FeeInfoViewState, modifier: Modifier = Modifier) {
                 .align(CenterVertically)
         )
         Column(modifier = Modifier.weight(1f)) {
-            state.feeAmountFiat?.let {
-                B2(text = it, color = black2, textAlign = TextAlign.End, modifier = Modifier.align(Alignment.End))
-            }
             state.feeAmount?.let {
                 CapsTitle(text = it, textAlign = TextAlign.End, modifier = Modifier.align(Alignment.End))
             } ?: Shimmer(
@@ -60,6 +57,9 @@ fun FeeInfo(state: FeeInfoViewState, modifier: Modifier = Modifier) {
                     .width(100.dp)
                     .align(Alignment.End)
             )
+            state.feeAmountFiat?.let {
+                B2(text = it, color = black2, textAlign = TextAlign.End, modifier = Modifier.align(Alignment.End))
+            }
         }
     }
 }
