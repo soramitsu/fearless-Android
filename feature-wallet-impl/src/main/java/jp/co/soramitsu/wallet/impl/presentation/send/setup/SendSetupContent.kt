@@ -130,6 +130,15 @@ fun SendSetupContent(
                 FeeInfo(state = state.feeInfoState)
 
                 Spacer(modifier = Modifier.weight(1f))
+            }
+
+            val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+            val showQuickInput = state.amountInputState.isFocused && isSoftKeyboardOpen
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .imePadding()
+            ) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
@@ -149,22 +158,15 @@ fun SendSetupContent(
                         .fillMaxWidth()
                         .height(48.dp)
                 )
-
                 MarginVertical(margin = 12.dp)
-            }
-
-            val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-            val showQuickInput = state.amountInputState.isFocused && isSoftKeyboardOpen
-            if (showQuickInput) {
-                QuickAmountInput(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .imePadding(),
-                    onQuickAmountInput = {
-                        keyboardController?.hide()
-                        callback.onQuickAmountInput(it)
-                    }
-                )
+                if (showQuickInput) {
+                    QuickAmountInput(
+                        onQuickAmountInput = {
+                            keyboardController?.hide()
+                            callback.onQuickAmountInput(it)
+                        }
+                    )
+                }
             }
         }
     }
