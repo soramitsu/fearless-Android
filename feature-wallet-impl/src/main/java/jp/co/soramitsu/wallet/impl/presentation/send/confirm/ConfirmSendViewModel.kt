@@ -215,7 +215,7 @@ class ConfirmSendViewModel @Inject constructor(
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
                 router.finishSendFlow()
-                router.openSendSuccess(operationHash, token.chainId)
+                router.openOperationSuccess(operationHash, token.chainId)
             } else {
                 val error = result.requireException()
 

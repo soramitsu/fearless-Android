@@ -8,10 +8,10 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -23,7 +23,8 @@ class EditPoolConfirmViewModel @Inject constructor(
     private val poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     private val router: StakingRouter
-) : BaseConfirmViewModel(
+) : StakingConfirmViewModel(
+    router = router,
     resourceManager = resourceManager,
     asset = poolSharedStateProvider.requireMainState.requireAsset,
     address = poolSharedStateProvider.requireMainState.requireAddress,

@@ -113,6 +113,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             poolInteractor.joinPool(address, amountInPlanks, selectedPool.poolId).fold({
                 stakingPoolSharedStateProvider.joinFlowState.complete()
                 router.returnToMain()
+                router.openOperationSuccess(it, chain.id)
             }, {
                 showError(it)
             })

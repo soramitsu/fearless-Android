@@ -4,10 +4,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
 
 @HiltViewModel
 class ConfirmPoolClaimViewModel @Inject constructor(
@@ -15,7 +15,8 @@ class ConfirmPoolClaimViewModel @Inject constructor(
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
     private val router: StakingRouter
-) : BaseConfirmViewModel(
+) : StakingConfirmViewModel(
+    router = router,
     address = requireNotNull(poolSharedStateProvider.mainState.get()?.address),
     resourceManager = resourceManager,
     asset = requireNotNull(poolSharedStateProvider.mainState.get()?.asset),

@@ -34,7 +34,7 @@ interface WalletRouter : SecureRouter {
 
     fun openFilter()
 
-    fun openSendSuccess(operationHash: String?, chainId: ChainId)
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 
     fun openSendConfirm(transferDraft: TransferDraft)
 

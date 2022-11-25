@@ -559,7 +559,7 @@ class Navigator :
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }
 
-    override fun openSendSuccess(operationHash: String?, chainId: ChainId) {
+    override fun openOperationSuccess(operationHash: String?, chainId: ChainId) {
         val bundle = SendSuccessFragment.getBundle(operationHash, chainId)
 
         navController?.navigate(R.id.sendSuccessFragment, bundle)
