@@ -40,7 +40,11 @@ data class SelectValidatorsScreenViewState(
 data class MultiSelectListViewState<ItemIdType>(
     val items: List<SelectableListItemState<ItemIdType>>,
     val selectedItems: List<SelectableListItemState<ItemIdType>>
-)
+) {
+    companion object {
+        fun <T> empty() = MultiSelectListViewState<T>(emptyList(), emptyList())
+    }
+}
 
 interface SelectValidatorsScreenInterface {
     fun onNavigationClick()

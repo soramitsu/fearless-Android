@@ -3,9 +3,12 @@ package jp.co.soramitsu.staking.impl.domain.validators.current
 import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.common.list.emptyGroupedList
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.IndividualExposure
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator.Status
+import jp.co.soramitsu.staking.api.domain.model.Nominations
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
@@ -30,11 +33,17 @@ class CurrentValidatorsInteractor(
         if (nominatorState !is StakingState.Stash.Nominator) {
             return flowOf(emptyGroupedList())
         }
+        return nominatedValidatorsFlow(nominatorState.chain, nominatorState.stashId, nominatorState.nominations)
+    }
 
-        val chainId = nominatorState.chain.id
+    suspend fun nominatedValidatorsFlow(
+        chain: Chain,
+        stashId: AccountId,
+        nominations: Nominations
+    ): Flow<GroupedList<Status.Group, NominatedValidator>> {
+        val chainId = chain.id
 
         return stakingRepository.observeActiveEraIndex(chainId).map { activeEra ->
-            val stashId = nominatorState.stashId
 
             val exposures = stakingRepository.getActiveElectedValidatorsExposures(chainId)
 
@@ -42,14 +51,14 @@ class CurrentValidatorsInteractor(
                 exposure.others.firstOrNull { it.who.contentEquals(stashId) }
             }
 
-            val nominatedValidatorIds = nominatorState.nominations.targets.mapTo(mutableSetOf(), ByteArray::toHexString)
+            val nominatedValidatorIds = nominations.targets.mapTo(mutableSetOf(), ByteArray::toHexString)
 
-            val isWaitingForNextEra = nominatorState.nominations.isWaiting(activeEra)
+            val isWaitingForNextEra = nominations.isWaiting(activeEra)
 
             val maxRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId)
 
             val groupedByStatusClass = validatorProvider.getValidators(
-                chain = nominatorState.chain,
+                chain = chain,
                 source = ValidatorSource.Custom(nominatedValidatorIds.toList()),
                 cachedExposures = exposures
             )

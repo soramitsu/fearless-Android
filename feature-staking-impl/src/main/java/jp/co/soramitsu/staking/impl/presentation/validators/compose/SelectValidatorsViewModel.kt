@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsPercentage
+import jp.co.soramitsu.common.utils.fractionToPercentage
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.common.utils.lazyAsync
@@ -210,7 +211,7 @@ fun Validator.toModel(
     }
     val captionValue = when (sortingCaption) {
         BlockProducersSorting.ValidatorSorting.ValidatorOwnStakeSorting -> ownStake
-        else -> electedInfo?.apy.orZero().formatAsPercentage()
+        else -> electedInfo?.apy.orZero().fractionToPercentage().formatAsPercentage()
     }
     val captionText = buildAnnotatedString {
         withStyle(style = SpanStyle(color = black1)) {
