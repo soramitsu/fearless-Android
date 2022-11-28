@@ -199,7 +199,6 @@
     <string name="account_import_wrong_network" formatted="false">Сеть в JSON - это %s , а не такая, как у выбранной %s . Выбранная сеть будет использоваться для импорта аккаунта.</string>
     <string name="common_address">Адрес</string>
     <string name="common_share">Поделиться</string>
-    <string name="wallet_asset_buy">Купить</string>
     <string name="common_amount_low">Сумма слишком мала</string>
     <string name="wallet_send_dead_recipient_message">Ваш перевод не состоится, так как окончательная сумма на целевом счете будет меньше, чем минимальный баланс. Пожалуйста, попробуйте увеличить сумму.</string>
     <string name="buy_completed">Покупка совершена! Ожидайте до 60 минут. Вы можете отслеживать статус по электронной почте.</string>

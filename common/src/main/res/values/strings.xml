@@ -203,7 +203,6 @@ Derivation path: %s</string>
     <string name="account_import_wrong_network" formatted="false">Network in JSON is %s, does not match selected %s. The latter will be used to import an account.</string>
     <string name="common_address">Address</string>
     <string name="common_share">Share</string>
-    <string name="wallet_asset_buy">Buy</string>
     <string name="common_amount_low">Amount is too low</string>
     <string name="wallet_send_dead_recipient_message">Your transfer will fail since the final amount on the destination account will be less than the minimal balance. Please, try to increase the amount.</string>
     <string name="buy_completed">Purchase initiated! Please wait up to 60 minutes. You can track status on the email.</string>

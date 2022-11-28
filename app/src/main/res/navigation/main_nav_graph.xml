@@ -391,8 +391,7 @@
     <fragment
         android:id="@+id/balanceDetailFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment"
-        android:label="BalanceDetailFragment"
-        tools:layout="@layout/fragment_balance_detail" />
+        android:label="BalanceDetailFragment" />
 
     <fragment
         android:id="@+id/manageAssetsFragment"

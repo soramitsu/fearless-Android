@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.ImageLoader
 import coil.load
 import com.google.android.material.switchmaterial.SwitchMaterial
-import jp.co.soramitsu.common.view.BadgeView
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
@@ -52,12 +51,8 @@ class ManageAssetViewHolder(
                 findViewById<TextView>(R.id.manageAssetsItemName).setTextColor(context.getColor(R.color.white))
                 findViewById<TextView>(R.id.manageAssetsItemAmount).text = item.amount
                 findViewById<SwitchMaterial>(R.id.manageAssetsItemSwitch).isChecked = item.enabled
-                setupNetworkBadge(item.network)
-                findViewById<BadgeView>(R.id.testnetBadge).isVisible = item.isTestNet
             } else {
                 findViewById<TextView>(R.id.manageAssetsItemName).setTextColor(context.getColor(R.color.black2))
-                findViewById<BadgeView>(R.id.manageAssetsBadge).isVisible = false
-                findViewById<BadgeView>(R.id.testnetBadge).isVisible = false
             }
 
             if (item.markedAsNotNeed) {
@@ -76,12 +71,4 @@ class ManageAssetViewHolder(
                 )
             }
         }
-
-    private fun setupNetworkBadge(model: ManageAssetModel.Network?) = itemView.apply {
-        findViewById<BadgeView>(R.id.manageAssetsBadge).isVisible = model?.let {
-            findViewById<BadgeView>(R.id.manageAssetsBadge).setIcon(it.iconUrl, imageLoader)
-            findViewById<BadgeView>(R.id.manageAssetsBadge).setText(it.name)
-            true
-        } ?: false
-    }
 }
