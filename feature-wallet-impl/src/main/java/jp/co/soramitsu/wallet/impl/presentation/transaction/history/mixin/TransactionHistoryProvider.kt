@@ -36,8 +36,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val ICON_SIZE_DP = 32
-
 class TransactionHistoryProvider(
     private val walletInteractor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,

@@ -431,10 +431,13 @@ private fun TransactionItem(
         }
     ) {
         AsyncImage(
-            model = getImageRequest(LocalContext.current, item.assetIconUrl.orEmpty()),
+            model = when (item.assetIconUrl) {
+                null -> item.operationIcon
+                else -> getImageRequest(LocalContext.current, item.assetIconUrl)
+            },
             contentDescription = null,
             modifier = Modifier
-                .size(24.dp)
+                .size(32.dp)
                 .align(Alignment.CenterVertically)
         )
         Spacer(modifier = Modifier.width(8.dp))
