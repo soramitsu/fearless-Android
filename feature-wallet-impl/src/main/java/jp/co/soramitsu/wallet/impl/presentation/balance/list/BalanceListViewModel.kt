@@ -208,8 +208,11 @@ class BalanceListViewModel @Inject constructor(
 
                 val hasNetworkIssue = token.configuration.chainId in chainConnecting
 
-                val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
-                    .associate { it.chain.id to it.chain.icon }
+                val assetChainUrls = when (selectedChainId) {
+                    null -> chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
+                        .associate { it.chain.id to it.chain.icon }
+                    else -> emptyMap()
+                }
 
                 val stateItem = assetStates.find { it.displayName == chainAsset.symbolToShow }
                 if (stateItem == null) {
