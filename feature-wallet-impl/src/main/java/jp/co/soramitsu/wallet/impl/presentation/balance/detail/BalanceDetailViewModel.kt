@@ -175,7 +175,8 @@ class BalanceDetailViewModel @Inject constructor(
         ChainSelectScreenViewState(
             chains = chains,
             selectedChainId = assetPayload.value.chainId,
-            searchQuery = searchQuery
+            searchQuery = searchQuery,
+            showAllChains = false
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
