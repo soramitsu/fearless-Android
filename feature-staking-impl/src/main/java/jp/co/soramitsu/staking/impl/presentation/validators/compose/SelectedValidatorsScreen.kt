@@ -1,12 +1,15 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,18 +23,30 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
+import jp.co.soramitsu.common.compose.component.H3Bold
+import jp.co.soramitsu.common.compose.component.H6
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black1
+import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItem
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
 
 data class SelectedValidatorsScreenViewState(
-    val listState: MultiSelectListViewState<String>,
+    val groups: List<GroupViewState>,
     val canChangeValidators: Boolean
+)
+
+data class GroupViewState(
+    val title: String?,
+    val description: String? = null,
+    val listState: MultiSelectListViewState<String> = MultiSelectListViewState.empty()
 )
 
 interface SelectedValidatorsInterface {
@@ -56,18 +71,13 @@ fun SelectedValidatorsScreen(
         FullScreenLoading(isLoading = state is LoadingState.Loading) {
             if (state is LoadingState.Loaded) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    if (state.data.listState.items.isEmpty()) {
+                    if (state.data.groups.isEmpty() || state.data.groups.any { it.listState.items.isEmpty() }) {
                         EmptyMessage(
                             modifier = Modifier.align(Alignment.Center),
                             message = R.string.staking_set_validators_message
                         )
                     } else {
-                        ValidatorsList(
-                            listState = state.data.listState,
-                            paddingValues = PaddingValues(bottom = 106.dp),
-                            onSelected = {},
-                            onInfoClick = screenInterface::onInfoClick
-                        )
+                        GroupedValidators(state.data.groups, screenInterface::onInfoClick)
                     }
                     if (state.data.canChangeValidators) {
                         Box(
@@ -87,6 +97,56 @@ fun SelectedValidatorsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun GroupedValidators(
+    groups: List<GroupViewState>,
+    onInfoClick: (SelectableListItemState<String>) -> Unit
+) {
+    LazyColumn {
+        groups.forEachIndexed { index, group ->
+            val isLast = index == groups.size - 1
+            item {
+                MarginVertical(margin = 16.dp)
+                ValidatorsGroupTitle(state = group)
+                MarginVertical(margin = 8.dp)
+            }
+            items(group.listState.items) {
+                SelectableListItem(
+                    state = it,
+                    onSelected = {},
+                    onInfoClick = onInfoClick
+                )
+            }
+            if (isLast.not()) {
+                // it's divider
+                item {
+                    MarginVertical(margin = 16.dp)
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .background(black3)
+                            .fillMaxWidth()
+                            .height(1.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ValidatorsGroupTitle(state: GroupViewState) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        state.title?.let { H3Bold(text = it) }
+        MarginVertical(margin = 8.dp)
+        state.description?.let { H6(text = it, color = black2) }
     }
 }
 
@@ -119,11 +179,15 @@ private fun SelectedValidatorsScreenScreenPreview() {
             additionalStatuses = listOf(SelectableListItemState.SelectableListItemAdditionalStatus.WARNING)
         )
     )
+    val groups = listOf(
+        GroupViewState(
+            title = "Elected",
+            description = "Your stake is allocated to the following validators",
+            listState = MultiSelectListViewState(items, items)
+        )
+    )
     val state = SelectedValidatorsScreenViewState(
-        MultiSelectListViewState(
-            items = emptyList(),
-            selectedItems = listOf(items.first())
-        ),
+        groups,
         true
     )
     val emptyInterface = object : SelectedValidatorsInterface {

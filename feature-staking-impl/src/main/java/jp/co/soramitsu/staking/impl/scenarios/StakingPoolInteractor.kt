@@ -3,6 +3,8 @@ package jp.co.soramitsu.staking.impl.scenarios
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.common.list.GroupedList
+import jp.co.soramitsu.common.list.emptyGroupedList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -15,12 +17,13 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Identity
+import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
+import jp.co.soramitsu.staking.api.domain.model.Nominations
 import jp.co.soramitsu.staking.api.domain.model.OwnPool
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.api.domain.model.PoolUnbonding
 import jp.co.soramitsu.staking.api.domain.model.StakingState
-import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.model.BondedPool
 import jp.co.soramitsu.staking.impl.data.model.PoolMember
 import jp.co.soramitsu.staking.impl.data.model.PoolRewards
@@ -28,8 +31,7 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
-import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
-import jp.co.soramitsu.staking.impl.domain.validators.ValidatorSource
+import jp.co.soramitsu.staking.impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.staking.impl.presentation.common.EditPoolFlowState
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
@@ -56,7 +58,7 @@ class StakingPoolInteractor(
     private val accountRepository: AccountRepository,
     private val identitiesRepositoryImpl: IdentityRepository,
     private val walletConstants: WalletConstants,
-    private val validatorProvider: ValidatorProvider
+    private val currentValidatorsInteractor: CurrentValidatorsInteractor
 ) {
 
     @OptIn(FlowPreview::class)
@@ -250,15 +252,21 @@ class StakingPoolInteractor(
     }
 
     suspend fun getValidatorsIds(chain: Chain, poolId: BigInteger): List<AccountId> {
-        val poolStashAccount = generatePoolStashAccount(chain, poolId)
-        return relayChainRepository.getRemoteAccountNominations(chain.id, poolStashAccount)?.targets ?: emptyList()
+        return getNominations(chain, poolId)?.targets ?: emptyList()
     }
 
-    suspend fun getValidators(chain: Chain, ids: List<AccountId>): List<Validator> {
-        return validatorProvider.getValidators(
-            chain = chain,
-            source = ValidatorSource.Custom(ids.map(AccountId::toHexString))
-        )
+    suspend fun nominatedValidatorsFlow(
+        chain: Chain,
+        currentAccountId: AccountId,
+        poolId: BigInteger
+    ): Flow<GroupedList<NominatedValidator.Status.Group, NominatedValidator>> {
+        val nominations = getNominations(chain, poolId) ?: return flowOf(emptyGroupedList())
+        return currentValidatorsInteractor.nominatedValidatorsFlow(chain, currentAccountId, nominations)
+    }
+
+    private suspend fun getNominations(chain: Chain, poolId: BigInteger): Nominations? {
+        val poolStashAccount = generatePoolStashAccount(chain, poolId)
+        return relayChainRepository.getRemoteAccountNominations(chain.id, poolStashAccount)
     }
 
     suspend fun getLastPoolId(chainId: ChainId) = dataSource.lastPoolId(chainId)
