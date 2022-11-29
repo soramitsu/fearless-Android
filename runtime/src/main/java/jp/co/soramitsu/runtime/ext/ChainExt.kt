@@ -70,6 +70,8 @@ fun Chain.addressFromPublicKey(publicKey: ByteArray): String {
 
 fun Chain.isValidAddress(address: String): Boolean {
     return runCatching {
+        val tryDecodeAddress = accountIdOf(address)
+
         if (isEthereumBased) {
             address.fromHex().size == 20
         } else {
