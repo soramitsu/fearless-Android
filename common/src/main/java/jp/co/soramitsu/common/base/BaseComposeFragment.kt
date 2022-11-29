@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -63,7 +64,19 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                     val scrollState = rememberScrollState()
                     val openAlertDialog = remember { openAlertDialogMutableState }
 
-                    val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+                    val keyboardController = LocalSoftwareKeyboardController.current
+                    fun hideKeyboardAndConfirm(state: ModalBottomSheetValue): Boolean {
+                        if (state == ModalBottomSheetValue.Hidden) {
+                            keyboardController?.hide()
+                        }
+                        return true
+                    }
+
+                    val modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(
+                        initialValue = ModalBottomSheetValue.Hidden,
+                        skipHalfExpanded = true,
+                        confirmStateChange = ::hideKeyboardAndConfirm,
+                    )
 
                     Background()
                     Scaffold(
