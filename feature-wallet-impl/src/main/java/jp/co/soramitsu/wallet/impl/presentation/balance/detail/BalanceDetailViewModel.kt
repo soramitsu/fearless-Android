@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -174,8 +173,9 @@ class BalanceDetailViewModel @Inject constructor(
 
         ChainSelectScreenViewState(
             chains = chains,
-            selectedChainId = assetPayload.value.chainId,
-            searchQuery = searchQuery
+            selectedChainId = selectedChain?.id,
+            searchQuery = searchQuery,
+            showAllChains = false
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
@@ -212,15 +212,9 @@ class BalanceDetailViewModel @Inject constructor(
 
     val state = combine(
         transactionHistory,
-        assetModelFlow,
-        enteredChainQueryFlow,
-        assetModelsFlow,
-        interactor.selectedAccountFlow(assetPayload.value.chainId)
+        assetModelFlow
     ) { transactionHistory: TransactionHistoryUi.State,
-        balanceModel: Asset,
-        searchQuery,
-        assetModels: List<AssetModel>,
-        walletAccount: WalletAccount ->
+        balanceModel: Asset ->
 
         if (transactionHistory is TransactionHistoryUi.State.EmptyProgress) {
             return@combine LoadingState.Loading()
@@ -429,9 +423,4 @@ class BalanceDetailViewModel @Inject constructor(
             )
         )
     }
-
-    private fun calculateTotalBalance(
-        freeInPlanks: BigInteger?,
-        reservedInPlanks: BigInteger?
-    ) = freeInPlanks?.let { freeInPlanks + reservedInPlanks.orZero() }
 }

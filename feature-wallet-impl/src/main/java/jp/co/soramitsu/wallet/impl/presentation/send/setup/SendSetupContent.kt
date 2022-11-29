@@ -156,6 +156,7 @@ fun SendSetupContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                         .height(48.dp)
                 )
                 MarginVertical(margin = 12.dp)

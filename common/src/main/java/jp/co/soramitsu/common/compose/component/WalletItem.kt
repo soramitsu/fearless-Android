@@ -136,7 +136,7 @@ private fun WalletItemPreview() {
         balance = assetBalance,
         assetSymbol = assetSymbol,
         title = walletTitle,
-        walletIcon = painterResource(id = R.drawable.ic_wallet),
+        walletIcon = R.drawable.ic_wallet,
         isSelected = isSelected,
         changeBalanceViewState = changeBalanceViewState
     )

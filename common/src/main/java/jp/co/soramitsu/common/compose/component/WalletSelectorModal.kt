@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +32,7 @@ data class WalletSelectorViewState(
 )
 
 @Composable
-fun WalletSelectorLight(
+fun WalletSelectorScreen(
     state: WalletSelectorViewState,
     onWalletSelected: (WalletItemViewState) -> Unit,
     onBackClicked: () -> Unit
@@ -54,10 +55,8 @@ fun WalletSelectorLight(
                     modifier = Modifier
                         .weight(3f)
                 ) {
-                    androidx.compose.material.IconButton(
-                        onClick = {
-                            onBackClicked()
-                        },
+                    IconButton(
+                        onClick = onBackClicked,
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(backgroundBlurColor)
@@ -113,13 +112,13 @@ private fun SelectWalletScreenPreview() {
         balance = assetBalance,
         assetSymbol = assetSymbol,
         title = walletTitle,
-        walletIcon = painterResource(id = R.drawable.ic_wallet),
+        walletIcon = R.drawable.ic_wallet,
         isSelected = isSelected,
         changeBalanceViewState = changeBalanceViewState
     )
 
     FearlessTheme {
-        WalletSelectorLight(
+        WalletSelectorScreen(
             state = WalletSelectorViewState(
                 wallets = listOf(walletState, walletState),
                 selectedWallet = walletState
