@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
@@ -21,6 +22,8 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -51,6 +54,7 @@ import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.SwipeBox
 import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
 import jp.co.soramitsu.common.compose.component.SwipeState
+import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.customColors
@@ -58,6 +62,7 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
@@ -85,6 +90,15 @@ fun WalletScreen(
 ) {
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
+    val chainSelectedCallback = remember<(ChainItemState?) -> Unit> {
+        { chainItemState ->
+            scope.launch {
+                viewModel.onChainSelected(chainItemState)
+                modalBottomSheetState.hide()
+            }
+            keyboardController?.hide()
+        }
+    }
 
     ModalBottomSheetLayout(
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
@@ -93,20 +107,14 @@ fun WalletScreen(
         sheetContent = {
             ChainSelectContent(
                 state = chainsState,
-                onChainSelected = { chainItemState ->
-                    scope.launch {
-                        viewModel.onChainSelected(chainItemState)
-                        modalBottomSheetState.hide()
-                    }
-                    keyboardController?.hide()
-                },
+                onChainSelected = chainSelectedCallback,
                 onSearchInput = viewModel::onChainSearchEntered
             )
         },
         content = {
             when (mainState) {
                 is LoadingState.Loading<WalletState> -> {
-                    ShimmerWalletScreen(shimmerItemsState)
+//                    ShimmerWalletScreen(shimmerItemsState)
                 }
                 is LoadingState.Loaded<WalletState> -> {
                     ContentWalletScreen(mainState.data, viewModel)
@@ -127,7 +135,7 @@ private fun ContentWalletScreen(
         MarginVertical(margin = 16.dp)
         AssetBalance(
             state = data.balance,
-            onAddressClick = { },
+            onAddressClick = emptyClick,
             onBalanceClick = callback::onBalanceClicked
         )
         if (data.hasNetworkIssues) {
@@ -164,10 +172,21 @@ private fun AssetsList(
     actionItemClicked: (actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) -> Unit,
     onHiddenAssetClicked: () -> Unit
 ) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(
+        key1 = data.assets.size,
+        block = {
+            launch {
+                listState.scrollToItem(0)
+            }
+        }
+    )
     LazyColumn(
+        state = listState,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(data.visibleAssets) { assetState ->
+        items(data.visibleAssets, key = { it.chainAssetId }) { assetState ->
             SwipeableBalanceListItem(
                 assetState = assetState,
                 assetClicked = assetClicked,

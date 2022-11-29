@@ -82,6 +82,14 @@ class WalletInteractorImpl(
             }
     }
 
+    override fun observeAssets(): Flow<List<AssetWithStatus>> {
+        return accountRepository.selectedMetaAccountFlow()
+            .flatMapLatest {
+                walletRepository.assetsFlow(it)
+            }
+            .filter { it.isNotEmpty() }
+    }
+
     private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
         .thenByDescending { it.asset.fiatAmount.orZero() }
         .thenBy { it.asset.token.configuration.isTestNet }
