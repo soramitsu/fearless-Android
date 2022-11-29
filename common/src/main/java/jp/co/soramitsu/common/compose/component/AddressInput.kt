@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,6 +25,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.utils.withNoFontPadding
 
 data class AddressInputState(
@@ -36,10 +40,16 @@ fun AddressInput(
     onInput: (String) -> Unit = {},
     onInputClear: () -> Unit = {}
 ) {
+    val isFocused = remember { mutableStateOf(false) }
+
     BackgroundCorneredWithBorder(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(64.dp),
+        borderColor = when (isFocused.value) {
+            true -> colorAccentDark
+            else -> white24
+        }
     ) {
         Row(
             Modifier
@@ -61,6 +71,9 @@ fun AddressInput(
             ) {
                 H5(text = state.title.withNoFontPadding(), color = black2)
                 InputWithHint(
+                    modifier = Modifier.onFocusChanged {
+                        isFocused.value = it.isFocused
+                    },
                     state = state.input,
                     cursorBrush = SolidColor(colorAccentDark),
                     onInput = onInput,
