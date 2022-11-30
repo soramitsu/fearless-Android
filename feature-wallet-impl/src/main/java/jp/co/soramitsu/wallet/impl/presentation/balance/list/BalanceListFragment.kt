@@ -50,10 +50,9 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         val state by viewModel.state.collectAsState()
-        val shimmerItems by viewModel.assetShimmerItems.collectAsState()
         val chainsState by viewModel.chainsState.collectAsState()
 
-        WalletScreen(state, shimmerItems, chainsState, viewModel, modalBottomSheetState)
+        WalletScreen(state, chainsState, viewModel, modalBottomSheetState)
     }
 
     @ExperimentalMaterialApi

@@ -31,8 +31,8 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
-import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.EmptyResultContent
 
@@ -104,10 +104,10 @@ data class ChainItemState(
     val tokenSymbols: List<Pair<String, String>> = listOf()
 )
 
-fun JoinedChainInfo.toChainItemState() = ChainItemState(
-    id = chain.id,
-    imageUrl = chain.icon,
-    title = chain.name,
+fun Chain.toChainItemState() = ChainItemState(
+    id = id,
+    imageUrl = icon,
+    title = name,
     isSelected = false,
     tokenSymbols = assets.map { it.id to it.symbol }
 )

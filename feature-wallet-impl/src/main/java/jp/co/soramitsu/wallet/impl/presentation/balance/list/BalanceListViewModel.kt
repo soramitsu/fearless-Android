@@ -25,7 +25,6 @@ import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
-import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -45,15 +44,14 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsChange
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.common.utils.mediateWith
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
@@ -80,8 +78,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
@@ -145,16 +143,16 @@ class BalanceListViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
-    private val fiatSymbolLiveData = fiatSymbolFlow.asLiveData()
-    private val assetModelsLiveData = assetModelsFlow().asLiveData()
+    private val fiatSymbolLiveData = fiatSymbolFlow
+    private val assetModelsLiveData = assetModelsFlow()
 
-    val balanceLiveData = mediateWith(
+    private val balanceLiveData = combine(
         assetModelsLiveData,
         fiatSymbolLiveData,
-        tokenRatesUpdate,
-        assetsUpdate,
-        chainsUpdate
-    ) { (assetModels: List<AssetModel>?, fiatSymbol: String?, tokenRatesUpdate: Set<String>?, assetsUpdate: Set<AssetKey>?, chainsUpdate: Set<String>?) ->
+        tokenRatesUpdate.asFlow(),
+        assetsUpdate.asFlow(),
+        chainsUpdate.asFlow()
+    ) { assetModels: List<AssetModel>?, fiatSymbol: String?, tokenRatesUpdate: Set<String>?, assetsUpdate: Set<AssetKey>?, chainsUpdate: Set<String>? ->
         val assetsWithState = assetModels?.map { asset ->
             val rateUpdate = tokenRatesUpdate?.let { asset.token.configuration.id in it }
             val balanceUpdate = assetsUpdate?.let { asset.primaryKey in it }
@@ -172,7 +170,7 @@ class BalanceListViewModel @Inject constructor(
         }.orEmpty()
 
         BalanceModel(assetsWithState, fiatSymbol.orEmpty())
-    }
+    }.inBackground()
 
     private val hiddenAssetsState = MutableLiveData(HiddenItemState(isExpanded = false))
 
@@ -188,7 +186,7 @@ class BalanceListViewModel @Inject constructor(
         chainInteractor.getChainsFlow(),
         selectedChainId,
         connectingChainIdsFlow
-    ) { assets: List<AssetWithStatus>, chains: List<JoinedChainInfo>, selectedChainId: ChainId?, chainConnecting: Set<ChainId> ->
+    ) { assets: List<AssetWithStatus>, chains: List<Chain>, selectedChainId: ChainId?, chainConnecting: Set<ChainId> ->
         val assetStates = mutableListOf<AssetListItemViewState>()
         assets
             .filter { it.hasAccount || !it.asset.markedNotNeed }
@@ -198,19 +196,18 @@ class BalanceListViewModel @Inject constructor(
                 val token = assetWithStatus.asset.token
                 val chainAsset = token.configuration
 
-                val chainLocal = chains.find { it.chain.id == token.configuration.chainId }
-                val chain = chainLocal?.let { mapChainLocalToChain(it) }
+                val chainLocal = chains.find { it.id == token.configuration.chainId }
 
-                val isSupported: Boolean = when (chain?.minSupportedVersion) {
+                val isSupported: Boolean = when (chainLocal?.minSupportedVersion) {
                     null -> true
-                    else -> AppVersion.isSupported(chain.minSupportedVersion)
+                    else -> AppVersion.isSupported(chainLocal.minSupportedVersion)
                 }
 
                 val hasNetworkIssue = token.configuration.chainId in chainConnecting
 
                 val assetChainUrls = when (selectedChainId) {
                     null -> chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
-                        .associate { it.chain.id to it.chain.icon }
+                        .associate { it.id to it.icon }
                     else -> emptyMap()
                 }
 
@@ -218,7 +215,7 @@ class BalanceListViewModel @Inject constructor(
                 if (stateItem == null) {
                     val assetListItemViewState = AssetListItemViewState(
                         assetIconUrl = chainAsset.iconUrl,
-                        assetChainName = chain?.name.orEmpty(),
+                        assetChainName = chainLocal?.name.orEmpty(),
                         assetSymbol = chainAsset.symbol,
                         displayName = chainAsset.symbolToShow,
                         assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
@@ -226,7 +223,7 @@ class BalanceListViewModel @Inject constructor(
                         assetBalance = assetWithStatus.asset.total.orZero().format(),
                         assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total.orZero())?.formatAsCurrency(token.fiatSymbol),
                         assetChainUrls = assetChainUrls,
-                        chainId = chain?.id.orEmpty(),
+                        chainId = chainLocal?.id.orEmpty(),
                         chainAssetId = chainAsset.id,
                         isSupported = isSupported,
                         isHidden = !assetWithStatus.asset.enabled,
@@ -239,6 +236,43 @@ class BalanceListViewModel @Inject constructor(
                 }
             }
         assetStates
+    }.inBackground().onStart { emit(buildInitialAssetsList().toMutableList()) }
+
+    // we open screen - no assets in the list
+    private suspend fun buildInitialAssetsList(): List<AssetListItemViewState> {
+        val chains = chainInteractor.getChainsFlow().first()
+
+        val chainAssets = chains.map { it.assets }.flatten().sortedWith(defaultChainAssetListSort())
+        return chainAssets.map { chainAsset ->
+            val chain = requireNotNull(chains.find { it.id == chainAsset.chainId })
+
+            val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
+                .associate { it.id to it.icon }
+
+            val isSupported: Boolean = when (chain.minSupportedVersion) {
+                null -> true
+                else -> AppVersion.isSupported(chain.minSupportedVersion)
+            }
+
+            AssetListItemViewState(
+                assetIconUrl = chainAsset.iconUrl,
+                assetChainName = chainAsset.chainName,
+                assetSymbol = chainAsset.symbol,
+                displayName = chainAsset.symbolToShow,
+                assetTokenFiat = null,
+                assetTokenRate = null,
+                assetBalance = null,
+                assetBalanceFiat = null,
+                assetChainUrls = assetChainUrls,
+                chainId = chainAsset.chainId,
+                chainAssetId = chainAsset.id,
+                isSupported = isSupported,
+                isHidden = false,
+                hasAccount = true,
+                priceId = chainAsset.priceId,
+                hasNetworkIssue = false
+            )
+        }.filter { selectedChainId.value == null || selectedChainId.value == it.chainId }
     }
 
     private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
@@ -247,21 +281,19 @@ class BalanceListViewModel @Inject constructor(
         .thenBy { it.asset.token.configuration.chainId.defaultChainSort() }
         .thenBy { it.asset.token.configuration.chainName }
 
+    private fun defaultChainAssetListSort() = compareBy<Chain.Asset> { it.isTestNet }
+        .thenBy { it.chainId.defaultChainSort() }
+        .thenBy { it.chainName }
+
     val state = combine(
         assetStates,
         assetTypeSelectorState.asFlow(),
-        balanceLiveData.asFlow(),
-        hiddenAssetsState.asFlow(),
-        enteredChainQueryFlow
+        balanceLiveData,
+        hiddenAssetsState.asFlow()
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
         balanceModel: BalanceModel,
-        hiddenState: HiddenItemState,
-        selectedChainId: String? ->
-
-        if (assetsListItemStates.isEmpty() || balanceModel.isShowLoading) {
-            return@combine LoadingState.Loading()
-        }
+        hiddenState: HiddenItemState ->
 
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.totalBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
@@ -286,8 +318,8 @@ class BalanceListViewModel @Inject constructor(
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
     private val selectedChainItemFlow = selectedChainId.flatMapLatest { selectedChainId ->
-        chainsFlow.map {
-            it.firstOrNull {
+        chainsFlow.map { chainsState ->
+            chainsState.firstOrNull {
                 it.id == selectedChainId
             }
         }
@@ -304,31 +336,7 @@ class BalanceListViewModel @Inject constructor(
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
-    private val itemsToFillTheMostScreens = 7
-    val assetShimmerItems = assetModelsFlow().take(itemsToFillTheMostScreens)
-        .mapList {
-            AssetListItemShimmerViewState(
-                assetIconUrl = it.token.configuration.iconUrl,
-                assetChainUrls = listOf(it.token.configuration.iconUrl)
-            )
-        }
-        .stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = defaultWalletShimmerItems())
-
-    private fun defaultWalletShimmerItems(): List<AssetListItemShimmerViewState> = listOf(
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/SORA.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Bifrost.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
-    ).map { iconUrl ->
-        AssetListItemShimmerViewState(
-            assetIconUrl = iconUrl,
-            assetChainUrls = listOf(iconUrl)
-        )
-    }
-
-    fun sync() {
+    private fun sync() {
         viewModelScope.launch {
             getAvailableFiatCurrencies.sync()
 
@@ -365,19 +373,19 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    suspend fun hideAsset(chainId: ChainId, chainAssetId: String) {
+    private suspend fun hideAsset(chainId: ChainId, chainAssetId: String) {
         interactor.markAssetAsHidden(chainId, chainAssetId)
     }
 
-    suspend fun showAsset(chainId: ChainId, chainAssetId: String) {
+    private suspend fun showAsset(chainId: ChainId, chainAssetId: String) {
         interactor.markAssetAsShown(chainId, chainAssetId)
     }
 
-    fun sendClicked(assetPayload: AssetPayload) {
+    private fun sendClicked(assetPayload: AssetPayload) {
         router.openSend(assetPayload)
     }
 
-    fun receiveClicked(assetPayload: AssetPayload) {
+    private fun receiveClicked(assetPayload: AssetPayload) {
         router.openReceive(assetPayload)
     }
 
@@ -472,10 +480,6 @@ class BalanceListViewModel @Inject constructor(
             }
             .map { it.filterNotNull() }
             .mapList { mapAssetToAssetModel(it) }
-
-    fun manageAssetsClicked() {
-        router.openManageAssets()
-    }
 
     override fun onBalanceClicked() {
         viewModelScope.launch {

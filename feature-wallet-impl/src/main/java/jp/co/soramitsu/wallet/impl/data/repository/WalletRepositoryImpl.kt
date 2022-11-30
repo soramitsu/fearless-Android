@@ -60,7 +60,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
@@ -101,7 +100,7 @@ class WalletRepositoryImpl(
                 }
             }
 
-            val assetsByChain: List<AssetWithStatus> = chainRegistry.currentChains.firstOrNull().orEmpty()
+            val assetsByChain: List<AssetWithStatus> = chainsById.values
                 .flatMap { chain ->
                     chain.assets.map {
                         AssetWithStatus(

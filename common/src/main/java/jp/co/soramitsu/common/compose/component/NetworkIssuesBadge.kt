@@ -59,7 +59,7 @@ fun NetworkIssuesBadge(onClick: () -> Unit) {
                 .height(24.dp)
                 .clip(RoundedCornerShape(100))
                 .background(color = Color.White.copy(alpha = 0.08f))
-                .clickable { onClick() }
+                .clickable(onClick = onClick)
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically

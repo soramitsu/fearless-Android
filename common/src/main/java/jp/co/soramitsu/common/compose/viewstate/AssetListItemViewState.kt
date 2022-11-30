@@ -7,7 +7,7 @@ data class AssetListItemViewState(
     val displayName: String,
     val assetTokenFiat: String?,
     val assetTokenRate: String?,
-    val assetBalance: String,
+    val assetBalance: String?,
     val assetBalanceFiat: String?,
     val assetChainUrls: Map<String, String>,
     val chainId: String,

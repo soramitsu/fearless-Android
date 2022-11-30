@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -44,7 +43,7 @@ class ChainSelectViewModel @Inject constructor(
         when {
             initialSelectedAssetId != null -> {
                 chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
-                    selectedChainId.value = chainOfTheAsset.chain.id
+                    selectedChainId.value = chainOfTheAsset.id
 
                     val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
 
@@ -56,17 +55,17 @@ class ChainSelectViewModel @Inject constructor(
                 chains
             }
             else -> {
-                chains.filter { it.chain.id in filterChainIds }
+                chains.filter { it.id in filterChainIds }
             }
         }
-    }.map { chains: List<JoinedChainInfo> ->
+    }.map { chains ->
         chains.map { it.toChainItemState() }
     }
 
     private val symbolFlow = chainInteractor.getChainsFlow().map { chains ->
         (initialSelectedAssetId ?: sharedSendState.assetId)?.let {
             chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
-                selectedChainId.value = chainOfTheAsset.chain.id
+                selectedChainId.value = chainOfTheAsset.id
 
                 val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
                 symbol

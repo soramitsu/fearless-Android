@@ -30,9 +30,8 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
@@ -79,7 +78,7 @@ class SearchAssetsViewModel @Inject constructor(
         interactor.assetsFlow(),
         chainInteractor.getChainsFlow(),
         connectingChainIdsFlow
-    ) { assets: List<AssetWithStatus>, chains: List<JoinedChainInfo>, chainConnectings: Set<ChainId> ->
+    ) { assets: List<AssetWithStatus>, chains: List<Chain>, chainConnectings: Set<ChainId> ->
         val selectedChainId = savedStateHandle.get<String?>(SearchAssetsFragment.KEY_CHAIN_ID)
         val assetStates = mutableListOf<AssetListItemViewState>()
 
@@ -91,24 +90,23 @@ class SearchAssetsViewModel @Inject constructor(
                 val token = assetWithStatus.asset.token
                 val chainAsset = token.configuration
 
-                val chainLocal = chains.find { it.chain.id == token.configuration.chainId }
-                val chain = chainLocal?.let { mapChainLocalToChain(it) }
+                val chainLocal = chains.find { it.id == token.configuration.chainId }
 
-                val isSupported: Boolean = when (chain?.minSupportedVersion) {
+                val isSupported: Boolean = when (chainLocal?.minSupportedVersion) {
                     null -> true
-                    else -> AppVersion.isSupported(chain.minSupportedVersion)
+                    else -> AppVersion.isSupported(chainLocal.minSupportedVersion)
                 }
 
                 val hasNetworkIssue = token.configuration.chainId in chainConnectings
 
                 val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
-                    .associate { it.chain.id to it.chain.icon }
+                    .associate { it.id to it.icon }
 
                 val stateItem = assetStates.find { it.displayName == chainAsset.symbolToShow }
                 if (stateItem == null) {
                     val assetListItemViewState = AssetListItemViewState(
                         assetIconUrl = chainAsset.iconUrl,
-                        assetChainName = chain?.name.orEmpty(),
+                        assetChainName = chainLocal?.name.orEmpty(),
                         assetSymbol = chainAsset.symbol,
                         displayName = chainAsset.symbolToShow,
                         assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
@@ -116,7 +114,7 @@ class SearchAssetsViewModel @Inject constructor(
                         assetBalance = assetWithStatus.asset.total?.format().orEmpty(),
                         assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total)?.formatAsCurrency(token.fiatSymbol),
                         assetChainUrls = assetChainUrls,
-                        chainId = chain?.id.orEmpty(),
+                        chainId = chainLocal?.id.orEmpty(),
                         chainAssetId = chainAsset.id,
                         isSupported = isSupported,
                         isHidden = !assetWithStatus.asset.enabled,

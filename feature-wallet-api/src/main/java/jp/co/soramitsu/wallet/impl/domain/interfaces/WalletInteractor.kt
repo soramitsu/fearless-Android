@@ -104,4 +104,6 @@ interface WalletInteractor {
     suspend fun saveAddress(name: String, address: String, selectedChainId: String)
 
     fun observeAddressBook(chainId: ChainId): Flow<List<AddressBookContact>>
+
+    fun observeAssets(): Flow<List<AssetWithStatus>>
 }
