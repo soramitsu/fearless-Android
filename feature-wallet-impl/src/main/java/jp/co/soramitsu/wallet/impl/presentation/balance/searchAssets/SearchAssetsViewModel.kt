@@ -30,9 +30,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort

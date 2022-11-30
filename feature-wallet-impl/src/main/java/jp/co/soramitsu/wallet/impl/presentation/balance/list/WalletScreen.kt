@@ -83,7 +83,6 @@ interface WalletScreenInterface {
 @Composable
 fun WalletScreen(
     mainState: LoadingState<WalletState>,
-    shimmerItemsState: List<AssetListItemShimmerViewState>,
     chainsState: ChainSelectScreenViewState,
     viewModel: BalanceListViewModel = hiltViewModel(),
     modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
@@ -112,13 +111,8 @@ fun WalletScreen(
             )
         },
         content = {
-            when (mainState) {
-                is LoadingState.Loading<WalletState> -> {
-//                    ShimmerWalletScreen(shimmerItemsState)
-                }
-                is LoadingState.Loaded<WalletState> -> {
-                    ContentWalletScreen(mainState.data, viewModel)
-                }
+            if (mainState is LoadingState.Loaded<WalletState>) {
+                ContentWalletScreen(mainState.data, viewModel)
             }
         },
         scrimColor = Color.Black.copy(alpha = 0.32f) // https://issuetracker.google.com/issues/183697056

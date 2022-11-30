@@ -291,17 +291,11 @@ class BalanceListViewModel @Inject constructor(
         assetStates,
         assetTypeSelectorState.asFlow(),
         balanceLiveData,
-        hiddenAssetsState.asFlow(),
-        enteredChainQueryFlow,
+        hiddenAssetsState.asFlow()
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
         balanceModel: BalanceModel,
-        hiddenState: HiddenItemState,
-        selectedChainId: String? ->
-
-//        if (assetsListItemStates.isEmpty() || balanceModel.isShowLoading) {
-//            return@combine LoadingState.Loading()
-//        }
+        hiddenState: HiddenItemState ->
 
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.totalBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),

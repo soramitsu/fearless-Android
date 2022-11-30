@@ -31,7 +31,6 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
-import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
