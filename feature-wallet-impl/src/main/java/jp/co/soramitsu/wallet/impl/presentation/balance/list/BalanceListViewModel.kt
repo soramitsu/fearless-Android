@@ -25,7 +25,6 @@ import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
-import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
@@ -81,7 +80,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 
 private const val CURRENT_ICON_SIZE = 40
@@ -320,8 +318,8 @@ class BalanceListViewModel @Inject constructor(
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
     private val selectedChainItemFlow = selectedChainId.flatMapLatest { selectedChainId ->
-        chainsFlow.map {
-            it.firstOrNull {
+        chainsFlow.map { chainsState ->
+            chainsState.firstOrNull {
                 it.id == selectedChainId
             }
         }
@@ -338,31 +336,7 @@ class BalanceListViewModel @Inject constructor(
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
-    private val itemsToFillTheMostScreens = 7
-    val assetShimmerItems = assetModelsFlow().take(itemsToFillTheMostScreens)
-        .mapList {
-            AssetListItemShimmerViewState(
-                assetIconUrl = it.token.configuration.iconUrl,
-                assetChainUrls = listOf(it.token.configuration.iconUrl)
-            )
-        }
-        .stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = defaultWalletShimmerItems())
-
-    private fun defaultWalletShimmerItems(): List<AssetListItemShimmerViewState> = listOf(
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/SORA.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Bifrost.svg",
-        "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
-    ).map { iconUrl ->
-        AssetListItemShimmerViewState(
-            assetIconUrl = iconUrl,
-            assetChainUrls = listOf(iconUrl)
-        )
-    }
-
-    fun sync() {
+    private fun sync() {
         viewModelScope.launch {
             getAvailableFiatCurrencies.sync()
 
@@ -506,11 +480,6 @@ class BalanceListViewModel @Inject constructor(
             }
             .map { it.filterNotNull() }
             .mapList { mapAssetToAssetModel(it) }
-
-    // todo remove this screen
-    fun manageAssetsClicked() {
-        router.openManageAssets()
-    }
 
     override fun onBalanceClicked() {
         viewModelScope.launch {

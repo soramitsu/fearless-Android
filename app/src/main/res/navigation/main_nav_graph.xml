@@ -156,14 +156,6 @@
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
         <action
-            android:id="@+id/action_mainFragment_to_manageAssetsFragment"
-            app:destination="@id/manageAssetsFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-        <action
             android:id="@+id/action_mainFragment_to_languagesFragment"
             app:destination="@id/languagesFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
