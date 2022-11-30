@@ -17,22 +17,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,7 +51,6 @@ import jp.co.soramitsu.common.compose.component.ShimmerRectangle
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black3
-import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -68,14 +58,10 @@ import jp.co.soramitsu.common.utils.formatDateTime
 import jp.co.soramitsu.common.utils.formatDaysSinceEpoch
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationStatusAppearance
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.TransactionHistoryUi
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
-import kotlinx.coroutines.launch
 
 data class BalanceDetailsState(
     val balance: AssetBalanceViewState,
@@ -93,53 +79,22 @@ interface BalanceDetailsScreenInterface {
     fun transactionClicked(transactionModel: OperationModel)
     fun sync()
     fun transactionsScrolled(index: Int)
-    fun onChainSelected(item: ChainItemState? = null)
-    fun onChainSearchEntered(query: String)
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun BalanceDetailsScreen(
     state: LoadingState<BalanceDetailsState>,
-    chainsState: ChainSelectScreenViewState,
     isRefreshing: Boolean,
-    modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden),
     callback: BalanceDetailsScreenInterface
 ) {
-    val scope = rememberCoroutineScope()
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    fun onChainSelected(chainItemState: ChainItemState?) {
-        scope.launch {
-            callback.onChainSelected(chainItemState)
-            modalBottomSheetState.hide()
+    when (state) {
+        is LoadingState.Loading<BalanceDetailsState> -> {
+            ShimmerBalanceDetailScreen()
         }
-        keyboardController?.hide()
+        is LoadingState.Loaded<BalanceDetailsState> -> {
+            ContentBalanceDetailsScreen(state.data, isRefreshing, callback)
+        }
     }
-
-    ModalBottomSheetLayout(
-        sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
-        sheetBackgroundColor = black4,
-        sheetState = modalBottomSheetState,
-        sheetContent = {
-            ChainSelectContent(
-                state = chainsState,
-                onChainSelected = ::onChainSelected,
-                onSearchInput = callback::onChainSearchEntered
-            )
-        },
-        content = {
-            when (state) {
-                is LoadingState.Loading<BalanceDetailsState> -> {
-                    ShimmerBalanceDetailScreen()
-                }
-                is LoadingState.Loaded<BalanceDetailsState> -> {
-                    ContentBalanceDetailsScreen(state.data, isRefreshing, callback)
-                }
-            }
-        },
-        scrimColor = Color.Black.copy(alpha = 0.32f) // https://issuetracker.google.com/issues/183697056
-    )
 }
 
 @Composable
@@ -525,8 +480,6 @@ private fun PreviewBalanceDetailScreenContent() {
         override fun transactionClicked(transactionModel: OperationModel) {}
         override fun sync() {}
         override fun transactionsScrolled(index: Int) {}
-        override fun onChainSelected(item: ChainItemState?) {}
-        override fun onChainSearchEntered(query: String) {}
     }
 
     return FearlessTheme {

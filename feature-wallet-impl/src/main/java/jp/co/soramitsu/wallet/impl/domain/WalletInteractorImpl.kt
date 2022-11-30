@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import androidx.lifecycle.asFlow
-import androidx.lifecycle.map
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -65,7 +63,7 @@ class WalletInteractorImpl(
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {
         return updatesMixin.tokenRatesUpdate.map {
             it.isNotEmpty()
-        }.asFlow()
+        }
             .distinctUntilChanged()
             .flatMapLatest { ratesUpdating ->
                 accountRepository.selectedMetaAccountFlow()

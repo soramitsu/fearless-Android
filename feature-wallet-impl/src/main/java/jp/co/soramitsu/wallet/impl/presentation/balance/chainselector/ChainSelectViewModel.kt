@@ -35,6 +35,7 @@ class ChainSelectViewModel @Inject constructor(
     private val initialSelectedAssetId: String? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_ASSET_ID]
     private val filterChainIds: List<ChainId>? = savedStateHandle[ChainSelectFragment.KEY_FILTER_CHAIN_IDS]
     private val chooserMode: Boolean = savedStateHandle[ChainSelectFragment.KEY_CHOOSER_MODE] ?: false
+    private val showAllChains: Boolean = savedStateHandle[ChainSelectFragment.KEY_SHOW_ALL_CHAINS] ?: true
     private val tokenCurrencyId: String? = savedStateHandle[ChainSelectFragment.KEY_CURRENCY_ID]
 
     private var choiceDone = false
@@ -45,9 +46,8 @@ class ChainSelectViewModel @Inject constructor(
                 chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
                     selectedChainId.value = chainOfTheAsset.id
 
-                    val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
-
-                    val chainsWithAsset = chains.filter { it.assets.any { it.symbolToShow == symbol } }
+                    val symbolToShow = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
+                    val chainsWithAsset = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
                     chainsWithAsset
                 }
             }
@@ -78,7 +78,9 @@ class ChainSelectViewModel @Inject constructor(
     val state = combine(chainsFlow, selectedChainId, enteredChainQueryFlow) { chainItems, selectedChainId, searchQuery ->
         val chains = chainItems
             .filter {
-                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || it.tokenSymbols.any { it.second.contains(searchQuery, true) }
+                val condition = it.tokenSymbols.values.any { it.contains(searchQuery, true) }
+
+                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || condition
             }
             .sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
 
@@ -86,7 +88,7 @@ class ChainSelectViewModel @Inject constructor(
             chains = chains,
             selectedChainId = selectedChainId,
             searchQuery = searchQuery,
-            showAllChains = false
+            showAllChains = showAllChains
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
@@ -101,7 +103,7 @@ class ChainSelectViewModel @Inject constructor(
                 return
             }
 
-            val assetId = chainItemState?.tokenSymbols?.firstOrNull { it.second == symbolFlow.value }?.first
+            val assetId = chainItemState?.tokenSymbols?.entries?.firstOrNull { it.value == symbolFlow.value }?.key
 
             chainId?.let {
                 launch {

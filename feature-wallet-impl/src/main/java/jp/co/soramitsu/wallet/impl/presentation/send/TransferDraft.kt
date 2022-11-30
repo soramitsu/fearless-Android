@@ -5,7 +5,7 @@ import java.math.BigDecimal
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import kotlinx.android.parcel.IgnoredOnParcel
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class TransferDraft(

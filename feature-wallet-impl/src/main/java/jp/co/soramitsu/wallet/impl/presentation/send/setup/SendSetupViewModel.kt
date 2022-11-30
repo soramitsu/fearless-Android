@@ -113,7 +113,7 @@ class SendSetupViewModel @Inject constructor(
                 imageUrl = chain.icon,
                 title = chain.name,
                 isSelected = false,
-                tokenSymbols = chain.assets.map { it.id to it.symbol }
+                tokenSymbols = chain.assets.associate { it.id to it.symbolToShow }
             )
         }
     }
@@ -362,9 +362,12 @@ class SendSetupViewModel @Inject constructor(
                         else -> router.openSelectChainAsset(chain.id)
                     }
                 }
-                else -> {
-                    router.openSelectChain(filterChainIds = addressChains.map { it.id }, chooserMode = false, currencyId = tokenCurrencyId)
-                }
+                else -> router.openSelectChain(
+                    filterChainIds = addressChains.map { it.id },
+                    chooserMode = false,
+                    currencyId = tokenCurrencyId,
+                    showAllChains = false
+                )
             }
         }
     }
@@ -452,7 +455,7 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onChainClick() {
         sharedState.assetId?.let { assetId ->
-            router.openSelectChain(assetId)
+            router.openSelectChain(assetId = assetId, chooserMode = false)
         }
     }
 

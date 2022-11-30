@@ -3,45 +3,27 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetState
-import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Surface
 import androidx.compose.material.SwipeableState
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.Alignment.Companion.CenterVertically
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.AssetListItem
-import jp.co.soramitsu.common.compose.component.AssetListItemShimmer
-import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
 import jp.co.soramitsu.common.compose.component.HiddenItemState
@@ -50,21 +32,13 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.NftStub
-import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.component.SwipeBox
 import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.black4
-import jp.co.soramitsu.common.compose.theme.customColors
-import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
-import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectContent
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import kotlinx.coroutines.launch
 
@@ -79,49 +53,9 @@ interface WalletScreenInterface {
     fun onHiddenAssetClicked()
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
-@Composable
-fun WalletScreen(
-    mainState: LoadingState<WalletState>,
-    chainsState: ChainSelectScreenViewState,
-    viewModel: BalanceListViewModel = hiltViewModel(),
-    modalBottomSheetState: ModalBottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
-) {
-    val scope = rememberCoroutineScope()
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val chainSelectedCallback = remember<(ChainItemState?) -> Unit> {
-        { chainItemState ->
-            scope.launch {
-                viewModel.onChainSelected(chainItemState)
-                modalBottomSheetState.hide()
-            }
-            keyboardController?.hide()
-        }
-    }
-
-    ModalBottomSheetLayout(
-        sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
-        sheetBackgroundColor = black4,
-        sheetState = modalBottomSheetState,
-        sheetContent = {
-            ChainSelectContent(
-                state = chainsState,
-                onChainSelected = chainSelectedCallback,
-                onSearchInput = viewModel::onChainSearchEntered
-            )
-        },
-        content = {
-            if (mainState is LoadingState.Loaded<WalletState>) {
-                ContentWalletScreen(mainState.data, viewModel)
-            }
-        },
-        scrimColor = Color.Black.copy(alpha = 0.32f) // https://issuetracker.google.com/issues/183697056
-    )
-}
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ContentWalletScreen(
+fun WalletScreen(
     data: WalletState,
     callback: WalletScreenInterface
 ) {
@@ -180,7 +114,7 @@ private fun AssetsList(
         state = listState,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(data.visibleAssets, key = { it.chainAssetId }) { assetState ->
+        items(data.visibleAssets, key = { it.displayName }) { assetState ->
             SwipeableBalanceListItem(
                 assetState = assetState,
                 assetClicked = assetClicked,
@@ -224,7 +158,7 @@ private fun SwipeableBalanceListItem(
     SwipeBox(
         swipeableState = swipeableState,
         state = SwipeBoxViewState(
-            leftStateWidth = 180.dp,
+            leftStateWidth = 170.dp,
             rightStateWidth = 90.dp
         ),
         initialContent = {
@@ -268,65 +202,6 @@ private fun getLeftActionBarViewState(asset: AssetListItemViewState) = ActionBar
     )
 )
 
-@Composable
-fun ShimmerWalletScreen(items: List<AssetListItemShimmerViewState>) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        MarginVertical(margin = 16.dp)
-        Shimmer(
-            Modifier
-                .height(12.dp)
-                .padding(horizontal = 124.dp)
-        )
-        MarginVertical(margin = 10.dp)
-        Shimmer(
-            Modifier
-                .height(26.dp)
-                .padding(horizontal = 93.dp)
-        )
-        MarginVertical(margin = 21.dp)
-        Shimmer(
-            Modifier
-                .height(11.dp)
-                .padding(horizontal = 133.dp)
-        )
-
-        MarginVertical(margin = 40.dp)
-        BackgroundCornered(backgroundColor = MaterialTheme.customColors.white08) {
-            Row(
-                modifier = Modifier
-                    .height(32.dp)
-                    .fillMaxWidth()
-                    .align(CenterHorizontally)
-            ) {
-                Shimmer(
-                    Modifier
-                        .height(12.dp)
-                        .weight(1f)
-                        .padding(horizontal = 44.dp)
-                        .align(CenterVertically)
-                )
-                Shimmer(
-                    Modifier
-                        .height(12.dp)
-                        .weight(1f)
-                        .padding(horizontal = 68.dp)
-                        .align(CenterVertically)
-                )
-            }
-        }
-
-        MarginVertical(margin = 16.dp)
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(items) { asset ->
-                AssetListItemShimmer(asset)
-            }
-            item { MarginVertical(margin = 80.dp) }
-        }
-    }
-}
-
 @Preview
 @Composable
 private fun PreviewWalletScreen() {
@@ -343,7 +218,7 @@ private fun PreviewWalletScreen() {
     FearlessTheme {
         Surface(Modifier.background(Color.Black)) {
             Column {
-                ContentWalletScreen(
+                WalletScreen(
                     data = WalletState(
                         multiToggleButtonState = MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)),
                         assets = emptyList(),
@@ -353,22 +228,7 @@ private fun PreviewWalletScreen() {
                     ),
                     callback = emptyCallback
                 )
-                ShimmerWalletScreen(defaultWalletShimmerItems())
             }
         }
     }
-}
-
-private fun defaultWalletShimmerItems(): List<AssetListItemShimmerViewState> = listOf(
-    "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg",
-    "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/SORA.svg",
-    "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Moonriver.svg",
-    "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/kilt.svg",
-    "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Bifrost.svg",
-    "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Polkadot.svg"
-).map { iconUrl ->
-    AssetListItemShimmerViewState(
-        assetIconUrl = iconUrl,
-        assetChainUrls = listOf(iconUrl)
-    )
 }

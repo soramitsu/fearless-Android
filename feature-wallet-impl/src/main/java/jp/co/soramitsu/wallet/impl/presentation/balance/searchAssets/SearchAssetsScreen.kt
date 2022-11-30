@@ -164,7 +164,7 @@ private fun SwipableAssetListItem(
     SwipeBox(
         swipeableState = swipeableState,
         state = SwipeBoxViewState(
-            leftStateWidth = 180.dp,
+            leftStateWidth = 170.dp,
             rightStateWidth = 90.dp
         ),
         initialContent = {

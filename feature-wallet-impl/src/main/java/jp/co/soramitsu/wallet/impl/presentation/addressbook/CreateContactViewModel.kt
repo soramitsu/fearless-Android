@@ -39,15 +39,15 @@ class CreateContactViewModel @Inject constructor(
 
     private val chainIdFlow = MutableStateFlow(chainId)
 
-    private val selectedChainItem: Flow<ChainItemState?> = chainIdFlow.mapNotNull {
-        it?.let {
+    private val selectedChainItem: Flow<ChainItemState?> = chainIdFlow.mapNotNull { chainId ->
+        chainId?.let {
             val chain = walletInteractor.getChain(it)
             ChainItemState(
                 id = chain.id,
                 imageUrl = chain.icon,
                 title = chain.name,
                 isSelected = false,
-                tokenSymbols = chain.assets.map { it.id to it.symbol }
+                tokenSymbols = chain.assets.associate { it.id to it.symbolToShow }
             )
         }
     }
@@ -96,7 +96,7 @@ class CreateContactViewModel @Inject constructor(
 
     override fun onChainClick() {
         val selectedChainId = chainIdFlow.value
-        router.openSelectChain(selectedChainId)
+        router.openSelectChain(selectedChainId = selectedChainId, showAllChains = false)
     }
 
     override fun onNameInput(input: String) {
