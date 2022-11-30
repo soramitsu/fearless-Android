@@ -113,7 +113,7 @@ class SendSetupViewModel @Inject constructor(
                 imageUrl = chain.icon,
                 title = chain.name,
                 isSelected = false,
-                tokenSymbols = chain.assets.map { it.id to it.symbol }
+                tokenSymbols = chain.assets.associate { it.id to it.symbolToShow }
             )
         }
     }
@@ -307,24 +307,22 @@ class SendSetupViewModel @Inject constructor(
     val state = combine(
         selectedChain,
         addressInputFlow,
+        isInputAddressValidFlow,
         chainSelectorStateFlow,
         amountInputViewState,
         feeInfoViewStateFlow,
         warningInfoStateFlow,
         buttonStateFlow
-    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
-        val placeholder = resourceManager.getDrawable(R.drawable.ic_address_placeholder)
-
-        val accountImage = address.ifEmpty { null }?.let {
-            addressIconGenerator.createAddressIcon(chain?.isEthereumBased == true, address, AddressIconGenerator.SIZE_BIG)
-        }
-
+    ) { chain, address, isAddressValid, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
         SendSetupViewState(
             toolbarState = toolbarViewState,
             addressInputState = AddressInputState(
                 title = resourceManager.getString(R.string.send_to),
                 input = address,
-                image = accountImage ?: placeholder
+                image = when {
+                    isAddressValid.not() -> R.drawable.ic_address_placeholder
+                    else -> addressIconGenerator.createAddressIcon(chain?.isEthereumBased == true, address, AddressIconGenerator.SIZE_BIG)
+                }
             ),
             chainSelectorState = chainSelectorState,
             amountInputState = amountInputState,
@@ -344,11 +342,9 @@ class SendSetupViewModel @Inject constructor(
             sharedState.update(payload.chainId, payload.chainAssetId)
         }
         initSendToAddress?.let { sharedState.updateAddress(it) }
-        sharedState.addressFlow.distinctUntilChanged()
-            .onEach {
-                it?.let { addressInputFlow.value = it }
-            }
-            .launchIn(this)
+        sharedState.addressFlow.onEach {
+            it?.let { addressInputFlow.value = it }
+        }.launchIn(this)
     }
 
     private fun findChainsForAddress(address: String) {
@@ -366,9 +362,12 @@ class SendSetupViewModel @Inject constructor(
                         else -> router.openSelectChainAsset(chain.id)
                     }
                 }
-                else -> {
-                    router.openSelectChain(filterChainIds = addressChains.map { it.id }, chooserMode = false, currencyId = tokenCurrencyId)
-                }
+                else -> router.openSelectChain(
+                    filterChainIds = addressChains.map { it.id },
+                    chooserMode = false,
+                    currencyId = tokenCurrencyId,
+                    showAllChains = false
+                )
             }
         }
     }
@@ -456,7 +455,7 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onChainClick() {
         sharedState.assetId?.let { assetId ->
-            router.openSelectChain(assetId)
+            router.openSelectChain(assetId = assetId, chooserMode = false)
         }
     }
 

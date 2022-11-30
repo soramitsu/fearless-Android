@@ -529,13 +529,13 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openSelectChain(assetId: String) {
-        val bundle = ChainSelectFragment.getBundle(assetId)
+    override fun openSelectChain(assetId: String, chooserMode: Boolean) {
+        val bundle = ChainSelectFragment.getBundle(assetId = assetId, chooserMode = chooserMode)
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
-    override fun openSelectChain(selectedChainId: ChainId?, filterChainIds: List<ChainId>?, chooserMode: Boolean, currencyId: String?) {
-        val bundle = ChainSelectFragment.getBundle(selectedChainId, filterChainIds, chooserMode, currencyId)
+    override fun openSelectChain(selectedChainId: ChainId?, filterChainIds: List<ChainId>?, chooserMode: Boolean, currencyId: String?, showAllChains: Boolean) {
+        val bundle = ChainSelectFragment.getBundle(selectedChainId, filterChainIds, chooserMode, currencyId, showAllChains)
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 

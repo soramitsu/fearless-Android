@@ -7,7 +7,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.BonusPayloa
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.acala.AcalaContributionType
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.acala.AcalaContributionType.DirectDOT
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ParachainMetadataParcelModel
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class ConfirmContributePayload(

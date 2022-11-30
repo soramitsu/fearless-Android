@@ -13,7 +13,6 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
@@ -50,16 +49,14 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
         val state by viewModel.state.collectAsState()
-        val chainsState by viewModel.chainsState.collectAsState()
 
-        WalletScreen(state, chainsState, viewModel, modalBottomSheetState)
+        WalletScreen(state, viewModel)
     }
 
     @ExperimentalMaterialApi
     @Composable
     override fun Toolbar(modalBottomSheetState: ModalBottomSheetState) {
         val toolbarState by viewModel.toolbarState.collectAsState()
-        val coroutineScope = rememberCoroutineScope()
 
         when (toolbarState) {
             is LoadingState.Loading<MainToolbarViewState> -> {
@@ -75,19 +72,11 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                 MainToolbar(
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
                     menuItems = listOf(
-                        MenuIconItem(icon = R.drawable.ic_scan) { requestCameraPermission() },
-                        MenuIconItem(icon = R.drawable.ic_search) {
-                            viewModel.openSearchAssets()
-                        }
+                        MenuIconItem(icon = R.drawable.ic_scan, onClick = ::requestCameraPermission),
+                        MenuIconItem(icon = R.drawable.ic_search, onClick = viewModel::openSearchAssets)
                     ),
-                    onChangeChainClick = {
-                        coroutineScope.launch {
-                            modalBottomSheetState.show()
-                        }
-                    },
-                    onNavigationClick = {
-                        viewModel.openWalletSelector()
-                    }
+                    onChangeChainClick = viewModel::openSelectChain,
+                    onNavigationClick = viewModel::openWalletSelector
                 )
             }
         }
@@ -107,10 +96,6 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 //        with(binding) {
 //            walletContainer.setOnRefreshListener {
 //                viewModel.sync()
-//            }
-//
-//            manageAssets.setWholeClickListener {
-//                viewModel.manageAssetsClicked()
 //            }
 //        }
     }

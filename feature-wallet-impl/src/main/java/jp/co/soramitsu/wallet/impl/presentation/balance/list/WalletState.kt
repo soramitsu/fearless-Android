@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
+import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.HiddenItemState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -13,6 +14,15 @@ data class WalletState(
     val hiddenState: HiddenItemState,
     val hasNetworkIssues: Boolean
 ) {
+    companion object {
+        val default = WalletState(
+            multiToggleButtonState = MultiToggleButtonState(AssetType.Currencies, listOf(AssetType.Currencies, AssetType.NFTs)),
+            assets = emptyList(),
+            balance = AssetBalanceViewState("", "", false, ChangeBalanceViewState("", "")),
+            hiddenState = HiddenItemState(),
+            hasNetworkIssues = false
+        )
+    }
     val visibleAssets = assets.filter { !it.isHidden }
     val hiddenAssets = assets.filter { it.isHidden }
 }

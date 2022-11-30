@@ -70,11 +70,15 @@ class ConfirmSendViewModel @Inject constructor(
     private val transferDraft = savedStateHandle.get<TransferDraft>(ConfirmSendFragment.KEY_DRAFT) ?: error("Required data not provided for send confirmation")
     private val phishingType = savedStateHandle.get<PhishingType>(ConfirmSendFragment.KEY_PHISHING_TYPE)
 
-    private val recipientFlow = flowOf { getAddressModel(transferDraft.recipientAddress) }
+    private val recipientFlow = interactor.observeAddressBook(transferDraft.assetPayload.chainId).map { contacts ->
+        val contactName = contacts.firstOrNull { it.address.equals(transferDraft.recipientAddress, ignoreCase = true) }?.name
+        getAddressModel(transferDraft.recipientAddress, contactName)
+    }
 
     private val senderFlow = flowOf {
         currentAccountAddress(transferDraft.assetPayload.chainId)?.let { address ->
-            getAddressModel(address)
+            val walletName = interactor.getSelectedMetaAccount().name
+            getAddressModel(address, walletName)
         }
     }
 
@@ -264,8 +268,8 @@ class ConfirmSendViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getAddressModel(address: String): AddressModel {
-        return addressIconGenerator.createAddressModel(address, ICON_IN_DP)
+    private suspend fun getAddressModel(address: String, accountName: String? = null): AddressModel {
+        return addressIconGenerator.createAddressModel(address, ICON_IN_DP, accountName)
     }
 
     private fun createTransfer(token: Chain.Asset): Transfer {

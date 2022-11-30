@@ -1,7 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.model
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 sealed class OperationParcelizeModel : Parcelable {
 

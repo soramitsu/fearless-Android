@@ -2,7 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model
 
 import android.os.Parcelable
 import jp.co.soramitsu.staking.impl.presentation.payouts.model.PendingPayoutParcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import java.math.BigInteger
 
 @Parcelize
