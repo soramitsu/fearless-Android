@@ -916,7 +916,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="chip_history">History</string>
     <string name="chip_paste">Paste</string>
     <string name="address_not_valid_error_title">Is not network address</string>
-    <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
+    <string name="address_not_valid_error_message">The address format is invalid.\nMake sure that address\nbelongs to the right network</string>
+    <string name="transfer_address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
     <string name="preview">Preview</string>
     <string name="hash">Hash</string>
     <string name="all_done">All Done</string>

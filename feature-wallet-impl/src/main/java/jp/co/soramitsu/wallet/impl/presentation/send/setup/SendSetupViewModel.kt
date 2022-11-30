@@ -29,7 +29,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.validation.AddressNotValidException
+import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.common.validation.InsufficientBalanceException
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -398,7 +398,7 @@ class SendSetupViewModel @Inject constructor(
             condition = {
                 isInputAddressValidFlow.value
             },
-            error = AddressNotValidException(resourceManager)
+            error = TransferAddressNotValidException(resourceManager)
         ),
         Validation(
             condition = {
