@@ -52,12 +52,17 @@ fun ActionBar(
         Row(Modifier.padding(vertical = 4.dp)) {
             state.actionItems.forEachIndexed { index, actionItem ->
                 val itemClickHandler = remember { { onItemClick(actionItem, state.chainId, state.chainAssetId) } }
-                ActionCell(
-                    state = ActionCellViewState(
-                        painter = painterResource(actionItem.iconId),
-                        title = stringResource(actionItem.titleId),
+                val icon = painterResource(id = actionItem.iconId)
+                val title = stringResource(id = actionItem.titleId)
+                val actionViewState = remember {
+                    ActionCellViewState(
+                        painter = icon,
+                        title = title,
                         isEnabled = actionItem !in state.disabledItems
-                    ),
+                    )
+                }
+                ActionCell(
+                    state = actionViewState,
                     modifier = if (fillMaxWidth) Modifier.weight(1f) else Modifier,
                     onClick = itemClickHandler
                 )
