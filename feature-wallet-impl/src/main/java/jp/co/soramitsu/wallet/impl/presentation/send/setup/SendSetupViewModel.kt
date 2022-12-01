@@ -29,10 +29,10 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.common.validation.InsufficientBalanceException
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.wallet.api.presentation.Validation
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -91,7 +91,7 @@ class SendSetupViewModel @Inject constructor(
     val showChooserEvent: LiveData<Event<Unit>> = _showChooserEvent
 
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
-    val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
+    private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
     private val tokenCurrencyId: String? = savedStateHandle[SendSetupFragment.KEY_TOKEN_ID]
 
     val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
@@ -348,11 +348,10 @@ class SendSetupViewModel @Inject constructor(
     }
 
     private fun findChainsForAddress(address: String) {
-        val addressPrefix = address.addressByte()
         launch {
             val chains = walletInteractor.getChains().first()
             val addressChains = chains.filter {
-                it.addressPrefix.toShort() == addressPrefix
+                it.isValidAddress(address)
             }
             when {
                 addressChains.size == 1 -> {
