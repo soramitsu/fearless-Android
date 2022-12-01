@@ -13,11 +13,13 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -46,12 +48,46 @@ fun SwipeBox(
     leftContent: @Composable () -> Unit,
     rightContent: @Composable () -> Unit
 ) {
-    val anchors = mapOf(
-        with(LocalDensity.current) { state.leftStateWidth.toPx() } to SwipeState.LEFT,
-        with(LocalDensity.current) { -state.rightStateWidth.toPx() } to SwipeState.RIGHT,
-        0f to SwipeState.INITIAL
-    )
+    val currentDensity = LocalDensity.current
+    val anchors = remember {
+        mapOf(
+            with(currentDensity) { state.leftStateWidth.toPx() } to SwipeState.LEFT,
+            with(currentDensity) { -state.rightStateWidth.toPx() } to SwipeState.RIGHT,
+            0f to SwipeState.INITIAL
+        )
+    }
+    val thresholds = remember { { _: SwipeState, _: SwipeState -> FractionalThreshold(0.3f) } }
+    val leftOffsetsCalculator = remember<Density.() -> IntOffset> {
+        {
+            val offsetX = -state.leftStateWidth.toPx() + swipeableState.offset.value
 
+            val extraOffset = -10.dp.toPx() // hiding beyond screen
+            val eliminationDistance = 40.dp.toPx()
+            val eliminationCoefficient = when {
+                swipeableState.offset.value > eliminationDistance -> 0f
+                else -> (eliminationDistance - swipeableState.offset.value) / eliminationDistance
+            }
+
+            val x = (offsetX + extraOffset * eliminationCoefficient).roundToInt()
+            IntOffset(x, 0)
+        }
+    }
+    val rightOffsetsCalculator = remember<Density.() -> IntOffset> {
+        {
+            val offsetX = (state.rightStateWidth.toPx() + swipeableState.offset.value).roundToInt()
+
+            val extraOffset = 10.dp.toPx() // hiding beyond screen
+            val eliminationDistance = 40.dp.toPx()
+            val eliminationCoefficient = when {
+                swipeableState.offset.value.absoluteValue > eliminationDistance -> 0f
+                else -> (eliminationDistance - swipeableState.offset.value.absoluteValue) / eliminationDistance
+            }
+
+            val x = (offsetX + extraOffset * eliminationCoefficient).roundToInt()
+            IntOffset(x, 0)
+        }
+    }
+    val contentOffset = remember<Density.() -> IntOffset> { { IntOffset(swipeableState.offset.value.roundToInt(), 0) } }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,7 +95,7 @@ fun SwipeBox(
             .swipeable(
                 state = swipeableState,
                 anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                thresholds = thresholds,
                 orientation = Orientation.Horizontal
             )
             .testTag("SwipeBox")
@@ -68,19 +104,7 @@ fun SwipeBox(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .wrapContentHeight()
-                .offset {
-                    val offsetX = -state.leftStateWidth.toPx() + swipeableState.offset.value
-
-                    val extraOffset = -10.dp.toPx() // hiding beyond screen
-                    val eliminationDistance = 40.dp.toPx()
-                    val eliminationCoefficient = when {
-                        swipeableState.offset.value > eliminationDistance -> 0f
-                        else -> (eliminationDistance - swipeableState.offset.value) / eliminationDistance
-                    }
-
-                    val x = (offsetX + extraOffset * eliminationCoefficient).roundToInt()
-                    IntOffset(x, 0)
-                }
+                .offset(leftOffsetsCalculator)
         ) {
             leftContent()
         }
@@ -89,19 +113,7 @@ fun SwipeBox(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .wrapContentHeight()
-                .offset {
-                    val offsetX = (state.rightStateWidth.toPx() + swipeableState.offset.value).roundToInt()
-
-                    val extraOffset = 10.dp.toPx() // hiding beyond screen
-                    val eliminationDistance = 40.dp.toPx()
-                    val eliminationCoefficient = when {
-                        swipeableState.offset.value.absoluteValue > eliminationDistance -> 0f
-                        else -> (eliminationDistance - swipeableState.offset.value.absoluteValue) / eliminationDistance
-                    }
-
-                    val x = (offsetX + extraOffset * eliminationCoefficient).roundToInt()
-                    IntOffset(x, 0)
-                }
+                .offset(rightOffsetsCalculator)
         ) {
             rightContent()
         }
@@ -110,7 +122,7 @@ fun SwipeBox(
             Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .offset { IntOffset(swipeableState.offset.value.roundToInt(), 0) }
+                .offset(contentOffset)
         ) {
             initialContent()
         }

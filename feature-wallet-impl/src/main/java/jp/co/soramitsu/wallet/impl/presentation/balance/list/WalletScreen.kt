@@ -14,6 +14,7 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -155,12 +156,17 @@ private fun SwipeableBalanceListItem(
         actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
     }
 
-    SwipeBox(
-        swipeableState = swipeableState,
-        state = SwipeBoxViewState(
+    val swipeBoxViewState = remember {
+        SwipeBoxViewState(
             leftStateWidth = 170.dp,
             rightStateWidth = 90.dp
-        ),
+        )
+    }
+    val leftBarActionViewState = remember { getLeftActionBarViewState(assetState) }
+    val rightBarActionViewState = remember { getRightActionBarViewState(assetState) }
+    SwipeBox(
+        swipeableState = swipeableState,
+        state = swipeBoxViewState,
         initialContent = {
             AssetListItem(
                 state = assetState,
@@ -169,13 +175,13 @@ private fun SwipeableBalanceListItem(
         },
         leftContent = {
             ActionBar(
-                state = getLeftActionBarViewState(assetState),
+                state = leftBarActionViewState,
                 onItemClick = ::onItemClick
             )
         },
         rightContent = {
             ActionBar(
-                state = getRightActionBarViewState(assetState),
+                state = rightBarActionViewState,
                 onItemClick = ::onItemClick
             )
         }

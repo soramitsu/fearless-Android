@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,24 +33,29 @@ import jp.co.soramitsu.common.compose.theme.alertYellow
 @OptIn(ExperimentalTextApi::class)
 @Composable
 fun NetworkIssuesBadge(onClick: () -> Unit) {
-    val textWithWeight600 = buildAnnotatedString {
-        withStyle(
-            style = SpanStyle(
-                fontWeight = FontWeight.SemiBold
-            )
-        ) {
-            append(stringResource(id = R.string.network_issue_stub))
+    val networkIssuesText = stringResource(id = R.string.network_issue_stub)
+    val textWithWeight600 = remember {
+        buildAnnotatedString {
+            withStyle(
+                style = SpanStyle(
+                    fontWeight = FontWeight.SemiBold
+                )
+            ) {
+                append(networkIssuesText)
+            }
         }
     }
 
     @Suppress("DEPRECATION")
-    val textWoFontPadding = buildAnnotatedString {
-        withStyle(
-            style = ParagraphStyle(
-                platformStyle = PlatformParagraphStyle(false)
-            )
-        ) {
-            append(text = textWithWeight600)
+    val textWoFontPadding = remember {
+        buildAnnotatedString {
+            withStyle(
+                style = ParagraphStyle(
+                    platformStyle = PlatformParagraphStyle(false)
+                )
+            ) {
+                append(text = textWithWeight600)
+            }
         }
     }
 
