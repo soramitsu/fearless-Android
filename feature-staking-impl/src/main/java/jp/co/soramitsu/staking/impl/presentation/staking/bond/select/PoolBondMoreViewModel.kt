@@ -38,7 +38,10 @@ class PoolBondMoreViewModel @Inject constructor(
             },
             error = InsufficientBalanceException(resourceManager)
         )
-    )
+    ),
+    errorAlertPresenter = {
+        router.openAlert(it)
+    }
 ) {
     fun onBackClick() {
         router.back()

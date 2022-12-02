@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
@@ -39,7 +40,8 @@ open class BaseEnterAmountViewModel(
     private val onNextStep: (BigInteger) -> Unit,
     private vararg val validations: Validation,
     private val buttonValidation: (BigInteger) -> Boolean = { it != BigInteger.ZERO },
-    private val availableAmountForOperation: suspend (Asset) -> BigDecimal = { it.transferable }
+    private val availableAmountForOperation: suspend (Asset) -> BigDecimal = { it.transferable },
+    private val errorAlertPresenter: (AlertViewState) -> Unit
 ) : BaseViewModel() {
 
     private val defaultAmountInputState = AmountInputViewState(
@@ -126,8 +128,21 @@ open class BaseEnterAmountViewModel(
         val inPlanks = asset.token.planksFromAmount(amount)
         isValid(amount).fold({
             onNextStep(inPlanks)
-        }, {
-            showError(it)
+        }, { throwable ->
+            val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
+                AlertViewState(
+                    title = title,
+                    message = message,
+                    buttonText = resourceManager.getString(R.string.common_got_it),
+                    iconRes = R.drawable.ic_status_warning_16
+                )
+            } ?: AlertViewState(
+                title = resourceManager.getString(R.string.common_error_general_title),
+                message = throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message),
+                buttonText = resourceManager.getString(R.string.common_got_it),
+                iconRes = R.drawable.ic_status_warning_16
+            )
+            errorAlertPresenter(errorAlertViewState)
         })
     }
 

@@ -137,7 +137,7 @@ class StartStakingPoolViewModel @Inject constructor(
                 AlertViewState(
                     title = resourceManager.getString(R.string.pools_limit_has_reached_error_title),
                     message = resourceManager.getString(R.string.pools_limit_has_reached_error_message),
-                    buttonText = resourceManager.getString(R.string.common_ok),
+                    buttonText = resourceManager.getString(R.string.common_got_it),
                     iconRes = R.drawable.ic_status_warning_16
                 )
             )

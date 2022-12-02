@@ -871,4 +871,6 @@
     <string name="recent">Недавние</string>
     <string name="address_history_empty_message">Нет истории транзакций</string>
 
+    <string name="common_got_it">Понятно</string>
+
 </resources>
