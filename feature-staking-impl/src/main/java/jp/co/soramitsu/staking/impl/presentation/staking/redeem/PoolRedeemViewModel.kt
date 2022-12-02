@@ -29,7 +29,10 @@ class PoolRedeemViewModel @Inject constructor(
     isInputActive = false,
     resourceManager = resourceManager,
     feeEstimator = { stakingPoolInteractor.estimateRedeemFee(requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.address)) },
-    onNextStep = { router.openPoolConfirmRedeem() }
+    onNextStep = { router.openPoolConfirmRedeem() },
+    errorAlertPresenter = {
+        router.openAlert(it)
+    }
 ) {
     fun onBackClick() {
         router.back()

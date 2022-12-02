@@ -4,11 +4,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
@@ -20,6 +22,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolJoinFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.mappers.mapPeriodReturnsToRewardEstimation
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.PERIOD_YEAR
+import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.HOURS_IN_DAY
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -32,6 +35,7 @@ import kotlinx.coroutines.flow.stateIn
 class StartStakingPoolViewModel @Inject constructor(
     private val relayChainScenarioInteractor: StakingRelayChainScenarioInteractor,
     private val stakingSharedState: StakingSharedState,
+    private val stakingPoolInteractor: StakingPoolInteractor,
     private val resourceManager: ResourceManager,
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val router: StakingRouter,
@@ -46,6 +50,12 @@ class StartStakingPoolViewModel @Inject constructor(
         chain = requireNotNull(mainState.chain)
         asset = requireNotNull(mainState.asset)
     }
+
+    private val poolsLimitHasReached = flowOf {
+        val possiblePools = stakingPoolInteractor.getPossiblePools(chain.id)
+        val poolsCount = stakingPoolInteractor.getPoolsCount(chain.id)
+        return@flowOf poolsCount >= possiblePools
+    }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val yearlyReturnsFlow = flowOf {
         val asset = stakingSharedState.currentAssetFlow().first()
@@ -121,6 +131,18 @@ class StartStakingPoolViewModel @Inject constructor(
     }
 
     fun onCreatePool() {
+        val limitHasReached = requireNotNull(poolsLimitHasReached.value)
+        if (limitHasReached) {
+            router.openAlert(
+                AlertViewState(
+                    title = resourceManager.getString(R.string.pools_limit_has_reached_error_title),
+                    message = resourceManager.getString(R.string.pools_limit_has_reached_error_message),
+                    buttonText = resourceManager.getString(R.string.common_got_it),
+                    iconRes = R.drawable.ic_status_warning_16
+                )
+            )
+            return
+        }
         val setupState = flowStateProvider.createFlowState
         if (setupState.get() == null) {
             setupState.set(StakingPoolCreateFlowState())

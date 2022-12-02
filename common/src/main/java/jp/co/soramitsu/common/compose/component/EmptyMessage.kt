@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.gray2
@@ -28,7 +29,8 @@ fun EmptyMessage(
         H3(text = stringResource(id = title))
         B0(
             text = stringResource(id = message),
-            color = gray2
+            color = gray2,
+            textAlign = TextAlign.Center
         )
     }
 }

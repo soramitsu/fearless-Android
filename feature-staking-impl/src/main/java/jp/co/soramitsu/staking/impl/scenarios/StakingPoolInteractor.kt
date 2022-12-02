@@ -196,6 +196,10 @@ class StakingPoolInteractor(
         return dataSource.maxPools(chainId) ?: BigInteger.ZERO
     }
 
+    suspend fun getPoolsCount(chainId: ChainId): BigInteger {
+        return dataSource.getPoolsCount(chainId)
+    }
+
     suspend fun getMaxMembersInPool(chainId: ChainId): BigInteger {
         return dataSource.maxMembersInPool(chainId) ?: BigInteger.ZERO
     }

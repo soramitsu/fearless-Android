@@ -43,7 +43,10 @@ class PoolUnstakeViewModel @Inject constructor(
             error = InsufficientStakeBalanceException(resourceManager)
         )
     ),
-    availableAmountForOperation = { it.token.amountFromPlanks(stakingPoolSharedStateProvider.requireManageState.stakedInPlanks) }
+    availableAmountForOperation = { it.token.amountFromPlanks(stakingPoolSharedStateProvider.requireManageState.stakedInPlanks) },
+    errorAlertPresenter = {
+        router.openAlert(it)
+    }
 ) {
     fun onBackClick() {
         router.back()
