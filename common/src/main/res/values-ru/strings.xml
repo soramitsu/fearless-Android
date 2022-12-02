@@ -832,7 +832,8 @@
     <string name="chip_history">История</string>
     <string name="chip_paste">Из буфера</string>
     <string name="address_not_valid_error_title">Не адрес сети</string>
-    <string name="address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
+    <string name="address_not_valid_error_message">Неверный формат адреса.\nУбедитесь, что адрес\nсоответствует сети</string>
+    <string name="transfer_address_not_valid_error_message">According to the address provided you\'re trying to make a transfer on the wrong network.</string>
     <string name="preview">Предпросмотр</string>
     <string name="hash">Хэш</string>
     <string name="all_done">Все готово</string>

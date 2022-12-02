@@ -29,10 +29,10 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.validation.AddressNotValidException
 import jp.co.soramitsu.common.validation.InsufficientBalanceException
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByte
+import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.wallet.api.presentation.Validation
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -50,16 +50,12 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemS
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -91,7 +87,7 @@ class SendSetupViewModel @Inject constructor(
     val showChooserEvent: LiveData<Event<Unit>> = _showChooserEvent
 
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
-    val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
+    private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
     private val tokenCurrencyId: String? = savedStateHandle[SendSetupFragment.KEY_TOKEN_ID]
 
     val isInitConditionsCorrect = if (initSendToAddress.isNullOrEmpty() && payload == null) {
@@ -155,20 +151,12 @@ class SendSetupViewModel @Inject constructor(
 
     private val assetFlow: StateFlow<Asset?> =
         combine(sharedState.chainIdFlow, sharedState.assetIdFlow) { chainId, assetId ->
-            chainId to assetId
+            when {
+                chainId == null -> null
+                assetId == null -> null
+                else -> walletInteractor.getCurrentAsset(chainId, assetId)
+            }
         }
-            .debounce(200.toDuration(DurationUnit.MILLISECONDS))
-            .mapNotNull { (chainId, assetId) ->
-                when {
-                    chainId == null -> null
-                    assetId == null -> null
-                    else -> chainId to assetId
-                }
-            }
-            .distinctUntilChanged()
-            .flatMapLatest { (chainId, assetId) ->
-                walletInteractor.assetFlow(chainId, assetId)
-            }
             .stateIn(this, SharingStarted.Eagerly, null)
 
     private val amountInputFocusFlow = MutableStateFlow(false)
@@ -307,13 +295,17 @@ class SendSetupViewModel @Inject constructor(
     val state = combine(
         selectedChain,
         addressInputFlow,
-        isInputAddressValidFlow,
         chainSelectorStateFlow,
         amountInputViewState,
         feeInfoViewStateFlow,
         warningInfoStateFlow,
         buttonStateFlow
-    ) { chain, address, isAddressValid, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
+    ) { chain, address, chainSelectorState, amountInputState, feeInfoState, warningInfoState, buttonState ->
+        val isAddressValid = when (chain) {
+            null -> false
+            else -> walletInteractor.validateSendAddress(chain.id, address)
+        }
+
         SendSetupViewState(
             toolbarState = toolbarViewState,
             addressInputState = AddressInputState(
@@ -348,11 +340,10 @@ class SendSetupViewModel @Inject constructor(
     }
 
     private fun findChainsForAddress(address: String) {
-        val addressPrefix = address.addressByte()
         launch {
             val chains = walletInteractor.getChains().first()
             val addressChains = chains.filter {
-                it.addressPrefix.toShort() == addressPrefix
+                it.isValidAddress(address)
             }
             when {
                 addressChains.size == 1 -> {
@@ -398,7 +389,7 @@ class SendSetupViewModel @Inject constructor(
             condition = {
                 isInputAddressValidFlow.value
             },
-            error = AddressNotValidException(resourceManager)
+            error = TransferAddressNotValidException(resourceManager)
         ),
         Validation(
             condition = {

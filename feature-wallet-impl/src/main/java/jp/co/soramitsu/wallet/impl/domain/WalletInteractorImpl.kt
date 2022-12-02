@@ -42,7 +42,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 
@@ -107,16 +106,6 @@ class WalletInteractorImpl(
             val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.assetFlow(metaAccount.id, accountId, chainAsset, chain.minSupportedVersion)
-                .onStart {
-                    emit(
-                        Asset.createEmpty(
-                            chainAsset = chainAsset,
-                            metaId = metaAccount.id,
-                            accountId = accountId,
-                            minSupportedVersion = chain.minSupportedVersion
-                        )
-                    )
-                }
         }
     }
 

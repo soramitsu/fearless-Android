@@ -8,6 +8,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.AddressNotValidException
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -89,8 +90,13 @@ class CreateContactViewModel @Inject constructor(
         val name = state.value.contactNameInput
         val address = state.value.contactAddressInput
         launch {
-            walletInteractor.saveAddress(name, address, selectedChainId)
-            router.back()
+            val isValid = walletInteractor.validateSendAddress(selectedChainId, address)
+            if (isValid) {
+                walletInteractor.saveAddress(name, address, selectedChainId)
+                router.back()
+            } else {
+                showError(AddressNotValidException(resourceManager))
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -127,7 +128,7 @@ fun SendSetupContent(
                     WarningInfo(state = it, onClick = callback::onWarningInfoClick)
                 }
                 MarginVertical(margin = 8.dp)
-                FeeInfo(state = state.feeInfoState)
+                FeeInfo(state = state.feeInfoState, modifier = Modifier.defaultMinSize(minHeight = 52.dp))
 
                 Spacer(modifier = Modifier.weight(1f))
             }
