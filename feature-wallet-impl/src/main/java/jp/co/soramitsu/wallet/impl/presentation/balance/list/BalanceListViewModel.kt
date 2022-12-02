@@ -329,9 +329,11 @@ class BalanceListViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             router.chainSelectorPayloadFlow.collect { chainId ->
+                interactor.saveChainId(chainId)
                 selectedChainId.value = chainId
             }
         }
+        selectedChainId.value = interactor.getSavedChainId()
     }
 
     private fun sync() {
