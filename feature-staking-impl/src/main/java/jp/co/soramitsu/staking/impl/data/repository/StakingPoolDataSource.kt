@@ -25,6 +25,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMaxPools
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMinCreateBond
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindMinJoinBond
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindPoolMember
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindPoolsCount
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardPool
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import kotlinx.coroutines.flow.Flow
@@ -161,5 +162,13 @@ class StakingPoolDataSource(
         val call = RuntimeCall.NominationPoolsApi.PendingRewards(accountId)
         val result = rpcCalls.executeRuntimeCall(chainId, call)
         return result.map { call.parseResult(it) }
+    }
+
+    suspend fun getPoolsCount(chainId: ChainId): BigInteger {
+        return remoteStorage.query(
+            chainId = chainId,
+            keyBuilder = { it.metadata.nominationPools().storage("CounterForBondedPools").storageKey(it) },
+            binding = ::bindPoolsCount
+        )
     }
 }

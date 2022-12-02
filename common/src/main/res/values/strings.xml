@@ -948,6 +948,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_edit_title">Edit pool</string>
     <string name="pool_edit_confirm_warning">WARNING: Changing the role is irreversible and may lead to loss of access to the pool.</string>
     <string name="pool_join_no_validators_message">The pool hasn\'t chosen any validators yet. If you join it you won\'t get any rewards until validators are selected</string>
+    <string name="pools_limit_has_reached_error_title">You cannot create more pulls</string>
+    <string name="pools_limit_has_reached_error_message">The limit of pulls in this network has been reached</string>
 
     <string name="common_history">History</string>
     <string name="create_contact">Create Contact</string>
