@@ -3,12 +3,14 @@ package jp.co.soramitsu.staking.impl.presentation.validators.compose
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.CorneredInput
+import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.Toolbar
@@ -44,6 +47,8 @@ data class MultiSelectListViewState<ItemIdType>(
     companion object {
         fun <T> empty() = MultiSelectListViewState<T>(emptyList(), emptyList())
     }
+
+    val isEmpty = items.isEmpty()
 }
 
 interface SelectValidatorsScreenInterface {
@@ -85,22 +90,36 @@ fun SelectValidatorsScreen(
                 CorneredInput(state = state.searchQuery, onInput = callbacks::onSearchQueryInput)
             }
         }
-        ValidatorsList(
-            modifier = Modifier.weight(1f),
-            listState = state.listState,
-            onSelected = callbacks::onSelected,
-            onInfoClick = callbacks::onInfoClick
-        )
-        AccentButton(
-            text = stringResource(id = R.string.pool_staking_choosepool_button_title),
-            onClick = callbacks::onChooseClick,
-            enabled = state.listState.selectedItems.isNotEmpty(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .padding(horizontal = 16.dp)
-        )
-        MarginVertical(margin = 16.dp)
+
+        if (state.listState.isEmpty) {
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxSize()
+            ) {
+                EmptyMessage(
+                    message = R.string.validators_list_empty_message,
+                    modifier = Modifier.align(BiasAlignment(0f, -0.3f))
+                )
+            }
+        } else {
+            ValidatorsList(
+                modifier = Modifier.weight(1f),
+                listState = state.listState,
+                onSelected = callbacks::onSelected,
+                onInfoClick = callbacks::onInfoClick
+            )
+            AccentButton(
+                text = stringResource(id = R.string.pool_staking_choosepool_button_title),
+                onClick = callbacks::onChooseClick,
+                enabled = state.listState.selectedItems.isNotEmpty(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .padding(horizontal = 16.dp)
+            )
+            MarginVertical(margin = 16.dp)
+        }
     }
 }
 

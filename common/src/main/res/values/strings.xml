@@ -958,5 +958,5 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="recent">Recent</string>
     <string name="address_history_empty_message">No history found</string>
     <string name="common_got_it">Got it</string>
-
+    <string name="validators_list_empty_message">No validators found. Please try to change filters</string>
 </resources>
