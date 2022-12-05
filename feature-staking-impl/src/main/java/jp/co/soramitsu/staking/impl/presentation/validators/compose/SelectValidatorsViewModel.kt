@@ -116,13 +116,21 @@ class SelectValidatorsViewModel @Inject constructor(
         }
 
     val state = combine(recommendedValidators, selectedItems, recommendedSettings, searchQueryFlow) { validators, selectedValidators, settings, searchQuery ->
-        val items = validators.filter {
+        val filtered = validators.filter {
             val searchQueryLowerCase = searchQuery.lowercase()
             val identityNameLowerCase = it.identity?.display?.lowercase().orEmpty()
             val addressLowerCase = it.address.lowercase()
             identityNameLowerCase.contains(searchQueryLowerCase) || addressLowerCase.contains(searchQueryLowerCase)
-        }.map {
-            it.toModel(it.accountIdHex in selectedValidators, settings?.sorting, asset, resourceManager)
+        }
+        if (selectMode == SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED) {
+            selectedItems.value = filtered.map { it.accountIdHex }
+        }
+        val items = filtered.map {
+            val isSelected = when (selectMode) {
+                SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> it.accountIdHex in selectedValidators
+                SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> true
+            }
+            it.toModel(isSelected, settings?.sorting, asset, resourceManager)
         }
         val selectedItems = items.filter { it.isSelected }
         val listState = MultiSelectListViewState(items, selectedItems)
@@ -149,6 +157,9 @@ class SelectValidatorsViewModel @Inject constructor(
     override fun onNavigationClick() = router.back()
 
     override fun onSelected(item: SelectableListItemState<String>) {
+        if (selectMode == SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED) {
+            return
+        }
         val selectedIds = selectedItems.value
         val isOverSubscribed = item.additionalStatuses.contains(SelectableListItemState.SelectableListItemAdditionalStatus.OVERSUBSCRIBED)
         if (isOverSubscribed && selectedIds.contains(item.id).not()) {
