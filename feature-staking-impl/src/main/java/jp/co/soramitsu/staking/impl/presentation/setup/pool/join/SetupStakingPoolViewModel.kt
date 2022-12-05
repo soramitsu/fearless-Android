@@ -6,9 +6,11 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AccountInfoViewState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
@@ -145,8 +147,21 @@ class SetupStakingPoolViewModel @Inject constructor(
         isValid(amount).fold({
             stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(amount = amount))
             router.openSelectPool()
-        }, {
-            showError(it)
+        }, { throwable ->
+            val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
+                AlertViewState(
+                    title = title,
+                    message = message,
+                    buttonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_got_it),
+                    iconRes = jp.co.soramitsu.common.R.drawable.ic_status_warning_16
+                )
+            } ?: AlertViewState(
+                title = resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_title),
+                message = throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(jp.co.soramitsu.common.R.string.common_undefined_error_message),
+                buttonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_got_it),
+                iconRes = jp.co.soramitsu.common.R.drawable.ic_status_warning_16
+            )
+            router.openAlert(errorAlertViewState)
         })
     }
 
