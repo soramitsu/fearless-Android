@@ -130,7 +130,7 @@ private fun AssetsList(
                 )
             }
             if (data.hiddenState.isExpanded) {
-                items(data.hiddenAssets) { assetState ->
+                items(data.hiddenAssets, key = { it.displayName }) { assetState ->
                     SwipeableBalanceListItem(
                         assetState = assetState,
                         assetClicked = assetClicked,

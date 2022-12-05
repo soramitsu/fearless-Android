@@ -105,9 +105,7 @@ private fun ContentSearchAssetsScreen(
                 modifier = Modifier
                     .wrapContentWidth()
                     .semantics { role = Role.Button }
-                    .clickable {
-                        onNavigationClick()
-                    }
+                    .clickable(onClick = onNavigationClick)
             ) {
                 Text(
                     text = stringResource(id = R.string.common_cancel),
@@ -134,18 +132,18 @@ private fun AssetsList(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(data.visibleAssets) { assetState ->
+        items(data.visibleAssets, key = { it.displayName }) { assetState ->
             SwipableAssetListItem(viewModel, assetState)
         }
         if (data.hiddenAssets.isNotEmpty()) {
             item {
                 HiddenAssetsItem(
                     state = data.hiddenState,
-                    onClick = { viewModel.onHiddenAssetClicked() }
+                    onClick = viewModel::onHiddenAssetClicked
                 )
             }
             if (data.hiddenState.isExpanded) {
-                items(data.hiddenAssets) { assetState ->
+                items(data.hiddenAssets, key = { it.displayName }) { assetState ->
                     SwipableAssetListItem(viewModel, assetState)
                 }
             }
