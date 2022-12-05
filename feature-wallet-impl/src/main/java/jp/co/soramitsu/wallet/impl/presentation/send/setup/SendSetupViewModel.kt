@@ -376,12 +376,14 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onNextClick() {
-        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
-        isValid(amount).fold({
-            onNextStep()
-        }, {
-            showError(it)
-        })
+        viewModelScope.launch {
+            val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+            isValid(amount).fold({
+                onNextStep()
+            }, {
+                showError(it)
+            })
+        }
     }
 
     private val validations = listOf(
@@ -401,7 +403,7 @@ class SendSetupViewModel @Inject constructor(
         )
     )
 
-    private fun isValid(amount: BigDecimal): Result<Any> {
+    private suspend fun isValid(amount: BigDecimal): Result<Any> {
         val amountInPlanks = assetFlow.value?.token?.planksFromAmount(amount).orZero()
         val allValidations = validations
         val firstError = allValidations.firstNotNullOfOrNull {

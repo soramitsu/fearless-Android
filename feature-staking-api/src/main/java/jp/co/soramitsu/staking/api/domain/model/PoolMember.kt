@@ -80,6 +80,16 @@ data class OwnPool(
     }
 }
 
+fun OwnPool.getUserRole(accountId: AccountId): RoleInPool? {
+    return when {
+        accountId.contentEquals(depositor) -> RoleInPool.Depositor
+        accountId.contentEquals(root) -> RoleInPool.Root
+        accountId.contentEquals(stateToggler) -> RoleInPool.StateToggler
+        accountId.contentEquals(nominator) -> RoleInPool.Nominator
+        else -> null
+    }
+}
+
 fun OwnPool.toPoolInfo(): PoolInfo {
     return PoolInfo(
         poolId,
@@ -105,4 +115,8 @@ enum class NominationPoolState {
             else -> error("Nomination pool state cannot be parsed")
         }
     }
+}
+
+enum class RoleInPool {
+    Depositor, Root, Nominator, StateToggler
 }

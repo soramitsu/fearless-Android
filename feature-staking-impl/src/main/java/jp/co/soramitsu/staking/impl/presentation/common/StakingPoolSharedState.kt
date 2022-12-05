@@ -6,6 +6,7 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
+import jp.co.soramitsu.staking.api.domain.model.RoleInPool
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -37,7 +38,8 @@ data class StakingPoolManageFlowState(
     val redeemInPlanks: BigInteger,
     val claimableInPlanks: BigInteger,
     val stakedInPlanks: BigInteger,
-    val amountInPlanks: BigInteger? = null
+    val amountInPlanks: BigInteger? = null,
+    val userRole: RoleInPool? = null
 )
 
 data class StakingPoolState(

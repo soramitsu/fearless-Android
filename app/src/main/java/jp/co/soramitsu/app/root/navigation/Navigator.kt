@@ -78,6 +78,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
+import jp.co.soramitsu.staking.impl.presentation.staking.unbond.PoolFullUnstakeDepositorAlertFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondFragment
@@ -852,7 +853,7 @@ class Navigator :
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
             ?.asFlow() ?: emptyFlow()
 
-    fun setAlertResult(key: String, result: Result<*>) {
+    override fun setAlertResult(key: String, result: Result<*>) {
         navController?.previousBackStackEntry?.savedStateHandle?.set(
             key,
             result
@@ -875,6 +876,21 @@ class Navigator :
             }.filterNotNull()
         }
 
+    override fun alertResultFlow(key: String): Flow<Result<Unit>> {
+        val currentEntry = navController?.currentBackStackEntry
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(key) == true) {
+                val result = currentEntry.savedStateHandle.get<Result<Unit>?>(key)
+                currentEntry.savedStateHandle.set<Result<Unit>?>(key, null)
+                result
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
     override fun openWebViewer(title: String, url: String) {
         navController?.navigate(R.id.webViewerFragment, WebViewerFragment.getBundle(title, url))
     }
@@ -887,4 +903,9 @@ class Navigator :
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<ChainId?>(ChainSelectFragment.KEY_SELECTED_CHAIN_ID)
             ?.asFlow() ?: emptyFlow()
+
+    override fun openPoolFullUnstakeDepositorAlertFragment(amount: String) {
+        val bundle = PoolFullUnstakeDepositorAlertFragment.getBundle(amount)
+        navController?.navigate(R.id.poolFullUnstakeDepositorAlertFragment, bundle)
+    }
 }

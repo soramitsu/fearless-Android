@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 open class BaseEnterAmountViewModel(
     @StringRes private val nextButtonTextRes: Int = R.string.common_continue,
@@ -37,7 +38,7 @@ open class BaseEnterAmountViewModel(
     protected val asset: Asset,
     private val resourceManager: ResourceManager,
     private val feeEstimator: suspend (BigInteger) -> BigInteger,
-    private val onNextStep: (BigInteger) -> Unit,
+    private val onNextStep: suspend (BigInteger) -> Unit,
     private vararg val validations: Validation,
     private val buttonValidation: (BigInteger) -> Boolean = { it != BigInteger.ZERO },
     private val availableAmountForOperation: suspend (Asset) -> BigDecimal = { it.transferable },
@@ -124,39 +125,41 @@ open class BaseEnterAmountViewModel(
     }
 
     fun onNextClick() {
-        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
-        val inPlanks = asset.token.planksFromAmount(amount)
-        isValid(amount).fold({
-            onNextStep(inPlanks)
-        }, { throwable ->
-            val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
-                AlertViewState(
-                    title = title,
-                    message = message,
+        viewModelScope.launch {
+            val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+            val inPlanks = asset.token.planksFromAmount(amount)
+            isValid(amount).fold({
+                onNextStep(inPlanks)
+            }, { throwable ->
+                val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
+                    AlertViewState(
+                        title = title,
+                        message = message,
+                        buttonText = resourceManager.getString(R.string.common_got_it),
+                        iconRes = R.drawable.ic_status_warning_16
+                    )
+                } ?: AlertViewState(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message),
                     buttonText = resourceManager.getString(R.string.common_got_it),
                     iconRes = R.drawable.ic_status_warning_16
                 )
-            } ?: AlertViewState(
-                title = resourceManager.getString(R.string.common_error_general_title),
-                message = throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message),
-                buttonText = resourceManager.getString(R.string.common_got_it),
-                iconRes = R.drawable.ic_status_warning_16
-            )
-            errorAlertPresenter(errorAlertViewState)
-        })
+                errorAlertPresenter(errorAlertViewState)
+            })
+        }
     }
 
-    private fun isValid(amount: BigDecimal): Result<Any> {
+    private suspend fun isValid(amount: BigDecimal): Result<Any> {
         val amountInPlanks = asset.token.planksFromAmount(amount)
         val allValidations = validations.toList()
-        val firstError = allValidations.mapNotNull {
+        val firstError = allValidations.firstNotNullOfOrNull {
             if (it.condition(amountInPlanks)) null else it.error
-        }.firstOrNull()
+        }
         return firstError?.let { Result.failure(it) } ?: Result.success(Unit)
     }
 }
 
 class Validation(
-    val condition: (amount: BigInteger) -> Boolean,
+    val condition: suspend (amount: BigInteger) -> Boolean,
     val error: ValidationException
 )

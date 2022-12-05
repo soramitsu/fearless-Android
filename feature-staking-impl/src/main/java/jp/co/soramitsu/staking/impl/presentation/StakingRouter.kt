@@ -158,7 +158,11 @@ interface StakingRouter {
 
     fun openWebViewer(title: String, url: String)
 
-    val alertResultFlow: Flow<Result<Unit>>
-
     fun openOperationSuccess(operationHash: String?, chainId: ChainId)
+
+    fun setAlertResult(key: String, result: Result<*>)
+
+    fun openPoolFullUnstakeDepositorAlertFragment(amount: String)
+
+    fun alertResultFlow(key: String): Flow<Result<Unit>>
 }
