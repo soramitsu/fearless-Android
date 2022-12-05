@@ -47,6 +47,7 @@ import kotlinx.coroutines.withContext
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 private const val QR_PREFIX_SUBSTRATE = "substrate"
+private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
@@ -326,4 +327,8 @@ class WalletInteractorImpl(
     }
 
     override fun observeAddressBook(chainId: ChainId) = addressBookRepository.observeAddressBook(chainId)
+
+    override fun saveChainId(chainId: ChainId?) = preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID, chainId)
+
+    override fun getSavedChainId(): ChainId? = preferences.getString(PREFS_WALLET_SELECTED_CHAIN_ID)
 }

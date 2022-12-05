@@ -106,4 +106,8 @@ interface WalletInteractor {
     fun observeAddressBook(chainId: ChainId): Flow<List<AddressBookContact>>
 
     fun observeAssets(): Flow<List<AssetWithStatus>>
+
+    fun saveChainId(chainId: ChainId?)
+
+    fun getSavedChainId(): ChainId?
 }
