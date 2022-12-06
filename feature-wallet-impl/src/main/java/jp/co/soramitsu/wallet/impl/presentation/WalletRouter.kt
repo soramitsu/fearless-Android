@@ -88,6 +88,8 @@ interface WalletRouter : SecureRouter {
 
     fun openAlert(payload: AlertViewState)
 
+    fun openAlert(payload: AlertViewState, resultKey: String)
+
     fun openSearchAssets(chainId: String?)
 
     fun openOptionsWallet(walletId: Long)
@@ -95,8 +97,6 @@ interface WalletRouter : SecureRouter {
     fun setWalletSelectorPayload(payload: WalletSelectorPayload)
 
     fun openFrozenTokens(payload: FrozenAssetPayload)
-
-    val alertResultFlow: Flow<Result<Unit>>
 
     fun openAddressHistory(chainId: ChainId)
 

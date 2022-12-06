@@ -227,4 +227,16 @@ class RpcCalls(
     }
 
     private fun socketFor(chainId: ChainId) = chainRegistry.getConnection(chainId).socketService
+
+    suspend fun getExistentialDeposit(chainId: ChainId, assetIdentifier: Any): BigInteger {
+//        val request = ExistentialDepositRequest(assetIdentifier)
+//
+//        val param = Gson().toJson(ExistentialDepositRequest(JsonObject().apply { addProperty("token", "AUSD") }))
+//        val edInPlanks = socketFor(chainId).executeAsync(ExistentialDepositRequest(JsonObject().apply { addProperty("token", "AUSD") }), mapper = pojo<String>().nonNull()).fromHex().fromUnsignedBytes()
+//
+//
+//
+//        return feeResponse.existentialDeposit
+        return BigInteger.ZERO
+    }
 }

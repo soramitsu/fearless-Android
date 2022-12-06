@@ -83,6 +83,7 @@ class Asset(
     val total = calculateTotalBalance(freeInPlanks, reservedInPlanks)?.let { token.amountFromPlanks(it) }
 
     val transferable = free - locked
+    val transferableInPlanks = freeInPlanks?.let { it - miscFrozenInPlanks.orZero().max(feeFrozenInPlanks.orZero()) }.orZero()
 
     val bonded = token.amountFromPlanks(bondedInPlanks.orZero())
     val redeemable = token.amountFromPlanks(redeemableInPlanks.orZero())

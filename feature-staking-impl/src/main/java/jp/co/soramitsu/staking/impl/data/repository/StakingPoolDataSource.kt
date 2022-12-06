@@ -108,7 +108,7 @@ class StakingPoolDataSource(
     }
 
     suspend fun lastPoolId(chainId: ChainId): BigInteger {
-        return remoteStorage.queryNonNull(
+        return remoteStorage.query(
             keyBuilder = { it.metadata.nominationPools().storage("LastPoolId").storageKey() },
             binding = ::bindLastPoolId,
             chainId = chainId

@@ -36,6 +36,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
 import jp.co.soramitsu.app.root.presentation.WebViewerFragment
+import jp.co.soramitsu.app.root.presentation.emptyResultKey
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
@@ -561,7 +562,11 @@ class Navigator :
     }
 
     override fun openOperationSuccess(operationHash: String?, chainId: ChainId) {
-        val bundle = SendSuccessFragment.getBundle(operationHash, chainId)
+        openOperationSuccess(operationHash, chainId, null)
+    }
+
+    override fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String?) {
+        val bundle = SendSuccessFragment.getBundle(operationHash, chainId, customMessage)
 
         navController?.navigate(R.id.sendSuccessFragment, bundle)
     }
@@ -781,7 +786,16 @@ class Navigator :
     }
 
     override fun openAlert(payload: AlertViewState) {
-        val bundle = AlertFragment.getBundle(payload)
+        openAlert(payload, emptyResultKey)
+    }
+
+    override fun openAlert(payload: AlertViewState, resultKey: String) {
+        val currentDestination = requireNotNull(navController?.currentDestination?.id)
+        openAlert(payload, resultKey, currentDestination)
+    }
+
+    override fun openAlert(payload: AlertViewState, resultKey: String, resultDestinationId: Int) {
+        val bundle = AlertFragment.getBundle(payload, resultKey, resultDestinationId)
         navController?.navigate(R.id.alertFragment, bundle)
     }
 
@@ -853,28 +867,13 @@ class Navigator :
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
             ?.asFlow() ?: emptyFlow()
 
-    override fun setAlertResult(key: String, result: Result<*>) {
-        navController?.previousBackStackEntry?.savedStateHandle?.set(
+    override fun setAlertResult(key: String, result: Result<*>, resultDestinationId: Int?) {
+        val resultBackStackEntry = resultDestinationId?.let { navController?.getBackStackEntry(it) } ?: navController?.previousBackStackEntry
+        resultBackStackEntry?.savedStateHandle?.set(
             key,
             result
         )
     }
-
-    override val alertResultFlow: Flow<Result<Unit>>
-        get() {
-            val currentEntry = navController?.currentBackStackEntry
-            val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
-
-            return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
-                if (currentEntry?.savedStateHandle?.contains(AlertFragment.KEY_RESULT) == true) {
-                    val result = currentEntry.savedStateHandle.get<Result<Unit>?>(AlertFragment.KEY_RESULT)
-                    currentEntry.savedStateHandle.set<Result<Unit>?>(AlertFragment.KEY_RESULT, null)
-                    result
-                } else {
-                    null
-                }
-            }.filterNotNull()
-        }
 
     override fun alertResultFlow(key: String): Flow<Result<Unit>> {
         val currentEntry = navController?.currentBackStackEntry
@@ -889,6 +888,25 @@ class Navigator :
                 null
             }
         }.filterNotNull()
+    }
+
+    override fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>> {
+        val currentEntry = navController?.getBackStackEntry(R.id.startSelectValidatorsFragment)
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(key) == true) {
+                val result = currentEntry.savedStateHandle.get<Result<Unit>?>(key)
+                currentEntry.savedStateHandle.set<Result<Unit>?>(key, null)
+                result
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
+    override fun openAlertFromStartSelectValidatorsScreen(payload: AlertViewState, key: String) {
+        openAlert(payload, key, R.id.startSelectValidatorsFragment)
     }
 
     override fun openWebViewer(title: String, url: String) {

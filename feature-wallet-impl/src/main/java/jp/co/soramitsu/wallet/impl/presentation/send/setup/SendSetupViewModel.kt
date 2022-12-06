@@ -29,7 +29,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.validation.InsufficientBalanceException
+import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.isValidAddress
@@ -399,7 +399,7 @@ class SendSetupViewModel @Inject constructor(
                 val transferableInPlanks = asset?.token?.planksFromAmount(asset.transferable).orZero()
                 it < transferableInPlanks
             },
-            error = InsufficientBalanceException(resourceManager)
+            error = StakeInsufficientBalanceException(resourceManager)
         )
     )
 

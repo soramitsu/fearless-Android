@@ -14,6 +14,7 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -21,12 +22,15 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class ConfirmCreatePoolViewModel @Inject constructor(
+    existentialDepositUseCase: ExistentialDepositUseCase,
     poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
     private val router: StakingRouter,
     private val poolInteractor: StakingPoolInteractor
 ) : StakingConfirmViewModel(
+    existentialDepositUseCase = existentialDepositUseCase,
+    chain = poolSharedStateProvider.requireMainState.requireChain,
     router = router,
     address = poolSharedStateProvider.requireMainState.requireAddress,
     resourceManager = resourceManager,
@@ -46,7 +50,8 @@ class ConfirmCreatePoolViewModel @Inject constructor(
         router.openStartSelectValidators()
     },
     accountNameProvider = { stakingPoolInteractor.getAccountName(it) },
-    titleRes = R.string.pool_stakeng_create_confirm_title
+    titleRes = R.string.pool_stakeng_create_confirm_title,
+    customSuccessMessage = resourceManager.getString(R.string.pool_create_success_message)
 ) {
     private val addressDisplayFlow = flowOf {
         poolInteractor.getAccountName(address) ?: address

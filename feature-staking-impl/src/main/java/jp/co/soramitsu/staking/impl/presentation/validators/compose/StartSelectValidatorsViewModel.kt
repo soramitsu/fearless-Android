@@ -59,7 +59,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
             validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
             loadingState.value = false
 
-            router.alertResultFlow(KEY_ALERT_RESULT).collect {
+            router.listenAlertResultFlowFromStartSelectValidatorsScreen(KEY_ALERT_RESULT).collect {
                 onAlertResult(it)
             }
         }
@@ -73,7 +73,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
             textSize = 12,
             iconRes = R.drawable.ic_alert_16
         )
-        router.openAlert(payload)
+        router.openAlertFromStartSelectValidatorsScreen(payload, KEY_ALERT_RESULT)
     }
 
     fun onManualClick() {

@@ -19,6 +19,8 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 
+const val emptyResultKey = ""
+
 @AndroidEntryPoint
 class AlertFragment : BottomSheetDialogFragment() {
 
@@ -27,9 +29,11 @@ class AlertFragment : BottomSheetDialogFragment() {
 
     companion object {
         const val KEY_PAYLOAD = "payload"
-        const val KEY_RESULT = "result"
+        private const val KEY_RESULT = "result"
+        private const val KEY_RESULT_DESTINATION = "result_destination"
 
-        fun getBundle(payload: AlertViewState) = bundleOf(KEY_PAYLOAD to payload)
+        fun getBundle(payload: AlertViewState, resultKey: String, resultDestinationId: Int) =
+            bundleOf(KEY_PAYLOAD to payload, KEY_RESULT to resultKey, KEY_RESULT_DESTINATION to resultDestinationId)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +54,8 @@ class AlertFragment : BottomSheetDialogFragment() {
         } else {
             requireArguments().getParcelable(KEY_PAYLOAD)
         }
+        val resultKey = requireNotNull(requireArguments().getString(KEY_RESULT))
+        val resultDestinationId = requireNotNull(requireArguments().getInt(KEY_RESULT_DESTINATION))
         val state = requireNotNull(payload)
         return ComposeView(requireContext()).apply {
             setContent {
@@ -57,11 +63,11 @@ class AlertFragment : BottomSheetDialogFragment() {
                     AlertSheet(
                         state = state,
                         onBackClicked = {
-                            navigator.setAlertResult(KEY_RESULT, Result.failure<Unit>(Exception()))
+                            navigator.setAlertResult(resultKey, Result.failure<Unit>(Exception()), resultDestinationId)
                             dismiss()
                         },
                         onTopUpClicked = {
-                            navigator.setAlertResult(KEY_RESULT, Result.success(Unit))
+                            navigator.setAlertResult(resultKey, Result.success(Unit), resultDestinationId)
                             dismiss()
                         }
                     )

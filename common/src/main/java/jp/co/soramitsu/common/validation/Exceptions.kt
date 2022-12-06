@@ -4,7 +4,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.resources.ResourceManager
 
-class InsufficientBalanceException(resourceManager: ResourceManager) : ValidationException(
+class StakeInsufficientBalanceException(resourceManager: ResourceManager) : ValidationException(
     resourceManager.getString(R.string.common_not_enough_funds_title),
     resourceManager.getString(R.string.staking_setup_too_big_error)
 )
@@ -27,4 +27,14 @@ class TransferAddressNotValidException(resourceManager: ResourceManager) : Valid
 class AddressNotValidException(resourceManager: ResourceManager) : ValidationException(
     resourceManager.getString(R.string.address_not_valid_error_title),
     resourceManager.getString(R.string.address_not_valid_error_message)
+)
+
+class WaitForFeeCalculationException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.fee_not_yet_loaded_title),
+    resourceManager.getString(R.string.fee_not_yet_loaded_message)
+)
+
+class FeeInsufficientBalanceException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.common_not_enough_funds_title),
+    resourceManager.getString(R.string.common_not_enough_funds_message)
 )

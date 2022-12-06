@@ -21,7 +21,7 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.validation.InsufficientBalanceException
+import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -148,6 +148,8 @@ class SetupStakingPoolViewModel @Inject constructor(
             stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(amount = amount))
             router.openSelectPool()
         }, { throwable ->
+            val message =
+                throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(jp.co.soramitsu.common.R.string.common_undefined_error_message)
             val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
                 AlertViewState(
                     title = title,
@@ -157,7 +159,7 @@ class SetupStakingPoolViewModel @Inject constructor(
                 )
             } ?: AlertViewState(
                 title = resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_title),
-                message = throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(jp.co.soramitsu.common.R.string.common_undefined_error_message),
+                message = message,
                 buttonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_got_it),
                 iconRes = jp.co.soramitsu.common.R.drawable.ic_status_warning_16
             )
@@ -170,7 +172,7 @@ class SetupStakingPoolViewModel @Inject constructor(
         val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
 
         return when {
-            amountInPlanks >= transferableInPlanks -> Result.failure(InsufficientBalanceException(resourceManager))
+            amountInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
             else -> Result.success(Unit)
         }
     }

@@ -3,7 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.bond.select
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.validation.InsufficientBalanceException
+import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
@@ -36,7 +36,7 @@ class PoolBondMoreViewModel @Inject constructor(
                 val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
                 it < transferableInPlanks
             },
-            error = InsufficientBalanceException(resourceManager)
+            error = StakeInsufficientBalanceException(resourceManager)
         )
     ),
     errorAlertPresenter = {
