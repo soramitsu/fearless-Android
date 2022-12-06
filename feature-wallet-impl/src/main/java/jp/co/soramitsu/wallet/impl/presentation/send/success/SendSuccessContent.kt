@@ -40,12 +40,13 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 data class SendSuccessViewState(
+    val message: String,
     val tableItems: List<TitleValueViewState>,
     val isShowSubscanButtons: Boolean
 ) {
     companion object {
         const val CODE_HASH_CLICK = 2
-        val default = SendSuccessViewState(emptyList(), false)
+        val default = SendSuccessViewState("", emptyList(), false)
     }
 }
 
@@ -97,7 +98,7 @@ fun SendSuccessContent(
                 )
                 MarginVertical(margin = 8.dp)
                 B0(
-                    text = stringResource(id = R.string.send_success_message),
+                    text = state.message,
                     color = black2,
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     textAlign = TextAlign.Center
@@ -133,6 +134,7 @@ fun SendSuccessContent(
 @Composable
 private fun SendSuccessPreview() {
     val state = SendSuccessViewState(
+        "You can now back to your app and do that you're usually do",
         listOf(
             TitleValueViewState(
                 title = "Hash",

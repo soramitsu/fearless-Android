@@ -1,8 +1,11 @@
 package jp.co.soramitsu.staking.impl.presentation
 
+import androidx.annotation.IdRes
 import androidx.lifecycle.Lifecycle
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPayoutPayload
 import jp.co.soramitsu.staking.impl.presentation.payouts.model.PendingPayoutParcelable
@@ -16,8 +19,6 @@ import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmU
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondPayload
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
-import jp.co.soramitsu.common.AlertViewState
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
 interface StakingRouter {
@@ -156,9 +157,21 @@ interface StakingRouter {
 
     fun openAlert(payload: AlertViewState)
 
+    fun openAlert(payload: AlertViewState, resultKey: String)
+
+    fun openAlert(payload: AlertViewState, resultKey: String, @IdRes resultDestinationId: Int)
+
     fun openWebViewer(title: String, url: String)
 
-    val alertResultFlow: Flow<Result<Unit>>
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String? = null)
 
-    fun openOperationSuccess(operationHash: String?, chainId: ChainId)
+    fun setAlertResult(key: String, result: Result<*>, @IdRes resultDestinationId: Int? = null)
+
+    fun openPoolFullUnstakeDepositorAlertFragment(amount: String)
+
+    fun alertResultFlow(key: String): Flow<Result<Unit>>
+
+    fun openAlertFromStartSelectValidatorsScreen(payload: AlertViewState, key: String)
+
+    fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>>
 }

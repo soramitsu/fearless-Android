@@ -30,10 +30,12 @@ class SendSuccessFragment : BaseComposeBottomSheetDialogFragment<SendSuccessView
         const val CHOOSER_REQUEST_CODE = 128
         const val KEY_OPERATION_HASH = "KEY_OPERATION_HASH"
         const val KEY_CHAIN_ID = "KEY_CHAIN_ID"
+        const val KEY_CUSTOM_MESSAGE = "KEY_CUSTOM_MESSAGE"
 
-        fun getBundle(operationHash: String?, chainId: ChainId) = bundleOf(
+        fun getBundle(operationHash: String?, chainId: ChainId, customMessage: String?) = bundleOf(
             KEY_OPERATION_HASH to operationHash,
-            KEY_CHAIN_ID to chainId
+            KEY_CHAIN_ID to chainId,
+            KEY_CUSTOM_MESSAGE to customMessage
         )
     }
 

@@ -562,6 +562,11 @@
         android:label="alertFragment" />
 
     <dialog
+        android:id="@+id/poolFullUnstakeDepositorAlertFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.PoolFullUnstakeDepositorAlertFragment"
+        android:label="poolFullUnstakeDepositorAlertFragment" />
+
+    <dialog
         android:id="@+id/optionsAddAccountFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment"
         android:label="optionsAddAccountFragment" />

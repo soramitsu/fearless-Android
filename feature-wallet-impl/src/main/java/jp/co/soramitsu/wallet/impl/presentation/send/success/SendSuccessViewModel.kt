@@ -42,6 +42,7 @@ class SendSuccessViewModel @Inject constructor(
 
     val operationHash = savedStateHandle.get<String>(SendSuccessFragment.KEY_OPERATION_HASH)
     val chainId = savedStateHandle.get<ChainId>(SendSuccessFragment.KEY_CHAIN_ID)
+    private val customMessage: String? = savedStateHandle[SendSuccessFragment.KEY_CUSTOM_MESSAGE]
 
     private val _showHashActions = MutableLiveData<Event<Unit>>()
     val showHashActions: LiveData<Event<Unit>> = _showHashActions
@@ -64,6 +65,7 @@ class SendSuccessViewModel @Inject constructor(
 
     val state: StateFlow<SendSuccessViewState> = subscanUrlFlow.map { url ->
         SendSuccessViewState(
+            message = customMessage ?: resourceManager.getString(R.string.send_success_message),
             tableItems = getInfoTableItems(),
             isShowSubscanButtons = url.isNullOrEmpty().not()
         )

@@ -29,7 +29,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
-import jp.co.soramitsu.common.validation.InsufficientBalanceException
+import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.isValidAddress
@@ -376,12 +376,14 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onNextClick() {
-        val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
-        isValid(amount).fold({
-            onNextStep()
-        }, {
-            showError(it)
-        })
+        viewModelScope.launch {
+            val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+            isValid(amount).fold({
+                onNextStep()
+            }, {
+                showError(it)
+            })
+        }
     }
 
     private val validations = listOf(
@@ -397,11 +399,11 @@ class SendSetupViewModel @Inject constructor(
                 val transferableInPlanks = asset?.token?.planksFromAmount(asset.transferable).orZero()
                 it < transferableInPlanks
             },
-            error = InsufficientBalanceException(resourceManager)
+            error = StakeInsufficientBalanceException(resourceManager)
         )
     )
 
-    private fun isValid(amount: BigDecimal): Result<Any> {
+    private suspend fun isValid(amount: BigDecimal): Result<Any> {
         val amountInPlanks = assetFlow.value?.token?.planksFromAmount(amount).orZero()
         val allValidations = validations
         val firstError = allValidations.firstNotNullOfOrNull {

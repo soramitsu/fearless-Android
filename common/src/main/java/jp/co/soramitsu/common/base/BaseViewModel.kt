@@ -41,7 +41,7 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
         _errorLiveData.value = Event(text)
     }
 
-    fun showError(throwable: Throwable) {
+    open fun showError(throwable: Throwable) {
         if (throwable is ValidationException) {
             val (title, text) = throwable
             _errorWithTitleLiveData.value = Event(title to text)

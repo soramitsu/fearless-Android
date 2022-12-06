@@ -26,6 +26,10 @@ class StartSelectValidatorsViewModel @Inject constructor(
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel() {
 
+    companion object {
+        const val KEY_ALERT_RESULT = "result"
+    }
+
     private val recommendedState = SelectValidatorsVariantPanelViewState(
         title = resourceManager.getString(R.string.staking_start_change_validators_recommended_title),
         description = resourceManager.getString(R.string.staking_start_change_validators_recommended_subtitle),
@@ -55,7 +59,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
             validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
             loadingState.value = false
 
-            router.alertResultFlow.collect {
+            router.listenAlertResultFlowFromStartSelectValidatorsScreen(KEY_ALERT_RESULT).collect {
                 onAlertResult(it)
             }
         }
@@ -69,7 +73,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
             textSize = 12,
             iconRes = R.drawable.ic_alert_16
         )
-        router.openAlert(payload)
+        router.openAlertFromStartSelectValidatorsScreen(payload, KEY_ALERT_RESULT)
     }
 
     fun onManualClick() {
@@ -87,7 +91,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
         router.back()
     }
 
-    fun onAlertResult(result: Result<Unit>) {
+    private fun onAlertResult(result: Result<Unit>) {
         if (result.isSuccess) {
             setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
             router.openSelectValidators()

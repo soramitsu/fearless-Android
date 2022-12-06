@@ -19,7 +19,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.validation.InsufficientBalanceException
+import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.MinPoolCreationThresholdException
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
@@ -225,7 +225,7 @@ class CreatePoolSetupViewModel @Inject constructor(
             }
 
             if ((amountInPlanks + fee + existentialDeposit) > transferableInPlanks) {
-                showError(InsufficientBalanceException(resourceManager))
+                showError(StakeInsufficientBalanceException(resourceManager))
                 return@launch
             }
 

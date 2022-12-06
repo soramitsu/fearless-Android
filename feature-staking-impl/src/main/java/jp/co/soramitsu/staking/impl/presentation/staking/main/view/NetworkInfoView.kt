@@ -74,7 +74,7 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     }
 
     fun setTitle(title: String) {
-        infoTitle.text = title
+        infoTitle.text = resources.getString(R.string.staking_main_network_title, title)
     }
 
     fun submitStories(stories: List<StakingStoryModel>) {

@@ -14,6 +14,7 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
+import jp.co.soramitsu.staking.api.domain.model.getUserRole
 import jp.co.soramitsu.staking.api.domain.model.toPoolInfo
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
@@ -52,11 +53,13 @@ class ManagePoolStakeViewModel @Inject constructor(
     private val accountId = mainState.accountId
 
     private val poolStateFlow = stakingPoolInteractor.observeCurrentPool(chain, accountId).onEach { pool ->
+
         stakingPoolSharedStateProvider.manageState.mutate {
             StakingPoolManageFlowState(
-                pool?.redeemable.orZero(),
-                pool?.pendingRewards.orZero(),
-                pool?.myStakeInPlanks.orZero()
+                redeemInPlanks = pool?.redeemable.orZero(),
+                claimableInPlanks = pool?.pendingRewards.orZero(),
+                stakedInPlanks = pool?.myStakeInPlanks.orZero(),
+                userRole = pool?.getUserRole(accountId)
             )
         }
     }

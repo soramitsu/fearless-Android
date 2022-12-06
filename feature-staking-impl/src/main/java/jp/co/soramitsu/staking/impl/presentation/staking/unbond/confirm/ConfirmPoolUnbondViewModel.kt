@@ -8,14 +8,18 @@ import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 
 @HiltViewModel
 class ConfirmPoolUnbondViewModel @Inject constructor(
+    existentialDepositUseCase: ExistentialDepositUseCase,
     poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
     private val router: StakingRouter
 ) : StakingConfirmViewModel(
+    existentialDepositUseCase = existentialDepositUseCase,
+    chain = poolSharedStateProvider.requireMainState.requireChain,
     router = router,
     address = poolSharedStateProvider.requireMainState.requireAddress,
     resourceManager = resourceManager,
