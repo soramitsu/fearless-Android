@@ -20,7 +20,6 @@ import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
-import jp.co.soramitsu.common.compose.component.HiddenItemState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SwipeState
@@ -170,8 +169,6 @@ class BalanceListViewModel @Inject constructor(
         BalanceModel(assetsWithState, fiatSymbol.orEmpty())
     }.inBackground().share()
 
-    private val hiddenAssetsState = MutableStateFlow(HiddenItemState(isExpanded = false))
-
     private val assetTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
             currentSelection = AssetType.Currencies,
@@ -289,12 +286,10 @@ class BalanceListViewModel @Inject constructor(
     val state = combine(
         assetStates,
         assetTypeSelectorState,
-        balanceFlow,
-        hiddenAssetsState
+        balanceFlow
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
-        balanceModel: BalanceModel,
-        hiddenState: HiddenItemState ->
+        balanceModel: BalanceModel ->
 
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.totalBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
@@ -307,11 +302,10 @@ class BalanceListViewModel @Inject constructor(
 
         val hasNetworkIssues = assetsListItemStates.any { !it.hasAccount || it.hasNetworkIssue }
         WalletState(
-            multiToggleButtonState,
-            assetsListItemStates,
-            balanceState,
-            hiddenState,
-            hasNetworkIssues
+            assets = assetsListItemStates,
+            multiToggleButtonState = multiToggleButtonState,
+            balance = balanceState,
+            hasNetworkIssues = hasNetworkIssues
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = WalletState.default)
 
@@ -434,12 +428,6 @@ class BalanceListViewModel @Inject constructor(
         )
 
         router.openAssetDetails(payload)
-    }
-
-    override fun onHiddenAssetClicked() {
-        hiddenAssetsState.value = HiddenItemState(
-            isExpanded = hiddenAssetsState.value.isExpanded.not()
-        )
     }
 
     private fun currentAddressModelFlow(): Flow<AddressModel> {
