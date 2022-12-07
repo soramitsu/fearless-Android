@@ -25,19 +25,22 @@ class InclusionFee(
     private val adjustedWeightFee: String?
 ) {
     val sum: BigInteger
-        get() = baseFee.decodeBigInt() + lenFee.decodeBigInt() + adjustedWeightFee.decodeBigInt()
+        get() = BrokenSubstrateHex(baseFee).decodeBigInt() + BrokenSubstrateHex(lenFee).decodeBigInt() + BrokenSubstrateHex(adjustedWeightFee).decodeBigInt()
+}
 
-    private fun String?.decodeBigInt(): BigInteger {
+@JvmInline
+value class BrokenSubstrateHex(private val originalHex: String?) {
+    fun decodeBigInt(): BigInteger {
         // because substrate returns hexes with different length:
         // 0x3b9aca00
         // 0x3486ced00
         // 0xb320334
-        if (this == null) return BigInteger.ZERO
-        return if (this.length.isEven.not()) {
-            val withoutPrefix = removePrefix("0x")
+        if (originalHex == null) return BigInteger.ZERO
+        return if (originalHex.length.isEven.not()) {
+            val withoutPrefix = originalHex.removePrefix("0x")
             "0$withoutPrefix".requireHexPrefix()
         } else {
-            this
+            originalHex
         }.fromHex().fromUnsignedBytes()
     }
 

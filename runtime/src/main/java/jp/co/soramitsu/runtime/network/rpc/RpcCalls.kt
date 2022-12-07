@@ -4,12 +4,14 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.ExtrinsicStatusResponse
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.data.network.runtime.blake2b256String
+import jp.co.soramitsu.common.data.network.runtime.calls.ExistentialDepositRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetBlockHashRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetBlockRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetFinalizedHeadRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetHeaderRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.NextAccountIndexRequest
+import jp.co.soramitsu.common.data.network.runtime.model.BrokenSubstrateHex
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock.Block.Header
@@ -228,15 +230,10 @@ class RpcCalls(
 
     private fun socketFor(chainId: ChainId) = chainRegistry.getConnection(chainId).socketService
 
-    suspend fun getExistentialDeposit(chainId: ChainId, assetIdentifier: Any): BigInteger {
-//        val request = ExistentialDepositRequest(assetIdentifier)
-//
-//        val param = Gson().toJson(ExistentialDepositRequest(JsonObject().apply { addProperty("token", "AUSD") }))
-//        val edInPlanks = socketFor(chainId).executeAsync(ExistentialDepositRequest(JsonObject().apply { addProperty("token", "AUSD") }), mapper = pojo<String>().nonNull()).fromHex().fromUnsignedBytes()
-//
-//
-//
-//        return feeResponse.existentialDeposit
-        return BigInteger.ZERO
+    suspend fun getExistentialDeposit(chainId: ChainId, assetIdentifier: Pair<String, Any>): BigInteger {
+        val request = ExistentialDepositRequest(mapOf(assetIdentifier))
+        val resultInHex = socketFor(chainId).executeAsync(request, mapper = pojo<String>().nonNull())
+
+        return BrokenSubstrateHex(resultInHex).decodeBigInt()
     }
 }
