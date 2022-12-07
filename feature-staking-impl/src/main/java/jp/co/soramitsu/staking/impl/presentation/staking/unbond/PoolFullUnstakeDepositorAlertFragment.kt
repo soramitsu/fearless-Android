@@ -122,7 +122,7 @@ class PoolFullUnstakeDepositorAlertFragment : BottomSheetDialogFragment() {
                             )
                             MarginVertical(margin = 12.dp)
                             GrayButton(
-                                text = stringResource(id = jp.co.soramitsu.feature_staking_impl.R.string.staking_bond_more_v1_9_0),
+                                text = stringResource(id = R.string.common_close),
                                 onClick = ::onCloseClicked,
                                 modifier = Modifier
                                     .fillMaxWidth()
