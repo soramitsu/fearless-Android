@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.presentation
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -36,6 +37,7 @@ class WebViewerFragment : BottomSheetDialogFragment() {
         setStyle(STYLE_NO_TITLE, R.style.CustomBottomSheetDialogTheme)
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -54,6 +56,9 @@ class WebViewerFragment : BottomSheetDialogFragment() {
                         MarginVertical(margin = 8.dp)
                         WebView(
                             state = rememberWebViewState(url = url),
+                            onCreated = {
+                                it.settings.javaScriptEnabled = true
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
