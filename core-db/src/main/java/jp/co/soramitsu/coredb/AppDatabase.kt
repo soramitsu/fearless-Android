@@ -46,6 +46,7 @@ import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_32_33
 import jp.co.soramitsu.coredb.migrations.Migration_41_42
 import jp.co.soramitsu.coredb.migrations.Migration_42_43
 import jp.co.soramitsu.coredb.migrations.Migration_43_44
+import jp.co.soramitsu.coredb.migrations.Migration_44_45
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
@@ -130,6 +131,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(Migration_41_42)
                     .addMigrations(Migration_42_43)
                     .addMigrations(Migration_43_44)
+                    .addMigrations(Migration_44_45)
                     .build()
             }
             return instance!!
