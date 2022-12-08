@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.send.recipient
+package jp.co.soramitsu.common.utils
 
 import android.content.ContentResolver
 import android.net.Uri

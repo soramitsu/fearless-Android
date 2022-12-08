@@ -33,8 +33,6 @@ buildscript {
         okhttpVersion = '5.0.0-alpha.8'
         gsonVersion = '2.9.1'
 
-        zXingVersion = '3.5.0'
-
         navControllerVersion = '2.5.1'
 
         junitVersion = '4.13.2'
@@ -47,8 +45,8 @@ buildscript {
 
         gifVersion = '1.2.24'
 
-        zXingVersion = '3.5.0'
-        zXingEmbeddedVersion = '3.5.0@aar'
+        zXingVersion = '3.5.1'
+        zXingEmbeddedVersion = '4.3.0'
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
