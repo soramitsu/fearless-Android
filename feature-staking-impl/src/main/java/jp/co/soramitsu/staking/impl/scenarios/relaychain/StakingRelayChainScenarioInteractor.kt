@@ -104,6 +104,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 
 val ERA_OFFSET = 1.toBigInteger()
@@ -224,7 +225,7 @@ class StakingRelayChainScenarioInteractor(
         combine(
             stakingRelayChainScenarioRepository.observeActiveEraIndex(chainId),
             walletRepository.assetFlow(meta.id, state.accountId, chainAsset, chain.minSupportedVersion),
-            stakingRewardsRepository.totalRewardFlow(state.stashAddress)
+            stakingRewardsRepository.totalRewardFlow(state.stashAddress).onStart { emit(BigInteger.ZERO) }
         ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 

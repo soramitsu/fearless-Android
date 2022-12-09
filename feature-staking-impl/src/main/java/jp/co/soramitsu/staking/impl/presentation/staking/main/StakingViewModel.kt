@@ -29,6 +29,8 @@ import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.model.StakingState
+import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
+import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
@@ -91,7 +93,9 @@ class StakingViewModel @Inject constructor(
     private val rewardCalculatorFactory: RewardCalculatorFactory,
     private val setupStakingSharedState: SetupStakingSharedState,
     stakingPoolInteractor: StakingPoolInteractor,
-    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
+    private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider,
+    private val stakingParachainStoriesDataSourceImpl: ParachainStakingStoriesDataSourceImpl,
+    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl
 ) : BaseViewModel(),
     BaseStakingViewModel,
     Validatable by validationExecutor {
@@ -109,7 +113,9 @@ class StakingViewModel @Inject constructor(
         resourceManager,
         alertsInteractor,
         stakingViewStateFactory,
-        stakingPoolInteractor
+        stakingPoolInteractor,
+        stakingParachainStoriesDataSourceImpl,
+        stakingStoriesDataSourceImpl
     )
 
     val assetSelectorMixin = StakingAssetSelector(stakingSharedState, this)
@@ -206,9 +212,10 @@ class StakingViewModel @Inject constructor(
     private val selectedChain = interactor.selectedChainFlow()
         .share()
 
-    val stories = interactor.stakingStoriesFlow()
-        .map { it.map(::transformStories) }
-        .asLiveData()
+    val stories = scenarioViewModelFlow
+        .flatMapLatest { viewModel ->
+            viewModel.stakingStoriesFlow().map { it.map(::transformStories) }
+        }.distinctUntilChanged().shareIn(stakingStateScope, started = SharingStarted.Eagerly, replay = 1)
 
     val currentAddressModelLiveData = currentAddressModelFlow().asLiveData()
 

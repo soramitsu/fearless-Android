@@ -10,7 +10,6 @@ import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
-import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.utils.balances
 import jp.co.soramitsu.common.utils.combineToPair
 import jp.co.soramitsu.common.utils.numberConstant
@@ -58,10 +57,6 @@ class StakingInteractor(
     }
 
     fun selectedChainFlow() = stakingSharedState.assetWithChain.map { it.chain }
-
-    fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>> {
-        return stakingRepository.stakingStoriesFlow()
-    }
 
     fun selectionStateFlow() = combineToPair(
         accountRepository.selectedMetaAccountFlow(),

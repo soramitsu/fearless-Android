@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -176,6 +178,10 @@ class StakingPoolViewModel(
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
         return flowOf { LoadingState.Loaded(emptyList()) }
+    }
+
+    override fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>> {
+        return emptyFlow()
     }
 
     override suspend fun getRedeemValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
 import java.math.BigDecimal
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsCurrency
@@ -13,6 +14,7 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.DelegatorStateStatus
 import jp.co.soramitsu.staking.api.domain.model.StakingState
+import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.Alert
 import jp.co.soramitsu.staking.impl.domain.model.NetworkInfo
@@ -39,7 +41,8 @@ class StakingParachainScenarioViewModel(
     private val scenarioInteractor: StakingParachainScenarioInteractor,
     private val resourceManager: ResourceManager,
     private val baseViewModel: BaseStakingViewModel,
-    private val stakingViewStateFactory: StakingViewStateFactory
+    private val stakingViewStateFactory: StakingViewStateFactory,
+    private val storiesDataSourceImpl: ParachainStakingStoriesDataSourceImpl
 ) : StakingScenarioViewModel {
 
     override val enteredAmountFlow = MutableStateFlow("")
@@ -166,6 +169,10 @@ class StakingParachainScenarioViewModel(
             }
             else -> error("Wrong alert type")
         }
+    }
+
+    override fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>> {
+        return storiesDataSourceImpl.getStoriesFlow()
     }
 
     override suspend fun getBondMoreValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {

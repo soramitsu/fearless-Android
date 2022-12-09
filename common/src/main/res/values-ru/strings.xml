@@ -338,6 +338,9 @@
     <string name="staking_unbonding_limit_reached_message">Вы достигли лимита запросов на вывод из стейка (%d активных запросов).</string>
     <string name="staking_unbonding_limit_reached_title">Достигнут лимит запросов на вывод из стейка</string>
     <string name="staking_redeem">Забрать</string>
+    <string name="parachain_staking_unlock">Разблокировать</string>
+    <string name="staking_balance_ready_for_unlocking">Готовы к разблокировке</string>
+    <string name="staking_delegation_status_ready_to_unlock">Готовы к разблокировке</string>
     <string name="common_balance">Баланс</string>
     <string name="your_collator">Ваш коллатор</string>
     <string name="collator">Коллатор</string>

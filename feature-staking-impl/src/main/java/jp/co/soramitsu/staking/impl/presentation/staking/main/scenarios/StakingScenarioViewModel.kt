@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
 import java.math.BigDecimal
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.validation.ValidationSystem
@@ -38,6 +39,8 @@ interface StakingScenarioViewModel {
 
     suspend fun getRedeemValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
     suspend fun getBondMoreValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure>
+    fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>>
+
     val enteredAmountFlow: MutableStateFlow<String>
 }
 
