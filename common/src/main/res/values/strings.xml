@@ -517,9 +517,7 @@ to your account to avoid remaining stake.</string>
     <string name="staking_unbondings_placeholder">Unstaking transactions will appear here</string>
     <string name="common_options_title">Select an option</string>
     <string name="invoice_scan_error_no_info">QR can\'t be decoded</string>
-    <string name="invoice_scan_qr_code_title">QR code</string>
     <string name="invoice_scan_upload">Upload from gallery</string>
-    <string name="contacts_scan">Scan QR code</string>
     <string name="parachain_staking_story_collator_title">Who’s a collator?</string>
     <string name="parachain_staking_story_collator_page_1">Collators maintain parachains by collecting parachain transactions from users and producing state transition proofs for Relay Chain validators. In other words, collators aggregate parachain transactions into parachain block candidates and produce state transition proofs for validators based on those blocks.</string>
     <string name="parachain_staking_story_collator_page_2">A collator runs a blockchain node 24/7 and is required to have enough stake locked (both owned and provided by delegators) to be elected by the network. Collators should maintain their nodes\' performance and reliability to be rewarded. Being a collator is almost a full-time job.\nEveryone can be a collator and run a blockchain node, but doing so requires a certain level of technical skills and responsibility.</string>

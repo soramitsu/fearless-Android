@@ -502,9 +502,7 @@
     <string name="staking_unbondings_placeholder">Операции по выводу из стейка появятся здесь</string>
     <string name="common_options_title">Выберите опцию</string>
     <string name="invoice_scan_error_no_info">Не удается декодировать QR</string>
-    <string name="invoice_scan_qr_code_title">QR код</string>
     <string name="invoice_scan_upload">Из галереи</string>
-    <string name="contacts_scan">Сканировать QR-код</string>
     <string name="staking_story_staking_title">Что такое стейкинг?</string>
     <string name="staking_story_staking_page_1">Стейкинг — это один из способов пассивного дохода с помощью удержания токенов в сети. Вознаграждения за стейкинг выпускаются каждую эру (6 часов в Kusama и 24 часа в Polkadot). Вы можете стейкать неограниченное количество времени, и для вывода из стейкинга вам нужно будет подождать период вывода, после которого вы сможете забрать свои токены.</string>
     <string name="staking_story_staking_page_2">Стейкинг играет ключевую роль в безопасности и надежности сети. Любой может запустить собственную ноду, но только тот, кто наберёт необходимое количество токенов в стейкинге, будет избран сетью для создания новых блоков и получения наград. Часто валидаторы не имеют необходимого количества токенов, поэтому номинаторы помогают им с помощью своих токенов.</string>

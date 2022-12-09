@@ -61,7 +61,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
-import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
+import jp.co.soramitsu.common.utils.QrBitmapDecoder
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 
 @InstallIn(SingletonComponent::class)

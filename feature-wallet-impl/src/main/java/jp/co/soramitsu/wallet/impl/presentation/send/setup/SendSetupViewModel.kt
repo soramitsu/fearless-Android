@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
-import android.net.Uri
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -28,7 +27,6 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.TransferAddressNotValidException
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -49,7 +47,6 @@ import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
-import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -77,14 +74,13 @@ class SendSetupViewModel @Inject constructor(
     private val walletInteractor: WalletInteractor,
     private val walletConstants: WalletConstants,
     private val router: WalletRouter,
-    private val qrBitmapDecoder: QrBitmapDecoder,
     private val clipboardManager: ClipboardManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : BaseViewModel(), SendSetupScreenInterface {
 
-    private val _showChooserEvent = MutableLiveData<Event<Unit>>()
-    val showChooserEvent: LiveData<Event<Unit>> = _showChooserEvent
+    private val _openScannerEvent = MutableLiveData<Event<Unit>>()
+    val openScannerEvent: LiveData<Event<Unit>> = _openScannerEvent
 
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
     private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
@@ -463,7 +459,7 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onQrClick() {
-        _showChooserEvent.value = Event(Unit)
+        _openScannerEvent.value = Event(Unit)
     }
 
     override fun onHistoryClick() {
@@ -487,18 +483,6 @@ class SendSetupViewModel @Inject constructor(
             val result = walletInteractor.tryReadAddressFromSoraFormat(content) ?: content
 
             addressInputFlow.value = result
-        }
-    }
-
-    fun qrFileChosen(uri: Uri) {
-        viewModelScope.launch {
-            val result = qrBitmapDecoder.decodeQrCodeFromUri(uri)
-
-            if (result.isSuccess) {
-                qrCodeScanned(result.requireValue())
-            } else {
-                showError(resourceManager.getString(R.string.invoice_scan_error_no_info))
-            }
         }
     }
 
