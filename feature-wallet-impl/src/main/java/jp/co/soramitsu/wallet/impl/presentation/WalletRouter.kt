@@ -53,7 +53,7 @@ interface WalletRouter : SecureRouter {
 
     fun openRewardDetail(payload: RewardDetailsPayload)
 
-    fun openAddAccount()
+    fun openCreateAccount()
 
     fun openAccountDetails(metaAccountId: Long)
 
