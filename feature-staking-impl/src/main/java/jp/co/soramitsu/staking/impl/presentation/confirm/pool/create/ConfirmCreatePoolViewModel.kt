@@ -50,7 +50,7 @@ class ConfirmCreatePoolViewModel @Inject constructor(
         router.openStartSelectValidators()
     },
     accountNameProvider = { stakingPoolInteractor.getAccountName(it) },
-    titleRes = R.string.pool_stakeng_create_confirm_title,
+    titleRes = R.string.pool_staking_create_confirm_title,
     customSuccessMessage = resourceManager.getString(R.string.pool_create_success_message)
 ) {
     private val addressDisplayFlow = flowOf {
