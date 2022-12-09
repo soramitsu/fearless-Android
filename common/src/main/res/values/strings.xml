@@ -807,8 +807,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
 
     <string name="staking_pool_rewards_delay_text">Stake at anytime. You will start earning interests after %s</string>
     <string name="staking_pool_start_apr_text">Earn %s per year</string>
-    <string name="staking_pool_start_unstake_period_text">Unstake at anytime. You will need to wait for %s before being able to spend your funds and the interest you’ve earned</string>
-    <string name="staking_pool_start_reward_freq_text">Rewards is paid every %s</string>
+    <string name="staking_pool_start_unstake_period_text">Unstake at any time. You will need to wait for %s before being able to spend your funds and the interest you’ve earned</string>
+    <string name="staking_pool_start_reward_freq_text">Rewards are paid every %s</string>
     <string name="staking_pool_start_join_button_title">Join pool</string>
     <string name="staking_pool_start_create_button_title">Create pool</string>
     <string name="staking_pool_start_earn_reward_title">Earn rewards when you stake your</string>
@@ -876,7 +876,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_claim">Claim</string>
     <string name="pool_redeem">Redeem tokens</string>
     <string name="pool_time_before_redeem">Time before redeem</string>
-    <string name="pool_nominations">Nominations</string>
+    <string name="pool_nominations">Pool Validators</string>
     <string name="common_options">Options</string>
     <string name="pool_stake_info">Pool Stake Info</string>
     <string name="pool_your_total_stake">Your total stake</string>
@@ -888,7 +888,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_claimable">Claimable</string>
     <string name="pool_create_title">Create a pool</string>
     <string name="common_create">Create</string>
-    <string name="pool_stakeng_create_confirm_title">Creating pool</string>
+    <string name="pool_staking_create_confirm_title">Creating pool</string>
     <string name="min_to_create_pool_threshold_error_title">Sorry, the specified amount is not enough to create a pool</string>
     <string name="min_to_create_pool_threshold_error_message">Minimum amount is %s</string>
     <string name="pool_select_validators_notification_title">Select pool validators</string>
@@ -919,9 +919,9 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="preview">Preview</string>
     <string name="hash">Hash</string>
     <string name="all_done">All Done</string>
-    <string name="send_success_message">You can now back to your app and\ndo that you\'re usually do</string>
+    <string name="send_success_message">You can get back to your activities within the app</string>
     <string name="scam_warning_message">This address has been flagged due to evidence of a scam. We strongly recommend that you don\'t send DOT to this account.</string>
-    <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may differ.</string>
+    <string name="exchange_warning_message">This address is marked as an exchange be careful the deposit and withdrawal addresses may different.</string>
     <string name="donation_warning_message">This address has been suspicious. We strongly recommend that you don\'t send DOT to this account.</string>
     <string name="sanction_warning_message">This address has been flagged due to entity related to Russia. We strongly recommend that you don\'t send DOT to this account.</string>
     <string name="reason">Reason</string>
@@ -929,7 +929,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="scam_alert_title">This address has been flagged due to evidence of a scam.</string>
     <string name="scam_alert_message_format">We strongly recommend that you don\'t send %s to this account.</string>
     <string name="exchange_alert_title">This address is marked as an exchange</string>
-    <string name="exchange_alert_message">Be careful the deposit and withdrawal addresses may differ.</string>
+    <string name="exchange_alert_message">Be careful the deposit and withdrawal addresses may different.</string>
     <string name="donation_alert_title">This address has been suspicious.</string>
     <string name="sanction_alert_title">This address has been flagged due to entity related to Russia.</string>
     <string name="sending">Sending</string>
