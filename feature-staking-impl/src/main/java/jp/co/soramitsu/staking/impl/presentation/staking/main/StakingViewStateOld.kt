@@ -73,6 +73,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @Deprecated("All ViewStates should be provided and created in staking type aware ViewModels")
@@ -344,7 +345,8 @@ sealed class WelcomeViewState(
 
     val enteredAmountFlow = MutableStateFlow("")
 
-    protected val parsedAmountFlow = enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() }
+    protected val parsedAmountFlow =
+        enteredAmountFlow.mapNotNull { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigDecimal.ZERO)
 
     protected abstract val rewardCalculator: Deferred<RewardCalculator>
 

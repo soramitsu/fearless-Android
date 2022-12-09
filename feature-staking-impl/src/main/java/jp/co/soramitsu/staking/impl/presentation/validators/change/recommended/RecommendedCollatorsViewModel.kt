@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -36,7 +37,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Named
 
 @HiltViewModel
 class RecommendedCollatorsViewModel @Inject constructor(
@@ -60,7 +60,7 @@ class RecommendedCollatorsViewModel @Inject constructor(
     private val recommendedCollators = sharedStateSetup.setupStakingProcess.map {
         val userInputAmount = it.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Collators>()
             ?.payload
-            ?.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Payload.Full>()?.amount
+            ?.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Payload.Parachain>()?.amount
             ?: BigDecimal.ZERO
         val collatorRecommendator = collatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
         val token = interactor.currentAssetFlow().first().token

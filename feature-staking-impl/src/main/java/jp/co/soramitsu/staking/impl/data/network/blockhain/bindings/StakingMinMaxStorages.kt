@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.impl.data.network.blockhain.bindings
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumber
-import jp.co.soramitsu.common.data.network.runtime.binding.fromHexOrIncompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.getTyped
 import jp.co.soramitsu.common.data.network.runtime.binding.incompatible
 import jp.co.soramitsu.common.data.network.runtime.binding.requireType
@@ -9,6 +9,8 @@ import jp.co.soramitsu.common.data.network.runtime.binding.returnType
 import jp.co.soramitsu.common.data.network.runtime.binding.storageReturnType
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.parachainStaking
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.fromUnsignedBytes
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
@@ -19,14 +21,13 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.staking.api.domain.model.DelegationAction
 import jp.co.soramitsu.staking.api.domain.model.DelegationScheduledRequest
 import jp.co.soramitsu.staking.api.domain.model.Round
-import java.math.BigInteger
 
 fun bindMinBond(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger {
     return bindNumber(scale, runtimeSnapshot, type)
 }
 
-fun bindMaxNominators(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger {
-    return bindNumber(scale, runtimeSnapshot, type)
+fun bindMaxNominators(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger? {
+    return bindNumberOrNull(scale, runtimeSnapshot, type)
 }
 
 fun bindNominatorsCount(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger {
@@ -99,5 +100,9 @@ fun bindDelegationScheduledRequests(
 }
 
 private fun bindNumber(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger {
-    return bindNumber(type.fromHexOrIncompatible(scale, runtimeSnapshot))
+    return bindNumber(type.fromHexOrNull(runtimeSnapshot, scale) ?: return scale.fromHex().fromUnsignedBytes())
+}
+
+private fun bindNumberOrNull(scale: String, runtimeSnapshot: RuntimeSnapshot, type: Type<*>): BigInteger? {
+    return bindNumber(type.fromHexOrNull(runtimeSnapshot, scale) ?: return null)
 }

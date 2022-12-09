@@ -83,6 +83,8 @@ class ConfirmStakingViewModel @Inject constructor(
     private val payload = currentProcessState.payload
 
     private val bondPayload = when (payload) {
+        is Payload.RelayChain -> BondPayload(payload.amount, payload.rewardDestination)
+        is Payload.Parachain -> BondPayload(payload.amount, RewardDestination.Restake)
         is Payload.Full<*> -> BondPayload(payload.amount, payload.rewardDestination)
         else -> null
     }
@@ -92,6 +94,8 @@ class ConfirmStakingViewModel @Inject constructor(
     private val controllerAddressFlow = flowOf(payload)
         .mapNotNull {
             when (it) {
+                is Payload.Parachain -> it.currentAccountAddress
+                is Payload.RelayChain -> it.controllerAddress
                 is Payload.Full -> it.currentAccountAddress
                 else -> {
                     (stateFlow.first() as? StakingState.Stash)?.controllerAddress
