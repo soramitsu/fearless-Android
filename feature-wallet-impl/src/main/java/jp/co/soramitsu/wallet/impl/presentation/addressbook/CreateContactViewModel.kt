@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -28,7 +27,6 @@ class CreateContactViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val walletInteractor: WalletInteractor,
     private val resourceManager: ResourceManager,
-    private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter
 ) : BaseViewModel(), CreateContactScreenInterface {
 
@@ -61,15 +59,14 @@ class CreateContactViewModel @Inject constructor(
         )
     }.stateIn(this, SharingStarted.Eagerly, SelectorState.default)
 
-    private val defaultState = CreateContactViewState(SelectorState.default, "", "")
-
     val state: StateFlow<CreateContactViewState> = combine(
         chainSelectorStateFlow,
         nameInputFlow,
         addressInputFlow
     ) { chainSelectorState, name, address ->
-        CreateContactViewState(chainSelectorState, name, address)
-    }.stateIn(this, SharingStarted.Eagerly, defaultState)
+        val createContactEnabled = name.isNotBlank() && address.isNotBlank()
+        CreateContactViewState(chainSelectorState, name, address, createContactEnabled)
+    }.stateIn(this, SharingStarted.Eagerly, CreateContactViewState.default)
 
     init {
         viewModelScope.launch {

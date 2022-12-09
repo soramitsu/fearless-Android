@@ -32,8 +32,13 @@ import jp.co.soramitsu.feature_wallet_impl.R
 data class CreateContactViewState(
     val chainSelectorState: SelectorState,
     val contactNameInput: String,
-    val contactAddressInput: String
-)
+    val contactAddressInput: String,
+    val isCreateEnabled: Boolean
+) {
+    companion object {
+        val default = CreateContactViewState(SelectorState.default, "", "", false)
+    }
+}
 
 interface CreateContactScreenInterface {
     fun onNavigationClick()
@@ -81,6 +86,7 @@ fun CreateContactContent(
                 MarginVertical(margin = 12.dp)
                 AccentButton(
                     text = stringResource(id = R.string.create_contact),
+                    enabled = state.isCreateEnabled,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -126,7 +132,7 @@ fun InputWithHintCornered(
 @Composable
 @Preview
 fun PreviewCreateContactContent() {
-    val state = CreateContactViewState(SelectorState.default, "", "")
+    val state = CreateContactViewState.default
     val callback = object : CreateContactScreenInterface {
         override fun onNavigationClick() {}
         override fun onCreateContactClick() {}
