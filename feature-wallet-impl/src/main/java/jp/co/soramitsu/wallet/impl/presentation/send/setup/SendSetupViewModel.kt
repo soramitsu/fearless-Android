@@ -146,11 +146,9 @@ class SendSetupViewModel @Inject constructor(
     )
 
     private val assetFlow: StateFlow<Asset?> =
-        combine(sharedState.chainIdFlow, sharedState.assetIdFlow) { chainId, assetId ->
-            when {
-                chainId == null -> null
-                assetId == null -> null
-                else -> walletInteractor.getCurrentAsset(chainId, assetId)
+        sharedState.assetIdToChainIdFlow.map {
+            it?.let { (assetId, chainId) ->
+                walletInteractor.getCurrentAsset(chainId, assetId)
             }
         }
             .stateIn(this, SharingStarted.Eagerly, null)
