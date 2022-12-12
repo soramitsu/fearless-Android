@@ -312,7 +312,7 @@ class BalanceDetailViewModel @Inject constructor(
     private fun copyToClipboard(text: String) {
         clipboardManager.addToClipboard(text)
 
-        val message = resourceManager.getString(jp.co.soramitsu.common.R.string.common_copied)
+        val message = resourceManager.getString(R.string.common_copied)
         showMessage(message)
     }
 

@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.lazyAsync
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -71,7 +72,7 @@ class RecommendedCollatorsViewModel @Inject constructor(
     val recommendedCollatorModels = combine(recommendedCollators, selectedCollator) { collators, selected ->
         convertToModels(collators, tokenUseCase.currentToken(), selected?.address)
             .sortedByDescending { it.scoring?.apr }
-    }.inBackground().share()
+    }.inBackground().share().withLoading()
 
     val selectedTitle = recommendedCollators.map {
         val maxValidators = stakingParachainScenarioInteractor.maxDelegationsPerDelegator()

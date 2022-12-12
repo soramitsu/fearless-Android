@@ -37,7 +37,7 @@ class WalletAccountActionsSheet(
                 onReplace(chainId)
             }
 
-            item(jp.co.soramitsu.common.R.drawable.ic_refresh_white_24, R.string.switch_node) {
+            item(R.drawable.ic_refresh_white_24, R.string.switch_node) {
                 onSwitchNode(chainId)
             }
         }

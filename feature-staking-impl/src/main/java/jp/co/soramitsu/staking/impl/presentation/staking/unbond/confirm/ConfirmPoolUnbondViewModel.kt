@@ -1,8 +1,11 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.validation.FeeInsufficientBalanceException
+import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
@@ -12,10 +15,10 @@ import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 
 @HiltViewModel
 class ConfirmPoolUnbondViewModel @Inject constructor(
-    existentialDepositUseCase: ExistentialDepositUseCase,
+    private val existentialDepositUseCase: ExistentialDepositUseCase,
     poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
-    resourceManager: ResourceManager,
+    private val resourceManager: ResourceManager,
     private val router: StakingRouter
 ) : StakingConfirmViewModel(
     existentialDepositUseCase = existentialDepositUseCase,
@@ -34,5 +37,17 @@ class ConfirmPoolUnbondViewModel @Inject constructor(
 ) {
     fun onBackClick() {
         router.back()
+    }
+
+    override suspend fun isValid(): Result<Any> {
+        val fee = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
+
+        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+
+        val resultBalance = asset.transferableInPlanks - fee
+        if (resultBalance < existentialDeposit || resultBalance <= BigInteger.ZERO) {
+            return Result.failure(FeeInsufficientBalanceException(resourceManager))
+        }
+        return Result.success(Unit)
     }
 }

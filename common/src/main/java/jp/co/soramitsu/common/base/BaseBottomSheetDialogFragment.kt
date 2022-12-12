@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.base
 
 import android.os.Bundle
-import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +8,6 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.annotation.LayoutRes
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +15,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
@@ -75,19 +74,20 @@ abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes priva
 
     protected fun showError(errorMessage: String) {
         buildErrorDialog(getString(R.string.common_error_general_title), errorMessage)
-            .show()
+            .show(childFragmentManager)
     }
 
     protected fun showErrorWithTitle(title: String, errorMessage: String) {
-        buildErrorDialog(title, errorMessage).show()
+        buildErrorDialog(title, errorMessage).show(childFragmentManager)
     }
 
-    protected open fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
-        return AlertDialog.Builder(ContextThemeWrapper(context, R.style.WhiteOverlay))
-            .setTitle(title)
-            .setMessage(errorMessage)
-            .setPositiveButton(R.string.common_ok) { _, _ -> }
-            .create()
+    protected open fun buildErrorDialog(title: String, errorMessage: String): ErrorDialog {
+        val res = requireContext().resources
+        return ErrorDialog(
+            title = title,
+            message = errorMessage,
+            positiveButtonText = res.getString(R.string.common_ok)
+        )
     }
 
     inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {

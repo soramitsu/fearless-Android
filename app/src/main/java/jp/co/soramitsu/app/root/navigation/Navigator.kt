@@ -2,9 +2,11 @@ package jp.co.soramitsu.app.root.navigation
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
+import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
@@ -155,8 +157,22 @@ class Navigator :
         navController?.navigate(R.id.action_splash_to_pin, bundle)
     }
 
-    override fun openCreateAccount() {
-        navController?.navigate(R.id.createAction)
+    override fun openCreateAccountFromOnboarding() {
+        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
+    }
+
+    override fun openCreateAccountFromWallet() {
+        val request = NavDeepLinkRequest.Builder
+            .fromUri("fearless://onboarding/createAccountFragment".toUri())
+            .build()
+        navController?.navigate(request)
+    }
+
+    override fun openImportAccountScreenFromWallet(blockChainType: Int) {
+        val request = NavDeepLinkRequest.Builder
+            .fromUri("fearless://onboarding/importAccountFragment/$blockChainType".toUri())
+            .build()
+        navController?.navigate(request)
     }
 
     override fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload) {

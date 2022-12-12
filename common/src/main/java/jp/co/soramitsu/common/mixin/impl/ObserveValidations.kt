@@ -15,17 +15,14 @@ fun BaseFragment<*>.observeValidations(
         val level = it.level
 
         when {
-            level >= DefaultFailureLevel.ERROR -> errorDialog(dialogContext) {
-                setTitle(it.title)
-                setMessage(it.message)
-            }
+            level >= DefaultFailureLevel.ERROR -> errorDialog(dialogContext, childFragmentManager, it.title, it.message)
             level >= DefaultFailureLevel.WARNING -> warningDialog(
-                dialogContext,
+                context = dialogContext,
+                childFragmentManager = childFragmentManager,
+                title = it.title,
+                message = it.message,
                 onConfirm = it.confirmWarning
-            ) {
-                setTitle(it.title)
-                setMessage(it.message)
-            }
+            )
         }
     }
 }

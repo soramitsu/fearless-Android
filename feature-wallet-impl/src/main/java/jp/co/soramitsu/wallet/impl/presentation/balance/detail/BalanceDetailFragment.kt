@@ -90,9 +90,9 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
         when (toolbarState) {
             is LoadingState.Loading<MainToolbarViewState> -> {
                 MainToolbarShimmer(
-                    homeIconState = ToolbarHomeIconState(navigationIcon = jp.co.soramitsu.common.R.drawable.ic_arrow_back_24dp),
+                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
                     menuItems = listOf(
-                        MenuIconItem(icon = jp.co.soramitsu.common.R.drawable.ic_dots_horizontal_24, {})
+                        MenuIconItem(icon = R.drawable.ic_dots_horizontal_24, {})
                     )
                 )
             }
@@ -101,7 +101,7 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
                     menuItems = listOf(
                         MenuIconItem(
-                            icon = jp.co.soramitsu.common.R.drawable.ic_dots_horizontal_24,
+                            icon = R.drawable.ic_dots_horizontal_24,
                             onClick = viewModel::accountOptionsClicked
                         )
                     ),

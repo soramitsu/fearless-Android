@@ -372,10 +372,7 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
     }
 
     private fun showStatusAlert(title: String, message: String) {
-        infoDialog(requireContext()) {
-            setTitle(title)
-            setMessage(message)
-        }
+        infoDialog(requireContext(), childFragmentManager, title, message)
     }
 
     private fun mapValidatorStatus(summary: ValidatorSummaryModel): StakeSummaryView.Status {

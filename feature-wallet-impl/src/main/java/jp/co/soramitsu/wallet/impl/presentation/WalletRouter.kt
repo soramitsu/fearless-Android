@@ -53,13 +53,15 @@ interface WalletRouter : SecureRouter {
 
     fun openRewardDetail(payload: RewardDetailsPayload)
 
-    fun openCreateAccount()
+    fun openCreateAccountFromWallet()
 
     fun openAccountDetails(metaAccountId: Long)
 
     fun openExportWallet(metaAccountId: Long)
 
     fun openImportAccountScreen(blockChainType: Int)
+
+    fun openImportAccountScreenFromWallet(blockChainType: Int)
 
     fun openChangeAccountFromWallet()
 

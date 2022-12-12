@@ -20,11 +20,11 @@ class CrowdloanReferralActionsSheet(
 
         setTitle(code)
 
-        item(jp.co.soramitsu.common.R.drawable.ic_copy_24, R.string.copy_referral_code) {
+        item(R.drawable.ic_copy_24, R.string.copy_referral_code) {
             onCopy(code)
         }
 
-        item(jp.co.soramitsu.common.R.drawable.ic_share_arrow_white_24, R.string.share_referral_code) {
+        item(R.drawable.ic_share_arrow_white_24, R.string.share_referral_code) {
             onShare(code)
         }
     }

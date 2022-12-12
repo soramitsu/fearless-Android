@@ -3,12 +3,12 @@ package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 import android.text.method.DigitsKeyListener
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
@@ -81,10 +81,11 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
     }
 
     private fun showMnemonicInfoDialog() {
-        MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
-            .setTitle(R.string.common_info)
-            .setMessage(R.string.account_creation_info)
-            .setPositiveButton(R.string.common_ok) { dialog, _ -> dialog?.dismiss() }
-            .show()
+        val res = requireContext()
+        ErrorDialog(
+            title = res.getString(R.string.common_info),
+            message = res.getString(R.string.account_creation_info),
+            positiveButtonText = res.getString(R.string.common_ok)
+        ).show(childFragmentManager)
     }
 }

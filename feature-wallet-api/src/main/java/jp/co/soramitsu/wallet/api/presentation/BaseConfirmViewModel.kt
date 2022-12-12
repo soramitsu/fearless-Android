@@ -78,7 +78,7 @@ abstract class BaseConfirmViewModel(
         amountFiat
     )
 
-    private val feeInPlanksFlow = flowOf {
+    protected val feeInPlanksFlow = flowOf {
         val amountInPlanks = amount?.let { asset.token.planksFromAmount(it) }
         feeEstimator(amountInPlanks)
     }.stateIn(
@@ -131,7 +131,7 @@ abstract class BaseConfirmViewModel(
         }
     }
 
-    private suspend fun isValid(): Result<Any> {
+    protected open suspend fun isValid(): Result<Any> {
         val fee = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
 
         val chargesAmount = amountInPlanks.orZero() + fee
@@ -152,19 +152,19 @@ abstract class BaseConfirmViewModel(
 
     override fun showError(throwable: Throwable) {
         val message =
-            throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(jp.co.soramitsu.common.R.string.common_undefined_error_message)
+            throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
         val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
             AlertViewState(
                 title = title,
                 message = message,
-                buttonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_got_it),
-                iconRes = jp.co.soramitsu.common.R.drawable.ic_status_warning_16
+                buttonText = resourceManager.getString(R.string.common_got_it),
+                iconRes = R.drawable.ic_status_warning_16
             )
         } ?: AlertViewState(
-            title = resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_title),
+            title = resourceManager.getString(R.string.common_error_general_title),
             message = message,
-            buttonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_got_it),
-            iconRes = jp.co.soramitsu.common.R.drawable.ic_status_warning_16
+            buttonText = resourceManager.getString(R.string.common_got_it),
+            iconRes = R.drawable.ic_status_warning_16
         )
         errorAlertPresenter(errorAlertViewState)
     }
