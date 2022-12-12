@@ -78,43 +78,47 @@ class SearchAssetsViewModel @Inject constructor(
             .sortedWith(defaultAssetListSort())
             .map { assetWithStatus ->
                 val token = assetWithStatus.asset.token
-                val chainAsset = token.configuration
+                val tokenConfig = token.configuration
+                val symbolToShow = tokenConfig.symbolToShow
 
-                val chainLocal = chains.find { it.id == token.configuration.chainId }
+                val stateItem = assetStates.find { it.displayName == symbolToShow }
+                if (stateItem != null) return@map
 
-                val isSupported: Boolean = when (chainLocal?.minSupportedVersion) {
+                val tokenChains = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
+                val utilityChain = tokenChains.maxByOrNull {
+                    it.assets.firstOrNull { it.symbolToShow == symbolToShow }?.isUtility ?: false
+                }
+                val utilityChainAsset = utilityChain?.assets?.firstOrNull { it.symbolToShow == symbolToShow }
+
+                val isSupported: Boolean = when (utilityChain?.minSupportedVersion) {
                     null -> true
-                    else -> AppVersion.isSupported(chainLocal.minSupportedVersion)
+                    else -> AppVersion.isSupported(utilityChain.minSupportedVersion)
                 }
 
-                val hasNetworkIssue = token.configuration.chainId in chainConnectings
+                val hasNetworkIssue = tokenChains.any { it.id in chainConnectings }
 
-                val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == chainAsset.symbolToShow } }
+                val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
                     .associate { it.id to it.icon }
 
-                val stateItem = assetStates.find { it.displayName == chainAsset.symbolToShow }
-                if (stateItem == null) {
-                    val assetListItemViewState = AssetListItemViewState(
-                        assetIconUrl = chainAsset.iconUrl,
-                        assetChainName = chainLocal?.name.orEmpty(),
-                        assetSymbol = chainAsset.symbol,
-                        displayName = chainAsset.symbolToShow,
-                        assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
-                        assetTokenRate = token.recentRateChange?.formatAsChange(),
-                        assetBalance = assetWithStatus.asset.total?.format().orEmpty(),
-                        assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total)?.formatAsCurrency(token.fiatSymbol),
-                        assetChainUrls = assetChainUrls,
-                        chainId = chainLocal?.id.orEmpty(),
-                        chainAssetId = chainAsset.id,
-                        isSupported = isSupported,
-                        isHidden = !assetWithStatus.asset.enabled,
-                        hasAccount = assetWithStatus.hasAccount,
-                        priceId = chainAsset.priceId,
-                        hasNetworkIssue = hasNetworkIssue
-                    )
-
-                    assetStates.add(assetListItemViewState)
-                }
+                val assetListItemViewState = AssetListItemViewState(
+                    assetIconUrl = tokenConfig.iconUrl,
+                    assetChainName = utilityChain?.name.orEmpty(),
+                    assetSymbol = tokenConfig.symbol,
+                    displayName = symbolToShow,
+                    assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
+                    assetTokenRate = token.recentRateChange?.formatAsChange(),
+                    assetBalance = assetWithStatus.asset.total?.format().orEmpty(),
+                    assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total)?.formatAsCurrency(token.fiatSymbol),
+                    assetChainUrls = assetChainUrls,
+                    chainId = utilityChain?.id.orEmpty(),
+                    chainAssetId = utilityChainAsset?.id.orEmpty(),
+                    isSupported = isSupported,
+                    isHidden = !assetWithStatus.asset.enabled,
+                    hasAccount = assetWithStatus.hasAccount,
+                    priceId = tokenConfig.priceId,
+                    hasNetworkIssue = hasNetworkIssue
+                )
+                assetStates.add(assetListItemViewState)
             }
         assetStates
     }

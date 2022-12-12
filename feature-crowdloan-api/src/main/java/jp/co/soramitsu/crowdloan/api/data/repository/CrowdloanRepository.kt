@@ -3,11 +3,11 @@ package jp.co.soramitsu.crowdloan.api.data.repository
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Locale
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundIndex
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +25,8 @@ interface CrowdloanRepository {
     suspend fun getContribution(chainId: ChainId, accountId: AccountId, paraId: ParaId, fundIndex: FundIndex): Contribution?
 
     suspend fun blocksPerLeasePeriod(chainId: ChainId): BigInteger
+
+    suspend fun leaseOffset(chainId: ChainId): BigInteger
 
     fun fundInfoFlow(chainId: ChainId, parachainId: ParaId): Flow<FundInfo>
 

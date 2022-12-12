@@ -2,9 +2,9 @@ package jp.co.soramitsu.crowdloan.impl.domain.main
 
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.common.list.GroupedList
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
@@ -77,6 +77,7 @@ class CrowdloanInteractor(
 
             val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis(chainId)
             val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod(chainId)
+            val leaseOffset = crowdloanRepository.leaseOffset(chainId)
 
             val withBlockUpdates = chainStateRepository.currentBlockNumberFlow(chainId).map { currentBlockNumber ->
                 val fundInfos = crowdloanRepository.allFundInfos(chainId)
@@ -98,6 +99,7 @@ class CrowdloanInteractor(
                             currentBlockNumber = currentBlockNumber,
                             expectedBlockTimeInMillis = expectedBlockTime,
                             blocksPerLeasePeriod = blocksPerLeasePeriod,
+                            leaseOffset = leaseOffset,
                             contribution = contributions[paraId],
                             hasWonAuction = winnerInfo.getValue(paraId),
                             minContribution = minContribution

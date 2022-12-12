@@ -9,14 +9,6 @@ import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.slots
 import jp.co.soramitsu.common.utils.storageKeys
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
-import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u32
-import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toByteArray
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.LeaseEntry
@@ -30,6 +22,14 @@ import jp.co.soramitsu.crowdloan.impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.ParachainMetadataApi
 import jp.co.soramitsu.crowdloan.impl.data.network.api.parachain.mapParachainMetadataRemoteToParachainMetadata
 import jp.co.soramitsu.crowdloan.impl.storage.CrowdloanStorage
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.u32
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toByteArray
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
+import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -92,6 +92,12 @@ class CrowdloanRepositoryImpl(
         val runtime = runtimeFor(chainId)
 
         return runtime.metadata.slots().numberConstant("LeasePeriod", runtime)
+    }
+
+    override suspend fun leaseOffset(chainId: ChainId): BigInteger {
+        val runtime = runtimeFor(chainId)
+
+        return runtime.metadata.slots().numberConstant("LeaseOffset", runtime)
     }
 
     override fun fundInfoFlow(chainId: ChainId, parachainId: ParaId): Flow<FundInfo> {
