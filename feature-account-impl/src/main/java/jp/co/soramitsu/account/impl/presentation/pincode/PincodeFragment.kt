@@ -112,12 +112,12 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         val res = requireContext().resources
         ErrorDialog(
             isHideable = false,
-            title = res.getString(jp.co.soramitsu.common.R.string.pincode_biometry_dialog_title),
-            message = res.getString(jp.co.soramitsu.common.R.string.pincode_fingerprint_switch_dialog_title),
-            positiveButtonText = res.getString(jp.co.soramitsu.common.R.string.common_use),
-            negativeButtonText = res.getString(jp.co.soramitsu.common.R.string.common_skip),
-            positiveClick = { viewModel.acceptAuthWithBiometry() },
-            negativeClick = { viewModel.declineAuthWithBiometry() }
+            title = res.getString(R.string.pincode_biometry_dialog_title),
+            message = res.getString(R.string.pincode_fingerprint_switch_dialog_title),
+            positiveButtonText = res.getString(R.string.common_use),
+            negativeButtonText = res.getString(R.string.common_skip),
+            positiveClick = viewModel::acceptAuthWithBiometry,
+            negativeClick = viewModel::declineAuthWithBiometry
         ).show(childFragmentManager)
     }
 

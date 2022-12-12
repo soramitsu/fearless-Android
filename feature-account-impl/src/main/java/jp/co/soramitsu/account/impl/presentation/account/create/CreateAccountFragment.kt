@@ -58,9 +58,9 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.frag
     private fun showScreenshotWarningDialog() {
         val res = requireContext()
         ErrorDialog(
-            title = res.getString(jp.co.soramitsu.common.R.string.common_no_screenshot_title),
-            message = res.getString(jp.co.soramitsu.common.R.string.common_no_screenshot_message),
-            positiveButtonText = res.getString(jp.co.soramitsu.common.R.string.common_ok),
+            title = res.getString(R.string.common_no_screenshot_title),
+            message = res.getString(R.string.common_no_screenshot_message),
+            positiveButtonText = res.getString(R.string.common_ok),
             positiveClick = { viewModel.screenshotWarningConfirmed(binding.accountNameInput.content.text.toString()) }
         ).show(childFragmentManager)
     }

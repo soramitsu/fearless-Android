@@ -52,7 +52,7 @@ class OptionsWalletFragment : BaseComposeBottomSheetDialogFragment<OptionsWallet
             message = res.getString(R.string.account_delete_confirmation_description),
             positiveButtonText = res.getString(R.string.account_delete_confirm),
             negativeButtonText = res.getString(R.string.common_cancel),
-            positiveClick = { viewModel.deleteWalletConfirmed() }
+            positiveClick = viewModel::deleteWalletConfirmed
         ).show(childFragmentManager)
     }
 

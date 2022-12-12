@@ -22,7 +22,7 @@ abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
     }
 
     private fun shareText(text: String) {
-        val title = getString(jp.co.soramitsu.feature_account_impl.R.string.common_share)
+        val title = getString(R.string.common_share)
 
         val intent = Intent(Intent.ACTION_SEND)
             .putExtra(Intent.EXTRA_TEXT, text)
@@ -41,8 +41,8 @@ abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
             message = res.getString(R.string.account_export_warning_message),
             positiveButtonText = res.getString(R.string.common_proceed),
             negativeButtonText = res.getString(R.string.common_cancel),
-            negativeClick = { viewModel.securityWarningCancel() },
-            onBackClick = { viewModel.securityWarningCancel() }
+            negativeClick = viewModel::securityWarningCancel,
+            onBackClick = viewModel::securityWarningCancel
         ).show(childFragmentManager)
     }
 }

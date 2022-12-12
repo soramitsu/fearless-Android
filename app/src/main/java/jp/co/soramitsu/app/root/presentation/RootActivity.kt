@@ -147,7 +147,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         AlertBottomSheet.Builder(this)
             .setTitle(R.string.update_needed_text)
             .setMessage(R.string.chain_unsupported_text)
-            .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_update)
+            .setButtonText(R.string.common_update)
             .setCancelable(false)
             .callback { viewModel.updateAppClicked() }
             .build()
@@ -156,9 +156,9 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
     private fun showNoInternetConnectionAlert() {
         AlertBottomSheet.Builder(this)
-            .setTitle(jp.co.soramitsu.feature_wallet_impl.R.string.common_connection_problems)
-            .setMessage(jp.co.soramitsu.feature_wallet_impl.R.string.connection_problems_alert_message)
-            .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_retry)
+            .setTitle(R.string.common_connection_problems)
+            .setMessage(R.string.connection_problems_alert_message)
+            .setButtonText(R.string.common_retry)
             .setCancelable(false)
             .callback { viewModel.retryLoadConfigClicked() }
             .build()

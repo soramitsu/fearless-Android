@@ -228,7 +228,7 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
     }
 
     override fun buildErrorDialog(title: String, errorMessage: String): ErrorDialog {
-        val buttonText = requireContext().resources.getString(jp.co.soramitsu.common.R.string.common_ok)
+        val buttonText = requireContext().resources.getString(R.string.common_ok)
         return ErrorDialog(
             title = title,
             message = errorMessage,

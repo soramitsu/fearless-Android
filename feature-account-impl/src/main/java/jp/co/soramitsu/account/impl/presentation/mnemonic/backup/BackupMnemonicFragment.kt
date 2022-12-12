@@ -83,8 +83,8 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
     private fun showMnemonicInfoDialog() {
         val res = requireContext()
         ErrorDialog(
-            title = res.getString(jp.co.soramitsu.common.R.string.common_info),
-            message = res.getString(jp.co.soramitsu.common.R.string.account_creation_info),
+            title = res.getString(R.string.common_info),
+            message = res.getString(R.string.account_creation_info),
             positiveButtonText = res.getString(R.string.common_ok)
         ).show(childFragmentManager)
     }

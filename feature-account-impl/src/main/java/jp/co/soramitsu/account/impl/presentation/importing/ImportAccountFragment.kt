@@ -209,12 +209,12 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         val res = requireContext().resources
         ErrorDialog(
             isHideable = false,
-            title = res.getString(jp.co.soramitsu.common.R.string.alert_add_ethereum_title),
-            message = res.getString(jp.co.soramitsu.common.R.string.alert_add_ethereum_message),
-            positiveButtonText = res.getString(jp.co.soramitsu.common.R.string.common_yes),
-            negativeButtonText = res.getString(jp.co.soramitsu.common.R.string.common_no),
-            positiveClick = { viewModel.onAddEthAccountConfirmed() },
-            negativeClick = { viewModel.onAddEthAccountDeclined() }
+            title = res.getString(R.string.alert_add_ethereum_title),
+            message = res.getString(R.string.alert_add_ethereum_message),
+            positiveButtonText = res.getString(R.string.common_yes),
+            negativeButtonText = res.getString(R.string.common_no),
+            positiveClick = viewModel::onAddEthAccountConfirmed,
+            negativeClick = viewModel::onAddEthAccountDeclined
         ).show(childFragmentManager)
     }
 }

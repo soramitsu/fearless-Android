@@ -515,9 +515,7 @@
     <dialog
         android:id="@+id/selectWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.SelectWalletFragment"
-        android:label="selectWalletFragment" >
-
-    </dialog>
+        android:label="selectWalletFragment" />
 
     <dialog
         android:id="@+id/networkIssuesFragment"

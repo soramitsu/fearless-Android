@@ -101,7 +101,7 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     private fun showDeleteNodeDialog(nodeModel: NodeModel) {
         val res = requireContext()
         ErrorDialog(
-            title = res.getString(jp.co.soramitsu.common.R.string.delete_custom_node_title),
+            title = res.getString(R.string.delete_custom_node_title),
             message = nodeModel.name,
             positiveButtonText = res.getString(R.string.connection_delete_confirm),
             negativeButtonText = res.getString(R.string.common_cancel),

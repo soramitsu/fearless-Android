@@ -56,7 +56,7 @@ class StakingPoolViewModel(
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
         tokenImage = "",
-        totalBalance = resourceManager.getString(jp.co.soramitsu.common.R.string.common_balance_format, "..."),
+        totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
         tokenAmount = "10"
     )

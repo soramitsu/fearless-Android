@@ -56,10 +56,10 @@ class AccountEditFragment : BaseFragment<AccountEditViewModel>(R.layout.fragment
     private fun showDeleteConfirmation(metaId: Long) {
         val res = requireContext().resources
         ErrorDialog(
-            title = res.getString(jp.co.soramitsu.common.R.string.account_delete_confirmation_title),
-            message = res.getString(jp.co.soramitsu.common.R.string.account_delete_confirmation_description),
-            positiveButtonText = res.getString(jp.co.soramitsu.common.R.string.account_delete_confirm),
-            negativeButtonText = res.getString(jp.co.soramitsu.common.R.string.common_cancel),
+            title = res.getString(R.string.account_delete_confirmation_title),
+            message = res.getString(R.string.account_delete_confirmation_description),
+            positiveButtonText = res.getString(R.string.account_delete_confirm),
+            negativeButtonText = res.getString(R.string.common_cancel),
             positiveClick = { viewModel.deleteConfirmed(metaId) }
         ).show(childFragmentManager)
     }
