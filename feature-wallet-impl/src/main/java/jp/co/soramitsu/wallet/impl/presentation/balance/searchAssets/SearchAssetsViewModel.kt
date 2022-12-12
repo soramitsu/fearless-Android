@@ -80,11 +80,17 @@ class SearchAssetsViewModel @Inject constructor(
                 val token = assetWithStatus.asset.token
                 val chainAsset = token.configuration
 
-                val chainLocal = chains.find { it.id == token.configuration.chainId }
+                val utilityChain = chains
+                    .filter {
+                        it.assets.any { it.symbolToShow == token.configuration.symbolToShow }
+                    }
+                    .maxByOrNull {
+                        it.assets.firstOrNull { it.symbolToShow == token.configuration.symbolToShow }?.isUtility ?: false
+                    }
 
-                val isSupported: Boolean = when (chainLocal?.minSupportedVersion) {
+                val isSupported: Boolean = when (utilityChain?.minSupportedVersion) {
                     null -> true
-                    else -> AppVersion.isSupported(chainLocal.minSupportedVersion)
+                    else -> AppVersion.isSupported(utilityChain.minSupportedVersion)
                 }
 
                 val hasNetworkIssue = token.configuration.chainId in chainConnectings
@@ -96,7 +102,7 @@ class SearchAssetsViewModel @Inject constructor(
                 if (stateItem == null) {
                     val assetListItemViewState = AssetListItemViewState(
                         assetIconUrl = chainAsset.iconUrl,
-                        assetChainName = chainLocal?.name.orEmpty(),
+                        assetChainName = utilityChain?.name.orEmpty(),
                         assetSymbol = chainAsset.symbol,
                         displayName = chainAsset.symbolToShow,
                         assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
@@ -104,7 +110,7 @@ class SearchAssetsViewModel @Inject constructor(
                         assetBalance = assetWithStatus.asset.total?.format().orEmpty(),
                         assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total)?.formatAsCurrency(token.fiatSymbol),
                         assetChainUrls = assetChainUrls,
-                        chainId = chainLocal?.id.orEmpty(),
+                        chainId = utilityChain?.id.orEmpty(),
                         chainAssetId = chainAsset.id,
                         isSupported = isSupported,
                         isHidden = !assetWithStatus.asset.enabled,
