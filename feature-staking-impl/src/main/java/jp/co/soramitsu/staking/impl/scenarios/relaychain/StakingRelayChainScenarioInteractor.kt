@@ -616,7 +616,7 @@ class StakingRelayChainScenarioInteractor(
             validations = listOf(
                 UnbondFeeValidation(
                     feeExtractor = { it.fee },
-                    availableBalanceProducer = { it.asset.transferable },
+                    availableBalanceProducer = { it.asset.availableForStaking },
                     errorProducer = { UnbondValidationFailure.CannotPayFees }
                 ),
                 NotZeroUnbondValidation(
@@ -638,7 +638,7 @@ class StakingRelayChainScenarioInteractor(
             validations = listOf(
                 RebondFeeValidation(
                     feeExtractor = { it.fee },
-                    availableBalanceProducer = { it.controllerAsset.transferable },
+                    availableBalanceProducer = { it.controllerAsset.availableForStaking },
                     errorProducer = { RebondValidationFailure.CANNOT_PAY_FEE }
                 ),
                 NotZeroRebondValidation(
@@ -655,7 +655,7 @@ class StakingRelayChainScenarioInteractor(
             validations = listOf(
                 RedeemFeeValidation(
                     feeExtractor = { it.fee },
-                    availableBalanceProducer = { it.asset.transferable },
+                    availableBalanceProducer = { it.asset.availableForStaking },
                     errorProducer = { RedeemValidationFailure.CANNOT_PAY_FEES }
                 )
             )
@@ -670,7 +670,7 @@ class StakingRelayChainScenarioInteractor(
                 validations = listOf(
                     EnoughToPayFeesValidation(
                         feeExtractor = { it.fee },
-                        availableBalanceProducer = { asset.transferable },
+                        availableBalanceProducer = { asset.availableForStaking },
                         errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
                         extraAmountExtractor = { it.amount }
                     ),

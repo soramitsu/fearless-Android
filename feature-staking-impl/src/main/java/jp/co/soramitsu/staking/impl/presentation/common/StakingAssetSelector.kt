@@ -6,6 +6,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.staking.api.data.StakingAssetSelection
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,11 +29,16 @@ class StakingAssetSelector(
     val selectedAssetModelFlow: SharedFlow<StakingAssetSelectorModel> = selectedItem
         .map {
             val asset = stakingSharedState.currentAssetFlow().first()
+            val assetBalance = if (it.type == StakingType.POOL) {
+                asset.transferable
+            } else {
+                asset.availableForStaking
+            }
             StakingAssetSelectorModel(
                 it,
                 asset.token.configuration.iconUrl,
                 asset.token.configuration.chainName,
-                asset.transferable.formatTokenAmount(asset.token.configuration)
+                assetBalance.formatTokenAmount(asset.token.configuration)
             )
         }
         .shareIn(this, SharingStarted.Eagerly, replay = 1)
@@ -44,11 +50,16 @@ class StakingAssetSelector(
 
             val models = availableToSelect.mapNotNull { selection ->
                 val asset = availableAssetsToSelect.firstOrNull { it.token.configuration.id == selection.chainAssetId } ?: return@mapNotNull null
+                val assetBalance = if (selection.type == StakingType.POOL) {
+                    asset.transferable
+                } else {
+                    asset.availableForStaking
+                }
                 StakingAssetSelectorModel(
                     selection,
                     asset.token.configuration.iconUrl,
                     asset.token.configuration.chainName,
-                    asset.transferable.formatTokenAmount(asset.token.configuration)
+                    assetBalance.formatTokenAmount(asset.token.configuration)
                 )
             }
 

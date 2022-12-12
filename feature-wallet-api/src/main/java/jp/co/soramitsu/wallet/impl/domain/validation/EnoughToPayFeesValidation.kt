@@ -41,5 +41,5 @@ fun <P> EnoughToPayFeesValidation.Companion.assetBalanceProducer(
 
     val asset = walletRepository.getAsset(meta.id, accountId, chainAssetExtractor(payload), chain.minSupportedVersion)!!
 
-    asset.transferable
+    asset.availableForStaking
 }

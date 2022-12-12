@@ -18,7 +18,7 @@ class RedeemValidationsModule {
     @Singleton
     fun provideFeeValidation() = RedeemFeeValidation(
         feeExtractor = { it.fee },
-        availableBalanceProducer = { it.asset.transferable },
+        availableBalanceProducer = { it.asset.availableForStaking },
         errorProducer = { RedeemValidationFailure.CANNOT_PAY_FEES }
     )
 

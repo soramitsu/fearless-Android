@@ -111,7 +111,7 @@ class SelectRewardDestinationViewModel @Inject constructor(
     private fun maybeGoToNext() = requireFee { fee ->
         launch {
             val payload = RewardDestinationValidationPayload(
-                availableControllerBalance = controllerAssetFlow.first().transferable,
+                availableControllerBalance = controllerAssetFlow.first().availableForStaking,
                 fee = fee,
                 stashState = stashStateFlow.first()
             )

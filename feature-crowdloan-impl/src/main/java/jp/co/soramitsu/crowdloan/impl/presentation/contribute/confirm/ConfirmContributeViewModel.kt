@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 
 @HiltViewModel
 class ConfirmContributeViewModel @Inject constructor(
@@ -83,7 +84,7 @@ class ConfirmContributeViewModel @Inject constructor(
         .share()
 
     val assetModelFlow = assetFlow
-        .map { mapAssetToAssetModel(it, resourceManager) }
+        .map { mapAssetToAssetModel(it, resourceManager, Asset::transferable) }
         .inBackground()
         .share()
 

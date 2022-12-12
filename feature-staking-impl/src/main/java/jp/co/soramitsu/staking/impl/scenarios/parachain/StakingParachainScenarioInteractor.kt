@@ -602,7 +602,7 @@ class StakingParachainScenarioInteractor(
                 validations = listOf(
                     UnbondFeeValidation(
                         feeExtractor = { it.fee },
-                        availableBalanceProducer = { it.asset.transferable },
+                        availableBalanceProducer = { it.asset.availableForStaking },
                         errorProducer = { UnbondValidationFailure.CannotPayFees }
                     ),
                     NotZeroUnbondValidation(
@@ -625,7 +625,7 @@ class StakingParachainScenarioInteractor(
             validations = listOf(
                 RebondFeeValidation(
                     feeExtractor = { it.fee },
-                    availableBalanceProducer = { it.controllerAsset.transferable },
+                    availableBalanceProducer = { it.controllerAsset.availableForStaking },
                     errorProducer = { RebondValidationFailure.CANNOT_PAY_FEE }
                 ),
                 NotZeroRebondValidation(
@@ -642,7 +642,7 @@ class StakingParachainScenarioInteractor(
             validations = listOf(
                 RedeemFeeValidation(
                     feeExtractor = { it.fee },
-                    availableBalanceProducer = { it.asset.transferable },
+                    availableBalanceProducer = { it.asset.availableForStaking },
                     errorProducer = { RedeemValidationFailure.CANNOT_PAY_FEES }
                 )
             )
