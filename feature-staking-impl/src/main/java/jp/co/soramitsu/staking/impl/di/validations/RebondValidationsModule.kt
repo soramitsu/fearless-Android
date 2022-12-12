@@ -21,7 +21,7 @@ class RebondValidationsModule {
     @Singleton
     fun provideFeeValidation() = RebondFeeValidation(
         feeExtractor = { it.fee },
-        availableBalanceProducer = { it.controllerAsset.transferable },
+        availableBalanceProducer = { it.controllerAsset.availableForStaking },
         errorProducer = { RebondValidationFailure.CANNOT_PAY_FEE }
     )
 

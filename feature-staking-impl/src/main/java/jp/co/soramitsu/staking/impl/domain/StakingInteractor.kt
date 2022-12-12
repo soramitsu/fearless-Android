@@ -115,7 +115,7 @@ class StakingInteractor(
 
         return EnoughToPayFeesValidation(
             feeExtractor = { it.maxFee },
-            availableBalanceProducer = { asset.transferable },
+            availableBalanceProducer = { asset.availableForStaking },
             errorProducer = { SetupStakingValidationFailure.CannotPayFee },
             extraAmountExtractor = { it.bondAmount ?: BigDecimal.ZERO }
         )

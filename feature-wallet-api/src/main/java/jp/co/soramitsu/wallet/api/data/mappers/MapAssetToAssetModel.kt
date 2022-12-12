@@ -11,7 +11,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 fun mapAssetToAssetModel(
     asset: Asset,
     resourceManager: ResourceManager,
-    retrieveAmount: (Asset) -> BigDecimal = Asset::transferable,
+    retrieveAmount: (Asset) -> BigDecimal = Asset::availableForStaking,
     @StringRes patternId: Int? = R.string.common_available_format
 ): AssetModel {
     val amount = retrieveAmount(asset).formatTokenAmount(asset.token.configuration)

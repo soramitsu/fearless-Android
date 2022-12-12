@@ -52,6 +52,7 @@ import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlin.time.ExperimentalTime
 import kotlin.time.milliseconds
@@ -129,7 +130,7 @@ class CrowdloanContributeViewModel @Inject constructor(
         .share()
 
     val assetModelFlow = assetFlow
-        .map { mapAssetToAssetModel(it, resourceManager) }
+        .map { mapAssetToAssetModel(it, resourceManager, Asset::transferable) }
         .inBackground()
         .share()
 
