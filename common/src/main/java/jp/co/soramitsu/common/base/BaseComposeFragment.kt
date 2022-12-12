@@ -24,8 +24,6 @@ import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -36,19 +34,20 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 
 abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
     abstract val viewModel: T
-    private val openAlertDialogMutableState = mutableStateOf(AlertDialogData())
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -62,7 +61,6 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                 FearlessTheme {
                     val scaffoldState = rememberScaffoldState()
                     val scrollState = rememberScrollState()
-                    val openAlertDialog = remember { openAlertDialogMutableState }
 
                     val keyboardController = LocalSoftwareKeyboardController.current
                     fun hideKeyboardAndConfirm(state: ModalBottomSheetValue): Boolean {
@@ -97,8 +95,6 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                                     .padding(padding)
                             ) {
                                 Content(padding, scrollState, modalBottomSheetState)
-
-                                AlertDialogContent(openAlertDialog)
                             }
                         }
                     )
@@ -112,17 +108,17 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
         viewModel.messageLiveData.observeEvent(::showMessage)
         val errorTitle = resources.getString(R.string.common_error_general_title)
         viewModel.errorLiveData.observeEvent {
-            openAlertDialogMutableState.value = AlertDialogData(
-                title = errorTitle,
-                message = it
-            )
+            showErrorDialog(errorTitle, it)
         }
         viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
-            openAlertDialogMutableState.value = AlertDialogData(
-                title = title,
-                message = message
-            )
+            showErrorDialog(title, message)
         }
+    }
+
+    private fun showErrorDialog(title: String, message: String) {
+        val buttonText = requireContext().resources.getString(R.string.common_ok)
+        val payload = AlertViewState(title, message, buttonText, textSize = 13, iconRes = R.drawable.ic_status_warning_16)
+        ErrorDialog(payload).show(childFragmentManager)
     }
 
     protected fun showMessage(text: String) {

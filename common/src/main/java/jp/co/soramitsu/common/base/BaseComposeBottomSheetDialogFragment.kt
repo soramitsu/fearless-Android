@@ -14,8 +14,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -26,19 +24,19 @@ import androidx.lifecycle.LiveData
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.white
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 
 abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : BottomSheetDialogFragment() {
 
     abstract val viewModel: T
-
-    private val openAlertDialogMutableState = mutableStateOf(AlertDialogData())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,8 +54,6 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessTheme {
-                    val openAlertDialog = remember { openAlertDialogMutableState }
-
                     Box(
                         modifier = Modifier
                             .semantics {
@@ -65,8 +61,6 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
                             }
                     ) {
                         Content(PaddingValues())
-
-                        AlertDialogContent(openAlertDialog)
                     }
                 }
             }
@@ -77,17 +71,17 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
         super.onViewCreated(view, savedInstanceState)
         viewModel.messageLiveData.observeEvent(::showMessage)
         viewModel.errorLiveData.observeEvent {
-            openAlertDialogMutableState.value = AlertDialogData(
-                title = resources.getString(R.string.common_error_general_title),
-                message = it
-            )
+            showErrorDialog(resources.getString(R.string.common_error_general_title), it)
         }
         viewModel.errorWithTitleLiveData.observeEvent { (title, message) ->
-            openAlertDialogMutableState.value = AlertDialogData(
-                title = title,
-                message = message
-            )
+            showErrorDialog(title, message)
         }
+    }
+
+    private fun showErrorDialog(title: String, message: String) {
+        val buttonText = requireContext().resources.getString(R.string.common_ok)
+        val payload = AlertViewState(title, message, buttonText, textSize = 13, iconRes = R.drawable.ic_status_warning_16)
+        ErrorDialog(payload).show(childFragmentManager)
     }
 
     protected fun showMessage(text: String) {
