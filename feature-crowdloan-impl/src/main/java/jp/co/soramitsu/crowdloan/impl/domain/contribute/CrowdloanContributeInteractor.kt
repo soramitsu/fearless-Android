@@ -3,14 +3,13 @@ package jp.co.soramitsu.crowdloan.impl.domain.contribute
 import java.io.IOException
 import java.math.BigDecimal
 import java.net.HttpURLConnection
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseException
 import jp.co.soramitsu.common.data.mappers.mapCryptoTypeToEncryption
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
-import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.crowdloan.api.data.repository.CrowdloanRepository
 import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadata
@@ -20,14 +19,15 @@ import jp.co.soramitsu.crowdloan.impl.data.network.api.acala.AcalaApi
 import jp.co.soramitsu.crowdloan.impl.data.network.api.moonbeam.MoonbeamApi
 import jp.co.soramitsu.crowdloan.impl.data.network.blockhain.extrinsic.contribute
 import jp.co.soramitsu.crowdloan.impl.domain.main.Crowdloan
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.repository.ChainStateRepository
+import jp.co.soramitsu.runtime.state.chainAndAsset
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.repository.ChainStateRepository
-import jp.co.soramitsu.runtime.state.chainAndAsset
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -59,6 +59,7 @@ class CrowdloanContributeInteractor(
 
         val expectedBlockTime = chainStateRepository.expectedBlockTimeInMillis(chain.id)
         val blocksPerLeasePeriod = crowdloanRepository.blocksPerLeasePeriod(chain.id)
+        val leaseOffset = crowdloanRepository.leaseOffset(chain.id)
 
         combine(
             crowdloanRepository.fundInfoFlow(chain.id, parachainId),
@@ -75,6 +76,7 @@ class CrowdloanContributeInteractor(
                 currentBlockNumber = blockNumber,
                 expectedBlockTimeInMillis = expectedBlockTime,
                 blocksPerLeasePeriod = blocksPerLeasePeriod,
+                leaseOffset = leaseOffset,
                 contribution = contribution,
                 hasWonAuction = hasWonAuction,
                 minContribution = minContribution
