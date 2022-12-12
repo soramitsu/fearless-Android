@@ -118,22 +118,6 @@
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <action
-        android:id="@+id/createAction"
-        app:destination="@id/createAccountFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
-        android:id="@+id/importAction"
-        app:destination="@id/importAccountFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_mainFragment_to_balanceDetailFragment"
         app:destination="@id/balanceDetailFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -339,44 +323,6 @@
         tools:layout="@layout/fragment_wallet_export" />
 
     <fragment
-        android:id="@+id/createAccountFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountFragment"
-        android:label="fragment_create_account"
-        tools:layout="@layout/fragment_create_account">
-
-        <action
-            android:id="@+id/action_createAccountFragment_to_backupMnemonicFragment"
-            app:destination="@id/backupMnemonicFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
-
-        </action>
-
-    </fragment>
-
-    <fragment
-        android:id="@+id/importAccountFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
-        android:label="fragment_import"
-        tools:layout="@layout/fragment_import_account">
-
-        <action
-            android:id="@+id/action_importAccountFragment_to_pincodeFragment"
-            app:destination="@id/pincodeFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popUpTo="@id/welcomeFragment"
-            app:popUpToInclusive="true">
-
-        </action>
-
-    </fragment>
-
-    <fragment
         android:id="@+id/accountsForExportFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment"
         android:label="AccountsForExportFragment"
@@ -569,7 +515,9 @@
     <dialog
         android:id="@+id/selectWalletFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.SelectWalletFragment"
-        android:label="selectWalletFragment" />
+        android:label="selectWalletFragment" >
+
+    </dialog>
 
     <dialog
         android:id="@+id/networkIssuesFragment"

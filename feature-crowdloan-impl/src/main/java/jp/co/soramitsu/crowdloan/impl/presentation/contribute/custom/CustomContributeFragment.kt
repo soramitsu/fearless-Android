@@ -14,7 +14,6 @@ import coil.load
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
-import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -230,7 +229,13 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
 
     override fun buildErrorDialog(title: String, errorMessage: String): ErrorDialog {
         val buttonText = requireContext().resources.getString(jp.co.soramitsu.common.R.string.common_ok)
-        val payload = AlertViewState(title, errorMessage, buttonText, textSize = 13, iconRes = jp.co.soramitsu.common.R.drawable.ic_status_warning_16)
-        return ErrorDialog(payload = payload, isHideable = false, onDialogDismiss = viewModel::backClicked)
+        return ErrorDialog(
+            title = title,
+            message = errorMessage,
+            positiveButtonText = buttonText,
+            isHideable = false,
+            onBackClick = viewModel::backClicked,
+            positiveClick = viewModel::backClicked
+        )
     }
 }

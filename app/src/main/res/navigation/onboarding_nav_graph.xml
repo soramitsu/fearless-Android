@@ -46,7 +46,8 @@
         android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountFragment"
         android:label="fragment_create_account"
         tools:layout="@layout/fragment_create_account">
-
+        <deepLink
+            app:uri="fearless://onboarding/createAccountFragment" />
         <action
             android:id="@+id/action_createAccountFragment_to_backupMnemonicFragment"
             app:destination="@id/backupMnemonicFragment"
@@ -65,6 +66,13 @@
         android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
         android:label="fragment_import"
         tools:layout="@layout/fragment_import_account">
+
+        <argument
+            android:name="BLOCKCHAIN_TYPE_KEY"
+            android:defaultValue="0"
+            app:argType="integer"/>
+        <deepLink
+            app:uri="fearless://onboarding/importAccountFragment/{BLOCKCHAIN_TYPE_KEY}" />
 
         <action
             android:id="@+id/action_importAccountFragment_to_pincodeFragment"

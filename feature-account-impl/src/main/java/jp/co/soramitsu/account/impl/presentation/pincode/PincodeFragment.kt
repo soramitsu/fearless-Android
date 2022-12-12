@@ -10,7 +10,6 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.io.MainThreadExecutor
@@ -18,6 +17,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentPincodeBinding
 import jp.co.soramitsu.account.impl.presentation.pincode.fingerprint.FingerprintCallback
 import jp.co.soramitsu.account.impl.presentation.pincode.fingerprint.FingerprintWrapper
+import jp.co.soramitsu.common.presentation.ErrorDialog
 
 @AndroidEntryPoint
 class PincodeFragment : BaseFragment<PinCodeViewModel>() {
@@ -109,17 +109,16 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     }
 
     private fun showAuthWithBiometryDialog() {
-        MaterialAlertDialogBuilder(requireActivity(), R.style.AlertDialogTheme)
-            .setTitle(R.string.pincode_biometry_dialog_title)
-            .setMessage(R.string.pincode_fingerprint_switch_dialog_title)
-            .setCancelable(false)
-            .setPositiveButton(R.string.common_use) { _, _ ->
-                viewModel.acceptAuthWithBiometry()
-            }
-            .setNegativeButton(R.string.common_skip) { _, _ ->
-                viewModel.declineAuthWithBiometry()
-            }
-            .show()
+        val res = requireContext().resources
+        ErrorDialog(
+            isHideable = false,
+            title = res.getString(jp.co.soramitsu.common.R.string.pincode_biometry_dialog_title),
+            message = res.getString(jp.co.soramitsu.common.R.string.pincode_fingerprint_switch_dialog_title),
+            positiveButtonText = res.getString(jp.co.soramitsu.common.R.string.common_use),
+            negativeButtonText = res.getString(jp.co.soramitsu.common.R.string.common_skip),
+            positiveClick = { viewModel.acceptAuthWithBiometry() },
+            negativeClick = { viewModel.declineAuthWithBiometry() }
+        ).show(childFragmentManager)
     }
 
     override fun onPause() {

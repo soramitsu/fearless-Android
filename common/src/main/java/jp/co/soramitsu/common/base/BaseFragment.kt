@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
-import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
@@ -63,8 +62,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
 
     protected open fun buildErrorDialog(title: String, errorMessage: String): ErrorDialog {
         val buttonText = requireContext().resources.getString(R.string.common_ok)
-        val payload = AlertViewState(title, errorMessage, buttonText, textSize = 13, iconRes = R.drawable.ic_status_warning_16)
-        return ErrorDialog(payload)
+        return ErrorDialog(title = title, message = errorMessage, positiveButtonText = buttonText)
     }
 
     protected fun showMessage(text: String) {

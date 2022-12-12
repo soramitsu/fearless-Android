@@ -81,11 +81,11 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     fun addNewWallet() {
-        router.openCreateAccount()
+        router.openCreateAccountFromWallet()
     }
 
     fun importWallet() {
-        router.openImportAccountScreen(SUBSTRATE_BLOCKCHAIN_TYPE)
+        router.openImportAccountScreenFromWallet(SUBSTRATE_BLOCKCHAIN_TYPE)
     }
 
     fun onBackClicked() {

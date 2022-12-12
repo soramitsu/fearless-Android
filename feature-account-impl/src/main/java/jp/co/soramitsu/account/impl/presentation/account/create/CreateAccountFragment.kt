@@ -2,15 +2,15 @@ package jp.co.soramitsu.account.impl.presentation.account.create
 
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.hideSoftKeyboard
 import jp.co.soramitsu.common.utils.nameInputFilters
 import jp.co.soramitsu.common.utils.onTextChanged
 import jp.co.soramitsu.common.utils.showSoftKeyboard
 import jp.co.soramitsu.common.view.viewBinding
-import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentCreateAccountBinding
 
@@ -56,13 +56,12 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.frag
     }
 
     private fun showScreenshotWarningDialog() {
-        MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
-            .setTitle(R.string.common_no_screenshot_title)
-            .setMessage(R.string.common_no_screenshot_message)
-            .setPositiveButton(R.string.common_ok) { dialog, _ ->
-                dialog?.dismiss()
-                viewModel.screenshotWarningConfirmed(binding.accountNameInput.content.text.toString())
-            }
-            .show()
+        val res = requireContext()
+        ErrorDialog(
+            title = res.getString(jp.co.soramitsu.common.R.string.common_no_screenshot_title),
+            message = res.getString(jp.co.soramitsu.common.R.string.common_no_screenshot_message),
+            positiveButtonText = res.getString(jp.co.soramitsu.common.R.string.common_ok),
+            positiveClick = { viewModel.screenshotWarningConfirmed(binding.accountNameInput.content.text.toString()) }
+        ).show(childFragmentManager)
     }
 }

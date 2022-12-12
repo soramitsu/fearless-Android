@@ -8,14 +8,14 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import jp.co.soramitsu.account.impl.presentation.node.model.NodeModel
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentNodesBinding
-import jp.co.soramitsu.account.impl.presentation.node.model.NodeModel
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandler {
@@ -99,14 +99,13 @@ class NodesFragment : BaseFragment<NodesViewModel>(), NodesAdapter.NodeItemHandl
     }
 
     private fun showDeleteNodeDialog(nodeModel: NodeModel) {
-        MaterialAlertDialogBuilder(requireContext(), R.style.AlertDialogTheme)
-            .setTitle(R.string.delete_custom_node_title)
-            .setMessage(nodeModel.name)
-            .setPositiveButton(R.string.connection_delete_confirm) { dialog, _ ->
-                viewModel.confirmNodeDeletion(nodeModel)
-                dialog?.dismiss()
-            }
-            .setNegativeButton(R.string.common_cancel) { dialog, _ -> dialog?.dismiss() }
-            .show()
+        val res = requireContext()
+        ErrorDialog(
+            title = res.getString(jp.co.soramitsu.common.R.string.delete_custom_node_title),
+            message = nodeModel.name,
+            positiveButtonText = res.getString(R.string.connection_delete_confirm),
+            negativeButtonText = res.getString(R.string.common_cancel),
+            positiveClick = { viewModel.confirmNodeDeletion(nodeModel) }
+        ).show(childFragmentManager)
     }
 }

@@ -3,11 +3,9 @@ package jp.co.soramitsu.account.impl.presentation.importing
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.DigitsKeyListener
-import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,6 +26,7 @@ import jp.co.soramitsu.account.impl.presentation.mnemonic.backup.EthereumDerivat
 import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -207,12 +206,15 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private fun showEthDialog() {
-        AlertDialog.Builder(ContextThemeWrapper(context, jp.co.soramitsu.common.R.style.WhiteOverlay))
-            .setTitle(R.string.alert_add_ethereum_title)
-            .setMessage(R.string.alert_add_ethereum_message)
-            .setPositiveButton(R.string.common_yes) { _, _ -> viewModel.onAddEthAccountConfirmed() }
-            .setNegativeButton(R.string.common_no) { _, _ -> viewModel.onAddEthAccountDeclined() }
-            .create()
-            .show()
+        val res = requireContext().resources
+        ErrorDialog(
+            isHideable = false,
+            title = res.getString(jp.co.soramitsu.common.R.string.alert_add_ethereum_title),
+            message = res.getString(jp.co.soramitsu.common.R.string.alert_add_ethereum_message),
+            positiveButtonText = res.getString(jp.co.soramitsu.common.R.string.common_yes),
+            negativeButtonText = res.getString(jp.co.soramitsu.common.R.string.common_no),
+            positiveClick = { viewModel.onAddEthAccountConfirmed() },
+            negativeClick = { viewModel.onAddEthAccountDeclined() }
+        ).show(childFragmentManager)
     }
 }
