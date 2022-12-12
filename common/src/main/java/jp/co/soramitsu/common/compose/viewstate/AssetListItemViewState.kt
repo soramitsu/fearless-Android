@@ -17,4 +17,6 @@ data class AssetListItemViewState(
     val hasAccount: Boolean,
     val priceId: String?,
     val hasNetworkIssue: Boolean
-)
+) {
+    val key = listOf(chainAssetId, chainId).joinToString()
+}

@@ -156,7 +156,7 @@ class Navigator :
     }
 
     override fun openCreateAccount() {
-        navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
+        navController?.navigate(R.id.createAction)
     }
 
     override fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload) {

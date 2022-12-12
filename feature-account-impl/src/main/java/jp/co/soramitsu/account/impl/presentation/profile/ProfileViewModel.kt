@@ -6,6 +6,14 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
+import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLanguageModel
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
@@ -16,23 +24,19 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.GetTotalBalanceUseCase
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
-import jp.co.soramitsu.account.impl.presentation.language.mapper.mapLanguageToLanguageModel
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val AVATAR_SIZE_DP = 32
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val interactor: AccountInteractor,
+    private val walletInteractor: WalletInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -103,4 +107,8 @@ class ProfileViewModel @Inject constructor(
             selectedFiat.set(item.id)
         }
     }
+
+    val hasMissingAccountsFlow = walletInteractor.assetsFlow().map {
+        it.any { it.hasAccount.not() }
+    }.stateIn(this, SharingStarted.Eagerly, false)
 }

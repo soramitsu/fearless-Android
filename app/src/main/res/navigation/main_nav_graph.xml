@@ -118,6 +118,14 @@
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <action
+        android:id="@+id/createAction"
+        app:destination="@id/createAccountFragment"
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+    <action
         android:id="@+id/importAction"
         app:destination="@id/importAccountFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -331,6 +339,24 @@
         tools:layout="@layout/fragment_wallet_export" />
 
     <fragment
+        android:id="@+id/createAccountFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.account.create.CreateAccountFragment"
+        android:label="fragment_create_account"
+        tools:layout="@layout/fragment_create_account">
+
+        <action
+            android:id="@+id/action_createAccountFragment_to_backupMnemonicFragment"
+            app:destination="@id/backupMnemonicFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation">
+
+        </action>
+
+    </fragment>
+
+    <fragment
         android:id="@+id/importAccountFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
         android:label="fragment_import"
@@ -384,12 +410,6 @@
         android:id="@+id/balanceDetailFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment"
         android:label="BalanceDetailFragment" />
-
-    <fragment
-        android:id="@+id/manageAssetsFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.manageAssets.ManageAssetsFragment"
-        android:label="ManageAssetsFragment"
-        tools:layout="@layout/fragment_manage_assets" />
 
     <fragment
         android:id="@+id/transferDetailFragment"

@@ -52,7 +52,6 @@ fun AboutScreenContent(items: List<AboutItemListModel>, backClick: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
         ) {
             item {
                 MarginVertical(margin = 72.dp)
@@ -69,6 +68,9 @@ fun AboutScreenContent(items: List<AboutItemListModel>, backClick: () -> Unit) {
                     is AboutItemModel -> AboutScreenItem(it)
                     is AboutSectionModel -> AboutScreenSectionItem(it)
                 }
+            }
+            item {
+                MarginVertical(margin = 16.dp)
             }
         }
         Box(

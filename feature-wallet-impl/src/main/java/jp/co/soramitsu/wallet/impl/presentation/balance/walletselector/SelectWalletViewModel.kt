@@ -81,7 +81,7 @@ class SelectWalletViewModel @Inject constructor(
     }
 
     fun addNewWallet() {
-        router.openAddAccount()
+        router.openCreateAccount()
     }
 
     fun importWallet() {
