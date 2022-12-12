@@ -3,15 +3,17 @@ package jp.co.soramitsu.staking.impl.presentation.collators.change.custom.select
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.LiveData
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
@@ -79,7 +81,21 @@ class SelectCustomCollatorsFragment : BaseFragment<SelectCustomCollatorsViewMode
     }
 
     override fun subscribe(viewModel: SelectCustomCollatorsViewModel) {
-        viewModel.collatorModelsFlow.observe(adapter::submitList)
+        viewModel.collatorModelsFlow.observe {
+            when (it) {
+                is LoadingState.Loaded -> {
+                    binding.recommendedValidatorsProgress.setVisible(false)
+                    binding.selectCustomValidatorsList.setVisible(true)
+                    binding.selectCustomValidatorsNext.setVisible(true)
+                    adapter.submitList(it.data)
+                }
+                is LoadingState.Loading -> {
+                    binding.recommendedValidatorsProgress.setVisible(true)
+                    binding.selectCustomValidatorsList.setVisible(false)
+                    binding.selectCustomValidatorsNext.setVisible(false)
+                }
+            }
+        }
 
         viewModel.selectedTitle.observe(binding.selectCustomValidatorsCount::setText)
 
