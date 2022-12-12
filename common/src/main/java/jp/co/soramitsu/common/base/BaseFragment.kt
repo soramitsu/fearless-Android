@@ -1,17 +1,17 @@
 package jp.co.soramitsu.common.base
 
 import android.os.Bundle
-import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
@@ -54,19 +54,17 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
 
     protected fun showError(errorMessage: String) {
         buildErrorDialog(getString(R.string.common_error_general_title), errorMessage)
-            .show()
+            .show(childFragmentManager)
     }
 
-    protected fun showErrorWithTitle(title: String, errorMessage: String) {
-        buildErrorDialog(title, errorMessage).show()
+    private fun showErrorWithTitle(title: String, errorMessage: String) {
+        buildErrorDialog(title, errorMessage).show(childFragmentManager)
     }
 
-    protected open fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
-        return AlertDialog.Builder(ContextThemeWrapper(context, R.style.WhiteOverlay))
-            .setTitle(title)
-            .setMessage(errorMessage)
-            .setPositiveButton(R.string.common_ok) { _, _ -> }
-            .create()
+    protected open fun buildErrorDialog(title: String, errorMessage: String): ErrorDialog {
+        val buttonText = requireContext().resources.getString(R.string.common_ok)
+        val payload = AlertViewState(title, errorMessage, buttonText, textSize = 13, iconRes = R.drawable.ic_status_warning_16)
+        return ErrorDialog(payload)
     }
 
     protected fun showMessage(text: String) {

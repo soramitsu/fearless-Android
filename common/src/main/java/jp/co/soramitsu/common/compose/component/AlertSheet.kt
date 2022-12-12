@@ -1,4 +1,4 @@
-package jp.co.soramitsu.app.root.presentation
+package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -21,13 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.R
-import jp.co.soramitsu.common.compose.component.AccentButton
-import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.compose.component.GradientIcon
-import jp.co.soramitsu.common.compose.component.Grip
-import jp.co.soramitsu.common.compose.component.H3
-import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2
