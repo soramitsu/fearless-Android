@@ -21,7 +21,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
-import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -207,12 +206,6 @@ class WalletInteractorImpl(
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
         val accountId = metaAccount.accountId(chain)!!
 
-        val validityStatus = walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer)
-
-        if (validityStatus.level > maxAllowedLevel) {
-            return Result.failure(NotValidTransferStatus(validityStatus))
-        }
-
         return runCatching {
             walletRepository.performTransfer(accountId, chain, transfer, fee, tipInPlanks)
         }
@@ -238,10 +231,10 @@ class WalletInteractorImpl(
         val name = metaAccount.name
         val currencyId = asset?.currencyId
 
-        if (address != null && pubKey != null && currencyId != null) {
-            return "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId"
+        return if (address != null && pubKey != null && currencyId != null) {
+            "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId"
         } else {
-            throw IllegalArgumentException("There is no address for Etherium")
+            address ?: throw IllegalArgumentException("There is no address found to getQrCodeSharingSoraString")
         }
     }
 

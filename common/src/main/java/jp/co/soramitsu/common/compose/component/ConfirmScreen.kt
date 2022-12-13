@@ -73,7 +73,7 @@ fun ConfirmScreen(state: ConfirmScreenViewState, onNavigationClick: () -> Unit, 
                     .height(48.dp),
                 onClick = onConfirm
             )
-            MarginVertical(margin = 16.dp)
+            MarginVertical(margin = 24.dp)
         }
     }
 }

@@ -1,11 +1,13 @@
 package jp.co.soramitsu.wallet.impl.domain.model
 
+@Deprecated("Dont use this validation. Use TransferValidationUseCase instead")
 interface TransferValidityStatus {
     val level: TransferValidityLevel
 }
 
 abstract class BaseStatus(override val level: TransferValidityLevel) : TransferValidityStatus
 
+@Deprecated("Dont use this validation. Use TransferValidationUseCase instead")
 sealed class TransferValidityLevel(private val level: Int) {
     operator fun compareTo(other: TransferValidityLevel): Int {
         return level - other.level

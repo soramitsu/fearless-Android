@@ -2,11 +2,29 @@ package jp.co.soramitsu.common.validation
 
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.errors.ValidationException
+import jp.co.soramitsu.common.base.errors.ValidationWarning
 import jp.co.soramitsu.common.resources.ResourceManager
 
 class StakeInsufficientBalanceException(resourceManager: ResourceManager) : ValidationException(
     resourceManager.getString(R.string.common_not_enough_funds_title),
     resourceManager.getString(R.string.staking_setup_too_big_error)
+)
+
+class SpendInsufficientBalanceException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.common_not_enough_funds_title),
+    resourceManager.getString(R.string.choose_amount_error_too_big)
+)
+
+class ExistentialDepositCrossedException(resourceManager: ResourceManager) : ValidationWarning(
+    resourceManager.getString(R.string.common_existential_warning_title),
+    resourceManager.getString(R.string.common_existential_warning_message),
+    resourceManager.getString(R.string.common_proceed),
+    resourceManager.getString(R.string.common_cancel)
+)
+
+class DeadRecipientException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.common_amount_low),
+    resourceManager.getString(R.string.wallet_send_dead_recipient_message)
 )
 
 class InsufficientStakeBalanceException(resourceManager: ResourceManager) : ValidationException(

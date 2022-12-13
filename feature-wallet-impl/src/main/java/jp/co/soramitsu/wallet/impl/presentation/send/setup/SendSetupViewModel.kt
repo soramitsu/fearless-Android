@@ -12,6 +12,8 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.ValidationException
+import jp.co.soramitsu.common.base.errors.ValidationWarning
 import jp.co.soramitsu.common.compose.component.AddressInputState
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
@@ -27,12 +29,13 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
-import jp.co.soramitsu.common.validation.TransferAddressNotValidException
+import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.wallet.api.presentation.Validation
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
+import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
+import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
@@ -76,11 +79,15 @@ class SendSetupViewModel @Inject constructor(
     private val router: WalletRouter,
     private val clipboardManager: ClipboardManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val currentAccountAddress: CurrentAccountAddressUseCase
+    private val currentAccountAddress: CurrentAccountAddressUseCase,
+    private val validateTransferUseCase: ValidateTransferUseCase
 ) : BaseViewModel(), SendSetupScreenInterface {
 
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
     val openScannerEvent: LiveData<Event<Unit>> = _openScannerEvent
+
+    private val _openValidationWarningEvent = MutableLiveData<Event<ValidationWarning>>()
+    val openValidationWarningEvent: LiveData<Event<ValidationWarning>> = _openValidationWarningEvent
 
     val payload: AssetPayload? = savedStateHandle[SendSetupFragment.KEY_PAYLOAD]
     private val initSendToAddress: String? = savedStateHandle[SendSetupFragment.KEY_INITIAL_ADDRESS]
@@ -225,6 +232,12 @@ class SendSetupViewModel @Inject constructor(
             emit(null)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val feeInPlanksFlow = combine(feeAmountFlow, assetFlow) { fee, asset ->
+        fee ?: return@combine null
+        asset ?: return@combine null
+        asset.token.planksFromAmount(fee)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val utilityAssetFlow = assetFlow.mapNotNull { it }.flatMapLatest { asset ->
         val chain = walletInteractor.getChain(asset.token.configuration.chainId)
@@ -371,40 +384,34 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onNextClick() {
         viewModelScope.launch {
+            val asset = assetFlow.value ?: return@launch
+
             val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
-            isValid(amount).fold({
-                onNextStep()
-            }, {
+            val inPlanks = asset.token.planksFromAmount(amount).orZero()
+            val recipientAddress = addressInputFlow.value
+            val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
+            val fee = feeInPlanksFlow.value
+            val validationProcessResult = validateTransferUseCase(inPlanks, asset, recipientAddress, selfAddress, fee)
+
+            // error occured inside validation
+            validationProcessResult.exceptionOrNull()?.let {
                 showError(it)
-            })
+                return@launch
+            }
+            val validationResult = validationProcessResult.requireValue()
+
+            ValidationException.fromValidationResult(validationResult, resourceManager)?.let {
+                if (it is ValidationWarning) {
+                    _openValidationWarningEvent.value = Event(it)
+                } else {
+                    showError(it)
+                }
+                return@launch
+            }
+            // all checks have passed - go to next step
+
+            onNextStep()
         }
-    }
-
-    private val validations = listOf(
-        Validation(
-            condition = {
-                isInputAddressValidFlow.value
-            },
-            error = TransferAddressNotValidException(resourceManager)
-        ),
-        Validation(
-            condition = {
-                val asset = assetFlow.value
-                val transferableInPlanks = asset?.token?.planksFromAmount(asset.transferable).orZero()
-                it < transferableInPlanks
-            },
-            error = StakeInsufficientBalanceException(resourceManager)
-        )
-    )
-
-    private suspend fun isValid(amount: BigDecimal): Result<Any> {
-        val amountInPlanks = assetFlow.value?.token?.planksFromAmount(amount).orZero()
-        val allValidations = validations
-        val firstError = allValidations.firstNotNullOfOrNull {
-            if (it.condition(amountInPlanks)) null else it.error
-        }
-
-        return firstError?.let { Result.failure(it) } ?: Result.success(Unit)
     }
 
     private fun onNextStep() {
@@ -511,8 +518,8 @@ class SendSetupViewModel @Inject constructor(
                 val fee = walletInteractor.getTransferFee(transfer)
 
                 val utilityFeeReserve = when {
-                    asset.token.configuration.isUtility -> fee.feeAmount
-                    else -> BigDecimal.ZERO
+                    asset.token.configuration.type == ChainAssetType.SoraAsset -> BigDecimal.ZERO
+                    else -> fee.feeAmount
                 }
                 val quickAmountWithoutExtraPays = amountToTransfer - utilityFeeReserve
 
@@ -528,5 +535,9 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onWarningInfoClick() {
         isWarningExpanded.value = !isWarningExpanded.value
+    }
+
+    fun existentialDepositWarningConfirmed() {
+        onNextStep()
     }
 }
