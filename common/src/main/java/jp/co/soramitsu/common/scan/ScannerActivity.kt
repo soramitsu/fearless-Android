@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.KeyEvent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -58,9 +57,6 @@ class ScannerActivity : AppCompatActivity() {
         binding.uploadFromGallery.setOnClickListener {
             selectQrFromGallery()
         }
-        binding.uploadFromAlternate.setOnClickListener {
-            selectQrFromGalleryAlternate()
-        }
         viewModel.scanResultEvent.observeEvent {
             onScanResult(it)
         }
@@ -76,11 +72,6 @@ class ScannerActivity : AppCompatActivity() {
             type = QR_CODE_IMAGE_TYPE
             action = Intent.ACTION_GET_CONTENT
         }
-        startForResultFromGallery.launch(intent)
-    }
-
-    private fun selectQrFromGalleryAlternate() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startForResultFromGallery.launch(intent)
     }
 
