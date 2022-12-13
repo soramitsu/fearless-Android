@@ -16,6 +16,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
@@ -57,6 +58,16 @@ class SendSetupFragment : BaseComposeBottomSheetDialogFragment<SendSetupViewMode
         super.onViewCreated(view, savedInstanceState)
         viewModel.openScannerEvent.observeEvent {
             requestCameraPermission()
+        }
+        viewModel.openValidationWarningEvent.observeEvent {
+            ErrorDialog(
+                title = it.message,
+                message = it.explanation,
+                positiveButtonText = it.positiveButtonText,
+                negativeButtonText = it.negativeButtonText,
+                positiveClick = viewModel::existentialDepositWarningConfirmed,
+                isHideable = false
+            ).show(childFragmentManager)
         }
     }
 

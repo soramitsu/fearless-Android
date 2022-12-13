@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.utils.QrBitmapDecoder
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -33,6 +34,7 @@ import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
+import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecksProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
@@ -50,6 +52,7 @@ import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.wallet.impl.domain.implementations.ExistentialDepositUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
@@ -61,7 +64,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
-import jp.co.soramitsu.common.utils.QrBitmapDecoder
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 
 @InstallIn(SingletonComponent::class)
@@ -180,6 +182,21 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         rpcCalls: RpcCalls
     ): ExistentialDepositUseCase = ExistentialDepositUseCaseImpl(chainRegistry, rpcCalls)
+
+    @Provides
+    fun provideValidateTransferUseCase(
+        existentialDepositUseCase: ExistentialDepositUseCase,
+        walletConstants: WalletConstants,
+        chainRegistry: ChainRegistry,
+        walletInteractor: WalletInteractor,
+        substrateSource: SubstrateRemoteSource
+    ): ValidateTransferUseCase = ValidateTransferUseCaseImpl(
+        existentialDepositUseCase,
+        walletConstants,
+        chainRegistry,
+        walletInteractor,
+        substrateSource
+    )
 
     @Provides
     fun provideChainInteractor(
