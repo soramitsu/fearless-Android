@@ -45,7 +45,7 @@ fun AssetListItem(
     modifier: Modifier = Modifier,
     onClick: (AssetListItemViewState) -> Unit
 ) {
-    val hasIssues = !state.hasAccount
+    val hasIssues = !state.hasAccount || state.hasNetworkIssue
     val onClickHandler = remember { { onClick(state) } }
     BackgroundCornered(
         modifier = modifier
