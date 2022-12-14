@@ -71,8 +71,7 @@ fun AmountInput(
     }
 
     BackgroundCorneredWithBorder(
-        modifier = modifier
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         backgroundColor = backgroundColor,
         borderColor = borderColorState
     ) {
@@ -82,8 +81,7 @@ fun AmountInput(
                 .padding(12.dp)
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 val title = state.title ?: stringResource(id = R.string.common_amount)
                 H5(text = title, modifier = Modifier.weight(1f), color = black2)
@@ -96,9 +94,7 @@ fun AmountInput(
                 modifier = if (state.allowAssetChoose) {
                     Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            onTokenClick()
-                        }
+                        .clickable(onClick = onTokenClick)
                 } else {
                     Modifier.fillMaxWidth()
                 }

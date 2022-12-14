@@ -35,7 +35,9 @@ fun AssetBalance(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        ChangeBalance(state.changeViewState)
+        if (state.changeViewState.fiatChange.isNotEmpty()) {
+            ChangeBalance(state.changeViewState)
+        }
         Row(
             verticalAlignment = CenterVertically,
             modifier = Modifier
