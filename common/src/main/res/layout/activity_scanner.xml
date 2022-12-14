@@ -101,24 +101,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/upload_from_alternate"
-        style="@style/TextAppearance.Soramitsu.Header5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/bg_rounded_button"
-        android:fontFeatureSettings="tnum, lnum"
-        android:gravity="center_horizontal|center_vertical"
-        android:includeFontPadding="false"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="11dp"
-        android:text="Alternate\nchooser"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/upload_from_gallery" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
