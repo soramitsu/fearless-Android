@@ -512,7 +512,7 @@ class SendSetupViewModel @Inject constructor(
 
                 val transfer = Transfer(
                     recipient = selfAddress,
-                    amount = input.toBigDecimal(),
+                    amount = amountToTransfer,
                     chainAsset = asset.token.configuration
                 )
                 val fee = walletInteractor.getTransferFee(transfer)

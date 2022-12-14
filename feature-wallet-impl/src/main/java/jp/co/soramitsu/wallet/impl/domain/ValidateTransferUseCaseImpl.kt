@@ -66,9 +66,10 @@ class ValidateTransferUseCaseImpl(
                 else -> TransferValidationResult.Valid
             }
         } else {
+            val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
             when {
                 amountInPlanks + fee + tip > transferable -> TransferValidationResult.InsufficientBalance
-                transferable - (amountInPlanks + fee + tip) < assetExistentialDeposit -> TransferValidationResult.ExistentialDepositWarning
+                resultedBalance < assetExistentialDeposit -> TransferValidationResult.ExistentialDepositWarning
                 totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit -> TransferValidationResult.DeadRecipient
                 else -> TransferValidationResult.Valid
             }
