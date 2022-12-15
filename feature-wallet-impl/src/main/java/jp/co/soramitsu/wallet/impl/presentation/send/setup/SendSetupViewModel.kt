@@ -33,7 +33,6 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.ext.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -519,7 +518,6 @@ class SendSetupViewModel @Inject constructor(
             )
 
             val utilityFeeReserve = when {
-                asset.token.configuration.type == ChainAssetType.SoraAsset -> BigDecimal.ZERO
                 asset.token.configuration.isUtility.not() -> BigDecimal.ZERO
                 else -> walletInteractor.getTransferFee(transfer).feeAmount
             }
