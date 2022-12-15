@@ -502,7 +502,7 @@ class SendSetupViewModel @Inject constructor(
             val asset = assetFlow.firstOrNull() ?: return@launch
             val tip = tipFlow.firstOrNull()
             val tipAmount = utilityAsset.token.amountFromPlanks(tip.orZero())
-            
+
             val utilityTipReserve = when {
                 asset.token.configuration.isUtility -> tipAmount
                 else -> BigDecimal.ZERO
