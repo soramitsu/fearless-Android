@@ -29,38 +29,11 @@
         android:includeFontPadding="false"
         android:lines="1"
         app:layout_constrainedWidth="true"
-        app:layout_constraintEnd_toStartOf="@+id/manageAssetsBadge"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toEndOf="@+id/manageAssetsItemIcon"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Kusama" />
-
-    <jp.co.soramitsu.common.view.BadgeView
-        android:id="@+id/manageAssetsBadge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        app:layout_constrainedWidth="true"
-        app:layout_constraintBottom_toBottomOf="@+id/manageAssetsItemName"
-        app:layout_constraintEnd_toStartOf="@+id/testnetBadge"
-        app:layout_constraintStart_toEndOf="@+id/manageAssetsItemName"
-        app:layout_constraintTop_toTopOf="@+id/manageAssetsItemName"
-        tools:iconRes="@drawable/ic_plus_circle"
-        tools:text="Kusama" />
-
-    <jp.co.soramitsu.common.view.BadgeView
-        android:id="@+id/testnetBadge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:layout_marginEnd="16dp"
-        app:iconRes="@drawable/ic_token_testnet"
-        app:layout_constraintBottom_toBottomOf="@+id/manageAssetsItemName"
-        app:layout_constraintEnd_toStartOf="@+id/manageAssetsItemSwitch"
-        app:layout_constraintStart_toEndOf="@+id/manageAssetsBadge"
-        app:layout_constraintTop_toTopOf="@+id/manageAssetsItemName"
-        app:text="@string/label_testnet" />
 
     <TextView
         android:id="@+id/manageAssetsItemAmount"

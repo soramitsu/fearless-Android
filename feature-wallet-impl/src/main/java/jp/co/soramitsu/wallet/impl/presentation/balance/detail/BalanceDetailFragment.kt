@@ -12,7 +12,6 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -34,7 +33,6 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.setupBuyIntegration
-import kotlinx.coroutines.launch
 
 const val KEY_ASSET_PAYLOAD = "KEY_ASSET_PAYLOAD"
 
@@ -88,14 +86,13 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
     @Composable
     override fun Toolbar(modalBottomSheetState: ModalBottomSheetState) {
         val toolbarState by viewModel.toolbarState.collectAsState()
-        val coroutineScope = rememberCoroutineScope()
 
         when (toolbarState) {
             is LoadingState.Loading<MainToolbarViewState> -> {
                 MainToolbarShimmer(
-                    homeIconState = ToolbarHomeIconState(navigationIcon = jp.co.soramitsu.common.R.drawable.ic_arrow_back_24dp),
+                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
                     menuItems = listOf(
-                        MenuIconItem(icon = jp.co.soramitsu.common.R.drawable.ic_dots_horizontal_24, {})
+                        MenuIconItem(icon = R.drawable.ic_dots_horizontal_24, {})
                     )
                 )
             }
@@ -104,18 +101,12 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
                     menuItems = listOf(
                         MenuIconItem(
-                            icon = jp.co.soramitsu.common.R.drawable.ic_dots_horizontal_24,
-                            viewModel::accountOptionsClicked
+                            icon = R.drawable.ic_dots_horizontal_24,
+                            onClick = viewModel::accountOptionsClicked
                         )
                     ),
-                    onChangeChainClick = {
-                        coroutineScope.launch {
-                            modalBottomSheetState.show()
-                        }
-                    },
-                    onNavigationClick = {
-                        viewModel.backClicked()
-                    }
+                    onChangeChainClick = viewModel::openSelectChain,
+                    onNavigationClick = viewModel::backClicked
                 )
             }
         }
@@ -124,7 +115,14 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
-        BalanceDetailsScreen(viewModel, modalBottomSheetState)
+        val state by viewModel.state.collectAsState()
+        val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+        BalanceDetailsScreen(
+            state = state,
+            isRefreshing = isRefreshing,
+            callback = viewModel
+        )
     }
 
     @Composable

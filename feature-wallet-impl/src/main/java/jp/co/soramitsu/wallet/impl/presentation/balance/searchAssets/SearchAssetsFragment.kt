@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -43,7 +45,12 @@ class SearchAssetsFragment : BaseComposeFragment<SearchAssetsViewModel>() {
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
-        SearchAssetsScreen(viewModel)
+        val state by viewModel.state.collectAsState()
+
+        SearchAssetsScreen(
+            data = state,
+            callback = viewModel
+        )
     }
 
     @Composable

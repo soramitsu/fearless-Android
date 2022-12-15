@@ -3,6 +3,8 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
+import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
+import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
@@ -23,7 +25,9 @@ class StakingScenario(
     private val resourceManager: ResourceManager,
     private val alertsInteractor: AlertsInteractor,
     private val stakingViewStateFactory: StakingViewStateFactory,
-    private val stakingPoolInteractor: StakingPoolInteractor
+    private val stakingPoolInteractor: StakingPoolInteractor,
+    private val stakingParachainStoriesDataSourceImpl: ParachainStakingStoriesDataSourceImpl,
+    private val stakingStoriesDataSourceImpl: StakingStoriesDataSourceImpl
 ) {
 
     private val parachainViewModel by lazy {
@@ -32,7 +36,8 @@ class StakingScenario(
             parachainInteractor,
             resourceManager,
             baseViewModel,
-            stakingViewStateFactory
+            stakingViewStateFactory,
+            stakingParachainStoriesDataSourceImpl
         )
     }
     private val relaychainViewModel by lazy {
@@ -43,6 +48,7 @@ class StakingScenario(
             baseViewModel,
             alertsInteractor,
             stakingViewStateFactory,
+            stakingStoriesDataSourceImpl,
             state
         )
     }

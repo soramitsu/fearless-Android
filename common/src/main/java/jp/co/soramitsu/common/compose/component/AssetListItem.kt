@@ -17,6 +17,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -44,12 +45,12 @@ fun AssetListItem(
     modifier: Modifier = Modifier,
     onClick: (AssetListItemViewState) -> Unit
 ) {
-    val hasIssues = !state.hasAccount
-
+    val hasIssues = !state.hasAccount || state.hasNetworkIssue
+    val onClickHandler = remember { { onClick(state) } }
     BackgroundCornered(
         modifier = modifier
             .testTag("AssetListItem_${state.assetSymbol}_${state.assetChainName}")
-            .clickable { onClick(state) }
+            .clickable(onClick = onClickHandler)
     ) {
         val assetRateColor = if (state.assetTokenRate.orEmpty().startsWith("+")) {
             MaterialTheme.customColors.greenText
@@ -153,14 +154,20 @@ fun AssetListItem(
                     } else {
                         Box(modifier = Modifier.height(16.dp))
                     }
-                    Text(
-                        text = state.assetBalance,
-                        style = MaterialTheme.customTypography.header3,
-                        modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .padding(start = 4.dp)
+                    state.assetBalance?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.customTypography.header3,
+                            modifier = Modifier
+                                .padding(vertical = 4.dp)
+                                .padding(start = 4.dp)
+                                .align(Alignment.End)
+                                .testTag("AssetListItem_${state.assetSymbol}_balance")
+                        )
+                    } ?: Shimmer(
+                        Modifier
+                            .size(height = 16.dp, width = 54.dp)
                             .align(Alignment.End)
-                            .testTag("AssetListItem_${state.assetSymbol}_balance")
                     )
                     Text(
                         text = state.assetBalanceFiat.orEmpty(),

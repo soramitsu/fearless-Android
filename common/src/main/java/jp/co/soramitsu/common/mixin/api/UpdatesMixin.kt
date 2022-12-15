@@ -1,17 +1,17 @@
 package jp.co.soramitsu.common.mixin.api
 
-import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import kotlinx.coroutines.flow.Flow
 
 interface UpdatesMixin : UpdatesProviderUi
 
 interface UpdatesProviderUi {
-    val tokenRatesUpdate: LiveData<Set<String>>
+    val tokenRatesUpdate: Flow<Set<String>>
 
-    val assetsUpdate: LiveData<Set<AssetKey>>
+    val assetsUpdate: Flow<Set<AssetKey>>
 
-    val chainsUpdate: LiveData<Set<String>>
+    val chainsUpdate: Flow<Set<String>>
 
     suspend fun startUpdateToken(priceId: String)
 

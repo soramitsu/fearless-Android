@@ -2,7 +2,7 @@ package jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.bifrost
 
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.referral.ReferralCodePayload
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
 val BIFROST_BONUS_MULTIPLIER = 0.05.toBigDecimal() // 5%

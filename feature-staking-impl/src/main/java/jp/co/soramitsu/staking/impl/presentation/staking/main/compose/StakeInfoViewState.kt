@@ -5,7 +5,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.api.domain.model.NominationPool
+import jp.co.soramitsu.staking.api.domain.model.OwnPool
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -56,7 +56,7 @@ fun StakeInfoViewState.PoolStakeInfoViewState.Companion.default(resourceManager:
     )
 }
 
-fun NominationPool.toViewState(asset: Asset, resourceManager: ResourceManager): StakeInfoViewState.PoolStakeInfoViewState {
+fun OwnPool.toViewState(asset: Asset, resourceManager: ResourceManager): StakeInfoViewState.PoolStakeInfoViewState {
     val staked = asset.token.amountFromPlanks(myStakeInPlanks)
     val stakedFormatted = staked.formatTokenAmount(asset.token.configuration)
     val stakedFiat = staked.applyFiatRate(asset.token.fiatRate)?.formatAsCurrency(asset.token.fiatSymbol)
@@ -85,7 +85,7 @@ fun NominationPool.toViewState(asset: Asset, resourceManager: ResourceManager): 
     val default = StakeInfoViewState.PoolStakeInfoViewState.default(resourceManager)
 
     return default.copy(
-        title = name ?: poolId.toString(),
+        title = resourceManager.getString(R.string.staking_pool_stake_title),
         staked = default.staked.copy(value = stakedFormatted, additionalValue = stakedFiat),
         rewarded = default.rewarded.copy(value = rewardedFormatted, additionalValue = rewardedFiat),
         redeemable = default.redeemable.copy(value = redeemableFormatted, additionalValue = redeemableFiat),

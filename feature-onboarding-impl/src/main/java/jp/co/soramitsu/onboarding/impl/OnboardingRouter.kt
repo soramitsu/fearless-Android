@@ -4,7 +4,7 @@ import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreat
 
 interface OnboardingRouter {
 
-    fun openCreateAccount()
+    fun openCreateAccountFromOnboarding()
     fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload)
 
     fun backToWelcomeScreen()

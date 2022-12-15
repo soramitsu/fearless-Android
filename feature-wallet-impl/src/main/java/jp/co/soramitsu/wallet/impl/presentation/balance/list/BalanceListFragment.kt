@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.ExperimentalMaterialApi
@@ -13,11 +14,10 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
-import com.google.zxing.integration.android.IntentIntegrator
+import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
@@ -31,6 +31,8 @@ import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.scan.ScanTextContract
+import jp.co.soramitsu.common.scan.ScannerActivity
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
@@ -46,22 +48,29 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
     override val viewModel: BalanceListViewModel by viewModels()
 
+    private val barcodeLauncher: ActivityResultLauncher<ScanOptions> = registerForActivityResult(ScanTextContract()) { result ->
+        result?.let {
+            viewModel.qrCodeScanned(it)
+        }
+    }
+
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
     override fun Content(padding: PaddingValues, scrollState: ScrollState, modalBottomSheetState: ModalBottomSheetState) {
-        WalletScreen(viewModel, modalBottomSheetState)
+        val state by viewModel.state.collectAsState()
+
+        WalletScreen(state, viewModel)
     }
 
     @ExperimentalMaterialApi
     @Composable
     override fun Toolbar(modalBottomSheetState: ModalBottomSheetState) {
         val toolbarState by viewModel.toolbarState.collectAsState()
-        val coroutineScope = rememberCoroutineScope()
 
         when (toolbarState) {
             is LoadingState.Loading<MainToolbarViewState> -> {
                 MainToolbarShimmer(
-                    homeIconState = ToolbarHomeIconState(navigationIcon = jp.co.soramitsu.common.R.drawable.ic_wallet),
+                    homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
                     menuItems = listOf(
                         MenuIconItem(icon = R.drawable.ic_scan) {},
                         MenuIconItem(icon = R.drawable.ic_search) {}
@@ -72,19 +81,11 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
                 MainToolbar(
                     state = (toolbarState as LoadingState.Loaded<MainToolbarViewState>).data,
                     menuItems = listOf(
-                        MenuIconItem(icon = R.drawable.ic_scan) { requestCameraPermission() },
-                        MenuIconItem(icon = R.drawable.ic_search) {
-                            viewModel.openSearchAssets()
-                        }
+                        MenuIconItem(icon = R.drawable.ic_scan, onClick = ::requestCameraPermission),
+                        MenuIconItem(icon = R.drawable.ic_search, onClick = viewModel::openSearchAssets)
                     ),
-                    onChangeChainClick = {
-                        coroutineScope.launch {
-                            modalBottomSheetState.show()
-                        }
-                    },
-                    onNavigationClick = {
-                        viewModel.openWalletSelector()
-                    }
+                    onChangeChainClick = viewModel::openSelectChain,
+                    onNavigationClick = viewModel::openWalletSelector
                 )
             }
         }
@@ -98,20 +99,12 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
-        viewModel.decodeAddressResult.observeEvent {
-            viewModel.showMessage("SCANNED: $it")
-            // TODO use. old scenario was: place to search field
-        }
     }
 
     fun initViews() {
 //        with(binding) {
 //            walletContainer.setOnRefreshListener {
 //                viewModel.sync()
-//            }
-//
-//            manageAssets.setWholeClickListener {
-//                viewModel.manageAssetsClicked()
 //            }
 //        }
     }
@@ -149,21 +142,11 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     }
 
     private fun initiateCameraScanner() {
-        val integrator = IntentIntegrator.forSupportFragment(this).apply {
-            setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
-            setPrompt("")
-            setBeepEnabled(false)
-        }
-        integrator.initiateScan()
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
-        result?.contents?.let {
-            viewModel.qrCodeScanned(it)
-        }
+        val options = ScanOptions()
+            .setDesiredBarcodeFormats(ScanOptions.ALL_CODE_TYPES)
+            .setPrompt("")
+            .setBeepEnabled(false)
+            .setCaptureActivity(ScannerActivity::class.java)
+        barcodeLauncher.launch(options)
     }
 }

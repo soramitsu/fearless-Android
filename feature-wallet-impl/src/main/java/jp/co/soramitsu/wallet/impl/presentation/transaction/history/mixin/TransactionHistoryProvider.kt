@@ -23,7 +23,6 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin.Transa
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -36,8 +35,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val ICON_SIZE_DP = 32
-
 class TransactionHistoryProvider(
     private val walletInteractor: WalletInteractor,
     private val iconGenerator: AddressIconGenerator,
@@ -45,7 +42,6 @@ class TransactionHistoryProvider(
     private val historyFiltersProvider: HistoryFiltersProvider,
     private val resourceManager: ResourceManager,
     private val addressDisplayUseCase: AddressDisplayUseCase,
-    private val assetPayloadFlow: Flow<AssetPayload>,
     private val assetPayloadStateFlow: MutableStateFlow<AssetPayload>
 ) : TransactionHistoryMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
@@ -72,8 +68,7 @@ class TransactionHistoryProvider(
             .onEach { performTransition(Action.FiltersChanged(it)) }
             .launchIn(this)
 
-        assetPayloadFlow
-            .distinctUntilChanged()
+        assetPayloadStateFlow
             .onEach { performTransition(Action.AssetPayloadChanged(it)) }
             .launchIn(this)
     }

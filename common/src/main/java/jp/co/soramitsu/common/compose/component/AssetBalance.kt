@@ -35,14 +35,14 @@ fun AssetBalance(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        ChangeBalance(state.changeViewState)
+        if (state.changeViewState.fiatChange.isNotEmpty()) {
+            ChangeBalance(state.changeViewState)
+        }
         Row(
             verticalAlignment = CenterVertically,
             modifier = Modifier
                 .testTag("balance_fiat")
-                .clickableWithNoIndication {
-                    onBalanceClick()
-                }
+                .clickableWithNoIndication(onBalanceClick)
         ) {
             H1(text = state.balance)
             if (state.isInfoEnabled) {

@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.domain
 
-import androidx.lifecycle.asFlow
-import androidx.lifecycle.map
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -16,7 +14,6 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
-import jp.co.soramitsu.fearless_utils.encrypt.qr.QrSharing
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -24,7 +21,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.isPolkadotOrKusama
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
-import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -33,24 +30,28 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
+import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
+import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 
 private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
+private const val QR_PREFIX_SUBSTRATE = "substrate"
+private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 
 class WalletInteractorImpl(
     private val walletRepository: WalletRepository,
+    private val addressBookRepository: AddressBookRepository,
     private val accountRepository: AccountRepository,
     private val chainRegistry: ChainRegistry,
     private val fileProvider: FileProvider,
@@ -62,7 +63,7 @@ class WalletInteractorImpl(
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {
         return updatesMixin.tokenRatesUpdate.map {
             it.isNotEmpty()
-        }.asFlow()
+        }
             .distinctUntilChanged()
             .flatMapLatest { ratesUpdating ->
                 accountRepository.selectedMetaAccountFlow()
@@ -77,6 +78,14 @@ class WalletInteractorImpl(
                         }
                     }
             }
+    }
+
+    override fun observeAssets(): Flow<List<AssetWithStatus>> {
+        return accountRepository.selectedMetaAccountFlow()
+            .flatMapLatest {
+                walletRepository.assetsFlow(it)
+            }
+            .filter { it.isNotEmpty() }
     }
 
     private fun defaultAssetListSort() = compareByDescending<AssetWithStatus> { it.asset.total.orZero() > BigDecimal.ZERO }
@@ -98,16 +107,6 @@ class WalletInteractorImpl(
             val accountId = metaAccount.accountId(chain)!!
 
             walletRepository.assetFlow(metaAccount.id, accountId, chainAsset, chain.minSupportedVersion)
-                .onStart {
-                    emit(
-                        Asset.createEmpty(
-                            chainAsset = chainAsset,
-                            metaId = metaAccount.id,
-                            accountId = accountId,
-                            minSupportedVersion = chain.minSupportedVersion
-                        )
-                    )
-                }
         }
     }
 
@@ -183,9 +182,12 @@ class WalletInteractorImpl(
         chain.isValidAddress(address)
     }
 
-    // TODO wallet phishing
     override suspend fun isAddressFromPhishingList(address: String): Boolean {
-        return /*walletRepository.isAccountIdFromPhishingList(address)*/ false
+        return walletRepository.isAddressFromPhishingList(address)
+    }
+
+    override suspend fun getPhishingInfo(address: String): PhishingModel? {
+        return walletRepository.getPhishingInfo(address)?.toPhishingModel()
     }
 
     // TODO wallet fee
@@ -205,12 +207,6 @@ class WalletInteractorImpl(
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
         val accountId = metaAccount.accountId(chain)!!
 
-        val validityStatus = walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer)
-
-        if (validityStatus.level > maxAllowedLevel) {
-            return Result.failure(NotValidTransferStatus(validityStatus))
-        }
-
         return runCatching {
             walletRepository.performTransfer(accountId, chain, transfer, fee, tipInPlanks)
         }
@@ -226,33 +222,35 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun getQrCodeSharingString(chainId: ChainId): String {
+    override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
+        val asset = chain.assets.firstOrNull { it.id == assetId }
 
         val address = metaAccount.address(chain)
         val pubKey = metaAccount.accountId(chain)
         val name = metaAccount.name
+        val currencyId = asset?.currencyId
 
-        val payload = if (address != null && pubKey != null) {
-            QrSharing.Payload(address, pubKey, name)
+        return if (address != null && pubKey != null && currencyId != null) {
+            "$QR_PREFIX_SUBSTRATE:$address:$pubKey:$name:$currencyId"
         } else {
-            throw IllegalArgumentException("There is no address for Etherium")
+            address ?: throw IllegalArgumentException("There is no address found to getQrCodeSharingSoraString")
         }
-
-        return accountRepository.createQrAccountContent(payload)
     }
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String) = runCatching {
         fileProvider.getFileInExternalCacheStorage(fileName)
     }
 
-    override suspend fun getRecipientFromQrCodeContent(content: String): Result<String> {
-        return withContext(Dispatchers.Default) {
-            runCatching {
-                QrSharing.decode(content).address
-            }
-        }
+    override fun tryReadAddressFromSoraFormat(content: String): String? {
+        val list = content.split(":")
+        return list.getOrNull(1)
+    }
+
+    override fun tryReadTokenIdFromSoraFormat(content: String): String? {
+        val list = content.split(":")
+        return list.getOrNull(4)
     }
 
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
@@ -285,14 +283,13 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
         val accountId = metaAccount.accountId(chain)
-        val assetSymbol = getCurrentAsset(chainId, chainAssetId).token.configuration.symbolToShow
+        val chainAsset = chain.assetsById[chainAssetId] ?: return
 
         accountId?.let {
             walletRepository.updateAssetHidden(
+                chainAsset = chainAsset,
                 metaId = metaAccount.id,
                 accountId = it,
-                chainId = chainId,
-                assetSymbol = assetSymbol,
                 isHidden = true
             )
         }
@@ -302,14 +299,13 @@ class WalletInteractorImpl(
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
         val accountId = metaAccount.accountId(chain)
-        val assetSymbol = getCurrentAsset(chainId, chainAssetId).token.configuration.symbolToShow
+        val chainAsset = chain.assetsById[chainAssetId] ?: return
 
         accountId?.let {
             walletRepository.updateAssetHidden(
+                chainAsset = chainAsset,
                 metaId = metaAccount.id,
                 accountId = it,
-                chainId = chainId,
-                assetSymbol = assetSymbol,
                 isHidden = false
             )
         }
@@ -327,4 +323,17 @@ class WalletInteractorImpl(
     }
 
     override fun getChains(): Flow<List<Chain>> = chainRegistry.currentChains
+
+    override fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>> =
+        walletRepository.getOperationAddressWithChainIdFlow(limit, chainId)
+
+    override suspend fun saveAddress(name: String, address: String, selectedChainId: String) {
+        addressBookRepository.saveAddress(name, address, selectedChainId)
+    }
+
+    override fun observeAddressBook(chainId: ChainId) = addressBookRepository.observeAddressBook(chainId)
+
+    override fun saveChainId(chainId: ChainId?) = preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID, chainId)
+
+    override fun getSavedChainId(): ChainId? = preferences.getString(PREFS_WALLET_SELECTED_CHAIN_ID)
 }

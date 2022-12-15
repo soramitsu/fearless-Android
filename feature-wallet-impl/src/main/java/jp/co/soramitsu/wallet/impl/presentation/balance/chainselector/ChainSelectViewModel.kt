@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
-import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
@@ -34,28 +33,39 @@ class ChainSelectViewModel @Inject constructor(
     private val selectedChainId = MutableStateFlow(initialSelectedChainId)
 
     private val initialSelectedAssetId: String? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_ASSET_ID]
+    private val filterChainIds: List<ChainId>? = savedStateHandle[ChainSelectFragment.KEY_FILTER_CHAIN_IDS]
+    private val chooserMode: Boolean = savedStateHandle[ChainSelectFragment.KEY_CHOOSER_MODE] ?: false
+    private val showAllChains: Boolean = savedStateHandle[ChainSelectFragment.KEY_SHOW_ALL_CHAINS] ?: true
+    private val tokenCurrencyId: String? = savedStateHandle[ChainSelectFragment.KEY_CURRENCY_ID]
+
+    private var choiceDone = false
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapNotNull { chains ->
-        if (initialSelectedAssetId != null) {
-            chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
-                selectedChainId.value = chainOfTheAsset.chain.id
+        when {
+            initialSelectedAssetId != null -> {
+                chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
+                    selectedChainId.value = chainOfTheAsset.id
 
-                val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
-
-                val chainsWithAsset = chains.filter { it.assets.any { it.symbolToShow == symbol } }
-                chainsWithAsset
+                    val symbolToShow = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
+                    val chainsWithAsset = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
+                    chainsWithAsset
+                }
             }
-        } else {
-            chains
+            filterChainIds.isNullOrEmpty() -> {
+                chains
+            }
+            else -> {
+                chains.filter { it.id in filterChainIds }
+            }
         }
-    }.map { chains: List<JoinedChainInfo> ->
+    }.map { chains ->
         chains.map { it.toChainItemState() }
     }
 
     private val symbolFlow = chainInteractor.getChainsFlow().map { chains ->
         (initialSelectedAssetId ?: sharedSendState.assetId)?.let {
             chains.firstOrNull { it.assets.any { it.id == initialSelectedAssetId } }?.let { chainOfTheAsset ->
-                selectedChainId.value = chainOfTheAsset.chain.id
+                selectedChainId.value = chainOfTheAsset.id
 
                 val symbol = chainOfTheAsset.assets.firstOrNull { it.id == (initialSelectedAssetId) }?.symbolToShow
                 symbol
@@ -68,7 +78,9 @@ class ChainSelectViewModel @Inject constructor(
     val state = combine(chainsFlow, selectedChainId, enteredChainQueryFlow) { chainItems, selectedChainId, searchQuery ->
         val chains = chainItems
             .filter {
-                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || it.tokenSymbols.any { it.second.contains(searchQuery, true) }
+                val condition = it.tokenSymbols.values.any { it.contains(searchQuery, true) }
+
+                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || condition
             }
             .sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
 
@@ -76,27 +88,50 @@ class ChainSelectViewModel @Inject constructor(
             chains = chains,
             selectedChainId = selectedChainId,
             searchQuery = searchQuery,
-            showAllChains = false
+            showAllChains = showAllChains
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
 
     fun onChainSelected(chainItemState: ChainItemState?) {
-        if (selectedChainId.value != chainItemState?.id) {
-            selectedChainId.value = chainItemState?.id
-            val assetId = chainItemState?.tokenSymbols?.firstOrNull { it.second == symbolFlow.value }?.first
+        choiceDone = true
+        val chainId = chainItemState?.id
+        if (selectedChainId.value != chainId) {
+            selectedChainId.value = chainId
+            walletRouter.setChainSelectorPayload(chainId)
+            if (chooserMode) {
+                walletRouter.back()
+                return
+            }
 
-            chainItemState?.id?.let {
-                if (assetId != null) {
-                    sharedSendState.update(chainId = it, assetId = assetId)
-                } else {
-                    launch {
-                        val chain = walletInteractor.getChain(it)
-                        sharedSendState.update(chainId = it, assetId = chain.utilityAsset.id)
+            val assetId = chainItemState?.tokenSymbols?.entries?.firstOrNull { it.value == symbolFlow.value }?.key
+
+            chainId?.let {
+                launch {
+                    val chain = walletInteractor.getChain(it)
+                    if (sharedSendState.assetId == null) {
+                        when {
+                            chain.assets.size == 1 -> {
+                                assetSpecified(assetId = chain.assets[0].id, chainId = chain.id)
+                            }
+                            chain.assets.filter { it.currencyId == tokenCurrencyId }.size == 1 -> {
+                                assetSpecified(assetId = chain.assets.filter { it.currencyId == tokenCurrencyId }[0].id, chainId = chain.id)
+                            }
+                            else -> {
+                                walletRouter.back()
+                                walletRouter.openSelectChainAsset(chain.id)
+                            }
+                        }
+                    } else {
+                        assetSpecified(assetId = assetId ?: chain.utilityAsset.id, chainId = it)
                     }
                 }
             }
         }
+    }
 
+    private fun assetSpecified(assetId: String, chainId: ChainId) {
+        choiceDone = true
+        sharedSendState.update(assetId = assetId, chainId = chainId)
         walletRouter.back()
     }
 
@@ -104,7 +139,9 @@ class ChainSelectViewModel @Inject constructor(
         enteredChainQueryFlow.value = input
     }
 
-    fun onBackClicked() {
-        walletRouter.back()
+    fun onDialogClose() {
+        if (!choiceDone && sharedSendState.assetId == null) {
+            walletRouter.popOutOfSend()
+        }
     }
 }

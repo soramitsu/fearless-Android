@@ -22,6 +22,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
@@ -29,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -71,17 +71,15 @@ fun MainToolbar(
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .height(62.dp)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 16.dp)
     ) {
         Box(
-            contentAlignment = Alignment.CenterStart,
-            modifier = Modifier.weight(1f)
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.align(CenterStart)
         ) {
             ToolbarHomeIcon(
                 state = state.homeIconState,
@@ -91,7 +89,7 @@ fun MainToolbar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(2f),
+                .align(Alignment.Center),
             horizontalAlignment = CenterHorizontally
         ) {
             Text(
@@ -110,7 +108,7 @@ fun MainToolbar(
         Row(
             verticalAlignment = CenterVertically,
             horizontalArrangement = spacedBy(8.dp, End),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.align(Alignment.CenterEnd)
         ) {
             menuItems?.forEach { menuItem ->
                 IconButton(
@@ -165,7 +163,11 @@ fun MainToolbarShimmer(
         ) {
             Shimmer(Modifier.height(14.dp))
             MarginVertical(margin = 12.dp)
-            Shimmer(Modifier.height(12.dp).padding(horizontal = 20.dp))
+            Shimmer(
+                Modifier
+                    .height(12.dp)
+                    .padding(horizontal = 20.dp)
+            )
         }
         Row(
             verticalAlignment = CenterVertically,
@@ -207,14 +209,15 @@ private fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun IconButton(
+fun IconButton(
+    modifier: Modifier = Modifier,
     painter: Painter,
     tint: Color = LocalContentColor.current.copy(alpha = LocalContentAlpha.current),
     onClick: () -> Unit
 ) {
     IconButton(
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .clip(CircleShape)
             .background(backgroundBlurColor)
             .size(40.dp)
@@ -286,7 +289,9 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
 private fun MainToolbarPreview() {
     FearlessTheme {
         Column(
-            modifier = Modifier.background(Color.Black).padding(16.dp)
+            modifier = Modifier
+                .background(Color.Black)
+                .padding(16.dp)
         ) {
             MainToolbarShimmer(
                 homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
@@ -302,7 +307,7 @@ private fun MainToolbarPreview() {
                     homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_wallet),
                     selectorViewState = ChainSelectorViewState(
                         selectedChainId = "id",
-                        selectedChainName = stringResource(id = R.string.chain_selection_all_networks),
+                        selectedChainName = "Crust shadow parachain",
                         selectedChainStatusColor = colorAccent
                     )
                 ),

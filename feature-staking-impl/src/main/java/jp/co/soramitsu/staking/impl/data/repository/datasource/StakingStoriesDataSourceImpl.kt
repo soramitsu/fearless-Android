@@ -63,12 +63,12 @@ class StakingStoriesDataSourceImpl : StakingStoriesDataSource {
                     StoryGroup.Story.Staking(
                         R.string.staking_story_reward_title,
                         R.string.staking_story_reward_page_1,
-                        url = "https://wiki.polkadot.network/docs/en/learn-simple-payouts"
+                        url = "https://wiki.polkadot.network/docs/learn-staking-advanced"
                     ),
                     StoryGroup.Story.Staking(
                         R.string.staking_story_reward_title,
                         R.string.staking_story_reward_page_2,
-                        url = "https://wiki.polkadot.network/docs/en/learn-simple-payouts"
+                        url = "https://wiki.polkadot.network/docs/learn-staking-advanced"
                     )
                 )
             )

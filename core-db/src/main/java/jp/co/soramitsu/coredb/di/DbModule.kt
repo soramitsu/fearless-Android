@@ -11,11 +11,12 @@ import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
+import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.OperationDao
-import jp.co.soramitsu.coredb.dao.PhishingAddressDao
+import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -54,8 +55,8 @@ class DbModule {
 
     @Provides
     @Singleton
-    fun providePhishingAddressDao(appDatabase: AppDatabase): PhishingAddressDao {
-        return appDatabase.phishingAddressesDao()
+    fun providePhishingDao(appDatabase: AppDatabase): PhishingDao {
+        return appDatabase.phishingDao()
     }
 
     @Provides
@@ -92,5 +93,11 @@ class DbModule {
     @Singleton
     fun provideMetaAccountDao(appDatabase: AppDatabase): MetaAccountDao {
         return appDatabase.metaAccountDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddressBookDao(appDatabase: AppDatabase): AddressBookDao {
+        return appDatabase.addressBookDao()
     }
 }

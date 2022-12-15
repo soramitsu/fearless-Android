@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -54,7 +56,7 @@ class StakingPoolViewModel(
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
         tokenImage = "",
-        totalBalance = resourceManager.getString(jp.co.soramitsu.common.R.string.common_balance_format, "..."),
+        totalBalance = resourceManager.getString(R.string.common_balance_format, "..."),
         fiatAmount = "",
         tokenAmount = "10"
     )
@@ -123,8 +125,9 @@ class StakingPoolViewModel(
 
     private suspend fun getReturns(id: ChainId, amount: BigDecimal): ReturnsModel {
         // todo hardcoded returns for demo
-        val kusamaOnTestNodeChainId = "f95f9821674aec3a20383a31a28db18670df0c2874ec5f3aa20fddeccf86efb0"
-        val chainId = if (id == kusamaOnTestNodeChainId) {
+        val kusamaOnTestNodeChainId = "51cdb4b3101904a9d234d126656d33cd17518249819b510a03d6c90d0a019611"
+        val polkadotOnTestNodeChainId = "4f77f65b21b1f396c1555850be6f21e2b1f36c26b94dbcbfec976901c9f08bf3"
+        val chainId = if (id == kusamaOnTestNodeChainId || id == polkadotOnTestNodeChainId) {
             polkadotChainId
         } else {
             id
@@ -175,6 +178,10 @@ class StakingPoolViewModel(
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
         return flowOf { LoadingState.Loaded(emptyList()) }
+    }
+
+    override fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>> {
+        return emptyFlow()
     }
 
     override suspend fun getRedeemValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {

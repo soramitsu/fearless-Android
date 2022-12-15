@@ -2,7 +2,9 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 
 typealias ChainId = String
@@ -12,6 +14,8 @@ const val kusamaChainId = "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca9365
 const val westendChainId = "e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e"
 const val moonriverChainId = "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b"
 const val rococoChainId = "aaf2cd1b74b5f726895921259421b534124726263982522174147046b8827897"
+const val soraTestChainId = "3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17"
+const val soraKusamaChainId = "6d8d9f145c2177fa83512492cdd80a71e29f22473f4a8943a6292149ac319fb9"
 
 const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
 
@@ -89,6 +93,10 @@ data class Chain(
             ChainAssetType.VToken -> DictEnum.Entry("VToken", DictEnum.Entry(symbol.uppercase(), null))
             ChainAssetType.VSToken -> DictEnum.Entry("VSToken", DictEnum.Entry(symbol.uppercase(), null))
             ChainAssetType.Stable -> DictEnum.Entry("Stable", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.SoraAsset -> {
+                val currencyHexList = currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() }.orEmpty()
+                Struct.Instance(mapOf("code" to currencyHexList))
+            }
             ChainAssetType.Equilibrium -> symbol.toBigInteger()
             ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
         }
@@ -212,5 +220,5 @@ fun ChainId.defaultChainSort() = when (this) {
 }
 
 enum class TypesUsage {
-    BASE, OWN, BOTH,
+    ON_CHAIN, UNSUPPORTED
 }

@@ -48,10 +48,15 @@ data class ReceiveScreenViewState(
     val account: WalletAccount
 )
 
+interface ReceiveScreenInterface {
+    fun copyClicked()
+    fun shareClicked()
+}
+
 @Composable
 fun ReceiveScreen(
     state: LoadingState<ReceiveScreenViewState>,
-    receiveScreenInterface: ReceiveScreenInterface
+    callback: ReceiveScreenInterface
 ) {
     BottomSheetScreen {
         when (state) {
@@ -59,8 +64,8 @@ fun ReceiveScreen(
             is LoadingState.Loaded -> {
                 ReceiveContent(
                     state = state.data,
-                    copyClicked = receiveScreenInterface::copyClicked,
-                    shareClicked = receiveScreenInterface::shareClicked
+                    copyClicked = callback::copyClicked,
+                    shareClicked = callback::shareClicked
                 )
             }
         }
@@ -119,19 +124,17 @@ private fun ReceiveContent(
             text = stringResource(id = R.string.common_copy),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-        ) {
-            copyClicked()
-        }
+                .height(48.dp),
+            onClick = copyClicked
+        )
         MarginVertical(margin = 12.dp)
         GrayButton(
             text = stringResource(id = R.string.common_share),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-        ) {
-            shareClicked()
-        }
+                .height(48.dp),
+            onClick = shareClicked
+        )
         MarginVertical(margin = 12.dp)
         Row(
             verticalAlignment = Alignment.CenterVertically,

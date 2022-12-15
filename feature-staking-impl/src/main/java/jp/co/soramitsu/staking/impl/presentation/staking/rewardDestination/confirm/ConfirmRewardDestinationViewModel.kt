@@ -145,7 +145,7 @@ class ConfirmRewardDestinationViewModel @Inject constructor(
             val stashState = stashFlow.first()
 
             val payload = RewardDestinationValidationPayload(
-                availableControllerBalance = controllerAsset.transferable,
+                availableControllerBalance = controllerAsset.availableForStaking,
                 fee = payload.fee,
                 stashState = stashState
             )

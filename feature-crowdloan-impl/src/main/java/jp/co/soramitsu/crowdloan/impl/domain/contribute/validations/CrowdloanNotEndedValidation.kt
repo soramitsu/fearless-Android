@@ -16,8 +16,9 @@ class CrowdloanNotEndedValidation(
         val currentBlock = chainStateRepository.currentBlock(chainId)
 
         val blocksPerLease = crowdloanRepository.blocksPerLeasePeriod(chainId)
+        val leaseOffset = crowdloanRepository.leaseOffset(chainId)
 
-        val currentLeaseIndex = leaseIndexFromBlock(currentBlock, blocksPerLease)
+        val currentLeaseIndex = leaseIndexFromBlock(currentBlock, blocksPerLease, leaseOffset)
 
         return when {
             currentBlock >= value.crowdloan.fundInfo.end -> crowdloanEndedFailure()

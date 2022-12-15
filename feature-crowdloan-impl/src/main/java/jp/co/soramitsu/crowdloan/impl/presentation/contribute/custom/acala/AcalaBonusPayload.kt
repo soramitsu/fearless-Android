@@ -3,7 +3,7 @@ package jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.acala
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.referral.ReferralCodePayload
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
 enum class AcalaContributionType {

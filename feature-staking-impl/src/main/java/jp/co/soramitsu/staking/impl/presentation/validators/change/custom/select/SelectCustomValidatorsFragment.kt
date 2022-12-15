@@ -8,6 +8,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.scrollToTopWhenItemsShuffled
+import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
@@ -68,7 +69,10 @@ class SelectCustomValidatorsFragment :
     }
 
     override fun subscribe(viewModel: SelectCustomValidatorsViewModel) {
-        viewModel.validatorModelsFlow.observe(adapter::submitList)
+        viewModel.validatorModelsFlow.observe {
+            adapter.submitList(it)
+            binding.recommendedValidatorsProgress.setVisible(false)
+        }
 
         viewModel.selectedTitle.observe(binding.selectCustomValidatorsCount::setText)
 

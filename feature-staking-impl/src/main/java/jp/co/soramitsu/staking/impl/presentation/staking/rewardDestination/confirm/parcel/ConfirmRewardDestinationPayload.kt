@@ -2,7 +2,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.conf
 
 import android.os.Parcelable
 import java.math.BigDecimal
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class ConfirmRewardDestinationPayload(

@@ -6,6 +6,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
+import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -15,6 +16,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.Fee
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
+import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
@@ -56,6 +58,8 @@ interface WalletInteractor {
 
     suspend fun isAddressFromPhishingList(address: String): Boolean
 
+    suspend fun getPhishingInfo(address: String): PhishingModel?
+
     suspend fun getTransferFee(transfer: Transfer): Fee
 
     suspend fun performTransfer(
@@ -67,11 +71,13 @@ interface WalletInteractor {
 
     suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
 
-    suspend fun getQrCodeSharingString(chainId: ChainId): String
+    suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
 
-    suspend fun getRecipientFromQrCodeContent(content: String): Result<String>
+    fun tryReadAddressFromSoraFormat(content: String): String?
+
+    fun tryReadTokenIdFromSoraFormat(content: String): String?
 
     suspend fun getChain(chainId: ChainId): Chain
 
@@ -96,4 +102,16 @@ interface WalletInteractor {
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
 
     fun getChains(): Flow<List<Chain>>
+
+    fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>>
+
+    suspend fun saveAddress(name: String, address: String, selectedChainId: String)
+
+    fun observeAddressBook(chainId: ChainId): Flow<List<AddressBookContact>>
+
+    fun observeAssets(): Flow<List<AssetWithStatus>>
+
+    fun saveChainId(chainId: ChainId?)
+
+    fun getSavedChainId(): ChainId?
 }

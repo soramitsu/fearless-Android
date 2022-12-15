@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios
 
+import jp.co.soramitsu.common.domain.model.StoryGroup
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
@@ -11,6 +12,7 @@ import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.model.StakingState
+import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.alerts.Alert
 import jp.co.soramitsu.staking.impl.domain.alerts.AlertsInteractor
@@ -45,6 +47,7 @@ class StakingRelaychainScenarioViewModel(
     private val baseViewModel: BaseStakingViewModel,
     private val alertsInteractor: AlertsInteractor,
     private val stakingViewStateFactory: StakingViewStateFactory,
+    private val storiesDataSource: StakingStoriesDataSource,
     stakingSharedState: StakingSharedState
 ) : StakingScenarioViewModel {
 
@@ -185,6 +188,10 @@ class StakingRelaychainScenarioViewModel(
             )
             else -> error("Wrong alert type")
         }
+    }
+
+    override fun stakingStoriesFlow(): Flow<List<StoryGroup.Staking>> {
+        return storiesDataSource.getStoriesFlow()
     }
 
     override suspend fun getBondMoreValidationSystem(): ValidationSystem<ManageStakingValidationPayload, ManageStakingValidationFailure> {

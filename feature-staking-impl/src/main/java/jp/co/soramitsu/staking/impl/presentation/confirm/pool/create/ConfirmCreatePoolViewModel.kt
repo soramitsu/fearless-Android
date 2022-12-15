@@ -9,12 +9,12 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.domain.GetIdentitiesUseCase
+import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -22,13 +22,16 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class ConfirmCreatePoolViewModel @Inject constructor(
+    existentialDepositUseCase: ExistentialDepositUseCase,
     poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
     private val router: StakingRouter,
-    private val getIdentities: GetIdentitiesUseCase,
     private val poolInteractor: StakingPoolInteractor
-) : BaseConfirmViewModel(
+) : StakingConfirmViewModel(
+    existentialDepositUseCase = existentialDepositUseCase,
+    chain = poolSharedStateProvider.requireMainState.requireChain,
+    router = router,
     address = poolSharedStateProvider.requireMainState.requireAddress,
     resourceManager = resourceManager,
     asset = poolSharedStateProvider.requireMainState.requireAsset,
@@ -46,13 +49,9 @@ class ConfirmCreatePoolViewModel @Inject constructor(
         router.returnToMain()
         router.openStartSelectValidators()
     },
-    accountNameProvider = {
-        val chain = poolSharedStateProvider.requireMainState.requireChain
-        getIdentities(chain, it).mapNotNull { pair ->
-            pair.value?.display
-        }.firstOrNull()
-    },
-    titleRes = R.string.pool_stakeng_create_confirm_title
+    accountNameProvider = { stakingPoolInteractor.getAccountName(it) },
+    titleRes = R.string.pool_staking_create_confirm_title,
+    customSuccessMessage = resourceManager.getString(R.string.pool_create_success_message)
 ) {
     private val addressDisplayFlow = flowOf {
         poolInteractor.getAccountName(address) ?: address

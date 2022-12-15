@@ -51,10 +51,9 @@
         </activity>
 
         <activity
-            android:name="com.journeyapps.barcodescanner.CaptureActivity"
-            android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.Soramitsu.Fearless"
-            tools:replace="android:theme,screenOrientation" />
+            android:name="jp.co.soramitsu.common.scan.ScannerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Soramitsu.Fearless" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

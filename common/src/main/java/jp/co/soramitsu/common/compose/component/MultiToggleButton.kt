@@ -10,6 +10,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -36,6 +37,13 @@ fun <T : MultiToggleItem> MultiToggleButton(
                 .fillMaxWidth()
         ) {
             state.toggleStates.forEach { toggleState ->
+                val onToggleChangeCallback = remember<(Boolean) -> Unit> {
+                    { selected ->
+                        if (selected) {
+                            onToggleChange(toggleState)
+                        }
+                    }
+                }
                 val isSelected = state.currentSelection == toggleState
                 val backgroundTint = if (isSelected) selectedTint else unselectedTint
 
@@ -52,11 +60,7 @@ fun <T : MultiToggleItem> MultiToggleButton(
                         .toggleableWithNoIndication(
                             value = isSelected,
                             role = Role.Tab,
-                            onValueChange = { selected ->
-                                if (selected) {
-                                    onToggleChange(toggleState)
-                                }
-                            }
+                            onValueChange = onToggleChangeCallback
                         ),
                     backgroundColor = backgroundTint
                 ) {

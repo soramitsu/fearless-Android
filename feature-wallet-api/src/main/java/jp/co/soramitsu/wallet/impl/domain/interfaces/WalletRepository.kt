@@ -6,6 +6,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
+import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -30,7 +31,12 @@ interface WalletRepository {
 
     suspend fun getAsset(metaId: Long, accountId: AccountId, chainAsset: Chain.Asset, minSupportedVersion: String?): Asset?
 
-    suspend fun updateAssetHidden(metaId: Long, accountId: AccountId, chainId: ChainId, assetSymbol: String, isHidden: Boolean)
+    suspend fun updateAssetHidden(
+        metaId: Long,
+        accountId: AccountId,
+        isHidden: Boolean,
+        chainAsset: Chain.Asset
+    )
 
     suspend fun syncOperationsFirstPage(
         pageSize: Int,
@@ -55,11 +61,7 @@ interface WalletRepository {
         chainAsset: Chain.Asset
     ): Flow<CursorPage<Operation>>
 
-    suspend fun getContacts(
-        accountId: AccountId,
-        chain: Chain,
-        query: String
-    ): Set<String>
+    fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>>
 
     suspend fun getTransferFee(
         chain: Chain,
@@ -89,7 +91,9 @@ interface WalletRepository {
 
     suspend fun updatePhishingAddresses()
 
-    suspend fun isAccountIdFromPhishingList(accountId: AccountId): Boolean
+    suspend fun isAddressFromPhishingList(address: String): Boolean
+
+    suspend fun getPhishingInfo(address: String): PhishingLocal?
 
     suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
 

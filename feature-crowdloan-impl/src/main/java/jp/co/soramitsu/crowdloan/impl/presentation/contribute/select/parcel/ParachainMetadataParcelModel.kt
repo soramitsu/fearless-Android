@@ -3,7 +3,7 @@ package jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel
 import android.os.Parcelable
 import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadata
 import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadataFlow
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import kotlinx.android.parcel.RawValue
 import java.math.BigDecimal
 import java.util.Locale

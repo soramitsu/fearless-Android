@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.common.compose.component.WalletSelectorLight
+import jp.co.soramitsu.common.compose.component.WalletSelectorScreen
 
 @AndroidEntryPoint
 class WalletSelectorFragment : BaseComposeBottomSheetDialogFragment<WalletSelectorViewModel>() {
@@ -25,7 +25,7 @@ class WalletSelectorFragment : BaseComposeBottomSheetDialogFragment<WalletSelect
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        WalletSelectorLight(
+        WalletSelectorScreen(
             state = state,
             onWalletSelected = viewModel::onWalletSelected,
             onBackClicked = viewModel::onBackClicked
@@ -35,5 +35,6 @@ class WalletSelectorFragment : BaseComposeBottomSheetDialogFragment<WalletSelect
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isHideable = true
+        behavior.skipCollapsed = true
     }
 }

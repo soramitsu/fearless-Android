@@ -3,7 +3,6 @@ package jp.co.soramitsu.runtime.multiNetwork.runtime
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
-import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import jp.co.soramitsu.testshared.any
 import jp.co.soramitsu.testshared.eq
 import jp.co.soramitsu.testshared.thenThrowUnsafe
@@ -25,7 +24,6 @@ import org.mockito.junit.MockitoJUnitRunner
 @RunWith(MockitoJUnitRunner::class)
 class RuntimeProviderTest {
 
-    lateinit var baseTypeSyncFlow: MutableSharedFlow<FileHash>
     lateinit var chainSyncFlow: MutableSharedFlow<SyncResult>
 
     lateinit var chain: Chain
@@ -42,9 +40,6 @@ class RuntimeProviderTest {
     @Mock
     lateinit var runtimeFactory: RuntimeFactory
 
-    @Mock
-    lateinit var baseTypesSynchronizer: BaseTypeSynchronizer
-
     lateinit var runtimeProvider: RuntimeProvider
 
     @Before
@@ -52,13 +47,11 @@ class RuntimeProviderTest {
         runBlocking {
             chain = Mocks.chain(id = "1")
 
-            baseTypeSyncFlow = MutableSharedFlow()
             chainSyncFlow = MutableSharedFlow()
 
             whenever(constructedRuntime.runtime).thenReturn(runtime)
             whenever(runtimeFactory.constructRuntime(any(), any())).thenReturn(constructedRuntime)
 
-            whenever(baseTypesSynchronizer.syncStatusFlow).thenAnswer { baseTypeSyncFlow }
             whenever(runtimeSyncService.syncResultFlow(eq(chain.id))).thenAnswer { chainSyncFlow }
         }
     }
@@ -75,43 +68,6 @@ class RuntimeProviderTest {
             }
 
             assertEquals(returnedRuntime, runtime)
-        }
-    }
-
-    @Test
-    fun `should not reconstruct runtime if base types has remains the same`() {
-        runBlocking {
-            initProvider()
-
-            currentBaseTypesHash("Hash")
-
-            baseTypeSyncFlow.emit("Hash")
-
-            verifyReconstructionNotStarted()
-        }
-    }
-
-    @Test
-    fun `should not reconstruct runtime on base types change if they are not used`() {
-        runBlocking {
-            initProvider(typesUsage = TypesUsage.OWN)
-
-            baseTypeSyncFlow.emit("Hash")
-
-            verifyReconstructionNotStarted()
-        }
-    }
-
-    @Test
-    fun `should reconstruct runtime if base types changes`() {
-        runBlocking {
-            initProvider()
-
-            currentBaseTypesHash("Hash")
-
-            baseTypeSyncFlow.emit("Changed Hash")
-
-            verifyReconstructionStarted()
         }
     }
 
@@ -191,53 +147,12 @@ class RuntimeProviderTest {
             verifyReconstructionNotStarted()
         }
     }
-    @Test
-    fun `should wait until current job is finished before consider reconstructing runtime on types sync event`() {
-        runBlocking {
-            whenever(runtimeFactory.constructRuntime(any(), any())).thenAnswer {
-                runBlocking { baseTypeSyncFlow.first() } // ensure runtime wont be returned until baseTypeSyncFlow event
-
-                constructedRuntime
-            }
-
-            initProvider()
-
-            currentChainTypesHash("Hash")
-            currentMetadataHash("Hash")
-
-            baseTypeSyncFlow.emit("New hash")
-
-            verifyReconstructionNotStarted()
-        }
-    }
-
-    @Test
-    fun `should report missing cache for base types`() {
-        runBlocking {
-            withRuntimeFactoryFailing(BaseTypesNotInCacheException) {
-                verify(baseTypesSynchronizer, times(1)).cacheNotFound()
-                verify(runtimeSyncService, times(0)).cacheNotFound(any())
-            }
-        }
-    }
 
     @Test
     fun `should report missing cache for chain types or metadata`() {
         runBlocking {
             withRuntimeFactoryFailing(ChainInfoNotInCacheException) {
                 verify(runtimeSyncService, times(1)).cacheNotFound(eq(chain.id))
-                verify(baseTypesSynchronizer, times(0)).cacheNotFound()
-            }
-        }
-    }
-
-    @Test
-    fun `should construct runtime on base types sync if cache init failed`() {
-        runBlocking {
-            withRuntimeFactoryFailing {
-                baseTypeSyncFlow.emit("Hash")
-
-                verifyReconstructionStarted()
             }
         }
     }
@@ -245,9 +160,9 @@ class RuntimeProviderTest {
     @Test
     fun `should construct runtime on type usage change`() {
         runBlocking {
-            initProvider(typesUsage = TypesUsage.BASE)
+            initProvider(typesUsage = TypesUsage.ON_CHAIN)
 
-            runtimeProvider.considerUpdatingTypesUsage(TypesUsage.OWN)
+            runtimeProvider.considerUpdatingTypesUsage(TypesUsage.UNSUPPORTED)
 
             verifyReconstructionStarted()
         }
@@ -256,9 +171,9 @@ class RuntimeProviderTest {
     @Test
     fun `should not construct runtime on same type usage`() {
         runBlocking {
-            initProvider(typesUsage = TypesUsage.BASE)
+            initProvider(typesUsage = TypesUsage.ON_CHAIN)
 
-            runtimeProvider.considerUpdatingTypesUsage(TypesUsage.BASE)
+            runtimeProvider.considerUpdatingTypesUsage(TypesUsage.ON_CHAIN)
 
             verifyReconstructionNotStarted()
         }
@@ -272,7 +187,7 @@ class RuntimeProviderTest {
         verifyReconstructionAfterInit(1)
     }
 
-    private suspend fun withRuntimeFactoryFailing(exception: Exception = BaseTypesNotInCacheException, block: suspend () -> Unit) {
+    private suspend fun withRuntimeFactoryFailing(exception: Exception = ChainInfoNotInCacheException, block: suspend () -> Unit) {
         whenever(runtimeFactory.constructRuntime(any(), any())).thenThrowUnsafe(exception)
 
         initProvider()
@@ -289,10 +204,6 @@ class RuntimeProviderTest {
         verify(runtimeFactory, times(times + 1)).constructRuntime(eq(chain.id), any())
     }
 
-    private fun currentBaseTypesHash(hash: String?) {
-        whenever(constructedRuntime.baseTypesHash).thenReturn(hash)
-    }
-
     private fun currentMetadataHash(hash: String?) {
         whenever(constructedRuntime.metadataHash).thenReturn(hash)
     }
@@ -303,13 +214,12 @@ class RuntimeProviderTest {
 
     private fun initProvider(typesUsage: TypesUsage? = null) {
         val types = when (typesUsage) {
-            TypesUsage.OWN -> Chain.Types(url = "url", overridesCommon = true)
-            TypesUsage.BOTH -> Chain.Types(url = "url", overridesCommon = false)
+            TypesUsage.ON_CHAIN -> Chain.Types(url = "url", overridesCommon = true)
             else -> null
         }
 
         whenever(chain.types).thenReturn(types)
 
-        runtimeProvider = RuntimeProvider(runtimeFactory, runtimeSyncService, baseTypesSynchronizer, chain)
+        runtimeProvider = RuntimeProvider(runtimeFactory, runtimeSyncService, chain)
     }
 }

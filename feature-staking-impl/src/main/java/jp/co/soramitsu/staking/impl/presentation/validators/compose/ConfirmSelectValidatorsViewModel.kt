@@ -6,11 +6,11 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
-import jp.co.soramitsu.staking.impl.domain.GetIdentitiesUseCase
+import jp.co.soramitsu.staking.impl.presentation.StakingConfirmViewModel
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
-import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -18,12 +18,15 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class ConfirmSelectValidatorsViewModel @Inject constructor(
+    existentialDepositUseCase: ExistentialDepositUseCase,
     poolSharedStateProvider: StakingPoolSharedStateProvider,
     private val stakingPoolInteractor: StakingPoolInteractor,
     resourceManager: ResourceManager,
-    private val router: StakingRouter,
-    private val getIdentities: GetIdentitiesUseCase
-) : BaseConfirmViewModel(
+    private val router: StakingRouter
+) : StakingConfirmViewModel(
+    existentialDepositUseCase = existentialDepositUseCase,
+    chain = poolSharedStateProvider.requireMainState.requireChain,
+    router = router,
     address = poolSharedStateProvider.requireMainState.requireAddress,
     resourceManager = resourceManager,
     asset = poolSharedStateProvider.requireMainState.requireAsset,
@@ -41,12 +44,7 @@ class ConfirmSelectValidatorsViewModel @Inject constructor(
         stakingPoolInteractor.nominate(poolId, address, *validators)
     },
     onOperationSuccess = { router.returnToMain() },
-    accountNameProvider = {
-        val chain = poolSharedStateProvider.requireMainState.requireChain
-        getIdentities(chain, it).mapNotNull { pair ->
-            pair.value?.display
-        }.firstOrNull()
-    },
+    accountNameProvider = { stakingPoolInteractor.getAccountName(it) },
     titleRes = R.string.staking_custom_validators_list_title
 ) {
 

@@ -20,6 +20,7 @@ class PoolClaimViewModel @Inject constructor(
 ) : BaseEnterAmountViewModel(
     nextButtonTextRes = R.string.common_continue,
     toolbarTextRes = R.string.common_claim,
+    balanceHintRes = R.string.common_balance_format,
     asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset),
     initialAmount = requireNotNull(stakingPoolSharedStateProvider.manageState.get()?.claimableInPlanks).let {
         val asset = requireNotNull(stakingPoolSharedStateProvider.mainState.get()?.asset)
@@ -29,7 +30,10 @@ class PoolClaimViewModel @Inject constructor(
     resourceManager = resourceManager,
     feeEstimator = { stakingPoolInteractor.estimateClaimFee() },
     onNextStep = { router.openPoolConfirmClaim() },
-    buttonValidation = { true }
+    buttonValidation = { true },
+    errorAlertPresenter = {
+        router.openAlert(it)
+    }
 ) {
     fun onBackClick() {
         router.back()

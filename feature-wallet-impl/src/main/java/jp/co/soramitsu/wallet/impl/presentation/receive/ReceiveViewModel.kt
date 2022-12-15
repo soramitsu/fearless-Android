@@ -7,10 +7,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.QrCodeGenerator
@@ -19,6 +18,8 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.utils.write
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraKusamaChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -40,28 +41,23 @@ class ReceiveViewModel @Inject constructor(
     private val interactor: WalletInteractor,
     private val qrCodeGenerator: QrCodeGenerator,
     private val resourceManager: ResourceManager,
-    private val externalAccountActions: ExternalAccountActions.Presentation,
+    private val clipboardManager: ClipboardManager,
     private val router: WalletRouter,
     private val chainRegistry: ChainRegistry,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val savedStateHandle: SavedStateHandle
-) : BaseViewModel(), ExternalAccountActions by externalAccountActions {
-
-    val receiveScreenInterface: ReceiveScreenInterface = object : ReceiveScreenInterface {
-        override fun copyClicked() {
-            copyAddress()
-        }
-        override fun shareClicked() {
-            shareWallet()
-        }
-    }
+) : BaseViewModel(), ReceiveScreenInterface {
 
     private val assetPayload = savedStateHandle.get<AssetPayload>(ReceiveFragment.KEY_ASSET_PAYLOAD)!!
 
     private val assetSymbolToShow = chainRegistry.getAsset(assetPayload.chainId, assetPayload.chainAssetId)?.symbolToShow
 
     private val qrBitmapFlow = flow {
-        val qrString = interactor.getQrCodeSharingString(assetPayload.chainId)
+        val qrString = if (assetPayload.chainId in listOf(soraKusamaChainId, soraTestChainId)) {
+            interactor.getQrCodeSharingSoraString(assetPayload.chainId, assetPayload.chainAssetId)
+        } else {
+            currentAccountAddress(assetPayload.chainId) ?: return@flow
+        }
 
         emit(qrCodeGenerator.generateQrBitmap(qrString))
     }
@@ -86,10 +82,21 @@ class ReceiveViewModel @Inject constructor(
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
+    override fun copyClicked() {
+        copyAddress()
+    }
+
+    override fun shareClicked() {
+        shareWallet()
+    }
+
     private fun copyAddress() = launch {
         val account = accountFlow.firstOrNull() ?: return@launch
 
-        copyAddressClicked(account.address)
+        clipboardManager.addToClipboard(account.address)
+
+        val message = resourceManager.getString(R.string.common_copied)
+        showMessage(message)
     }
 
     fun backClicked() {
@@ -123,9 +130,4 @@ class ReceiveViewModel @Inject constructor(
             asset?.symbolToShow?.uppercase()
         ) + " " + address
     }
-}
-
-interface ReceiveScreenInterface {
-    fun copyClicked()
-    fun shareClicked()
 }

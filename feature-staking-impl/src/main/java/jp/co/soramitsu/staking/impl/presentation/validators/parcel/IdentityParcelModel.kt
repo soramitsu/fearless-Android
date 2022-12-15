@@ -1,7 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.parcel
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class IdentityParcelModel(

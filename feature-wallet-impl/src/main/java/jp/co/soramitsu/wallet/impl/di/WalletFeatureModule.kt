@@ -21,11 +21,13 @@ import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.QrBitmapDecoder
 import jp.co.soramitsu.core.updater.UpdateSystem
+import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.OperationDao
-import jp.co.soramitsu.coredb.dao.PhishingAddressDao
+import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
@@ -35,6 +37,8 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
+import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecksProvider
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
@@ -47,14 +51,18 @@ import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalancesUpda
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.PaymentUpdaterFactory
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.SubQueryOperationsApi
+import jp.co.soramitsu.wallet.impl.data.repository.AddressBookRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.RuntimeWalletConstants
 import jp.co.soramitsu.wallet.impl.data.repository.TokenRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
+import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
+import jp.co.soramitsu.wallet.impl.domain.implementations.ExistentialDepositUseCaseImpl
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
@@ -64,9 +72,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixinProvider
 import jp.co.soramitsu.wallet.impl.presentation.send.SendSharedState
-import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.api.PhishingWarningMixin
-import jp.co.soramitsu.wallet.impl.presentation.send.phishing.warning.impl.PhishingWarningProvider
-import jp.co.soramitsu.wallet.impl.presentation.send.recipient.QrBitmapDecoder
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 
 @InstallIn(SingletonComponent::class)
@@ -131,7 +136,7 @@ class WalletFeatureModule {
         subQueryOperationsApi: SubQueryOperationsApi,
         httpExceptionHandler: HttpExceptionHandler,
         phishingApi: PhishingApi,
-        phishingAddressDao: PhishingAddressDao,
+        phishingDao: PhishingDao,
         walletConstants: WalletConstants,
         assetCache: AssetCache,
         coingeckoApi: CoingeckoApi,
@@ -139,7 +144,8 @@ class WalletFeatureModule {
         chainRegistry: ChainRegistry,
         availableFiatCurrencies: GetAvailableFiatCurrencies,
         updatesMixin: UpdatesMixin,
-        remoteConfigFetcher: RemoteConfigFetcher
+        remoteConfigFetcher: RemoteConfigFetcher,
+        currentAccountAddressUseCase: CurrentAccountAddressUseCase
     ): WalletRepository = WalletRepositoryImpl(
         substrateSource,
         operationsDao,
@@ -148,18 +154,20 @@ class WalletFeatureModule {
         phishingApi,
         assetCache,
         walletConstants,
-        phishingAddressDao,
+        phishingDao,
         cursorStorage,
         coingeckoApi,
         chainRegistry,
         availableFiatCurrencies,
         updatesMixin,
-        remoteConfigFetcher
+        remoteConfigFetcher,
+        currentAccountAddressUseCase
     )
 
     @Provides
     fun provideWalletInteractor(
         walletRepository: WalletRepository,
+        addressBookRepository: AddressBookRepository,
         accountRepository: AccountRepository,
         chainRegistry: ChainRegistry,
         fileProvider: FileProvider,
@@ -168,12 +176,34 @@ class WalletFeatureModule {
         updatesMixin: UpdatesMixin
     ): WalletInteractor = WalletInteractorImpl(
         walletRepository,
+        addressBookRepository,
         accountRepository,
         chainRegistry,
         fileProvider,
         preferences,
         selectedFiat,
         updatesMixin
+    )
+
+    @Provides
+    fun provideExistentialDepositUseCase(
+        chainRegistry: ChainRegistry,
+        rpcCalls: RpcCalls
+    ): ExistentialDepositUseCase = ExistentialDepositUseCaseImpl(chainRegistry, rpcCalls)
+
+    @Provides
+    fun provideValidateTransferUseCase(
+        existentialDepositUseCase: ExistentialDepositUseCase,
+        walletConstants: WalletConstants,
+        chainRegistry: ChainRegistry,
+        walletInteractor: WalletInteractor,
+        substrateSource: SubstrateRemoteSource
+    ): ValidateTransferUseCase = ValidateTransferUseCaseImpl(
+        existentialDepositUseCase,
+        walletConstants,
+        chainRegistry,
+        walletInteractor,
+        substrateSource
     )
 
     @Provides
@@ -285,7 +315,8 @@ class WalletFeatureModule {
     }
 
     @Provides
-    fun providePhishingAddressMixin(interactor: WalletInteractor): PhishingWarningMixin {
-        return PhishingWarningProvider(interactor)
-    }
+    @Singleton
+    fun provideAddressBookRepository(
+        addressBookDao: AddressBookDao
+    ): AddressBookRepository = AddressBookRepositoryImpl(addressBookDao)
 }

@@ -37,7 +37,7 @@ data class PoolInfo(
     }
 }
 
-data class NominationPool(
+data class OwnPool(
     val poolId: BigInteger,
     val name: String?,
     val myStakeInPlanks: BigInteger,
@@ -46,7 +46,6 @@ data class NominationPool(
     val state: NominationPoolState,
     val redeemable: BigInteger,
     val unbonding: BigInteger,
-    val unbondingEras: List<PoolUnbonding>,
     val pendingRewards: BigInteger,
     val members: BigInteger,
     val depositor: AccountId,
@@ -58,7 +57,7 @@ data class NominationPool(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as NominationPool
+        other as OwnPool
 
         if (poolId != other.poolId) return false
 
@@ -71,7 +70,6 @@ data class NominationPool(
         result = 31 * result + lastRecordedRewardCounter.hashCode()
         result = 31 * result + state.hashCode()
         result = 31 * result + redeemable.hashCode()
-        result = 31 * result + unbondingEras.hashCode()
         result = 31 * result + members.hashCode()
         result = 31 * result + depositor.contentHashCode()
         result = 31 * result + root.contentHashCode()
@@ -82,7 +80,17 @@ data class NominationPool(
     }
 }
 
-fun NominationPool.toPoolInfo(): PoolInfo {
+fun OwnPool.getUserRole(accountId: AccountId): RoleInPool? {
+    return when {
+        accountId.contentEquals(depositor) -> RoleInPool.Depositor
+        accountId.contentEquals(root) -> RoleInPool.Root
+        accountId.contentEquals(stateToggler) -> RoleInPool.StateToggler
+        accountId.contentEquals(nominator) -> RoleInPool.Nominator
+        else -> null
+    }
+}
+
+fun OwnPool.toPoolInfo(): PoolInfo {
     return PoolInfo(
         poolId,
         name ?: "Pool #$poolId",
@@ -107,4 +115,8 @@ enum class NominationPoolState {
             else -> error("Nomination pool state cannot be parsed")
         }
     }
+}
+
+enum class RoleInPool {
+    Depositor, Root, Nominator, StateToggler
 }

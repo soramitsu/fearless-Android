@@ -60,11 +60,8 @@ private fun BaseFragment<*>.showTransferError(
         TransferValidityLevel.Error.Status.NotEnoughFunds -> R.string.common_error_general_title to R.string.choose_amount_error_too_big
         TransferValidityLevel.Error.Status.DeadRecipient -> R.string.common_amount_low to R.string.wallet_send_dead_recipient_message
     }
-
-    errorDialog(requireContext(), errorConfirmed) {
-        setTitle(titleRes)
-        setMessage(messageRes)
-    }
+    val context = requireContext()
+    errorDialog(context, childFragmentManager, context.resources.getString(titleRes), context.resources.getString(messageRes), errorConfirmed)
 }
 
 private fun BaseFragment<*>.showTransferWarning(
@@ -76,11 +73,14 @@ private fun BaseFragment<*>.showTransferWarning(
             R.string.wallet_send_existential_warning_title to R.string.wallet_send_existential_warning_message
         }
     }
-
-    warningDialog(requireContext(), warningConfirmed) {
-        setTitle(title)
-        setMessage(message)
-    }
+    val context = requireContext()
+    warningDialog(
+        context = context,
+        childFragmentManager = childFragmentManager,
+        title = context.resources.getString(title),
+        message = context.resources.getString(message),
+        onConfirm = warningConfirmed
+    )
 }
 
 fun <T> BaseComposeBottomSheetDialogFragment<T>.observeTransferChecks(
@@ -105,11 +105,8 @@ private fun BaseComposeBottomSheetDialogFragment<*>.showTransferError(
         TransferValidityLevel.Error.Status.NotEnoughFunds -> R.string.common_error_general_title to R.string.choose_amount_error_too_big
         TransferValidityLevel.Error.Status.DeadRecipient -> R.string.common_amount_low to R.string.wallet_send_dead_recipient_message
     }
-
-    errorDialog(requireContext(), errorConfirmed) {
-        setTitle(titleRes)
-        setMessage(messageRes)
-    }
+    val context = requireContext()
+    errorDialog(context, childFragmentManager, context.resources.getString(titleRes), context.resources.getString(messageRes), errorConfirmed)
 }
 
 private fun BaseComposeBottomSheetDialogFragment<*>.showTransferWarning(
@@ -121,9 +118,12 @@ private fun BaseComposeBottomSheetDialogFragment<*>.showTransferWarning(
             R.string.wallet_send_existential_warning_title to R.string.wallet_send_existential_warning_message
         }
     }
-
-    warningDialog(requireContext(), warningConfirmed) {
-        setTitle(title)
-        setMessage(message)
-    }
+    val context = requireContext()
+    warningDialog(
+        context = context,
+        childFragmentManager = childFragmentManager,
+        title = context.resources.getString(title),
+        message = context.resources.getString(message),
+        onConfirm = warningConfirmed
+    )
 }

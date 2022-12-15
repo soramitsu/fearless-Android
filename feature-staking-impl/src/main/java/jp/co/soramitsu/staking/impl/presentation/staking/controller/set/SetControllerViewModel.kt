@@ -184,7 +184,7 @@ class SetControllerViewModel @Inject constructor(
                 stashAddress = stashAddress(),
                 controllerAddress = controllerAddress,
                 fee = fee,
-                transferable = assetFlow.first().transferable
+                transferable = assetFlow.first().availableForStaking
             )
 
             validationExecutor.requireValid(

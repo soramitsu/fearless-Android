@@ -7,16 +7,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import coil.load
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.mixin.impl.observeValidations
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.AmountView
@@ -24,8 +25,6 @@ import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.GoNextView
 import jp.co.soramitsu.common.view.LabeledTextView
 import jp.co.soramitsu.common.view.TableCellView
-import jp.co.soramitsu.feature_crowdloan_impl.R
-import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentCustomContributeBinding
 import jp.co.soramitsu.crowdloan.impl.di.customCrowdloan.CustomContributeManager
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.moonbeam.MoonbeamContributeViewState
@@ -33,9 +32,10 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.moonbeam.Mo
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.moonbeam.MoonbeamCrowdloanStep.TERMS_CONFIRM_SUCCESS
+import jp.co.soramitsu.feature_crowdloan_impl.R
+import jp.co.soramitsu.feature_crowdloan_impl.databinding.FragmentCustomContributeBinding
 import jp.co.soramitsu.wallet.api.presentation.view.FeeView
 import kotlinx.coroutines.flow.first
-import javax.inject.Inject
 
 const val KEY_PAYLOAD = "KEY_PAYLOAD"
 
@@ -227,18 +227,15 @@ class CustomContributeFragment : BaseFragment<CustomContributeViewModel>() {
         }
     }
 
-    override fun buildErrorDialog(title: String, errorMessage: String): AlertDialog {
-        val base = super.buildErrorDialog(title, errorMessage)
-        if (errorMessage == getString(R.string.moonbeam_location_unsupported_error)) {
-            base.setCanceledOnTouchOutside(false)
-            base.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.common_ok)) { _, _ ->
-                viewModel.backClicked()
-            }
-            base.setOnCancelListener {
-                viewModel.backClicked()
-            }
-        }
-
-        return base
+    override fun buildErrorDialog(title: String, errorMessage: String): ErrorDialog {
+        val buttonText = requireContext().resources.getString(R.string.common_ok)
+        return ErrorDialog(
+            title = title,
+            message = errorMessage,
+            positiveButtonText = buttonText,
+            isHideable = false,
+            onBackClick = viewModel::backClicked,
+            positiveClick = viewModel::backClicked
+        )
     }
 }

@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.viewBinding
@@ -47,15 +48,25 @@ class RecommendedCollatorsFragment :
 
     override fun subscribe(viewModel: RecommendedCollatorsViewModel) {
         viewModel.recommendedCollatorModels.observe {
-            adapter.submitList(it)
+            when (it) {
+                is LoadingState.Loaded -> {
+                    val models = it.data
+                    adapter.submitList(models)
 
-            val selectedAny = it.any { collator -> collator.isChecked == true }
-            val selectedText = "${getString(R.string.common_selected)}: ${if (selectedAny) 1 else ""}"
-            binding.recommendedValidatorsProgress.setVisible(false)
-            binding.recommendedValidatorsNext.setVisible(true)
-            binding.recommendedValidatorsNext.isEnabled = it.isNotEmpty() && selectedAny
-            binding.recommendedValidatorsList.setVisible(true)
-            binding.recommendedValidatorsAccounts.text = selectedText
+                    val selectedAny = models.any { collator -> collator.isChecked == true }
+                    val selectedText = "${getString(R.string.common_selected)}: ${if (selectedAny) 1 else ""}"
+                    binding.recommendedValidatorsProgress.setVisible(false)
+                    binding.recommendedValidatorsNext.setVisible(true)
+                    binding.recommendedValidatorsNext.isEnabled = models.isNotEmpty() && selectedAny
+                    binding.recommendedValidatorsList.setVisible(true)
+                    binding.recommendedValidatorsAccounts.text = selectedText
+                }
+                is LoadingState.Loading -> {
+                    binding.recommendedValidatorsProgress.setVisible(true)
+                    binding.recommendedValidatorsList.setVisible(false)
+                    binding.recommendedValidatorsNext.setVisible(false)
+                }
+            }
         }
 
         viewModel.selectedTitle.observe(binding.recommendedValidatorsAccounts::setText)

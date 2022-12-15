@@ -3,7 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.setti
 import android.os.Parcelable
 import androidx.annotation.StringRes
 import jp.co.soramitsu.staking.impl.domain.recommendations.settings.filters.Filters
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class SettingsSchema(

@@ -47,14 +47,21 @@ class CurrentValidatorsFragment : BaseFragment<CurrentValidatorsViewModel>(R.lay
             when (loadingState) {
                 is LoadingState.Loading -> {
                     binding.currentValidatorsList.makeGone()
+                    binding.validatorsEmptyState.makeGone()
                     binding.currentValidatorsProgress.makeVisible()
                 }
 
                 is LoadingState.Loaded -> {
-                    binding.currentValidatorsList.makeVisible()
                     binding.currentValidatorsProgress.makeGone()
 
-                    adapter.submitList(loadingState.data)
+                    if (loadingState.data.isNotEmpty()) {
+                        binding.currentValidatorsList.makeVisible()
+
+                        adapter.submitList(loadingState.data)
+                    } else {
+                        binding.currentValidatorsList.makeGone()
+                        binding.validatorsEmptyState.makeVisible()
+                    }
                 }
             }
         }

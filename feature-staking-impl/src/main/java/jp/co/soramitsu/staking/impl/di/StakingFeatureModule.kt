@@ -26,7 +26,6 @@ import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.repository.ChainStateRepository
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.staking.api.data.StakingSharedState
-import jp.co.soramitsu.staking.api.data.StakingType
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.api.StakingRepository
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
@@ -41,7 +40,6 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingRepositoryImpl
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.data.repository.datasource.ParachainStakingStoriesDataSourceImpl
 import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingRewardsDataSource
-import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSource
 import jp.co.soramitsu.staking.impl.data.repository.datasource.StakingStoriesDataSourceImpl
 import jp.co.soramitsu.staking.impl.data.repository.datasource.SubqueryStakingRewardsDataSource
 import jp.co.soramitsu.staking.impl.domain.EraTimeCalculatorFactory
@@ -66,7 +64,6 @@ import jp.co.soramitsu.staking.impl.domain.validators.ValidatorProvider
 import jp.co.soramitsu.staking.impl.domain.validators.current.CurrentValidatorsInteractor
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomBlockProducerInteractor
 import jp.co.soramitsu.staking.impl.domain.validators.current.search.SearchCustomValidatorsInteractor
-import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
 import jp.co.soramitsu.staking.impl.presentation.common.rewardDestination.RewardDestinationMixin
@@ -115,28 +112,14 @@ class StakingFeatureModule {
 
     @Provides
     @Singleton
-    fun provideStakingStoriesDataSource(
-        setupStakingSharedState: SetupStakingSharedState
-    ): StakingStoriesDataSource {
-        return when (val state = setupStakingSharedState.setupStakingProcess.value) {
-            is SetupStakingProcess.Initial -> when (state.stakingType) {
-                StakingType.RELAYCHAIN -> StakingStoriesDataSourceImpl()
-                StakingType.PARACHAIN -> ParachainStakingStoriesDataSourceImpl()
-                else -> ParachainStakingStoriesDataSourceImpl()
-            }
+    fun provideRelayChainStories(): StakingStoriesDataSourceImpl {
+        return StakingStoriesDataSourceImpl()
+    }
 
-            is SetupStakingProcess.ReadyToSubmit.Stash,
-            is SetupStakingProcess.SelectBlockProducersStep.Validators,
-            is SetupStakingProcess.SetupStep.Stash -> {
-                StakingStoriesDataSourceImpl()
-            }
-
-            is SetupStakingProcess.ReadyToSubmit.Parachain,
-            is SetupStakingProcess.SelectBlockProducersStep.Collators,
-            is SetupStakingProcess.SetupStep.Parachain -> {
-                ParachainStakingStoriesDataSourceImpl()
-            }
-        }
+    @Provides
+    @Singleton
+    fun provideParachainStories(): ParachainStakingStoriesDataSourceImpl {
+        return ParachainStakingStoriesDataSourceImpl()
     }
 
     @Provides
@@ -178,12 +161,10 @@ class StakingFeatureModule {
     @Singleton
     fun provideStakingRepository(
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
-        @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource,
-        stakingStoriesDataSource: StakingStoriesDataSource
+        @Named(REMOTE_STORAGE_SOURCE) remoteStorageSource: StorageDataSource
     ): StakingRepository = StakingRepositoryImpl(
         localStorage = localStorageSource,
-        remoteStorageSource = remoteStorageSource,
-        stakingStoriesDataSource = stakingStoriesDataSource
+        remoteStorageSource = remoteStorageSource
     )
 
     @Provides
@@ -571,7 +552,9 @@ class StakingFeatureModule {
         accountRepository: AccountRepository,
         relayChainScenarioRepository: StakingRelayChainScenarioRepository,
         identityRepository: IdentityRepository,
-        walletConstants: WalletConstants
+        walletConstants: WalletConstants,
+        validatorProvider: ValidatorProvider,
+        currentValidatorsInteractor: CurrentValidatorsInteractor
     ) = StakingPoolInteractor(
         api,
         dataSource,
@@ -579,7 +562,8 @@ class StakingFeatureModule {
         relayChainScenarioRepository,
         accountRepository,
         identityRepository,
-        walletConstants
+        walletConstants,
+        currentValidatorsInteractor
     )
 
     @Provides

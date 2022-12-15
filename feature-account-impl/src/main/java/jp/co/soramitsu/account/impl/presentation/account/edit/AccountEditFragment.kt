@@ -1,14 +1,14 @@
 package jp.co.soramitsu.account.impl.presentation.account.edit
 
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.impl.presentation.account.model.LightMetaAccountUi
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.dragAndDropItemTouchHelper
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentEditAccountsBinding
-import jp.co.soramitsu.account.impl.presentation.account.model.LightMetaAccountUi
 
 @AndroidEntryPoint
 class AccountEditFragment : BaseFragment<AccountEditViewModel>(R.layout.fragment_edit_accounts), EditAccountsAdapter.EditAccountItemHandler {
@@ -54,14 +54,14 @@ class AccountEditFragment : BaseFragment<AccountEditViewModel>(R.layout.fragment
     }
 
     private fun showDeleteConfirmation(metaId: Long) {
-        AlertDialog.Builder(requireActivity())
-            .setTitle(R.string.account_delete_confirmation_title)
-            .setMessage(R.string.account_delete_confirmation_description)
-            .setPositiveButton(R.string.account_delete_confirm) { _, _ ->
-                viewModel.deleteConfirmed(metaId)
-            }
-            .setNegativeButton(R.string.common_cancel, null)
-            .show()
+        val res = requireContext().resources
+        ErrorDialog(
+            title = res.getString(R.string.account_delete_confirmation_title),
+            message = res.getString(R.string.account_delete_confirmation_description),
+            positiveButtonText = res.getString(R.string.account_delete_confirm),
+            negativeButtonText = res.getString(R.string.common_cancel),
+            positiveClick = { viewModel.deleteConfirmed(metaId) }
+        ).show(childFragmentManager)
     }
 
     override fun deleteClicked(accountModel: LightMetaAccountUi) {

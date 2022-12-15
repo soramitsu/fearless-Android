@@ -3,7 +3,7 @@ package jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.interlay
 import java.math.BigDecimal
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.referral.ReferralCodePayload
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class InterlayBonusPayload(

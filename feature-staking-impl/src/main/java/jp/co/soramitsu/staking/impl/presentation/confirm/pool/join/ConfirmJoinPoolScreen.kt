@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ConfirmScreenViewState
 import jp.co.soramitsu.common.compose.component.GradientIcon
@@ -24,6 +25,7 @@ import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.feature_staking_impl.R
@@ -34,7 +36,8 @@ data class ConfirmJoinPoolScreenViewState(
     val address: TitleValueViewState,
     val selectedPool: TitleValueViewState,
     val networkFee: TitleValueViewState,
-    val assetIcon: ConfirmScreenViewState.Icon
+    val assetIcon: ConfirmScreenViewState.Icon,
+    val additionalMessage: String? = null
 )
 
 @Composable
@@ -57,6 +60,10 @@ fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationCli
             MarginVertical(margin = 24.dp)
             InfoTable(listOf(state.address, state.selectedPool, state.networkFee))
             MarginVertical(margin = 24.dp)
+            state.additionalMessage?.let {
+                B2(text = it, color = black1)
+                MarginVertical(margin = 8.dp)
+            }
             AccentButton(
                 text = stringResource(id = R.string.common_confirm),
                 modifier = Modifier

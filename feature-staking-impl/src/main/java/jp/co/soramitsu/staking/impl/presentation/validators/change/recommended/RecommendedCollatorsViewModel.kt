@@ -4,12 +4,14 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import javax.inject.Inject
+import javax.inject.Named
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.castOrNull
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.lazyAsync
+import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.domain.model.Collator
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -36,7 +38,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Named
 
 @HiltViewModel
 class RecommendedCollatorsViewModel @Inject constructor(
@@ -60,7 +61,7 @@ class RecommendedCollatorsViewModel @Inject constructor(
     private val recommendedCollators = sharedStateSetup.setupStakingProcess.map {
         val userInputAmount = it.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Collators>()
             ?.payload
-            ?.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Payload.Full>()?.amount
+            ?.castOrNull<SetupStakingProcess.SelectBlockProducersStep.Payload.Parachain>()?.amount
             ?: BigDecimal.ZERO
         val collatorRecommendator = collatorRecommendatorFactory.create(router.currentStackEntryLifecycle)
         val token = interactor.currentAssetFlow().first().token
@@ -71,7 +72,7 @@ class RecommendedCollatorsViewModel @Inject constructor(
     val recommendedCollatorModels = combine(recommendedCollators, selectedCollator) { collators, selected ->
         convertToModels(collators, tokenUseCase.currentToken(), selected?.address)
             .sortedByDescending { it.scoring?.apr }
-    }.inBackground().share()
+    }.inBackground().share().withLoading()
 
     val selectedTitle = recommendedCollators.map {
         val maxValidators = stakingParachainScenarioInteractor.maxDelegationsPerDelegator()

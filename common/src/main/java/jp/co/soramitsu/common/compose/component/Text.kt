@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customTypography
 
 @Composable
@@ -211,6 +212,26 @@ fun H3(
 }
 
 @Composable
+fun H3Bold(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
+) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.header3.bold(),
+        modifier = modifier,
+        color = color,
+        overflow = overflow,
+        maxLines = maxLines
+    )
+}
+
+@Composable
 fun H4(
     modifier: Modifier = Modifier,
     text: String,
@@ -263,6 +284,26 @@ fun H5(
         textAlign = textAlign,
         text = text,
         style = MaterialTheme.customTypography.header5,
+        modifier = modifier,
+        color = color,
+        overflow = overflow,
+        maxLines = maxLines
+    )
+}
+
+@Composable
+fun H5Bold(
+    modifier: Modifier = Modifier,
+    text: String,
+    textAlign: TextAlign? = null,
+    color: Color = Color.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE
+) {
+    Text(
+        textAlign = textAlign,
+        text = text,
+        style = MaterialTheme.customTypography.header5.bold(),
         modifier = modifier,
         color = color,
         overflow = overflow,

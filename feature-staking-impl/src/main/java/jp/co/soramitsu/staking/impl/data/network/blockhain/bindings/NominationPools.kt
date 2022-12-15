@@ -89,10 +89,22 @@ fun bindExistingPools(
 
 @UseCaseBinding
 fun bindLastPoolId(
-    scale: String,
+    scale: String?,
     runtime: RuntimeSnapshot
 ): BigInteger {
+    scale ?: return BigInteger.ZERO
     val returnType = runtime.metadata.storageReturnType("NominationPools", "LastPoolId")
+
+    return bindNumber(returnType.fromHexOrIncompatible(scale, runtime))
+}
+
+@UseCaseBinding
+fun bindPoolsCount(
+    scale: String?,
+    runtime: RuntimeSnapshot
+): BigInteger {
+    scale ?: return BigInteger.ZERO
+    val returnType = runtime.metadata.storageReturnType("NominationPools", "CounterForBondedPools")
 
     return bindNumber(returnType.fromHexOrIncompatible(scale, runtime))
 }

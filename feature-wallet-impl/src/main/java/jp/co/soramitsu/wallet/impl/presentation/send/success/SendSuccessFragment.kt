@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.success
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
@@ -17,6 +18,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalActionsSheet
 import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
+import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -25,12 +27,15 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 class SendSuccessFragment : BaseComposeBottomSheetDialogFragment<SendSuccessViewModel>() {
 
     companion object {
+        const val CHOOSER_REQUEST_CODE = 128
         const val KEY_OPERATION_HASH = "KEY_OPERATION_HASH"
         const val KEY_CHAIN_ID = "KEY_CHAIN_ID"
+        const val KEY_CUSTOM_MESSAGE = "KEY_CUSTOM_MESSAGE"
 
-        fun getBundle(operationHash: String?, chainId: ChainId) = bundleOf(
+        fun getBundle(operationHash: String?, chainId: ChainId, customMessage: String?) = bundleOf(
             KEY_OPERATION_HASH to operationHash,
-            KEY_CHAIN_ID to chainId
+            KEY_CHAIN_ID to chainId,
+            KEY_CUSTOM_MESSAGE to customMessage
         )
     }
 
@@ -47,8 +52,14 @@ class SendSuccessFragment : BaseComposeBottomSheetDialogFragment<SendSuccessView
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        observeBrowserEvents(viewModel)
+
         viewModel.showHashActions.observeEvent {
             showExternalTransactionActions()
+        }
+        viewModel.shareUrlEvent.observeEvent {
+            shareUrl(it)
         }
     }
 
@@ -59,6 +70,18 @@ class SendSuccessFragment : BaseComposeBottomSheetDialogFragment<SendSuccessView
             explorers = viewModel.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EXTRINSIC, hash),
             externalViewCallback = viewModel::openUrl
         )
+    }
+
+    private fun shareUrl(url: String) {
+        val title = getString(R.string.common_share)
+
+        val intent = Intent(Intent.ACTION_SEND)
+            .putExtra(Intent.EXTRA_TEXT, url)
+            .setType("text/plain")
+
+        val chooser = Intent.createChooser(intent, title)
+
+        startActivityForResult(chooser, CHOOSER_REQUEST_CODE)
     }
 
     private fun showExternalActionsSheet(
@@ -79,7 +102,7 @@ class SendSuccessFragment : BaseComposeBottomSheetDialogFragment<SendSuccessView
         ExternalActionsSheet(
             context = requireContext(),
             payload = payload,
-            onCopy = viewModel::copyStringClicked,
+            onCopy = viewModel::copyString,
             onViewExternal = externalViewCallback
         )
             .show()

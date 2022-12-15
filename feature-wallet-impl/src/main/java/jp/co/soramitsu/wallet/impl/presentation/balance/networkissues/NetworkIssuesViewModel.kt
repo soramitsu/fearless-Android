@@ -13,7 +13,10 @@ import jp.co.soramitsu.common.mixin.api.NetworkStateMixin
 import jp.co.soramitsu.common.mixin.api.NetworkStateUi
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
+import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -28,7 +31,8 @@ class NetworkIssuesViewModel @Inject constructor(
     private val walletInteractor: WalletInteractor,
     private val accountInteractor: AccountInteractor,
     private val updatesMixin: UpdatesMixin,
-    private val networkStateMixin: NetworkStateMixin
+    private val networkStateMixin: NetworkStateMixin,
+    private val resourceManager: ResourceManager
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin {
 
     val state = combine(
@@ -62,7 +66,13 @@ class NetworkIssuesViewModel @Inject constructor(
                 walletRouter.openNodes(issue.chainId)
             }
             NetworkIssueType.Network -> {
-                walletRouter.openNetworkUnavailable(issue.chainName)
+                val payload = AlertViewState(
+                    title = resourceManager.getString(R.string.staking_main_network_title, issue.chainName),
+                    message = resourceManager.getString(R.string.network_issue_unavailable),
+                    buttonText = resourceManager.getString(R.string.top_up),
+                    iconRes = R.drawable.ic_alert_16
+                )
+                walletRouter.openAlert(payload)
             }
             NetworkIssueType.Account -> launch {
                 val meta = accountInteractor.selectedMetaAccountFlow().first()

@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Named
+import jp.co.soramitsu.common.utils.withLoading
 
 @HiltViewModel
 class SelectCustomCollatorsViewModel @Inject constructor(
@@ -95,6 +96,7 @@ class SelectCustomCollatorsViewModel @Inject constructor(
     }
         .inBackground()
         .share()
+        .withLoading()
 
     val selectedTitle = shownCollators.map {
         resourceManager.getString(R.string.staking_custom_header_collators_title, it.size, recommendator().availableCollators.size)

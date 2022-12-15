@@ -4,7 +4,7 @@ import android.os.Parcelable
 import androidx.annotation.StringRes
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.feature_account_impl.R
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class ToolbarConfiguration(@StringRes val titleRes: Int? = null, val backVisible: Boolean = false) : Parcelable

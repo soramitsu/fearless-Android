@@ -33,8 +33,6 @@ buildscript {
         okhttpVersion = '5.0.0-alpha.8'
         gsonVersion = '2.9.1'
 
-        zXingVersion = '3.5.0'
-
         navControllerVersion = '2.5.1'
 
         junitVersion = '4.13.2'
@@ -47,8 +45,8 @@ buildscript {
 
         gifVersion = '1.2.24'
 
-        zXingVersion = '3.5.0'
-        zXingEmbeddedVersion = '3.5.0@aar'
+        zXingVersion = '3.5.1'
+        zXingEmbeddedVersion = '4.3.0'
 
         biometricDep = "androidx.biometric:biometric:$biometricVersion"
 
@@ -116,6 +114,7 @@ buildscript {
                 "com.valentinilk.shimmer:compose-shimmer:1.0.3",
                 "androidx.constraintlayout:constraintlayout-compose:1.0.1",
                 "com.google.accompanist:accompanist-swiperefresh:0.26.5-rc",
+                "com.google.accompanist:accompanist-webview:0.27.1",
                 "io.coil-kt:coil-compose:$coilVersion",
                 "androidx.navigation:navigation-compose:$navControllerVersion",
                 "androidx.hilt:hilt-navigation-compose:1.0.0"
@@ -173,6 +172,7 @@ buildscript {
         shimmerDep = "com.facebook.shimmer:shimmer:$shimmerVersion"
 
         storiesDep = "com.github.shts:StoriesProgressView:$storiesVersion"
+        opencsvDep = "com.opencsv:opencsv:5.7.1"
 
         jUnitDep = "junit:junit:$junitVersion"
         mockitoDep = "org.mockito:mockito-inline:$mockitoVersion"
@@ -200,9 +200,9 @@ buildscript {
         maven { url 'https://maven.google.com' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.2'
+        classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath 'com.google.gms:google-services:4.3.13'
+        classpath 'com.google.gms:google-services:4.3.14'
         classpath "com.google.firebase:firebase-appdistribution-gradle:$firebaseAppDistrVersion"
         classpath "com.github.triplet.gradle:play-publisher:$playPublisherVersion"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$daggerVersion"

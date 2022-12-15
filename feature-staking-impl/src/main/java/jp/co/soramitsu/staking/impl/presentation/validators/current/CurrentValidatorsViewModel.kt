@@ -13,6 +13,8 @@ import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.common.utils.withLoading
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.ext.addressOf
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
 import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
@@ -27,11 +29,9 @@ import jp.co.soramitsu.staking.impl.presentation.validators.current.model.Nomina
 import jp.co.soramitsu.staking.impl.presentation.validators.current.model.NominatedValidatorStatusModel
 import jp.co.soramitsu.staking.impl.presentation.validators.current.model.NominatedValidatorStatusModel.TitleConfig
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
-import jp.co.soramitsu.runtime.ext.addressOf
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance

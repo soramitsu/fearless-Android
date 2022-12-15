@@ -3,9 +3,11 @@ package jp.co.soramitsu.app.root.navigation
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
+import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
@@ -36,8 +38,12 @@ import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
 import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
+import jp.co.soramitsu.app.root.presentation.WebViewerFragment
+import jp.co.soramitsu.app.root.presentation.emptyResultKey
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -66,6 +72,7 @@ import jp.co.soramitsu.staking.impl.presentation.payouts.confirm.model.ConfirmPa
 import jp.co.soramitsu.staking.impl.presentation.payouts.detail.PayoutDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.payouts.model.PendingPayoutParcelable
 import jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoFragment
+import jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoOptionsFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.StakingBalanceFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMoreFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.bond.confirm.ConfirmBondMorePayload
@@ -79,6 +86,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.redeem.RedeemPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.parcel.ConfirmRewardDestinationPayload
+import jp.co.soramitsu.staking.impl.presentation.staking.unbond.PoolFullUnstakeDepositorAlertFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondFragment
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm.ConfirmUnbondPayload
 import jp.co.soramitsu.staking.impl.presentation.staking.unbond.select.SelectUnbondFragment
@@ -88,20 +96,22 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDeta
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
+import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
@@ -115,7 +125,9 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -153,8 +165,22 @@ class Navigator :
         navController?.navigate(R.id.action_splash_to_pin, bundle)
     }
 
-    override fun openCreateAccount() {
+    override fun openCreateAccountFromOnboarding() {
         navController?.navigate(R.id.action_welcomeFragment_to_createAccountFragment)
+    }
+
+    override fun openCreateAccountFromWallet() {
+        val request = NavDeepLinkRequest.Builder
+            .fromUri("fearless://onboarding/createAccountFragment".toUri())
+            .build()
+        navController?.navigate(request)
+    }
+
+    override fun openImportAccountScreenFromWallet(blockChainType: Int) {
+        val request = NavDeepLinkRequest.Builder
+            .fromUri("fearless://onboarding/importAccountFragment/$blockChainType".toUri())
+            .build()
+        navController?.navigate(request)
     }
 
     override fun openCreateAccountSkipWelcome(payload: ChainAccountCreatePayload) {
@@ -169,6 +195,10 @@ class Navigator :
             bundle,
             NavOptions.Builder().setPopUpTo(R.id.welcomeFragment, true).build()
         )
+    }
+
+    override fun popOutOfSend() {
+        navController?.popBackStack(R.id.sendSetupFragment, true)
     }
 
     override fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean) {
@@ -511,18 +541,27 @@ class Navigator :
         navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
 
+    override fun openSelectedValidators() {
+        navController?.navigate(R.id.selectedValidatorsFragment)
+    }
+
     override fun openCollatorDetails(collatorDetails: CollatorDetailsParcelModel) {
         navController?.navigate(R.id.open_collator_details, CollatorDetailsFragment.getBundle(collatorDetails))
     }
 
-    override fun openSend(assetPayload: AssetPayload, initialSendToAddress: String?) {
-        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress)
+    override fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?) {
+        val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId)
 
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openSelectChain(assetId: ChainId) {
-        val bundle = ChainSelectFragment.getBundle(assetId)
+    override fun openSelectChain(assetId: String, chooserMode: Boolean) {
+        val bundle = ChainSelectFragment.getBundle(assetId = assetId, chooserMode = chooserMode)
+        navController?.navigate(R.id.chainSelectFragment, bundle)
+    }
+
+    override fun openSelectChain(selectedChainId: ChainId?, filterChainIds: List<ChainId>?, chooserMode: Boolean, currencyId: String?, showAllChains: Boolean) {
+        val bundle = ChainSelectFragment.getBundle(selectedChainId, filterChainIds, chooserMode, currencyId, showAllChains)
         navController?.navigate(R.id.chainSelectFragment, bundle)
     }
 
@@ -531,18 +570,27 @@ class Navigator :
         navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 
+    override fun openSelectChainAsset(chainId: ChainId) {
+        val bundle = AssetSelectFragment.getBundleFilterByChain(chainId)
+        navController?.navigate(R.id.assetSelectFragment, bundle)
+    }
+
     override fun openFilter() {
         navController?.navigate(R.id.action_mainFragment_to_filterFragment)
     }
 
-    override fun openSendConfirm(transferDraft: TransferDraft) {
-        val bundle = ConfirmSendFragment.getBundle(transferDraft)
+    override fun openSendConfirm(transferDraft: TransferDraft, phishingType: PhishingType?) {
+        val bundle = ConfirmSendFragment.getBundle(transferDraft, phishingType)
 
         navController?.navigate(R.id.confirmSendFragment, bundle)
     }
 
-    override fun openSendSuccess(operationHash: String?, chainId: ChainId) {
-        val bundle = SendSuccessFragment.getBundle(operationHash, chainId)
+    override fun openOperationSuccess(operationHash: String?, chainId: ChainId) {
+        openOperationSuccess(operationHash, chainId, null)
+    }
+
+    override fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String?) {
+        val bundle = SendSuccessFragment.getBundle(operationHash, chainId, customMessage)
 
         navController?.navigate(R.id.sendSuccessFragment, bundle)
     }
@@ -612,10 +660,6 @@ class Navigator :
         navController!!.previousBackStackEntry!!.savedStateHandle.set(SignBeaconTransactionFragment.SIGN_RESULT_KEY, status)
     }
 
-    override fun openManageAssets() {
-        navController?.navigate(R.id.action_mainFragment_to_manageAssetsFragment)
-    }
-
     override fun returnToWallet() {
         // to achieve smooth animation
         postToUiThread {
@@ -657,6 +701,18 @@ class Navigator :
         val bundle = BalanceDetailFragment.getBundle(assetPayload)
 
         navController?.navigate(R.id.action_mainFragment_to_balanceDetailFragment, bundle)
+    }
+
+    override fun openAddressHistory(chainId: ChainId) {
+        val bundle = AddressHistoryFragment.getBundle(chainId)
+
+        navController?.navigate(R.id.addressHistoryFragment, bundle)
+    }
+
+    override fun openCreateContact(chainId: ChainId?, address: String?) {
+        val bundle = CreateContactFragment.getBundle(chainId, address)
+
+        navController?.navigate(R.id.createContactFragment, bundle)
     }
 
     override fun openAddNode(chainId: ChainId) {
@@ -772,9 +828,18 @@ class Navigator :
         navController?.navigate(R.id.optionsAddAccountFragment, bundle)
     }
 
-    override fun openNetworkUnavailable(chainName: String?) {
-        val bundle = chainName?.let { NetworkUnavailableFragment.getBundle(chainName) }
-        navController?.navigate(R.id.networkUnavailableFragment, bundle)
+    override fun openAlert(payload: AlertViewState) {
+        openAlert(payload, emptyResultKey)
+    }
+
+    override fun openAlert(payload: AlertViewState, resultKey: String) {
+        val currentDestination = requireNotNull(navController?.currentDestination?.id)
+        openAlert(payload, resultKey, currentDestination)
+    }
+
+    override fun openAlert(payload: AlertViewState, resultKey: String, resultDestinationId: Int) {
+        val bundle = AlertFragment.getBundle(payload, resultKey, resultDestinationId)
+        navController?.navigate(R.id.alertFragment, bundle)
     }
 
     override fun openSearchAssets(chainId: String?) {
@@ -842,8 +907,80 @@ class Navigator :
         navController?.navigate(R.id.confirmSelectValidatorsFragment)
     }
 
+    override fun openPoolInfoOptions(poolInfo: PoolInfo) {
+        navController?.navigate(R.id.poolOptionsInfoFragment, PoolInfoOptionsFragment.getBundle(poolInfo))
+    }
+
+    override fun openEditPool() {
+        navController?.navigate(R.id.editPoolFragment)
+    }
+
+    override fun openEditPoolConfirm() {
+        navController?.navigate(R.id.editPoolConfirmFragment)
+    }
+
     override val walletSelectorPayloadFlow: Flow<WalletSelectorPayload?>
         get() = navController?.currentBackStackEntry?.savedStateHandle
             ?.getLiveData<WalletSelectorPayload?>(WalletSelectorPayload::class.java.name)
             ?.asFlow() ?: emptyFlow()
+
+    override fun setAlertResult(key: String, result: Result<*>, resultDestinationId: Int?) {
+        val resultBackStackEntry = resultDestinationId?.let { navController?.getBackStackEntry(it) } ?: navController?.previousBackStackEntry
+        resultBackStackEntry?.savedStateHandle?.set(
+            key,
+            result
+        )
+    }
+
+    override fun alertResultFlow(key: String): Flow<Result<Unit>> {
+        val currentEntry = navController?.currentBackStackEntry
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(key) == true) {
+                val result = currentEntry.savedStateHandle.get<Result<Unit>?>(key)
+                currentEntry.savedStateHandle.set<Result<Unit>?>(key, null)
+                result
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
+    override fun listenAlertResultFlowFromStartSelectValidatorsScreen(key: String): Flow<Result<Unit>> {
+        val currentEntry = navController?.getBackStackEntry(R.id.startSelectValidatorsFragment)
+        val onResumeObserver = currentEntry?.lifecycle?.onResumeObserver()
+
+        return (onResumeObserver?.asFlow() ?: emptyFlow()).map {
+            if (currentEntry?.savedStateHandle?.contains(key) == true) {
+                val result = currentEntry.savedStateHandle.get<Result<Unit>?>(key)
+                currentEntry.savedStateHandle.set<Result<Unit>?>(key, null)
+                result
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
+    override fun openAlertFromStartSelectValidatorsScreen(payload: AlertViewState, key: String) {
+        openAlert(payload, key, R.id.startSelectValidatorsFragment)
+    }
+
+    override fun openWebViewer(title: String, url: String) {
+        navController?.navigate(R.id.webViewerFragment, WebViewerFragment.getBundle(title, url))
+    }
+
+    override fun setChainSelectorPayload(chainId: ChainId?) {
+        navController?.previousBackStackEntry?.savedStateHandle?.set(ChainSelectFragment.KEY_SELECTED_CHAIN_ID, chainId)
+    }
+
+    override val chainSelectorPayloadFlow: Flow<ChainId?>
+        get() = navController?.currentBackStackEntry?.savedStateHandle
+            ?.getLiveData<ChainId?>(ChainSelectFragment.KEY_SELECTED_CHAIN_ID)
+            ?.asFlow() ?: emptyFlow()
+
+    override fun openPoolFullUnstakeDepositorAlertFragment(amount: String) {
+        val bundle = PoolFullUnstakeDepositorAlertFragment.getBundle(amount)
+        navController?.navigate(R.id.poolFullUnstakeDepositorAlertFragment, bundle)
+    }
 }

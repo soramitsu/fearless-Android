@@ -5,14 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.account.api.presentation.exporting.buildExportSourceTypes
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.address.AddressModel
-import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
@@ -21,6 +20,7 @@ import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatAsChange
@@ -29,19 +29,15 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
-import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainItemState
-import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.ChainSelectScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.model.AssetModel
@@ -57,16 +53,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigInteger
-import javax.inject.Inject
-
-private const val CURRENT_ICON_SIZE = 40
 
 @HiltViewModel
 class BalanceDetailViewModel @Inject constructor(
@@ -78,15 +67,16 @@ class BalanceDetailViewModel @Inject constructor(
     private val chainInteractor: ChainInteractor,
     private val historyFiltersProvider: HistoryFiltersProvider,
     savedStateHandle: SavedStateHandle,
-    resourceManager: ResourceManager,
-    addressDisplayUseCase: AddressDisplayUseCase
+    private val resourceManager: ResourceManager,
+    private val clipboardManager: ClipboardManager,
+    addressDisplayUseCase: AddressDisplayUseCase,
+    private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : BaseViewModel(),
+    BalanceDetailsScreenInterface,
     ExternalAccountActions by externalAccountActions,
     BuyMixin by buyMixin {
 
-    private val assetPayloadInitial: AssetPayload = savedStateHandle[KEY_ASSET_PAYLOAD]!!
-
-    private val accountAddressToChainItemMap = mutableMapOf<String, ChainItemState?>(polkadotChainId to null)
+    private val assetPayloadInitial: AssetPayload = savedStateHandle[KEY_ASSET_PAYLOAD] ?: error("No asset specified")
 
     private val _showAccountOptions = MutableLiveData<Event<String>>()
     val showAccountOptions: LiveData<Event<String>> = _showAccountOptions
@@ -96,97 +86,69 @@ class BalanceDetailViewModel @Inject constructor(
 
     val isRefreshing = MutableStateFlow(false)
 
-    private val enteredChainQueryFlow = MutableStateFlow("")
-
-    private val selectedChainItem = MutableStateFlow<ChainItemState?>(null)
+    private val selectedChainId = MutableStateFlow(assetPayloadInitial.chainId)
     private val assetPayload = MutableStateFlow(assetPayloadInitial)
 
     private val chainsFlow = chainInteractor.getChainsFlow().mapList { it.toChainItemState() }
+    private val assetModelsFlow: Flow<List<AssetModel>> = interactor.assetsFlow()
+        .mapList {
+            when {
+                it.hasAccount -> it.asset
+                else -> null
+            }
+        }
+        .map { it.filterNotNull() }
+        .mapList { mapAssetToAssetModel(it) }
 
     private val assetModelFlow = combine(
-        assetModelsFlow(),
-        chainsFlow,
-        selectedChainItem
+        assetModelsFlow,
+        selectedChainId
     ) { assetModels: List<AssetModel>,
-        chains: List<ChainItemState>,
-        selectedChain: ChainItemState? ->
-        val assetSymbol = assetModels.first {
+        selectedChainId: ChainId? ->
+        val assetSymbolToShow = assetModels.first {
             it.token.configuration.id == assetPayloadInitial.chainAssetId
-        }.token.configuration.symbol
+        }.token.configuration.symbolToShow
 
-        val chain = selectedChain ?: chains.first { it.id == assetPayload.value.chainId }
-        val asset = assetModels.first { asset ->
-            asset.token.configuration.symbol == assetSymbol && asset.token.configuration.chainId == chain.id
+        val chainId = selectedChainId ?: assetPayload.value.chainId
+
+        val asset = assetModels.first {
+            it.token.configuration.symbolToShow == assetSymbolToShow && it.token.configuration.chainId == chainId
         }
 
         assetPayload.emit(
-            AssetPayload(
-                chainId = chain.id,
-                chainAssetId = asset.token.configuration.id
-            )
+            AssetPayload(chainId = chainId, chainAssetId = asset.token.configuration.id)
         )
 
-        return@combine interactor.getCurrentAsset(
-            chain.id,
-            asset.token.configuration.id
-        )
-    }.shareIn(this, SharingStarted.Eagerly, replay = 1)
+        return@combine interactor.getCurrentAsset(chainId, asset.token.configuration.id)
+    }.share()
 
-    fun buyEnabled(): Boolean {
+    override fun buyEnabled(): Boolean {
         return buyMixin.isBuyEnabled(
             assetPayload.value.chainId,
             assetPayload.value.chainAssetId
         )
     }
 
-    val chainsState = combine(
-        chainsFlow,
-        selectedChainItem,
-        enteredChainQueryFlow,
-        assetModelsFlow()
-    ) { chainItems, selectedChain, searchQuery, assetModels: List<AssetModel> ->
-        val assetSymbol = assetModels.first {
-            it.token.configuration.id == assetPayloadInitial.chainAssetId
-        }.token.configuration.symbol
-
-        val chains = chainItems
-            .filter {
-                it.tokenSymbols.any { it.second.contains(assetSymbol) }
-            }
-            .filter {
-                searchQuery.isEmpty() || it.title.contains(searchQuery, true) || it.tokenSymbols.any { it.second.contains(searchQuery, true) }
-            }
-            .sortedWith(compareBy<ChainItemState> { it.id.defaultChainSort() }.thenBy { it.title })
-
-        ChainSelectScreenViewState(
-            chains = chains,
-            selectedChainId = assetPayload.value.chainId,
-            searchQuery = searchQuery
-        )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ChainSelectScreenViewState.default)
-
     private val transactionHistoryMixin = TransactionHistoryProvider(
-        interactor,
-        addressIconGenerator,
-        router,
-        historyFiltersProvider,
-        resourceManager,
-        addressDisplayUseCase,
-        assetPayloadFlow = flow { assetPayload.value },
+        walletInteractor = interactor,
+        iconGenerator = addressIconGenerator,
+        router = router,
+        historyFiltersProvider = historyFiltersProvider,
+        resourceManager = resourceManager,
+        addressDisplayUseCase = addressDisplayUseCase,
         assetPayloadStateFlow = assetPayload
     )
 
     val toolbarState = combine(
-        currentAddressModelFlow(),
-        selectedChainItem,
+        selectedChainId,
         chainsFlow
-    ) { addressModel, chain, chainItems ->
+    ) { chainId, chainItems ->
         val selectedChain = chainItems.first {
-            it.id == (chain?.id ?: assetPayload.value.chainId)
+            it.id == chainId
         }
         LoadingState.Loaded(
             MainToolbarViewState(
-                title = addressModel.nameOrAddress,
+                title = interactor.getSelectedMetaAccount().name,
                 homeIconState = ToolbarHomeIconState(navigationIcon = R.drawable.ic_arrow_back_24dp),
                 selectorViewState = ChainSelectorViewState(selectedChain.title, selectedChain.id)
             )
@@ -198,15 +160,9 @@ class BalanceDetailViewModel @Inject constructor(
 
     val state = combine(
         transactionHistory,
-        assetModelFlow,
-        enteredChainQueryFlow,
-        assetModelsFlow(),
-        interactor.selectedAccountFlow(assetPayload.value.chainId)
+        assetModelFlow
     ) { transactionHistory: TransactionHistoryUi.State,
-        balanceModel: Asset,
-        searchQuery,
-        assetModels: List<AssetModel>,
-        walletAccount: WalletAccount ->
+        balanceModel: Asset ->
 
         if (transactionHistory is TransactionHistoryUi.State.EmptyProgress) {
             return@combine LoadingState.Loading()
@@ -214,7 +170,7 @@ class BalanceDetailViewModel @Inject constructor(
 
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.total.orZero().formatTokenAmount(balanceModel.token.configuration.symbolToShow.uppercase()),
-            address = walletAccount.address,
+            address = currentAccountAddress(chainId = balanceModel.token.configuration.chainId).orEmpty(),
             isInfoEnabled = true,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.token.recentRateChange?.formatAsChange().orEmpty(),
@@ -232,13 +188,21 @@ class BalanceDetailViewModel @Inject constructor(
         )
     }.stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = LoadingState.Loading())
 
+    init {
+        viewModelScope.launch {
+            router.chainSelectorPayloadFlow.collect { chainId ->
+                chainId?.let { selectedChainId.value = chainId }
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
 
         transactionHistoryMixin.cancel()
     }
 
-    fun transactionsScrolled(index: Int) {
+    override fun transactionsScrolled(index: Int) {
         transactionHistoryMixin.scrolled(
             index,
             AssetPayload(
@@ -248,11 +212,11 @@ class BalanceDetailViewModel @Inject constructor(
         )
     }
 
-    fun filterClicked() {
+    override fun filterClicked() {
         router.openFilter()
     }
 
-    fun sync() {
+    override fun sync() {
         viewModelScope.launch {
             isRefreshing.value = true
             async {
@@ -283,6 +247,13 @@ class BalanceDetailViewModel @Inject constructor(
         router.openReceive(assetPayload)
     }
 
+    fun openSelectChain() {
+        launch {
+            val asset = assetModelFlow.first()
+            router.openSelectChain(asset.token.configuration.id)
+        }
+    }
+
     fun accountOptionsClicked() = launch {
         interactor.getChainAddressForSelectedMetaAccount(
             assetPayload.value.chainId
@@ -299,7 +270,13 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    fun frozenInfoClicked() {
+    override fun onAddressClick() {
+        (state.value as? LoadingState.Loaded)?.data?.balance?.address?.let { address ->
+            copyToClipboard(address)
+        }
+    }
+
+    override fun onBalanceClick() {
         launch {
             val assetModel = assetModelFlow.first()
             router.openFrozenTokens(
@@ -313,7 +290,7 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {
+    override fun actionItemClicked(actionType: ActionItemType, chainId: ChainId, chainAssetId: String) {
         val payload = AssetPayload(chainId, chainAssetId)
         when (actionType) {
             ActionItemType.SEND -> {
@@ -332,16 +309,12 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    private fun assetModelsFlow(): Flow<List<AssetModel>> =
-        interactor.assetsFlow()
-            .mapList {
-                when {
-                    it.hasAccount -> it.asset
-                    else -> null
-                }
-            }
-            .map { it.filterNotNull() }
-            .mapList { mapAssetToAssetModel(it) }
+    private fun copyToClipboard(text: String) {
+        clipboardManager.addToClipboard(text)
+
+        val message = resourceManager.getString(R.string.common_copied)
+        showMessage(message)
+    }
 
     fun switchNode() {
         router.openNodes(assetPayload.value.chainId)
@@ -375,36 +348,7 @@ class BalanceDetailViewModel @Inject constructor(
         }
     }
 
-    private fun currentAddressModelFlow(): Flow<AddressModel> {
-        return interactor.selectedAccountFlow(polkadotChainId)
-            .onEach {
-                if (accountAddressToChainItemMap.containsKey(it.address).not()) {
-                    selectedChainItem.value = null
-                    accountAddressToChainItemMap[it.address] = null
-                } else {
-                    selectedChainItem.value = accountAddressToChainItemMap.getOrDefault(it.address, null)
-                }
-            }
-            .map { generateAddressModel(it, CURRENT_ICON_SIZE) }
-    }
-
-    fun onChainSelected(item: ChainItemState? = null) {
-        selectedChainItem.value = item
-        viewModelScope.launch {
-            val currentAddress = interactor.selectedAccountFlow(polkadotChainId).first().address
-            accountAddressToChainItemMap[currentAddress] = item
-        }
-    }
-
-    fun onChainSearchEntered(query: String) {
-        enteredChainQueryFlow.value = query
-    }
-
-    private suspend fun generateAddressModel(account: WalletAccount, sizeInDp: Int): AddressModel {
-        return addressIconGenerator.createAddressModel(account.address, sizeInDp, account.name)
-    }
-
-    fun transactionClicked(transactionModel: OperationModel) {
+    override fun transactionClicked(transactionModel: OperationModel) {
         transactionHistoryMixin.transactionClicked(
             transactionModel,
             AssetPayload(
@@ -413,9 +357,4 @@ class BalanceDetailViewModel @Inject constructor(
             )
         )
     }
-
-    private fun calculateTotalBalance(
-        freeInPlanks: BigInteger?,
-        reservedInPlanks: BigInteger?
-    ) = freeInPlanks?.let { freeInPlanks + reservedInPlanks.orZero() }
 }

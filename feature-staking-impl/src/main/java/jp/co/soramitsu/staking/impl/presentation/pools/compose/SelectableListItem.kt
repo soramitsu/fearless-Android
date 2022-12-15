@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -41,12 +42,19 @@ data class SelectableListItemState<T>(
     val additionalStatuses: List<SelectableListItemAdditionalStatus> = listOf()
 ) {
     enum class SelectableListItemAdditionalStatus(@DrawableRes val iconRes: Int, val iconTintColor: Color) {
-        WARNING(R.drawable.ic_screen_warning, warningOrange)
+        WARNING(R.drawable.ic_screen_warning, warningOrange), OVERSUBSCRIBED(R.drawable.ic_screen_warning, warningOrange);
     }
 }
 
 @Composable
-fun <T> SelectableListItem(state: SelectableListItemState<T>, onSelected: (SelectableListItemState<T>) -> Unit, onInfoClick: () -> Unit) {
+fun <T> SelectableListItem(
+    state: SelectableListItemState<T>,
+    onSelected: (SelectableListItemState<T>) -> Unit,
+    onInfoClick: (SelectableListItemState<T>) -> Unit
+) {
+    val onSelectedCallback = remember { { onSelected(state) } }
+    val onInfoCallback = remember { { onInfoClick(state) } }
+
     Row(
         modifier = Modifier
             .clickableWithNoIndication { onSelected(state) }
@@ -55,7 +63,7 @@ fun <T> SelectableListItem(state: SelectableListItemState<T>, onSelected: (Selec
     ) {
         FearlessRadioButton(
             selected = state.isSelected,
-            onClick = { onSelected(state) },
+            onClick = onSelectedCallback,
             modifier = Modifier.align(CenterVertically),
             colors = accentRadioButtonColors
         )
@@ -78,7 +86,7 @@ fun <T> SelectableListItem(state: SelectableListItemState<T>, onSelected: (Selec
         }
         Box(
             modifier = Modifier
-                .clickableWithNoIndication(onClick = onInfoClick)
+                .clickableWithNoIndication(onClick = onInfoCallback)
                 .align(CenterVertically)
                 .padding(start = 16.dp, top = 12.dp, bottom = 12.dp)
         ) {

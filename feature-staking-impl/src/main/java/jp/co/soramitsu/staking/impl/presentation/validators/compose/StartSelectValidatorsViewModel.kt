@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.validators.compose
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.SelectValidatorsVariantPanelViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -19,11 +20,15 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class StartSelectValidatorsViewModel @Inject constructor(
-    resourceManager: ResourceManager,
+    private val resourceManager: ResourceManager,
     private val validatorRecommendatorFactory: ValidatorRecommendatorFactory,
     private val router: StakingRouter,
     private val stakingPoolSharedStateProvider: StakingPoolSharedStateProvider
 ) : BaseViewModel() {
+
+    companion object {
+        const val KEY_ALERT_RESULT = "result"
+    }
 
     private val recommendedState = SelectValidatorsVariantPanelViewState(
         title = resourceManager.getString(R.string.staking_start_change_validators_recommended_title),
@@ -52,14 +57,23 @@ class StartSelectValidatorsViewModel @Inject constructor(
     init {
         launch {
             validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
-
             loadingState.value = false
+
+            router.listenAlertResultFlowFromStartSelectValidatorsScreen(KEY_ALERT_RESULT).collect {
+                onAlertResult(it)
+            }
         }
     }
 
-    fun onRecommendedClick() {
-        setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
-        router.openSelectValidators()
+    fun onRecommendedClick() = viewModelScope.launch {
+        val payload = AlertViewState(
+            title = resourceManager.getString(R.string.staking_suggested_validators_title),
+            message = resourceManager.getString(R.string.alert_suggested_validators),
+            buttonText = resourceManager.getString(R.string.common_continue),
+            textSize = 12,
+            iconRes = R.drawable.ic_alert_16
+        )
+        router.openAlertFromStartSelectValidatorsScreen(payload, KEY_ALERT_RESULT)
     }
 
     fun onManualClick() {
@@ -75,5 +89,12 @@ class StartSelectValidatorsViewModel @Inject constructor(
 
     fun onBackClick() {
         router.back()
+    }
+
+    private fun onAlertResult(result: Result<Unit>) {
+        if (result.isSuccess) {
+            setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
+            router.openSelectValidators()
+        }
     }
 }

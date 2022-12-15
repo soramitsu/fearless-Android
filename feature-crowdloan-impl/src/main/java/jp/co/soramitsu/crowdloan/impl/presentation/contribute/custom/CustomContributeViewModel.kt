@@ -57,6 +57,7 @@ import jp.co.soramitsu.wallet.api.domain.AssetUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
+import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
@@ -120,7 +121,7 @@ class CustomContributeViewModel @Inject constructor(
     val assetModelFlow = _viewStateFlow
         .filter { (_viewStateFlow.value as? MoonbeamContributeViewState)?.customContributePayload?.step == CONTRIBUTE }
         .flatMapLatest { assetFlow }
-        .map { mapAssetToAssetModel(it, resourceManager) }
+        .map { mapAssetToAssetModel(it, resourceManager, Asset::transferable) }
         .inBackground()
         .share()
 

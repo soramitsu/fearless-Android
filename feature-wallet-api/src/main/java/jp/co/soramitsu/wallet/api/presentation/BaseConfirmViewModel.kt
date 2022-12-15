@@ -4,7 +4,9 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import java.math.BigInteger
+import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.ConfirmScreenViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
@@ -12,7 +14,12 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
+import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.validation.FeeInsufficientBalanceException
+import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_wallet_api.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
@@ -20,22 +27,26 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 abstract class BaseConfirmViewModel(
+    private val existentialDepositUseCase: ExistentialDepositUseCase,
     private val resourceManager: ResourceManager,
     protected val asset: Asset,
+    protected val chain: Chain,
     protected val address: String,
     protected val amountInPlanks: BigInteger? = null,
     @StringRes protected val titleRes: Int,
     @StringRes protected val additionalMessageRes: Int? = null,
     @DrawableRes protected val customIcon: Int? = null,
     private val feeEstimator: suspend (BigInteger?) -> BigInteger,
-    private val executeOperation: suspend (String, BigInteger?) -> Result<Any>,
+    private val executeOperation: suspend (String, BigInteger?) -> Result<String>,
     private val accountNameProvider: suspend (String) -> String?,
-    private val onOperationSuccess: () -> Unit
+    private val onOperationSuccess: (String) -> Unit,
+    private val errorAlertPresenter: (AlertViewState) -> Unit
 ) : BaseViewModel() {
 
     private val amount = amountInPlanks?.let { asset.token.amountFromPlanks(it) }
@@ -67,9 +78,16 @@ abstract class BaseConfirmViewModel(
         amountFiat
     )
 
-    val feeViewStateFlow = flowOf {
+    protected val feeInPlanksFlow = flowOf {
         val amountInPlanks = amount?.let { asset.token.planksFromAmount(it) }
-        val feeInPlanks = feeEstimator(amountInPlanks)
+        feeEstimator(amountInPlanks)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        null
+    )
+
+    val feeViewStateFlow = feeInPlanksFlow.filterNotNull().map { feeInPlanks ->
         val fee = asset.token.amountFromPlanks(feeInPlanks)
         val feeFormatted = fee.formatTokenAmount(asset.token.configuration)
         val feeFiat = fee.formatAsCurrency(asset.token.fiatSymbol)
@@ -109,12 +127,46 @@ abstract class BaseConfirmViewModel(
 
     fun onConfirm() {
         launch {
-            executeOperation(address, amountInPlanks).fold({
-                onOperationSuccess()
-            }, {
-                showError(it)
-            })
+            isValid().fold({ validationPassed() }, ::showError)
         }
+    }
+
+    protected open suspend fun isValid(): Result<Any> {
+        val fee = feeInPlanksFlow.value ?: return Result.failure(WaitForFeeCalculationException(resourceManager))
+
+        val chargesAmount = amountInPlanks.orZero() + fee
+        val existentialDeposit = existentialDepositUseCase(asset.token.configuration)
+
+        val resultBalance = asset.transferableInPlanks - chargesAmount
+        if (resultBalance < existentialDeposit || resultBalance <= BigInteger.ZERO) {
+            return Result.failure(FeeInsufficientBalanceException(resourceManager))
+        }
+        return Result.success(Unit)
+    }
+
+    private suspend fun validationPassed() {
+        executeOperation(address, amountInPlanks).fold({
+            onOperationSuccess(it)
+        }, ::showError)
+    }
+
+    override fun showError(throwable: Throwable) {
+        val message =
+            throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
+        val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
+            AlertViewState(
+                title = title,
+                message = message,
+                buttonText = resourceManager.getString(R.string.common_got_it),
+                iconRes = R.drawable.ic_status_warning_16
+            )
+        } ?: AlertViewState(
+            title = resourceManager.getString(R.string.common_error_general_title),
+            message = message,
+            buttonText = resourceManager.getString(R.string.common_got_it),
+            iconRes = R.drawable.ic_status_warning_16
+        )
+        errorAlertPresenter(errorAlertViewState)
     }
 
     private val defaultFeeState

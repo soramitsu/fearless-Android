@@ -3,6 +3,8 @@ package jp.co.soramitsu.staking.impl.data.repository
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.multiAddressOf
 import jp.co.soramitsu.staking.api.data.StakingSharedState
@@ -13,7 +15,9 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.joinPool
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.nominatePool
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.setPoolMetadata
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.unbondFromPool
+import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.updateRoles
 import jp.co.soramitsu.staking.impl.data.network.blockhain.calls.withdrawUnbondedFromPool
+import jp.co.soramitsu.staking.impl.presentation.common.EditPoolFlowState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -96,34 +100,6 @@ class StakingPoolApi(
             extrinsicService.submitExtrinsic(chain, root, useBatchAll = true) {
                 createPool(amountInPlanks, rootMultiAddress, nominatorMultiAddress, stateTogglerMultiAddress)
                 setPoolMetadata(poolId, name.encodeToByteArray())
-            }
-        }
-    }
-
-    suspend fun estimateSetPoolMetadataFee(
-        poolId: BigInteger,
-        poolName: String
-    ): BigInteger {
-        return withContext(Dispatchers.IO) {
-            val chain = stakingSharedState.chain()
-
-            extrinsicService.estimateFee(chain) {
-                setPoolMetadata(poolId, poolName.encodeToByteArray())
-            }
-        }
-    }
-
-    suspend fun setPoolMetadata(
-        poolId: BigInteger,
-        poolName: String,
-        accountAddress: String
-    ): Result<String> {
-        return withContext(Dispatchers.IO) {
-            val chain = stakingSharedState.chain()
-            val accountId = chain.accountIdOf(accountAddress)
-
-            extrinsicService.submitExtrinsic(chain, accountId) {
-                setPoolMetadata(poolId, poolName.encodeToByteArray())
             }
         }
     }
@@ -282,4 +258,52 @@ class StakingPoolApi(
             }
         }
     }
+
+    suspend fun estimateEditPool(state: EditPoolFlowState): BigInteger {
+        return withContext(Dispatchers.IO) {
+            val poolId = state.poolId
+            val chain = stakingSharedState.chain()
+
+            extrinsicService.estimateFee(chain) {
+                state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
+                updateRoles(state)
+            }
+        }
+    }
+
+    suspend fun editPool(state: EditPoolFlowState, address: String): Result<String> {
+        return withContext(Dispatchers.IO) {
+            val poolId = state.poolId
+            val chain = stakingSharedState.chain()
+            val accountId = chain.accountIdOf(address)
+
+            extrinsicService.submitExtrinsic(chain, accountId) {
+                state.newPoolName?.let { setPoolMetadata(poolId, it.encodeToByteArray()) }
+                updateRoles(state)
+            }
+        }
+    }
+}
+
+private fun ExtrinsicBuilder.updateRoles(state: EditPoolFlowState) {
+    val poolId = state.poolId
+    val rootChanged = !state.initialRoot.contentEquals(state.newRoot)
+    val nominatorChanged = !state.initialNominator.contentEquals(state.newNominator)
+    val stateTogglerChanged = !state.initialStateToggler.contentEquals(state.newStateToggler)
+
+    val rolesChanged = rootChanged || nominatorChanged || stateTogglerChanged
+    if (rolesChanged) {
+        updateRoles(
+            poolId,
+            state.newRoot.toRoleUpdateEntry(rootChanged),
+            state.newNominator.toRoleUpdateEntry(nominatorChanged),
+            state.newStateToggler.toRoleUpdateEntry(stateTogglerChanged)
+        )
+    }
+}
+
+private fun AccountId?.toRoleUpdateEntry(isChanged: Boolean) = when {
+    this == null -> DictEnum.Entry("Noop", null)
+    isChanged -> DictEnum.Entry("Set", this)
+    else -> DictEnum.Entry("Noop", null)
 }

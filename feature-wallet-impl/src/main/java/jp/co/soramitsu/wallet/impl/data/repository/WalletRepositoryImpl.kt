@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.repository
 
+import com.opencsv.CSVReaderHeaderAware
+import java.lang.Integer.min
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -15,16 +17,14 @@ import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.dao.OperationDao
-import jp.co.soramitsu.coredb.dao.PhishingAddressDao
+import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.OperationLocal
-import jp.co.soramitsu.coredb.model.PhishingAddressLocal
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
@@ -43,6 +43,7 @@ import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.wallet.impl.data.network.subquery.SubQueryOperationsApi
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -59,7 +60,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -72,13 +73,14 @@ class WalletRepositoryImpl(
     private val phishingApi: PhishingApi,
     private val assetCache: AssetCache,
     private val walletConstants: WalletConstants,
-    private val phishingAddressDao: PhishingAddressDao,
+    private val phishingDao: PhishingDao,
     private val cursorStorage: TransferCursorStorage,
     private val coingeckoApi: CoingeckoApi,
     private val chainRegistry: ChainRegistry,
     private val availableFiatCurrencies: GetAvailableFiatCurrencies,
     private val updatesMixin: UpdatesMixin,
-    private val remoteConfigFetcher: RemoteConfigFetcher
+    private val remoteConfigFetcher: RemoteConfigFetcher,
+    private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : WalletRepository, UpdatesProviderUi by updatesMixin {
 
     override fun assetsFlow(meta: MetaAccount): Flow<List<AssetWithStatus>> {
@@ -98,7 +100,7 @@ class WalletRepositoryImpl(
                 }
             }
 
-            val assetsByChain: List<AssetWithStatus> = chainRegistry.currentChains.firstOrNull().orEmpty()
+            val assetsByChain: List<AssetWithStatus> = chainsById.values
                 .flatMap { chain ->
                     chain.assets.map {
                         AssetWithStatus(
@@ -195,8 +197,24 @@ class WalletRepositoryImpl(
         return assetLocal?.let { mapAssetLocalToAsset(it, chainAsset, minSupportedVersion) }
     }
 
-    override suspend fun updateAssetHidden(metaId: Long, accountId: AccountId, chainId: ChainId, assetSymbol: String, isHidden: Boolean) {
-        val updateItems = assetCache.getAssets(metaId, accountId, chainId, assetSymbol).map { it.toAssetUpdateItem().copy(enabled = !isHidden) }
+    override suspend fun updateAssetHidden(
+        metaId: Long,
+        accountId: AccountId,
+        isHidden: Boolean,
+        chainAsset: Chain.Asset
+    ) {
+        val updateItems = listOf(
+            AssetUpdateItem(
+                metaId = metaId,
+                chainId = chainAsset.chainId,
+                accountId = accountId,
+                id = chainAsset.id,
+                sortIndex = Int.MAX_VALUE, // Int.MAX_VALUE on sorting because we don't use it anymore - just random value
+                enabled = !isHidden,
+                tokenPriceId = chainAsset.priceId
+            )
+        )
+
         assetCache.updateAsset(updateItems)
     }
 
@@ -218,12 +236,18 @@ class WalletRepositoryImpl(
         chainAsset: Chain.Asset
     ) {
         val accountAddress = chain.addressOf(accountId)
-        val page = getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
+        val page = kotlin.runCatching {
+            getOperations(pageSize, cursor = null, filters, accountId, chain, chainAsset)
+        }.getOrDefault(CursorPage(null, emptyList()))
 
         val elements = page.map { mapOperationToOperationLocalDb(it, chainAsset, OperationLocal.Source.SUBQUERY) }
 
         operationDao.insertFromSubquery(accountAddress, chain.id, chainAsset.id, elements)
         cursorStorage.saveCursor(chain.id, chainAsset.id, accountId, page.nextCursor)
+
+        if (elements.isEmpty() && chainAsset.isUtility.not()) {
+            syncOperationsFirstPage(pageSize, filters, accountId, chain, chain.utilityAsset)
+        }
     }
 
     override suspend fun getOperations(
@@ -277,12 +301,30 @@ class WalletRepositoryImpl(
             }
     }
 
-    override suspend fun getContacts(
-        accountId: AccountId,
-        chain: Chain,
-        query: String
-    ): Set<String> {
-        return operationDao.getContacts(query, chain.addressOf(accountId), chain.id).toSet()
+    override fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>> {
+        return operationDao.observeOperations(chainId).mapList { operation ->
+            val accountAddress = currentAccountAddress.invoke(chainId)
+            if (operation.address == accountAddress) {
+                val receiver = when (operation.receiver) {
+                    null, accountAddress -> null
+                    else -> operation.receiver
+                }
+                val sender = when (operation.sender) {
+                    null, accountAddress -> null
+                    else -> operation.sender
+                }
+                receiver ?: sender
+            } else {
+                null
+            }
+        }
+            .map {
+                val nonNullList = it.filterNotNull()
+                when {
+                    limit == null || limit < 0 -> nonNullList
+                    else -> nonNullList.subList(0, min(limit, nonNullList.size))
+                }.toSet()
+            }
     }
 
     override suspend fun getTransferFee(
@@ -367,22 +409,34 @@ class WalletRepositoryImpl(
         )
     }
 
-    // TODO adapt for ethereum chains
     override suspend fun updatePhishingAddresses() = withContext(Dispatchers.Default) {
-        val accountIds = phishingApi.getPhishingAddresses().values.flatten()
-            .map { it.toAccountId().toHexString(withPrefix = true) }
+        val phishingAddresses = phishingApi.getPhishingAddresses()
+        val phishingLocal = CSVReaderHeaderAware(phishingAddresses.byteStream().bufferedReader()).mapNotNull {
+            try {
+                PhishingLocal(
+                    name = it[0],
+                    address = it[1],
+                    type = it[2],
+                    subtype = it[3]
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
 
-        val phishingAddressesLocal = accountIds.map(::PhishingAddressLocal)
-
-        phishingAddressDao.clearTable()
-        phishingAddressDao.insert(phishingAddressesLocal)
+        phishingDao.clearTable()
+        phishingDao.insert(phishingLocal)
     }
 
-    // TODO adapt for ethereum chains
-    override suspend fun isAccountIdFromPhishingList(accountId: AccountId) = withContext(Dispatchers.Default) {
-        val phishingAddresses = phishingAddressDao.getAllAddresses()
+    override suspend fun isAddressFromPhishingList(address: String) = withContext(Dispatchers.Default) {
+        val phishingAddresses = phishingDao.getAllAddresses().map { it.lowercase() }
 
-        phishingAddresses.contains(accountId.toHexString(withPrefix = true))
+        phishingAddresses.contains(address.lowercase())
+    }
+
+    override suspend fun getPhishingInfo(address: String): PhishingLocal? {
+        return phishingDao.getPhishingInfo(address)
     }
 
     override suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId) =

@@ -12,11 +12,12 @@ import jp.co.soramitsu.coredb.converters.LongMathConverters
 import jp.co.soramitsu.coredb.converters.OperationConverters
 import jp.co.soramitsu.coredb.dao.AccountDao
 import jp.co.soramitsu.coredb.dao.AccountStakingDao
+import jp.co.soramitsu.coredb.dao.AddressBookDao
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.OperationDao
-import jp.co.soramitsu.coredb.dao.PhishingAddressDao
+import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
@@ -44,15 +45,18 @@ import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_30_31
 import jp.co.soramitsu.coredb.migrations.MigrateTablesToV2_32_33
 import jp.co.soramitsu.coredb.migrations.Migration_41_42
 import jp.co.soramitsu.coredb.migrations.Migration_42_43
+import jp.co.soramitsu.coredb.migrations.Migration_43_44
+import jp.co.soramitsu.coredb.migrations.Migration_44_45
 import jp.co.soramitsu.coredb.migrations.RemoveAccountForeignKeyFromAsset_17_18
 import jp.co.soramitsu.coredb.migrations.RemoveLegacyData_35_36
 import jp.co.soramitsu.coredb.migrations.RemoveStakingRewardsTable_22_23
 import jp.co.soramitsu.coredb.migrations.V2Migration
 import jp.co.soramitsu.coredb.model.AccountLocal
 import jp.co.soramitsu.coredb.model.AccountStakingLocal
+import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.OperationLocal
-import jp.co.soramitsu.coredb.model.PhishingAddressLocal
+import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import jp.co.soramitsu.coredb.model.TokenPriceLocal
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
@@ -65,12 +69,13 @@ import jp.co.soramitsu.coredb.model.chain.ChainRuntimeInfoLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountLocal
 
 @Database(
-    version = 43,
+    version = 45,
     entities = [
         AccountLocal::class,
+        AddressBookContact::class,
         AssetLocal::class,
         TokenPriceLocal::class,
-        PhishingAddressLocal::class,
+        PhishingLocal::class,
         StorageEntryLocal::class,
         AccountStakingLocal::class,
         TotalRewardLocal::class,
@@ -125,6 +130,8 @@ abstract class AppDatabase : RoomDatabase() {
                     .addMigrations(AssetsMigration_40_41)
                     .addMigrations(Migration_41_42)
                     .addMigrations(Migration_42_43)
+                    .addMigrations(Migration_43_44)
+                    .addMigrations(Migration_44_45)
                     .build()
             }
             return instance!!
@@ -137,7 +144,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun operationDao(): OperationDao
 
-    abstract fun phishingAddressesDao(): PhishingAddressDao
+    abstract fun phishingDao(): PhishingDao
 
     abstract fun storageDao(): StorageDao
 
@@ -150,4 +157,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun chainDao(): ChainDao
 
     abstract fun metaAccountDao(): MetaAccountDao
+
+    abstract fun addressBookDao(): AddressBookDao
 }

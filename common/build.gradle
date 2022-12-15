@@ -35,10 +35,12 @@ android {
 
         buildConfigField "String", "TWITTER_ACCOUNT_TEMPLATE", "\"https://twitter.com/%s\""
 
-        buildConfigField "String", "PAYOUTS_LEARN_MORE", "\"https://wiki.polkadot.network/docs/en/learn-simple-payouts\""
+        buildConfigField "String", "PAYOUTS_LEARN_MORE", "\"https://wiki.polkadot.network/docs/learn-staking-advanced\""
 
         buildConfigField "String", "SET_CONTROLLER_LEARN_MORE", "\"https://wiki.polkadot.network/docs/en/maintain-guides-how-to-nominate-polkadot#setting-up-stash-and-controller-keys\""
         buildConfigField "String", "MOONBEAM_STAKING_LEARN_MORE", "\"https://docs.moonbeam.network/learn/features/staking/#reward-distribution(\""
+        buildConfigField "String", "STAKING_POOL_WIKI", "\"https://wiki.polkadot.network/docs/learn-nomination-pools\""
+        buildConfigField "String", "POLKADOT_JS_PLUS_EXTENSION", "\"http://polkadotjs.plus/\""
     }
 
     buildTypes {
@@ -97,6 +99,7 @@ dependencies {
     implementation viewModelKtxDep
 
     implementation daggerDep
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
     kapt daggerKapt
 
     kapt lifecycleKapt

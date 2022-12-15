@@ -13,11 +13,11 @@ fun <T> BaseFragment<T>.observeRetries(
     viewModel.retryEvent.observeEvent {
         retryDialog(
             context = context,
+            fragmentManager = childFragmentManager,
+            title = it.title,
+            message = it.message,
             onRetry = it.onRetry,
             onCancel = it.onCancel
-        ) {
-            setTitle(it.title)
-            setMessage(it.message)
-        }
+        )
     }
 }

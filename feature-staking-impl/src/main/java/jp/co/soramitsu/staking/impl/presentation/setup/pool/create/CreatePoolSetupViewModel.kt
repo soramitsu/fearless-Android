@@ -19,7 +19,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.validation.InsufficientBalanceException
+import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.common.validation.MinPoolCreationThresholdException
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.feature_staking_impl.R
@@ -48,7 +48,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     private val poolInteractor: StakingPoolInteractor,
     private val stakingInteractor: StakingInteractor,
     private val router: StakingRouter
-) : BaseViewModel() {
+) : BaseViewModel(), CreatePoolSetupScreenInterface {
 
     companion object {
         private const val NOMINATOR_WALLET_SELECTOR_TAG = "nominator"
@@ -71,7 +71,7 @@ class CreatePoolSetupViewModel @Inject constructor(
         initialAmount = mainState.requireAmount.format()
     }
 
-    private val defaultPoolNameInoutState = TextInputViewState("", resourceManager.getString(R.string.pool_staking_pool_name))
+    private val defaultPoolNameInputState = TextInputViewState("", resourceManager.getString(R.string.pool_staking_pool_name))
 
     private val defaultAmountInputState = AmountInputViewState(
         tokenName = "...",
@@ -82,7 +82,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     )
 
     private val defaultScreenState = CreatePoolSetupViewState(
-        defaultPoolNameInoutState,
+        defaultPoolNameInputState,
         defaultAmountInputState,
         "...",
         "...",
@@ -131,7 +131,7 @@ class CreatePoolSetupViewModel @Inject constructor(
     private val enteredPoolNameFlow = MutableStateFlow("")
 
     private val poolNameInputStateFlow = enteredPoolNameFlow.map {
-        defaultPoolNameInoutState.copy(text = it)
+        defaultPoolNameInputState.copy(text = it)
     }
 
     private val feeInPlanksFlow: MutableStateFlow<BigInteger> = MutableStateFlow(BigInteger.ZERO)
@@ -188,27 +188,27 @@ class CreatePoolSetupViewModel @Inject constructor(
         }
     }
 
-    fun onPoolNameInput(poolName: String) {
-        enteredPoolNameFlow.value = poolName
-    }
-
-    fun onAmountInput(amount: String) {
-        enteredAmountFlow.value = amount
-    }
-
-    fun onNominatorClick() {
-        router.openWalletSelector(NOMINATOR_WALLET_SELECTOR_TAG)
-    }
-
-    fun onStateTogglerClick() {
-        router.openWalletSelector(STATE_TOGGLER_WALLET_SELECTOR_TAG)
-    }
-
-    fun onBackClicked() {
+    override fun onNavigationClick() {
         router.back()
     }
 
-    fun onCreateClick() {
+    override fun onPoolNameInput(text: String) {
+        enteredPoolNameFlow.value = text
+    }
+
+    override fun onTokenAmountInput(text: String) {
+        enteredAmountFlow.value = text
+    }
+
+    override fun onNominatorClick() {
+        router.openWalletSelector(NOMINATOR_WALLET_SELECTOR_TAG)
+    }
+
+    override fun onStateTogglerClick() {
+        router.openWalletSelector(STATE_TOGGLER_WALLET_SELECTOR_TAG)
+    }
+
+    override fun onCreateClick() {
         viewModelScope.launch {
             val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
             val amountInPlanks = asset.token.planksFromAmount(amount)
@@ -225,7 +225,7 @@ class CreatePoolSetupViewModel @Inject constructor(
             }
 
             if ((amountInPlanks + fee + existentialDeposit) > transferableInPlanks) {
-                showError(InsufficientBalanceException(resourceManager))
+                showError(StakeInsufficientBalanceException(resourceManager))
                 return@launch
             }
 

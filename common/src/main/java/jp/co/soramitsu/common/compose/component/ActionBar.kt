@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,7 +38,8 @@ enum class ActionItemType(
 data class ActionBarViewState(
     val chainId: String,
     val chainAssetId: String,
-    val actionItems: List<ActionItemType>
+    val actionItems: List<ActionItemType>,
+    val disabledItems: List<ActionItemType> = emptyList()
 )
 
 @Composable
@@ -49,13 +51,20 @@ fun ActionBar(
     BackgroundCornered {
         Row(Modifier.padding(vertical = 4.dp)) {
             state.actionItems.forEachIndexed { index, actionItem ->
+                val itemClickHandler = remember { { onItemClick(actionItem, state.chainId, state.chainAssetId) } }
+                val icon = painterResource(id = actionItem.iconId)
+                val title = stringResource(id = actionItem.titleId)
+                val actionViewState = remember {
+                    ActionCellViewState(
+                        painter = icon,
+                        title = title,
+                        isEnabled = actionItem !in state.disabledItems
+                    )
+                }
                 ActionCell(
-                    state = ActionCellViewState(
-                        painter = painterResource(actionItem.iconId),
-                        title = stringResource(actionItem.titleId)
-                    ),
+                    state = actionViewState,
                     modifier = if (fillMaxWidth) Modifier.weight(1f) else Modifier,
-                    onClick = { onItemClick.invoke(actionItem, state.chainId, state.chainAssetId) }
+                    onClick = itemClickHandler
                 )
 
                 if (index < state.actionItems.size - 1) {

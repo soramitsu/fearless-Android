@@ -118,14 +118,6 @@
         app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
 
     <action
-        android:id="@+id/importAction"
-        app:destination="@id/importAccountFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <action
         android:id="@+id/action_mainFragment_to_balanceDetailFragment"
         app:destination="@id/balanceDetailFragment"
         app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
@@ -136,7 +128,7 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="jp.co.soramitsu.app.root.presentation.main.MainFragment"
-        android:label="fragment_profile"
+        android:label="fragment_main"
         tools:layout="@layout/fragment_main">
 
         <action
@@ -150,14 +142,6 @@
         <action
             android:id="@+id/action_mainFragment_to_nodesFragment"
             app:destination="@id/nodesFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-        <action
-            android:id="@+id/action_mainFragment_to_manageAssetsFragment"
-            app:destination="@id/manageAssetsFragment"
             app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
@@ -339,26 +323,6 @@
         tools:layout="@layout/fragment_wallet_export" />
 
     <fragment
-        android:id="@+id/importAccountFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.importing.ImportAccountFragment"
-        android:label="fragment_import"
-        tools:layout="@layout/fragment_import_account">
-
-        <action
-            android:id="@+id/action_importAccountFragment_to_pincodeFragment"
-            app:destination="@id/pincodeFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation"
-            app:popUpTo="@id/welcomeFragment"
-            app:popUpToInclusive="true">
-
-        </action>
-
-    </fragment>
-
-    <fragment
         android:id="@+id/accountsForExportFragment"
         android:name="jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment"
         android:label="AccountsForExportFragment"
@@ -391,14 +355,7 @@
     <fragment
         android:id="@+id/balanceDetailFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFragment"
-        android:label="BalanceDetailFragment"
-        tools:layout="@layout/fragment_balance_detail" />
-
-    <fragment
-        android:id="@+id/manageAssetsFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.manageAssets.ManageAssetsFragment"
-        android:label="ManageAssetsFragment"
-        tools:layout="@layout/fragment_manage_assets" />
+        android:label="BalanceDetailFragment" />
 
     <fragment
         android:id="@+id/transferDetailFragment"
@@ -521,6 +478,11 @@
         android:label="startStakingPoolFragment" />
 
     <dialog
+        android:id="@+id/webViewerFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.WebViewerFragment"
+        android:label="WebViewerFragment" />
+
+    <dialog
         android:id="@+id/setupStakingPoolFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.setup.pool.join.SetupStakingPoolFragment"
         android:label="setupStakingPoolFragment" />
@@ -561,9 +523,14 @@
         android:label="networkIssuesFragment" />
 
     <dialog
-        android:id="@+id/networkUnavailableFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.balance.networkissues.unavailable.NetworkUnavailableFragment"
-        android:label="networkUnavailableFragment" />
+        android:id="@+id/alertFragment"
+        android:name="jp.co.soramitsu.app.root.presentation.AlertFragment"
+        android:label="alertFragment" />
+
+    <dialog
+        android:id="@+id/poolFullUnstakeDepositorAlertFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.staking.unbond.PoolFullUnstakeDepositorAlertFragment"
+        android:label="poolFullUnstakeDepositorAlertFragment" />
 
     <dialog
         android:id="@+id/optionsAddAccountFragment"
@@ -646,9 +613,29 @@
         android:label="selectValidatorsFragment" />
 
     <dialog
+        android:id="@+id/selectedValidatorsFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.SelectedValidatorsFragment"
+        android:label="selectedValidatorsFragment" />
+
+    <dialog
         android:id="@+id/confirmSelectValidatorsFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.validators.compose.ConfirmSelectValidatorsFragment"
         android:label="confirmSelectValidatorsFragment" />
+
+    <dialog
+        android:id="@+id/poolOptionsInfoFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.pools.PoolInfoOptionsFragment"
+        android:label="poolOptionsInfoFragment" />
+
+    <dialog
+        android:id="@+id/editPoolFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.pools.edit.EditPoolFragment"
+        android:label="editPoolFragment" />
+
+    <dialog
+        android:id="@+id/editPoolConfirmFragment"
+        android:name="jp.co.soramitsu.staking.impl.presentation.pools.edit.EditPoolConfirmFragment"
+        android:label="editPoolConfirmFragment" />
 
     <dialog
         android:id="@+id/validatorsSettingsFragment"
@@ -659,6 +646,16 @@
         android:id="@+id/sendSetupFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment"
         android:label="sendSetupFragment" />
+
+    <dialog
+        android:id="@+id/addressHistoryFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment"
+        android:label="addressHistoryFragment" />
+
+    <dialog
+        android:id="@+id/createContactFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment"
+        android:label="createContactFragment" />
 
     <dialog
         android:id="@+id/chainSelectFragment"

@@ -34,20 +34,14 @@ abstract class OperationDao {
     @Query("SELECT * FROM operations WHERE hash = :hash")
     abstract suspend fun getOperation(hash: String): OperationLocal?
 
-    @Query(
-        """
-        SELECT DISTINCT receiver FROM operations WHERE (receiver LIKE '%' || :query  || '%' AND receiver != address)
-            AND address = :accountAddress AND chainId = :chainId
-        UNION
-        SELECT DISTINCT sender FROM operations WHERE (sender LIKE '%' || :query  || '%' AND SENDER != address)
-            AND address = :accountAddress AND chainId = :chainId
-    """
-    )
-    abstract suspend fun getContacts(
-        query: String,
-        accountAddress: String,
-        chainId: String
-    ): List<String>
+    @Query("SELECT * FROM operations")
+    abstract suspend fun getOperations(): List<OperationLocal>
+
+    @Query("SELECT * FROM operations ORDER BY time DESC")
+    abstract fun observeOperations(): Flow<List<OperationLocal>>
+
+    @Query("SELECT * FROM operations WHERE :chainId = chainId ORDER BY time DESC")
+    abstract fun observeOperations(chainId: String): Flow<List<OperationLocal>>
 
     @Transaction
     open suspend fun insertFromSubquery(

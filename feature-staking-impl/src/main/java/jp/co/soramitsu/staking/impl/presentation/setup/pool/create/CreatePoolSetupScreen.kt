@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,7 +25,7 @@ import jp.co.soramitsu.common.compose.component.DropDown
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
-import jp.co.soramitsu.common.compose.component.InactiveTextInput
+import jp.co.soramitsu.common.compose.component.InactiveDropDown
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TextInput
 import jp.co.soramitsu.common.compose.component.TextInputViewState
@@ -43,52 +46,64 @@ data class CreatePoolSetupViewState(
     val createButtonViewState: ButtonViewState
 )
 
+interface CreatePoolSetupScreenInterface {
+    fun onNavigationClick()
+    fun onPoolNameInput(text: String)
+    fun onTokenAmountInput(text: String)
+    fun onNominatorClick()
+    fun onStateTogglerClick()
+    fun onCreateClick()
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CreatePoolSetupScreen(
     state: CreatePoolSetupViewState,
-    onNavigationClick: () -> Unit,
-    onPoolNameInput: (String) -> Unit,
-    onTokenAmountInput: (String) -> Unit,
-    onNominatorClick: () -> Unit,
-    onStateTogglerClick: () -> Unit,
-    onCreateClick: () -> Unit
+    screenInterface: CreatePoolSetupScreenInterface
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val onCreateClickHandler = remember {
+        {
+            keyboardController?.hide()
+            screenInterface.onCreateClick()
+        }
+    }
     BottomSheetScreen {
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
                 .imePadding()
+                .verticalScroll(rememberScrollState())
         ) {
             Toolbar(
                 state = ToolbarViewState(
                     title = stringResource(id = R.string.pool_create_title),
                     navigationIcon = R.drawable.ic_arrow_back_24dp
                 ),
-                onNavigationClick = onNavigationClick
+                onNavigationClick = screenInterface::onNavigationClick
             )
 
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 MarginVertical(margin = 16.dp)
-                TextInput(state = state.poolNameInputViewState, onInput = onPoolNameInput)
+                TextInput(state = state.poolNameInputViewState, onInput = screenInterface::onPoolNameInput)
                 MarginVertical(margin = 12.dp)
-                AmountInput(state = state.amountInputViewState, onInput = onTokenAmountInput)
+                AmountInput(state = state.amountInputViewState, onInput = screenInterface::onTokenAmountInput)
                 MarginVertical(margin = 12.dp)
                 AdvancedBlock(
                     modifier = Modifier,
                     initialState = false,
                     Content = {
-                        InactiveTextInput(state.poolId, R.string.pool_staking_pool_id)
+                        InactiveDropDown(state.poolId, R.string.pool_staking_pool_id)
                         MarginVertical(margin = 12.dp)
-                        InactiveTextInput(state.depositor, R.string.pool_staking_depositor)
+                        InactiveDropDown(state.depositor, R.string.pool_staking_depositor)
                         MarginVertical(margin = 12.dp)
-                        InactiveTextInput(state.root, R.string.pool_staking_root)
+                        InactiveDropDown(state.root, R.string.pool_staking_root)
                         MarginVertical(margin = 12.dp)
                         DropDown(
                             state = DropDownViewState(
                                 state.nominator,
                                 stringResource(id = R.string.pool_staking_nominator)
                             ),
-                            onClick = onNominatorClick
+                            onClick = screenInterface::onNominatorClick
                         )
                         MarginVertical(margin = 12.dp)
                         DropDown(
@@ -96,7 +111,7 @@ fun CreatePoolSetupScreen(
                                 state.stateToggler,
                                 stringResource(id = R.string.pool_staking_state_toggler)
                             ),
-                            onClick = onStateTogglerClick
+                            onClick = screenInterface::onStateTogglerClick
                         )
                     }
                 )
@@ -108,7 +123,7 @@ fun CreatePoolSetupScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
-                    onClick = onCreateClick
+                    onClick = onCreateClickHandler
                 )
                 MarginVertical(margin = 16.dp)
             }
@@ -139,8 +154,16 @@ private fun CreatePoolSetupScreenPreview() {
         ),
         ButtonViewState("Create", true)
     )
+    val emptyInterface = object : CreatePoolSetupScreenInterface {
+        override fun onNavigationClick() = Unit
+        override fun onPoolNameInput(text: String) = Unit
+        override fun onTokenAmountInput(text: String) = Unit
+        override fun onNominatorClick() = Unit
+        override fun onStateTogglerClick() = Unit
+        override fun onCreateClick() = Unit
+    }
 
     FearlessTheme {
-        CreatePoolSetupScreen(state = viewState, {}, {}, {}, {}, {}, {})
+        CreatePoolSetupScreen(state = viewState, emptyInterface)
     }
 }

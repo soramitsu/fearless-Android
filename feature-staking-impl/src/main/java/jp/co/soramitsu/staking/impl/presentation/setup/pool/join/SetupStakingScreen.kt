@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -47,6 +48,13 @@ fun SetupStakingScreen(
     onNextClick: () -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val onJoinPoolHandler = remember {
+        {
+            keyboardController?.hide()
+            onNextClick()
+        }
+    }
+
     BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
         Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
         Column(
@@ -64,10 +72,7 @@ fun SetupStakingScreen(
             MarginVertical(margin = 16.dp)
             AccentButton(
                 state = state.buttonState,
-                onClick = {
-                    keyboardController?.hide()
-                    onNextClick()
-                },
+                onClick = onJoinPoolHandler,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)

@@ -16,17 +16,18 @@ fun mapFundInfoToCrowdloan(
     currentBlockNumber: BlockNumber,
     expectedBlockTimeInMillis: BigInteger,
     blocksPerLeasePeriod: BigInteger,
+    leaseOffset: BigInteger,
     contribution: Contribution?,
     hasWonAuction: Boolean,
     minContribution: BigInteger = BigInteger.ZERO
 ): Crowdloan {
-    val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
+    val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, leaseOffset, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
 
     val state = when {
         parachainMetadata?.disabled == true -> {
             Crowdloan.State.Finished
         }
-        isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod, hasWonAuction, minContribution) -> {
+        isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod, leaseOffset, hasWonAuction, minContribution) -> {
             val remainingTime = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis)
 
             Crowdloan.State.Active(remainingTime)
@@ -52,12 +53,13 @@ private fun isCrowdloanActive(
     fundInfo: FundInfo,
     currentBlockNumber: BigInteger,
     blocksPerLeasePeriod: BigInteger,
+    leaseOffset: BigInteger,
     hasWonAuction: Boolean,
     minContribution: BigInteger
 ): Boolean {
     return currentBlockNumber < fundInfo.end && // crowdloan is not ended
         // first slot is not yet passed
-        leaseIndexFromBlock(currentBlockNumber, blocksPerLeasePeriod) <= fundInfo.firstSlot &&
+        leaseIndexFromBlock(currentBlockNumber, blocksPerLeasePeriod, leaseOffset) <= fundInfo.firstSlot &&
         // cap is not reached
         when (minContribution) {
             BigInteger.ZERO -> fundInfo.raised < fundInfo.cap
@@ -69,12 +71,13 @@ private fun isCrowdloanActive(
 
 private fun leasePeriodInMillis(
     blocksPerLeasePeriod: BigInteger,
+    leaseOffset: BigInteger,
     currentBlockNumber: BigInteger,
     endingLeasePeriod: BigInteger,
     expectedBlockTimeInMillis: BigInteger
 ): Long {
     val unlockedAtPeriod = endingLeasePeriod + BigInteger.ONE // next period after end one
-    val unlockedAtBlock = blocksPerLeasePeriod * unlockedAtPeriod
+    val unlockedAtBlock = blocksPerLeasePeriod * unlockedAtPeriod + leaseOffset
 
     return expectedRemainingTime(
         currentBlockNumber,

@@ -3,6 +3,8 @@ package jp.co.soramitsu.staking.impl.scenarios
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.common.list.GroupedList
+import jp.co.soramitsu.common.list.emptyGroupedList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -15,8 +17,10 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Identity
-import jp.co.soramitsu.staking.api.domain.model.NominationPool
+import jp.co.soramitsu.staking.api.domain.model.NominatedValidator
 import jp.co.soramitsu.staking.api.domain.model.NominationPoolState
+import jp.co.soramitsu.staking.api.domain.model.Nominations
+import jp.co.soramitsu.staking.api.domain.model.OwnPool
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
 import jp.co.soramitsu.staking.api.domain.model.PoolUnbonding
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -27,16 +31,24 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingPoolApi
 import jp.co.soramitsu.staking.impl.data.repository.StakingPoolDataSource
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.getSelectedChain
+import jp.co.soramitsu.staking.impl.domain.validators.current.CurrentValidatorsInteractor
+import jp.co.soramitsu.staking.impl.presentation.common.EditPoolFlowState
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class StakingPoolInteractor(
     private val api: StakingPoolApi,
@@ -45,14 +57,19 @@ class StakingPoolInteractor(
     private val relayChainRepository: StakingRelayChainScenarioRepository,
     private val accountRepository: AccountRepository,
     private val identitiesRepositoryImpl: IdentityRepository,
-    private val walletConstants: WalletConstants
+    private val walletConstants: WalletConstants,
+    private val currentValidatorsInteractor: CurrentValidatorsInteractor
 ) {
 
+    @OptIn(FlowPreview::class)
     fun stakingStateFlow(): Flow<StakingState> {
-        return stakingInteractor.selectedChainFlow().filter { it.supportStakingPool }.flatMapConcat { chain ->
-            val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
+        val currentChainFlow = stakingInteractor.selectedChainFlow().filter { it.supportStakingPool }
+        val selectedAccountFlow = accountRepository.selectedMetaAccountFlow()
+
+        return combine(currentChainFlow, selectedAccountFlow) { chain, metaAccount ->
+            val accountId = metaAccount.accountId(chain) ?: error("cannot find accountId")
             stakingPoolStateFlow(chain, accountId)
-        }
+        }.flattenMerge()
     }
 
     private fun stakingPoolStateFlow(chain: Chain, accountId: AccountId): Flow<StakingState> {
@@ -64,36 +81,53 @@ class StakingPoolInteractor(
         }.runCatching { this }.getOrDefault(emptyFlow())
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun observeCurrentPool(
         chain: Chain,
         accountId: AccountId
-    ): Flow<NominationPool?> {
-        return dataSource.observePoolMembers(chain.id, accountId).flatMapConcat { poolMember ->
-            poolMember ?: return@flatMapConcat flowOf(null)
-
-            val poolStashAccount = generatePoolStashAccount(chain, poolMember.poolId)
-            combine(
-                dataSource.observePool(chain.id, poolMember.poolId),
-                relayChainRepository.observeRemoteAccountNominations(chain.id, poolStashAccount)
-            ) { bondedPool, nominations ->
-                bondedPool ?: return@combine null
+    ): Flow<OwnPool?> {
+        return dataSource.observePoolMembers(chain.id, accountId).distinctUntilChanged().flatMapLatest { poolMember ->
+            poolMember ?: return@flatMapLatest flowOf(null)
+            observePoolInfo(chain, poolMember.poolId).map { poolInfo ->
                 val pendingRewards = dataSource.getPendingRewards(chain.id, accountId).getOrNull().orZero()
-
                 val currentEra = relayChainRepository.getCurrentEraIndex(chain.id)
-                val name = dataSource.getPoolMetadata(chain.id, poolMember.poolId)
                 val unbondingEras = poolMember.unbondingEras.map { PoolUnbonding(it.era, it.amount) }
-                val redeemable = unbondingEras.filter { it.era < currentEra }.sumOf { it.amount }
+                val redeemable = unbondingEras.filter { it.era <= currentEra }.sumOf { it.amount }
                 val unbonding = unbondingEras.filter { it.era > currentEra }.sumOf { it.amount }
-
-                val hasValidators = nominations?.targets?.isNotEmpty() == true
-                val state = when {
-                    hasValidators.not() -> NominationPoolState.HasNoValidators
-                    else -> NominationPoolState.from(bondedPool.state.name)
-                }
-
-                bondedPool.toNominationPool(poolMember, name, unbondingEras, redeemable, unbonding, poolMember.points, pendingRewards, state)
+                poolInfo.toOwnPool(poolMember, redeemable, unbonding, pendingRewards)
             }
         }
+    }
+
+    private suspend fun observePoolInfo(chain: Chain, poolId: BigInteger): Flow<PoolInfo> {
+        val poolStashAccount = generatePoolStashAccount(chain, poolId)
+        return combine(
+            dataSource.observePool(chain.id, poolId),
+            relayChainRepository.observeRemoteAccountNominations(chain.id, poolStashAccount)
+        ) { bondedPool, nominations ->
+            bondedPool ?: return@combine null
+
+            val name = dataSource.getPoolMetadata(chain.id, poolId) ?: "Pool #$poolId"
+
+            val hasValidators = nominations?.targets?.isNotEmpty() == true
+            val bondedPoolState = NominationPoolState.from(bondedPool.state.name)
+            val state = when {
+                bondedPoolState == NominationPoolState.Open &&
+                    hasValidators.not() -> NominationPoolState.HasNoValidators
+                else -> NominationPoolState.from(bondedPool.state.name)
+            }
+            PoolInfo(
+                poolId,
+                name,
+                bondedPool.points,
+                state,
+                bondedPool.memberCounter,
+                bondedPool.depositor,
+                bondedPool.root,
+                bondedPool.nominator,
+                bondedPool.stateToggler
+            )
+        }.filterNotNull()
     }
 
     @Deprecated("Manual calculating is deprecated", replaceWith = ReplaceWith("dataSource.getPendingRewards"))
@@ -124,32 +158,21 @@ class StakingPoolInteractor(
         val empty = ByteArray(32)
         val source = modPrefix + palletId + indexBytes + poolIdBytes + empty
         val encoded = SS58Encoder.encode(source.take(32).toByteArray(), chain.addressPrefix.toShort())
-        val result = encoded.toAccountId()
-        return result
+        return encoded.toAccountId()
     }
 
-    private fun BondedPool.toNominationPool(
-        poolMember: PoolMember,
-        name: String?,
-        unbondingEras: List<PoolUnbonding>,
-        redeemable: BigInteger,
-        unbonding: BigInteger,
-        myStakedPoints: BigInteger,
-        myPendingRewards: BigInteger,
-        state: NominationPoolState
-    ): NominationPool {
-        return NominationPool(
-            poolId = poolMember.poolId,
+    private fun PoolInfo.toOwnPool(poolMember: PoolMember, redeemable: BigInteger, unbonding: BigInteger, pendingRewards: BigInteger): OwnPool {
+        return OwnPool(
+            poolId = poolId,
             name = name,
-            myStakeInPlanks = myStakedPoints,
-            totalStakedInPlanks = points,
+            myStakeInPlanks = poolMember.points,
+            totalStakedInPlanks = stakedInPlanks,
             lastRecordedRewardCounter = poolMember.lastRecordedRewardCounter,
             state = state,
             redeemable = redeemable,
             unbonding = unbonding,
-            unbondingEras = unbondingEras,
-            pendingRewards = myPendingRewards,
-            members = memberCounter,
+            pendingRewards = pendingRewards,
+            members = members,
             depositor = depositor,
             root = root,
             nominator = nominator,
@@ -173,6 +196,10 @@ class StakingPoolInteractor(
         return dataSource.maxPools(chainId) ?: BigInteger.ZERO
     }
 
+    suspend fun getPoolsCount(chainId: ChainId): BigInteger {
+        return dataSource.getPoolsCount(chainId)
+    }
+
     suspend fun getMaxMembersInPool(chainId: ChainId): BigInteger {
         return dataSource.maxMembersInPool(chainId) ?: BigInteger.ZERO
     }
@@ -181,11 +208,14 @@ class StakingPoolInteractor(
         return dataSource.maxPoolMembers(chainId) ?: BigInteger.ZERO
     }
 
-    suspend fun getAllPools(chainId: ChainId): List<PoolInfo> {
-        val poolsMetadata = dataSource.poolsMetadata(chainId)
-        val pools = dataSource.bondedPools(chainId)
+    suspend fun getAllPools(chain: Chain): List<PoolInfo> {
+        val poolsMetadata = dataSource.poolsMetadata(chain.id)
+        val pools = dataSource.bondedPools(chain.id)
         return pools.mapNotNull { (id, pool) ->
             pool ?: return@mapNotNull null
+
+            val poolStashAccount = generatePoolStashAccount(chain, id)
+            relayChainRepository.observeRemoteAccountNominations(chain.id, poolStashAccount)
             val name = poolsMetadata[id] ?: "Pool #$id"
             val state = NominationPoolState.from(pool.state.name)
             PoolInfo(
@@ -209,19 +239,38 @@ class StakingPoolInteractor(
     }
 
     suspend fun getAccountName(address: String): String? {
-        Dispatchers.Default
-        val chain = stakingInteractor.getSelectedChain()
-        val accountId = chain.accountIdOf(address)
-        val metaAccount = accountRepository.findMetaAccount(accountId)
-        return if (metaAccount != null) {
-            metaAccount.name
-        } else {
-            val identities = getIdentities(listOf(accountId))
-            val map = identities.mapNotNull {
-                chain.accountFromMapKey(it.key) to it.value?.display
-            }.toMap()
-            map[address]
+        return withContext(Dispatchers.Default) {
+            val chain = stakingInteractor.getSelectedChain()
+            val accountId = chain.accountIdOf(address)
+            val metaAccount = accountRepository.findMetaAccount(accountId)
+            if (metaAccount != null) {
+                metaAccount.name
+            } else {
+                val identities = getIdentities(listOf(accountId))
+                val map = identities.mapNotNull {
+                    chain.accountFromMapKey(it.key) to it.value?.display
+                }.toMap()
+                map[address]
+            }
         }
+    }
+
+    suspend fun getValidatorsIds(chain: Chain, poolId: BigInteger): List<AccountId> {
+        return getNominations(chain, poolId)?.targets ?: emptyList()
+    }
+
+    suspend fun nominatedValidatorsFlow(
+        chain: Chain,
+        currentAccountId: AccountId,
+        poolId: BigInteger
+    ): Flow<GroupedList<NominatedValidator.Status.Group, NominatedValidator>> {
+        val nominations = getNominations(chain, poolId) ?: return flowOf(emptyGroupedList())
+        return currentValidatorsInteractor.nominatedValidatorsFlow(chain, currentAccountId, nominations)
+    }
+
+    private suspend fun getNominations(chain: Chain, poolId: BigInteger): Nominations? {
+        val poolStashAccount = generatePoolStashAccount(chain, poolId)
+        return relayChainRepository.getRemoteAccountNominations(chain.id, poolStashAccount)
     }
 
     suspend fun getLastPoolId(chainId: ChainId) = dataSource.lastPoolId(chainId)
@@ -274,4 +323,8 @@ class StakingPoolInteractor(
         accountAddress: String,
         vararg validators: AccountId
     ) = api.nominatePool(poolId, accountAddress, *validators)
+
+    suspend fun estimateEditFee(state: EditPoolFlowState) = api.estimateEditPool(state)
+
+    suspend fun edit(state: EditPoolFlowState, address: String) = api.editPool(state, address)
 }

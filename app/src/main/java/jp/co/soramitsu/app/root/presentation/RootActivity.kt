@@ -19,6 +19,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
@@ -28,7 +29,6 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
@@ -147,7 +147,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         AlertBottomSheet.Builder(this)
             .setTitle(R.string.update_needed_text)
             .setMessage(R.string.chain_unsupported_text)
-            .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_update)
+            .setButtonText(R.string.common_update)
             .setCancelable(false)
             .callback { viewModel.updateAppClicked() }
             .build()
@@ -156,9 +156,9 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
     private fun showNoInternetConnectionAlert() {
         AlertBottomSheet.Builder(this)
-            .setTitle(jp.co.soramitsu.feature_wallet_impl.R.string.common_connection_problems)
-            .setMessage(jp.co.soramitsu.feature_wallet_impl.R.string.connection_problems_alert_message)
-            .setButtonText(jp.co.soramitsu.feature_wallet_impl.R.string.common_retry)
+            .setTitle(R.string.common_connection_problems)
+            .setMessage(R.string.connection_problems_alert_message)
+            .setButtonText(R.string.common_retry)
             .setCancelable(false)
             .callback { viewModel.retryLoadConfigClicked() }
             .build()

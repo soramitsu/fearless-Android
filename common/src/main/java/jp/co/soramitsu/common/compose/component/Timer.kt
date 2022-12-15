@@ -76,7 +76,7 @@ private class Timer(
         val days = millisUntilFinished.toDuration(DurationUnit.MILLISECONDS).toInt(DurationUnit.DAYS)
 
         val formattedTime = when {
-            days > 0 -> resources.getQuantityString(jp.co.soramitsu.common.R.plurals.staking_payouts_days_left, days, days)
+            days > 0 -> resources.getQuantityString(R.plurals.staking_payouts_days_left, days, days)
             hideZeroTimer && millisUntilFinished == 0L -> ""
             else -> millisUntilFinished.formatTime()
         }

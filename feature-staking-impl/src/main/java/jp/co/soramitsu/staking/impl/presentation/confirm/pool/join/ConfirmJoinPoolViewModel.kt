@@ -84,13 +84,22 @@ class ConfirmJoinPoolViewModel @Inject constructor(
 
     val viewState = feeViewStateFlow.map { feeViewState ->
         val amount = this.amount.formatTokenAmount(asset.token.configuration)
+        val validators = poolInteractor.getValidatorsIds(chain, selectedPool.poolId)
+
+        val additionalMessage = if (validators.isEmpty()) {
+            resourceManager.getString(R.string.pool_join_no_validators_message)
+        } else {
+            null
+        }
+
         ConfirmJoinPoolScreenViewState(
             toolbarViewState,
             amount,
             addressViewState,
             poolViewState,
             feeViewState,
-            ConfirmScreenViewState.Icon.Local(R.drawable.ic_vector)
+            ConfirmScreenViewState.Icon.Local(R.drawable.ic_vector),
+            additionalMessage
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
 
@@ -104,6 +113,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             poolInteractor.joinPool(address, amountInPlanks, selectedPool.poolId).fold({
                 stakingPoolSharedStateProvider.joinFlowState.complete()
                 router.returnToMain()
+                router.openOperationSuccess(it, chain.id)
             }, {
                 showError(it)
             })

@@ -4,17 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.FiatCurrenciesChooserBottomSheetDialog
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
-import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentProfileBinding
 
 @AndroidEntryPoint
@@ -47,6 +48,10 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
             profileCurrency.setOnClickListener { viewModel.currencyClicked() }
             profileExperimentalFeatures.setOnClickListener { viewModel.onExperimentalClicked() }
+
+            viewModel.hasMissingAccountsFlow.observe {
+                missingAccountsIcon.isVisible = it
+            }
         }
     }
 

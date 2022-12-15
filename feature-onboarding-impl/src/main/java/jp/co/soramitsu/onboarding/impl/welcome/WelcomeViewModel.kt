@@ -37,7 +37,7 @@ class WelcomeViewModel @Inject constructor(
     }
 
     fun createAccountClicked() {
-        router.openCreateAccount()
+        router.openCreateAccountFromOnboarding()
     }
 
     fun importAccountClicked() {

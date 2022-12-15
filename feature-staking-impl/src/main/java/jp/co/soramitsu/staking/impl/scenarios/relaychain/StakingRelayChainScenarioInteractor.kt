@@ -104,6 +104,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 
 val ERA_OFFSET = 1.toBigInteger()
@@ -224,7 +225,7 @@ class StakingRelayChainScenarioInteractor(
         combine(
             stakingRelayChainScenarioRepository.observeActiveEraIndex(chainId),
             walletRepository.assetFlow(meta.id, state.accountId, chainAsset, chain.minSupportedVersion),
-            stakingRewardsRepository.totalRewardFlow(state.stashAddress)
+            stakingRewardsRepository.totalRewardFlow(state.stashAddress).onStart { emit(BigInteger.ZERO) }
         ) { activeEraIndex, asset, totalReward ->
             val totalStaked = asset.bonded
 
@@ -615,7 +616,7 @@ class StakingRelayChainScenarioInteractor(
             validations = listOf(
                 UnbondFeeValidation(
                     feeExtractor = { it.fee },
-                    availableBalanceProducer = { it.asset.transferable },
+                    availableBalanceProducer = { it.asset.availableForStaking },
                     errorProducer = { UnbondValidationFailure.CannotPayFees }
                 ),
                 NotZeroUnbondValidation(
@@ -637,7 +638,7 @@ class StakingRelayChainScenarioInteractor(
             validations = listOf(
                 RebondFeeValidation(
                     feeExtractor = { it.fee },
-                    availableBalanceProducer = { it.controllerAsset.transferable },
+                    availableBalanceProducer = { it.controllerAsset.availableForStaking },
                     errorProducer = { RebondValidationFailure.CANNOT_PAY_FEE }
                 ),
                 NotZeroRebondValidation(
@@ -654,7 +655,7 @@ class StakingRelayChainScenarioInteractor(
             validations = listOf(
                 RedeemFeeValidation(
                     feeExtractor = { it.fee },
-                    availableBalanceProducer = { it.asset.transferable },
+                    availableBalanceProducer = { it.asset.availableForStaking },
                     errorProducer = { RedeemValidationFailure.CANNOT_PAY_FEES }
                 )
             )
@@ -669,7 +670,7 @@ class StakingRelayChainScenarioInteractor(
                 validations = listOf(
                     EnoughToPayFeesValidation(
                         feeExtractor = { it.fee },
-                        availableBalanceProducer = { asset.transferable },
+                        availableBalanceProducer = { asset.availableForStaking },
                         errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
                         extraAmountExtractor = { it.amount }
                     ),
