@@ -41,7 +41,7 @@ class CreateAccountFragment : BaseFragment<CreateAccountViewModel>(R.layout.frag
 
             accountNameInput.content.filters = nameInputFilters()
             accountNameInput.content.requestFocus()
-            accountNameInput.content.showSoftKeyboard()
+            accountNameInput.postDelayed({ accountNameInput.content.showSoftKeyboard() }, 100)
         }
     }
 
