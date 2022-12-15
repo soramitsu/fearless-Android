@@ -6,7 +6,6 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
@@ -52,7 +51,7 @@ class ValidateTransferUseCaseImpl(
 
         val totalRecipientBalanceInPlanks = substrateSource.getTotalBalance(chainAsset, recipientAccountId)
 
-        val result = if (chainAsset.type == ChainAssetType.SoraAsset) {
+        val result = if (chainAsset.isUtility.not()) {
             val utilityAsset = walletInteractor.getCurrentAsset(chainId, chain.utilityAsset.id)
             val utilityAssetBalance = utilityAsset.transferableInPlanks
             val utilityAssetExistentialDeposit = existentialDepositUseCase(chain.utilityAsset)
