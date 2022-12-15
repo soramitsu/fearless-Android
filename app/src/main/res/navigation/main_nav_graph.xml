@@ -1146,6 +1146,53 @@
             app:exitAnim="?android:attr/fragmentOpenExitAnimation"
             app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
             app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
     </fragment>
+
+    <action
+        android:id="@+id/actionOpenBeaconFragment"
+        app:destination="@id/beaconFragment"
+        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+
+    <fragment
+        android:id="@+id/beaconFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment"
+        android:label="BeaconFragment"
+        tools:layout="@layout/fragment_beacon">
+
+        <action
+            android:id="@+id/action_beaconFragment_to_signBeaconTransactionFragment"
+            app:destination="@id/signBeaconTransactionFragment"
+            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
+            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
+            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
+            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/signBeaconTransactionFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment"
+        android:label="SignBeaconTransactionFragment"
+        tools:layout="@layout/fragment_beacon" />
+
+    <fragment
+        android:id="@+id/experimentalFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.experimental.ExperimentalFragment"
+        android:label="ExperimentalFragment"
+        tools:layout="@layout/fragment_experimental" />
+
+    <fragment
+        android:id="@+id/successFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment"
+        android:label="SuccessfulFragment"
+        tools:layout="@layout/fragment_succesful" />
+
+    <fragment
+        android:id="@+id/transactionRawDataFragment"
+        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment"
+        android:label="TransactionRawDataFragment"/>
 
 </navigation>

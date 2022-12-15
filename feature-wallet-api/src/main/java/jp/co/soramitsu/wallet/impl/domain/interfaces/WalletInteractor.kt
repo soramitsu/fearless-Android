@@ -97,6 +97,10 @@ interface WalletInteractor {
 
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
 
+    fun selectedMetaAccountFlow(): Flow<MetaAccount>
+
+    fun polkadotAddressForSelectedAccountFlow(): Flow<String>
+
     fun getChains(): Flow<List<Chain>>
 
     fun getOperationAddressWithChainIdFlow(limit: Int?, chainId: ChainId): Flow<Set<String>>

@@ -47,6 +47,7 @@ class ProfileFragment : BaseFragment<ProfileViewModel>() {
             languageWrapper.setOnClickListener { viewModel.languagesClicked() }
             changePinCodeTv.setOnClickListener { viewModel.changePinCodeClicked() }
             profileCurrency.setOnClickListener { viewModel.currencyClicked() }
+            profileExperimentalFeatures.setOnClickListener { viewModel.onExperimentalClicked() }
 
             viewModel.hasMissingAccountsFlow.observe {
                 missingAccountsIcon.isVisible = it

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.di
 
+import com.google.gson.Gson
 import android.content.ContentResolver
 import dagger.Module
 import dagger.Provides
@@ -19,6 +20,7 @@ import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.QrBitmapDecoder
 import jp.co.soramitsu.core.updater.UpdateSystem
 import jp.co.soramitsu.coredb.dao.AddressBookDao
@@ -28,6 +30,8 @@ import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
+import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
+import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconSharedState
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
@@ -37,6 +41,8 @@ import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecksProvider
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
+import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
@@ -53,9 +59,11 @@ import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
+import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.wallet.impl.domain.implementations.ExistentialDepositUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
+import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -260,6 +268,42 @@ class WalletFeatureModule {
     @Provides
     fun provideAccountAddressUseCase(accountRepository: AccountRepository, chainRegistry: ChainRegistry) =
         CurrentAccountAddressUseCase(accountRepository, chainRegistry)
+
+    @Provides
+    @Singleton
+    fun provideBeaconApi(
+        gson: Gson,
+        accountRepository: AccountRepository,
+        chainRegistry: ChainRegistry,
+        preferences: Preferences,
+        extrinsicService: ExtrinsicService,
+        beaconSharedState: BeaconSharedState
+    ) = BeaconInteractor(gson, accountRepository, chainRegistry, preferences, extrinsicService, beaconSharedState)
+
+    @Provides
+    fun provideFeeLoaderMixin(
+        resourceManager: ResourceManager,
+        tokenUseCase: TokenUseCase
+    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(
+        resourceManager,
+        tokenUseCase
+    )
+
+    @Provides
+    fun provideTokenUseCase(
+        tokenRepository: TokenRepository,
+        sharedState: BeaconSharedState
+    ): TokenUseCase = TokenUseCaseImpl(
+        tokenRepository,
+        sharedState
+    )
+
+    @Provides
+    @Singleton
+    fun provideBeaconSharedState(
+        chainRegistry: ChainRegistry,
+        preferences: Preferences
+    ): BeaconSharedState = BeaconSharedState(chainRegistry, preferences)
 
     @Provides
     @Singleton

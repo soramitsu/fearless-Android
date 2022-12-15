@@ -17,6 +17,8 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true">
 
+        <activity android:name="jp.co.soramitsu.common.qrScanner.QrScannerActivity" />
+
         <activity
             android:name="jp.co.soramitsu.app.root.presentation.RootActivity"
             android:screenOrientation="portrait"

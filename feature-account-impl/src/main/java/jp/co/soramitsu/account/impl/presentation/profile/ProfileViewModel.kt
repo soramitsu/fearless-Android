@@ -92,6 +92,10 @@ class ProfileViewModel @Inject constructor(
         return addressIconGenerator.createAddressModel(accountAddress, AVATAR_SIZE_DP)
     }
 
+    fun beaconQrScanned(qrContent: String) {
+        router.openBeacon(qrContent)
+    }
+
     fun currencyClicked() {
         viewModelScope.launch {
             val currencies = getAvailableFiatCurrencies()
@@ -106,6 +110,10 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             selectedFiat.set(item.id)
         }
+    }
+
+    fun onExperimentalClicked() {
+        router.openExperimentalFeatures()
     }
 
     val hasMissingAccountsFlow = walletInteractor.assetsFlow().map {

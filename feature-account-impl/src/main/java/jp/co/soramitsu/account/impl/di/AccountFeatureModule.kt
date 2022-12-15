@@ -21,6 +21,7 @@ import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.account.impl.domain.AssetNotNeedAccountUseCaseImpl
+import jp.co.soramitsu.account.impl.domain.BeaconConnectedUseCase
 import jp.co.soramitsu.account.impl.domain.NodeHostValidator
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
@@ -220,5 +221,10 @@ class AccountFeatureModule {
         onboardingStoriesDataSource: OnboardingStoriesDataSource
     ): GetEducationalStoriesUseCase {
         return GetEducationalStoriesUseCase(onboardingStoriesDataSource)
+    }
+
+    @Provides
+    fun provideBeaconConnectedUseCase(preferences: Preferences): BeaconConnectedUseCase {
+        return BeaconConnectedUseCase(preferences)
     }
 }

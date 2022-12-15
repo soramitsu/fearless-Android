@@ -77,6 +77,8 @@ buildscript {
         activityKtx = '1.1.0'
         fragmentKtx = '1.5.2'
 
+        beaconVersion = "3.2.3"
+
         coilDep = "io.coil-kt:coil:$coilVersion"
         coilSvg = "io.coil-kt:coil-svg:$coilVersion"
 
@@ -185,6 +187,10 @@ buildscript {
         androidJunitDep = 'androidx.test.ext:junit:1.1.3'
 
         roomTestsDep = "androidx.room:room-testing:$roomVersion"
+
+        withoutJna = { exclude group: 'net.java.dev.jna' }
+        beaconDep = "com.github.airgap-it:beacon-android-sdk:$beaconVersion"
+        jnaDep = "net.java.dev.jna:jna:5.9.0@aar"
     }
 
     repositories {

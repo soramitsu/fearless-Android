@@ -53,6 +53,14 @@
         <attr name="enabled" />
     </declare-styleable>
 
+    <declare-styleable name="ProfileOptionItemView">
+        <attr name="optionIcon" format="reference|color" />
+        <attr name="optionSubtitleVisible" format="boolean" />
+        <attr name="optionTitle" format="string" />
+        <attr name="optionSubtitle" format="string" />
+        <attr name="enabled" />
+    </declare-styleable>
+
     <declare-styleable name="InputField">
         <attr name="android:inputType" />
         <attr name="android:text" />

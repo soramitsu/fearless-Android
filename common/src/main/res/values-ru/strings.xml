@@ -699,6 +699,17 @@
     <string name="common_yes">Да</string>
     <string name="common_no">Нет</string>
 
+    <string name="common_connect">Подключиться</string>
+    <string name="beacon_connected_to">Подключено к</string>
+    <string name="common_are_you_sure">Вы уверены?</string>
+    <string name="beacon_exit_message">Вы хотите закрыть это подключение?</string>
+
+    <string name="common_disconnect">Отключиться</string>
+    <string name="beacon_connect_warning">Внимание: Нажимая «Подключиться», вы разрешаете этому dapp просматривать ваш публичный адрес. Это важный шаг для защиты ваших данных от потенциальных рисков фишинга.</string>
+    <string name="beacon_transaction_warning">Внимание: Убедитесь, что вы доверяете этому сайту. Взаимодействуя с этим сайтом, вы даете доступ к своим средствам.</string>
+    <string name="success_title">Все готово</string>
+    <string name="success_message">Вы можете вернуться к вашему приложению</string>
+
     <string name="eth_import_title">ETH аккаунты</string>
     <string name="eth_import_message">Добавить аккаунты Moonbeam и Moonriver?</string>
 

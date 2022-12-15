@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.navigation
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
@@ -34,6 +35,8 @@ import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAcc
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
+import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
@@ -55,6 +58,8 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
+import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -102,6 +107,9 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAsse
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
+import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
@@ -639,6 +647,19 @@ class Navigator :
         navController?.navigate(R.id.action_open_receive, bundle)
     }
 
+    override fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel) {
+        navController?.navigate(R.id.signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload, dAppMetadata))
+    }
+
+    override val beaconSignStatus: Flow<SignStatus>
+        get() = navController!!.currentBackStackEntry!!.savedStateHandle
+            .getLiveData<SignStatus>(SignBeaconTransactionFragment.SIGN_RESULT_KEY)
+            .asFlow()
+
+    override fun setBeaconSignStatus(status: SignStatus) {
+        navController!!.previousBackStackEntry!!.savedStateHandle.set(SignBeaconTransactionFragment.SIGN_RESULT_KEY, status)
+    }
+
     override fun returnToWallet() {
         // to achieve smooth animation
         postToUiThread {
@@ -750,6 +771,12 @@ class Navigator :
         navController?.navigate(R.id.action_mainFragment_to_pinCodeFragment, bundle)
     }
 
+    override fun openBeacon(qrContent: String?) {
+        qrContent?.let {
+            navController?.navigate(R.id.actionOpenBeaconFragment, BeaconFragment.getBundle(it))
+        } ?: navController?.navigate(R.id.actionOpenBeaconFragment)
+    }
+
     override fun withPinCodeCheckRequired(
         delayedNavigation: DelayedNavigation,
         createMode: Boolean,
@@ -845,6 +872,20 @@ class Navigator :
                 }
             ).asFlow()
         }
+
+    override fun openExperimentalFeatures() {
+        navController?.navigate(R.id.experimentalFragment)
+    }
+
+    override fun openSuccessFragment(avatar: Drawable) {
+        SuccessfulFragment.avatar = avatar
+        navController?.navigate(R.id.successFragment)
+    }
+
+    override fun openTransactionRawData(rawData: String) {
+        val bundle = TransactionRawDataFragment.createBundle(rawData)
+        navController?.navigate(R.id.transactionRawDataFragment, bundle)
+    }
 
     override fun setWalletSelectorPayload(payload: WalletSelectorPayload) {
         navController?.previousBackStackEntry?.savedStateHandle?.set(WalletSelectorPayload::class.java.name, payload)

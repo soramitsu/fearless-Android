@@ -24,7 +24,7 @@ open class TableCellView @JvmOverloads constructor(
     val title: TextView
         get() = findViewById(R.id.tableCellTitle)
 
-    private val valuePrimary: TextView
+    val valuePrimary: TextView
         get() = findViewById(R.id.tableCellValuePrimary)
 
     private val valueSecondary: TextView
@@ -75,6 +75,14 @@ open class TableCellView @JvmOverloads constructor(
 
     fun setDividerVisible(visible: Boolean) {
         tableCellValueDivider.setVisible(visible)
+    }
+
+    fun showValueOrHide(primary: String?, secondary: String? = null) {
+        if (primary != null) {
+            showValue(primary, secondary)
+        } else {
+            makeGone()
+        }
     }
 
     fun showValue(primary: String, secondary: String? = null) {

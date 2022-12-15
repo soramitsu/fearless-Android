@@ -108,10 +108,17 @@ dependencies {
     implementation zXingEmbeddedDep
 
     implementation insetterDep
+
+    implementation jnaDep
+    implementation beaconDep, withoutJna
+
     implementation shimmerDep
 
     implementation compose
     debugImplementation composeDebug
 
     implementation opencsvDep
+
+    implementation navigationFragmentDep
+    implementation navigationUiDep
 }

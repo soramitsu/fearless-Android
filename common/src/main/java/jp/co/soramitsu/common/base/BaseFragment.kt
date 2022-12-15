@@ -89,6 +89,14 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
         observe(viewLifecycleOwner, observer)
     }
 
+    inline fun <reified T : ViewState> LiveData<ViewState>.observeState(crossinline observer: (T) -> Unit) {
+        observe(viewLifecycleOwner) {
+            if (it is T) {
+                observer(it)
+            }
+        }
+    }
+
     val Int.dp: Int
         get() = dp(requireContext())
 
@@ -99,4 +107,8 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
     abstract fun initViews()
 
     abstract fun subscribe(viewModel: T)
+}
+
+interface ViewState {
+    object Empty : ViewState
 }

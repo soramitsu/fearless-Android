@@ -1,12 +1,16 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
+import android.graphics.drawable.Drawable
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.navigation.PinRequired
 import jp.co.soramitsu.common.navigation.SecureRouter
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
+import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
@@ -67,6 +71,12 @@ interface WalletRouter : SecureRouter {
 
     fun openReceive(assetPayload: AssetPayload)
 
+    fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel)
+
+    val beaconSignStatus: Flow<SignStatus>
+
+    fun setBeaconSignStatus(status: SignStatus)
+
     fun openNodes(chainId: ChainId)
 
     @PinRequired
@@ -81,6 +91,10 @@ interface WalletRouter : SecureRouter {
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
 
     fun openEducationalStories(stories: StoryGroupModel)
+
+    fun openSuccessFragment(avatar: Drawable)
+
+    fun openTransactionRawData(rawData: String)
 
     fun openSelectWallet()
 
