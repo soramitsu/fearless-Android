@@ -82,6 +82,9 @@ class SendSetupViewModel @Inject constructor(
     private val currentAccountAddress: CurrentAccountAddressUseCase,
     private val validateTransferUseCase: ValidateTransferUseCase
 ) : BaseViewModel(), SendSetupScreenInterface {
+    companion object {
+        const val SLIPPAGE_TOLERANCE = 1.15
+    }
 
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()
     val openScannerEvent: LiveData<Event<Unit>> = _openScannerEvent
@@ -179,10 +182,13 @@ class SendSetupViewModel @Inject constructor(
         )
     }.stateIn(this, SharingStarted.Eagerly, SelectorState.default)
 
-    private val enteredAmountFlow = MutableStateFlow(initialAmount)
+    private val enteredAmountBigDecimalFlow = MutableStateFlow(BigDecimal(initialAmount))
+    private val visibleAmountFlow = enteredAmountBigDecimalFlow.map {
+        it.format().replace(',', '.')
+    }
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
-        enteredAmountFlow,
+        visibleAmountFlow,
         assetFlow,
         amountInputFocusFlow
     ) { enteredAmount, asset, isAmountInputFocused ->
@@ -209,7 +215,7 @@ class SendSetupViewModel @Inject constructor(
     private val feeAmountFlow = combine(
         addressInputFlow,
         isInputAddressValidFlow,
-        enteredAmountFlow,
+        enteredAmountBigDecimalFlow,
         assetFlow.mapNotNull { it }
     ) { address, isAddressValid, enteredAmount, asset ->
 
@@ -218,10 +224,9 @@ class SendSetupViewModel @Inject constructor(
             else -> currentAccountAddress(asset.token.configuration.chainId) ?: return@combine null
         }
 
-        val amount = enteredAmount.toBigDecimalOrNull().orZero()
         val transfer = Transfer(
             recipient = feeRequestAddress,
-            amount = amount,
+            amount = enteredAmount,
             chainAsset = asset.token.configuration
         )
         val fee = walletInteractor.getTransferFee(transfer)
@@ -288,7 +293,7 @@ class SendSetupViewModel @Inject constructor(
     }
 
     private val buttonStateFlow = combine(
-        enteredAmountFlow,
+        visibleAmountFlow,
         assetFlow
     ) { enteredAmount, asset ->
         val amount = enteredAmount.toBigDecimalOrNull().orZero()
@@ -371,7 +376,7 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onAmountInput(input: String) {
-        enteredAmountFlow.value = input.replace(',', '.')
+        enteredAmountBigDecimalFlow.value = input.toBigDecimalOrNull().orZero()
     }
 
     override fun onAddressInput(input: String) {
@@ -386,7 +391,7 @@ class SendSetupViewModel @Inject constructor(
         viewModelScope.launch {
             val asset = assetFlow.value ?: return@launch
 
-            val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
+            val amount = enteredAmountBigDecimalFlow.value
             val inPlanks = asset.token.planksFromAmount(amount).orZero()
             val recipientAddress = addressInputFlow.value
             val selfAddress = currentAccountAddress(asset.token.configuration.chainId) ?: return@launch
@@ -435,7 +440,7 @@ class SendSetupViewModel @Inject constructor(
         val feeAmount = feeAmountFlow.firstOrNull() ?: return null
         val tip = tipAmountFlow.firstOrNull()
 
-        val amount = enteredAmountFlow.firstOrNull()?.toBigDecimalOrNull().orZero()
+        val amount = enteredAmountBigDecimalFlow.value
 
         val chainId = sharedState.chainId
         val assetId = sharedState.assetId
@@ -493,43 +498,39 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onQuickAmountInput(input: Double) {
         launch {
-            combine(utilityAssetFlow, assetFlow, tipFlow) { utilityAsset, asset, tip ->
-                utilityAsset to asset to tip
-            }.collect { (assetsPair, tip) ->
-                val (utilityAsset, asset) = assetsPair
-                val allAmount = asset?.transferable ?: return@collect
+            val utilityAsset = utilityAssetFlow.firstOrNull() ?: return@launch
+            val asset = assetFlow.firstOrNull() ?: return@launch
+            val tip = tipFlow.firstOrNull()
+            val tipAmount = utilityAsset.token.amountFromPlanks(tip.orZero())
 
-                val tipAmount = utilityAsset.token.amountFromPlanks(tip.orZero())
-
-                val utilityTipReserve = when {
-                    asset.token.configuration.isUtility -> tipAmount
-                    else -> BigDecimal.ZERO
-                }
-
-                val amountToTransfer = (allAmount * input.toBigDecimal()) - utilityTipReserve
-
-                val selfAddress = sharedState.chainId?.let { currentAccountAddress(it) } ?: return@collect
-
-                val transfer = Transfer(
-                    recipient = selfAddress,
-                    amount = amountToTransfer,
-                    chainAsset = asset.token.configuration
-                )
-                val fee = walletInteractor.getTransferFee(transfer)
-
-                val utilityFeeReserve = when {
-                    asset.token.configuration.type == ChainAssetType.SoraAsset -> BigDecimal.ZERO
-                    else -> fee.feeAmount
-                }
-                val quickAmountWithoutExtraPays = amountToTransfer - utilityFeeReserve
-
-                if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
-                    return@collect
-                }
-
-                val newAmount = quickAmountWithoutExtraPays.format()
-                enteredAmountFlow.value = newAmount.replace(',', '.')
+            val utilityTipReserve = when {
+                asset.token.configuration.isUtility -> tipAmount
+                else -> BigDecimal.ZERO
             }
+
+            val allAmount = asset.transferable
+            val amountToTransfer = (allAmount * input.toBigDecimal()) - utilityTipReserve
+
+            val selfAddress = sharedState.chainId?.let { currentAccountAddress(it) } ?: return@launch
+            val transfer = Transfer(
+                recipient = selfAddress,
+                amount = amountToTransfer,
+                chainAsset = asset.token.configuration
+            )
+
+            val utilityFeeReserve = when {
+                asset.token.configuration.type == ChainAssetType.SoraAsset -> BigDecimal.ZERO
+                asset.token.configuration.isUtility.not() -> BigDecimal.ZERO
+                else -> walletInteractor.getTransferFee(transfer).feeAmount
+            }
+
+            val quickAmountWithoutExtraPays = amountToTransfer - utilityFeeReserve * SLIPPAGE_TOLERANCE.toBigDecimal()
+
+            if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
+                return@launch
+            }
+
+            enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }
 
