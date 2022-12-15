@@ -3,7 +3,6 @@ package jp.co.soramitsu.common.base
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
@@ -15,6 +14,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.dp
+import jp.co.soramitsu.common.utils.showToast
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 
@@ -38,7 +38,7 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
             showErrorWithTitle(it.first, it.second)
         }
 
-        viewModel.messageLiveData.observeEvent(::showMessage)
+        viewModel.messageLiveData.observeEvent(::showToast)
     }
 
     protected inline fun onBackPressed(crossinline action: () -> Unit) {
@@ -63,11 +63,6 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
     protected open fun buildErrorDialog(title: String, errorMessage: String): ErrorDialog {
         val buttonText = requireContext().resources.getString(R.string.common_ok)
         return ErrorDialog(title = title, message = errorMessage, positiveButtonText = buttonText)
-    }
-
-    protected fun showMessage(text: String) {
-        Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT)
-            .show()
     }
 
     inline fun <V> LiveData<Event<V>>.observeEvent(crossinline observer: (V) -> Unit) {

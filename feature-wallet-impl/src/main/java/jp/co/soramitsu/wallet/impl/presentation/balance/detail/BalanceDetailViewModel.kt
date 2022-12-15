@@ -17,6 +17,7 @@ import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewState
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.compose.component.MainToolbarViewState
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -312,8 +313,7 @@ class BalanceDetailViewModel @Inject constructor(
     private fun copyToClipboard(text: String) {
         clipboardManager.addToClipboard(text)
 
-        val message = resourceManager.getString(R.string.common_copied)
-        showMessage(message)
+        showSnackbar(CustomSnackbarType.ADDRESS_COPIED)
     }
 
     fun switchNode() {

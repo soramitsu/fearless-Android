@@ -897,5 +897,11 @@
     <string name="pool_depositor_unstake_error_message">Как создатель пула, Вы должны иметь стейк не меньше %s. Если вы хотите распустить всех участников и закрыть пул, используйте Polkadot.js.plus</string>
     <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
     <string name="pool_create_success_message">Ваш пулл успешно создан. Теперь вы должны выбрать валидаторов для этого пулла</string>
+    <string name="application_status_view_copied_title">Адрес скопирован</string>
+    <string name="application_status_view_copied_description">Адрес кошелька успешно скопирован</string>
+    <string name="application_status_view_offline_title">Похоже, что вы не в сети.</string>
+    <string name="application_status_view_offline_description">Пожалуйста, проверьте Ваше соединение и повторите попытку</string>
+    <string name="application_status_view_reconnected_title">Переподключено</string>
+    <string name="application_status_view_reconnected_description">Соединение успешно восстановлено</string>
 
 </resources>

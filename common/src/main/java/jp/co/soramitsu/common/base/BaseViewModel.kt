@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import jp.co.soramitsu.common.base.errors.ValidationException
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.asLiveData
 import jp.co.soramitsu.common.validation.ProgressConsumer
@@ -29,8 +30,15 @@ open class BaseViewModel : ViewModel(), CoroutineScope {
     private val _messageLiveData = MutableLiveData<Event<String>>()
     val messageLiveData: LiveData<Event<String>> = _messageLiveData
 
+    private val _snackbarLiveData = MutableLiveData<Event<CustomSnackbarType>>()
+    val snackbarLiveData: LiveData<Event<CustomSnackbarType>> = _snackbarLiveData
+
     fun showMessage(text: String) {
         _messageLiveData.value = Event(text)
+    }
+
+    fun showSnackbar(type: CustomSnackbarType) {
+        _snackbarLiveData.value = Event(type)
     }
 
     fun showError(title: String, text: String) {

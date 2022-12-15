@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
+import jp.co.soramitsu.common.utils.showToast
 
 abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : BottomSheetDialogFragment() {
 
@@ -60,7 +60,7 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.messageLiveData.observeEvent(::showMessage)
+        viewModel.messageLiveData.observeEvent(::showToast)
         viewModel.errorLiveData.observeEvent {
             showErrorDialog(resources.getString(R.string.common_error_general_title), it)
         }
@@ -72,11 +72,6 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : Botto
     private fun showErrorDialog(title: String, message: String) {
         val buttonText = requireContext().resources.getString(R.string.common_ok)
         ErrorDialog(title = title, message = message, positiveButtonText = buttonText).show(childFragmentManager)
-    }
-
-    protected fun showMessage(text: String) {
-        Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT)
-            .show()
     }
 
     @Composable

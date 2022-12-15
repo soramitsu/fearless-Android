@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -20,6 +19,7 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.bindTo
 import jp.co.soramitsu.common.utils.dp
+import jp.co.soramitsu.common.utils.showToast
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 
@@ -51,12 +51,7 @@ abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes priva
             showErrorWithTitle(it.first, it.second)
         }
 
-        viewModel.messageLiveData.observeEvent(::showMessage)
-    }
-
-    protected fun showMessage(text: String) {
-        Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT)
-            .show()
+        viewModel.messageLiveData.observeEvent(::showToast)
     }
 
     private fun setupBottomSheet() {

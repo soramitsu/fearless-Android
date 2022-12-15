@@ -19,6 +19,12 @@ fun Activity.showToast(msg: String, duration: Int = Toast.LENGTH_LONG) {
     Toast.makeText(this, msg, duration).show()
 }
 
+fun Fragment.showToast(msg: String, duration: Int = Toast.LENGTH_LONG) {
+    context?.let {
+        Toast.makeText(it, msg, duration).show()
+    }
+}
+
 fun <T> MutableLiveData<T>.setValueIfNew(newValue: T) {
     if (this.value != newValue) value = newValue
 }

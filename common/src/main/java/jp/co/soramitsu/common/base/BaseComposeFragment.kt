@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,9 +16,16 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.Snackbar
+import androidx.compose.material.SnackbarData
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -30,15 +36,21 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.compose.component.MarginVertical
+import jp.co.soramitsu.common.compose.component.TypedSnackbar
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
+import jp.co.soramitsu.common.utils.showToast
+import kotlinx.coroutines.launch
 
 abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
     abstract val viewModel: T
+
+    private lateinit var scaffoldState: ScaffoldState
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -50,7 +62,9 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessTheme {
-                    val scaffoldState = rememberScaffoldState()
+                    scaffoldState = rememberScaffoldState(
+                        snackbarHostState = remember { SnackbarHostState() }
+                    )
                     val scrollState = rememberScrollState()
 
                     val keyboardController = LocalSoftwareKeyboardController.current
@@ -87,6 +101,11 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                             ) {
                                 Content(padding, scrollState, modalBottomSheetState)
                             }
+                        },
+                        snackbarHost = { snackbarHostState ->
+                            SnackbarHost(hostState = snackbarHostState) {
+                                getSnackbarCompose(it)
+                            }
                         }
                     )
                 }
@@ -94,9 +113,24 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
         }
     }
 
+    @Composable
+    fun getSnackbarCompose(snackbarData: SnackbarData) {
+        val type = try {
+            CustomSnackbarType.valueOf(snackbarData.message)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+
+        when (type) {
+            null -> Snackbar(snackbarData)
+            else -> TypedSnackbar(type)
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.messageLiveData.observeEvent(::showMessage)
+        viewModel.messageLiveData.observeEvent(::showToast)
+        viewModel.snackbarLiveData.observeEvent(::showSnackbar)
         val errorTitle = resources.getString(R.string.common_error_general_title)
         viewModel.errorLiveData.observeEvent {
             showErrorDialog(errorTitle, it)
@@ -109,11 +143,6 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
     private fun showErrorDialog(title: String, message: String) {
         val buttonText = requireContext().resources.getString(R.string.common_ok)
         ErrorDialog(title = title, message = message, positiveButtonText = buttonText).show(childFragmentManager)
-    }
-
-    protected fun showMessage(text: String) {
-        Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT)
-            .show()
     }
 
     @OptIn(ExperimentalMaterialApi::class)
@@ -138,5 +167,17 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                 observer.invoke(it)
             }
         )
+    }
+
+    fun showSnackbar(
+        type: CustomSnackbarType,
+        duration: SnackbarDuration = SnackbarDuration.Short
+    ) {
+        viewModel.launch {
+            scaffoldState.snackbarHostState.showSnackbar(
+                message = type.name,
+                duration = duration
+            )
+        }
     }
 }
