@@ -46,11 +46,11 @@ class BeaconFragment : BaseFragment<BeaconViewModel>(R.layout.fragment_beacon) {
     private fun openExitDialog() {
         warningDialog(
             requireContext(),
+            childFragmentManager,
+            title = resources.getString(R.string.common_are_you_sure),
+            message = resources.getString(R.string.beacon_exit_message),
             onConfirm = { viewModel.exit() }
-        ) {
-            setTitle(R.string.common_are_you_sure)
-            setMessage(R.string.beacon_exit_message)
-        }
+        )
     }
 
     override fun subscribe(viewModel: BeaconViewModel) {
@@ -116,7 +116,6 @@ class BeaconFragment : BaseFragment<BeaconViewModel>(R.layout.fragment_beacon) {
 
         viewModel.scanBeaconQrEvent.observeEvent {
             val integrator = IntentIntegrator.forSupportFragment(this).apply {
-                setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
                 setPrompt("")
                 setBeepEnabled(false)
                 captureActivity = QrScannerActivity::class.java

@@ -33,7 +33,6 @@ class ExperimentalFragment : BaseFragment<ExperimentalViewModel>(R.layout.fragme
 
         viewModel.scanBeaconQrEvent.observeEvent {
             val integrator = IntentIntegrator.forSupportFragment(this).apply {
-                setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES)
                 setPrompt("")
                 setBeepEnabled(false)
                 captureActivity = QrScannerActivity::class.java

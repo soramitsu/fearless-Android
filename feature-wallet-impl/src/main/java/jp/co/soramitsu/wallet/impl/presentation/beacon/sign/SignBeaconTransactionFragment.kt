@@ -107,11 +107,11 @@ class SignBeaconTransactionFragment : BaseFragment<SignBeaconTransactionViewMode
     private fun openExitDialog() {
         warningDialog(
             requireContext(),
+            childFragmentManager,
+            title = resources.getString(R.string.common_are_you_sure),
+            message = resources.getString(R.string.beacon_decline_signing_message),
             onConfirm = { viewModel.exit() }
-        ) {
-            setTitle(R.string.common_are_you_sure)
-            setMessage(R.string.beacon_decline_signing_message)
-        }
+        )
     }
 
     override fun subscribe(viewModel: SignBeaconTransactionViewModel) {
