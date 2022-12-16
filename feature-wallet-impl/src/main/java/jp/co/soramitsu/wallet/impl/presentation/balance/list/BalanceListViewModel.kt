@@ -209,6 +209,10 @@ class BalanceListViewModel @Inject constructor(
 
                 val hasNetworkIssue = tokenChains.any { it.id in chainConnecting }
 
+                val hasChainWithoutAccount = assets.any { withStatus ->
+                    withStatus.asset.token.configuration.symbolToShow == symbolToShow && withStatus.hasAccount.not()
+                }
+
                 val assetChainUrls = when (selectedChainId) {
                     null -> chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
                         .associate { it.id to it.icon }
@@ -229,7 +233,7 @@ class BalanceListViewModel @Inject constructor(
                     chainAssetId = utilityChainAsset?.id.orEmpty(),
                     isSupported = isSupported,
                     isHidden = !assetWithStatus.asset.enabled,
-                    hasAccount = assetWithStatus.hasAccount,
+                    hasAccount = !hasChainWithoutAccount,
                     priceId = tokenConfig.priceId,
                     hasNetworkIssue = hasNetworkIssue
                 )
