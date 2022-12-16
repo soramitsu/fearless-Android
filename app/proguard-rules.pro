@@ -1,21 +1,32 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+## General
+#-keep class ** { *; }
+#-dontobfuscate
+-keep class jp.co.soramitsu.fearless_utils.** { *; }
+-keep class jp.co.soramitsu.runtime.** { *; }
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+-keep class jp.co.soramitsu.wallet.impl.data.** { *; }
+-keep class jp.co.soramitsu.wallet.impl.domain.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keep class jp.co.soramitsu.wallet.api.data.** { *; }
+-keep class jp.co.soramitsu.wallet.api.domain.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-keep class jp.co.soramitsu.staking.impl.domain.** { *; }
+-keep class jp.co.soramitsu.staking.impl.data.** { *; }
+
+-keep class jp.co.soramitsu.staking.api.domain.** { *; }
+-keep class jp.co.soramitsu.staking.api.data.** { *; }
+
+-keep class jp.co.soramitsu.account.api.data.** { *; }
+-keep class jp.co.soramitsu.account.api.domain.** { *; }
+
+-keep class jp.co.soramitsu.account.impl.data.** { *; }
+-keep class jp.co.soramitsu.account.impl.domain.** { *; }
+
+-keep class jp.co.soramitsu.common.data.** { *; }
+-keep class jp.co.soramitsu.common.domain.** { *; }
+
+-keep class jp.co.soramitsu.core_db.** { *; }
+-keep class jp.co.soramitsu.coredb.** { *; }
+-keep class jp.co.soramitsu.core.** { *; }
+
+-keep class net.jpountz.** { *; }
