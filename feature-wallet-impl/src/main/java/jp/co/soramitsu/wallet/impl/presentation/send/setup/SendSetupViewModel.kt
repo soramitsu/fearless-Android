@@ -182,9 +182,7 @@ class SendSetupViewModel @Inject constructor(
     }.stateIn(this, SharingStarted.Eagerly, SelectorState.default)
 
     private val enteredAmountBigDecimalFlow = MutableStateFlow(BigDecimal(initialAmount))
-    private val visibleAmountFlow = enteredAmountBigDecimalFlow.map {
-        it.format().replace(',', '.')
-    }
+    private val visibleAmountFlow = MutableStateFlow(initialAmount)
 
     private val amountInputViewState: Flow<AmountInputViewState> = combine(
         visibleAmountFlow,
@@ -375,6 +373,7 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onAmountInput(input: String) {
+        visibleAmountFlow.value = input.format().replace(',', '.')
         enteredAmountBigDecimalFlow.value = input.toBigDecimalOrNull().orZero()
     }
 
@@ -527,7 +526,7 @@ class SendSetupViewModel @Inject constructor(
             if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
                 return@launch
             }
-
+            visibleAmountFlow.value = quickAmountWithoutExtraPays.format().replace(',', '.')
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }
