@@ -197,7 +197,7 @@ class BalanceListViewModel @Inject constructor(
                 if (stateItem != null) return@map
 
                 val tokenChains = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
-                val utilityChain = tokenChains.maxByOrNull {
+                val utilityChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: tokenChains.maxByOrNull {
                     it.assets.firstOrNull { it.symbolToShow == symbolToShow }?.isUtility ?: false
                 }
                 val utilityChainAsset = utilityChain?.assets?.firstOrNull { it.symbolToShow == symbolToShow }
