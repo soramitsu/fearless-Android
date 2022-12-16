@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.annotation.LayoutRes
+import androidx.compose.material.SnackbarDuration
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
@@ -14,6 +15,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -23,7 +25,7 @@ import jp.co.soramitsu.common.utils.showToast
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 
-abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes private val layoutRes: Int) : BottomSheetDialogFragment() {
+abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes private val layoutRes: Int) : BottomSheetDialogFragment(), SnackbarShowerInterface {
 
     abstract val viewModel: T
 
@@ -52,6 +54,11 @@ abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes priva
         }
 
         viewModel.messageLiveData.observeEvent(::showToast)
+        viewModel.snackbarLiveData.observeEvent(::showSnackbar)
+    }
+
+     override fun showSnackbar(snackbarType: CustomSnackbarType, duration: SnackbarDuration) {
+        (activity as? BaseActivity<*>)?.showSnackbar(snackbarType)
     }
 
     private fun setupBottomSheet() {

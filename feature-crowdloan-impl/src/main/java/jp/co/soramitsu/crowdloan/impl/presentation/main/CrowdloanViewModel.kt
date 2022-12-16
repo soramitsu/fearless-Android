@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.list.toListWithHeaders
 import jp.co.soramitsu.common.list.toValueList
 import jp.co.soramitsu.common.mixin.api.Browserable
@@ -255,7 +256,7 @@ class CrowdloanViewModel @Inject constructor(
     fun copyStringClicked(address: String) {
         clipboardManager.addToClipboard(address)
 
-        showMessage(resourceManager.getString(R.string.common_copied))
+        showSnackbar(CustomSnackbarType.COMMON_COPIED)
     }
 
     fun refresh() {

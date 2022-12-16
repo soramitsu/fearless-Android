@@ -10,12 +10,12 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.NodesSettingsScenario
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.node.NodeDetailsRootViewModel
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.setValueIfNew
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.NodeId
 import kotlinx.coroutines.launch
@@ -57,7 +57,7 @@ class NodeDetailsViewModel @Inject constructor(
         nodeModelLiveData.value?.let {
             clipboardManager.addToClipboard(it.url)
 
-            showMessage(resourceManager.getString(R.string.common_copied))
+            showSnackbar(CustomSnackbarType.COMMON_COPIED)
         }
     }
 

@@ -1,7 +1,6 @@
 package jp.co.soramitsu.account.api.presentation.actions
 
 import androidx.lifecycle.MutableLiveData
-import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -27,12 +26,10 @@ class ExternalAccountActionsProvider(
         showExternalActionsEvent.value = Event(payload)
     }
 
-    override fun copyAddress(address: String, messageShower: (message: String) -> Unit) {
+    override fun copyAddress(address: String, messageShower: () -> Unit) {
         clipboardManager.addToClipboard(address)
 
-        val message = resourceManager.getString(R.string.common_copied)
-
-        messageShower.invoke(message)
+        messageShower.invoke()
     }
 
     override fun viewExternalClicked(url: String) {

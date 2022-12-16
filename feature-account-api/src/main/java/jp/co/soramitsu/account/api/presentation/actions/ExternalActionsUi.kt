@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.base.BaseBottomSheetDialogFragment
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 
 fun <T> BaseFragment<T>.setupExternalActions(viewModel: T) where T : BaseViewModel, T : ExternalAccountActions {
@@ -77,5 +78,7 @@ fun <T> BaseBottomSheetDialogFragment<T>.showAccountExternalActions(
 }
 
 fun <T> T.copyAddressClicked(address: String) where T : BaseViewModel, T : ExternalAccountActions {
-    copyAddress(address, ::showMessage)
+    copyAddress(address) {
+        showSnackbar(CustomSnackbarType.ADDRESS_COPIED)
+    }
 }

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Snackbar
+import androidx.compose.material.SnackbarData
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,20 +18,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.selectedGreen
+import jp.co.soramitsu.common.utils.withNoFontPadding
 
 enum class CustomSnackbarType(
     @DrawableRes val iconRes: Int,
     @StringRes val titleRes: Int,
-    @StringRes val descriptionRes: Int,
+    @StringRes val descriptionRes: Int? = null,
     val color: Color,
     val textColor: Color = grayButtonBackground,
     val extraBottomPadding: Dp = 0.dp
 ) {
+    COMMON_COPIED(
+        iconRes = R.drawable.ic_copy_24_notifications,
+        titleRes = R.string.common_copied,
+        color = selectedGreen
+    ),
     ADDRESS_COPIED(
         iconRes = R.drawable.ic_copy_24_notifications,
         titleRes = R.string.application_status_view_copied_title,
@@ -65,10 +74,25 @@ enum class CustomSnackbarType(
 }
 
 @Composable
+fun CustomSnackbar(snackbarData: SnackbarData) {
+    val type = try {
+        CustomSnackbarType.valueOf(snackbarData.message)
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+
+    when (type) {
+        null -> Snackbar(snackbarData)
+        else -> TypedSnackbar(type)
+    }
+}
+
+@Composable
 fun TypedSnackbar(type: CustomSnackbarType) {
     BackgroundCornered(
         modifier = Modifier
             .fillMaxWidth()
+            .zIndex(Float.MAX_VALUE)
             .padding(horizontal = 16.dp)
             .padding(bottom = 24.dp)
             .padding(bottom = type.extraBottomPadding)
@@ -88,8 +112,10 @@ fun TypedSnackbar(type: CustomSnackbarType) {
                 verticalArrangement = Arrangement.spacedBy(2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                H5(text = stringResource(id = type.titleRes), color = type.textColor)
-                B2(text = stringResource(id = type.descriptionRes), color = type.textColor)
+                H5(text = stringResource(id = type.titleRes).withNoFontPadding(), color = type.textColor)
+                type.descriptionRes?.let {
+                    B2(text = stringResource(id = it).withNoFontPadding(), color = type.textColor)
+                }
             }
         }
     }
@@ -100,6 +126,7 @@ fun TypedSnackbar(type: CustomSnackbarType) {
 fun PreviewCustomSnackbar() {
     FearlessTheme {
         Column {
+            TypedSnackbar(CustomSnackbarType.COMMON_COPIED)
             TypedSnackbar(CustomSnackbarType.ADDRESS_COPIED)
             TypedSnackbar(CustomSnackbarType.YOU_OFFLINE)
             TypedSnackbar(CustomSnackbarType.RECONNECTED)

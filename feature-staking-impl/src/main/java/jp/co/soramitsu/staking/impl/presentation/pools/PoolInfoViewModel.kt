@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.compose.component.DropDownViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -226,8 +227,7 @@ class PoolInfoViewModel @Inject constructor(
 
     private fun copyToClipboard(text: String) {
         clipboardManager.addToClipboard(text)
-        val message = resourceManager.getString(R.string.common_copied)
-        showMessage(message)
+        showSnackbar(CustomSnackbarType.ADDRESS_COPIED)
     }
 
     override fun onOptionsClick() {

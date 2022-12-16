@@ -12,7 +12,6 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
@@ -27,7 +26,6 @@ import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseActivity
-import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.showToast
@@ -78,6 +76,9 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         navigator.detach()
     }
 
+    override fun getRootView(): View? =
+        findViewById(R.id.mainView)
+
     override fun layoutResource(): Int {
         return R.layout.activity_root
     }
@@ -106,21 +107,6 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         viewModel.noticeInForeground()
     }
 
-    private fun findBaseComposeFragment(fragments: List<Fragment>): BaseComposeFragment<*>? {
-        fragments.forEach {
-            if (it is BaseComposeFragment<*>) {
-                return it
-            } else {
-                if (it.childFragmentManager.fragments.isNotEmpty()) {
-                    return findBaseComposeFragment(it.childFragmentManager.fragments)
-                } else {
-                    return@forEach
-                }
-            }
-        }
-        return null
-    }
-
     override fun subscribe(viewModel: RootViewModel) {
         viewModel.showConnectingBarLiveData.observe(this) { show ->
             when {
@@ -128,7 +114,6 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
                 else -> hideBadConnectionView()
             }
 
-            val baseFragment = findBaseComposeFragment(supportFragmentManager.fragments)
             val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
             val needExtraPadding = bottomNavigationView?.isVisible == true
 
@@ -138,7 +123,7 @@ class RootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
                 !show && needExtraPadding -> CustomSnackbarType.RECONNECTED_EXTRA_BOTTOM
                 else -> CustomSnackbarType.RECONNECTED
             }
-            baseFragment?.showSnackbar(type)
+            showSnackbar(type)
         }
 
         viewModel.messageLiveData.observe(

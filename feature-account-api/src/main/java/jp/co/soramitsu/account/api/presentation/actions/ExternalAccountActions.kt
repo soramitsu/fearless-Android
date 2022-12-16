@@ -19,7 +19,7 @@ interface ExternalAccountActions : Browserable {
 
     fun viewExternalClicked(url: String)
 
-    fun copyAddress(address: String, messageShower: (message: String) -> Unit)
+    fun copyAddress(address: String, messageShower: () -> Unit)
 
     interface Presentation : ExternalAccountActions, Browserable.Presentation {
 

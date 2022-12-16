@@ -17,8 +17,6 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
-import androidx.compose.material.Snackbar
-import androidx.compose.material.SnackbarData
 import androidx.compose.material.SnackbarDuration
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
@@ -36,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.CustomSnackbar
 import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.TypedSnackbar
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
@@ -46,7 +44,13 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.showToast
 import kotlinx.coroutines.launch
 
-abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
+interface SnackbarShowerInterface {
+    fun showSnackbar(type: CustomSnackbarType, duration: SnackbarDuration = SnackbarDuration.Short)
+}
+
+interface SnackbarOwnerInterface: SnackbarShowerInterface
+
+abstract class BaseComposeFragment<T : BaseViewModel> : Fragment(), SnackbarOwnerInterface {
 
     abstract val viewModel: T
 
@@ -104,26 +108,12 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                         },
                         snackbarHost = { snackbarHostState ->
                             SnackbarHost(hostState = snackbarHostState) {
-                                getSnackbarCompose(it)
+                                CustomSnackbar(it)
                             }
                         }
                     )
                 }
             }
-        }
-    }
-
-    @Composable
-    fun getSnackbarCompose(snackbarData: SnackbarData) {
-        val type = try {
-            CustomSnackbarType.valueOf(snackbarData.message)
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-
-        when (type) {
-            null -> Snackbar(snackbarData)
-            else -> TypedSnackbar(type)
         }
     }
 
@@ -169,15 +159,16 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
         )
     }
 
-    fun showSnackbar(
+    override fun showSnackbar(
         type: CustomSnackbarType,
-        duration: SnackbarDuration = SnackbarDuration.Short
+        duration: SnackbarDuration
     ) {
         viewModel.launch {
-            scaffoldState.snackbarHostState.showSnackbar(
+            val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(
                 message = type.name,
                 duration = duration
             )
+            println("!!! Base snackbarResult: ${snackbarResult.name}")
         }
     }
 }

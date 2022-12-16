@@ -2,6 +2,12 @@ package jp.co.soramitsu.account.impl.presentation.exporting.seed
 
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
+import jp.co.soramitsu.account.impl.presentation.AccountRouter
+import jp.co.soramitsu.account.impl.presentation.exporting.ExportViewModel
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
@@ -17,13 +23,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
-import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
-import jp.co.soramitsu.feature_account_impl.R
-import jp.co.soramitsu.account.impl.presentation.AccountRouter
-import jp.co.soramitsu.account.impl.presentation.exporting.ExportViewModel
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import javax.inject.Inject
 
 @HiltViewModel
 class ExportSeedViewModel @Inject constructor(
@@ -112,6 +112,6 @@ class ExportSeedViewModel @Inject constructor(
 
     private fun copy(seed: String) {
         clipboardManager.addToClipboard(seed)
-        showMessage(resourceManager.getString(R.string.common_copied))
+        showSnackbar(CustomSnackbarType.COMMON_COPIED)
     }
 }

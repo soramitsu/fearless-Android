@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
+import androidx.compose.material.SnackbarDuration
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -18,7 +20,7 @@ import jp.co.soramitsu.common.utils.showToast
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 
-abstract class BaseFragment<T : BaseViewModel> : Fragment {
+abstract class BaseFragment<T : BaseViewModel> : Fragment, SnackbarShowerInterface {
 
     abstract val viewModel: T
 
@@ -39,6 +41,11 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
         }
 
         viewModel.messageLiveData.observeEvent(::showToast)
+        viewModel.snackbarLiveData.observeEvent(::showSnackbar)
+    }
+
+    override fun showSnackbar(type: CustomSnackbarType, duration: SnackbarDuration) {
+        (activity as? BaseActivity<*>)?.showSnackbar(type)
     }
 
     protected inline fun onBackPressed(crossinline action: () -> Unit) {

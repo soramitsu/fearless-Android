@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Browserable
@@ -111,7 +112,7 @@ class SendSuccessViewModel @Inject constructor(
     fun copyString(value: String) {
         clipboardManager.addToClipboard(value)
 
-        showMessage(resourceManager.getString(R.string.common_copied))
+        showSnackbar(CustomSnackbarType.COMMON_COPIED)
     }
 
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
