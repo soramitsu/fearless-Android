@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <jp.co.soramitsu.feature_account_impl.presentation.pincode.view.PinCodeView
+    <jp.co.soramitsu.account.impl.presentation.pincode.view.PinCodeView
         android:id="@+id/pinCodeView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

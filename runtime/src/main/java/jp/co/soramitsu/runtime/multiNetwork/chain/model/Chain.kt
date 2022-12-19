@@ -2,6 +2,10 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.domain.AppVersion
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainAssetType
 
 typealias ChainId = String
 
@@ -10,9 +14,10 @@ const val kusamaChainId = "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca9365
 const val westendChainId = "e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e"
 const val moonriverChainId = "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b"
 const val rococoChainId = "aaf2cd1b74b5f726895921259421b534124726263982522174147046b8827897"
+const val soraTestChainId = "3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17"
+const val soraKusamaChainId = "6d8d9f145c2177fa83512492cdd80a71e29f22473f4a8943a6292149ac319fb9"
 
-const val kitsugiChainId = "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b"
-const val interlayChainId = "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72"
+const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
 
 private val STAKING_ORDER = arrayOf("DOT", "KSM", "WND", "GLMR", "MOVR", "DEV", "PDEX")
 
@@ -31,9 +36,8 @@ data class Chain(
     val isTestNet: Boolean,
     val hasCrowdloans: Boolean,
     val parentId: String?,
+    val supportStakingPool: Boolean
 ) {
-
-    val assetsBySymbol = assets.associateBy(Asset::symbol)
     val assetsById = assets.associateBy(Asset::id)
 
     val isSupported: Boolean
@@ -41,41 +45,61 @@ data class Chain(
 
     data class Types(
         val url: String,
-        val overridesCommon: Boolean,
+        val overridesCommon: Boolean
     )
 
     data class Asset(
         val id: String,
-        val name: String,
+        val symbol: String,
+        val displayName: String?,
         val iconUrl: String,
         val chainId: ChainId,
-        val nativeChainId: ChainId?,
-        val chainName: String?,
+        val chainName: String,
         val chainIcon: String?,
         val isTestNet: Boolean?,
         val priceId: String?,
         val precision: Int,
         val staking: StakingType,
-        val priceProviders: List<String>?
+        val priceProviders: List<String>?,
+        val supportStakingPool: Boolean,
+        val isUtility: Boolean,
+        val type: ChainAssetType?,
+        val currencyId: String?,
+        val existentialDeposit: String?
     ) {
 
         enum class StakingType {
             UNSUPPORTED, RELAYCHAIN, PARACHAIN
         }
 
-        val symbol: String
-            get() = id.uppercase()
-
-        val isNative: Boolean
-            get() = nativeChainId == null || nativeChainId == chainId
+        val symbolToShow = displayName ?: symbol
 
         val chainToSymbol = chainId to symbol
 
         val orderInStaking: Int
-            get() = when (val order = STAKING_ORDER.indexOf(symbol)) {
+            get() = when (val order = STAKING_ORDER.indexOfFirst { it.equals(symbolToShow, true) }) {
                 -1 -> STAKING_ORDER.size
                 else -> order
             }
+
+        @Suppress("IMPLICIT_CAST_TO_ANY")
+        val currency = when (type) {
+            null, ChainAssetType.Normal -> null
+            ChainAssetType.ForeignAsset -> DictEnum.Entry("ForeignAsset", currencyId?.toBigInteger())
+            ChainAssetType.StableAssetPoolToken -> DictEnum.Entry("StableAssetPoolToken", currencyId?.toBigInteger())
+            ChainAssetType.LiquidCrowdloan -> DictEnum.Entry("LiquidCrowdloan", currencyId?.toBigInteger())
+            ChainAssetType.OrmlChain,
+            ChainAssetType.OrmlAsset -> DictEnum.Entry("Token", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.VToken -> DictEnum.Entry("VToken", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.VSToken -> DictEnum.Entry("VSToken", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.Stable -> DictEnum.Entry("Stable", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.SoraAsset -> {
+                val currencyHexList = currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() }.orEmpty()
+                Struct.Instance(mapOf("code" to currencyHexList))
+            }
+            ChainAssetType.Equilibrium -> symbol.toBigInteger()
+            ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
+        }
     }
 
     data class Node(
@@ -144,8 +168,6 @@ data class Chain(
         if (isTestNet != other.isTestNet) return false
         if (hasCrowdloans != other.hasCrowdloans) return false
         if (parentId != other.parentId) return false
-        if (assetsBySymbol != other.assetsBySymbol) return false
-        if (assetsById != other.assetsById) return false
 
         // custom comparison logic
         val defaultNodes = nodes.filter { it.isDefault }
@@ -173,8 +195,6 @@ data class Chain(
         result = 31 * result + isTestNet.hashCode()
         result = 31 * result + hasCrowdloans.hashCode()
         result = 31 * result + (parentId?.hashCode() ?: 0)
-        result = 31 * result + assetsBySymbol.hashCode()
-        result = 31 * result + assetsById.hashCode()
         return result
     }
 }
@@ -190,10 +210,15 @@ fun List<Chain.Explorer>.getSupportedExplorers(type: BlockExplorerUrlBuilder.Typ
     }
 }.toMap()
 
+@Deprecated("Use polkadotKusamaOthers() to get Polkadot at first place", ReplaceWith("defaultChainSort()"))
 fun ChainId.isPolkadotOrKusama() = this in listOf(polkadotChainId, kusamaChainId)
 
-fun ChainId.isOrml() = this in listOf(kitsugiChainId, interlayChainId) // todo rework, probably asset's parameter
+fun ChainId.defaultChainSort() = when (this) {
+    polkadotChainId -> 1
+    kusamaChainId -> 2
+    else -> 3
+}
 
 enum class TypesUsage {
-    BASE, OWN, BOTH,
+    ON_CHAIN, UNSUPPORTED
 }

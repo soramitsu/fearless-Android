@@ -57,7 +57,7 @@
                 tools:background="@drawable/bg_big_input_shape"
                 tools:layout_height="200dp" />
 
-            <jp.co.soramitsu.feature_account_impl.presentation.view.advanced.AdvancedBlockView
+            <jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView
                 android:id="@+id/advancedBlockView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

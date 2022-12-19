@@ -1,12 +1,13 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
+import javax.inject.Inject
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
-import jp.co.soramitsu.core_db.dao.ChainDao
-import jp.co.soramitsu.core_db.model.chain.ChainNodeLocal
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChain
@@ -20,7 +21,6 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProviderPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
-import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,15 +36,14 @@ data class ChainService(
     val connection: ChainConnection
 )
 
-class ChainRegistry(
+class ChainRegistry @Inject constructor(
     private val runtimeProviderPool: RuntimeProviderPool,
     private val connectionPool: ConnectionPool,
     private val runtimeSubscriptionPool: RuntimeSubscriptionPool,
     private val chainDao: ChainDao,
     private val chainSyncService: ChainSyncService,
-    private val baseTypeSynchronizer: BaseTypeSynchronizer,
     private val runtimeSyncService: RuntimeSyncService,
-    private val updatesMixin: UpdatesMixin,
+    private val updatesMixin: UpdatesMixin
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default), UpdatesProviderUi by updatesMixin {
 
     val currentChains = chainDao.joinChainInfoFlow()
@@ -93,7 +92,6 @@ class ChainRegistry(
     fun syncUp() {
         launch {
             runCatching { chainSyncService.syncUp() }
-            runCatching { baseTypeSynchronizer.sync() }
         }
     }
 

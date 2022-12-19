@@ -35,9 +35,13 @@ dependencies {
     implementation project(':runtime')
     implementation project(":common")
 
+    implementation fragmentKtxDep
     implementation liveDataKtxDep
     implementation androidDep
     implementation materialDep
+
+    implementation compose
+    debugImplementation composeDebug
 
     api fearlessLibDep
 

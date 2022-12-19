@@ -18,13 +18,13 @@ import jp.co.soramitsu.common.utils.setVisible
 open class TableCellView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyle: Int = 0,
+    defStyle: Int = 0
 ) : ConstraintLayout(context, attrs, defStyle) {
 
     val title: TextView
         get() = findViewById(R.id.tableCellTitle)
 
-    private val valuePrimary: TextView
+    val valuePrimary: TextView
         get() = findViewById(R.id.tableCellValuePrimary)
 
     private val valueSecondary: TextView
@@ -75,6 +75,14 @@ open class TableCellView @JvmOverloads constructor(
 
     fun setDividerVisible(visible: Boolean) {
         tableCellValueDivider.setVisible(visible)
+    }
+
+    fun showValueOrHide(primary: String?, secondary: String? = null) {
+        if (primary != null) {
+            showValue(primary, secondary)
+        } else {
+            makeGone()
+        }
     }
 
     fun showValue(primary: String, secondary: String? = null) {

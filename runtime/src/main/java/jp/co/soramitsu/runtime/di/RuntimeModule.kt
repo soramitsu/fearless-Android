@@ -2,10 +2,13 @@ package jp.co.soramitsu.runtime.di
 
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
+import javax.inject.Singleton
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.common.di.scope.ApplicationScope
 import jp.co.soramitsu.core.storage.StorageCache
-import jp.co.soramitsu.core_db.dao.StorageDao
+import jp.co.soramitsu.coredb.dao.StorageDao
 import jp.co.soramitsu.runtime.extrinsic.ExtrinsicBuilderFactory
 import jp.co.soramitsu.runtime.extrinsic.MortalityConstructor
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -15,20 +18,20 @@ import jp.co.soramitsu.runtime.storage.DbStorageCache
 import jp.co.soramitsu.runtime.storage.source.LocalStorageSource
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
-import javax.inject.Named
 
 const val LOCAL_STORAGE_SOURCE = "LOCAL_STORAGE_SOURCE"
 const val REMOTE_STORAGE_SOURCE = "REMOTE_STORAGE_SOURCE"
 
+@InstallIn(SingletonComponent::class)
 @Module
 class RuntimeModule {
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideExtrinsicBuilderFactory(
         rpcCalls: RpcCalls,
         chainRegistry: ChainRegistry,
-        mortalityConstructor: MortalityConstructor,
+        mortalityConstructor: MortalityConstructor
     ) = ExtrinsicBuilderFactory(
         rpcCalls,
         chainRegistry,
@@ -36,43 +39,43 @@ class RuntimeModule {
     )
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideStorageCache(
-        storageDao: StorageDao,
+        storageDao: StorageDao
     ): StorageCache = DbStorageCache(storageDao)
 
     @Provides
     @Named(LOCAL_STORAGE_SOURCE)
-    @ApplicationScope
+    @Singleton
     fun provideLocalStorageSource(
         chainRegistry: ChainRegistry,
-        storageCache: StorageCache,
+        storageCache: StorageCache
     ): StorageDataSource = LocalStorageSource(chainRegistry, storageCache)
 
     @Provides
     @Named(REMOTE_STORAGE_SOURCE)
-    @ApplicationScope
+    @Singleton
     fun provideRemoteStorageSource(
         chainRegistry: ChainRegistry,
-        bulkRetriever: BulkRetriever,
+        bulkRetriever: BulkRetriever
     ): StorageDataSource = RemoteStorageSource(chainRegistry, bulkRetriever)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideChainStateRepository(
         @Named(LOCAL_STORAGE_SOURCE) localStorageSource: StorageDataSource,
         chainRegistry: ChainRegistry
     ) = ChainStateRepository(localStorageSource, chainRegistry)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideMortalityProvider(
         chainStateRepository: ChainStateRepository,
-        rpcCalls: RpcCalls,
+        rpcCalls: RpcCalls
     ) = MortalityConstructor(rpcCalls, chainStateRepository)
 
     @Provides
-    @ApplicationScope
+    @Singleton
     fun provideSubstrateCalls(
         chainRegistry: ChainRegistry
     ) = RpcCalls(chainRegistry)

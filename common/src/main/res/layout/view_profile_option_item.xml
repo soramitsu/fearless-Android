@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:clipChildren="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    tools:background="@color/black"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
+    <ImageView
+        android:id="@+id/optionIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="11dp"
+        android:layout_marginBottom="11dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:background="@drawable/ic_experiments" />
+
+    <TextView
+        android:id="@+id/optionTitle"
+        style="@style/TextAppearance.Soramitsu.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:ellipsize="middle"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/optionSubtitle"
+        app:layout_constraintEnd_toStartOf="@id/optionAction"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@id/optionIcon"
+        app:layout_constraintTop_toTopOf="@+id/optionIcon"
+        tools:text="Account Name" />
+
+    <TextView
+        android:id="@+id/optionSubtitle"
+        style="@style/TextAppearance.Soramitsu.Body2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="80dp"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:textColor="@color/colorHint"
+        app:layout_constraintBottom_toBottomOf="@+id/optionIcon"
+        app:layout_constraintEnd_toStartOf="@+id/optionAction"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/optionIcon"
+        app:layout_constraintTop_toBottomOf="@+id/optionTitle"
+        tools:text="GybH55zsi5nAGybH55zsi5nAGybH55zsi5nAGybH55zsi5nA" />
+
+    <ImageView
+        android:id="@+id/optionAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="@dimen/x1"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="@dimen/x1"
+        android:src="@drawable/ic_arrow_right_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</merge>

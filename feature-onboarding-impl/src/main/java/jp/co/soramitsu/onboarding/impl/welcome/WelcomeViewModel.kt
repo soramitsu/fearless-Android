@@ -1,0 +1,58 @@
+package jp.co.soramitsu.onboarding.impl.welcome
+
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.network.AppLinksProvider
+import jp.co.soramitsu.common.mixin.api.Browserable
+import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.onboarding.impl.OnboardingRouter
+import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment.Companion.KEY_PAYLOAD
+import javax.inject.Inject
+
+private const val SUBSTRATE_BLOCKCHAIN_TYPE = 0
+
+@HiltViewModel
+class WelcomeViewModel @Inject constructor(
+    private val router: OnboardingRouter,
+    private val appLinksProvider: AppLinksProvider,
+    private val savedStateHandle: SavedStateHandle
+) : BaseViewModel(), Browserable {
+
+    private val payload = savedStateHandle.get<WelcomeFragmentPayload>(KEY_PAYLOAD)!!
+
+    val shouldShowBackLiveData: LiveData<Boolean> = MutableLiveData(payload.displayBack)
+
+    override val openBrowserEvent = MutableLiveData<Event<String>>()
+
+    init {
+        payload.createChainAccount?.run {
+            when (isImport) {
+                true -> router.openImportAccountSkipWelcome(this)
+                else -> router.openCreateAccountSkipWelcome(this)
+            }
+        }
+    }
+
+    fun createAccountClicked() {
+        router.openCreateAccountFromOnboarding()
+    }
+
+    fun importAccountClicked() {
+        router.openImportAccountScreen(SUBSTRATE_BLOCKCHAIN_TYPE)
+    }
+
+    fun termsClicked() {
+        openBrowserEvent.value = Event(appLinksProvider.termsUrl)
+    }
+
+    fun privacyClicked() {
+        openBrowserEvent.value = Event(appLinksProvider.privacyUrl)
+    }
+
+    fun backClicked() {
+        router.back()
+    }
+}

@@ -6,12 +6,13 @@ import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.R
 
 typealias ClickHandler<T> = (T) -> Unit
 
-class ReferentialEqualityDiffCallBack<T> : DiffUtil.ItemCallback<T>() {
+class ReferentialEqualityDiffCallBack<T : Any> : DiffUtil.ItemCallback<T>() {
 
     override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
         return oldItem === newItem
@@ -26,7 +27,8 @@ abstract class DynamicListBottomSheet<T : Any>(
     context: Context,
     private val payload: Payload<T>,
     private val diffCallback: DiffUtil.ItemCallback<T>,
-    private val onClicked: ClickHandler<T>
+    private val onClicked: ClickHandler<T>,
+    private val expandedOnStart: Boolean = false
 ) : BottomSheetDialog(context, R.style.BottomSheetDialog), DynamicListSheetAdapter.Handler<T> {
 
     class Payload<T>(val data: Collection<T>, val selected: T? = null)
@@ -35,6 +37,10 @@ abstract class DynamicListBottomSheet<T : Any>(
     override fun onCreate(savedInstanceState: Bundle?) {
         setContentView(R.layout.bottom_sheet_dynamic_list)
         super.onCreate(savedInstanceState)
+
+        if (expandedOnStart) {
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
 
         val listContent = findViewById<RecyclerView>(R.id.dynamicListSheetContent)
         listContent?.setHasFixedSize(true)

@@ -31,7 +31,7 @@ android {
 dependencies {
     implementation coroutinesDep
     implementation project(':runtime')
-    implementation project(":feature-account-api")
+    implementation project(':feature-account-api')
     implementation project(":common")
 
     implementation androidDep
@@ -43,6 +43,11 @@ dependencies {
 
     implementation androidDep
     implementation constraintDep
+
+    implementation viewModelKtxDep
+
+    implementation compose
+    debugImplementation composeDebug
 
     api project(':core-api')
     api project(':core-db')

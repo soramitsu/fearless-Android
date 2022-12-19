@@ -1,0 +1,98 @@
+package jp.co.soramitsu.crowdloan.impl.domain.contribute
+
+import java.math.BigInteger
+import java.math.MathContext
+import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
+import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.Contribution
+import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundInfo
+import jp.co.soramitsu.crowdloan.api.data.repository.ParachainMetadata
+import jp.co.soramitsu.crowdloan.impl.domain.common.leaseIndexFromBlock
+import jp.co.soramitsu.crowdloan.impl.domain.main.Crowdloan
+
+fun mapFundInfoToCrowdloan(
+    fundInfo: FundInfo,
+    parachainMetadata: ParachainMetadata?,
+    parachainId: BigInteger,
+    currentBlockNumber: BlockNumber,
+    expectedBlockTimeInMillis: BigInteger,
+    blocksPerLeasePeriod: BigInteger,
+    leaseOffset: BigInteger,
+    contribution: Contribution?,
+    hasWonAuction: Boolean,
+    minContribution: BigInteger = BigInteger.ZERO
+): Crowdloan {
+    val leasePeriodInMillis = leasePeriodInMillis(blocksPerLeasePeriod, leaseOffset, currentBlockNumber, fundInfo.lastSlot, expectedBlockTimeInMillis)
+
+    val state = when {
+        parachainMetadata?.disabled == true -> {
+            Crowdloan.State.Finished
+        }
+        isCrowdloanActive(fundInfo, currentBlockNumber, blocksPerLeasePeriod, leaseOffset, hasWonAuction, minContribution) -> {
+            val remainingTime = expectedRemainingTime(currentBlockNumber, fundInfo.end, expectedBlockTimeInMillis)
+
+            Crowdloan.State.Active(remainingTime)
+        }
+        else -> {
+            Crowdloan.State.Finished
+        }
+    }
+
+    return Crowdloan(
+        parachainMetadata = parachainMetadata,
+        raisedFraction = fundInfo.raised.toBigDecimal().divide(fundInfo.cap.toBigDecimal(), MathContext.DECIMAL32),
+        parachainId = parachainId,
+        leasePeriodInMillis = leasePeriodInMillis,
+        leasedUntilInMillis = System.currentTimeMillis() + leasePeriodInMillis,
+        state = state,
+        fundInfo = fundInfo,
+        myContribution = contribution
+    )
+}
+
+private fun isCrowdloanActive(
+    fundInfo: FundInfo,
+    currentBlockNumber: BigInteger,
+    blocksPerLeasePeriod: BigInteger,
+    leaseOffset: BigInteger,
+    hasWonAuction: Boolean,
+    minContribution: BigInteger
+): Boolean {
+    return currentBlockNumber < fundInfo.end && // crowdloan is not ended
+        // first slot is not yet passed
+        leaseIndexFromBlock(currentBlockNumber, blocksPerLeasePeriod, leaseOffset) <= fundInfo.firstSlot &&
+        // cap is not reached
+        when (minContribution) {
+            BigInteger.ZERO -> fundInfo.raised < fundInfo.cap
+            else -> fundInfo.raised + minContribution <= fundInfo.cap
+        } &&
+        // crowdloan considered closed if parachain already won auction
+        !hasWonAuction
+}
+
+private fun leasePeriodInMillis(
+    blocksPerLeasePeriod: BigInteger,
+    leaseOffset: BigInteger,
+    currentBlockNumber: BigInteger,
+    endingLeasePeriod: BigInteger,
+    expectedBlockTimeInMillis: BigInteger
+): Long {
+    val unlockedAtPeriod = endingLeasePeriod + BigInteger.ONE // next period after end one
+    val unlockedAtBlock = blocksPerLeasePeriod * unlockedAtPeriod + leaseOffset
+
+    return expectedRemainingTime(
+        currentBlockNumber,
+        unlockedAtBlock,
+        expectedBlockTimeInMillis
+    )
+}
+
+private fun expectedRemainingTime(
+    currentBlock: BlockNumber,
+    targetBlock: BlockNumber,
+    expectedBlockTimeInMillis: BigInteger
+): Long {
+    val blockDifference = targetBlock - currentBlock
+    val expectedTimeDifference = blockDifference * expectedBlockTimeInMillis
+
+    return expectedTimeDifference.toLong()
+}

@@ -15,9 +15,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 
 val Chain.typesUsage: TypesUsage
     get() = when {
-        types == null -> TypesUsage.BASE
-        types.overridesCommon -> TypesUsage.OWN
-        else -> TypesUsage.BOTH
+        types?.overridesCommon == true -> TypesUsage.ON_CHAIN
+        else -> TypesUsage.UNSUPPORTED
     }
 
 val Chain.utilityAsset
@@ -71,6 +70,8 @@ fun Chain.addressFromPublicKey(publicKey: ByteArray): String {
 
 fun Chain.isValidAddress(address: String): Boolean {
     return runCatching {
+        val tryDecodeAddress = accountIdOf(address)
+
         if (isEthereumBased) {
             address.fromHex().size == 20
         } else {
