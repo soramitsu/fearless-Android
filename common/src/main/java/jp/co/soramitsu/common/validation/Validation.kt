@@ -11,7 +11,7 @@ interface Validation<T, S> {
 
 fun <S> validOrWarning(
     condition: Boolean,
-    lazyReason: () -> S,
+    lazyReason: () -> S
 ): ValidationStatus<S> = if (condition) {
     ValidationStatus.Valid()
 } else {
@@ -20,7 +20,7 @@ fun <S> validOrWarning(
 
 fun <S> validOrError(
     condition: Boolean,
-    lazyReason: () -> S,
+    lazyReason: () -> S
 ): ValidationStatus<S> = if (condition) {
     ValidationStatus.Valid()
 } else {

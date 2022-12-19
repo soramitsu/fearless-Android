@@ -12,6 +12,7 @@ import coil.ImageLoader
 import coil.load
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.databinding.ViewLabeledTextBinding
+import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.utils.getDrawableCompat
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.utils.setVisible
@@ -56,7 +57,7 @@ class LabeledTextView @JvmOverloads constructor(
             isEnabled = enabled
 
             val actionIcon = typedArray.getDrawable(R.styleable.LabeledTextView_actionIcon)
-            actionIcon?.let(::setActionIcon)
+            setActionIcon(actionIcon)
 
             singleLine = typedArray.getBoolean(R.styleable.LabeledTextView_android_singleLine, true)
             binding.labeledTextText.isSingleLine = singleLine
@@ -79,7 +80,7 @@ class LabeledTextView @JvmOverloads constructor(
         binding.labeledTextLabel.setText(label)
     }
 
-    fun setActionIcon(icon: Drawable) {
+    fun setActionIcon(icon: Drawable?) {
         binding.labeledTextAction.setImageDrawable(icon)
     }
 
@@ -115,4 +116,9 @@ class LabeledTextView @JvmOverloads constructor(
 
         setActionClickListener(listener)
     }
+}
+
+fun LabeledTextView.setFromAddressModel(addressModel: AddressModel) {
+    setMessage(addressModel.nameOrAddress)
+    setTextIcon(addressModel.image)
 }

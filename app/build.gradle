@@ -2,6 +2,7 @@ import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
@@ -33,7 +34,8 @@ android {
             versionNameSuffix '-debug'
         }
         release {
-            minifyEnabled false
+            minifyEnabled minifyRelease
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.ci
         }
@@ -81,6 +83,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose true
     }
 
     bundle {
@@ -99,6 +102,12 @@ android {
 
         jvmTarget = '1.8'
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+    }
+    lintOptions {
+        disable "Instantiatable"
+    }
     namespace 'jp.co.soramitsu.app'
 }
 
@@ -116,8 +125,8 @@ dependencies {
 
     implementation project(':feature-onboarding-api')
     implementation project(':feature-onboarding-impl')
-
     implementation project(':feature-account-api')
+
     implementation project(':feature-account-impl')
 
     implementation project(':feature-wallet-api')
@@ -168,8 +177,14 @@ dependencies {
 
     implementation liveDataKtxDep
 
+    implementation jnaDep
+    implementation beaconDep, withoutJna
+
     kaptAndroidTest daggerKapt
     implementation storiesDep
+
+    implementation compose
+    debugImplementation composeDebug
 
     androidTestImplementation androidTestRunnerDep
     androidTestImplementation androidTestRulesDep

@@ -43,14 +43,18 @@ class LockBottomSheetBehavior<V : View> @JvmOverloads constructor(
         axes: Int,
         type: Int
     ): Boolean {
-        return if (isDraggable) super.onStartNestedScroll(
-            coordinatorLayout,
-            child,
-            directTargetChild,
-            target,
-            axes,
-            type
-        ) else false
+        return if (isDraggable) {
+            super.onStartNestedScroll(
+                coordinatorLayout,
+                child,
+                directTargetChild,
+                target,
+                axes,
+                type
+            )
+        } else {
+            false
+        }
     }
 
     override fun onNestedPreFling(

@@ -3,8 +3,8 @@ package jp.co.soramitsu.runtime.storage
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.StorageEntry
 import jp.co.soramitsu.core.storage.StorageCache
-import jp.co.soramitsu.core_db.dao.StorageDao
-import jp.co.soramitsu.core_db.model.StorageEntryLocal
+import jp.co.soramitsu.coredb.dao.StorageDao
+import jp.co.soramitsu.coredb.model.StorageEntryLocal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChangedBy

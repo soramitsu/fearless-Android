@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
@@ -17,13 +18,13 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
         }
     }
 
     buildFeatures {
         viewBinding = true
+        compose true
     }
 
     compileOptions {
@@ -36,6 +37,9 @@ android {
 
         jvmTarget = '1.8'
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
+    }
     namespace 'jp.co.soramitsu.feature_account_impl'
 }
 
@@ -46,6 +50,7 @@ dependencies {
     implementation project(':runtime')
     implementation project(':feature-account-api')
     implementation project(':feature-staking-api')
+    implementation project(':feature-wallet-api')
     implementation kotlinDep
 
     implementation androidDep
@@ -69,6 +74,11 @@ dependencies {
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
 
+    implementation fragmentKtxDep
+
+    implementation navigationFragmentDep
+    implementation navigationUiDep
+
     implementation daggerDep
     kapt daggerKapt
 
@@ -76,6 +86,9 @@ dependencies {
     kapt roomKapt
 
     kapt lifecycleKapt
+
+    implementation compose
+    debugImplementation composeDebug
 
     testImplementation jUnitDep
     testImplementation mockitoDep

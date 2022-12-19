@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/successRootView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:clickable="true"
+    android:fitsSystemWindows="true"
+    android:focusable="true">
+
+    <ImageView
+        android:id="@+id/rawDataBackButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_primary_list_item"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:src="@drawable/ic_arrow_back_24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/rawDataTitle"
+        style="@style/TextAppearance.Soramitsu.Header3"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:text="@string/common_transaction_raw_data"
+        app:layout_constraintBottom_toBottomOf="@+id/rawDataBackButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/rawDataBackButton" />
+
+    <jp.co.soramitsu.common.view.LabeledTextView
+        android:id="@+id/rawDataField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:singleLine="false"
+        app:actionIcon="@null"
+        app:label="@string/common_transaction"
+        app:layout_constraintTop_toBottomOf="@+id/rawDataTitle" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

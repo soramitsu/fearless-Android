@@ -53,6 +53,14 @@
         <attr name="enabled" />
     </declare-styleable>
 
+    <declare-styleable name="ProfileOptionItemView">
+        <attr name="optionIcon" format="reference|color" />
+        <attr name="optionSubtitleVisible" format="boolean" />
+        <attr name="optionTitle" format="string" />
+        <attr name="optionSubtitle" format="string" />
+        <attr name="enabled" />
+    </declare-styleable>
+
     <declare-styleable name="InputField">
         <attr name="android:inputType" />
         <attr name="android:text" />
@@ -77,11 +85,5 @@
         <attr name="android:text" />
         <attr name="icon" />
         <attr name="actionIcon" />
-    </declare-styleable>
-
-    <declare-styleable name="BadgeView">
-        <attr name="text" format="string" />
-        <attr name="iconUrl" format="string" />
-        <attr name="iconRes" format="reference|color" />
     </declare-styleable>
 </resources>

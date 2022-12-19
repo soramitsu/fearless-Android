@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
@@ -30,14 +31,12 @@ android {
             buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_PRODUCTION_SECRET")
             buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_live_Boi6Rl107p7XuJWBL8GJRzGWlmUSoxbz\""
             buildConfigField "String", "MOONPAY_HOST", "\"buy.moonpay.com\""
-
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
     buildFeatures {
         viewBinding = true
+        compose = true
     }
 
     compileOptions {
@@ -49,6 +48,9 @@ android {
         freeCompilerArgs = ["-Xallow-result-return-type"]
 
         jvmTarget = '1.8'
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion composeCompilerVersion
     }
     namespace 'jp.co.soramitsu.feature_wallet_impl'
 }
@@ -76,6 +78,8 @@ dependencies {
     implementation liveDataKtxDep
     implementation lifeCycleKtxDep
 
+    implementation fragmentKtxDep
+
     implementation daggerDep
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt daggerKapt
@@ -101,5 +105,17 @@ dependencies {
     implementation zXingEmbeddedDep
 
     implementation insetterDep
+
+    implementation jnaDep
+    implementation beaconDep, withoutJna
+
     implementation shimmerDep
+
+    implementation compose
+    debugImplementation composeDebug
+
+    implementation opencsvDep
+
+    implementation navigationFragmentDep
+    implementation navigationUiDep
 }

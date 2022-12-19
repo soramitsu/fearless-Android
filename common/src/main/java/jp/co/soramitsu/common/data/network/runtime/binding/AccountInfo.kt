@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.runtime.binding
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
@@ -8,19 +9,18 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
-import java.math.BigInteger
 
 class AccountData(
     val free: BigInteger,
     val reserved: BigInteger,
     val miscFrozen: BigInteger,
-    val feeFrozen: BigInteger,
+    val feeFrozen: BigInteger
 )
 
 class OrmlTokensAccountData(
     val free: BigInteger,
     val reserved: BigInteger,
-    val frozen: BigInteger,
+    val frozen: BigInteger
 ) {
     companion object {
         fun empty() = OrmlTokensAccountData(
@@ -33,7 +33,7 @@ class OrmlTokensAccountData(
 
 class AccountInfo(
     val nonce: BigInteger,
-    val data: AccountData,
+    val data: AccountData
 ) {
 
     companion object {
@@ -43,7 +43,7 @@ class AccountInfo(
                 free = BigInteger.ZERO,
                 reserved = BigInteger.ZERO,
                 miscFrozen = BigInteger.ZERO,
-                feeFrozen = BigInteger.ZERO,
+                feeFrozen = BigInteger.ZERO
             )
         )
     }
@@ -54,7 +54,7 @@ fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
     free = (dynamicInstance?.get("free") as? BigInteger).orZero(),
     reserved = (dynamicInstance?.get("reserved") as? BigInteger).orZero(),
     miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger).orZero(),
-    feeFrozen = (dynamicInstance?.get("feeFrozen") as? BigInteger).orZero(),
+    feeFrozen = (dynamicInstance?.get("feeFrozen") as? BigInteger).orZero()
 )
 
 @HelperBinding
@@ -83,6 +83,6 @@ fun bindOrmlTokensAccountData(scale: String, runtime: RuntimeSnapshot): OrmlToke
     return OrmlTokensAccountData(
         free = bindNumber(dynamicInstance["free"]),
         reserved = bindNumber(dynamicInstance["reserved"]),
-        frozen = bindNumber(dynamicInstance["frozen"]),
+        frozen = bindNumber(dynamicInstance["frozen"])
     )
 }

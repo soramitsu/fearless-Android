@@ -1,75 +1,75 @@
 package jp.co.soramitsu.common.view.dialog
 
 import android.content.Context
-import android.view.ContextThemeWrapper
-import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.FragmentManager
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.component.emptyClick
+import jp.co.soramitsu.common.presentation.ErrorDialog
 
 typealias DialogClickHandler = () -> Unit
 
-typealias DialogDecorator = AlertDialog.Builder.() -> Unit
-
-inline fun dialog(
-    context: Context,
-    decorator: DialogDecorator
-) {
-    val builder = AlertDialog.Builder(ContextThemeWrapper(context, R.style.WhiteOverlay))
-        .setCancelable(false)
-
-    builder.decorator()
-
-    builder.show()
-}
-
 fun infoDialog(
     context: Context,
-    decorator: DialogDecorator
+    childFragmentManager: FragmentManager,
+    title: String,
+    message: String
 ) {
-    dialog(context) {
-        setPositiveButton(R.string.common_ok, null)
-
-        decorator()
-    }
+    ErrorDialog(
+        title = title,
+        message = message,
+        positiveButtonText = context.resources.getString(R.string.common_ok)
+    ).show(childFragmentManager)
 }
 
 fun warningDialog(
     context: Context,
+    childFragmentManager: FragmentManager,
+    title: String,
+    message: String,
     onConfirm: DialogClickHandler,
-    onCancel: DialogClickHandler? = null,
-    decorator: DialogDecorator? = null
+    onCancel: DialogClickHandler? = null
 ) {
-    dialog(context) {
-        setPositiveButton(R.string.common_continue) { _, _ -> onConfirm() }
-        setNegativeButton(R.string.common_cancel) { _, _ -> onCancel?.invoke() }
-
-        decorator?.invoke(this)
-    }
+    ErrorDialog(
+        title = title,
+        message = message,
+        positiveButtonText = context.resources.getString(R.string.common_ok),
+        negativeButtonText = context.resources.getString(R.string.common_cancel),
+        positiveClick = onConfirm,
+        negativeClick = onCancel ?: emptyClick
+    ).show(childFragmentManager)
 }
 
 fun errorDialog(
     context: Context,
-    onConfirm: DialogClickHandler? = null,
-    decorator: DialogDecorator? = null
+    childFragmentManager: FragmentManager,
+    title: String,
+    message: String,
+    onConfirm: DialogClickHandler? = null
 ) {
-    dialog(context) {
-        setTitle(R.string.common_error_general_title)
-        setPositiveButton(R.string.common_ok) { _, _ -> onConfirm?.invoke() }
-
-        decorator?.invoke(this)
-    }
+    ErrorDialog(
+        title = title,
+        message = message,
+        positiveButtonText = context.resources.getString(R.string.common_ok),
+        positiveClick = { onConfirm?.invoke() }
+    ).show(childFragmentManager)
 }
 
 fun retryDialog(
     context: Context,
+    fragmentManager: FragmentManager,
+    title: String,
+    message: String,
     onRetry: DialogClickHandler? = null,
-    onCancel: DialogClickHandler? = null,
-    decorator: DialogDecorator? = null
+    onCancel: DialogClickHandler? = null
 ) {
-    dialog(context) {
-        setTitle(R.string.common_error_general_title)
-        setPositiveButton(R.string.common_retry) { _, _ -> onRetry?.invoke() }
-        setNegativeButton(R.string.common_ok) { _, _ -> onCancel?.invoke() }
-
-        decorator?.invoke(this)
-    }
+    ErrorDialog(
+        title = title,
+        message = message,
+        isHideable = false,
+        positiveButtonText = context.resources.getString(R.string.common_retry),
+        negativeButtonText = context.resources.getString(R.string.common_ok),
+        positiveClick = { onRetry?.invoke() },
+        negativeClick = { onCancel?.invoke() },
+        onBackClick = { onCancel?.invoke() }
+    ).show(fragmentManager)
 }

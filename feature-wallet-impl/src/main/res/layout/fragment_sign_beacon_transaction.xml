@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/signBeaconTransactionContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:background="@color/black">
+
+    <jp.co.soramitsu.common.view.Toolbar
+        android:id="@+id/signBeaconTransactionToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:homeButtonIcon="@drawable/ic_close"
+        app:layout_constraintTop_toTopOf="parent"
+        app:titleText="@string/common_confirm" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constrainedHeight="true"
+        app:layout_constraintBottom_toBottomOf="@+id/bottomBarrier"
+        app:layout_constraintTop_toBottomOf="@+id/signBeaconTransactionToolbar"
+        app:layout_constraintVertical_bias="0">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <jp.co.soramitsu.common.view.AccountInfoView
+                android:id="@+id/signBeaconTransactionOrigin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:accountActionIcon="@drawable/ic_more_vertical"
+                app:textVisible="true" />
+
+            <jp.co.soramitsu.common.view.AccountInfoView
+                android:id="@+id/signBeaconTransactionReceiver"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:accountActionIcon="@drawable/ic_more_vertical" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/signBeaconTransactionAmount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/common_amount" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/signBeaconTransactionDappName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/common_dapp" />
+
+            <jp.co.soramitsu.common.view.TableCellView
+                android:id="@+id/signBeaconTransactionNetwork"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:title="@string/common_network" />
+
+            <TextView
+                android:id="@+id/signBeaconTransactionRawData"
+                style="@style/TextAppearance.Soramitsu.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="16dp"
+                android:background="@drawable/bg_primary_list_item"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:text="@string/common_transaction_raw_data"
+                android:textColor="@color/gray1"
+                app:drawableEndCompat="@drawable/ic_arrow_right_24" />
+
+
+        </LinearLayout>
+    </ScrollView>
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/bottomBarrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="beaconWarningIcon,beaconWarningText,signBeaconTransactionFee,signBeaconTransactionConfirm" />
+
+    <ImageView
+        android:id="@+id/beaconWarningIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/ic_warning_filled"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/beaconWarningText" />
+
+    <TextView
+        android:id="@+id/beaconWarningText"
+        style="@style/TextAppearance.Soramitsu.Body3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="9dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/beacon_transaction_warning"
+        android:textColor="@color/gray1"
+        app:layout_constraintBottom_toTopOf="@+id/signBeaconTransactionFee"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/beaconWarningIcon" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/beaconWarningGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="beaconWarningIcon,beaconWarningText" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/black4"
+        app:layout_constraintBottom_toBottomOf="@+id/signBeaconTransactionConfirm"
+        app:layout_constraintTop_toTopOf="@+id/signBeaconTransactionFee" />
+
+    <jp.co.soramitsu.wallet.api.presentation.view.FeeView
+        android:id="@+id/signBeaconTransactionFee"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/signBeaconTransactionConfirm" />
+
+    <jp.co.soramitsu.common.view.PrimaryButton
+        android:id="@+id/signBeaconTransactionConfirm"
+        style="@style/Widget.Fearless.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="@string/common_confirm"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,17 +1,21 @@
 package jp.co.soramitsu.runtime.network.rpc
 
+import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.ExtrinsicStatusResponse
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockNumber
 import jp.co.soramitsu.common.data.network.runtime.blake2b256String
+import jp.co.soramitsu.common.data.network.runtime.calls.ExistentialDepositRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.FeeCalculationRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetBlockHashRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetBlockRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetFinalizedHeadRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.GetHeaderRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.NextAccountIndexRequest
+import jp.co.soramitsu.common.data.network.runtime.model.BrokenSubstrateHex
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock.Block.Header
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHex
@@ -33,9 +37,10 @@ import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
+import jp.co.soramitsu.runtime.network.RuntimeCall
+import jp.co.soramitsu.runtime.network.toRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.math.BigInteger
 
 data class EventRecord(val phase: PhaseRecord, val event: InnerEventRecord)
 
@@ -62,14 +67,14 @@ class RpcCalls(
 
     suspend fun getEventsInBlock(
         chainId: ChainId,
-        blockHash: String,
+        blockHash: String
     ): List<EventRecord> {
         val runtime = chainRegistry.getRuntime(chainId)
         val storageKey = runtime.metadata.module("System").storage("Events").storageKey()
         return runCatching {
             socketFor(chainId).executeAsync(
                 request = GetStorageRequest(listOf(storageKey, blockHash)),
-                mapper = pojo<String>().nonNull(),
+                mapper = pojo<String>().nonNull()
             )
                 .let { storage ->
                     val eventType = runtime.metadata.module("System").storage("Events").type.value ?: return@let emptyList()
@@ -98,7 +103,9 @@ class RpcCalls(
                             }
                         }
                         eventRecordList
-                    } else emptyList()
+                    } else {
+                        emptyList()
+                    }
                 }
         }.getOrElse {
             emptyList()
@@ -121,6 +128,21 @@ class RpcCalls(
             mapper = pojo<String>().nonNull(),
             deliveryType = DeliveryType.AT_MOST_ONCE
         )
+    }
+
+    suspend fun executeRuntimeCall(chainId: ChainId, call: RuntimeCall<*>): Result<ByteArray> {
+        val request = call.toRequest()
+        val result = kotlin.runCatching {
+            socketFor(chainId).executeAsync(
+                request,
+                deliveryType = DeliveryType.AT_MOST_ONCE
+            )
+        }
+        return result.mapCatching { response ->
+            response.error?.let {
+                throw RpcException(it)
+            } ?: (response.result as String).fromHex()
+        }
     }
 
     suspend fun getNonce(chainId: ChainId, accountAddress: String): BigInteger {
@@ -207,4 +229,11 @@ class RpcCalls(
     }
 
     private fun socketFor(chainId: ChainId) = chainRegistry.getConnection(chainId).socketService
+
+    suspend fun getExistentialDeposit(chainId: ChainId, assetIdentifier: Pair<String, Any>): BigInteger {
+        val request = ExistentialDepositRequest(mapOf(assetIdentifier))
+        val resultInHex = socketFor(chainId).executeAsync(request, mapper = pojo<String>().nonNull())
+
+        return BrokenSubstrateHex(resultInHex).decodeBigInt()
+    }
 }

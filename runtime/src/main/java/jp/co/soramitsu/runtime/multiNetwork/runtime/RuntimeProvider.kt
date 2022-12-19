@@ -4,7 +4,6 @@ import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.runtime.ext.typesUsage
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
-import jp.co.soramitsu.runtime.multiNetwork.runtime.types.BaseTypeSynchronizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,7 +20,6 @@ import kotlinx.coroutines.launch
 class RuntimeProvider(
     private val runtimeFactory: RuntimeFactory,
     private val runtimeSyncService: RuntimeSyncService,
-    private val baseTypeSynchronizer: BaseTypeSynchronizer,
     chain: Chain
 ) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
@@ -42,10 +40,6 @@ class RuntimeProvider(
     fun observe(): Flow<RuntimeSnapshot> = runtimeFlow.map { it.runtime }
 
     init {
-        baseTypeSynchronizer.syncStatusFlow
-            .onEach(::considerReconstructingRuntime)
-            .launchIn(this)
-
         runtimeSyncService.syncResultFlow(chainId)
             .onEach(::considerReconstructingRuntime)
             .launchIn(this)
@@ -89,25 +83,6 @@ class RuntimeProvider(
         }
     }
 
-    private fun considerReconstructingRuntime(newBaseTypesHash: String) {
-        launch {
-            currentConstructionJob?.join()
-
-            val currentVersion = runtimeFlow.replayCache.firstOrNull()
-
-            if (typesUsage == TypesUsage.OWN) {
-                return@launch
-            }
-
-            if (
-                currentVersion == null ||
-                currentVersion.baseTypesHash != newBaseTypesHash
-            ) {
-                constructNewRuntime(typesUsage)
-            }
-        }
-    }
-
     private fun constructNewRuntime(typesUsage: TypesUsage) {
         currentConstructionJob?.cancel()
 
@@ -121,7 +96,6 @@ class RuntimeProvider(
             }.onFailure {
                 when (it) {
                     ChainInfoNotInCacheException -> runtimeSyncService.cacheNotFound(chainId)
-                    BaseTypesNotInCacheException -> baseTypeSynchronizer.cacheNotFound()
                     else -> it.printStackTrace()
                 }
             }
