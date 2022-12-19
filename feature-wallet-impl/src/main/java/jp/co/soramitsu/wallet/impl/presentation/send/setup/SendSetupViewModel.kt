@@ -82,7 +82,7 @@ class SendSetupViewModel @Inject constructor(
     private val validateTransferUseCase: ValidateTransferUseCase
 ) : BaseViewModel(), SendSetupScreenInterface {
     companion object {
-        const val SLIPPAGE_TOLERANCE = 1.15
+        const val SLIPPAGE_TOLERANCE = 1.35
     }
 
     private val _openScannerEvent = MutableLiveData<Event<Unit>>()

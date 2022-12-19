@@ -28,6 +28,8 @@ import jp.co.soramitsu.staking.impl.data.mappers.mapAccountToStakingAccount
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingFeeValidation
 import jp.co.soramitsu.staking.impl.domain.validations.setup.SetupStakingValidationFailure
+import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -45,7 +47,8 @@ class StakingInteractor(
     private val stakingSharedState: StakingSharedState,
     private val chainStateRepository: ChainStateRepository,
     private val chainRegistry: ChainRegistry,
-    private val addressIconGenerator: AddressIconGenerator
+    private val addressIconGenerator: AddressIconGenerator,
+    private val walletRepository: WalletRepository
 ) {
     suspend fun getCurrentMetaAccount() = accountRepository.getSelectedMetaAccount()
     suspend fun getMetaAccount(metaId: Long) = accountRepository.getMetaAccount(metaId)
@@ -145,5 +148,17 @@ class StakingInteractor(
 
     suspend fun getAccountBalance(chainId: ChainId, accountId: AccountId): AccountInfo {
         return stakingRepository.getAccountInfo(chainId, accountId)
+    }
+
+    suspend fun getStashBalance(stashId: AccountId, configuration: Chain.Asset): BigDecimal {
+        val stashMetaAccount = accountRepository.findMetaAccount(stashId)
+        val cachedBalance = stashMetaAccount?.let { walletRepository.getAsset(stashMetaAccount.id, stashId, configuration, null)?.availableForStaking }
+        return if (cachedBalance == null) {
+            val stashInfo = stakingRepository.getAccountInfo(configuration.chainId, stashId).data
+            val availableForStakingInPlanks = stashInfo.free - stashInfo.feeFrozen
+            configuration.amountFromPlanks(availableForStakingInPlanks)
+        } else {
+            cachedBalance
+        }
     }
 }

@@ -671,4 +671,9 @@ class StakingParachainScenarioInteractor(
             )
         )
     )
+
+    override suspend fun getAvailableForBondMoreBalance(): BigDecimal {
+        val asset = stakingInteractor.currentAssetFlow().first()
+        return asset.availableForStaking
+    }
 }

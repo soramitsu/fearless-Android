@@ -55,6 +55,7 @@ data class AmountInputViewState(
 )
 
 private val bigDecimalRegexPattern = "[0-9]{1,13}(\\.[0-9]*)?".toRegex()
+private const val decimalDelimiter = "."
 
 @Composable
 fun AmountInput(
@@ -68,8 +69,9 @@ fun AmountInput(
     onTokenClick: () -> Unit = {}
 ) {
     var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = state.tokenAmount)) }
-
-    textFieldValueState = textFieldValueState.copy(text = state.tokenAmount)
+    if (textFieldValueState.text != state.tokenAmount) {
+        textFieldValueState = textFieldValueState.copy(text = state.tokenAmount, selection = TextRange(state.tokenAmount.length))
+    }
 
     val textColorState = when {
         state.tokenAmount == String.ZERO -> {
@@ -100,13 +102,17 @@ fun AmountInput(
 
     val onAmountInput: (TextFieldValue) -> Unit = remember {
         callback@{
-            if (it.text == textFieldValueState.text && it.selection != textFieldValueState.selection) {
-                textFieldValueState = it
+            if (it.text == textFieldValueState.text) {
+                textFieldValueState = textFieldValueState.copy(selection = it.selection)
                 return@callback
             }
+
             val result = when {
-                textFieldValueState.text == String.ZERO -> {
-                    it.text.replace(String.ZERO, "").ifEmpty { String.ZERO }
+                it.text.all { char -> char == Char.ZERO } -> {
+                    String.ZERO
+                }
+                it.text.contains(decimalDelimiter).not() && it.text.startsWith(String.ZERO) -> {
+                    it.text.removePrefix(String.ZERO)
                 }
                 it.text.isEmpty() -> {
                     String.ZERO
@@ -118,8 +124,10 @@ fun AmountInput(
                     textFieldValueState.text
                 }
             }
-            onInput(result)
-            textFieldValueState = it.copy(text = result, selection = TextRange(result.length))
+            if (result != textFieldValueState.text) {
+                onInput(result)
+                textFieldValueState = it.copy(text = result, selection = TextRange(Int.MAX_VALUE))
+            }
         }
     }
 
