@@ -18,7 +18,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
-import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import kotlinx.coroutines.flow.Flow
@@ -65,7 +64,6 @@ interface WalletInteractor {
     suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,
-        maxAllowedLevel: TransferValidityLevel = TransferValidityLevel.Ok,
         tipInPlanks: BigInteger?
     ): Result<String>
 

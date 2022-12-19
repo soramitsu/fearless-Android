@@ -235,13 +235,12 @@ class ConfirmSendViewModel @Inject constructor(
     private fun performTransfer(suppressWarnings: Boolean) {
         launch {
             val token = assetFlow.firstOrNull()?.token?.configuration ?: return@launch
-            val maxAllowedStatusLevel = if (suppressWarnings) TransferValidityLevel.Warning else TransferValidityLevel.Ok
 
             transferSubmittingFlow.value = true
 
             val tipInPlanks = transferDraft.tip?.let { token.planksFromAmount(it) }
             val result = withContext(Dispatchers.Default) {
-                interactor.performTransfer(createTransfer(token), transferDraft.fee, maxAllowedStatusLevel, tipInPlanks)
+                interactor.performTransfer(createTransfer(token), transferDraft.fee, tipInPlanks)
             }
             if (result.isSuccess) {
                 val operationHash = result.getOrNull()
