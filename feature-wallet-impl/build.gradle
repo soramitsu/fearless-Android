@@ -31,9 +31,6 @@ android {
             buildConfigField "String", "MOONPAY_PRIVATE_KEY", readSecret("MOONPAY_PRODUCTION_SECRET")
             buildConfigField "String", "MOONPAY_PUBLIC_KEY", "\"pk_live_Boi6Rl107p7XuJWBL8GJRzGWlmUSoxbz\""
             buildConfigField "String", "MOONPAY_HOST", "\"buy.moonpay.com\""
-
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 

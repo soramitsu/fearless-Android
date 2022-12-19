@@ -34,7 +34,8 @@ android {
             versionNameSuffix '-debug'
         }
         release {
-            minifyEnabled false
+            minifyEnabled minifyRelease
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.ci
         }
@@ -103,6 +104,9 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion composeCompilerVersion
+    }
+    lintOptions {
+        disable "Instantiatable"
     }
     namespace 'jp.co.soramitsu.app'
 }
