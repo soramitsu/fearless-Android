@@ -197,9 +197,11 @@ class BalanceListViewModel @Inject constructor(
                 if (stateItem != null) return@map
 
                 val tokenChains = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
-                val utilityChain = tokenChains.sortedWith(compareByDescending<Chain> {
-                    it.assets.firstOrNull { it.symbolToShow == symbolToShow }?.isUtility ?: false
-                }.thenByDescending { it.parentId == null }).firstOrNull()
+                val utilityChain = tokenChains.sortedWith(
+                    compareByDescending<Chain> {
+                        it.assets.firstOrNull { it.symbolToShow == symbolToShow }?.isUtility ?: false
+                    }.thenByDescending { it.parentId == null }
+                ).firstOrNull()
 
                 val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: utilityChain
                 val showChainAsset = showChain?.assets?.firstOrNull { it.symbolToShow == symbolToShow }

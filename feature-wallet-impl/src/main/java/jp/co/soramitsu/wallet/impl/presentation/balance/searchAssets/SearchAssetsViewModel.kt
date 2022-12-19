@@ -110,9 +110,11 @@ class SearchAssetsViewModel @Inject constructor(
                 )
                 assetStates.add(assetListItemViewState)
             }
-        assetStates.sortedWith(compareBy<AssetListItemViewState> { it.assetSymbol }
-            .thenBy { it.assetChainName }
-            .thenBy { it.chainId.defaultChainSort() })
+        assetStates.sortedWith(
+            compareBy<AssetListItemViewState> { it.assetSymbol }
+                .thenBy { it.assetChainName }
+                .thenBy { it.chainId.defaultChainSort() }
+        )
     }
 
     val state = combine(
