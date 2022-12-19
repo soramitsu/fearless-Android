@@ -32,7 +32,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
-import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
@@ -191,7 +190,6 @@ class WalletInteractorImpl(
         return walletRepository.getPhishingInfo(address)?.toPhishingModel()
     }
 
-    // TODO wallet fee
     override suspend fun getTransferFee(transfer: Transfer): Fee {
         val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
 
@@ -201,7 +199,6 @@ class WalletInteractorImpl(
     override suspend fun performTransfer(
         transfer: Transfer,
         fee: BigDecimal,
-        maxAllowedLevel: TransferValidityLevel,
         tipInPlanks: BigInteger?
     ): Result<String> {
         val metaAccount = accountRepository.getSelectedMetaAccount()

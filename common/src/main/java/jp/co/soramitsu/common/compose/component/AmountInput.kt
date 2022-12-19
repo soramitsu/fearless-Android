@@ -55,6 +55,31 @@ data class AmountInputViewState(
 )
 
 private val bigDecimalRegexPattern = "[0-9]{1,13}(\\.[0-9]*)?".toRegex()
+private const val decimalDelimiter = "."
+
+private fun processNewInputState(state: TextFieldValue, previousState: TextFieldValue): TextFieldValue {
+    if (state.text == previousState.text) {
+        return previousState.copy(selection = state.selection)
+    }
+
+    when {
+        state.text.all { char -> char == Char.ZERO } -> {
+            return TextFieldValue(text = String.ZERO, selection = TextRange(Int.MAX_VALUE))
+        }
+        state.text.contains(decimalDelimiter).not() && state.text.startsWith(String.ZERO) -> {
+            return processNewInputState(TextFieldValue(text = state.text.removePrefix(String.ZERO), selection = TextRange(Int.MAX_VALUE)), previousState)
+        }
+        state.text.isEmpty() -> {
+            return TextFieldValue(text = String.ZERO, selection = TextRange(Int.MAX_VALUE))
+        }
+        state.text.matches(bigDecimalRegexPattern) -> {
+            return TextFieldValue(text = state.text, selection = TextRange(Int.MAX_VALUE))
+        }
+        else -> {
+            return TextFieldValue(text = previousState.text, selection = TextRange(Int.MAX_VALUE))
+        }
+    }
+}
 
 @Composable
 fun AmountInput(
@@ -68,8 +93,9 @@ fun AmountInput(
     onTokenClick: () -> Unit = {}
 ) {
     var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = state.tokenAmount)) }
-
-    textFieldValueState = textFieldValueState.copy(text = state.tokenAmount)
+    if (textFieldValueState.text != state.tokenAmount || textFieldValueState.text == String.ZERO) {
+        textFieldValueState = textFieldValueState.copy(text = state.tokenAmount, selection = TextRange(state.tokenAmount.length))
+    }
 
     val textColorState = when {
         state.tokenAmount == String.ZERO -> {
@@ -100,26 +126,11 @@ fun AmountInput(
 
     val onAmountInput: (TextFieldValue) -> Unit = remember {
         callback@{
-            if (it.text == textFieldValueState.text && it.selection != textFieldValueState.selection) {
-                textFieldValueState = it
-                return@callback
+            val processed = processNewInputState(it, textFieldValueState)
+            if (processed.text != textFieldValueState.text) {
+                onInput(processed.text)
+                textFieldValueState = processed
             }
-            val result = when {
-                textFieldValueState.text == String.ZERO -> {
-                    it.text.replace(String.ZERO, "").ifEmpty { String.ZERO }
-                }
-                it.text.isEmpty() -> {
-                    String.ZERO
-                }
-                it.text.matches(bigDecimalRegexPattern) -> {
-                    it.text
-                }
-                else -> {
-                    textFieldValueState.text
-                }
-            }
-            onInput(result)
-            textFieldValueState = it.copy(text = result, selection = TextRange(result.length))
         }
     }
 
