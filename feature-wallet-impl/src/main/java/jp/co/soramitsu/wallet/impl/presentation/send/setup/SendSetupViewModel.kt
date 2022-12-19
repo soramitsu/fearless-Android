@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import javax.inject.Inject
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
@@ -26,7 +27,6 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.requireValue
@@ -373,7 +373,7 @@ class SendSetupViewModel @Inject constructor(
     }
 
     override fun onAmountInput(input: String) {
-        visibleAmountFlow.value = input.format().replace(',', '.')
+        visibleAmountFlow.value = input
         enteredAmountBigDecimalFlow.value = input.toBigDecimalOrNull().orZero()
     }
 
@@ -526,7 +526,7 @@ class SendSetupViewModel @Inject constructor(
             if (quickAmountWithoutExtraPays < BigDecimal.ZERO) {
                 return@launch
             }
-            visibleAmountFlow.value = quickAmountWithoutExtraPays.format().replace(',', '.')
+            visibleAmountFlow.value = quickAmountWithoutExtraPays.setScale(5, RoundingMode.HALF_DOWN).toString().replace(',', '.')
             enteredAmountBigDecimalFlow.value = quickAmountWithoutExtraPays
         }
     }

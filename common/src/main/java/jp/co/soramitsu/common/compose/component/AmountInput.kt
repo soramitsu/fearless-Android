@@ -11,6 +11,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusState
@@ -20,8 +24,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +40,7 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.utils.ZERO
 
 data class AmountInputViewState(
     val tokenName: String,
@@ -47,6 +54,8 @@ data class AmountInputViewState(
     val allowAssetChoose: Boolean = false
 )
 
+private val bigDecimalRegexPattern = "[0-9]{1,13}(\\.[0-9]*)?".toRegex()
+
 @Composable
 fun AmountInput(
     state: AmountInputViewState,
@@ -58,16 +67,60 @@ fun AmountInput(
     onInputFocusChange: (FocusState) -> Unit = {},
     onTokenClick: () -> Unit = {}
 ) {
-    val textColorState = if (state.isActive) {
-        white
-    } else {
-        black2
+    var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = state.tokenAmount)) }
+
+    textFieldValueState = textFieldValueState.copy(text = state.tokenAmount)
+
+    val textColorState = when {
+        state.tokenAmount == String.ZERO -> {
+            black2
+        }
+        state.isActive -> {
+            white
+        }
+        else -> {
+            black2
+        }
+    }
+
+    val assetColorState = when {
+        state.isActive -> {
+            white
+        }
+        else -> {
+            black2
+        }
     }
 
     val borderColorState = when {
         !state.isFocused -> borderColor
         borderColorFocused.isUnspecified -> borderColor
         else -> borderColorFocused
+    }
+
+    val onAmountInput: (TextFieldValue) -> Unit = remember {
+        callback@{
+            if (it.text == textFieldValueState.text && it.selection != textFieldValueState.selection) {
+                textFieldValueState = it
+                return@callback
+            }
+            val result = when {
+                textFieldValueState.text == String.ZERO -> {
+                    it.text.replace(String.ZERO, "").ifEmpty { String.ZERO }
+                }
+                it.text.isEmpty() -> {
+                    String.ZERO
+                }
+                it.text.matches(bigDecimalRegexPattern) -> {
+                    it.text
+                }
+                else -> {
+                    textFieldValueState.text
+                }
+            }
+            onInput(result)
+            textFieldValueState = it.copy(text = result, selection = TextRange(result.length))
+        }
     }
 
     BackgroundCorneredWithBorder(
@@ -108,7 +161,7 @@ fun AmountInput(
                         .align(CenterVertically)
                 )
                 MarginHorizontal(margin = 4.dp)
-                H3(text = state.tokenName.uppercase(), modifier = Modifier.align(CenterVertically), color = textColorState)
+                H3(text = state.tokenName.uppercase(), modifier = Modifier.align(CenterVertically), color = assetColorState)
                 MarginHorizontal(margin = 8.dp)
                 if (state.allowAssetChoose) {
                     Image(
@@ -119,18 +172,16 @@ fun AmountInput(
                     )
                 }
                 BasicTextField(
-                    value = state.tokenAmount,
+                    value = textFieldValueState,
+                    onValueChange = onAmountInput,
                     enabled = state.isActive,
-                    onValueChange = onInput,
                     textStyle = MaterialTheme.customTypography.header2.copy(textAlign = TextAlign.End, color = textColorState),
                     singleLine = true,
                     maxLines = 1,
                     keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Decimal, imeAction = ImeAction.None),
                     modifier = Modifier
                         .background(color = transparent)
-                        .onFocusChanged {
-                            onInputFocusChange(it)
-                        }
+                        .onFocusChanged(onInputFocusChange)
                         .weight(1f),
                     cursorBrush = SolidColor(white)
                 )
