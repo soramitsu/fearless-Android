@@ -63,7 +63,7 @@ class ManualRewardCalculator(
     private val expectedAPY = calculateExpectedAPY()
 
     private fun calculateExpectedAPY(): Double {
-        val prices = validators.map { it.commission.toDouble() }
+        val prices = validators.map { it.commission.toDouble() }.filter { it < 1.0 }
 
         val medianCommission = when {
             prices.isEmpty() -> 0.0
