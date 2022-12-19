@@ -81,37 +81,27 @@ class SearchAssetsViewModel @Inject constructor(
                 val tokenConfig = token.configuration
                 val symbolToShow = tokenConfig.symbolToShow
 
-                val stateItem = assetStates.find { it.displayName == symbolToShow }
-                if (stateItem != null) return@map
+                val chain = chains.firstOrNull { it.id == tokenConfig.chainId }
+                val isSupported: Boolean = when (chain?.minSupportedVersion) {
+                    null -> true
+                    else -> AppVersion.isSupported(chain.minSupportedVersion)
+                }
 
                 val tokenChains = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
-                val utilityChain = tokenChains.maxByOrNull {
-                    it.assets.firstOrNull { it.symbolToShow == symbolToShow }?.isUtility ?: false
-                }
-                val utilityChainAsset = utilityChain?.assets?.firstOrNull { it.symbolToShow == symbolToShow }
-
-                val isSupported: Boolean = when (utilityChain?.minSupportedVersion) {
-                    null -> true
-                    else -> AppVersion.isSupported(utilityChain.minSupportedVersion)
-                }
-
                 val hasNetworkIssue = tokenChains.any { it.id in chainConnectings }
-
-                val assetChainUrls = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
-                    .associate { it.id to it.icon }
 
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
-                    assetChainName = utilityChain?.name.orEmpty(),
+                    assetChainName = chain?.name ?: tokenConfig.chainName,
                     assetSymbol = tokenConfig.symbol,
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
                     assetTokenRate = token.recentRateChange?.formatAsChange(),
                     assetBalance = assetWithStatus.asset.total?.format().orEmpty(),
                     assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total)?.formatAsCurrency(token.fiatSymbol),
-                    assetChainUrls = assetChainUrls,
-                    chainId = utilityChain?.id.orEmpty(),
-                    chainAssetId = utilityChainAsset?.id.orEmpty(),
+                    assetChainUrls = emptyMap(),
+                    chainId = tokenConfig.chainId,
+                    chainAssetId = tokenConfig.id,
                     isSupported = isSupported,
                     isHidden = !assetWithStatus.asset.enabled,
                     hasAccount = assetWithStatus.hasAccount,
@@ -120,7 +110,11 @@ class SearchAssetsViewModel @Inject constructor(
                 )
                 assetStates.add(assetListItemViewState)
             }
-        assetStates
+        assetStates.sortedWith(
+            compareBy<AssetListItemViewState> { it.assetSymbol }
+                .thenBy { it.assetChainName }
+                .thenBy { it.chainId.defaultChainSort() }
+        )
     }
 
     val state = combine(

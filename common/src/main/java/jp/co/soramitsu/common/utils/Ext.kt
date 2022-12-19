@@ -147,3 +147,6 @@ inline fun <T1, T2, T3, T4, T5, T6, T7, T8, R> combine(
         )
     }
 }
+
+val String.Companion.ZERO: String
+    get() = "0"

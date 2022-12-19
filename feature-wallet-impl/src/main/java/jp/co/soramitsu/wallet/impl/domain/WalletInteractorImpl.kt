@@ -40,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
@@ -284,14 +285,23 @@ class WalletInteractorImpl(
         val chain = chainRegistry.getChain(chainId)
         val accountId = metaAccount.accountId(chain)
         val chainAsset = chain.assetsById[chainAssetId] ?: return
+        val tokenChains = chainRegistry.currentChains.first().filter {
+            it.assets.any { it.symbolToShow == chainAsset.symbolToShow }
+        }
+
+        val tokenChainAssets = tokenChains.map {
+            it.assets.filter { it.symbolToShow == chainAsset.symbolToShow }
+        }.flatten()
 
         accountId?.let {
-            walletRepository.updateAssetHidden(
-                chainAsset = chainAsset,
-                metaId = metaAccount.id,
-                accountId = it,
-                isHidden = true
-            )
+            tokenChainAssets.forEach {
+                walletRepository.updateAssetHidden(
+                    chainAsset = it,
+                    metaId = metaAccount.id,
+                    accountId = accountId,
+                    isHidden = true
+                )
+            }
         }
     }
 

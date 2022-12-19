@@ -197,27 +197,35 @@ class BalanceListViewModel @Inject constructor(
                 if (stateItem != null) return@map
 
                 val tokenChains = chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
-                val utilityChain = tokenChains.maxByOrNull {
-                    it.assets.firstOrNull { it.symbolToShow == symbolToShow }?.isUtility ?: false
-                }
-                val utilityChainAsset = utilityChain?.assets?.firstOrNull { it.symbolToShow == symbolToShow }
+                val utilityChain = tokenChains.sortedWith(
+                    compareByDescending<Chain> {
+                        it.assets.firstOrNull { it.symbolToShow == symbolToShow }?.isUtility ?: false
+                    }.thenByDescending { it.parentId == null }
+                ).firstOrNull()
 
-                val isSupported: Boolean = when (utilityChain?.minSupportedVersion) {
+                val showChain = tokenChains.firstOrNull { it.id == selectedChainId } ?: utilityChain
+                val showChainAsset = showChain?.assets?.firstOrNull { it.symbolToShow == symbolToShow }
+
+                val isSupported: Boolean = when (showChain?.minSupportedVersion) {
                     null -> true
-                    else -> AppVersion.isSupported(utilityChain.minSupportedVersion)
+                    else -> AppVersion.isSupported(showChain.minSupportedVersion)
                 }
 
                 val hasNetworkIssue = tokenChains.any { it.id in chainConnecting }
 
+                val hasChainWithoutAccount = assets.any { withStatus ->
+                    withStatus.asset.token.configuration.symbolToShow == symbolToShow && withStatus.hasAccount.not()
+                }
+
                 val assetChainUrls = when (selectedChainId) {
-                    null -> chains.filter { it.assets.any { it.symbolToShow == symbolToShow } }
+                    null -> chains.filter { it.id != showChain?.id && it.assets.any { it.symbolToShow == symbolToShow } }
                         .associate { it.id to it.icon }
                     else -> emptyMap()
                 }
 
                 val assetListItemViewState = AssetListItemViewState(
                     assetIconUrl = tokenConfig.iconUrl,
-                    assetChainName = utilityChain?.name.orEmpty(),
+                    assetChainName = showChain?.name.orEmpty(),
                     assetSymbol = tokenConfig.symbol,
                     displayName = symbolToShow,
                     assetTokenFiat = token.fiatRate?.formatAsCurrency(token.fiatSymbol),
@@ -225,11 +233,11 @@ class BalanceListViewModel @Inject constructor(
                     assetBalance = assetWithStatus.asset.total.orZero().format(),
                     assetBalanceFiat = token.fiatRate?.multiply(assetWithStatus.asset.total.orZero())?.formatAsCurrency(token.fiatSymbol),
                     assetChainUrls = assetChainUrls,
-                    chainId = utilityChain?.id.orEmpty(),
-                    chainAssetId = utilityChainAsset?.id.orEmpty(),
+                    chainId = showChain?.id.orEmpty(),
+                    chainAssetId = showChainAsset?.id.orEmpty(),
                     isSupported = isSupported,
                     isHidden = !assetWithStatus.asset.enabled,
-                    hasAccount = assetWithStatus.hasAccount,
+                    hasAccount = !hasChainWithoutAccount,
                     priceId = tokenConfig.priceId,
                     hasNetworkIssue = hasNetworkIssue
                 )
