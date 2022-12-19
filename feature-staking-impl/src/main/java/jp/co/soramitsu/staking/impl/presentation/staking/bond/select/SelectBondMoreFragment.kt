@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import coil.ImageLoader
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.mixin.impl.observeRetries
 import jp.co.soramitsu.common.mixin.impl.observeValidations
@@ -16,14 +17,14 @@ import jp.co.soramitsu.common.view.setProgress
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentBondMoreBinding
-import javax.inject.Inject
 
 const val PAYLOAD_KEY = "PAYLOAD_KEY"
 
 @AndroidEntryPoint
 class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fragment_bond_more) {
 
-    @Inject protected lateinit var imageLoader: ImageLoader
+    @Inject
+    protected lateinit var imageLoader: ImageLoader
 
     private val binding by viewBinding(FragmentBondMoreBinding::bind)
 
@@ -60,9 +61,12 @@ class SelectBondMoreFragment : BaseFragment<SelectBondMoreViewModel>(R.layout.fr
         viewModel.showNextProgress.observe(binding.bondMoreConfirm::setProgress)
 
         viewModel.assetModelFlow.observe {
-            binding.bondMoreAmount.setAssetBalance(it.assetBalance)
             binding.bondMoreAmount.setAssetName(it.tokenName)
             binding.bondMoreAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+        }
+
+        viewModel.stakeCreatorBalanceFlow.observe {
+            binding.bondMoreAmount.setAssetBalance(it)
         }
 
         binding.bondMoreAmount.amountInput.bindTo(viewModel.enteredAmountFlow, lifecycleScope)

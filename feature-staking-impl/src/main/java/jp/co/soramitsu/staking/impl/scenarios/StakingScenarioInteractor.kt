@@ -86,4 +86,5 @@ interface StakingScenarioInteractor {
     fun getRebondValidationSystem(): RebondValidationSystem
     fun provideRedeemValidationSystem(): RedeemValidationSystem
     suspend fun provideBondMoreValidationSystem(): BondMoreValidationSystem
+    suspend fun getAvailableForBondMoreBalance(): BigDecimal
 }

@@ -55,9 +55,12 @@ class ConfirmBondMoreFragment : BaseFragment<ConfirmBondMoreViewModel>(R.layout.
         viewModel.showNextProgress.observe(binding.confirmBondMoreConfirm::setProgress)
 
         viewModel.assetModelFlow.observe {
-            binding.confirmBondMoreAmount.setAssetBalance(it.assetBalance)
             binding.confirmBondMoreAmount.setAssetName(it.tokenName)
             binding.confirmBondMoreAmount.setAssetImageUrl(it.imageUrl, imageLoader)
+        }
+
+        viewModel.stakeCreatorBalanceFlow.observe {
+            binding.confirmBondMoreAmount.setAssetBalance(it)
         }
 
         binding.confirmBondMoreAmount.amountInput.setText(viewModel.amount)

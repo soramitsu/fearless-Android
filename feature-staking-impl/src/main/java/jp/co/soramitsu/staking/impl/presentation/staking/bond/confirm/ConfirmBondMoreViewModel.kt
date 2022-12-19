@@ -5,19 +5,23 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.staking.bond.BondMoreInteractor
 import jp.co.soramitsu.staking.impl.domain.validations.bond.BondMoreValidationPayload
@@ -26,14 +30,12 @@ import jp.co.soramitsu.staking.impl.presentation.staking.bond.bondMoreValidation
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.data.mappers.mapFeeToFeeModel
-import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeStatus
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
+import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ConfirmBondMoreViewModel @Inject constructor(
@@ -79,6 +81,12 @@ class ConfirmBondMoreViewModel @Inject constructor(
     }
         .inBackground()
         .asLiveData()
+
+    val stakeCreatorBalanceFlow = flowOf {
+        val balance = stakingScenarioInteractor.getAvailableForBondMoreBalance()
+        val asset = assetFlow.first()
+        balance.formatTokenAmount(asset.token.configuration)
+    }.inBackground().share()
 
     val originAddressModelLiveData = liveData {
         val address = payload.stashAddress
