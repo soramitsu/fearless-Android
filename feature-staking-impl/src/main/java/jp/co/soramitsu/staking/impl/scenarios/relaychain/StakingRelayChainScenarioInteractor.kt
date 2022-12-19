@@ -663,14 +663,13 @@ class StakingRelayChainScenarioInteractor(
     )
 
     override suspend fun provideBondMoreValidationSystem(): BondMoreValidationSystem {
-        val asset = stakingInteractor.currentAssetFlow().first()
-
+        val availableForStaking = getAvailableForBondMoreBalance()
         return BondMoreValidationSystem(
             validation = CompositeValidation(
                 validations = listOf(
                     EnoughToPayFeesValidation(
                         feeExtractor = { it.fee },
-                        availableBalanceProducer = { asset.availableForStaking },
+                        availableBalanceProducer = { availableForStaking },
                         errorProducer = { BondMoreValidationFailure.NOT_ENOUGH_TO_PAY_FEES },
                         extraAmountExtractor = { it.amount }
                     ),
@@ -681,6 +680,19 @@ class StakingRelayChainScenarioInteractor(
                 )
             )
         )
+    }
+
+    override suspend fun getAvailableForBondMoreBalance(): BigDecimal {
+        return withContext(Dispatchers.Default) {
+            val state = selectedAccountStakingStateFlow().first()
+            val asset = stakingInteractor.currentAssetFlow().first()
+            val availableForBondMore = if (state is StakingState.Stash.Nominator && state.stashId.contentEquals(state.controllerId).not()) {
+                stakingInteractor.getStashBalance(state.stashId, asset.token.configuration)
+            } else {
+                asset.availableForStaking
+            }
+            availableForBondMore
+        }
     }
 }
 

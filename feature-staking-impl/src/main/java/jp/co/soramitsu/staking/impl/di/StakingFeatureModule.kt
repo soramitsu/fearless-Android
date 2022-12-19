@@ -186,7 +186,8 @@ class StakingFeatureModule {
         stakingSharedState: StakingSharedState,
         chainStateRepository: ChainStateRepository,
         chainRegistry: ChainRegistry,
-        addressIconGenerator: AddressIconGenerator
+        addressIconGenerator: AddressIconGenerator,
+        walletRepository: WalletRepository
     ) = StakingInteractor(
         accountRepository,
         stakingRepository,
@@ -194,7 +195,8 @@ class StakingFeatureModule {
         stakingSharedState,
         chainStateRepository,
         chainRegistry,
-        addressIconGenerator
+        addressIconGenerator,
+        walletRepository
     )
 
     @Provides
