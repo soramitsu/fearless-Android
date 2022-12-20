@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
@@ -47,7 +48,7 @@ class PaymentUpdaterFactory(
     private val updatesMixin: UpdatesMixin
 ) {
 
-    fun create(chain: Chain): Updater {
+    fun create(chain: Chain, metaAccount: MetaAccount): Updater {
         return PaymentUpdater(
             substrateSource,
             assetCache,
@@ -55,7 +56,8 @@ class PaymentUpdaterFactory(
             chainRegistry,
             scope,
             chain,
-            updatesMixin
+            updatesMixin,
+            metaAccount
         )
     }
 }
@@ -67,7 +69,8 @@ class PaymentUpdater(
     private val chainRegistry: ChainRegistry,
     override val scope: AccountUpdateScope,
     private val chain: Chain,
-    private val updatesMixin: UpdatesMixin
+    private val updatesMixin: UpdatesMixin,
+    private val metaAccount: MetaAccount
 ) : Updater, UpdatesProviderUi by updatesMixin {
 
     override val requiredModules: List<String> = listOf(Modules.SYSTEM)
@@ -75,7 +78,6 @@ class PaymentUpdater(
     override suspend fun listenForUpdates(storageSubscriptionBuilder: SubscriptionBuilder): Flow<Updater.SideEffect> {
         val chainId = chain.id
 
-        val metaAccount = scope.getAccount()
         val chainAccount = metaAccount.chainAccounts[chainId]
 
         val accountIdsToCheck = listOfNotNull(
