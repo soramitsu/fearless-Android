@@ -36,6 +36,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -45,7 +46,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
 
-private const val CUSTOM_ASSET_SORTING_PREFS_KEY = "customAssetSorting-"
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 
@@ -60,6 +60,7 @@ class WalletInteractorImpl(
     private val updatesMixin: UpdatesMixin
 ) : WalletInteractor, UpdatesProviderUi by updatesMixin {
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun assetsFlow(): Flow<List<AssetWithStatus>> {
         return updatesMixin.tokenRatesUpdate.map {
             it.isNotEmpty()
@@ -72,10 +73,7 @@ class WalletInteractorImpl(
                     }
                     .filter { it.isNotEmpty() }
                     .map { assets ->
-                        when {
-                            customAssetSortingEnabled() -> assets.sortedBy { it.asset.sortIndex }
-                            else -> assets.sortedWith(defaultAssetListSort())
-                        }
+                        assets.sortedWith(defaultAssetListSort())
                     }
             }
     }
@@ -266,16 +264,6 @@ class WalletInteractorImpl(
     override suspend fun getSelectedMetaAccount() = accountRepository.getSelectedMetaAccount()
 
     override suspend fun getChainAddressForSelectedMetaAccount(chainId: ChainId) = getSelectedMetaAccount().address(getChain(chainId))
-
-    override suspend fun customAssetSortingEnabled(): Boolean {
-        val metaId = accountRepository.getSelectedMetaAccount().id
-        return preferences.getBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", false)
-    }
-
-    override suspend fun enableCustomAssetSorting() {
-        val metaId = accountRepository.getSelectedMetaAccount().id
-        preferences.putBoolean("$CUSTOM_ASSET_SORTING_PREFS_KEY$metaId", true)
-    }
 
     override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
         manageAssetHidden(chainId, chainAssetId, true)
