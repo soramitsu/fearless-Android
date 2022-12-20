@@ -278,10 +278,19 @@ class WalletInteractorImpl(
     }
 
     override suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String) {
+        manageAssetHidden(chainId, chainAssetId, true)
+    }
+
+    override suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String) {
+        manageAssetHidden(chainId, chainAssetId, false)
+    }
+
+    private suspend fun manageAssetHidden(chainId: ChainId, chainAssetId: String, isHidden: Boolean) {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
         val accountId = metaAccount.accountId(chain)
         val chainAsset = chain.assetsById[chainAssetId] ?: return
+
         val tokenChains = chainRegistry.currentChains.first().filter {
             it.assets.any { it.symbolToShow == chainAsset.symbolToShow }
         }
@@ -296,25 +305,9 @@ class WalletInteractorImpl(
                     chainAsset = it,
                     metaId = metaAccount.id,
                     accountId = accountId,
-                    isHidden = true
+                    isHidden = isHidden
                 )
             }
-        }
-    }
-
-    override suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String) {
-        val metaAccount = accountRepository.getSelectedMetaAccount()
-        val chain = chainRegistry.getChain(chainId)
-        val accountId = metaAccount.accountId(chain)
-        val chainAsset = chain.assetsById[chainAssetId] ?: return
-
-        accountId?.let {
-            walletRepository.updateAssetHidden(
-                chainAsset = chainAsset,
-                metaId = metaAccount.id,
-                accountId = it,
-                isHidden = false
-            )
         }
     }
 
