@@ -25,6 +25,11 @@
 -keep class jp.co.soramitsu.common.data.** { *; }
 -keep class jp.co.soramitsu.common.domain.** { *; }
 
+-keep class jp.co.soramitsu.crowdloan.api.data.** { *; }
+
+-keep class jp.co.soramitsu.crowdloan.impl.data.** { *; }
+-keep class jp.co.soramitsu.crowdloan.impl.domain.** { *; }
+
 -keep class jp.co.soramitsu.core_db.** { *; }
 -keep class jp.co.soramitsu.coredb.** { *; }
 -keep class jp.co.soramitsu.core.** { *; }
