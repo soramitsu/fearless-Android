@@ -5,11 +5,11 @@ import android.content.Context
 import android.net.Uri
 import jp.co.soramitsu.common.utils.showBrowser
 import jp.co.soramitsu.feature_wallet_impl.R
-import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 
 private const val RAMP_APP_NAME = "Fearless Wallet"
-private const val RAMP_APP_LOGO = "https://raw.githubusercontent.com/sora-xor/sora-branding/master/Fearless-Wallet-brand/fearless-wallet-logo-ramp.png"
+private const val RAMP_APP_LOGO = "https://raw.githubusercontent.com/soramitsu/fearless-Android/dff3ebbed4a125621732ee039f2bc74c74f5b58f/common/src/main/res/drawable-xxxhdpi/ic_wallet.png"
 
 class RampProvider(
     private val host: String,
@@ -44,7 +44,7 @@ class RampProvider(
             return Uri.Builder()
                 .scheme("https")
                 .authority(host)
-                .appendQueryParameter("swapAsset", chainAsset.symbol)
+                .appendQueryParameter("swapAsset", chainAsset.symbol.uppercase())
                 .appendQueryParameter("userAddress", address)
                 .appendQueryParameter("hostApiKey", apiToken)
                 .appendQueryParameter("hostAppName", RAMP_APP_NAME)
