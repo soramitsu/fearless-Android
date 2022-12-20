@@ -9,7 +9,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry
 
 private const val RAMP_APP_NAME = "Fearless Wallet"
-private const val RAMP_APP_LOGO = "https://raw.githubusercontent.com/soramitsu/fearless-Android/dff3ebbed4a125621732ee039f2bc74c74f5b58f/common/src/main/res/drawable-xxxhdpi/ic_wallet.png"
+private const val RAMP_APP_LOGO =
+    "https://raw.githubusercontent.com/soramitsu/fearless-Android/dff3ebbed4a125621732ee039f2bc74c74f5b58f/common/src/main/res/drawable-xxxhdpi/ic_wallet.png"
 
 class RampProvider(
     private val host: String,
