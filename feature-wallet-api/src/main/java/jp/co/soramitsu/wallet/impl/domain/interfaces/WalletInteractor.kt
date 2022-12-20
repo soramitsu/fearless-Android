@@ -87,10 +87,6 @@ interface WalletInteractor {
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 
-    suspend fun enableCustomAssetSorting()
-
-    suspend fun customAssetSortingEnabled(): Boolean
-
     suspend fun markAssetAsHidden(chainId: ChainId, chainAssetId: String)
 
     suspend fun markAssetAsShown(chainId: ChainId, chainAssetId: String)
