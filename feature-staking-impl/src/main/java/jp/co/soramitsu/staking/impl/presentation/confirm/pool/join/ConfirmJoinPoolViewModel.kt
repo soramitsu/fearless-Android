@@ -20,8 +20,9 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -82,7 +83,9 @@ class ConfirmJoinPoolViewModel @Inject constructor(
         defaultFeeState
     )
 
-    val viewState = feeViewStateFlow.map { feeViewState ->
+    private val isLoadingViewState = MutableStateFlow(false)
+
+    val viewState = combine(feeViewStateFlow, isLoadingViewState) { feeViewState, isLoading ->
         val amount = this.amount.formatTokenAmount(asset.token.configuration)
         val validators = poolInteractor.getValidatorsIds(chain, selectedPool.poolId)
 
@@ -99,7 +102,8 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             poolViewState,
             feeViewState,
             ConfirmScreenViewState.Icon.Local(R.drawable.ic_vector),
-            additionalMessage
+            additionalMessage,
+            isLoading
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
 
@@ -109,6 +113,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
 
     fun onConfirm() {
         launch {
+            isLoadingViewState.value = true
             val amountInPlanks = asset.token.planksFromAmount(amount)
             poolInteractor.joinPool(address, amountInPlanks, selectedPool.poolId).fold({
                 stakingPoolSharedStateProvider.joinFlowState.complete()
@@ -117,6 +122,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             }, {
                 showError(it)
             })
+            isLoadingViewState.value = false
         }
     }
 
@@ -134,6 +140,7 @@ class ConfirmJoinPoolViewModel @Inject constructor(
             addressViewState,
             poolViewState,
             defaultFeeState,
-            ConfirmScreenViewState.Icon.Local(R.drawable.ic_vector)
+            ConfirmScreenViewState.Icon.Local(R.drawable.ic_vector),
+            isLoading = false
         )
 }

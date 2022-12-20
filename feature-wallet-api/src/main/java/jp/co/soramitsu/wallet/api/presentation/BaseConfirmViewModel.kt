@@ -24,6 +24,7 @@ import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -106,8 +107,10 @@ abstract class BaseConfirmViewModel(
         listOf(addressViewState, amountViewState, feeViewState)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    private val isLoadingStateFlow = MutableStateFlow(false)
+
     val viewState by lazy {
-        tableItemsFlow.map { tableItems ->
+        combine(tableItemsFlow, isLoadingStateFlow) { tableItems, isLoading ->
             val icon = if (customIcon != null) {
                 ConfirmScreenViewState.Icon.Local(customIcon)
             } else {
@@ -120,14 +123,17 @@ abstract class BaseConfirmViewModel(
                 tableItems = tableItems,
                 icon,
                 titleRes,
-                additionalMessageRes
+                additionalMessageRes,
+                isLoading
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
     }
 
     fun onConfirm() {
         launch {
+            isLoadingStateFlow.value = true
             isValid().fold({ validationPassed() }, ::showError)
+            isLoadingStateFlow.value = false
         }
     }
 
@@ -187,6 +193,7 @@ abstract class BaseConfirmViewModel(
             ),
             ConfirmScreenViewState.Icon.Remote(asset.token.configuration.iconUrl),
             titleRes,
-            additionalMessageRes
+            additionalMessageRes,
+            isLoading = false
         )
 }
