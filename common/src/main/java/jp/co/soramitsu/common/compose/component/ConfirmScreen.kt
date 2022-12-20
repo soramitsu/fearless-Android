@@ -32,7 +32,8 @@ data class ConfirmScreenViewState(
     val tableItems: List<TitleValueViewState>,
     val assetIcon: Icon,
     @StringRes val titleRes: Int,
-    @StringRes val additionalMessageRes: Int? = null
+    @StringRes val additionalMessageRes: Int? = null,
+    val isLoading: Boolean
 ) {
     sealed class Icon {
         class Remote(val url: String) : Icon()
@@ -43,37 +44,39 @@ data class ConfirmScreenViewState(
 @Composable
 fun ConfirmScreen(state: ConfirmScreenViewState, onNavigationClick: () -> Unit, onConfirm: () -> Unit) {
     BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
-        Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-        ) {
-            MarginVertical(margin = 24.dp)
-            GradientIcon(icon = state.assetIcon, color = colorAccentDark, modifier = Modifier.align(Alignment.CenterHorizontally))
-            H2(
-                text = stringResource(id = state.titleRes),
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = black2
-            )
-            MarginVertical(margin = 8.dp)
-            state.amount?.let {
-                H1(text = it, modifier = Modifier.align(Alignment.CenterHorizontally))
+        FullScreenLoading(isLoading = state.isLoading) {
+            Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+            ) {
+                MarginVertical(margin = 24.dp)
+                GradientIcon(icon = state.assetIcon, color = colorAccentDark, modifier = Modifier.align(Alignment.CenterHorizontally))
+                H2(
+                    text = stringResource(id = state.titleRes),
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = black2
+                )
+                MarginVertical(margin = 8.dp)
+                state.amount?.let {
+                    H1(text = it, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    MarginVertical(margin = 24.dp)
+                }
+                InfoTable(state.tableItems)
+                MarginVertical(margin = 24.dp)
+                state.additionalMessageRes?.let {
+                    AdditionalInfo(message = stringResource(id = it))
+                    MarginVertical(margin = 16.dp)
+                }
+                AccentButton(
+                    text = stringResource(id = R.string.common_confirm),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    onClick = onConfirm
+                )
                 MarginVertical(margin = 24.dp)
             }
-            InfoTable(state.tableItems)
-            MarginVertical(margin = 24.dp)
-            state.additionalMessageRes?.let {
-                AdditionalInfo(message = stringResource(id = it))
-                MarginVertical(margin = 16.dp)
-            }
-            AccentButton(
-                text = stringResource(id = R.string.common_confirm),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                onClick = onConfirm
-            )
-            MarginVertical(margin = 24.dp)
         }
     }
 }
@@ -114,7 +117,8 @@ private fun ConfirmJoinPoolScreenPreview() {
         amount = "10KSM",
         assetIcon = ConfirmScreenViewState.Icon.Remote("https://raw.githubusercontent.com/soramitsu/fearless-utils/master/icons/chains/white/Karura.svg"),
         titleRes = R.string.common_confirm,
-        additionalMessageRes = R.string.pool_staking_unstake_alert
+        additionalMessageRes = R.string.pool_staking_unstake_alert,
+        isLoading = false
     )
     FearlessTheme {
         ConfirmScreen(state, {}, {})
