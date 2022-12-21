@@ -5,7 +5,7 @@ import retrofit2.http.Url
 
 interface ParachainMetadataApi {
 
-    @GET()
+    @GET
     suspend fun getParachainMetadata(
         @Url url: String
     ): List<ParachainMetadataRemote>

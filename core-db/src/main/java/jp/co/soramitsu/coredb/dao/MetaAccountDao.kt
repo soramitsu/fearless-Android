@@ -46,6 +46,10 @@ interface MetaAccountDao {
     @Transaction
     fun getJoinedMetaAccountsInfo(): List<RelationJoinedMetaAccountInfo>
 
+    @Query("SELECT * FROM meta_accounts")
+    @Transaction
+    fun observeJoinedMetaAccountsInfo(): Flow<List<RelationJoinedMetaAccountInfo>>
+
     @Query("SELECT * FROM meta_accounts ORDER BY position")
     fun metaAccountsFlow(): Flow<List<MetaAccountLocal>>
 

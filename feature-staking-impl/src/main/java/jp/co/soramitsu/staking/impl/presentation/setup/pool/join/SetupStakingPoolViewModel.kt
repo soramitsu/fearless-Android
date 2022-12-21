@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.validation.AmountTooLowToStakeException
 import jp.co.soramitsu.common.validation.StakeInsufficientBalanceException
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SetupStakingPoolViewModel @Inject constructor(
@@ -144,35 +146,40 @@ class SetupStakingPoolViewModel @Inject constructor(
         val setupFlow = stakingPoolSharedStateProvider.requireJoinState
         val amount = enteredAmountFlow.value.toBigDecimalOrNull().orZero()
 
-        isValid(amount).fold({
-            stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(amount = amount))
-            router.openSelectPool()
-        }, { throwable ->
-            val message =
-                throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
-            val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
-                AlertViewState(
-                    title = title,
+        viewModelScope.launch {
+            isValid(amount).fold({
+                stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(amount = amount))
+                router.openSelectPool()
+            }, { throwable ->
+                val message =
+                    throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
+                val errorAlertViewState = (throwable as? ValidationException)?.let { (title, message) ->
+                    AlertViewState(
+                        title = title,
+                        message = message,
+                        buttonText = resourceManager.getString(R.string.common_got_it),
+                        iconRes = R.drawable.ic_status_warning_16
+                    )
+                } ?: AlertViewState(
+                    title = resourceManager.getString(R.string.common_error_general_title),
                     message = message,
                     buttonText = resourceManager.getString(R.string.common_got_it),
                     iconRes = R.drawable.ic_status_warning_16
                 )
-            } ?: AlertViewState(
-                title = resourceManager.getString(R.string.common_error_general_title),
-                message = message,
-                buttonText = resourceManager.getString(R.string.common_got_it),
-                iconRes = R.drawable.ic_status_warning_16
-            )
-            router.openAlert(errorAlertViewState)
-        })
+                router.openAlert(errorAlertViewState)
+            })
+        }
     }
 
-    private fun isValid(amount: BigDecimal): Result<Any> {
+    private suspend fun isValid(amount: BigDecimal): Result<Any> {
         val amountInPlanks = asset.token.planksFromAmount(amount)
         val transferableInPlanks = asset.token.planksFromAmount(asset.transferable)
+        val minToJoinInPlanks = stakingPoolInteractor.getMinToJoinPool(chain.id)
+        val minToJoinFormatted = asset.token.amountFromPlanks(minToJoinInPlanks).formatTokenAmount(asset.token.configuration)
 
         return when {
             amountInPlanks >= transferableInPlanks -> Result.failure(StakeInsufficientBalanceException(resourceManager))
+            amountInPlanks < minToJoinInPlanks -> Result.failure(AmountTooLowToStakeException(resourceManager, minToJoinFormatted))
             else -> Result.success(Unit)
         }
     }

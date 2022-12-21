@@ -250,7 +250,7 @@ Derivation path: %s</string>
     <string name="staking_recommended_custom_title">Choose custom validators </string>
     <string name="fee_not_yet_loaded_title">Fee calculation is in progress</string>
     <string name="fee_not_yet_loaded_message">Please wait until fee is calculated</string>
-    <string name="staking_setup_amount_too_low">Can\'t stake less than minimal value (%s)</string>
+    <string name="staking_setup_amount_too_low">You can\'t stake less than the minimum value (%s)</string>
     <string name="common_confirm_title">Confirmation</string>
     <string name="staking_confirm_reward_destination">Rewards destination</string>
     <string name="staking_stash_title">Wallet account</string>
