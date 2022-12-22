@@ -798,6 +798,7 @@
     <string name="common_action_hide">Скрыть</string>
     <string name="common_action_show">Показать</string>
     <string name="common_action_buy">Купить</string>
+    <string name="common_action_swap">Обменять</string>
 
     <string name="pool_staking_confirm_join_title">Присоединение к пулу</string>
     <string name="pool_staking_number_of_members">Количество участников</string>
@@ -898,4 +899,12 @@
     <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
     <string name="pool_create_success_message">Ваш пулл успешно создан. Теперь вы должны выбрать валидаторов для этого пулла</string>
     <string name="same_address_transfer_warning_message">Вы пытаетесь сделать трансфер на свой адрес. За операцию будет списана комиссия и это не несет никакого смысла</string>
+
+    <string name="common_min_received">Мин. покупка</string>
+    <string name="common_liquidity_provider_fee">Комиссия LP</string>
+    <string name="common_network_fee">Комиссия сети</string>
+
+    <string name="polkaswap_from">Из</string>
+    <string name="polkaswap_to">На</string>
+    <string name="polkaswap_market">Маркет:</string>
 </resources>

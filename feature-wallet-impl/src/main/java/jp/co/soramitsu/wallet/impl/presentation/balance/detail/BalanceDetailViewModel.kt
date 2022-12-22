@@ -29,6 +29,7 @@ import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
@@ -63,9 +64,9 @@ class BalanceDetailViewModel @Inject constructor(
     private val router: WalletRouter,
     private val buyMixin: BuyMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val addressIconGenerator: AddressIconGenerator,
-    private val chainInteractor: ChainInteractor,
-    private val historyFiltersProvider: HistoryFiltersProvider,
+    addressIconGenerator: AddressIconGenerator,
+    chainInteractor: ChainInteractor,
+    historyFiltersProvider: HistoryFiltersProvider,
     savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
@@ -122,7 +123,7 @@ class BalanceDetailViewModel @Inject constructor(
         return@combine interactor.getCurrentAsset(chainId, asset.token.configuration.id)
     }.share()
 
-    override fun buyEnabled(): Boolean {
+    private fun isBuyEnabled(): Boolean {
         return buyMixin.isBuyEnabled(
             assetPayload.value.chainId,
             assetPayload.value.chainAssetId
@@ -178,11 +179,15 @@ class BalanceDetailViewModel @Inject constructor(
             )
         )
 
+        val selectedChainId = balanceModel.token.configuration.chainId
+
         LoadingState.Loaded(
             BalanceDetailsState(
+                actionItems = getActionItems(selectedChainId),
+                disabledItems = getDisabledItems(),
                 balance = balanceState,
                 transactionHistory = transactionHistory,
-                selectedChainId = balanceModel.token.configuration.chainId,
+                selectedChainId = selectedChainId,
                 chainAssetId = balanceModel.token.configuration.id
             )
         )
@@ -243,6 +248,10 @@ class BalanceDetailViewModel @Inject constructor(
         router.openSend(assetPayload)
     }
 
+    private fun openSwapTokensScreen(assetPayload: AssetPayload) {
+        router.openSwapTokensScreen(assetPayload)
+    }
+
     private fun receiveClicked(assetPayload: AssetPayload) {
         router.openReceive(assetPayload)
     }
@@ -259,6 +268,29 @@ class BalanceDetailViewModel @Inject constructor(
             assetPayload.value.chainId
         )?.let { address ->
             _showAccountOptions.postValue(Event(address))
+        }
+    }
+
+    private fun getActionItems(selectedChainId: String): List<ActionItemType> {
+        val actionItems = mutableListOf(
+            ActionItemType.SEND,
+            ActionItemType.RECEIVE,
+            ActionItemType.BUY
+        )
+        if (selectedChainId == soraMainChainId) {
+            if (!isBuyEnabled()) {
+                actionItems -= ActionItemType.BUY
+            }
+            actionItems += ActionItemType.SWAP
+        }
+        return actionItems
+    }
+
+    private fun getDisabledItems(): List<ActionItemType> {
+        return if (!isBuyEnabled()) {
+            listOf(ActionItemType.BUY)
+        } else {
+            emptyList()
         }
     }
 
@@ -305,7 +337,12 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.BUY -> {
                 buyClicked(payload)
             }
-            else -> {}
+            ActionItemType.SWAP -> {
+                openSwapTokensScreen(payload)
+            }
+            ActionItemType.HIDE, ActionItemType.SHOW  -> {
+                /* ignored */
+            }
         }
     }
 

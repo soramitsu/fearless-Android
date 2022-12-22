@@ -62,7 +62,7 @@ fun CreateContactContent(
             ) {
                 ToolbarBottomSheet(
                     title = stringResource(id = R.string.create_contact),
-                    onNavigationClicked = callback::onNavigationClick
+                    onNavigationClick = callback::onNavigationClick
                 )
                 MarginVertical(margin = 24.dp)
                 SelectorWithBorder(

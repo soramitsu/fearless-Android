@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 
 @HiltViewModel
 class AssetSelectViewModel @Inject constructor(
@@ -88,7 +89,10 @@ class AssetSelectViewModel @Inject constructor(
             sharedSendState.update(chainId = assetItemState.chainId, assetId = assetItemState.id)
         }
 
-        walletRouter.back()
+        walletRouter.backWithResult(
+            WalletRouterApi.KEY_CHAIN_ID to assetItemState.chainId,
+            WalletRouterApi.KEY_ASSET_ID to assetItemState.id
+        )
     }
 
     override fun onSearchInput(input: String) {

@@ -1,0 +1,38 @@
+[versions]
+dagger = "2.43"
+compose = "1.2.1"
+fragmentKtx = "1.5.2"
+composeThemeAdapter = "1.2.1"
+material = "1.6.1"
+coroutines = "1.6.4"
+
+[libraries]
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "dagger" }
+
+compose-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "compose" }
+compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
+compose-runtimeLiveData = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
+compose-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "compose" }
+compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
+compose-material = { module = "androidx.compose.material:material", version.ref = "compose" }
+compose-themeAdapter = { module = "com.google.android.material:compose-theme-adapter", version.ref = "composeThemeAdapter" }
+compose-animation = { module = "androidx.compose.animation:animation", version.ref = "compose" }
+compose-animationGraphics = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
+
+compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+
+fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
+
+material = { module = "com.google.android.material:material", version.ref = "material" }
+
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+
+[bundles]
+compose = [
+    "compose-runtime", "compose-ui", "compose-runtimeLiveData", "compose-compiler",
+    "compose-foundation", "compose-material", "compose-themeAdapter", "compose-animation",
+    "compose-animationGraphics"
+]
+coroutines = ["coroutines-core", "coroutines-android"]
