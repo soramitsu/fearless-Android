@@ -56,3 +56,8 @@ class FeeInsufficientBalanceException(resourceManager: ResourceManager) : Valida
     resourceManager.getString(R.string.common_not_enough_funds_title),
     resourceManager.getString(R.string.common_not_enough_funds_message)
 )
+
+class AmountTooLowToStakeException(resourceManager: ResourceManager, minimumAmount: String) : ValidationException(
+    resourceManager.getString(R.string.common_error_general_title),
+    resourceManager.getString(R.string.staking_setup_amount_too_low, minimumAmount)
+)

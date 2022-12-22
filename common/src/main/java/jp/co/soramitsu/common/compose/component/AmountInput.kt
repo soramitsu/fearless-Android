@@ -150,6 +150,15 @@ fun AmountInput(
         }
     }
 
+    val onFocusChanged: (FocusState) -> Unit = remember {
+        {
+            if (it.hasFocus) {
+                textFieldValueState = textFieldValueState.copy(selection = TextRange(Int.MAX_VALUE))
+            }
+            onInputFocusChange(it)
+        }
+    }
+
     BackgroundCorneredWithBorder(
         modifier = modifier.fillMaxWidth(),
         backgroundColor = backgroundColor,
@@ -202,7 +211,7 @@ fun AmountInput(
                     keyboardOptions = KeyboardOptions(autoCorrect = false, keyboardType = KeyboardType.Decimal, imeAction = ImeAction.None),
                     modifier = Modifier
                         .background(color = transparent)
-                        .onFocusChanged(onInputFocusChange)
+                        .onFocusChanged(onFocusChanged)
                         .weight(1f),
                     cursorBrush = SolidColor(white)
                 )

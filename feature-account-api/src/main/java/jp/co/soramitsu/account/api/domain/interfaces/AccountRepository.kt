@@ -164,4 +164,6 @@ interface AccountRepository {
     fun polkadotAddressForSelectedAccountFlow(): Flow<String>
 
     suspend fun getChain(chainId: ChainId): Chain
+
+    fun allMetaAccountsFlow(): Flow<List<MetaAccount>>
 }

@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.address.AddressModel
 import jp.co.soramitsu.common.address.createAddressModel
 import jp.co.soramitsu.common.address.createEthereumAddressModel
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.sumByBigInteger
 import jp.co.soramitsu.common.validation.CompositeValidation
@@ -25,6 +26,7 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
@@ -144,8 +146,23 @@ class StakingParachainScenarioInteractor(
     )
 
     override val stakingStateFlow = stakingInteractor.selectedChainFlow().flatMapConcat { chain ->
-        val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
-        stakingParachainScenarioRepository.stakingStateFlow(chain, accountId)
+        val availableStakingSelection = stakingSharedState.availableToSelect()
+        val isSelectedChainAvailable = availableStakingSelection.any { it.chainId == chain.id }
+
+        val useChain = if (isSelectedChainAvailable) {
+            chain
+        } else {
+            val chainId = with(availableStakingSelection) {
+                firstOrNull { it.chainId == polkadotChainId } ?: first()
+            }.chainId
+            availableStakingSelection.firstOrNull { it.chainId == chainId }?.let { newSelection ->
+                stakingSharedState.update(newSelection)
+            }
+            val availableChain = stakingInteractor.getChain(chainId)
+            availableChain
+        }
+        val accountId = accountRepository.getSelectedMetaAccount().accountId(useChain) ?: error("cannot find accountId")
+        stakingParachainScenarioRepository.stakingStateFlow(useChain, accountId)
     }
 
     suspend fun getIdentities(collatorsIds: List<AccountId>): Map<String, Identity?> {
@@ -416,7 +433,7 @@ class StakingParachainScenarioInteractor(
     override suspend fun getUnstakeAvailableAmount(asset: Asset, collatorId: AccountId?): BigDecimal {
         collatorId ?: error("cannot find collatorId")
 
-        val chainToAccountIdFlow = jp.co.soramitsu.common.utils.flowOf {
+        val chainToAccountIdFlow = flowOf {
             val chain = stakingInteractor.getSelectedChain()
             val accountId = accountRepository.getSelectedMetaAccount().accountId(chain) ?: error("cannot find accountId")
             chain to accountId

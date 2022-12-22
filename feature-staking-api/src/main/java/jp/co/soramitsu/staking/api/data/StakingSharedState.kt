@@ -95,7 +95,10 @@ class StakingSharedState(
     }
 
     suspend fun availableToSelect(): List<StakingAssetSelection> {
-        val allChains = chainRegistry.currentChains.first()
+        val wallet = accountRepository.getSelectedMetaAccount()
+        val allChains = chainRegistry.currentChains.first().filter {
+            wallet.accountId(it) != null
+        }
 
         return allChains.map { chain ->
             val staking = chain.assets.filter { chainAsset ->

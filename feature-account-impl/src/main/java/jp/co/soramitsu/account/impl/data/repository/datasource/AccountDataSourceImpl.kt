@@ -1,6 +1,16 @@
 package jp.co.soramitsu.account.impl.data.repository.datasource
 
 import com.google.gson.Gson
+import jp.co.soramitsu.account.api.domain.model.Account
+import jp.co.soramitsu.account.api.domain.model.AuthType
+import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
+import jp.co.soramitsu.account.impl.data.mappers.mapChainAccountToAccount
+import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToLightMetaAccount
+import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
+import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountToAccount
+import jp.co.soramitsu.account.impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -13,16 +23,6 @@ import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.chain.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.chain.MetaAccountPositionUpdate
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.account.api.domain.model.Account
-import jp.co.soramitsu.account.api.domain.model.AuthType
-import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
-import jp.co.soramitsu.account.impl.data.mappers.mapChainAccountToAccount
-import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToLightMetaAccount
-import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
-import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountToAccount
-import jp.co.soramitsu.account.impl.data.repository.datasource.migration.AccountDataMigration
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -172,6 +172,14 @@ class AccountDataSourceImpl(
 
         return metaAccountDao.getJoinedMetaAccountsInfo().map {
             mapMetaAccountLocalToMetaAccount(chainsById, it)
+        }
+    }
+
+    override fun observeAllMetaAccounts(): Flow<List<MetaAccount>> {
+        return combine(chainRegistry.chainsById, metaAccountDao.observeJoinedMetaAccountsInfo()) { chainsById, metaAccounts ->
+            metaAccounts.map {
+                mapMetaAccountLocalToMetaAccount(chainsById, it)
+            }
         }
     }
 
