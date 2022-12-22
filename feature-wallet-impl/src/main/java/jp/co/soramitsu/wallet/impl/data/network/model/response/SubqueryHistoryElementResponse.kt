@@ -23,7 +23,8 @@ class SubqueryHistoryElementResponse(val query: Query) {
                     val era: Int,
                     val amount: BigInteger,
                     val isReward: Boolean,
-                    val validator: String
+                    val validator: String,
+                    val assetId: String?
                 )
 
                 class Transfer(
@@ -33,7 +34,8 @@ class SubqueryHistoryElementResponse(val query: Query) {
                     val fee: BigInteger,
                     val block: String,
                     val success: Boolean,
-                    val extrinsicHash: String? // nullable since not all transfers not hash hash on SubQuery
+                    val extrinsicHash: String?, // nullable since not all transfers not hash hash on SubQuery
+                    val assetId: String?
                 )
 
                 class Extrinsic(
@@ -41,7 +43,8 @@ class SubqueryHistoryElementResponse(val query: Query) {
                     val module: String,
                     val call: String,
                     val fee: BigInteger,
-                    val success: Boolean
+                    val success: Boolean,
+                    val assetId: String?
                 )
             }
         }
