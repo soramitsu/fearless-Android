@@ -879,6 +879,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_hide">Hide</string>
     <string name="common_action_show">Show</string>
     <string name="common_action_buy">Buy</string>
+    <string name="common_action_swap">Swap</string>
 
     <string name="common_title_wallet">Wallet</string>
     <string name="common_title_wallet_option">Wallet option</string>
@@ -993,4 +994,12 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_depositor_unstake_error_message">You are a pool\'s owner, and your stake has to be at least %s. If you want to destroy your pool and kick out its members, please use Polkadot.js.plus link</string>
     <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
     <string name="pool_create_success_message">Your pool has been successfully created. Now you should choose validators for the pool</string>
+
+    <string name="common_min_received">Min received</string>
+    <string name="common_liquidity_provider_fee">Liquidity Provider Fee</string>
+    <string name="common_network_fee">Network Fee</string>
+
+    <string name="polkaswap_from">From</string>
+    <string name="polkaswap_to">To</string>
+    <string name="polkaswap_market">Market:</string>
 </resources>

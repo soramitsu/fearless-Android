@@ -21,7 +21,13 @@ class AssetSelectFragment : BaseComposeBottomSheetDialogFragment<AssetSelectView
         const val KEY_FILTER_CHAIN_ID = "KEY_FILTER_CHAIN_ID"
 
         fun getBundle(assetId: String) = bundleOf(KEY_SELECTED_ASSET_ID to assetId)
+
         fun getBundleFilterByChain(chainId: ChainId) = bundleOf(KEY_FILTER_CHAIN_ID to chainId)
+
+        fun getBundle(chainId: ChainId, assetId: String?) = bundleOf(
+            KEY_FILTER_CHAIN_ID to chainId,
+            KEY_SELECTED_ASSET_ID to assetId
+        )
     }
 
     override val viewModel: AssetSelectViewModel by viewModels()

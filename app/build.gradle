@@ -140,6 +140,9 @@ dependencies {
     implementation project(':feature-crowdloan-api')
     implementation project(':feature-crowdloan-impl')
 
+    implementation project(':feature-polkaswap-api')
+    implementation project(':feature-polkaswap-impl')
+
     implementation kotlinDep
 
     implementation androidDep

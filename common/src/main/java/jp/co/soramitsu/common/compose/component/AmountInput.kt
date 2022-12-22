@@ -4,11 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
@@ -40,11 +43,12 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white24
+import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.ZERO
 
 data class AmountInputViewState(
-    val tokenName: String,
-    val tokenImage: String,
+    val tokenName: String? = null,
+    val tokenImage: String? = null,
     val totalBalance: String,
     val fiatAmount: String?,
     val tokenAmount: String,
@@ -52,7 +56,19 @@ data class AmountInputViewState(
     val isActive: Boolean = true,
     val isFocused: Boolean = false,
     val allowAssetChoose: Boolean = false
-)
+) {
+    companion object {
+        fun default(resourceManager: ResourceManager): AmountInputViewState {
+            return AmountInputViewState(
+                tokenName = null,
+                tokenImage = null,
+                totalBalance = resourceManager.getString(R.string.common_balance_format, "0"),
+                fiatAmount = "$0",
+                tokenAmount = "0"
+            )
+        }
+    }
+}
 
 private val bigDecimalRegexPattern = "[0-9]{1,13}(\\.[0-9]*)?".toRegex()
 private const val decimalDelimiter = "."
@@ -163,16 +179,10 @@ fun AmountInput(
                     Modifier.fillMaxWidth()
                 }
             ) {
-                AsyncImage(
-                    model = getImageRequest(LocalContext.current, state.tokenImage),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .padding(2.dp)
-                        .align(CenterVertically)
-                )
+                TokenIcon(url = state.tokenImage)
                 MarginHorizontal(margin = 4.dp)
-                H3(text = state.tokenName.uppercase(), modifier = Modifier.align(CenterVertically), color = assetColorState)
+                val tokenName = state.tokenName?.uppercase() ?: stringResource(R.string.common_select_asset)
+                H3(text = tokenName, modifier = Modifier.align(CenterVertically), color = assetColorState)
                 MarginHorizontal(margin = 8.dp)
                 if (state.allowAssetChoose) {
                     Image(
@@ -200,6 +210,31 @@ fun AmountInput(
             MarginVertical(margin = 4.dp)
             B1(text = state.totalBalance, color = black2)
         }
+    }
+}
+
+@Composable
+private fun RowScope.TokenIcon(
+    url: String?,
+    modifier: Modifier = Modifier
+) {
+    val imageModifier = modifier
+        .size(28.dp)
+        .padding(2.dp)
+        .align(CenterVertically)
+    if (url != null) {
+        AsyncImage(
+            model = getImageRequest(LocalContext.current, url),
+            contentDescription = null,
+            modifier = imageModifier
+        )
+    } else {
+        Icon(
+            painter = painterResource(R.drawable.ic_token_undefined),
+            contentDescription = null,
+            modifier = imageModifier,
+            tint = Color.Unspecified
+        )
     }
 }
 

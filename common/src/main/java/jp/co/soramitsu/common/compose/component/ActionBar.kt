@@ -32,7 +32,8 @@ enum class ActionItemType(
     TELEPORT(R.drawable.ic_common_teleport, R.string.common_action_teleport),
     HIDE(R.drawable.ic_common_hide, R.string.common_action_hide),
     SHOW(R.drawable.ic_common_hide, R.string.common_action_show),
-    BUY(R.drawable.ic_common_buy, R.string.common_action_buy)
+    BUY(R.drawable.ic_common_buy, R.string.common_action_buy),
+    SWAP(R.drawable.ic_exchange, R.string.common_action_swap)
 }
 
 data class ActionBarViewState(

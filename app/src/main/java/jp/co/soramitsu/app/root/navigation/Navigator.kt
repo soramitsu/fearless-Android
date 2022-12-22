@@ -62,6 +62,8 @@ import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
+import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
@@ -124,10 +126,13 @@ import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.Reward
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -140,7 +145,8 @@ class Navigator :
     WalletRouter,
     RootRouter,
     StakingRouter,
-    CrowdloanRouter {
+    CrowdloanRouter,
+    PolkaswapRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -394,6 +400,20 @@ class Navigator :
         }
     }
 
+    override fun backWithResult(vararg results: Pair<String, Any?>) {
+        val savedStateHandle = navController?.previousBackStackEntry?.savedStateHandle
+        if (savedStateHandle != null) {
+            results.forEach { (key, value) ->
+                savedStateHandle[key] = value
+            }
+        }
+        back()
+    }
+
+    override fun openTransactionSettingsDialog() {
+        navController?.navigate(R.id.transactionSettingsFragment)
+    }
+
     override fun openCustomRebond() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_customRebondFragment)
     }
@@ -555,6 +575,12 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
+    override fun openSwapTokensScreen(assetPayload: AssetPayload?) {
+        val bundle = SwapTokensFragment.getBundle(assetPayload?.chainAssetId)
+
+        navController?.navigate(R.id.swapTokensFragment, bundle)
+    }
+
     override fun openSelectChain(assetId: String, chooserMode: Boolean) {
         val bundle = ChainSelectFragment.getBundle(assetId = assetId, chooserMode = chooserMode)
         navController?.navigate(R.id.chainSelectFragment, bundle)
@@ -568,6 +594,19 @@ class Navigator :
     override fun openSelectAsset(selectedAssetId: String) {
         val bundle = AssetSelectFragment.getBundle(selectedAssetId)
         navController?.navigate(R.id.assetSelectFragment, bundle)
+    }
+
+    override fun openSelectAsset(chainId: ChainId, selectedAssetId: String?) {
+        val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId)
+        navController?.navigate(R.id.assetSelectFragment, bundle)
+    }
+
+    override fun <T> observeResult(key: String): Flow<T> {
+        val savedStateHandle = navController?.currentBackStackEntry?.savedStateHandle
+        val resultFlow = savedStateHandle?.getStateFlow<T?>(key, null) ?: MutableStateFlow(null)
+        return resultFlow
+            .filter { it != null }
+            .onEach { savedStateHandle?.set<T>(key, null) } as Flow<T>
     }
 
     override fun openSelectChainAsset(chainId: ChainId) {

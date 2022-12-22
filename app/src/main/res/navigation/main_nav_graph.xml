@@ -663,6 +663,16 @@
         android:label="chainSelectFragment" />
 
     <dialog
+        android:id="@+id/swapTokensFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment"
+        android:label="swapTokensFragment" />
+
+    <dialog
+        android:id="@+id/transactionSettingsFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment"
+        android:label="transactionSettingsFragment" />
+
+    <dialog
         android:id="@+id/assetSelectFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
         android:label="assetSelectFragment" />
