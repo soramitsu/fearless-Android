@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -27,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
@@ -38,17 +35,13 @@ import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.theme.FearlessThemeBlackBg
 import jp.co.soramitsu.common.compose.theme.black05
-import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white08
-import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.resources.ResourceManagerImpl
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.impl.domain.models.Market
 
@@ -69,7 +62,7 @@ data class SwapTokensContentViewState(
     }
 }
 
-interface SwapTokenCallbacks {
+interface SwapTokensCallbacks {
 
     fun onChangeTokensClick()
 
@@ -91,7 +84,7 @@ interface SwapTokenCallbacks {
 @Composable
 fun SwapTokensContent(
     state: SwapTokensContentViewState,
-    callbacks: SwapTokenCallbacks,
+    callbacks: SwapTokensCallbacks,
     modifier: Modifier = Modifier
 ) {
     Column(

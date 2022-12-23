@@ -13,7 +13,7 @@ class PolkaswapInteractorImpl(
     private val chainRegistry: ChainRegistry,
     private val walletRepository: WalletRepository,
     private val accountRepository: AccountRepository
-): PolkaswapInteractor {
+) : PolkaswapInteractor {
 
     override val polkaswapChainId = soraMainChainId
 
