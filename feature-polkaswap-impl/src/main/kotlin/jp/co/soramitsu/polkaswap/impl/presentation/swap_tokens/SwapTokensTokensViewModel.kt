@@ -29,12 +29,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SwapTokensViewModel @Inject constructor(
+class SwapTokensTokensViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val polkaswapInteractor: PolkaswapInteractor,
     private val polkaswapRouter: PolkaswapRouter,
     savedStateHandle: SavedStateHandle
-) : BaseViewModel(), SwapTokenCallbacks {
+) : BaseViewModel(), SwapTokensCallbacks {
 
     private val enteredFromAmountFlow = MutableStateFlow("0")
     private val enteredToAmountFlow = MutableStateFlow("0")

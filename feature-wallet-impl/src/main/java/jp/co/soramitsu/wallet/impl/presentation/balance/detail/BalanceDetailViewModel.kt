@@ -340,8 +340,7 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.SWAP -> {
                 openSwapTokensScreen(payload)
             }
-            ActionItemType.HIDE, ActionItemType.SHOW  -> {
-                /* ignored */
+            ActionItemType.HIDE, ActionItemType.SHOW -> {
             }
         }
     }

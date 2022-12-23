@@ -5,5 +5,5 @@ enum class Market(
 ) {
     SMART("SMART"),
     XYK("XYK"),
-    TBC("TBC"),
+    TBC("TBC")
 }
