@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.api.Retriable
 import jp.co.soramitsu.common.mixin.api.Validatable
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
@@ -67,7 +68,8 @@ class ConfirmStakingViewModel @Inject constructor(
     private val chainRegistry: ChainRegistry,
     @Named("StakingFeeLoader") private val feeLoaderMixin: FeeLoaderMixin.Presentation,
     private val externalAccountActions: ExternalAccountActions.Presentation,
-    private val validationExecutor: ValidationExecutor
+    private val validationExecutor: ValidationExecutor,
+    private val clipboardManager: ClipboardManager
 ) : BaseViewModel(),
     Retriable,
     Validatable by validationExecutor,
@@ -342,5 +344,12 @@ class ConfirmStakingViewModel @Inject constructor(
 
     private suspend fun generateDestinationModel(address: String, name: String?): AddressModel {
         return interactor.getAddressModel(address, AddressIconGenerator.SIZE_MEDIUM, name)
+    }
+
+    fun onSelectedCollatorCopyClicked() {
+        selectedCollatorLiveData.value?.address?.let {
+            clipboardManager.addToClipboard(it)
+            showMessage(resourceManager.getString(R.string.common_copied))
+        }
     }
 }
