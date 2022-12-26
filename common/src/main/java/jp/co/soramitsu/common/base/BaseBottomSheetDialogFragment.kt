@@ -57,8 +57,8 @@ abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes priva
         viewModel.snackbarLiveData.observeEvent(::showSnackbar)
     }
 
-     override fun showSnackbar(snackbarType: CustomSnackbarType, duration: SnackbarDuration) {
-        (activity as? BaseActivity<*>)?.showSnackbar(snackbarType)
+    override fun showSnackbar(type: CustomSnackbarType, duration: SnackbarDuration) {
+        (activity as? BaseActivity<*>)?.showSnackbar(type)
     }
 
     private fun setupBottomSheet() {

@@ -48,7 +48,7 @@ interface SnackbarShowerInterface {
     fun showSnackbar(type: CustomSnackbarType, duration: SnackbarDuration = SnackbarDuration.Short)
 }
 
-interface SnackbarOwnerInterface: SnackbarShowerInterface
+interface SnackbarOwnerInterface : SnackbarShowerInterface
 
 abstract class BaseComposeFragment<T : BaseViewModel> : Fragment(), SnackbarOwnerInterface {
 

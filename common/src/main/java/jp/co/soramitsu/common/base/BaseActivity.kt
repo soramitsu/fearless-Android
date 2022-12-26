@@ -17,7 +17,6 @@ import jp.co.soramitsu.common.compose.component.CustomSnackbarType
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 
-
 abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
 
     abstract val viewModel: T
@@ -57,11 +56,11 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
 //        val baseFragment = findSnackbarOwner()
 //        baseFragment?.showSnackbar(type)
 
-        val rootView = getRootView()
+//        val rootView = getRootView()
         makeSnackbarAndShow(type)
     }
 
-    fun makeSnackbarAndShow(type: CustomSnackbarType) {
+    private fun makeSnackbarAndShow(type: CustomSnackbarType) {
         getRootView()?.let { rootView ->
             val snackbar = Snackbar.make(rootView, "", Snackbar.LENGTH_SHORT)
             val layout = snackbar.view as Snackbar.SnackbarLayout
@@ -79,9 +78,9 @@ abstract class BaseActivity<T : BaseViewModel> : AppCompatActivity() {
             titleView.text = getString(type.titleRes)
             descriptionView.isVisible = type.descriptionRes != null
             type.descriptionRes?.let { descriptionView.text = getString(it) }
-//If the view is not covering the whole snackbar layout, add this line
+            // If the view is not covering the whole snackbar layout, add this line
             layout.setPadding(0, 0, 0, 0)
-// Add the view to the Snackbar's layout
+            // Add the view to the Snackbar's layout
             layout.addView(snackView, 0)
             snackbar.show()
         }
