@@ -25,7 +25,6 @@ import kotlinx.coroutines.withContext
 
 private val FAKE_CRYPTO_TYPE = CryptoType.SR25519
 
-// TODO: Move - OK
 
 class ExtrinsicBuilderFactory(
     private val rpcCalls: RpcCalls,
