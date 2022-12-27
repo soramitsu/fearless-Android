@@ -6,9 +6,6 @@ plugins {
     id("kotlin-parcelize")
 }
 
-apply(from = "../tests.gradle")
-apply(from = "../scripts/secrets.gradle")
-
 android {
     compileSdk = rootProject.ext["compileSdkVersion"] as Int
 
@@ -24,7 +21,6 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
         compose = true
     }
 
@@ -47,7 +43,6 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.bundles.compose)
-    debugImplementation(libs.compose.uiToolingPreview)
     implementation(libs.fragmentKtx)
     implementation(libs.material)
 

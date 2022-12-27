@@ -19,7 +19,6 @@ compose-material = { module = "androidx.compose.material:material", version.ref 
 compose-themeAdapter = { module = "com.google.android.material:compose-theme-adapter", version.ref = "composeThemeAdapter" }
 compose-animation = { module = "androidx.compose.animation:animation", version.ref = "compose" }
 compose-animationGraphics = { module = "androidx.compose.animation:animation-graphics", version.ref = "compose" }
-
 compose-uiToolingPreview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
 fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
@@ -33,6 +32,6 @@ coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-androi
 compose = [
     "compose-runtime", "compose-ui", "compose-runtimeLiveData", "compose-compiler",
     "compose-foundation", "compose-material", "compose-themeAdapter", "compose-animation",
-    "compose-animationGraphics"
+    "compose-animationGraphics", "compose-uiToolingPreview"
 ]
 coroutines = ["coroutines-core", "coroutines-android"]
