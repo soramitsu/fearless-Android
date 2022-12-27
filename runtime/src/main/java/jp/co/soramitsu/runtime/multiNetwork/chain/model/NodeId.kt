@@ -1,6 +1,5 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.model
 
-
 @JvmInline
 value class NodeId(private val pair: Pair<String, String>) {
 

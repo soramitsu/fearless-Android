@@ -8,7 +8,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-
 class ChainSyncService(
     private val dao: ChainDao,
     private val chainFetcher: ChainFetcher
