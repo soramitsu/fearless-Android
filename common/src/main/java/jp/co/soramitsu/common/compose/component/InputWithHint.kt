@@ -31,14 +31,14 @@ import jp.co.soramitsu.common.utils.withNoFontPadding
 @Composable
 fun InputWithHint(
     state: String?,
-    cursorBrush: Brush = SolidColor(white),
     modifier: Modifier = Modifier,
+    cursorBrush: Brush = SolidColor(white),
     inputFieldModifier: Modifier = Modifier,
     onInput: (String) -> Unit,
     Hint: @Composable () -> Unit
 ) {
     var focusedState by remember { mutableStateOf(false) }
-    Box(modifier) {
+    Box(modifier = modifier) {
         if (state.isNullOrEmpty()) {
             Box(Modifier.align(Alignment.CenterStart)) {
                 Hint()

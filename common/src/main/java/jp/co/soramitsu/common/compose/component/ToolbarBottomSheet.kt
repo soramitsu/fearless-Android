@@ -25,7 +25,7 @@ fun ToolbarBottomSheet(
         Box(
             contentAlignment = Alignment.CenterStart
         ) {
-            BackIconButton(
+            NavigationIconButton(
                 navigationIconResId = navigationIconResId,
                 onNavigationClick = onNavigationClick
             )

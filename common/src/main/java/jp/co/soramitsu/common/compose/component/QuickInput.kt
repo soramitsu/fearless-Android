@@ -3,7 +3,6 @@ package jp.co.soramitsu.common.compose.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,19 +19,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 
-enum class QuickInput(
-    val label: String,
+interface QuickInput {
+    val label: String
     val value: Double
-) {
-    MAX("MAX", 1.0),
-    P75("75%", 0.75),
-    P50("50%", 0.5),
-    P25("25%", 0.25)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun QuickAmountInput(
+fun QuickInput(
+    values: Array<out QuickInput>,
     modifier: Modifier = Modifier,
     onQuickAmountInput: (amount: Double) -> Unit = {}
 ) {
@@ -44,7 +39,7 @@ fun QuickAmountInput(
             .height(44.dp)
             .padding(horizontal = 10.dp)
     ) {
-        QuickInput.values().map {
+        values.map {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -78,10 +73,20 @@ fun QuickAmountInput(
     }
 }
 
+private enum class TestQuickInput(
+    override val label: String,
+    override val value: Double
+) : QuickInput {
+    MAX("MAX", 1.0),
+    P75("75%", 0.75),
+    P50("50%", 0.5),
+    P25("25%", 0.25)
+}
+
 @Composable
 @Preview
-private fun QuickAmountInputPreview() {
-    Column() {
-        QuickAmountInput()
-    }
+private fun QuickInputPreview() {
+    QuickInput(
+        values = TestQuickInput.values()
+    )
 }
