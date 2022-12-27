@@ -1,13 +1,15 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -16,17 +18,22 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
+import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.feature_polkaswap_impl.R
 
@@ -45,38 +52,69 @@ fun SwapPreviewContent(
     Column(
         modifier = modifier
             .navigationBarsPadding()
-            .imePadding()
+            .imePadding(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             NavigationIconButton(
                 modifier = Modifier.padding(start = 16.dp),
                 onNavigationClick = callbacks::onBackClick
             )
 
             Text(
+                modifier = Modifier
+                    .padding(
+                        start = 16.dp,
+                        end = 64.dp
+                    )
+                    .weight(1f),
                 text = stringResource(R.string.polkaswap_preview_title),
-                style = MaterialTheme.customTypography.header4
+                style = MaterialTheme.customTypography.header4,
+                textAlign = TextAlign.Center
             )
         }
 
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            GradientIcon(
-                iconRes = R.drawable.ic_fearless_logo,
-                color = colorAccentDark,
-                modifier = Modifier
-                    .size(80.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
+            MarginVertical(margin = 16.dp)
+
+            Row {
+                GradientIcon(
+                    iconRes = R.drawable.ic_fearless_logo,
+                    color = colorAccentDark,
+                    background = MaterialTheme.customColors.black,
+                    modifier = Modifier
+                        .offset(x = 25.dp)
+                        .zIndex(1f),
+                    contentPadding = PaddingValues(10.dp)
+                )
+                GradientIcon(
+                    iconRes = R.drawable.ic_fearless_logo,
+                    color = colorAccentDark,
+                    background = MaterialTheme.customColors.black,
+                    modifier = Modifier
+                        .offset(x = (-25).dp)
+                        .zIndex(0f),
+                    contentPadding = PaddingValues(10.dp)
+                )
+            }
 
             Text(
+                modifier = Modifier.padding(top = 16.dp),
                 text = stringResource(R.string.polkaswap_swap_title),
-                style = MaterialTheme.customTypography.header2
+                style = MaterialTheme.customTypography.header2,
+                color = MaterialTheme.customColors.white50
             )
 
             Row(
+                modifier = Modifier.padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -89,7 +127,8 @@ fun SwapPreviewContent(
 
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_right_24),
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.customColors.white
                 )
 
                 MarginHorizontal(margin = 16.dp)
@@ -101,6 +140,7 @@ fun SwapPreviewContent(
             }
 
             InfoTable(
+                modifier = Modifier.padding(top = 24.dp),
                 items = listOf(
                     TitleValueViewState(
                         title = "Min Received",
@@ -132,11 +172,17 @@ fun SwapPreviewContent(
             )
         }
 
+        MarginVertical(margin = 24.dp)
+
         AccentButton(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
             text = stringResource(R.string.common_confirm),
             onClick = callbacks::onConfirmClick
         )
+
+        MarginVertical(margin = 16.dp)
     }
 }
 
