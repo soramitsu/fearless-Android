@@ -16,7 +16,7 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.white
 
 @Composable
-fun BackIconButton(
+fun NavigationIconButton(
     modifier: Modifier = Modifier,
     @DrawableRes navigationIconResId: Int = R.drawable.ic_arrow_left_24,
     onNavigationClick: () -> Unit = {}
@@ -38,6 +38,6 @@ fun BackIconButton(
 
 @Preview
 @Composable
-fun BackIconButtonPreview() {
-    BackIconButton()
+fun NavigationIconButtonPreview() {
+    NavigationIconButton()
 }

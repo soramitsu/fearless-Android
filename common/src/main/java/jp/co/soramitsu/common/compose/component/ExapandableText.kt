@@ -9,13 +9,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
+enum class ExpandClickableMode {
+    Arrow,
+    FullWidth
+}
+
 @Composable
-fun AdvancedBlock(modifier: Modifier = Modifier, initialState: Boolean = false, Content: @Composable ColumnScope.() -> Unit) {
+fun ExapandableText(
+    title: String,
+    modifier: Modifier = Modifier,
+    initialState: Boolean = false,
+    expandClickableMode: ExpandClickableMode = ExpandClickableMode.FullWidth,
+    content: @Composable ColumnScope.() -> Unit
+) {
     val isExpandedState = remember { mutableStateOf(initialState) }
     val icon = if (isExpandedState.value) {
         R.drawable.ic_chevron_down_white
@@ -29,14 +39,27 @@ fun AdvancedBlock(modifier: Modifier = Modifier, initialState: Boolean = false, 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickableWithNoIndication { isExpandedState.value = isExpandedState.value.not() }
+                .clickableWithNoIndication {
+                    if (expandClickableMode == ExpandClickableMode.FullWidth) {
+                        isExpandedState.value = isExpandedState.value.not()
+                    }
+                }
         ) {
-            H5(text = stringResource(id = R.string.common_advanced), modifier = Modifier.weight(1f))
-            Image(res = icon, modifier = Modifier.align(Alignment.CenterVertically))
+            H5(text = title, modifier = Modifier.weight(1f))
+            Image(
+                res = icon,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .clickableWithNoIndication {
+                        if (expandClickableMode == ExpandClickableMode.Arrow) {
+                            isExpandedState.value = isExpandedState.value.not()
+                        }
+                    }
+            )
         }
         if (isExpandedState.value) {
             MarginVertical(margin = 27.dp)
-            Content()
+            content()
         }
     }
 }

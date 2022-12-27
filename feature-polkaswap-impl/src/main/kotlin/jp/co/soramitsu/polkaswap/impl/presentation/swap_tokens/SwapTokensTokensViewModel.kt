@@ -155,6 +155,7 @@ class SwapTokensTokensViewModel @Inject constructor(
 
     override fun onPreviewClick() {
         // TODO: onPreviewClick
+        polkaswapRouter.openSwapPreviewDialog()
     }
 
     override fun onBackClick() {

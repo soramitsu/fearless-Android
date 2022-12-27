@@ -414,6 +414,14 @@ class Navigator :
         navController?.navigate(R.id.transactionSettingsFragment)
     }
 
+    override fun openSwapPreviewDialog() {
+        navController?.navigate(R.id.swapPreviewFragment)
+    }
+
+    override fun openSelectMarketDialog() {
+        navController?.navigate(R.id.selectMarketFragment)
+    }
+
     override fun openCustomRebond() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_customRebondFragment)
     }

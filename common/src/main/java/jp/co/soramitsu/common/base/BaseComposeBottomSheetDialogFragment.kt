@@ -25,7 +25,7 @@ import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
 
-abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel>() : BottomSheetDialogFragment() {
+abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomSheetDialogFragment() {
 
     abstract val viewModel: T
 

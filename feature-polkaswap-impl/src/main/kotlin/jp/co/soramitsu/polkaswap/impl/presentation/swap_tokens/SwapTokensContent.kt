@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
-import jp.co.soramitsu.common.compose.component.BackIconButton
+import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
@@ -100,7 +100,7 @@ fun SwapTokensContent(
             modifier = Modifier.padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            BackIconButton(
+            NavigationIconButton(
                 modifier = Modifier.padding(start = 16.dp),
                 onNavigationClick = callbacks::onBackClick
             )

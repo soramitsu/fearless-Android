@@ -12,4 +12,8 @@ interface PolkaswapRouter {
     fun back()
 
     fun openTransactionSettingsDialog()
+
+    fun openSwapPreviewDialog()
+
+    fun openSelectMarketDialog()
 }

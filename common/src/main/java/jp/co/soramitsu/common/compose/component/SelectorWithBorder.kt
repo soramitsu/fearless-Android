@@ -38,12 +38,13 @@ data class SelectorState(
 @Composable
 fun SelectorWithBorder(
     state: SelectorState,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
     BackgroundCorneredWithBorder(
         backgroundColor = black05,
         borderColor = white24,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .height(64.dp)

@@ -672,6 +672,17 @@
         android:name="jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment"
         android:label="transactionSettingsFragment" />
 
+
+    <dialog
+        android:id="@+id/swapPreviewFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment"
+        android:label="swapPreviewFragment" />
+
+    <dialog
+        android:id="@+id/selectMarketFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment"
+        android:label="selectMarketFragment" />
+
     <dialog
         android:id="@+id/assetSelectFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
