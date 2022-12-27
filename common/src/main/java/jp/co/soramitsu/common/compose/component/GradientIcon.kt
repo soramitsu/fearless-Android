@@ -24,39 +24,48 @@ import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.transparent
 
 @Composable
-fun GradientIcon(@DrawableRes iconRes: Int, color: Color, modifier: Modifier = Modifier, contentPadding: PaddingValues = PaddingValues(0.dp)) {
+fun GradientIcon(
+    @DrawableRes iconRes: Int,
+    color: Color,
+    modifier: Modifier = Modifier,
+    background: Color = transparent,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
     val gradientBrush = Brush.radialGradient(
         colors = listOf(color, transparent)
     )
-    Box(modifier = modifier) {
-        Box(
-            Modifier
-                .size(90.dp)
-                .background(transparent, CircleShape)
-                .border(10.dp, gradientBrush, CircleShape)
-                .padding(contentPadding)
-        ) {
-            Image(
-                res = iconRes,
-                tint = color,
-                modifier = Modifier
-                    .size(45.dp)
-                    .align(Alignment.Center)
-            )
-        }
+    Box(
+        modifier
+            .size(90.dp)
+            .border(10.dp, gradientBrush, CircleShape)
+            .padding(contentPadding)
+            .background(background, CircleShape)
+    ) {
+        Image(
+            res = iconRes,
+            tint = color,
+            modifier = Modifier
+                .size(45.dp)
+                .align(Alignment.Center)
+        )
     }
 }
 
 @Composable
-fun GradientIcon(icon: String, color: Color, modifier: Modifier = Modifier) {
+fun GradientIcon(
+    icon: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    background: Color = transparent
+) {
     val gradientBrush = Brush.radialGradient(
-        colors = listOf(color, transparent)
+        colors = listOf(color, background)
     )
     Box(modifier = modifier) {
         Box(
             Modifier
                 .size(90.dp)
-                .background(transparent, CircleShape)
+                .background(background, CircleShape)
                 .border(10.dp, gradientBrush, CircleShape)
         ) {
             AsyncImage(
@@ -72,13 +81,28 @@ fun GradientIcon(icon: String, color: Color, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun GradientIcon(icon: ConfirmScreenViewState.Icon, color: Color, modifier: Modifier = Modifier) {
+fun GradientIcon(
+    icon: ConfirmScreenViewState.Icon,
+    color: Color,
+    modifier: Modifier = Modifier,
+    background: Color = transparent
+) {
     when (icon) {
         is ConfirmScreenViewState.Icon.Remote -> {
-            GradientIcon(icon = icon.url, color = color, modifier = modifier)
+            GradientIcon(
+                icon = icon.url,
+                color = color,
+                modifier = modifier,
+                background = background
+            )
         }
         is ConfirmScreenViewState.Icon.Local -> {
-            GradientIcon(iconRes = icon.res, color = color, modifier = modifier)
+            GradientIcon(
+                iconRes = icon.res,
+                color = color,
+                modifier = modifier,
+                background = background
+            )
         }
     }
 }
