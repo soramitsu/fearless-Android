@@ -1013,4 +1013,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_market_smart_description">Liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilised</string>
     <string name="polkaswap_market_tbc_description">Liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilised</string>
     <string name="polkaswap_market_xyk_description">Liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilised</string>
+    <string name="polkaswap_preview_title">Preview</string>
+    <string name="polkaswap_swap_title">Swap</string>
 </resources>

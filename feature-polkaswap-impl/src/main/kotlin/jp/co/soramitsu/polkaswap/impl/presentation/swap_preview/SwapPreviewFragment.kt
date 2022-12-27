@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 
+@AndroidEntryPoint
 class SwapPreviewFragment : BaseComposeBottomSheetDialogFragment<SwapPreviewViewModel>() {
 
     override val viewModel: SwapPreviewViewModel by viewModels()
@@ -15,7 +17,9 @@ class SwapPreviewFragment : BaseComposeBottomSheetDialogFragment<SwapPreviewView
     @Composable
     override fun Content(padding: PaddingValues) {
         BottomSheetScreen {
-            SwapPreviewContent()
+            SwapPreviewContent(
+                callbacks = viewModel
+            )
         }
     }
 
