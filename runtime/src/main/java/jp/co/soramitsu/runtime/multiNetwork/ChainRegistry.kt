@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
-// TODO: Move - Minimal
 
 data class ChainService(
     val runtimeProvider: RuntimeProvider,
@@ -42,7 +41,7 @@ class ChainRegistry @Inject constructor(
     private val runtimeProviderPool: RuntimeProviderPool,
     private val connectionPool: ConnectionPool,
     private val runtimeSubscriptionPool: RuntimeSubscriptionPool,
-    private val chainDao: ChainDao, // TODO: Move - no
+    private val chainDao: ChainDao,
     private val chainSyncService: ChainSyncService,
     private val runtimeSyncService: RuntimeSyncService,
     private val updatesMixin: UpdatesMixin
