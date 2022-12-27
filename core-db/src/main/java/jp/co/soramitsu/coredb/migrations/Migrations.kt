@@ -3,6 +3,26 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_45_46 = object : Migration(45, 46) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("DROP TABLE IF EXISTS chain_nodes")
+        database.execSQL(
+            """
+             CREATE TABLE IF NOT EXISTS `chain_nodes` (
+             `chainId` TEXT NOT NULL, 
+             `url` TEXT NOT NULL, 
+             `name` TEXT NOT NULL, 
+             `isActive` INTEGER NOT NULL, 
+             `isDefault` INTEGER NOT NULL, 
+             PRIMARY KEY(`chainId`, `url`), 
+             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+             )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)")
+    }
+}
+
 val Migration_44_45 = object : Migration(44, 45) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
