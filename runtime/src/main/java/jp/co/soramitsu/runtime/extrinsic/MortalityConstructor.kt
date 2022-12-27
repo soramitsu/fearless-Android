@@ -11,11 +11,9 @@ private const val MAX_FINALITY_LAG = 5
 private const val FALLBACK_PERIOD = 6 * 1000
 private const val MORTAL_PERIOD = 5 * 60 * 1000
 
-// TODO: Move - OK
 
 class Mortality(val era: Era.Mortal, val blockHash: String)
 
-// TODO: Move - OK
 
 class MortalityConstructor(
     private val rpcCalls: RpcCalls,

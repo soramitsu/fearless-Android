@@ -13,7 +13,6 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.TypesUsage
 
-// TODO: Move - OK
 
 val Chain.typesUsage: TypesUsage
     get() = when {
