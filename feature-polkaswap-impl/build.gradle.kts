@@ -6,6 +6,9 @@ plugins {
     id("kotlin-parcelize")
 }
 
+apply(from = "../tests.gradle")
+apply(from = "../scripts/secrets.gradle")
+
 android {
     compileSdk = rootProject.ext["compileSdkVersion"] as Int
 
