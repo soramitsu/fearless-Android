@@ -8,7 +8,6 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.remote.ChainFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// TODO: Move - Minimal
 
 class ChainSyncService(
     private val dao: ChainDao,
