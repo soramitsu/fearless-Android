@@ -63,7 +63,6 @@ fun SwapPreviewContent(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
         ) {
-
             GradientIcon(
                 iconRes = R.drawable.ic_fearless_logo,
                 color = colorAccentDark,
