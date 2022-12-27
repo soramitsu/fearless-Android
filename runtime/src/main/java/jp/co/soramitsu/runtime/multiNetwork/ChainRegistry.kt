@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
-
 data class ChainService(
     val runtimeProvider: RuntimeProvider,
     val connection: ChainConnection

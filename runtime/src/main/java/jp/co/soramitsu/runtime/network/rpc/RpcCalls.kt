@@ -42,7 +42,6 @@ import jp.co.soramitsu.runtime.network.toRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-
 data class EventRecord(val phase: PhaseRecord, val event: InnerEventRecord)
 
 data class InnerEventRecord(val moduleIndex: Int, val eventIndex: Int, var list: List<Any?>? = null)

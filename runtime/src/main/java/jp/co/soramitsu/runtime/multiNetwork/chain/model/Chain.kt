@@ -22,8 +22,6 @@ const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e46670
 
 private val STAKING_ORDER = arrayOf("DOT", "KSM", "WND", "GLMR", "MOVR", "DEV", "PDEX")
 
-// TODO: Move - As abstract/interface
-
 data class Chain(
     val id: ChainId,
     val name: String,
