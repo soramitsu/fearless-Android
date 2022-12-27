@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.HiddenAssetsItem
@@ -18,7 +19,7 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import kotlinx.coroutines.launch
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletState
 
 interface AssetsListInterface {
     @OptIn(ExperimentalMaterialApi::class)
@@ -32,18 +33,19 @@ fun AssetsList(
     data: AssetListState,
     callback: AssetsListInterface
 ) {
-    val listState = rememberLazyListState()
+    val listState = rememberLazyListState(0)
     val isShowHidden = remember { mutableStateOf(false) }
     val onHiddenClick = remember { { isShowHidden.value = isShowHidden.value.not() } }
 
-    LaunchedEffect(
-        key1 = data.assets.size,
-        block = {
-            launch {
-                listState.scrollToItem(0)
+    LaunchedEffect(listState, (data as? WalletState)?.balance) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect {
+                if (it != 0) {
+                    listState.scrollToItem(0)
+                }
             }
-        }
-    )
+    }
+
     LazyColumn(
         state = listState,
         verticalArrangement = Arrangement.spacedBy(8.dp)
