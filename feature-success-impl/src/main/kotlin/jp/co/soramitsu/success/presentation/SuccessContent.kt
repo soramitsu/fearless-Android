@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.send.success
+package jp.co.soramitsu.success.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
@@ -36,21 +37,20 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.white
-import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
-data class SendSuccessViewState(
+data class SuccessViewState(
     val message: String,
     val tableItems: List<TitleValueViewState>,
     val isShowSubscanButtons: Boolean
 ) {
     companion object {
         const val CODE_HASH_CLICK = 2
-        val default = SendSuccessViewState("", emptyList(), false)
+        val default = SuccessViewState("", emptyList(), false)
     }
 }
 
-interface SendSuccessScreenInterface {
+interface SuccessScreenInterface {
     fun onClose()
     fun onItemClick(code: Int)
     fun onSubscanClick()
@@ -58,9 +58,9 @@ interface SendSuccessScreenInterface {
 }
 
 @Composable
-fun SendSuccessContent(
-    state: SendSuccessViewState,
-    callback: SendSuccessScreenInterface
+fun SuccessContent(
+    state: SuccessViewState,
+    callback: SuccessScreenInterface
 ) {
     BottomSheetScreen {
         Box(Modifier.fillMaxWidth()) {
@@ -118,7 +118,7 @@ fun SendSuccessContent(
                         )
                         MarginHorizontal(margin = 12.dp)
                         AccentButton(
-                            text = stringResource(id = R.string.common_share),
+                            text = stringResource(R.string.common_share),
                             modifier = Modifier.weight(1f),
                             onClick = callback::onShareClick
                         )
@@ -132,8 +132,8 @@ fun SendSuccessContent(
 
 @Preview
 @Composable
-private fun SendSuccessPreview() {
-    val state = SendSuccessViewState(
+private fun SuccessPreview() {
+    val state = SuccessViewState(
         "You can now back to your app and do that you're usually do",
         listOf(
             TitleValueViewState(
@@ -145,7 +145,7 @@ private fun SendSuccessPreview() {
         true
     )
 
-    val emptyCallback = object : SendSuccessScreenInterface {
+    val emptyCallback = object : SuccessScreenInterface {
         override fun onClose() {}
         override fun onItemClick(code: Int) {}
         override fun onSubscanClick() {}
@@ -153,7 +153,7 @@ private fun SendSuccessPreview() {
     }
 
     FearlessTheme {
-        SendSuccessContent(
+        SuccessContent(
             state = state,
             callback = emptyCallback
         )

@@ -1,11 +1,11 @@
-package jp.co.soramitsu.wallet.impl.presentation.send.success
+package jp.co.soramitsu.success.presentation
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
+import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
@@ -13,12 +13,10 @@ import jp.co.soramitsu.common.mixin.api.Browserable
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
-import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
-import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -26,10 +24,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
-class SendSuccessViewModel @Inject constructor(
-    private val router: WalletRouter,
+class SuccessViewModel @Inject constructor(
+    private val router: SuccessRouter,
     private val chainRegistry: ChainRegistry,
     private val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
@@ -38,11 +37,11 @@ class SendSuccessViewModel @Inject constructor(
 ) : BaseViewModel(),
     Browserable,
     ExternalAccountActions by externalAccountActions,
-    SendSuccessScreenInterface {
+    SuccessScreenInterface {
 
-    val operationHash = savedStateHandle.get<String>(SendSuccessFragment.KEY_OPERATION_HASH)
-    val chainId = savedStateHandle.get<ChainId>(SendSuccessFragment.KEY_CHAIN_ID)
-    private val customMessage: String? = savedStateHandle[SendSuccessFragment.KEY_CUSTOM_MESSAGE]
+    val operationHash = savedStateHandle.get<String>(SuccessFragment.KEY_OPERATION_HASH)
+    val chainId = savedStateHandle.get<ChainId>(SuccessFragment.KEY_CHAIN_ID)
+    private val customMessage: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_MESSAGE]
 
     private val _showHashActions = MutableLiveData<Event<Unit>>()
     val showHashActions: LiveData<Event<Unit>> = _showHashActions
@@ -63,19 +62,19 @@ class SendSuccessViewModel @Inject constructor(
         }
     }
 
-    val state: StateFlow<SendSuccessViewState> = subscanUrlFlow.map { url ->
-        SendSuccessViewState(
+    val state: StateFlow<SuccessViewState> = subscanUrlFlow.map { url ->
+        SuccessViewState(
             message = customMessage ?: resourceManager.getString(R.string.send_success_message),
             tableItems = getInfoTableItems(),
             isShowSubscanButtons = url.isNullOrEmpty().not()
         )
-    }.stateIn(this, SharingStarted.Eagerly, SendSuccessViewState.default)
+    }.stateIn(this, SharingStarted.Eagerly, SuccessViewState.default)
 
     private fun getInfoTableItems() = listOf(
         TitleValueViewState(
             title = resourceManager.getString(R.string.hash),
             value = operationHash?.shorten(),
-            clickState = TitleValueViewState.ClickState(R.drawable.ic_copy_filled_24, SendSuccessViewState.CODE_HASH_CLICK)
+            clickState = TitleValueViewState.ClickState(R.drawable.ic_copy_filled_24, SuccessViewState.CODE_HASH_CLICK)
         )
     )
 
@@ -85,7 +84,7 @@ class SendSuccessViewModel @Inject constructor(
 
     override fun onItemClick(code: Int) {
         when (code) {
-            SendSuccessViewState.CODE_HASH_CLICK -> operationHash?.let { copyString(it) }
+            SuccessViewState.CODE_HASH_CLICK -> operationHash?.let { copyString(it) }
         }
     }
 

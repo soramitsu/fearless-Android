@@ -9,6 +9,7 @@ import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
@@ -18,6 +19,7 @@ import jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFrag
 import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
 import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.account.impl.presentation.account.list.AccountListFragment
+import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJsonPasswordFragment
@@ -35,8 +37,6 @@ import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAcc
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
-import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
@@ -58,8 +58,6 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
-import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
@@ -98,6 +96,9 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDeta
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.success.presentation.SuccessFragment
+import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -109,17 +110,17 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAsse
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
+import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -146,7 +147,8 @@ class Navigator :
     RootRouter,
     StakingRouter,
     CrowdloanRouter,
-    PolkaswapRouter {
+    PolkaswapRouter,
+    SuccessRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -637,9 +639,9 @@ class Navigator :
     }
 
     override fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String?) {
-        val bundle = SendSuccessFragment.getBundle(operationHash, chainId, customMessage)
+        val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
 
-        navController?.navigate(R.id.sendSuccessFragment, bundle)
+        navController?.navigate(R.id.successSheetFragment, bundle)
     }
 
     override fun finishSendFlow() {

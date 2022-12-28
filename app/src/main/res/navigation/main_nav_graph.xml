@@ -468,9 +468,9 @@
     </dialog>
 
     <dialog
-        android:id="@+id/sendSuccessFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment"
-        android:label="sendSuccessFragment" />
+        android:id="@+id/successSheetFragment"
+        android:name="jp.co.soramitsu.success.presentation.SuccessFragment"
+        android:label="successSheetFragment" />
 
     <dialog
         android:id="@+id/startStakingPoolFragment"
