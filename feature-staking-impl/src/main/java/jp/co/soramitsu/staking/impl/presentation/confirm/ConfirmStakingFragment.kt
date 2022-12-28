@@ -51,6 +51,8 @@ class ConfirmStakingFragment : BaseFragment<ConfirmStakingViewModel>(R.layout.fr
             confirmStakeSelectedValidators.setOnClickListener { viewModel.nominationsClicked() }
 
             confirmStakeRewardDestination.setPayoutAccountClickListener { viewModel.payoutAccountClicked() }
+
+            confirmStakeSelectedCollator.setWholeClickListener { viewModel.onSelectedCollatorCopyClicked() }
         }
     }
 

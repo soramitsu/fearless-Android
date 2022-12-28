@@ -23,7 +23,11 @@ import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.AssetWithToken
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.coredb.model.PhishingLocal
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Alias
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.useScaleWriter
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.addressOf
@@ -32,6 +36,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain.ExternalApi.Section.Type
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetLocalToAsset
 import jp.co.soramitsu.wallet.impl.data.mappers.mapNodeToOperation
@@ -260,7 +265,7 @@ class WalletRepositoryImpl(
     ): CursorPage<Operation> {
         return withContext(Dispatchers.Default) {
             val historyUrl = chain.externalApi?.history?.url
-            if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY || chainAsset.isUtility != true) {
+            if (historyUrl == null || chain.externalApi?.history?.type != Type.SUBQUERY) {
                 throw HistoryNotSupportedException()
             }
             val requestRewards = chainAsset.staking != Chain.Asset.StakingType.UNSUPPORTED
@@ -275,9 +280,37 @@ class WalletRepositoryImpl(
                 )
             ).data.query
 
-            val pageInfo = response.historyElements.pageInfo
+            val encodedCurrencyId = if (!chainAsset.isUtility) {
+                val runtime = chainRegistry.getRuntime(chain.id)
+                val currencyIdKey = runtime.typeRegistry.types.keys.find { it.contains("CurrencyId") }
+                val currencyIdType = runtime.typeRegistry.types[currencyIdKey]
 
-            val operations = response.historyElements.nodes.map { mapNodeToOperation(it, chainAsset) }
+                useScaleWriter {
+                    val currency = chainAsset.currency as? DictEnum.Entry<*> ?: return@useScaleWriter
+                    val alias = (currencyIdType?.value as Alias)
+                    val currencyIdEnum = alias.aliasedReference.requireValue() as DictEnum
+                    currencyIdEnum.encode(this, runtime, currency)
+                }.toHexString(true)
+            } else {
+                null
+            }
+
+            val pageInfo = response.historyElements.pageInfo
+            val filteredOperations = if (!chainAsset.isUtility) {
+                response.historyElements.nodes.filter {
+                    it.transfer?.assetId == encodedCurrencyId ||
+                        it.extrinsic?.assetId == encodedCurrencyId ||
+                        it.reward?.assetId == encodedCurrencyId
+                }
+            } else {
+                response.historyElements.nodes.filter {
+                    it.transfer?.assetId == null &&
+                        it.extrinsic?.assetId == null &&
+                        it.reward?.assetId == null
+                }
+            }
+
+            val operations = filteredOperations.map { mapNodeToOperation(it, chainAsset) }
 
             CursorPage(pageInfo.endCursor, operations)
         }

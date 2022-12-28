@@ -3,6 +3,73 @@ package jp.co.soramitsu.coredb.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+val Migration_45_46 = object : Migration(45, 46) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        // on some devices FOREIGN KEY(`chainId`) REFERENCES to `_chains` table.
+        // So we need to recreate all the tables with new FK which were created after the renaming chains to _chains (Migration_41_42)
+        // assets - done in Migration_42_43
+        // chain_assets - done in Migration_42_43
+        // chain_explorers - done here
+        // chain_nodes - done here
+        // chain_accounts - done here
+
+        // delete all data related to chains and assets - emulating cold start with existing accounts
+        database.execSQL("DELETE FROM chains")
+        database.execSQL("DELETE FROM chain_assets")
+        database.execSQL("DELETE FROM assets")
+
+        database.execSQL("DROP TABLE IF EXISTS chain_nodes")
+        database.execSQL(
+            """
+             CREATE TABLE IF NOT EXISTS `chain_nodes` (
+             `chainId` TEXT NOT NULL, 
+             `url` TEXT NOT NULL, 
+             `name` TEXT NOT NULL, 
+             `isActive` INTEGER NOT NULL, 
+             `isDefault` INTEGER NOT NULL, 
+             PRIMARY KEY(`chainId`, `url`), 
+             FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+             )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_nodes_chainId` ON `chain_nodes` (`chainId`)")
+
+        database.execSQL("DROP TABLE IF EXISTS chain_explorers")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_explorers` (
+            `chainId` TEXT NOT NULL,
+            `type` TEXT NOT NULL,
+            `types` TEXT NOT NULL,
+            `url` TEXT NOT NULL,
+            PRIMARY KEY(`chainId`, `type`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_explorers_chainId` ON `chain_explorers` (`chainId`)")
+
+        database.execSQL("DROP TABLE chain_accounts")
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `chain_accounts` (
+            `metaId` INTEGER NOT NULL,
+            `chainId` TEXT NOT NULL,
+            `publicKey` BLOB NOT NULL,
+            `accountId` BLOB NOT NULL,
+            `cryptoType` TEXT NOT NULL,
+            `name` TEXT NOT NULL,
+            PRIMARY KEY(`metaId`, `chainId`),
+            FOREIGN KEY(`chainId`) REFERENCES `chains`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION  DEFERRABLE INITIALLY DEFERRED,
+            FOREIGN KEY(`metaId`) REFERENCES `meta_accounts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+            )
+            """.trimIndent()
+        )
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_chainId` ON `chain_accounts` (`chainId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_metaId` ON `chain_accounts` (`metaId`)")
+        database.execSQL("CREATE INDEX IF NOT EXISTS `index_chain_accounts_accountId` ON `chain_accounts` (`accountId`)")
+    }
+}
+
 val Migration_44_45 = object : Migration(44, 45) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
