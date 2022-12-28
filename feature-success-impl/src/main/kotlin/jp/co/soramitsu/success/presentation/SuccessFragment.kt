@@ -1,4 +1,4 @@
-package jp.co.soramitsu.wallet.impl.presentation.send.success
+package jp.co.soramitsu.success.presentation
 
 import android.content.Intent
 import android.os.Bundle
@@ -19,12 +19,12 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
-import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.feature_success_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 @AndroidEntryPoint
-class SendSuccessFragment : BaseComposeBottomSheetDialogFragment<SendSuccessViewModel>() {
+class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>() {
 
     companion object {
         const val CHOOSER_REQUEST_CODE = 128
@@ -39,12 +39,12 @@ class SendSuccessFragment : BaseComposeBottomSheetDialogFragment<SendSuccessView
         )
     }
 
-    override val viewModel: SendSuccessViewModel by viewModels()
+    override val viewModel: SuccessViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        SendSuccessContent(
+        SuccessContent(
             state = state,
             callback = viewModel
         )

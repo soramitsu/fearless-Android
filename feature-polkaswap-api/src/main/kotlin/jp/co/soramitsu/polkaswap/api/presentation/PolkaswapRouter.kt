@@ -20,4 +20,6 @@ interface PolkaswapRouter {
     fun openSwapPreviewDialog()
 
     fun openSelectMarketDialog()
+
+    fun openOperationSuccess(operationHash: String?, chainId: ChainId)
 }
