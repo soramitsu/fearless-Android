@@ -1009,7 +1009,8 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_slippage_tolerance_description">Your transaction will revert if the price changes unfavorably by more than this percentage</string>
     <string name="polkaswap_btn_reset_to_default">Reset to default</string>
     <string name="polkaswap_btn_save">Save</string>
-    <string name="polkaswap_transaction_may_fail">Your transaction may FAIL!</string>
+    <string name="polkaswap_transaction_may_fail">Your transaction may fail</string>
+    <string name="polkaswap_transaction_may_frontrun">Your transaction may front-run</string>
     <string name="polkaswap_market_algorithm_title">Market algorithm</string>
     <string name="polkaswap_market_smart_description">Liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilised</string>
     <string name="polkaswap_market_tbc_description">Liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilised</string>

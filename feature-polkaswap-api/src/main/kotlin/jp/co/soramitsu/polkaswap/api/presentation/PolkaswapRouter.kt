@@ -5,7 +5,11 @@ import kotlinx.coroutines.flow.Flow
 
 interface PolkaswapRouter {
 
-    fun openSelectAsset(chainId: ChainId, selectedAssetId: String?)
+    fun openSelectAsset(
+        chainId: ChainId,
+        selectedAssetId: String?,
+        excludeAssetId: String?
+    )
 
     fun <T> observeResult(key: String): Flow<T>
 

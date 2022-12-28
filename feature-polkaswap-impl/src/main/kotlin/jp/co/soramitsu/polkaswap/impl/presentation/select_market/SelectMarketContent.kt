@@ -35,6 +35,8 @@ fun SelectMarketContent(
             style = MaterialTheme.customTypography.header3
         )
 
+        MarginVertical(margin = 16.dp)
+
         Market.values().forEach {
             ExapandableText(
                 modifier = Modifier

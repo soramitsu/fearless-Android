@@ -34,6 +34,7 @@ class AssetSelectViewModel @Inject constructor(
     private val filterChainId: String? = savedStateHandle[AssetSelectFragment.KEY_FILTER_CHAIN_ID]
 
     private val initialSelectedAssetId: String? = savedStateHandle[AssetSelectFragment.KEY_SELECTED_ASSET_ID]
+    private val excludeAssetId: String? = savedStateHandle[AssetSelectFragment.KEY_EXCLUDE_ASSET_ID]
     private val selectedAssetIdFlow = MutableStateFlow(initialSelectedAssetId)
 
     private val assetModelsFlow: Flow<List<AssetModel>> =
@@ -57,6 +58,7 @@ class AssetSelectViewModel @Inject constructor(
             .filter {
                 searchQuery.isEmpty() || it.token.configuration.symbolToShow.contains(searchQuery, true)
             }
+            .filter { it.token.configuration.id != excludeAssetId }
             .sortedWith(compareByDescending<AssetModel> { it.fiatAmount.orZero() }.thenBy { it.token.configuration.chainName })
             .map {
                 it.toAssetItemState()

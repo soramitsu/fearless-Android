@@ -72,13 +72,14 @@ fun NumberInput(
         modifier = modifier
             .fillMaxWidth()
             .height(64.dp),
-        borderColor = when (state.isFocused) {
-            true -> colorAccentDark
+        borderColor = when {
+            state.warning -> warningOrange
+            state.isFocused -> colorAccentDark
             else -> white24
         }
     ) {
         Row(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
