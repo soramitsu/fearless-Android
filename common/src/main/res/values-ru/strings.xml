@@ -912,7 +912,8 @@
     <string name="polkaswap_slippage_tolerance_description">Ваша транзакция будет отменена, если цена неблагоприятно изменится более чем на этот процент</string>
     <string name="polkaswap_btn_reset_to_default">Сбросить</string>
     <string name="polkaswap_btn_save">Сохранить</string>
-    <string name="polkaswap_transaction_may_fail">Ваша транзакция может ОТМЕНИТЬСЯ!</string>
+    <string name="polkaswap_transaction_may_fail">Транзакция может завершиться с ошибкой</string>
+    <string name="polkaswap_transaction_may_frontrun">Возможен фронтран транзакции</string>
     <string name="polkaswap_market_algorithm_title">Маркет алгоритм</string>
     <string name="polkaswap_market_smart_description">Маршрутизация ликвидности обеспечивает лучшую цену для любой транзакции, комбинируя только лучшие варианты цены со всех доступных рынков. Кривая связывания токенов (TBC), если она доступна, будет использоваться для обеспечения ликвидности, если цена актива является более доступной, чем из других источников, на которых используется пул XYK</string>
     <string name="polkaswap_market_tbc_description">Маршрутизация ликвидности обеспечивает лучшую цену для любой транзакции, комбинируя только лучшие варианты цены со всех доступных рынков. Кривая связывания токенов (TBC), если она доступна, будет использоваться для обеспечения ликвидности, если цена актива является более доступной, чем из других источников, на которых используется пул XYK</string>

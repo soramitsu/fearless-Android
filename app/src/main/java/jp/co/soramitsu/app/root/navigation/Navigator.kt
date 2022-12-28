@@ -604,8 +604,8 @@ class Navigator :
         navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 
-    override fun openSelectAsset(chainId: ChainId, selectedAssetId: String?) {
-        val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId)
+    override fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, excludeAssetId: String?) {
+        val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId, excludeAssetId)
         navController?.navigate(R.id.assetSelectFragment, bundle)
     }
 

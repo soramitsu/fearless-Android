@@ -1,5 +1,7 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import android.util.Log
+import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,10 +41,15 @@ class SwapTokensTokensViewModel @Inject constructor(
     private val enteredFromAmountFlow = MutableStateFlow("0")
     private val enteredToAmountFlow = MutableStateFlow("0")
 
+    private val isFromAmountFocused = MutableStateFlow(false)
+    private val isToAmountFocused = MutableStateFlow(false)
+
     private val initFromAssetId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_ID)
 
     private val fromAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
     private val toAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
+
+    private var isDescriptionVisible = MutableStateFlow(false)
 
     private var selectedMarket = MutableStateFlow(Market.SMART)
 
@@ -54,12 +61,14 @@ class SwapTokensTokensViewModel @Inject constructor(
     val state = combine(
         fromAmountInputViewState,
         toAmountInputViewState,
-        selectedMarket
-    ) { fromAmountInput, toAmountInput, selectedMarket ->
+        selectedMarket,
+        isDescriptionVisible
+    ) { fromAmountInput, toAmountInput, selectedMarket, isDescriptionVisible ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
-            selectedMarket = selectedMarket
+            selectedMarket = selectedMarket,
+            isDescriptionVisible = isDescriptionVisible
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
 
@@ -84,7 +93,8 @@ class SwapTokensTokensViewModel @Inject constructor(
     private fun getAmountInputViewState(
         title: String,
         enteredAmount: String,
-        asset: Asset?
+        asset: Asset?,
+        isFocused: Boolean,
     ): AmountInputViewState {
         if (asset == null) {
             return AmountInputViewState(
@@ -94,7 +104,8 @@ class SwapTokensTokensViewModel @Inject constructor(
                 fiatAmount = null,
                 tokenAmount = enteredAmount,
                 title = title,
-                allowAssetChoose = true
+                allowAssetChoose = true,
+                isFocused = isFocused
             )
         }
 
@@ -109,7 +120,8 @@ class SwapTokensTokensViewModel @Inject constructor(
             fiatAmount = fiatAmount,
             tokenAmount = enteredAmount,
             title = title,
-            allowAssetChoose = true
+            allowAssetChoose = true,
+            isFocused = isFocused
         )
     }
 
@@ -122,28 +134,32 @@ class SwapTokensTokensViewModel @Inject constructor(
     }
 
     private fun subscribeFromAmountInputViewState() {
-        combine(enteredFromAmountFlow, fromAsset) { enteredAmount, asset ->
+        combine(enteredFromAmountFlow, fromAsset, isFromAmountFocused) { enteredAmount, asset, isFromAmountFocused ->
             fromAmountInputViewState.value = getAmountInputViewState(
                 title = resourceManager.getString(R.string.polkaswap_from),
                 enteredAmount = enteredAmount,
-                asset = asset
+                asset = asset,
+                isFocused = isFromAmountFocused
             )
         }
             .launchIn(viewModelScope)
     }
 
     private fun subscribeToAmountInputViewState() {
-        combine(enteredToAmountFlow, toAsset) { enteredAmount, asset ->
+        combine(enteredToAmountFlow, toAsset, isToAmountFocused) { enteredAmount, asset, isToAmountFocused ->
             toAmountInputViewState.value = getAmountInputViewState(
                 title = resourceManager.getString(R.string.polkaswap_to),
                 enteredAmount = enteredAmount,
-                asset = asset
+                asset = asset,
+                isFocused = isToAmountFocused
             )
         }
             .launchIn(viewModelScope)
     }
 
     override fun onChangeTokensClick() {
+        if (fromAsset.value == null || toAsset.value == null) return
+
         val fromAssetModel = fromAsset.value
         fromAsset.value = toAsset.value
         toAsset.value = fromAssetModel
@@ -175,16 +191,38 @@ class SwapTokensTokensViewModel @Inject constructor(
     }
 
     override fun onFromTokenSelect() {
-        openSelectAsset(fromAsset)
+        openSelectAsset(
+            selectedAssetFlow = fromAsset,
+            excludeAssetFlow = toAsset
+        )
     }
 
     override fun onToTokenSelect() {
-        openSelectAsset(toAsset)
+        openSelectAsset(
+            selectedAssetFlow = toAsset,
+            excludeAssetFlow = fromAsset
+        )
     }
 
-    private fun openSelectAsset(assetFlow: MutableStateFlow<Asset?>) {
-        observeResultFor(assetFlow)
-        val assetId = assetFlow.value?.token?.configuration?.id
-        polkaswapRouter.openSelectAsset(polkaswapInteractor.polkaswapChainId, assetId)
+    override fun onFromAmountFocusChange(focusState: FocusState) {
+        isFromAmountFocused.value = focusState.hasFocus
+    }
+
+    override fun onToAmountFocusChange(focusState: FocusState) {
+        isToAmountFocused.value = focusState.hasFocus
+    }
+
+    private fun openSelectAsset(
+        selectedAssetFlow: MutableStateFlow<Asset?>,
+        excludeAssetFlow: MutableStateFlow<Asset?>,
+    ) {
+        observeResultFor(selectedAssetFlow)
+        val selectedAssetId = selectedAssetFlow.value?.token?.configuration?.id
+        val excludeAssetId = excludeAssetFlow.value?.token?.configuration?.id
+        polkaswapRouter.openSelectAsset(
+            chainId = polkaswapInteractor.polkaswapChainId,
+            selectedAssetId = selectedAssetId,
+            excludeAssetId = excludeAssetId
+        )
     }
 }

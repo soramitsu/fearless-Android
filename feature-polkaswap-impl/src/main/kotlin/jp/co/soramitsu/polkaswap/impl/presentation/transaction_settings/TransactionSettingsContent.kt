@@ -1,16 +1,21 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -22,15 +27,19 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.Grip
+import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.NumberInput
@@ -39,6 +48,7 @@ import jp.co.soramitsu.common.compose.component.QuickInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
 import jp.co.soramitsu.common.compose.component.Slider
+import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -47,7 +57,8 @@ import jp.co.soramitsu.polkaswap.impl.domain.models.Market
 
 data class TransactionSettingsViewState(
     val marketState: SelectorState,
-    val slippageInputState: NumberInputState
+    val slippageInputState: NumberInputState,
+    val slippageWarningText: String?
 ) {
     companion object {
         fun default(resourceManager: ResourceManager): TransactionSettingsViewState {
@@ -62,7 +73,8 @@ data class TransactionSettingsViewState(
                     value = "0.5",
                     suffix = "%",
                     decimalPlaces = 1
-                )
+                ),
+                slippageWarningText = null
             )
         }
     }
@@ -154,16 +166,12 @@ fun TransactionSettingsContent(
                 onInputFocusChange = callbacks::onAmountFocusChanged
             )
 
-            Row {
-                Text(
-                    text = stringResource(R.string.polkaswap_transaction_may_fail),
-                    style = MaterialTheme.customTypography.body2,
-                    color = warningOrange
-                )
-            }
+            WarningText(
+                modifier = Modifier.padding(top = 4.dp),
+                slippageWarningText = state.slippageWarningText
+            )
 
             val slippageStateValue = state.slippageInputState.value
-
             val sliderPosition by remember(slippageStateValue) {
                 derivedStateOf { slippageStateValue.toFloat() }
             }
@@ -217,6 +225,34 @@ fun TransactionSettingsContent(
     }
 }
 
+@Composable
+private fun WarningText(
+    slippageWarningText: String?,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.height(18.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (slippageWarningText != null) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(R.drawable.ic_alert_16),
+                contentDescription = null,
+                tint = warningOrange
+            )
+            MarginHorizontal(margin = 4.dp)
+            Text(
+                text = slippageWarningText,
+                style = MaterialTheme.customTypography.body2,
+                color = warningOrange,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun TransactionSettingsContentPreview() {
@@ -233,7 +269,8 @@ fun TransactionSettingsContentPreview() {
                 suffix = "%",
                 warning = false,
                 isFocused = false
-            )
+            ),
+            slippageWarningText = null
         ),
         callbacks = object : TransactionSettingsCallbacks {
             override fun onMarketClick() {

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings
 
+import android.util.Log
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +14,7 @@ import jp.co.soramitsu.polkaswap.impl.domain.models.Market
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.text.NumberFormat
 import javax.inject.Inject
@@ -26,21 +28,33 @@ class TransactionSettingsViewModel @Inject constructor(
     private val selectedMarket = MutableStateFlow(Market.SMART)
     private val slippageInputFocused = MutableStateFlow(false)
     private val slippageToleranceStringValue = MutableStateFlow(DefaultSlippageTolerance)
+    private val slippageWarningText = slippageToleranceStringValue
+        .map { slippageToleranceString ->
+            val number = slippageToleranceString.toDouble()
+            when {
+                number <= MinWarningSlippageThreshold -> resourceManager.getString(R.string.polkaswap_transaction_may_fail)
+                number >= MaxWarningSlippageThreshold -> resourceManager.getString(R.string.polkaswap_transaction_may_frontrun)
+                else -> null
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val formatter = NumberFormat.getNumberInstance().apply {
         minimumFractionDigits = 0
         maximumFractionDigits = 1
     }
 
-    val state = combine(selectedMarket, slippageToleranceStringValue, slippageInputFocused) {
-            selectedMarket, slippageToleranceValue, isSlippageInputFocused ->
+    val state = combine(selectedMarket, slippageToleranceStringValue, slippageInputFocused, slippageWarningText) {
+            selectedMarket, slippageToleranceValue, isSlippageInputFocused, slippageWarningText ->
         TransactionSettingsViewState(
             marketState = getMarketState(selectedMarket),
-            slippageInputState = getSlippageTolerance(slippageToleranceValue, isSlippageInputFocused)
+            slippageInputState = getSlippageTolerance(slippageToleranceValue, isSlippageInputFocused, slippageWarningText),
+            slippageWarningText = slippageWarningText
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, TransactionSettingsViewState.default(resourceManager))
 
     override fun onMarketClick() {
+        slippageInputFocused.value = false
         polkaswapRouter.openSelectMarketDialog()
     }
 
@@ -60,7 +74,7 @@ class TransactionSettingsViewModel @Inject constructor(
     }
 
     override fun onQuickSlippageInput(value: Double) {
-        slippageToleranceStringValue.value = formatter.format(value)
+        slippageToleranceStringValue.value = format(value)
         slippageInputFocused.value = false
     }
 
@@ -72,7 +86,7 @@ class TransactionSettingsViewModel @Inject constructor(
     }
 
     override fun onSlippageValueChange(value: Float) {
-        slippageToleranceStringValue.value = formatter.format(value)
+        slippageToleranceStringValue.value = format(value)
         slippageInputFocused.value = false
     }
 
@@ -88,17 +102,30 @@ class TransactionSettingsViewModel @Inject constructor(
         )
     }
 
-    private fun getSlippageTolerance(value: String, hasFocus: Boolean): NumberInputState {
+    private fun getSlippageTolerance(
+        value: String,
+        hasFocus: Boolean,
+        slippageWarningText: String?
+    ): NumberInputState {
         return NumberInputState(
             title = resourceManager.getString(R.string.polkaswap_slippage_tolerance),
             value = value,
             suffix = "%",
-            isFocused = hasFocus
+            isFocused = hasFocus,
+            warning = slippageWarningText != null
         )
+    }
+
+    private fun format(value: Number): String {
+        return formatter.format(value)
+            .replace(",", ".")
     }
 
     companion object {
         val SlippageRange = 0f..10f
         private const val DefaultSlippageTolerance = "0.5"
+
+        private const val MinWarningSlippageThreshold = 0.1
+        private const val MaxWarningSlippageThreshold = 5.0
     }
 }

@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
@@ -87,7 +88,7 @@ fun SwapPreviewContent(
                 GradientIcon(
                     iconRes = R.drawable.ic_fearless_logo,
                     color = colorAccentDark,
-                    background = MaterialTheme.customColors.black,
+                    background = backgroundBlack,
                     modifier = Modifier
                         .offset(x = 25.dp)
                         .zIndex(1f),
@@ -96,7 +97,7 @@ fun SwapPreviewContent(
                 GradientIcon(
                     iconRes = R.drawable.ic_fearless_logo,
                     color = colorAccentDark,
-                    background = MaterialTheme.customColors.black,
+                    background = backgroundBlack,
                     modifier = Modifier
                         .offset(x = (-25).dp)
                         .zIndex(0f),

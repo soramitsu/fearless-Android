@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,9 +21,11 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -48,6 +51,7 @@ import jp.co.soramitsu.polkaswap.impl.domain.models.Market
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
     val toAmountInputViewState: AmountInputViewState,
+    val isDescriptionVisible: Boolean,
     val selectedMarket: Market
 ) {
     companion object {
@@ -56,7 +60,8 @@ data class SwapTokensContentViewState(
             return SwapTokensContentViewState(
                 fromAmountInputViewState = AmountInputViewState.default(resourceManager),
                 toAmountInputViewState = AmountInputViewState.default(resourceManager),
-                selectedMarket = Market.SMART
+                selectedMarket = Market.SMART,
+                isDescriptionVisible = false
             )
         }
     }
@@ -79,6 +84,10 @@ interface SwapTokensCallbacks {
     fun onFromTokenSelect()
 
     fun onToTokenSelect()
+
+    fun onFromAmountFocusChange(focusState: FocusState)
+
+    fun onToAmountFocusChange(focusState: FocusState)
 }
 
 @Composable
@@ -97,7 +106,6 @@ fun SwapTokensContent(
         MarginVertical(margin = 8.dp)
 
         Row(
-            modifier = Modifier.padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             NavigationIconButton(
@@ -134,16 +142,20 @@ fun SwapTokensContent(
             ) {
                 AmountInput(
                     state = state.fromAmountInputViewState,
+                    borderColorFocused = colorAccentDark,
                     onInput = callbacks::onFromAmountChange,
-                    onTokenClick = callbacks::onFromTokenSelect
+                    onTokenClick = callbacks::onFromTokenSelect,
+                    onInputFocusChange = callbacks::onFromAmountFocusChange
                 )
 
                 MarginVertical(margin = 8.dp)
 
                 AmountInput(
                     state = state.toAmountInputViewState,
+                    borderColorFocused = colorAccentDark,
                     onInput = callbacks::onToAmountChange,
-                    onTokenClick = callbacks::onToTokenSelect
+                    onTokenClick = callbacks::onToTokenSelect,
+                    onInputFocusChange = callbacks::onToAmountFocusChange
                 )
             }
 
@@ -160,6 +172,33 @@ fun SwapTokensContent(
             )
         }
 
+        if (state.isDescriptionVisible) {
+            TransactionDescription()
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        AccentButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp, top = 16.dp),
+            state = ButtonViewState(
+                text = stringResource(R.string.common_continue),
+                enabled = true
+            ),
+            onClick = callbacks::onPreviewClick
+        )
+    }
+}
+
+@Composable
+private fun TransactionDescription(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+    ) {
         FeeInfo(
             modifier = Modifier.padding(top = 8.dp),
             state = FeeInfoViewState(
@@ -183,20 +222,6 @@ fun SwapTokensContent(
                 feeAmount = "0",
                 feeAmountFiat = "$0"
             )
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        AccentButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp, top = 16.dp),
-            state = ButtonViewState(
-                text = stringResource(R.string.common_continue),
-                enabled = true
-            ),
-            onClick = callbacks::onPreviewClick
         )
     }
 }

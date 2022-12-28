@@ -10,6 +10,7 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.customColors
@@ -36,12 +37,13 @@ fun BackgroundCorneredWithBorder(
     modifier: Modifier = Modifier,
     backgroundColor: Color = black05,
     borderColor: Color = white24,
+    shape: Shape = FearlessCorneredShape(),
     content: @Composable BoxScope.() -> Unit
 ) {
     Surface(
         modifier = modifier
             .wrapContentSize()
-            .border(1.dp, color = borderColor, shape = FearlessCorneredShape()),
+            .border(1.dp, color = borderColor, shape = shape),
         shape = FearlessCorneredShape(),
         color = backgroundColor
     ) {

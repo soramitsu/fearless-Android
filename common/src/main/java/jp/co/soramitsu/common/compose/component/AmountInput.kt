@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
@@ -19,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -180,26 +182,30 @@ fun AmountInput(
             }
 
             Row(
-                modifier = if (state.allowAssetChoose) {
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onTokenClick)
-                } else {
-                    Modifier.fillMaxWidth()
-                }
+                modifier = Modifier.fillMaxWidth()
             ) {
-                TokenIcon(url = state.tokenImage)
-                MarginHorizontal(margin = 4.dp)
-                val tokenName = state.tokenName?.uppercase() ?: stringResource(R.string.common_select_asset)
-                H3(text = tokenName, modifier = Modifier.align(CenterVertically), color = assetColorState)
-                MarginHorizontal(margin = 8.dp)
-                if (state.allowAssetChoose) {
-                    Image(
-                        res = R.drawable.ic_arrow_down,
-                        modifier = Modifier
-                            .align(CenterVertically)
-                            .padding(top = 4.dp, end = 4.dp)
-                    )
+                Row(
+                    modifier = if (state.allowAssetChoose) {
+                        Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable(onClick = onTokenClick)
+                    } else {
+                        Modifier
+                    }
+                ) {
+                    TokenIcon(url = state.tokenImage)
+                    MarginHorizontal(margin = 4.dp)
+                    val tokenName = state.tokenName?.uppercase() ?: stringResource(R.string.common_select_asset)
+                    H3(text = tokenName, modifier = Modifier.align(CenterVertically), color = assetColorState)
+                    MarginHorizontal(margin = 8.dp)
+                    if (state.allowAssetChoose) {
+                        Image(
+                            res = R.drawable.ic_arrow_down,
+                            modifier = Modifier
+                                .align(CenterVertically)
+                                .padding(top = 4.dp, end = 4.dp)
+                        )
+                    }
                 }
                 BasicTextField(
                     value = textFieldValueState,
