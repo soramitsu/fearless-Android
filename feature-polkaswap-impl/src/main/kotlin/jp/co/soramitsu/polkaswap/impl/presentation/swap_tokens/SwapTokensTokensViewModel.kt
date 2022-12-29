@@ -1,6 +1,5 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
-import android.util.Log
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -94,7 +93,7 @@ class SwapTokensTokensViewModel @Inject constructor(
         title: String,
         enteredAmount: String,
         asset: Asset?,
-        isFocused: Boolean,
+        isFocused: Boolean
     ): AmountInputViewState {
         if (asset == null) {
             return AmountInputViewState(
@@ -214,7 +213,7 @@ class SwapTokensTokensViewModel @Inject constructor(
 
     private fun openSelectAsset(
         selectedAssetFlow: MutableStateFlow<Asset?>,
-        excludeAssetFlow: MutableStateFlow<Asset?>,
+        excludeAssetFlow: MutableStateFlow<Asset?>
     ) {
         observeResultFor(selectedAssetFlow)
         val selectedAssetId = selectedAssetFlow.value?.token?.configuration?.id
