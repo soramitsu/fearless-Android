@@ -1,6 +1,5 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings
 
-import android.util.Log
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
