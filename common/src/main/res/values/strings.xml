@@ -998,6 +998,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_min_received">Min received</string>
     <string name="common_liquidity_provider_fee">Liquidity Provider Fee</string>
     <string name="common_network_fee">Network Fee</string>
+    <string name="common_route">Route</string>
 
     <string name="polkaswap_from">From</string>
     <string name="polkaswap_to">To</string>
@@ -1011,9 +1012,9 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_transaction_may_fail">Your transaction may fail</string>
     <string name="polkaswap_transaction_may_frontrun">Your transaction may front-run</string>
     <string name="polkaswap_market_algorithm_title">Market algorithm</string>
-    <string name="polkaswap_market_smart_description">Liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilised</string>
-    <string name="polkaswap_market_tbc_description">Liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilised</string>
-    <string name="polkaswap_market_xyk_description">Liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilised</string>
+    <string name="polkaswap_market_smart_description">SMART liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilized.</string>
+    <string name="polkaswap_market_tbc_description">TBC — buying only from the Token Bonding Curve (Primary Market). There is a possibility that the price can become unfavorable compared to the XYK pool (Secondary Market), but the value received from the vested rewards might turn out to be much more favorable over time.</string>
+    <string name="polkaswap_market_xyk_description">XYK — buying only from the XYK pool (Secondary Market). Traditional XYK pool swap where anyone can buy or sell assets by shifting the market maker’s position on the x*y=k curve.</string>
     <string name="polkaswap_preview_title">Preview</string>
     <string name="polkaswap_swap_title">Swap</string>
 </resources>

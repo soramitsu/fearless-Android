@@ -79,8 +79,10 @@ class TransactionSettingsViewModel @Inject constructor(
 
     override fun onSlippageValueChange(value: String) {
         val slippageValue = value.toFloatOrNull() ?: return
-        if (slippageValue in SlippageRange) {
-            slippageToleranceStringValue.value = value
+        slippageToleranceStringValue.value = if (slippageValue in SlippageRange) {
+            value
+        } else {
+            slippageValue.coerceIn(SlippageRange).toInt().toString()
         }
     }
 

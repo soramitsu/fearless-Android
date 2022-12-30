@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.api.presentation
 
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 
@@ -17,7 +18,7 @@ interface PolkaswapRouter {
 
     fun openTransactionSettingsDialog()
 
-    fun openSwapPreviewDialog()
+    fun openSwapPreviewDialog(swapDetails: SwapDetails)
 
     fun openSelectMarketDialog()
 

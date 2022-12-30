@@ -203,7 +203,7 @@ fun TransactionSettingsContent(
             text = stringResource(R.string.polkaswap_btn_save),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp)
+                .padding(bottom = 8.dp)
                 .fillMaxWidth(),
             onClick = callbacks::onSaveClick
         )
