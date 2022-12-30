@@ -23,6 +23,7 @@ data class SwapDetails(
 
     @IgnoredOnParcel
     val fromTokenOnToToken = fromTokenAmount.divide(toTokenAmount, AmountScale, RoundingMode.HALF_UP)
+
     @IgnoredOnParcel
     val toTokenOnFromToken = toTokenAmount.divide(fromTokenAmount, AmountScale, RoundingMode.HALF_UP)
 
