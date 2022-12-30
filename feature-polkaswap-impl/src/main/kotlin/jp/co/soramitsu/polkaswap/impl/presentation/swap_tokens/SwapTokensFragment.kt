@@ -13,7 +13,7 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 
 @AndroidEntryPoint
-class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensTokensViewModel>() {
+class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensViewModel>() {
 
     companion object {
 
@@ -24,7 +24,7 @@ class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensTokens
         )
     }
 
-    override val viewModel: SwapTokensTokensViewModel by viewModels()
+    override val viewModel: SwapTokensViewModel by viewModels()
 
     @Composable
     override fun Content(padding: PaddingValues) {

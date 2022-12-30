@@ -61,6 +61,8 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.Cont
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
+import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -416,8 +418,10 @@ class Navigator :
         navController?.navigate(R.id.transactionSettingsFragment)
     }
 
-    override fun openSwapPreviewDialog() {
-        navController?.navigate(R.id.swapPreviewFragment)
+    override fun openSwapPreviewDialog(swapDetails: SwapDetails) {
+        val bundle = SwapPreviewFragment.getBundle(swapDetails)
+
+        navController?.navigate(R.id.swapPreviewFragment, bundle)
     }
 
     override fun openSelectMarketDialog() {

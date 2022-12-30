@@ -56,27 +56,27 @@ fun GradientIcon(
     icon: String,
     color: Color,
     modifier: Modifier = Modifier,
-    background: Color = transparent
+    background: Color = transparent,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val gradientBrush = Brush.radialGradient(
-        colors = listOf(color, background)
+        colors = listOf(color, transparent)
     )
-    Box(modifier = modifier) {
-        Box(
-            Modifier
-                .size(90.dp)
-                .background(background, CircleShape)
-                .border(10.dp, gradientBrush, CircleShape)
-        ) {
-            AsyncImage(
-                model = getImageRequest(LocalContext.current, icon),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(color),
-                modifier = Modifier
-                    .size(45.dp)
-                    .align(Alignment.Center)
-            )
-        }
+    Box(
+        modifier = modifier
+            .size(90.dp)
+            .border(10.dp, gradientBrush, CircleShape)
+            .padding(contentPadding)
+            .background(background, CircleShape)
+    ) {
+        AsyncImage(
+            model = getImageRequest(LocalContext.current, icon),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(color),
+            modifier = Modifier
+                .size(45.dp)
+                .align(Alignment.Center)
+        )
     }
 }
 

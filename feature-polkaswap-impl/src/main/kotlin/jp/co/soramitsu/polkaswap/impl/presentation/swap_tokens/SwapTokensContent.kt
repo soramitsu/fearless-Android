@@ -8,8 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -30,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
-import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.Grip
@@ -43,14 +43,16 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_polkaswap_impl.R
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
 import jp.co.soramitsu.polkaswap.impl.domain.models.Market
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
     val toAmountInputViewState: AmountInputViewState,
-    val isDescriptionVisible: Boolean,
-    val selectedMarket: Market
+    val selectedMarket: Market,
+    val swapDetails: SwapDetails?
 ) {
     companion object {
 
@@ -59,7 +61,7 @@ data class SwapTokensContentViewState(
                 fromAmountInputViewState = AmountInputViewState.default(resourceManager),
                 toAmountInputViewState = AmountInputViewState.default(resourceManager),
                 selectedMarket = Market.SMART,
-                isDescriptionVisible = false
+                swapDetails = null
             )
         }
     }
@@ -96,14 +98,15 @@ fun SwapTokensContent(
 ) {
     Column(
         modifier = modifier
-            .fillMaxHeight()
-            .verticalScroll(rememberScrollState())
+            .navigationBarsPadding()
+            .imePadding()
     ) {
         MarginVertical(margin = 2.dp)
         Grip(Modifier.align(Alignment.CenterHorizontally))
         MarginVertical(margin = 8.dp)
 
         Row(
+            modifier = Modifier.padding(bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             NavigationIconButton(
@@ -130,61 +133,63 @@ fun SwapTokensContent(
             )
         }
 
-        Box(
+        Column(
             modifier = Modifier
-                .padding(top = 20.dp),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp)
+            Box(
+                modifier = Modifier
+                    .padding(top = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                AmountInput(
-                    state = state.fromAmountInputViewState,
-                    borderColorFocused = colorAccentDark,
-                    onInput = callbacks::onFromAmountChange,
-                    onTokenClick = callbacks::onFromTokenSelect,
-                    onInputFocusChange = callbacks::onFromAmountFocusChange
-                )
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    AmountInput(
+                        state = state.fromAmountInputViewState,
+                        borderColorFocused = colorAccentDark,
+                        onInput = callbacks::onFromAmountChange,
+                        onTokenClick = callbacks::onFromTokenSelect,
+                        onInputFocusChange = callbacks::onFromAmountFocusChange
+                    )
 
-                MarginVertical(margin = 8.dp)
+                    MarginVertical(margin = 8.dp)
 
-                AmountInput(
-                    state = state.toAmountInputViewState,
-                    borderColorFocused = colorAccentDark,
-                    onInput = callbacks::onToAmountChange,
-                    onTokenClick = callbacks::onToTokenSelect,
-                    onInputFocusChange = callbacks::onToAmountFocusChange
+                    AmountInput(
+                        state = state.toAmountInputViewState,
+                        borderColorFocused = colorAccentDark,
+                        onInput = callbacks::onToAmountChange,
+                        onTokenClick = callbacks::onToTokenSelect,
+                        onInputFocusChange = callbacks::onToAmountFocusChange
+                    )
+                }
+
+                Icon(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(grayButtonBackground)
+                        .border(width = 1.dp, color = white08, shape = CircleShape)
+                        .clickable { callbacks.onChangeTokensClick() }
+                        .padding(8.dp),
+                    painter = painterResource(R.drawable.ic_exchange),
+                    contentDescription = null,
+                    tint = colorAccentDark
                 )
             }
 
-            Icon(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(grayButtonBackground)
-                    .border(width = 1.dp, color = white08, shape = CircleShape)
-                    .clickable { callbacks.onChangeTokensClick() }
-                    .padding(8.dp),
-                painter = painterResource(R.drawable.ic_exchange),
-                contentDescription = null,
-                tint = colorAccentDark
-            )
+            if (state.swapDetails != null) {
+                TransactionDescription(state.swapDetails)
+            }
         }
-
-        if (state.isDescriptionVisible) {
-            TransactionDescription()
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         AccentButton(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 8.dp, top = 16.dp),
-            state = ButtonViewState(
-                text = stringResource(R.string.common_continue),
-                enabled = true
-            ),
+            text = stringResource(R.string.common_continue),
+            enabled = state.swapDetails != null,
             onClick = callbacks::onPreviewClick
         )
     }
@@ -192,6 +197,7 @@ fun SwapTokensContent(
 
 @Composable
 private fun TransactionDescription(
+    swapDetails: SwapDetails,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -201,8 +207,32 @@ private fun TransactionDescription(
             modifier = Modifier.padding(top = 8.dp),
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_min_received),
-                feeAmount = "0",
-                feeAmountFiat = "$0"
+                feeAmount = "${swapDetails.toTokenMinReceived} ${swapDetails.toTokenName}",
+                feeAmountFiat = swapDetails.toFiatMinReceived
+            )
+        )
+
+        FeeInfo(
+            state = FeeInfoViewState(
+                caption = stringResource(R.string.common_route),
+                feeAmount = "${swapDetails.fromTokenName}  ➝  ${swapDetails.toTokenName}",
+                feeAmountFiat = null
+            )
+        )
+
+        FeeInfo(
+            state = FeeInfoViewState(
+                caption = "${swapDetails.fromTokenName} / ${swapDetails.toTokenName}",
+                feeAmount = swapDetails.fromTokenOnToToken.format(),
+                feeAmountFiat = null
+            )
+        )
+
+        FeeInfo(
+            state = FeeInfoViewState(
+                caption = "${swapDetails.toTokenName} / ${swapDetails.fromTokenName}",
+                feeAmount = swapDetails.toTokenOnFromToken.format(),
+                feeAmountFiat = null
             )
         )
 

@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
 import jp.co.soramitsu.polkaswap.impl.domain.models.Market
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
@@ -27,10 +28,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import javax.inject.Inject
 
 @HiltViewModel
-class SwapTokensTokensViewModel @Inject constructor(
+class SwapTokensViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val polkaswapInteractor: PolkaswapInteractor,
     private val polkaswapRouter: PolkaswapRouter,
@@ -48,12 +50,19 @@ class SwapTokensTokensViewModel @Inject constructor(
     private val fromAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
     private val toAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
 
-    private var isDescriptionVisible = MutableStateFlow(false)
-
     private var selectedMarket = MutableStateFlow(Market.SMART)
 
     private val fromAsset = MutableStateFlow<Asset?>(null)
     private val toAsset = MutableStateFlow<Asset?>(null)
+
+    private val swapDetails = combine(
+        fromAmountInputViewState,
+        toAmountInputViewState,
+        fromAsset,
+        toAsset,
+        transform = ::getSwapDetails
+    )
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var assetResultJob: Job? = null
 
@@ -61,13 +70,13 @@ class SwapTokensTokensViewModel @Inject constructor(
         fromAmountInputViewState,
         toAmountInputViewState,
         selectedMarket,
-        isDescriptionVisible
-    ) { fromAmountInput, toAmountInput, selectedMarket, isDescriptionVisible ->
+        swapDetails
+    ) { (fromAmountInput, toAmountInput, selectedMarket, swapDetails) ->
         SwapTokensContentViewState(
-            fromAmountInputViewState = fromAmountInput,
-            toAmountInputViewState = toAmountInput,
-            selectedMarket = selectedMarket,
-            isDescriptionVisible = isDescriptionVisible
+            fromAmountInputViewState = fromAmountInput as AmountInputViewState,
+            toAmountInputViewState = toAmountInput as AmountInputViewState,
+            selectedMarket = selectedMarket as Market,
+            swapDetails = swapDetails as SwapDetails?
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
 
@@ -87,6 +96,47 @@ class SwapTokensTokensViewModel @Inject constructor(
                 // TODO: Logging
             }
             .launchIn(viewModelScope)
+    }
+
+    private fun getSwapDetails(
+        fromAmountInputViewState: AmountInputViewState,
+        toAmountInputViewState: AmountInputViewState,
+        fromAsset: Asset?,
+        toAsset: Asset?
+    ): SwapDetails? {
+        val fromAssetId = fromAsset?.token?.configuration?.id ?: return null
+        val toAssetId = toAsset?.token?.configuration?.id ?: return null
+
+        val fromTokenName = fromAmountInputViewState.tokenName ?: return null
+        val toTokenName = toAmountInputViewState.tokenName ?: return null
+
+        val fromTokenAmount = fromAmountInputViewState.tokenAmount.toBigDecimal()
+            .takeIf { it != BigDecimal.ZERO } ?: return null
+        val toTokenAmount = toAmountInputViewState.tokenAmount.toBigDecimal()
+            .takeIf { it != BigDecimal.ZERO } ?: return null
+
+        val fromTokenImage = fromAmountInputViewState.tokenImage
+        val toTokenImage = toAmountInputViewState.tokenImage
+
+        val toFiatAmount = toAmountInputViewState.fiatAmount.orEmpty()
+
+        return SwapDetails(
+            fromTokenId = fromAssetId,
+            toTokenId = toAssetId,
+            fromTokenName = fromTokenName.uppercase(),
+            toTokenName = toTokenName.uppercase(),
+            fromTokenImage = fromTokenImage,
+            toTokenImage = toTokenImage,
+            toTokenMinReceived = toTokenAmount,
+            toFiatMinReceived = toFiatAmount,
+            fromTokenAmount = fromTokenAmount,
+            toTokenAmount = toTokenAmount,
+            networkFee = SwapDetails.NetworkFee(
+                tokenName = "",
+                tokenAmount = BigDecimal.ONE,
+                fiatAmount = ""
+            )
+        )
     }
 
     private fun getAmountInputViewState(
@@ -157,8 +207,6 @@ class SwapTokensTokensViewModel @Inject constructor(
     }
 
     override fun onChangeTokensClick() {
-        if (fromAsset.value == null || toAsset.value == null) return
-
         val fromAssetModel = fromAsset.value
         fromAsset.value = toAsset.value
         toAsset.value = fromAssetModel
@@ -169,8 +217,9 @@ class SwapTokensTokensViewModel @Inject constructor(
     }
 
     override fun onPreviewClick() {
-        // TODO: onPreviewClick
-        polkaswapRouter.openSwapPreviewDialog()
+        val swapDetailsValue = swapDetails.value ?: return
+
+        polkaswapRouter.openSwapPreviewDialog(swapDetailsValue)
     }
 
     override fun onBackClick() {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -20,11 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.GradientIcon
+import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.InfoTable
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -34,7 +37,14 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_polkaswap_impl.R
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
+import java.math.BigDecimal
+
+data class SwapPreviewState(
+    val swapDetails: SwapDetails
+)
 
 interface SwapPreviewCallbacks {
 
@@ -45,15 +55,21 @@ interface SwapPreviewCallbacks {
 
 @Composable
 fun SwapPreviewContent(
+    state: SwapPreviewState,
     callbacks: SwapPreviewCallbacks,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
+            .fillMaxSize()
             .navigationBarsPadding()
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        MarginVertical(margin = 2.dp)
+        Grip(Modifier.align(Alignment.CenterHorizontally))
+        MarginVertical(margin = 8.dp)
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -78,6 +94,7 @@ fun SwapPreviewContent(
 
         Column(
             modifier = Modifier
+                .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -86,7 +103,7 @@ fun SwapPreviewContent(
 
             Row {
                 GradientIcon(
-                    iconRes = R.drawable.ic_fearless_logo,
+                    icon = state.swapDetails.fromTokenImage!!,
                     color = colorAccentDark,
                     background = backgroundBlack,
                     modifier = Modifier
@@ -95,7 +112,7 @@ fun SwapPreviewContent(
                     contentPadding = PaddingValues(10.dp)
                 )
                 GradientIcon(
-                    iconRes = R.drawable.ic_fearless_logo,
+                    icon = state.swapDetails.toTokenImage!!,
                     color = colorAccentDark,
                     background = backgroundBlack,
                     modifier = Modifier
@@ -118,8 +135,13 @@ fun SwapPreviewContent(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "1,000,000 XOR",
-                    style = MaterialTheme.customTypography.header3
+                    modifier = Modifier
+                        .weight(1f),
+                    text = state.swapDetails.fromTokenAmount.format(),
+                    style = MaterialTheme.customTypography.header3,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.End
                 )
 
                 MarginHorizontal(margin = 16.dp)
@@ -133,37 +155,39 @@ fun SwapPreviewContent(
                 MarginHorizontal(margin = 16.dp)
 
                 Text(
-                    text = "1,000,000 XOR",
-                    style = MaterialTheme.customTypography.header3
+                    modifier = Modifier.weight(1f),
+                    text = state.swapDetails.toTokenAmount.format(),
+                    style = MaterialTheme.customTypography.header3,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start
                 )
             }
 
+            val fromTokenName = state.swapDetails.fromTokenName
+            val toTokenName = state.swapDetails.toTokenName
             InfoTable(
                 modifier = Modifier.padding(top = 24.dp),
                 items = listOf(
                     TitleValueViewState(
-                        title = "Min Received",
-                        value = "1.739664 ETH",
-                        additionalValue = "~\$3,343.70"
+                        title = stringResource(R.string.common_min_received),
+                        value = "${state.swapDetails.toTokenMinReceived} $toTokenName",
+                        additionalValue = "~${state.swapDetails.toFiatMinReceived}"
                     ),
                     TitleValueViewState(
-                        title = "Route",
-                        value = "XOR -> ETH"
+                        title = stringResource(R.string.common_route),
+                        value = "$fromTokenName  ➝  $toTokenName"
                     ),
                     TitleValueViewState(
-                        title = "XOR / ETH",
-                        value = "0.00763842"
+                        title = "$fromTokenName / $toTokenName",
+                        value = state.swapDetails.fromTokenOnToToken.format()
                     ),
                     TitleValueViewState(
-                        title = "ETH / XOR",
-                        value = "130.14852941"
+                        title = "$toTokenName / $fromTokenName",
+                        value = state.swapDetails.toTokenOnFromToken.format()
                     ),
                     TitleValueViewState(
-                        title = "Price Impact",
-                        value = "-0.01%"
-                    ),
-                    TitleValueViewState(
-                        title = "Network Fee",
+                        title = stringResource(R.string.common_network_fee),
                         value = "0.0007 XOR",
                         additionalValue = "~\$ 0.32"
                     )
@@ -181,7 +205,7 @@ fun SwapPreviewContent(
             onClick = callbacks::onConfirmClick
         )
 
-        MarginVertical(margin = 16.dp)
+        MarginVertical(margin = 8.dp)
     }
 }
 
@@ -189,6 +213,25 @@ fun SwapPreviewContent(
 @Composable
 fun SwapPreviewContentPreview() {
     SwapPreviewContent(
+        state = SwapPreviewState(
+            swapDetails = SwapDetails(
+                fromTokenId = "1001",
+                toTokenId = "1002",
+                fromTokenName = "VAL",
+                toTokenName = "XSTUSD",
+                fromTokenImage = "",
+                toTokenImage = "",
+                toTokenMinReceived = BigDecimal("1"),
+                toFiatMinReceived = "\$0.98",
+                fromTokenAmount = BigDecimal("1"),
+                toTokenAmount = BigDecimal("2"),
+                networkFee = SwapDetails.NetworkFee(
+                    tokenAmount = BigDecimal("0.0007"),
+                    tokenName = "XOR",
+                    fiatAmount = "\$ 0.32"
+                )
+            )
+        ),
         callbacks = object : SwapPreviewCallbacks {
             override fun onBackClick() {
             }
