@@ -41,6 +41,7 @@ class ValidateTransferUseCaseImpl(
         val initialCheck = when {
             validateAddressResult.isFailure -> TransferValidationResult.InvalidAddress
             validateAddressResult.getOrNull() == false -> TransferValidationResult.InvalidAddress
+            recipientAddress == ownAddress -> TransferValidationResult.TransferToTheSameAddress
             else -> TransferValidationResult.Valid
         }
         if (initialCheck != TransferValidationResult.Valid) {

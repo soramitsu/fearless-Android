@@ -22,6 +22,13 @@ class ExistentialDepositCrossedException(resourceManager: ResourceManager) : Val
     resourceManager.getString(R.string.common_cancel)
 )
 
+class TransferToTheSameAddressException(resourceManager: ResourceManager) : ValidationWarning(
+    resourceManager.getString(R.string.common_warning),
+    resourceManager.getString(R.string.same_address_transfer_warning_message),
+    resourceManager.getString(R.string.common_proceed),
+    resourceManager.getString(R.string.common_cancel)
+)
+
 class DeadRecipientException(resourceManager: ResourceManager) : ValidationException(
     resourceManager.getString(R.string.common_amount_low),
     resourceManager.getString(R.string.wallet_send_dead_recipient_message)

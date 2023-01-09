@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.validation.DeadRecipientException
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
 import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
 import jp.co.soramitsu.common.validation.TransferAddressNotValidException
+import jp.co.soramitsu.common.validation.TransferToTheSameAddressException
 import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 
@@ -28,6 +29,7 @@ enum class TransferValidationResult {
     UtilityExistentialDepositWarning,
     DeadRecipient,
     InvalidAddress,
+    TransferToTheSameAddress,
     WaitForFee
 }
 
@@ -42,5 +44,6 @@ fun ValidationException.Companion.fromValidationResult(result: TransferValidatio
         TransferValidationResult.DeadRecipient -> DeadRecipientException(resourceManager)
         TransferValidationResult.InvalidAddress -> TransferAddressNotValidException(resourceManager)
         TransferValidationResult.WaitForFee -> WaitForFeeCalculationException(resourceManager)
+        TransferValidationResult.TransferToTheSameAddress -> TransferToTheSameAddressException(resourceManager)
     }
 }
