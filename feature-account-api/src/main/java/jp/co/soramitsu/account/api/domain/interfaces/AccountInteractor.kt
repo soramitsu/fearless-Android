@@ -108,6 +108,8 @@ interface AccountInteractor {
 
     fun selectedMetaAccountFlow(): Flow<MetaAccount>
 
+    suspend fun selectedMetaAccount(): MetaAccount
+
     fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>>
 
     suspend fun selectMetaAccount(metaId: Long)
