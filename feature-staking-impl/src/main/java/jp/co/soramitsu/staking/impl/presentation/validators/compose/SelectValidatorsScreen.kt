@@ -88,7 +88,6 @@ fun SelectValidatorsScreen(
         )
         MarginVertical(margin = 8.dp)
         FullScreenLoading(isLoading = state.listState is LoadingState.Loaded) {
-
             if (state.isCustom) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     CorneredInput(state = state.searchQuery, onInput = callbacks::onSearchQueryInput)
