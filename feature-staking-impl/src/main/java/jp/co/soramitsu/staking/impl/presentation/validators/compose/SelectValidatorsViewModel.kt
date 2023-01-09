@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
@@ -138,7 +139,7 @@ class SelectValidatorsViewModel @Inject constructor(
             toolbarTitle = toolbarTitle,
             isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
             searchQuery = searchQuery,
-            listState = listState
+            listState = LoadingState.Loaded(listState)
         )
     }.stateIn(
         viewModelScope,
@@ -147,10 +148,7 @@ class SelectValidatorsViewModel @Inject constructor(
             toolbarTitle = toolbarTitle,
             isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
             searchQuery = searchQueryFlow.value,
-            listState = MultiSelectListViewState(
-                emptyList(),
-                emptyList()
-            )
+            listState = LoadingState.Loading()
         )
     )
 
