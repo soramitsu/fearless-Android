@@ -17,6 +17,7 @@ android {
 
         buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.8/fiat/fiats.json\""
         buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/android/2.0.8/android_app_configuration.json\""
+        buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-utils/ios/v3-jsonupd/polkaswapSettings.json\""
 
         buildConfigField "String", "WEBSITE_URL", "\"https://fearlesswallet.io\""
         buildConfigField "String", "TWITTER_URL", "\"https://twitter.com/fearlesswallet\""
