@@ -16,7 +16,7 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.feature_polkaswap_impl.R
-import jp.co.soramitsu.polkaswap.impl.domain.models.Market
+import jp.co.soramitsu.polkaswap.api.models.Market
 
 @Composable
 fun SelectMarketContent(

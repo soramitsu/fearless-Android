@@ -4,6 +4,8 @@ import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -12,9 +14,10 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
-import jp.co.soramitsu.polkaswap.impl.domain.models.Market
+import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -28,8 +31,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import javax.inject.Inject
 
 @HiltViewModel
 class SwapTokensViewModel @Inject constructor(
@@ -54,6 +55,8 @@ class SwapTokensViewModel @Inject constructor(
 
     private val fromAsset = MutableStateFlow<Asset?>(null)
     private val toAsset = MutableStateFlow<Asset?>(null)
+
+    private var desired: WithDesired? = null
 
     private val swapDetails = combine(
         fromAmountInputViewState,
@@ -190,6 +193,9 @@ class SwapTokensViewModel @Inject constructor(
                 asset = asset,
                 isFocused = isFromAmountFocused
             )
+            if (isFromAmountFocused) {
+                desired = WithDesired.INPUT
+            }
         }
             .launchIn(viewModelScope)
     }
@@ -202,6 +208,9 @@ class SwapTokensViewModel @Inject constructor(
                 asset = asset,
                 isFocused = isToAmountFocused
             )
+            if (isToAmountFocused) {
+                desired = WithDesired.OUTPUT
+            }
         }
             .launchIn(viewModelScope)
     }

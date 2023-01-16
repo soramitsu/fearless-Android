@@ -9,7 +9,7 @@ import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
-import jp.co.soramitsu.polkaswap.impl.domain.models.Market
+import jp.co.soramitsu.polkaswap.api.models.Market
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine

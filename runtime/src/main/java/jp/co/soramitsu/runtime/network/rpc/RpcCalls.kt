@@ -13,6 +13,7 @@ import jp.co.soramitsu.common.data.network.runtime.calls.GetHeaderRequest
 import jp.co.soramitsu.common.data.network.runtime.calls.NextAccountIndexRequest
 import jp.co.soramitsu.common.data.network.runtime.model.BrokenSubstrateHex
 import jp.co.soramitsu.common.data.network.runtime.model.FeeResponse
+import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock
 import jp.co.soramitsu.common.data.network.runtime.model.SignedBlock.Block.Header
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -27,6 +28,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
 import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitAndWatchExtrinsicRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitExtrinsicRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
@@ -118,6 +120,31 @@ class RpcCalls(
         val feeResponse = socketFor(chainId).executeAsync(request, mapper = pojo<FeeResponse>().nonNull())
 
         return feeResponse.inclusionFee.sum
+    }
+
+    suspend fun liquidityProxyQuote(
+        chainId: ChainId,
+        tokenId1: String,
+        tokenId2: String,
+        amount: BigInteger,
+        swapVariant: String,
+        market: List<String>,
+        filter: String,
+        dexId: Int,
+    ): QuoteResponse {
+        val request = RuntimeRequest(
+            method = "liquidityProxy_quote",
+            params = listOf(
+                dexId,
+                tokenId1,
+                tokenId2,
+                amount.toString(),
+                swapVariant,
+                market,
+                filter
+            ),
+        )
+        return socketFor(chainId).executeAsync(request, mapper = pojo<QuoteResponse>().nonNull())
     }
 
     suspend fun submitExtrinsic(chainId: ChainId, extrinsic: String): String {

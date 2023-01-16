@@ -29,6 +29,7 @@ dependencies {
 
     implementation(projects.runtime)
     implementation(projects.featureWalletApi)
+    implementation(project(mapOf("path" to ":common")))
 }
 
 

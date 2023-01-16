@@ -120,6 +120,10 @@ fun RuntimeMetadata.nominationPools() = module(Modules.NOMINATION_POOLS)
 
 fun RuntimeMetadata.dexManager() = moduleOrNull(Modules.DEX_MANAGER)
 
+fun RuntimeMetadata.poolXYK() = moduleOrNull(Modules.POOL_XYK)
+
+fun RuntimeMetadata.poolTBC() = moduleOrNull(Modules.POOL_TBC)
+
 fun <T> StorageEntry.storageKeys(runtime: RuntimeSnapshot, singleMapArguments: Collection<T>): Map<String, T> {
     return singleMapArguments.associateBy { storageKey(runtime, it) }
 }
@@ -167,6 +171,8 @@ object Modules {
     const val SESSION = "Session"
     const val NOMINATION_POOLS = "NominationPools"
     const val DEX_MANAGER = "DEXManager"
+    const val POOL_XYK = "PoolXYK"
+    const val POOL_TBC = "MulticollateralBondingCurvePool"
     const val TOKENS = "Tokens"
     const val CURRENCIES = "Currencies"
     const val EQBALANCES = "EqBalances"

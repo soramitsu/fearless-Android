@@ -46,7 +46,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
-import jp.co.soramitsu.polkaswap.impl.domain.models.Market
+import jp.co.soramitsu.polkaswap.api.models.Market
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,

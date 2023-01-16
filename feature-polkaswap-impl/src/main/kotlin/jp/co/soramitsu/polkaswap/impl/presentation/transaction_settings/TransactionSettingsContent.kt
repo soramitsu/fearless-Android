@@ -49,7 +49,7 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
-import jp.co.soramitsu.polkaswap.impl.domain.models.Market
+import jp.co.soramitsu.polkaswap.api.models.Market
 
 data class TransactionSettingsViewState(
     val marketState: SelectorState,
