@@ -87,42 +87,44 @@ fun SelectValidatorsScreen(
             onNavigationClick = callbacks::onNavigationClick
         )
         MarginVertical(margin = 8.dp)
-        FullScreenLoading(isLoading = state.listState is LoadingState.Loaded) {
-            if (state.isCustom) {
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    CorneredInput(state = state.searchQuery, onInput = callbacks::onSearchQueryInput)
-                }
-            }
-            when {
-                state.listState is LoadingState.Loaded && state.listState.data.isEmpty -> {
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .fillMaxSize()
-                    ) {
-                        EmptyMessage(
-                            message = R.string.validators_list_empty_message,
-                            modifier = Modifier.align(BiasAlignment(0f, -0.3f))
-                        )
+        FullScreenLoading(isLoading = state.listState is LoadingState.Loading) {
+            Column {
+                if (state.isCustom) {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        CorneredInput(state = state.searchQuery, onInput = callbacks::onSearchQueryInput)
                     }
                 }
-                state.listState is LoadingState.Loaded && state.listState.data.isEmpty.not() -> {
-                    ValidatorsList(
-                        modifier = Modifier.weight(1f),
-                        listState = state.listState.data,
-                        onSelected = callbacks::onSelected,
-                        onInfoClick = callbacks::onInfoClick
-                    )
-                    AccentButton(
-                        text = stringResource(id = R.string.pool_staking_choosepool_button_title),
-                        onClick = callbacks::onChooseClick,
-                        enabled = state.listState.data.selectedItems.isNotEmpty(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .padding(horizontal = 16.dp)
-                    )
-                    MarginVertical(margin = 16.dp)
+                when {
+                    state.listState is LoadingState.Loaded && state.listState.data.isEmpty -> {
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .fillMaxSize()
+                        ) {
+                            EmptyMessage(
+                                message = R.string.validators_list_empty_message,
+                                modifier = Modifier.align(BiasAlignment(0f, -0.3f))
+                            )
+                        }
+                    }
+                    state.listState is LoadingState.Loaded && state.listState.data.isEmpty.not() -> {
+                        ValidatorsList(
+                            modifier = Modifier.weight(1f),
+                            listState = state.listState.data,
+                            onSelected = callbacks::onSelected,
+                            onInfoClick = callbacks::onInfoClick
+                        )
+                        AccentButton(
+                            text = stringResource(id = R.string.pool_staking_choosepool_button_title),
+                            onClick = callbacks::onChooseClick,
+                            enabled = state.listState.data.selectedItems.isNotEmpty(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .padding(horizontal = 16.dp)
+                        )
+                        MarginVertical(margin = 16.dp)
+                    }
                 }
             }
         }

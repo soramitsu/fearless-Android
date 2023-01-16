@@ -71,7 +71,7 @@ class SelectedValidatorsViewModel @Inject constructor(
             val listState = MultiSelectListViewState(validatorsViewStates, validatorsViewStates)
             mapNominatedValidatorStatusToViewState(statusGroup, listState, hasActive)
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val state: StateFlow<LoadingState<SelectedValidatorsScreenViewState>> = currentValidatorModels.map { groups ->
         groups ?: return@map LoadingState.Loading()
