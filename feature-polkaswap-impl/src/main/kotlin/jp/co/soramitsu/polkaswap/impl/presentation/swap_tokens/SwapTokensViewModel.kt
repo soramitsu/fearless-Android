@@ -14,10 +14,10 @@ import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
-import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -138,7 +138,14 @@ class SwapTokensViewModel @Inject constructor(
                 tokenName = "",
                 tokenAmount = BigDecimal.ONE,
                 fiatAmount = ""
-            )
+            ),
+            liquidityProviderFee = SwapDetails.NetworkFee(
+                tokenName = "",
+                tokenAmount = BigDecimal.ONE,
+                fiatAmount = ""
+            ),
+            fromTokenOnToToken = BigDecimal.ZERO,
+            toTokenOnFromToken = BigDecimal.ZERO
         )
     }
 

@@ -18,8 +18,8 @@ import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.models.names
 import jp.co.soramitsu.polkaswap.api.models.toFilters
-import jp.co.soramitsu.polkaswap.api.presentation.models.SwapQuote
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.bindings.bindDexInfos
+import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.swap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
@@ -97,5 +97,22 @@ class PolkaswapRepositoryImpl @Inject constructor(
             curMarkets.toFilters(),
             dexId
         )
+    }
+
+    override suspend fun estimateSwapFee(
+        chainId: ChainId,
+        dexId: Int,
+        inputAssetId: String,
+        outputAssetId: String,
+        amount: BigInteger,
+        limit: BigInteger,
+        filter: String,
+        markets: List<String>,
+        desired: WithDesired
+    ): BigInteger {
+        val chain = chainRegistry.getChain(chainId)
+        return extrinsicService.estimateFee(chain) {
+            swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
+        }
     }
 }

@@ -21,14 +21,11 @@ data class SwapDetails(
     val toTokenAmount: BigDecimal,
     val toTokenMinReceived: BigDecimal,
     val toFiatMinReceived: String,
-    val networkFee: NetworkFee
+    val networkFee: NetworkFee,
+    val liquidityProviderFee: NetworkFee,
+    val fromTokenOnToToken: BigDecimal,
+    val toTokenOnFromToken: BigDecimal
 ) : Parcelable {
-
-    @IgnoredOnParcel
-    val fromTokenOnToToken = fromTokenAmount.divide(toTokenAmount, AmountScale, RoundingMode.HALF_UP)
-
-    @IgnoredOnParcel
-    val toTokenOnFromToken = toTokenAmount.divide(fromTokenAmount, AmountScale, RoundingMode.HALF_UP)
 
     @Parcelize
     data class NetworkFee(

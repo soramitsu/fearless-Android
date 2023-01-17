@@ -6,19 +6,15 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
-import javax.inject.Singleton
+import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
-import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
-import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.impl.data.PolkaswapRepositoryImpl
 import jp.co.soramitsu.polkaswap.impl.domain.PolkaswapInteractorImpl
-import jp.co.soramitsu.runtime.di.LOCAL_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.storage.source.LocalStorageSource
-import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
+import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 
 @InstallIn(SingletonComponent::class)
@@ -39,8 +35,11 @@ class PolkaswapFeatureModule {
     @Provides
     fun providePolkaswapRepositoryImpl(
         remoteConfigFetcher: RemoteConfigFetcher,
-        @Named(REMOTE_STORAGE_SOURCE) remoteSource: StorageDataSource
+        @Named(REMOTE_STORAGE_SOURCE) remoteSource: StorageDataSource,
+        extrinsicService: ExtrinsicService,
+        chainRegistry: ChainRegistry,
+        rpcCalls: RpcCalls
     ): PolkaswapRepositoryImpl {
-        return PolkaswapRepositoryImpl(remoteConfigFetcher, remoteSource)
+        return PolkaswapRepositoryImpl(remoteConfigFetcher, remoteSource, extrinsicService, chainRegistry, rpcCalls)
     }
 }

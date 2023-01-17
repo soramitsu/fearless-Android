@@ -229,7 +229,14 @@ fun SwapPreviewContentPreview() {
                     tokenAmount = BigDecimal("0.0007"),
                     tokenName = "XOR",
                     fiatAmount = "\$ 0.32"
-                )
+                ),
+                liquidityProviderFee = SwapDetails.NetworkFee(
+                    tokenAmount = BigDecimal("0.0007"),
+                    tokenName = "XOR",
+                    fiatAmount = "\$ 0.32"
+                ),
+                fromTokenOnToToken = BigDecimal.ZERO,
+                toTokenOnFromToken = BigDecimal.ZERO
             )
         ),
         callbacks = object : SwapPreviewCallbacks {
