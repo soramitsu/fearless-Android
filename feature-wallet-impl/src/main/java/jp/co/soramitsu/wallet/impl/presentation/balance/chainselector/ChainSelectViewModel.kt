@@ -61,8 +61,9 @@ class ChainSelectViewModel @Inject constructor(
             }
         }
     }.map { chains ->
-        val hasEthAccounts = accountInteractor.selectedMetaAccount().ethereumPublicKey != null
-        val filtered = if (hasEthAccounts.not()) chains.filter { it.isEthereumBased.not() } else chains
+        val ethBasedChainAccounts = accountInteractor.selectedMetaAccount().chainAccounts.filter { it.value.chain?.isEthereumBased == true }
+        val ethChainsWithNoAccounts = chains.filter { it.isEthereumBased }.filter { it.id !in ethBasedChainAccounts.keys }
+        val filtered = chains.filter { it !in ethChainsWithNoAccounts }
         filtered.map { it.toChainItemState() }
     }
 
