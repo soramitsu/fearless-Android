@@ -61,9 +61,15 @@ class ChainSelectViewModel @Inject constructor(
             }
         }
     }.map { chains ->
-        val ethBasedChainAccounts = accountInteractor.selectedMetaAccount().chainAccounts.filter { it.value.chain?.isEthereumBased == true }
-        val ethChainsWithNoAccounts = chains.filter { it.isEthereumBased }.filter { it.id !in ethBasedChainAccounts.keys }
-        val filtered = chains.filter { it !in ethChainsWithNoAccounts }
+        val meta = accountInteractor.selectedMetaAccount()
+        val ethBasedChainAccounts = meta.chainAccounts.filter { it.value.chain?.isEthereumBased == true }
+        val ethBasedChains = chains.filter { it.isEthereumBased }
+        val filtered = if (meta.ethereumPublicKey == null && ethBasedChains.size != ethBasedChainAccounts.size) {
+            val ethChainsWithNoAccounts = ethBasedChains.filter { it.id !in ethBasedChainAccounts.keys }
+            chains.filter { it !in ethChainsWithNoAccounts }
+        } else {
+            chains
+        }
         filtered.map { it.toChainItemState() }
     }
 
