@@ -60,7 +60,8 @@ class WssSubstrateSource(
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
     private suspend fun getAccountInfo(chainAsset: Chain.Asset, accountId: AccountId) = when (chainAsset.type) {
-        null, ChainAssetType.Normal -> {
+        null, ChainAssetType.Normal,
+        ChainAssetType.SoraUtilityAsset -> {
             getDefaultAccountInfo(chainAsset.chainId, accountId)
         }
         ChainAssetType.OrmlChain,
@@ -206,10 +207,12 @@ class WssSubstrateSource(
         return if (transfer.chainAsset.currency == null) {
             defaultTransfer(accountId, transfer, typeRegistry)
         } else {
-            when (transfer.chainAsset.type) {
+            when (transfer.chainAsset.typeExtra) {
                 null, ChainAssetType.Normal -> defaultTransfer(accountId, transfer, typeRegistry)
                 ChainAssetType.OrmlChain -> ormlChainTransfer(accountId, transfer)
-                ChainAssetType.SoraAsset -> soraAssetTransfer(accountId, transfer)
+
+                ChainAssetType.SoraAsset,
+                ChainAssetType.SoraUtilityAsset -> soraAssetTransfer(accountId, transfer)
 
                 ChainAssetType.OrmlAsset,
                 ChainAssetType.ForeignAsset,
@@ -255,11 +258,11 @@ class WssSubstrateSource(
         accountId: AccountId,
         transfer: Transfer
     ) = call(
-        moduleName = Modules.CURRENCIES,
+        moduleName = Modules.ASSETS,
         callName = "transfer",
         arguments = mapOf(
-            "currency_id" to transfer.chainAsset.currency,
-            "dest" to accountId,
+            "asset_id" to transfer.chainAsset.currency,
+            "to" to accountId,
             "amount" to transfer.amountInPlanks
         )
     )

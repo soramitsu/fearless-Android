@@ -168,6 +168,7 @@ object Modules {
     const val CURRENCIES = "Currencies"
     const val EQBALANCES = "EqBalances"
     const val IDENTITY = "Identity"
+    const val ASSETS = "Assets"
 }
 
 object Calls {
