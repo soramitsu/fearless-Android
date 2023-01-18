@@ -63,6 +63,7 @@ class SwapTokensViewModel @Inject constructor(
         toAmountInputViewState,
         fromAsset,
         toAsset,
+        selectedMarket,
         transform = ::getSwapDetails
     )
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -101,12 +102,23 @@ class SwapTokensViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    private fun getSwapDetails(
+    private suspend fun getSwapDetails(
         fromAmountInputViewState: AmountInputViewState,
         toAmountInputViewState: AmountInputViewState,
         fromAsset: Asset?,
-        toAsset: Asset?
+        toAsset: Asset?,
+        selectedMarket: Market
     ): SwapDetails? {
+        fromAsset ?: return null
+        toAsset ?: return null
+        desired ?: return null
+
+        val amount = when(desired) {
+            WithDesired.INPUT -> fromAmountInputViewState.tokenAmount
+            WithDesired.OUTPUT -> toAmountInputViewState.tokenAmount
+            null -> return null
+        }.toBigDecimal()
+        polkaswapInteractor.calcDetails(fromAsset, toAsset, amount, desired!!,)
         val fromAssetId = fromAsset?.token?.configuration?.id ?: return null
         val toAssetId = toAsset?.token?.configuration?.id ?: return null
 
