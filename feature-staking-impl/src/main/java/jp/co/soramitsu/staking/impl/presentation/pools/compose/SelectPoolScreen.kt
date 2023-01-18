@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetLayout
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.ListDialog
 import jp.co.soramitsu.common.compose.component.ListDialogState
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -28,6 +29,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_staking_impl.R
 import kotlinx.coroutines.launch
 
@@ -48,7 +50,7 @@ data class SingleSelectListItemViewState<ItemIdType>(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SelectPoolScreen(
-    state: SingleSelectListItemViewState<Int>,
+    state: LoadingState<SingleSelectListItemViewState<Int>>,
     onNavigationClick: () -> Unit,
     onPoolSelected: (SelectableListItemState<Int>) -> Unit,
     onInfoClick: (SelectableListItemState<Int>) -> Unit,
@@ -84,26 +86,32 @@ fun SelectPoolScreen(
                     ),
                     onNavigationClick = onNavigationClick
                 )
-                MarginVertical(margin = 8.dp)
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(items = state.items.map { it.copy(isSelected = it.id == state.selectedItem?.id) }) { pool ->
-                        SelectableListItem(
-                            state = pool,
-                            onSelected = onPoolSelected,
-                            onInfoClick = { onInfoClick(pool) }
-                        )
+                FullScreenLoading(isLoading = state is LoadingState.Loading) {
+                    (state as? LoadingState.Loaded)?.data?.let { listState ->
+                        Column {
+                            MarginVertical(margin = 8.dp)
+                            LazyColumn(modifier = Modifier.weight(1f)) {
+                                items(items = listState.items.map { it.copy(isSelected = it.id == listState.selectedItem?.id) }) { pool ->
+                                    SelectableListItem(
+                                        state = pool,
+                                        onSelected = onPoolSelected,
+                                        onInfoClick = { onInfoClick(pool) }
+                                    )
+                                }
+                            }
+                            AccentButton(
+                                text = stringResource(id = R.string.pool_staking_choosepool_button_title),
+                                onClick = onChooseClick,
+                                enabled = listState.selectedItem != null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                                    .padding(horizontal = 16.dp)
+                            )
+                            MarginVertical(margin = 16.dp)
+                        }
                     }
                 }
-                AccentButton(
-                    text = stringResource(id = R.string.pool_staking_choosepool_button_title),
-                    onClick = onChooseClick,
-                    enabled = state.selectedItem != null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .padding(horizontal = 16.dp)
-                )
-                MarginVertical(margin = 16.dp)
             }
         }
     )
@@ -144,7 +152,7 @@ private fun SelectPoolScreenPreview() {
     )
     FearlessTheme {
         Column {
-            SelectPoolScreen(state, {}, {}, {}, {}, {})
+            SelectPoolScreen(LoadingState.Loaded(state), {}, {}, {}, {}, {})
         }
     }
 }
