@@ -383,6 +383,7 @@ class SendSetupViewModel @Inject constructor(
 
     override fun onAddressInputClear() {
         addressInputFlow.value = ""
+        sharedState.clearAddress()
     }
 
     override fun onNextClick() {

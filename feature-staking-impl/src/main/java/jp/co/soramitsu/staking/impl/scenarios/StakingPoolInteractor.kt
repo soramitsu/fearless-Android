@@ -261,11 +261,11 @@ class StakingPoolInteractor(
 
     suspend fun nominatedValidatorsFlow(
         chain: Chain,
-        currentAccountId: AccountId,
         poolId: BigInteger
     ): Flow<GroupedList<NominatedValidator.Status.Group, NominatedValidator>> {
+        val poolStashId = generatePoolStashAccount(chain, poolId)
         val nominations = getNominations(chain, poolId) ?: return flowOf(emptyGroupedList())
-        return currentValidatorsInteractor.nominatedValidatorsFlow(chain, currentAccountId, nominations)
+        return currentValidatorsInteractor.nominatedValidatorsFlow(chain, poolStashId, nominations)
     }
 
     private suspend fun getNominations(chain: Chain, poolId: BigInteger): Nominations? {

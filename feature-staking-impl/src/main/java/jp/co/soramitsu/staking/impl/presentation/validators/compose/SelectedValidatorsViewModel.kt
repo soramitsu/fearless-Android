@@ -54,7 +54,7 @@ class SelectedValidatorsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            poolInteractor.nominatedValidatorsFlow(chain, accountId, poolId)
+            poolInteractor.nominatedValidatorsFlow(chain, poolId)
                 .collect { groupedValidators ->
                     validatorsFlow.value = groupedValidators
                 }
@@ -62,14 +62,16 @@ class SelectedValidatorsViewModel @Inject constructor(
     }
 
     private val currentValidatorModels = validatorsFlow.map { groupedList ->
+        val hasActive = groupedList?.keys?.any { it is NominatedValidator.Status.Group.Active } == true
+
         groupedList?.map { (statusGroup, validators) ->
             val validatorsViewStates = validators.map {
                 it.validator.toModel(true, BlockProducersSorting.ValidatorSorting.APYSorting, asset, resourceManager)
             }
             val listState = MultiSelectListViewState(validatorsViewStates, validatorsViewStates)
-            mapNominatedValidatorStatusToViewState(statusGroup, listState)
+            mapNominatedValidatorStatusToViewState(statusGroup, listState, hasActive)
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val state: StateFlow<LoadingState<SelectedValidatorsScreenViewState>> = currentValidatorModels.map { groups ->
         groups ?: return@map LoadingState.Loading()
@@ -103,17 +105,21 @@ class SelectedValidatorsViewModel @Inject constructor(
         }
     }
 
-    private fun mapNominatedValidatorStatusToViewState(statusGroup: NominatedValidator.Status.Group, validators: MultiSelectListViewState<String>) =
-        when (statusGroup) {
+    private fun mapNominatedValidatorStatusToViewState(
+        statusGroup: NominatedValidator.Status.Group,
+        validators: MultiSelectListViewState<String>,
+        hasActive: Boolean
+    ): GroupViewState {
+        return when (statusGroup) {
             is NominatedValidator.Status.Group.Active -> GroupViewState(
                 title = resourceManager.getString(
                     R.string.staking_your_elected_format,
                     statusGroup.numberOfValidators
                 ),
+                titleIcon = R.drawable.ic_status_success_16,
                 description = resourceManager.getString(R.string.staking_your_allocated_description),
                 listState = validators
             )
-
             is NominatedValidator.Status.Group.Inactive -> GroupViewState(
                 title = resourceManager.getString(
                     R.string.staking_your_not_elected_format,
@@ -123,7 +129,8 @@ class SelectedValidatorsViewModel @Inject constructor(
                 listState = validators
             )
             is NominatedValidator.Status.Group.Elected -> GroupViewState(
-                title = null,
+                title = if (!hasActive) resourceManager.getString(R.string.staking_your_elected_format, statusGroup.numberOfValidators) else null,
+                titleIcon = if (!hasActive) R.drawable.ic_status_success_16 else null,
                 description = resourceManager.getString(R.string.staking_your_not_allocated_description),
                 listState = validators
             )
@@ -133,8 +140,10 @@ class SelectedValidatorsViewModel @Inject constructor(
                     statusGroup.numberOfValidators,
                     statusGroup.maxValidatorsPerNominator
                 ),
+                titleIcon = R.drawable.ic_time_24,
                 description = resourceManager.getString(R.string.staking_your_validators_changing_title),
                 listState = validators
             )
         }
+    }
 }

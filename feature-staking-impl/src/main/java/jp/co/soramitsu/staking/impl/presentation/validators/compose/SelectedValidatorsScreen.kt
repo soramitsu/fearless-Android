@@ -1,13 +1,17 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.compose
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -25,6 +29,8 @@ import jp.co.soramitsu.common.compose.component.EmptyMessage
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.H3Bold
 import jp.co.soramitsu.common.compose.component.H6
+import jp.co.soramitsu.common.compose.component.Image
+import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
@@ -45,6 +51,7 @@ data class SelectedValidatorsScreenViewState(
 
 data class GroupViewState(
     val title: String?,
+    @DrawableRes val titleIcon: Int? = null,
     val description: String? = null,
     val listState: MultiSelectListViewState<String> = MultiSelectListViewState.empty()
 )
@@ -105,9 +112,10 @@ private fun GroupedValidators(
     groups: List<GroupViewState>,
     onInfoClick: (SelectableListItemState<String>) -> Unit
 ) {
-    LazyColumn {
+    LazyColumn(contentPadding = PaddingValues(bottom = 100.dp)) {
         groups.forEachIndexed { index, group ->
             val isLast = index == groups.size - 1
+
             item {
                 MarginVertical(margin = 16.dp)
                 ValidatorsGroupTitle(state = group)
@@ -144,7 +152,20 @@ private fun ValidatorsGroupTitle(state: GroupViewState) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        state.title?.let { H3Bold(text = it) }
+        state.title?.let { title ->
+            Row {
+                state.titleIcon?.let {
+                    Image(
+                        res = it,
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .size(14.dp)
+                    )
+                    MarginHorizontal(margin = 8.dp)
+                }
+                H3Bold(text = title, modifier = Modifier.align(Alignment.CenterVertically))
+            }
+        }
         MarginVertical(margin = 8.dp)
         state.description?.let { H6(text = it, color = black2) }
     }
@@ -182,6 +203,7 @@ private fun SelectedValidatorsScreenScreenPreview() {
     val groups = listOf(
         GroupViewState(
             title = "Elected",
+            titleIcon = R.drawable.ic_status_success_16,
             description = "Your stake is allocated to the following validators",
             listState = MultiSelectListViewState(items, items)
         )
