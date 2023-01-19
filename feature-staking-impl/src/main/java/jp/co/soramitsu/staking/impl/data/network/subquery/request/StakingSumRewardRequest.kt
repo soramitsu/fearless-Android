@@ -4,6 +4,7 @@ class StakingSumRewardRequest(accountAddress: String) {
     val query = """
     query {
         historyElements(
+        orderBy: TIMESTAMP_DESC,
         filter: {
             reward: { notEqualTo: "null"},
             address: { equalTo: "$accountAddress"}  }
