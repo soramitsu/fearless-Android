@@ -106,7 +106,7 @@ class PaymentUpdater(
                         .onEach { change ->
                             handleResponse(metaAccount.id, chainId, accountId, asset, change)
 
-                            if (asset.isUtility == true) {
+                            if (asset.isUtility) {
                                 fetchTransfers(change.block, chain, accountId)
                             }
                         }
@@ -124,8 +124,9 @@ class PaymentUpdater(
     ) {
         val runtime = chainRegistry.getRuntime(chainId)
 
-        when (asset.type) {
-            null, ChainAssetType.Normal -> {
+        when (asset.typeExtra) {
+            null, ChainAssetType.Normal,
+            ChainAssetType.SoraUtilityAsset -> {
                 val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
                 assetCache.updateAsset(metaId, accountId, asset, newAccountInfo)
             }
@@ -168,8 +169,9 @@ class PaymentUpdater(
         return if (currency == null) {
             runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
         } else {
-            when (asset.type) {
-                null, ChainAssetType.Normal -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
+            when (asset.typeExtra) {
+                null, ChainAssetType.Normal,
+                ChainAssetType.SoraUtilityAsset -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
                 ChainAssetType.Equilibrium -> runtime.metadata.module(Modules.EQBALANCES).storage("Account").storageKey(runtime, accountId, currency)
                 ChainAssetType.OrmlChain,
                 ChainAssetType.OrmlAsset,

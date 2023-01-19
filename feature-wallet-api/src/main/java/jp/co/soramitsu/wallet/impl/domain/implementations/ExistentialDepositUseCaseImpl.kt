@@ -24,10 +24,11 @@ class ExistentialDepositUseCaseImpl(private val chainRegistry: ChainRegistry, pr
 
         val existentialDepositResult = kotlin.runCatching {
             val runtime = chainRegistry.getRuntime(chainId)
-            when (chainAsset.type) {
+            when (chainAsset.typeExtra) {
                 null,
                 ChainAssetType.Normal,
                 ChainAssetType.OrmlChain,
+                ChainAssetType.SoraUtilityAsset,
                 ChainAssetType.SoraAsset -> {
                     runtime.metadata.balances().numberConstant("ExistentialDeposit", runtime)
                 }
