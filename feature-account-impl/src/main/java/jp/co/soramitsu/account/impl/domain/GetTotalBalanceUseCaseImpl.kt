@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.percentageToFraction
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -33,6 +34,7 @@ class GetTotalBalanceUseCaseImpl(
             .flatMapLatest { assetDao.observeAssets(it.id) }
             .filter { it.isNotEmpty() }
             .map { items ->
+                val fiatCurrency = items.find { it.asset.chainId == polkadotChainId }?.token?.fiatSymbol
                 items.fold(TotalBalance.Empty) { acc, current ->
                     val chainAsset = chainRegistry.chainsById.first().getValue(current.asset.chainId).assets
                         .firstOrNull { it.id == current.asset.id }
@@ -54,7 +56,7 @@ class GetTotalBalanceUseCaseImpl(
 
                     TotalBalance(
                         balance = balance,
-                        fiatSymbol = current.token?.fiatSymbol ?: DOLLAR_SIGN,
+                        fiatSymbol = current.token?.fiatSymbol ?: fiatCurrency ?: DOLLAR_SIGN,
                         balanceChange = balanceChange,
                         rateChange = rate
                     )
