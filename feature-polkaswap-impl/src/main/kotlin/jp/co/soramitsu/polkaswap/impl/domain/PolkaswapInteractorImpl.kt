@@ -72,7 +72,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         tokenTo: Asset,
         amount: BigDecimal,
         desired: WithDesired,
-        slippageTolerance: Float,
+        slippageTolerance: Double,
         market: Market
     ): SwapDetails? {
         val polkaswapUtilityAssetId = chainRegistry.getChain(polkaswapChainId).utilityAsset.id
@@ -96,7 +96,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         if (swapQuote.amount == BigDecimal.ZERO) return null
 
         val minMax =
-            (swapQuote.amount * BigDecimal.valueOf(slippageTolerance.toDouble() / 100)).let {
+            (swapQuote.amount * BigDecimal.valueOf(slippageTolerance / 100)).let {
                 if (desired == WithDesired.INPUT)
                     swapQuote.amount - it
                 else

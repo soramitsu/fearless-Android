@@ -24,6 +24,7 @@ fun ExapandableText(
     modifier: Modifier = Modifier,
     initialState: Boolean = false,
     isFullWidthClickable: Boolean = true,
+    onClick: () -> Unit = emptyClick,
     content: @Composable ColumnScope.() -> Unit
 ) {
     var isExpandedState by remember { mutableStateOf(initialState) }
@@ -41,6 +42,7 @@ fun ExapandableText(
                     if (isFullWidthClickable) {
                         isExpandedState = isExpandedState.not()
                     }
+                    onClick()
                 }
         ) {
             H5(text = title, modifier = Modifier.weight(1f))

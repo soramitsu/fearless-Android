@@ -4,7 +4,6 @@ import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
@@ -18,6 +17,8 @@ import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
+import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
+import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsModel
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -52,6 +53,7 @@ class SwapTokensViewModel @Inject constructor(
     private val toAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
 
     private var selectedMarket = MutableStateFlow(Market.SMART)
+    private var slippageTolerance = MutableStateFlow(0.5)
 
     private val fromAsset = MutableStateFlow<Asset?>(null)
     private val toAsset = MutableStateFlow<Asset?>(null)
@@ -69,6 +71,7 @@ class SwapTokensViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var assetResultJob: Job? = null
+    private var transactionSettingsJob: Job? = null
 
     val state = combine(
         fromAmountInputViewState,
@@ -88,6 +91,14 @@ class SwapTokensViewModel @Inject constructor(
         initFromAsset()
         subscribeFromAmountInputViewState()
         subscribeToAmountInputViewState()
+
+        transactionSettingsJob?.cancel()
+        transactionSettingsJob = polkaswapRouter.observeResult<TransactionSettingsModel>(TransactionSettingsFragment.SETTINGS_MODEL_KEY)
+            .onEach {
+                selectedMarket.value = it.market
+                slippageTolerance.value = it.slippageTolerance
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun observeResultFor(assetFlow: MutableStateFlow<Asset?>) {
@@ -113,52 +124,13 @@ class SwapTokensViewModel @Inject constructor(
         toAsset ?: return null
         desired ?: return null
 
-        val amount = when(desired) {
+        val amount = when (desired) {
             WithDesired.INPUT -> fromAmountInputViewState.tokenAmount
             WithDesired.OUTPUT -> toAmountInputViewState.tokenAmount
             null -> return null
         }.toBigDecimal()
-        polkaswapInteractor.calcDetails(fromAsset, toAsset, amount, desired!!,)
-        val fromAssetId = fromAsset?.token?.configuration?.id ?: return null
-        val toAssetId = toAsset?.token?.configuration?.id ?: return null
 
-        val fromTokenName = fromAmountInputViewState.tokenName ?: return null
-        val toTokenName = toAmountInputViewState.tokenName ?: return null
-
-        val fromTokenAmount = fromAmountInputViewState.tokenAmount.toBigDecimal()
-            .takeIf { it != BigDecimal.ZERO } ?: return null
-        val toTokenAmount = toAmountInputViewState.tokenAmount.toBigDecimal()
-            .takeIf { it != BigDecimal.ZERO } ?: return null
-
-        val fromTokenImage = fromAmountInputViewState.tokenImage
-        val toTokenImage = toAmountInputViewState.tokenImage
-
-        val toFiatAmount = toAmountInputViewState.fiatAmount.orEmpty()
-
-        return SwapDetails(
-            fromTokenId = fromAssetId,
-            toTokenId = toAssetId,
-            fromTokenName = fromTokenName.uppercase(),
-            toTokenName = toTokenName.uppercase(),
-            fromTokenImage = fromTokenImage,
-            toTokenImage = toTokenImage,
-            toTokenMinReceived = toTokenAmount,
-            toFiatMinReceived = toFiatAmount,
-            fromTokenAmount = fromTokenAmount,
-            toTokenAmount = toTokenAmount,
-            networkFee = SwapDetails.NetworkFee(
-                tokenName = "",
-                tokenAmount = BigDecimal.ONE,
-                fiatAmount = ""
-            ),
-            liquidityProviderFee = SwapDetails.NetworkFee(
-                tokenName = "",
-                tokenAmount = BigDecimal.ONE,
-                fiatAmount = ""
-            ),
-            fromTokenOnToToken = BigDecimal.ZERO,
-            toTokenOnFromToken = BigDecimal.ZERO
-        )
+        return polkaswapInteractor.calcDetails(fromAsset, toAsset, amount, desired!!, 0.5f, selectedMarket)
     }
 
     private fun getAmountInputViewState(

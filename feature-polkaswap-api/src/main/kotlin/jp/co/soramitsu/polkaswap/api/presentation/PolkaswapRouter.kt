@@ -14,6 +14,8 @@ interface PolkaswapRouter {
 
     fun <T> observeResult(key: String): Flow<T>
 
+    fun backWithResult(vararg results: Pair<String, Any?>)
+
     fun back()
 
     fun openTransactionSettingsDialog()

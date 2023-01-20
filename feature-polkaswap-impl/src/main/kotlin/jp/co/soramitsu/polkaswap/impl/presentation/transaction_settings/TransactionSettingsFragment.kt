@@ -13,6 +13,9 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 
 @AndroidEntryPoint
 class TransactionSettingsFragment : BaseComposeBottomSheetDialogFragment<TransactionSettingsViewModel>() {
+    companion object {
+        const val SETTINGS_MODEL_KEY = "settingsModel"
+    }
 
     override val viewModel: TransactionSettingsViewModel by viewModels()
 

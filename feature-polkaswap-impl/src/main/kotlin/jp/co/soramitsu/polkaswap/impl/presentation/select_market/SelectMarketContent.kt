@@ -20,7 +20,8 @@ import jp.co.soramitsu.polkaswap.api.models.Market
 
 @Composable
 fun SelectMarketContent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    marketSelected: (Market) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -42,7 +43,9 @@ fun SelectMarketContent(
                 modifier = Modifier
                     .padding(vertical = 16.dp),
                 title = it.marketName,
-                initialState = false
+                initialState = false,
+                isFullWidthClickable = false,
+                onClick = { marketSelected(it) }
             ) {
                 Text(
                     text = stringResource(it.descriptionId),
@@ -57,5 +60,5 @@ fun SelectMarketContent(
 @Preview
 @Composable
 fun SelectMarketContentPreview() {
-    SelectMarketContent()
+    SelectMarketContent() {}
 }

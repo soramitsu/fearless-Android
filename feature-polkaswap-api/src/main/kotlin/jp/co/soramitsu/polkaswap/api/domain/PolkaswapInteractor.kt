@@ -5,7 +5,6 @@ import java.math.BigInteger
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.Flow
 
@@ -22,7 +21,7 @@ interface PolkaswapInteractor {
         tokenTo: Asset,
         amount: BigDecimal,
         desired: WithDesired,
-        slippageTolerance: Float,
+        slippageTolerance: Double,
         market: Market
     ): SwapDetails?
 }

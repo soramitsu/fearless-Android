@@ -3,20 +3,24 @@ package jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.text.NumberFormat
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.NumberInputState
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
-import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import java.text.NumberFormat
-import javax.inject.Inject
 
 @HiltViewModel
 class TransactionSettingsViewModel @Inject constructor(
@@ -43,14 +47,27 @@ class TransactionSettingsViewModel @Inject constructor(
         maximumFractionDigits = 1
     }
 
-    val state = combine(selectedMarket, slippageToleranceStringValue, slippageInputFocused, slippageWarningText) {
-            selectedMarket, slippageToleranceValue, isSlippageInputFocused, slippageWarningText ->
+    val state = combine(
+        selectedMarket,
+        slippageToleranceStringValue,
+        slippageInputFocused,
+        slippageWarningText
+    ) { selectedMarket, slippageToleranceValue, isSlippageInputFocused, slippageWarningText ->
         TransactionSettingsViewState(
             marketState = getMarketState(selectedMarket),
             slippageInputState = getSlippageTolerance(slippageToleranceValue, isSlippageInputFocused, slippageWarningText),
             slippageWarningText = slippageWarningText
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, TransactionSettingsViewState.default(resourceManager))
+
+    private var selectMarketJob: Job? = null
+
+    init {
+        selectMarketJob?.cancel()
+        selectMarketJob = polkaswapRouter.observeResult<Market>(SelectMarketFragment.MARKET_KEY)
+            .onEach { selectedMarket.value = it }
+            .launchIn(viewModelScope)
+    }
 
     override fun onMarketClick() {
         slippageInputFocused.value = false
@@ -68,8 +85,14 @@ class TransactionSettingsViewModel @Inject constructor(
     }
 
     override fun onSaveClick() {
-        // TODO: onSaveClick
         slippageInputFocused.value = false
+
+        polkaswapRouter.backWithResult(
+            TransactionSettingsFragment.SETTINGS_MODEL_KEY to TransactionSettingsModel(
+                selectedMarket.value,
+                slippageToleranceStringValue.value.toDouble()
+            )
+        )
     }
 
     override fun onQuickSlippageInput(value: Double) {
