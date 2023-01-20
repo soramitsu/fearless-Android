@@ -12,6 +12,8 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.dataOrNull
+import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatAsPercentage
 import jp.co.soramitsu.common.utils.fractionToPercentage
@@ -106,9 +108,11 @@ class SelectValidatorsViewModel @Inject constructor(
         }
     }
 
-    private val recommendedValidators = recommendedSettings.mapNotNull { settings ->
-        validatorRecommendator().recommendations(settings ?: recommendationSettingsProvider().defaultSelectCustomSettings())
-    }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val recommendedValidators = recommendedSettings.mapNotNull {
+        val settings = it ?: recommendationSettingsProvider().defaultSelectCustomSettings()
+        val recommendations = validatorRecommendator().recommendations(settings)
+        LoadingState.Loaded(recommendations)
+    }.inBackground().stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
 
     private val toolbarTitle: String
         get() = when (selectMode) {
@@ -116,41 +120,46 @@ class SelectValidatorsViewModel @Inject constructor(
             SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> resourceManager.getString(R.string.staking_select_suggested)
         }
 
-    val state = combine(recommendedValidators, selectedItems, recommendedSettings, searchQueryFlow) { validators, selectedValidators, settings, searchQuery ->
-        val filtered = validators.filter {
-            val searchQueryLowerCase = searchQuery.lowercase()
-            val identityNameLowerCase = it.identity?.display?.lowercase().orEmpty()
-            val addressLowerCase = it.address.lowercase()
-            identityNameLowerCase.contains(searchQueryLowerCase) || addressLowerCase.contains(searchQueryLowerCase)
-        }
-        if (selectMode == SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED) {
-            selectedItems.value = filtered.map { it.accountIdHex }
-        }
-        val items = filtered.map {
-            val isSelected = when (selectMode) {
-                SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> it.accountIdHex in selectedValidators
-                SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> true
+    val state =
+        combine(recommendedValidators, selectedItems, recommendedSettings, searchQueryFlow) { validatorsState, selectedValidators, settings, searchQuery ->
+            val listState = validatorsState.map { validators ->
+                val filtered = validators.filter {
+                    val searchQueryLowerCase = searchQuery.lowercase()
+                    val identityNameLowerCase = it.identity?.display?.lowercase().orEmpty()
+                    val addressLowerCase = it.address.lowercase()
+                    identityNameLowerCase.contains(searchQueryLowerCase) || addressLowerCase.contains(searchQueryLowerCase)
+                }
+                if (selectMode == SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED) {
+                    selectedItems.value = filtered.map { it.accountIdHex }
+                }
+                val items = filtered.map {
+                    val isSelected = when (selectMode) {
+                        SelectValidatorFlowState.ValidatorSelectMode.CUSTOM -> it.accountIdHex in selectedValidators
+                        SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED -> true
+                    }
+                    it.toModel(isSelected, settings?.sorting, asset, resourceManager)
+                }
+
+                val selectedItems = items.filter { it.isSelected }
+
+                MultiSelectListViewState(items, selectedItems)
             }
-            it.toModel(isSelected, settings?.sorting, asset, resourceManager)
-        }
-        val selectedItems = items.filter { it.isSelected }
-        val listState = MultiSelectListViewState(items, selectedItems)
-        SelectValidatorsScreenViewState(
-            toolbarTitle = toolbarTitle,
-            isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
-            searchQuery = searchQuery,
-            listState = LoadingState.Loaded(listState)
+            SelectValidatorsScreenViewState(
+                toolbarTitle = toolbarTitle,
+                isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
+                searchQuery = searchQuery,
+                listState = listState
+            )
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            SelectValidatorsScreenViewState(
+                toolbarTitle = toolbarTitle,
+                isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
+                searchQuery = searchQueryFlow.value,
+                listState = LoadingState.Loading()
+            )
         )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Eagerly,
-        SelectValidatorsScreenViewState(
-            toolbarTitle = toolbarTitle,
-            isCustom = selectMode == SelectValidatorFlowState.ValidatorSelectMode.CUSTOM,
-            searchQuery = searchQueryFlow.value,
-            listState = LoadingState.Loading()
-        )
-    )
 
     override fun onNavigationClick() = router.back()
 
@@ -185,7 +194,7 @@ class SelectValidatorsViewModel @Inject constructor(
     }
 
     override fun onInfoClick(item: SelectableListItemState<String>) {
-        val validator = recommendedValidators.value.find { it.accountIdHex == item.id }
+        val validator = recommendedValidators.value.dataOrNull()?.find { it.accountIdHex == item.id }
         router.openValidatorDetails(mapValidatorToValidatorDetailsParcelModel(requireNotNull(validator)))
     }
 
