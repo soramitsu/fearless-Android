@@ -20,7 +20,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.primitives.FixedByteArray
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.runtime.ext.accountIdOf
@@ -31,6 +30,7 @@ import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountDataOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.bindTransferExtrinsic
 import jp.co.soramitsu.wallet.impl.data.repository.totalBalance
@@ -103,10 +103,10 @@ class WssSubstrateSource(
         return remoteStorageSource.query(
             chainId = asset.chainId,
             keyBuilder = {
-                it.metadata.module(Modules.EQBALANCES).storage("Account").storageKey(it, accountId, asset.currency)
+                it.metadata.system().storage("Account").storageKey(it, accountId)
             },
             binding = { scale, runtime ->
-                bindAccountInfoOrDefault(scale, runtime)
+                bindEquilibriumAccountDataOrDefault(scale, runtime, asset.currency as? BigInteger)
             }
         )
     }
