@@ -5,6 +5,7 @@ import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
@@ -56,6 +57,35 @@ fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
     miscFrozen = (dynamicInstance?.get("miscFrozen") as? BigInteger).orZero(),
     feeFrozen = (dynamicInstance?.get("feeFrozen") as? BigInteger).orZero()
 )
+
+@UseCaseBinding
+fun bindEquilibriumAccountInfo(scale: String, runtime: RuntimeSnapshot, currency: BigInteger?): AccountInfo {
+    val type = runtime.metadata.system().storage("Account").returnType()
+
+    val dynamicInstance = type.fromHexOrNull(runtime, scale).cast<Struct.Instance>()
+    val data: DictEnum.Entry<Struct.Instance>? = dynamicInstance["data"]
+
+    return AccountInfo(
+        nonce = bindNonce(dynamicInstance["nonce"]),
+        data = bindEquilibriumAccountData(data?.value, currency)
+    )
+}
+
+@HelperBinding
+fun bindEquilibriumAccountData(dynamicInstance: Struct.Instance?, currency: BigInteger?): AccountData {
+    val balanceList: List<List<Any>>? = dynamicInstance?.getList("balance")?.cast()
+    val currencyBalance: List<Any>? = balanceList?.firstOrNull { it.getOrNull(0) as? BigInteger == currency }
+    val balanceEnum: DictEnum.Entry<BigInteger>? = currencyBalance?.getOrNull(1)?.cast()
+
+    val balanceValue = if (balanceEnum?.name == "Positive") balanceEnum.value else BigInteger.ZERO
+
+    return AccountData(
+        free = balanceValue,
+        reserved = BigInteger.ZERO,
+        miscFrozen = BigInteger.ZERO,
+        feeFrozen = BigInteger.ZERO
+    )
+}
 
 @HelperBinding
 fun bindNonce(dynamicInstance: Any?): BigInteger {

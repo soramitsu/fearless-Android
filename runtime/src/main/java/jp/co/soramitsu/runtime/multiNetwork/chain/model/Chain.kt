@@ -100,7 +100,7 @@ data class Chain(
                 val currencyHexList = currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() }.orEmpty()
                 Struct.Instance(mapOf("code" to currencyHexList))
             }
-            ChainAssetType.Equilibrium -> symbol.toBigInteger()
+            ChainAssetType.Equilibrium -> currencyId?.toBigInteger()
             ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
         }
     }
