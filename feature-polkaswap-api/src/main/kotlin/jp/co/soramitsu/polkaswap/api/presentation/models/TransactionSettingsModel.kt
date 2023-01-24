@@ -1,4 +1,4 @@
-package jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings
+package jp.co.soramitsu.polkaswap.api.presentation.models
 
 import android.os.Parcelable
 import jp.co.soramitsu.polkaswap.api.models.Market

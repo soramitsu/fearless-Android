@@ -62,8 +62,10 @@ import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
+import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
+import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
@@ -414,8 +416,9 @@ class Navigator :
         back()
     }
 
-    override fun openTransactionSettingsDialog() {
-        navController?.navigate(R.id.transactionSettingsFragment)
+    override fun openTransactionSettingsDialog(initialSettings: TransactionSettingsModel) {
+        val bundle = TransactionSettingsFragment.getBundle(initialSettings)
+        navController?.navigate(R.id.transactionSettingsFragment, bundle)
     }
 
     override fun openSwapPreviewDialog(swapDetails: SwapDetails) {

@@ -47,6 +47,7 @@ import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
 import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
@@ -207,7 +208,7 @@ private fun TransactionDescription(
             modifier = Modifier.padding(top = 8.dp),
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_min_received),
-                feeAmount = "${swapDetails.toTokenMinReceived} ${swapDetails.toTokenName}",
+                feeAmount = swapDetails.toTokenMinReceived.formatTokenAmount(swapDetails.toTokenName),
                 feeAmountFiat = swapDetails.toFiatMinReceived
             )
         )

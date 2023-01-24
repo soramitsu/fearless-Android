@@ -147,6 +147,23 @@ class RpcCalls(
         return socketFor(chainId).executeAsync(request, mapper = pojo<QuoteResponse>().nonNull())
     }
 
+    suspend fun liquidityProxyIsPathAvailable(
+        chainId: ChainId,
+        tokenId1: String,
+        tokenId2: String,
+        dexId: Int,
+    ): Boolean {
+        val request = RuntimeRequest(
+            method = "liquidityProxy_isPathAvailable",
+            params = listOf(
+                dexId,
+                tokenId1,
+                tokenId2
+            ),
+        )
+        return socketFor(chainId).executeAsync(request, mapper = pojo<Boolean>().nonNull())
+    }
+
     suspend fun submitExtrinsic(chainId: ChainId, extrinsic: String): String {
         val request = SubmitExtrinsicRequest(extrinsic)
 

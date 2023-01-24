@@ -1,6 +1,7 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings
 
 import androidx.compose.ui.focus.FocusState
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.NumberFormat
@@ -12,6 +13,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,12 +27,19 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel
 class TransactionSettingsViewModel @Inject constructor(
     private val polkaswapRouter: PolkaswapRouter,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), TransactionSettingsCallbacks {
 
-    private val selectedMarket = MutableStateFlow(Market.SMART)
+    private val formatter = NumberFormat.getNumberInstance().apply {
+        minimumFractionDigits = 0
+        maximumFractionDigits = 1
+    }
+
+    private val initialSettings = savedStateHandle.get<TransactionSettingsModel>(TransactionSettingsFragment.SETTINGS_MODEL_KEY)
+    private val selectedMarket = MutableStateFlow(initialSettings?.market ?: Market.SMART)
     private val slippageInputFocused = MutableStateFlow(false)
-    private val slippageToleranceStringValue = MutableStateFlow(DefaultSlippageTolerance)
+    private val slippageToleranceStringValue = MutableStateFlow(formatOrNull(initialSettings?.slippageTolerance) ?: DefaultSlippageTolerance)
     private val slippageWarningText = slippageToleranceStringValue
         .map { slippageToleranceString ->
             val number = slippageToleranceString.toDouble()
@@ -41,11 +50,6 @@ class TransactionSettingsViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val formatter = NumberFormat.getNumberInstance().apply {
-        minimumFractionDigits = 0
-        maximumFractionDigits = 1
-    }
 
     val state = combine(
         selectedMarket,
@@ -143,6 +147,10 @@ class TransactionSettingsViewModel @Inject constructor(
     private fun format(value: Number): String {
         return formatter.format(value)
             .replace(",", ".")
+    }
+
+    private fun formatOrNull(value: Number?): String? {
+        return value?.let { format(it) }
     }
 
     companion object {

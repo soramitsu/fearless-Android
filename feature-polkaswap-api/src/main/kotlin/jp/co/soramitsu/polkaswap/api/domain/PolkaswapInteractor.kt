@@ -23,5 +23,5 @@ interface PolkaswapInteractor {
         desired: WithDesired,
         slippageTolerance: Double,
         market: Market
-    ): SwapDetails?
+    ): Result<SwapDetails?>
 }

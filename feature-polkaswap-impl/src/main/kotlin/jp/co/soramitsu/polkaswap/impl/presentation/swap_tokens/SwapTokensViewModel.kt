@@ -6,19 +6,22 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
+import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_polkaswap_impl.R
+import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
+import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
-import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsModel
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -66,6 +69,7 @@ class SwapTokensViewModel @Inject constructor(
         fromAsset,
         toAsset,
         selectedMarket,
+        slippageTolerance,
         transform = ::getSwapDetails
     )
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -118,7 +122,8 @@ class SwapTokensViewModel @Inject constructor(
         toAmountInputViewState: AmountInputViewState,
         fromAsset: Asset?,
         toAsset: Asset?,
-        selectedMarket: Market
+        selectedMarket: Market,
+        slippageTolerance: Double
     ): SwapDetails? {
         fromAsset ?: return null
         toAsset ?: return null
@@ -130,7 +135,22 @@ class SwapTokensViewModel @Inject constructor(
             null -> return null
         }.toBigDecimal()
 
-        return polkaswapInteractor.calcDetails(fromAsset, toAsset, amount, desired!!, 0.5f, selectedMarket)
+        val detailsCalcResult = polkaswapInteractor.calcDetails(fromAsset, toAsset, amount, desired!!, slippageTolerance, selectedMarket)
+        return detailsCalcResult.fold(
+            onSuccess = {
+                it
+            },
+            onFailure = {
+                val error = when (it) {
+                    is PathUnavailableException -> ValidationException(
+                        resourceManager.getString(R.string.common_error_general_title),
+                        resourceManager.getString(R.string.polkaswap_path_unavailable_message)
+                    )
+                    else -> it
+                }
+                showError(error)
+                null
+            })
     }
 
     private fun getAmountInputViewState(
@@ -235,7 +255,8 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     override fun onMarketSettingsClick() {
-        polkaswapRouter.openTransactionSettingsDialog()
+        val initialSettings = TransactionSettingsModel(selectedMarket.value, slippageTolerance.value)
+        polkaswapRouter.openTransactionSettingsDialog(initialSettings)
     }
 
     override fun onFromTokenSelect() {

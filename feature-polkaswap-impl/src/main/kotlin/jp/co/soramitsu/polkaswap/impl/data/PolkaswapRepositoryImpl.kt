@@ -78,6 +78,15 @@ class PolkaswapRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun isPairAvailable(
+        chainId: ChainId,
+        tokenFromId: String,
+        tokenToId: String,
+        dexId: Int
+    ): Boolean {
+        return rpcCalls.liquidityProxyIsPathAvailable(chainId, tokenFromId, tokenToId, dexId)
+    }
+
     override suspend fun getSwapQuote(
         chainId: ChainId,
         tokenFromId: String,

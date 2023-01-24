@@ -922,4 +922,5 @@
     <string name="polkaswap_market_xyk_description">XYK — покупка только из пула XYK (вторичный рынок). Традиционный обмен/свап пула XYK, когда любой может покупать или продавать активы, меняя позицию маркет-мейкера на кривой x*y=k.</string>
     <string name="polkaswap_preview_title">Предпросмотр</string>
     <string name="polkaswap_swap_title">Обмен</string>
+    <string name="polkaswap_path_unavailable_message">К сожалению, такой пары нет. Но вы можете выбрать другую</string>
 </resources>

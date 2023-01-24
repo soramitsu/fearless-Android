@@ -1018,4 +1018,5 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_market_xyk_description">XYK — buying only from the XYK pool (Secondary Market). Traditional XYK pool swap where anyone can buy or sell assets by shifting the market maker’s position on the x*y=k curve.</string>
     <string name="polkaswap_preview_title">Preview</string>
     <string name="polkaswap_swap_title">Swap</string>
+    <string name="polkaswap_path_unavailable_message">Unfortunately there is no such pair, but you can choose another one</string>
 </resources>

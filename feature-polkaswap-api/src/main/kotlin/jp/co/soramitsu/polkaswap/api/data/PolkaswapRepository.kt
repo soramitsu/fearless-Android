@@ -33,4 +33,11 @@ interface PolkaswapRepository {
         markets: List<String>,
         desired: WithDesired
     ): BigInteger
+
+    suspend fun isPairAvailable(
+        chainId: ChainId,
+        tokenFromId: String,
+        tokenToId: String,
+        dexId: Int
+    ): Boolean
 }
