@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters
 
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
@@ -8,6 +7,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.model.StorageChange
@@ -28,7 +28,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
-import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountDataOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.updateAsset
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationStatusToOperationLocalStatus
@@ -152,8 +152,13 @@ class PaymentUpdater(
                 }
             }
             ChainAssetType.Equilibrium -> {
-                val newAccountInfo = bindEquilibriumAccountDataOrDefault(change.value, runtime, asset.currency as? BigInteger)
-                assetCache.updateAsset(metaId, accountId, asset, newAccountInfo)
+                val eqAccountInfo = bindEquilibriumAccountData(change.value, runtime)
+                assetCache.updateAsset(metaId, accountId, asset) {
+                    it.copy(
+                        accountId = accountId,
+                        freeInPlanks = eqAccountInfo?.data?.balances?.get(asset.currency).orZero()
+                    )
+                }
             }
             ChainAssetType.Unknown -> Unit
         }

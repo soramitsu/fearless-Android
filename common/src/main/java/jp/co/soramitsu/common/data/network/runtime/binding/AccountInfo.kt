@@ -4,6 +4,7 @@ import java.math.BigInteger
 import jp.co.soramitsu.common.utils.Modules
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.DictEnum
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
@@ -16,6 +17,11 @@ class AccountData(
     val reserved: BigInteger,
     val miscFrozen: BigInteger,
     val feeFrozen: BigInteger
+)
+
+class EqAccountData(
+    val lock: BigInteger,
+    val balances: Map<BigInteger, BigInteger>
 )
 
 class OrmlTokensAccountData(
@@ -31,6 +37,11 @@ class OrmlTokensAccountData(
         )
     }
 }
+
+class EqAccountInfo(
+    val nonce: BigInteger,
+    val data: EqAccountData
+)
 
 class AccountInfo(
     val nonce: BigInteger,
@@ -50,6 +61,21 @@ class AccountInfo(
     }
 }
 
+class EqOraclePricePoint(
+    val blockNumber: BigInteger,
+    val timestamp: BigInteger,
+    val lastFinRecalcTimestamp: BigInteger,
+    val price: BigInteger,
+    val dataPoints: List<DataPoint>
+)
+
+class DataPoint(
+    val price: BigInteger,
+    val accountId: AccountId,
+    val blockNumber: BigInteger,
+    val timestamp: BigInteger
+)
+
 @HelperBinding
 fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
     free = (dynamicInstance?.get("free") as? BigInteger).orZero(),
@@ -59,31 +85,54 @@ fun bindAccountData(dynamicInstance: Struct.Instance?) = AccountData(
 )
 
 @UseCaseBinding
-fun bindEquilibriumAccountInfo(scale: String, runtime: RuntimeSnapshot, currency: BigInteger?): AccountInfo {
+fun bindEquilibriumAccountInfo(scale: String, runtime: RuntimeSnapshot): EqAccountInfo {
     val type = runtime.metadata.system().storage("Account").returnType()
 
     val dynamicInstance = type.fromHexOrNull(runtime, scale).cast<Struct.Instance>()
     val data: DictEnum.Entry<Struct.Instance>? = dynamicInstance["data"]
 
-    return AccountInfo(
+    return EqAccountInfo(
         nonce = bindNonce(dynamicInstance["nonce"]),
-        data = bindEquilibriumAccountData(data?.value, currency)
+        data = bindEquilibriumAccountData(data?.value)
     )
 }
 
-@HelperBinding
-fun bindEquilibriumAccountData(dynamicInstance: Struct.Instance?, currency: BigInteger?): AccountData {
+@UseCaseBinding
+fun bindEquilibriumAssetRates(scale: String?, runtime: RuntimeSnapshot): EqOraclePricePoint? {
+    scale ?: return null
+
+    val type = runtime.metadata.module(Modules.ORACLE).storage("PricePoints").returnType()
+    val dynamicInstance = type.fromHexOrNull(runtime, scale).cast<Struct.Instance>()
+
+    val dataPoints = dynamicInstance.getList("dataPoints").filterIsInstance<Struct.Instance>().map { dataPointStruct ->
+        DataPoint(
+            price = bindNumber(dataPointStruct["price"]),
+            accountId = bindAccountId(dataPointStruct["accountId"]),
+            blockNumber = bindNumber(dataPointStruct["blockNumber"]),
+            timestamp = bindNumber(dataPointStruct["timestamp"])
+        )
+    }
+    return EqOraclePricePoint(
+        blockNumber = bindNumber(dynamicInstance["blockNumber"]),
+        timestamp = bindNumber(dynamicInstance["timestamp"]),
+        lastFinRecalcTimestamp = bindNumber(dynamicInstance["lastFinRecalcTimestamp"]),
+        price = bindNumber(dynamicInstance["price"]),
+        dataPoints = dataPoints
+    )
+}
+fun bindEquilibriumAccountData(dynamicInstance: Struct.Instance?): EqAccountData {
     val balanceList: List<List<Any>>? = dynamicInstance?.getList("balance")?.cast()
-    val currencyBalance: List<Any>? = balanceList?.firstOrNull { it.getOrNull(0) as? BigInteger == currency }
-    val balanceEnum: DictEnum.Entry<BigInteger>? = currencyBalance?.getOrNull(1)?.cast()
+    val balances = balanceList?.mapNotNull {
+        (it.getOrNull(0) as? BigInteger)?.let { eqAssetId ->
+            val balanceEnum: DictEnum.Entry<BigInteger>? = it.getOrNull(1).cast()
+            val balanceValue = if (balanceEnum?.name == "Positive") balanceEnum.value else BigInteger.ZERO
+            eqAssetId to balanceValue
+        }
+    }?.toMap().orEmpty()
 
-    val balanceValue = if (balanceEnum?.name == "Positive") balanceEnum.value else BigInteger.ZERO
-
-    return AccountData(
-        free = balanceValue,
-        reserved = BigInteger.ZERO,
-        miscFrozen = BigInteger.ZERO,
-        feeFrozen = BigInteger.ZERO
+    return EqAccountData(
+        lock = bindNumber(dynamicInstance?.get("lock")).orZero(),
+        balances = balances
     )
 }
 

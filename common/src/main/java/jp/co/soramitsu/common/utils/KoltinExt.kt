@@ -24,7 +24,7 @@ inline fun <T> List<T>.sumByBigInteger(extractor: (T) -> BigInteger): BigInteger
 
 suspend operator fun <T> Deferred<T>.invoke() = await()
 
-inline fun <T> List<T>.sumByBigDecimal(extractor: (T) -> BigDecimal): BigDecimal = fold(BigDecimal.ZERO) { acc, element ->
+inline fun <T> Collection<T>.sumByBigDecimal(extractor: (T) -> BigDecimal): BigDecimal = fold(BigDecimal.ZERO) { acc, element ->
     acc + extractor(element)
 }
 

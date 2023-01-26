@@ -1,7 +1,7 @@
 package jp.co.soramitsu.wallet.api.data.cache
 
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.bindAccountInfo
 import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAccountInfo
@@ -42,6 +42,6 @@ fun bindAccountInfoOrDefault(hex: String?, runtime: RuntimeSnapshot): AccountInf
 fun bindOrmlTokensAccountDataOrDefault(hex: String?, runtime: RuntimeSnapshot): OrmlTokensAccountData {
     return hex?.let { bindOrmlTokensAccountData(it, runtime) } ?: OrmlTokensAccountData.empty()
 }
-fun bindEquilibriumAccountDataOrDefault(hex: String?, runtime: RuntimeSnapshot, currency: BigInteger?): AccountInfo {
-    return hex?.let { bindEquilibriumAccountInfo(it, runtime, currency) } ?: AccountInfo.empty()
+fun bindEquilibriumAccountData(hex: String?, runtime: RuntimeSnapshot): EqAccountInfo? {
+    return hex?.let { bindEquilibriumAccountInfo(it, runtime) }
 }
