@@ -12,7 +12,8 @@ enum class ChainAssetType {
     Stable,
     Equilibrium,
     SoraAsset,
-    Unknown;
+    Unknown,
+    SoraUtilityAsset;
 
     companion object {
         fun from(key: String?): ChainAssetType {

@@ -993,4 +993,5 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_depositor_unstake_error_message">You are a pool\'s owner, and your stake has to be at least %s. If you want to destroy your pool and kick out its members, please use Polkadot.js.plus link</string>
     <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
     <string name="pool_create_success_message">Your pool has been successfully created. Now you should choose validators for the pool</string>
+    <string name="same_address_transfer_warning_message">You\'re trying to make a transfer to the same account. The operation will charge a fee and doesn\'t make any sense</string>
 </resources>

@@ -82,8 +82,10 @@ data class Chain(
                 else -> order
             }
 
+        val typeExtra = if (isUtility && type == ChainAssetType.SoraAsset) ChainAssetType.SoraUtilityAsset else type
+
         @Suppress("IMPLICIT_CAST_TO_ANY")
-        val currency = when (type) {
+        val currency = when (typeExtra) {
             null, ChainAssetType.Normal -> null
             ChainAssetType.ForeignAsset -> DictEnum.Entry("ForeignAsset", currencyId?.toBigInteger())
             ChainAssetType.StableAssetPoolToken -> DictEnum.Entry("StableAssetPoolToken", currencyId?.toBigInteger())
@@ -93,6 +95,7 @@ data class Chain(
             ChainAssetType.VToken -> DictEnum.Entry("VToken", DictEnum.Entry(symbol.uppercase(), null))
             ChainAssetType.VSToken -> DictEnum.Entry("VSToken", DictEnum.Entry(symbol.uppercase(), null))
             ChainAssetType.Stable -> DictEnum.Entry("Stable", DictEnum.Entry(symbol.uppercase(), null))
+            ChainAssetType.SoraUtilityAsset,
             ChainAssetType.SoraAsset -> {
                 val currencyHexList = currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() }.orEmpty()
                 Struct.Instance(mapOf("code" to currencyHexList))

@@ -24,11 +24,16 @@ class SendSharedState {
     }
 
     fun updateAddress(address: String) {
+        clearAddress()
         _addressFlow.value = address
     }
 
     fun clear() {
         _assetIdToChainIdFlow.value = null
+        _addressFlow.value = null
+    }
+
+    fun clearAddress() {
         _addressFlow.value = null
     }
 }

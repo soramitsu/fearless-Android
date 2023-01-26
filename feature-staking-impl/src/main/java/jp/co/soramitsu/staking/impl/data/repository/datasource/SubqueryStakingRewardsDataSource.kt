@@ -2,14 +2,14 @@ package jp.co.soramitsu.staking.impl.data.repository.datasource
 
 import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.staking.impl.data.mappers.mapSubqueryHistoryToTotalReward
 import jp.co.soramitsu.staking.impl.data.mappers.mapTotalRewardLocalToTotalReward
 import jp.co.soramitsu.staking.impl.data.network.subquery.StakingApi
 import jp.co.soramitsu.staking.impl.data.network.subquery.request.StakingSumRewardRequest
 import jp.co.soramitsu.staking.impl.domain.model.TotalReward
-import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -33,13 +33,16 @@ class SubqueryStakingRewardsDataSource(
             throw Exception("Pending rewards for this network is not supported yet")
         }
 
-        val totalReward = mapSubqueryHistoryToTotalReward(
-            stakingApi.getSumReward(
-                stakingUrl,
-                StakingSumRewardRequest(accountAddress = accountAddress)
-            )
+        val r = stakingApi.getSumReward(
+            stakingUrl,
+            StakingSumRewardRequest(accountAddress = accountAddress)
         )
 
+        hashCode()
+        val totalReward = mapSubqueryHistoryToTotalReward(
+            r
+        )
+        hashCode()
         stakingTotalRewardDao.insert(TotalRewardLocal(accountAddress, totalReward))
     }
 }

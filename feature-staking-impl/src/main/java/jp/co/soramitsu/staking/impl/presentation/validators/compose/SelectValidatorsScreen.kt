@@ -22,6 +22,7 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.CorneredInput
 import jp.co.soramitsu.common.compose.component.EmptyMessage
+import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.MenuIconItem
 import jp.co.soramitsu.common.compose.component.Toolbar
@@ -29,6 +30,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItem
 import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListItemState
@@ -37,7 +39,7 @@ data class SelectValidatorsScreenViewState(
     val toolbarTitle: String,
     val isCustom: Boolean,
     val searchQuery: String = "",
-    val listState: MultiSelectListViewState<String>
+    val listState: LoadingState<MultiSelectListViewState<String>>
 )
 
 data class MultiSelectListViewState<ItemIdType>(
@@ -85,40 +87,46 @@ fun SelectValidatorsScreen(
             onNavigationClick = callbacks::onNavigationClick
         )
         MarginVertical(margin = 8.dp)
-        if (state.isCustom) {
-            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                CorneredInput(state = state.searchQuery, onInput = callbacks::onSearchQueryInput)
+        FullScreenLoading(isLoading = state.listState is LoadingState.Loading) {
+            Column {
+                if (state.isCustom) {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        CorneredInput(state = state.searchQuery, onInput = callbacks::onSearchQueryInput)
+                    }
+                }
+                when {
+                    state.listState is LoadingState.Loaded && state.listState.data.isEmpty -> {
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .fillMaxSize()
+                        ) {
+                            EmptyMessage(
+                                message = R.string.validators_list_empty_message,
+                                modifier = Modifier.align(BiasAlignment(0f, -0.3f))
+                            )
+                        }
+                    }
+                    state.listState is LoadingState.Loaded && state.listState.data.isEmpty.not() -> {
+                        ValidatorsList(
+                            modifier = Modifier.weight(1f),
+                            listState = state.listState.data,
+                            onSelected = callbacks::onSelected,
+                            onInfoClick = callbacks::onInfoClick
+                        )
+                        AccentButton(
+                            text = stringResource(id = R.string.pool_staking_choosepool_button_title),
+                            onClick = callbacks::onChooseClick,
+                            enabled = state.listState.data.selectedItems.isNotEmpty(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .padding(horizontal = 16.dp)
+                        )
+                        MarginVertical(margin = 16.dp)
+                    }
+                }
             }
-        }
-
-        if (state.listState.isEmpty) {
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxSize()
-            ) {
-                EmptyMessage(
-                    message = R.string.validators_list_empty_message,
-                    modifier = Modifier.align(BiasAlignment(0f, -0.3f))
-                )
-            }
-        } else {
-            ValidatorsList(
-                modifier = Modifier.weight(1f),
-                listState = state.listState,
-                onSelected = callbacks::onSelected,
-                onInfoClick = callbacks::onInfoClick
-            )
-            AccentButton(
-                text = stringResource(id = R.string.pool_staking_choosepool_button_title),
-                onClick = callbacks::onChooseClick,
-                enabled = state.listState.selectedItems.isNotEmpty(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(horizontal = 16.dp)
-            )
-            MarginVertical(margin = 16.dp)
         }
     }
 }
@@ -193,7 +201,7 @@ private fun SelectValidatorsScreenPreview() {
                 state = SelectValidatorsScreenViewState(
                     "Select suggested",
                     true,
-                    listState = state
+                    listState = LoadingState.Loaded(state)
                 ),
                 callbacks
             )
