@@ -37,13 +37,11 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_polkaswap_impl.R
-import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
-import java.math.BigDecimal
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 
 data class SwapPreviewState(
-    val swapDetails: SwapDetails
+    val swapDetailsViewState: SwapDetailsViewState
 )
 
 interface SwapPreviewCallbacks {
@@ -103,7 +101,7 @@ fun SwapPreviewContent(
 
             Row {
                 GradientIcon(
-                    icon = state.swapDetails.fromTokenImage!!,
+                    icon = state.swapDetailsViewState.fromTokenImage!!,
                     color = colorAccentDark,
                     background = backgroundBlack,
                     modifier = Modifier
@@ -112,7 +110,7 @@ fun SwapPreviewContent(
                     contentPadding = PaddingValues(10.dp)
                 )
                 GradientIcon(
-                    icon = state.swapDetails.toTokenImage!!,
+                    icon = state.swapDetailsViewState.toTokenImage!!,
                     color = colorAccentDark,
                     background = backgroundBlack,
                     modifier = Modifier
@@ -137,7 +135,7 @@ fun SwapPreviewContent(
                 Text(
                     modifier = Modifier
                         .weight(1f),
-                    text = state.swapDetails.fromTokenAmount.format(),
+                    text = state.swapDetailsViewState.fromTokenAmount.format(),
                     style = MaterialTheme.customTypography.header3,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -156,7 +154,7 @@ fun SwapPreviewContent(
 
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = state.swapDetails.toTokenAmount.format(),
+                    text = state.swapDetailsViewState.toTokenAmount.format(),
                     style = MaterialTheme.customTypography.header3,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -164,15 +162,15 @@ fun SwapPreviewContent(
                 )
             }
 
-            val fromTokenName = state.swapDetails.fromTokenName
-            val toTokenName = state.swapDetails.toTokenName
+            val fromTokenName = state.swapDetailsViewState.fromTokenName
+            val toTokenName = state.swapDetailsViewState.toTokenName
             InfoTable(
                 modifier = Modifier.padding(top = 24.dp),
                 items = listOf(
                     TitleValueViewState(
                         title = stringResource(R.string.common_min_received),
-                        value = "${state.swapDetails.toTokenMinReceived} $toTokenName",
-                        additionalValue = "~${state.swapDetails.toFiatMinReceived}"
+                        value = "${state.swapDetailsViewState.toTokenMinReceived} $toTokenName",
+                        additionalValue = "~${state.swapDetailsViewState.toFiatMinReceived}"
                     ),
                     TitleValueViewState(
                         title = stringResource(R.string.common_route),
@@ -180,11 +178,11 @@ fun SwapPreviewContent(
                     ),
                     TitleValueViewState(
                         title = "$fromTokenName / $toTokenName",
-                        value = state.swapDetails.fromTokenOnToToken.format()
+                        value = state.swapDetailsViewState.fromTokenOnToToken.format()
                     ),
                     TitleValueViewState(
                         title = "$toTokenName / $fromTokenName",
-                        value = state.swapDetails.toTokenOnFromToken.format()
+                        value = state.swapDetailsViewState.toTokenOnFromToken.format()
                     ),
                     TitleValueViewState(
                         title = stringResource(R.string.common_network_fee),
@@ -214,29 +212,30 @@ fun SwapPreviewContent(
 fun SwapPreviewContentPreview() {
     SwapPreviewContent(
         state = SwapPreviewState(
-            swapDetails = SwapDetails(
+            swapDetailsViewState = SwapDetailsViewState(
                 fromTokenId = "1001",
                 toTokenId = "1002",
                 fromTokenName = "VAL",
                 toTokenName = "XSTUSD",
                 fromTokenImage = "",
                 toTokenImage = "",
-                toTokenMinReceived = BigDecimal("1"),
+                toTokenMinReceived = "1",
                 toFiatMinReceived = "\$0.98",
-                fromTokenAmount = BigDecimal("1"),
-                toTokenAmount = BigDecimal("2"),
-                networkFee = SwapDetails.NetworkFee(
-                    tokenAmount = BigDecimal("0.0007"),
+                fromTokenAmount = "1",
+                toTokenAmount = "2",
+                networkFee = SwapDetailsViewState.NetworkFee(
+                    tokenAmount = "0.0007",
                     tokenName = "XOR",
                     fiatAmount = "\$ 0.32"
                 ),
-                liquidityProviderFee = SwapDetails.NetworkFee(
-                    tokenAmount = BigDecimal("0.0007"),
+                liquidityProviderFee = SwapDetailsViewState.NetworkFee(
+                    tokenAmount = "0.0007",
                     tokenName = "XOR",
                     fiatAmount = "\$ 0.32"
                 ),
-                fromTokenOnToToken = BigDecimal.ZERO,
-                toTokenOnFromToken = BigDecimal.ZERO
+                fromTokenOnToToken = "0",
+                toTokenOnFromToken = "0",
+                minmaxTitle = stringResource(id = R.string.common_min_received)
             )
         ),
         callbacks = object : SwapPreviewCallbacks {

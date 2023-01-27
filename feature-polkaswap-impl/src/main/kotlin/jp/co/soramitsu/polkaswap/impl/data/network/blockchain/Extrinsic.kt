@@ -39,7 +39,7 @@ fun ExtrinsicBuilder.swap(
                     }
                 )
             ),
-            "selected_source_types" to markets,
+            "selected_source_types" to markets.map { DictEnum.Entry(it, null) },
             "filter_mode" to DictEnum.Entry(
                 name = filter,
                 value = null

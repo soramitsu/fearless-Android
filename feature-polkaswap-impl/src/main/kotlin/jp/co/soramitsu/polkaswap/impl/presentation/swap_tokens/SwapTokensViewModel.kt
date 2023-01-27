@@ -1,9 +1,12 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
+import android.util.Log
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
@@ -11,6 +14,8 @@ import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
+import jp.co.soramitsu.common.utils.flowOf
+import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_polkaswap_impl.R
@@ -19,7 +24,7 @@ import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
-import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
@@ -30,6 +35,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -63,18 +70,36 @@ class SwapTokensViewModel @Inject constructor(
 
     private var desired: WithDesired? = null
 
+    private val dexes = flowOf { polkaswapInteractor.getAvailableDexes() }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
+
+    private val poolReservesFlow = combine(fromAsset, toAsset, selectedMarket) { fromAsset, toAsset, selectedMarket ->
+        if (fromAsset == null || toAsset == null) return@combine null
+
+        val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
+        val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
+
+        (tokenFromId to tokenToId) to selectedMarket
+    }.flatMapConcat {
+        it ?: return@flatMapConcat kotlinx.coroutines.flow.flowOf(Unit)
+        val (assets, market) = it
+        val (fromAsset, toAsset) = assets
+        polkaswapInteractor.observePoolReserves(fromAsset, toAsset, market)
+    }
+
     private val swapDetails = combine(
-        fromAmountInputViewState,
-        toAmountInputViewState,
+        fromAmountInputViewState.debounce(200),
+        toAmountInputViewState.debounce(200),
         fromAsset,
         toAsset,
         selectedMarket,
         slippageTolerance,
+        dexes,
+        poolReservesFlow,
         transform = ::getSwapDetails
-    )
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    ).stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var assetResultJob: Job? = null
+
     private var transactionSettingsJob: Job? = null
 
     val state = combine(
@@ -82,12 +107,12 @@ class SwapTokensViewModel @Inject constructor(
         toAmountInputViewState,
         selectedMarket,
         swapDetails
-    ) { (fromAmountInput, toAmountInput, selectedMarket, swapDetails) ->
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails ->
         SwapTokensContentViewState(
-            fromAmountInputViewState = fromAmountInput as AmountInputViewState,
-            toAmountInputViewState = toAmountInput as AmountInputViewState,
-            selectedMarket = selectedMarket as Market,
-            swapDetails = swapDetails as SwapDetails?
+            fromAmountInputViewState = fromAmountInput,
+            toAmountInputViewState = toAmountInput,
+            selectedMarket = selectedMarket,
+            swapDetailsViewState = swapDetails
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
 
@@ -123,22 +148,98 @@ class SwapTokensViewModel @Inject constructor(
         fromAsset: Asset?,
         toAsset: Asset?,
         selectedMarket: Market,
-        slippageTolerance: Double
-    ): SwapDetails? {
+        slippageTolerance: Double,
+        dexes: List<BigInteger>,
+        reserves: Any
+    ): SwapDetailsViewState? {
+        Log.d("&&&", "getSwapDetails from: ${fromAmountInputViewState.tokenAmount}")
+        Log.d("&&&", "getSwapDetails to: ${toAmountInputViewState.tokenAmount}")
         fromAsset ?: return null
         toAsset ?: return null
         desired ?: return null
+        if (dexes.isEmpty()) return null
 
-        val amount = when (desired) {
-            WithDesired.INPUT -> fromAmountInputViewState.tokenAmount
-            WithDesired.OUTPUT -> toAmountInputViewState.tokenAmount
-            null -> return null
-        }.toBigDecimal()
+        polkaswapInteractor.fetchAvailableSources(fromAsset, toAsset, dexes)
 
-        val detailsCalcResult = polkaswapInteractor.calcDetails(fromAsset, toAsset, amount, desired!!, slippageTolerance, selectedMarket)
+        val amount = try {
+            when (desired) {
+                WithDesired.INPUT -> fromAmountInputViewState.tokenAmount
+                WithDesired.OUTPUT -> toAmountInputViewState.tokenAmount
+                null -> return null
+            }.toBigDecimal()
+        } catch (e: java.lang.NumberFormatException) {
+            return null
+        }
+        if (amount == BigDecimal.ZERO) return null
+
+        val detailsCalcResult = polkaswapInteractor.calcDetails(dexes, fromAsset, toAsset, amount, desired!!, slippageTolerance, selectedMarket)
         return detailsCalcResult.fold(
-            onSuccess = {
-                it
+            onSuccess = { details ->
+                if (details == null) {
+                    showError(
+                        ValidationException(
+                            resourceManager.getString(R.string.common_error_general_title),
+                            resourceManager.getString(R.string.polkaswap_insufficient_liqudity)
+                        )
+                    )
+                    return null
+                }
+
+                var fromAmount = ""
+                var toAmount = ""
+                when {
+                    desired == WithDesired.INPUT -> {
+                        enteredToAmountFlow.value = details.amount.format()
+                        fromAmount = amount.formatTokenAmount(fromAsset.token.configuration)
+                        toAmount = details.amount.formatTokenAmount(toAsset.token.configuration)
+                    }
+                    desired == WithDesired.OUTPUT -> {
+                        enteredFromAmountFlow.value = details.amount.format()
+                        fromAmount = details.amount.formatTokenAmount(fromAsset.token.configuration)
+                        toAmount = amount.formatTokenAmount(toAsset.token.configuration)
+                    }
+                }
+                val (minMaxTitle, minMax) = when (desired) {
+                    WithDesired.INPUT -> resourceManager.getString(R.string.common_min_received) to
+                        (details.minMax.formatTokenAmount(toAsset.token.configuration) to
+                            toAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(toAsset.token.fiatSymbol))
+
+                    WithDesired.OUTPUT ->
+                        resourceManager.getString(R.string.polkaswap_maximum_sold) to
+                            (details.minMax.formatTokenAmount(fromAsset.token.configuration) to
+                                fromAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(fromAsset.token.fiatSymbol))
+
+                    null -> null to null
+                }
+
+                val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
+                val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
+
+                SwapDetailsViewState(
+                    fromTokenId = tokenFromId,
+                    toTokenId = tokenToId,
+                    fromTokenName = fromAsset.token.configuration.symbolToShow.uppercase(),
+                    toTokenName = toAsset.token.configuration.symbolToShow.uppercase(),
+                    fromTokenImage = fromAsset.token.configuration.iconUrl,
+                    toTokenImage = toAsset.token.configuration.iconUrl,
+                    fromTokenAmount = fromAmount,
+                    toTokenAmount = toAmount,
+                    minmaxTitle = minMaxTitle.orEmpty(),
+                    toTokenMinReceived = minMax?.first.orEmpty(),
+                    toFiatMinReceived = minMax?.second.orEmpty(),
+                    fromTokenOnToToken = details.fromTokenOnToToken.format(),
+                    toTokenOnFromToken = details.toTokenOnFromToken.format(),
+                    networkFee = SwapDetailsViewState.NetworkFee(
+                        details.feeAsset.token.configuration.symbolToShow.uppercase(),
+                        details.networkFee.formatTokenAmount(details.feeAsset.token.configuration),
+                        details.feeAsset.token.fiatAmount(details.networkFee)?.formatAsCurrency(details.feeAsset.token.fiatSymbol)
+                    ),
+                    liquidityProviderFee = SwapDetailsViewState.NetworkFee(
+                        details.feeAsset.token.configuration.symbolToShow.uppercase(),
+                        details.liquidityProviderFee.formatTokenAmount(details.feeAsset.token.configuration),
+                        details.feeAsset.token.fiatAmount(details.liquidityProviderFee)?.formatAsCurrency(details.feeAsset.token.fiatSymbol)
+                    )
+                )
             },
             onFailure = {
                 val error = when (it) {
@@ -228,7 +329,9 @@ class SwapTokensViewModel @Inject constructor(
 
     override fun onChangeTokensClick() {
         val fromAssetModel = fromAsset.value
-        fromAsset.value = toAsset.value
+        val toAssetModel = toAsset.value
+        toAsset.value = null
+        fromAsset.value = toAssetModel
         toAsset.value = fromAssetModel
 
         val enteredFromAmountModel = enteredFromAmountFlow.value

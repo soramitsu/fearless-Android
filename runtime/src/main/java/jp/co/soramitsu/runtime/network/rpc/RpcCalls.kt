@@ -27,6 +27,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
+import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojoList
 import jp.co.soramitsu.fearless_utils.wsrpc.request.DeliveryType
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.author.SubmitAndWatchExtrinsicRequest
@@ -131,7 +132,7 @@ class RpcCalls(
         market: List<String>,
         filter: String,
         dexId: Int,
-    ): QuoteResponse {
+    ): QuoteResponse? {
         val request = RuntimeRequest(
             method = "liquidityProxy_quote",
             params = listOf(
@@ -144,7 +145,15 @@ class RpcCalls(
                 filter
             ),
         )
-        return socketFor(chainId).executeAsync(request, mapper = pojo<QuoteResponse>().nonNull())
+        return socketFor(chainId).executeAsync(request, mapper = pojo<QuoteResponse>()).result
+    }
+
+    suspend fun liquidityProxyListEnabledSourcesForPath(chainId: ChainId, dexId: Int, tokenId1: String, tokenId2: String): List<String> {
+        val request = RuntimeRequest(
+            "liquidityProxy_listEnabledSourcesForPath",
+            listOf(dexId, tokenId1, tokenId2)
+        )
+        return socketFor(chainId).executeAsync(request, mapper = pojoList<String>().nonNull())
     }
 
     suspend fun liquidityProxyIsPathAvailable(

@@ -20,7 +20,7 @@ interface PolkaswapRepository {
         desired: WithDesired,
         curMarkets: List<Market>,
         dexId: Int
-    ): QuoteResponse
+    ): QuoteResponse?
 
     suspend fun estimateSwapFee(
         chainId: ChainId,
@@ -40,4 +40,6 @@ interface PolkaswapRepository {
         tokenToId: String,
         dexId: Int
     ): Boolean
+
+    suspend fun getAvailableSources(chainId: ChainId, tokenId1: String, tokenId2: String, dexes: List<Int>): Map<Int, List<Market>>
 }

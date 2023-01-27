@@ -61,7 +61,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.Cont
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
-import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
@@ -421,8 +421,8 @@ class Navigator :
         navController?.navigate(R.id.transactionSettingsFragment, bundle)
     }
 
-    override fun openSwapPreviewDialog(swapDetails: SwapDetails) {
-        val bundle = SwapPreviewFragment.getBundle(swapDetails)
+    override fun openSwapPreviewDialog(swapDetailsViewState: SwapDetailsViewState) {
+        val bundle = SwapPreviewFragment.getBundle(swapDetailsViewState)
 
         navController?.navigate(R.id.swapPreviewFragment, bundle)
     }

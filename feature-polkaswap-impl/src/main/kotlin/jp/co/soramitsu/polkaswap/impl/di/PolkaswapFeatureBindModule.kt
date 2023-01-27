@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
+import javax.inject.Singleton
 import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
@@ -22,6 +23,7 @@ import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 interface PolkaswapFeatureBindModule {
 
     @Binds
+    @Singleton
     fun bindsPolkaswapInteractor(polkaswapInteractor: PolkaswapInteractorImpl): PolkaswapInteractor
 
     @Binds

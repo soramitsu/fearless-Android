@@ -1019,4 +1019,6 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_preview_title">Preview</string>
     <string name="polkaswap_swap_title">Swap</string>
     <string name="polkaswap_path_unavailable_message">Unfortunately there is no such pair, but you can choose another one</string>
+    <string name="polkaswap_maximum_sold">Max Sold</string>
+    <string name="polkaswap_insufficient_liqudity">Insufficient liquidity</string>
 </resources>

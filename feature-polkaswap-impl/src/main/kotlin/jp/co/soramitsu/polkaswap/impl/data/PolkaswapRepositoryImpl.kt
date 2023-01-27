@@ -10,14 +10,16 @@ import jp.co.soramitsu.common.utils.dexManager
 import jp.co.soramitsu.common.utils.poolTBC
 import jp.co.soramitsu.common.utils.poolXYK
 import jp.co.soramitsu.common.utils.u32ArgumentFromStorageKey
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
-import jp.co.soramitsu.polkaswap.api.models.names
+import jp.co.soramitsu.polkaswap.api.models.backStrings
 import jp.co.soramitsu.polkaswap.api.models.toFilters
+import jp.co.soramitsu.polkaswap.api.models.toMarkets
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.bindings.bindDexInfos
 import jp.co.soramitsu.polkaswap.impl.data.network.blockchain.swap
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
@@ -58,9 +60,14 @@ class PolkaswapRepositoryImpl @Inject constructor(
         return remoteStorage.observe(
             chainId = chainId,
             keyBuilder = {
-                val fromArgument = Struct.Instance(mapOf("code" to fromTokenId))
-                val toArgument = Struct.Instance(mapOf("code" to toTokenId))
-                it.metadata.poolXYK()?.storage("Reserves")?.storageKey(it, fromArgument, toArgument)
+
+                val from = Struct.Instance(
+                    mapOf("code" to fromTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                )
+                val to = Struct.Instance(
+                    mapOf("code" to toTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                )
+                it.metadata.poolXYK()?.storage("Reserves")?.storageKey(it, from, to)
             }
         ) { scale, _ ->
             scale.orEmpty()
@@ -71,7 +78,10 @@ class PolkaswapRepositoryImpl @Inject constructor(
         return remoteStorage.observe(
             chainId = chainId,
             keyBuilder = {
-                it.metadata.poolTBC()?.storage("CollateralReserves")?.storageKey(it, Struct.Instance(mapOf("code" to tokenId)))
+                val token = Struct.Instance(
+                    mapOf("code" to tokenId.fromHex().toList().map { it.toInt().toBigInteger() })
+                )
+                it.metadata.poolTBC()?.storage("CollateralReserves")?.storageKey(it, token)
             }
         ) { scale, _ ->
             scale.orEmpty()
@@ -95,14 +105,14 @@ class PolkaswapRepositoryImpl @Inject constructor(
         desired: WithDesired,
         curMarkets: List<Market>,
         dexId: Int
-    ): QuoteResponse {
+    ): QuoteResponse? {
         return rpcCalls.liquidityProxyQuote(
             chainId,
             tokenFromId,
             tokenToId,
             amount,
             desired.backString,
-            curMarkets.names(),
+            curMarkets.backStrings(),
             curMarkets.toFilters(),
             dexId
         )
@@ -122,6 +132,13 @@ class PolkaswapRepositoryImpl @Inject constructor(
         val chain = chainRegistry.getChain(chainId)
         return extrinsicService.estimateFee(chain) {
             swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
+        }
+    }
+
+    override suspend fun getAvailableSources(chainId: ChainId, tokenId1: String, tokenId2: String, dexes: List<Int>): Map<Int, List<Market>> {
+        return dexes.associateWith { dexId ->
+            val markets = rpcCalls.liquidityProxyListEnabledSourcesForPath(chainId, dexId, tokenId1, tokenId2).toMarkets()
+            markets
         }
     }
 }

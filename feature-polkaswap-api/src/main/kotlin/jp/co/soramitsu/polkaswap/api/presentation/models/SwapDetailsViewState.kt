@@ -2,41 +2,37 @@ package jp.co.soramitsu.polkaswap.api.presentation.models
 
 import android.os.Parcelable
 import java.math.BigDecimal
-import java.math.RoundingMode
 import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class SwapDetails(
+data class SwapDetailsViewState(
     val fromTokenId: String,
     val toTokenId: String,
     val fromTokenName: String,
     val toTokenName: String,
     val fromTokenImage: String?,
     val toTokenImage: String?,
-    val fromTokenAmount: BigDecimal,
-    val toTokenAmount: BigDecimal,
-    val toTokenMinReceived: BigDecimal,
+    val fromTokenAmount: String,
+    val toTokenAmount: String,
+    val toTokenMinReceived: String,
     val toFiatMinReceived: String,
     val networkFee: NetworkFee,
     val liquidityProviderFee: NetworkFee,
-    val fromTokenOnToToken: BigDecimal,
-    val toTokenOnFromToken: BigDecimal
+    val fromTokenOnToToken: String,
+    val toTokenOnFromToken: String,
+    val minmaxTitle: String
 ) : Parcelable {
 
     @Parcelize
     data class NetworkFee(
         val tokenName: String,
-        val tokenAmount: BigDecimal,
-        val fiatAmount: String
+        val tokenAmount: String,
+        val fiatAmount: String?
     ) : Parcelable
 
-    companion object {
-        private const val AmountScale = 6
-    }
 }
 
 data class SwapQuote(

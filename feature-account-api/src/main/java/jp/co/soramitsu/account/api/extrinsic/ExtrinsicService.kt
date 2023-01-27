@@ -81,7 +81,7 @@ class ExtrinsicService(
         extrinsicBuilder.formExtrinsic()
 
         val extrinsic = extrinsicBuilder.build(useBatchAll)
-
+hashCode()
         return rpcCalls.getExtrinsicFee(chain.id, extrinsic)
     }
 

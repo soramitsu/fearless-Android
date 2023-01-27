@@ -43,17 +43,15 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.grayButtonBackground
 import jp.co.soramitsu.common.compose.theme.white08
 import jp.co.soramitsu.common.resources.ResourceManager
-import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.feature_polkaswap_impl.R
-import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetails
 import jp.co.soramitsu.polkaswap.api.models.Market
-import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 
 data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
     val toAmountInputViewState: AmountInputViewState,
     val selectedMarket: Market,
-    val swapDetails: SwapDetails?
+    val swapDetailsViewState: SwapDetailsViewState?
 ) {
     companion object {
 
@@ -62,7 +60,7 @@ data class SwapTokensContentViewState(
                 fromAmountInputViewState = AmountInputViewState.default(resourceManager),
                 toAmountInputViewState = AmountInputViewState.default(resourceManager),
                 selectedMarket = Market.SMART,
-                swapDetails = null
+                swapDetailsViewState = null
             )
         }
     }
@@ -179,8 +177,8 @@ fun SwapTokensContent(
                 )
             }
 
-            if (state.swapDetails != null) {
-                TransactionDescription(state.swapDetails)
+            if (state.swapDetailsViewState != null) {
+                TransactionDescription(state.swapDetailsViewState)
             }
         }
 
@@ -190,7 +188,7 @@ fun SwapTokensContent(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 8.dp, top = 16.dp),
             text = stringResource(R.string.common_continue),
-            enabled = state.swapDetails != null,
+            enabled = state.swapDetailsViewState != null,
             onClick = callbacks::onPreviewClick
         )
     }
@@ -198,7 +196,7 @@ fun SwapTokensContent(
 
 @Composable
 private fun TransactionDescription(
-    swapDetails: SwapDetails,
+    swapDetailsViewState: SwapDetailsViewState,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -207,32 +205,32 @@ private fun TransactionDescription(
         FeeInfo(
             modifier = Modifier.padding(top = 8.dp),
             state = FeeInfoViewState(
-                caption = stringResource(R.string.common_min_received),
-                feeAmount = swapDetails.toTokenMinReceived.formatTokenAmount(swapDetails.toTokenName),
-                feeAmountFiat = swapDetails.toFiatMinReceived
+                caption = swapDetailsViewState.minmaxTitle,
+                feeAmount = swapDetailsViewState.toTokenMinReceived,
+                feeAmountFiat = swapDetailsViewState.toFiatMinReceived
             )
         )
 
         FeeInfo(
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_route),
-                feeAmount = "${swapDetails.fromTokenName}  ➝  ${swapDetails.toTokenName}",
+                feeAmount = "${swapDetailsViewState.fromTokenName}  ➝  ${swapDetailsViewState.toTokenName}",
                 feeAmountFiat = null
             )
         )
 
         FeeInfo(
             state = FeeInfoViewState(
-                caption = "${swapDetails.fromTokenName} / ${swapDetails.toTokenName}",
-                feeAmount = swapDetails.fromTokenOnToToken.format(),
+                caption = "${swapDetailsViewState.fromTokenName} / ${swapDetailsViewState.toTokenName}",
+                feeAmount = swapDetailsViewState.fromTokenOnToToken.format(),
                 feeAmountFiat = null
             )
         )
 
         FeeInfo(
             state = FeeInfoViewState(
-                caption = "${swapDetails.toTokenName} / ${swapDetails.fromTokenName}",
-                feeAmount = swapDetails.toTokenOnFromToken.format(),
+                caption = "${swapDetailsViewState.toTokenName} / ${swapDetailsViewState.fromTokenName}",
+                feeAmount = swapDetailsViewState.toTokenOnFromToken.format(),
                 feeAmountFiat = null
             )
         )
@@ -240,16 +238,16 @@ private fun TransactionDescription(
         FeeInfo(
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_liquidity_provider_fee),
-                feeAmount = "0",
-                feeAmountFiat = "$0"
+                feeAmount = swapDetailsViewState.liquidityProviderFee.tokenAmount,
+                feeAmountFiat = swapDetailsViewState.liquidityProviderFee.fiatAmount
             )
         )
 
         FeeInfo(
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_network_fee),
-                feeAmount = "0",
-                feeAmountFiat = "$0"
+                feeAmount = swapDetailsViewState.networkFee.tokenAmount,
+                feeAmountFiat = swapDetailsViewState.networkFee.fiatAmount
             )
         )
     }
