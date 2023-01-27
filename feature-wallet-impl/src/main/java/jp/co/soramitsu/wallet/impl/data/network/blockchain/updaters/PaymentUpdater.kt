@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
 import jp.co.soramitsu.core.model.StorageChange
@@ -15,7 +16,6 @@ import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.model.OperationLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import jp.co.soramitsu.fearless_utils.runtime.metadata.module
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
@@ -28,6 +28,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.getRuntime
 import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.api.data.cache.updateAsset
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationStatusToOperationLocalStatus
@@ -88,7 +89,7 @@ class PaymentUpdater(
         if (accountIdsToCheck.isEmpty()) return emptyFlow()
 
         return accountIdsToCheck.map { accountId ->
-            chain.assets.sortedBy { it.isUtility }.map { asset ->
+            chain.assets.sortedByDescending { it.isUtility }.map { asset ->
                 updatesMixin.startUpdateAsset(metaAccount.id, chainId, accountId, asset.id)
 
                 val keyResult = runCatching {
@@ -151,8 +152,13 @@ class PaymentUpdater(
                 }
             }
             ChainAssetType.Equilibrium -> {
-                val newAccountInfo = bindAccountInfoOrDefault(change.value, runtime)
-                assetCache.updateAsset(metaId, accountId, asset, newAccountInfo)
+                val eqAccountInfo = bindEquilibriumAccountData(change.value, runtime)
+                assetCache.updateAsset(metaId, accountId, asset) {
+                    it.copy(
+                        accountId = accountId,
+                        freeInPlanks = eqAccountInfo?.data?.balances?.get(asset.currency).orZero()
+                    )
+                }
             }
             ChainAssetType.Unknown -> Unit
         }
@@ -171,8 +177,8 @@ class PaymentUpdater(
         } else {
             when (asset.typeExtra) {
                 null, ChainAssetType.Normal,
+                ChainAssetType.Equilibrium,
                 ChainAssetType.SoraUtilityAsset -> runtime.metadata.system().storage("Account").storageKey(runtime, accountId)
-                ChainAssetType.Equilibrium -> runtime.metadata.module(Modules.EQBALANCES).storage("Account").storageKey(runtime, accountId, currency)
                 ChainAssetType.OrmlChain,
                 ChainAssetType.OrmlAsset,
                 ChainAssetType.VToken,

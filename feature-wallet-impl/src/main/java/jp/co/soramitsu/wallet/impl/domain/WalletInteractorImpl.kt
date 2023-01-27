@@ -7,6 +7,8 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -14,6 +16,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.isValidAddress
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -32,7 +35,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
-import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
 import kotlinx.coroutines.Dispatchers
@@ -208,16 +210,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus> {
-        return runCatching {
-            val metaAccount = accountRepository.getSelectedMetaAccount()
-            val chain = chainRegistry.getChain(transfer.chainAsset.chainId)
-            val accountId = metaAccount.accountId(chain)!!
-
-            walletRepository.checkTransferValidity(metaAccount.id, accountId, chain, transfer)
-        }
-    }
-
     override suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String {
         val metaAccount = accountRepository.getSelectedMetaAccount()
         val chain = chainRegistry.getChain(chainId)
@@ -324,4 +316,10 @@ class WalletInteractorImpl(
     override fun saveChainId(chainId: ChainId?) = preferences.putString(PREFS_WALLET_SELECTED_CHAIN_ID, chainId)
 
     override fun getSavedChainId(): ChainId? = preferences.getString(PREFS_WALLET_SELECTED_CHAIN_ID)
+
+    override suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo? =
+        walletRepository.getEquilibriumAccountInfo(asset, accountId)
+
+    override suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?> =
+        walletRepository.getEquilibriumAssetRates(chainAsset)
 }
