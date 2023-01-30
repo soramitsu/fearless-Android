@@ -468,9 +468,9 @@
     </dialog>
 
     <dialog
-        android:id="@+id/sendSuccessFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment"
-        android:label="sendSuccessFragment" />
+        android:id="@+id/successSheetFragment"
+        android:name="jp.co.soramitsu.success.presentation.SuccessFragment"
+        android:label="successSheetFragment" />
 
     <dialog
         android:id="@+id/startStakingPoolFragment"
@@ -663,6 +663,27 @@
         android:label="chainSelectFragment" />
 
     <dialog
+        android:id="@+id/swapTokensFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment"
+        android:label="swapTokensFragment" />
+
+    <dialog
+        android:id="@+id/transactionSettingsFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment"
+        android:label="transactionSettingsFragment" />
+
+
+    <dialog
+        android:id="@+id/swapPreviewFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment"
+        android:label="swapPreviewFragment" />
+
+    <dialog
+        android:id="@+id/selectMarketFragment"
+        android:name="jp.co.soramitsu.polkaswap.impl.presentation.select_market.SelectMarketFragment"
+        android:label="selectMarketFragment" />
+
+    <dialog
         android:id="@+id/assetSelectFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.balance.assetselector.AssetSelectFragment"
         android:label="assetSelectFragment" />
@@ -828,6 +849,14 @@
         app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
         app:popUpTo="@id/mainFragment" />
+
+    <action
+        android:id="@+id/back_to_asset_details"
+        app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:exitAnim="?android:attr/fragmentCloseExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popUpTo="@id/balanceDetailFragment" />
 
     <fragment
         android:id="@+id/confirmStakingFragment"

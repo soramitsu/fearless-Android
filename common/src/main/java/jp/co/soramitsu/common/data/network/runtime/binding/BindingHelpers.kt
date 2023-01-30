@@ -16,6 +16,7 @@ annotation class UseCaseBinding
 annotation class HelperBinding
 
 fun incompatible(): Nothing = throw IllegalStateException("Binding is incompatible")
+fun incompatible(message: String): Nothing = throw IllegalStateException(message)
 
 typealias Binder<T> = (scale: String?, RuntimeSnapshot) -> T
 typealias BinderWithKey<T, K> = (scale: String?, RuntimeSnapshot, key: K) -> T

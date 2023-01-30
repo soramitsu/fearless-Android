@@ -9,6 +9,7 @@ import androidx.lifecycle.asFlow
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavOptions
+import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
@@ -18,6 +19,7 @@ import jp.co.soramitsu.account.impl.presentation.account.export.WalletExportFrag
 import jp.co.soramitsu.account.impl.presentation.account.exportaccounts.AccountsForExportFragment
 import jp.co.soramitsu.account.impl.presentation.account.list.AccountChosenNavDirection
 import jp.co.soramitsu.account.impl.presentation.account.list.AccountListFragment
+import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJsonPasswordFragment
@@ -35,8 +37,6 @@ import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAcc
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.ToolbarConfiguration
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
-import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.presentation.AlertFragment
 import jp.co.soramitsu.app.root.presentation.RootRouter
@@ -58,10 +58,15 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.CustomContr
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.custom.model.CustomContributePayload
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.CrowdloanContributeFragment
 import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.ContributePayload
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
-import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
+import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
+import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
+import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
+import jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens.SwapTokensFragment
+import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.splash.SplashRouter
@@ -96,6 +101,9 @@ import jp.co.soramitsu.staking.impl.presentation.validators.details.CollatorDeta
 import jp.co.soramitsu.staking.impl.presentation.validators.details.ValidatorDetailsFragment
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
+import jp.co.soramitsu.success.presentation.SuccessFragment
+import jp.co.soramitsu.success.presentation.SuccessRouter
+import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
@@ -107,27 +115,30 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAsse
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
+import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
+import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.wallet.impl.presentation.history.AddressHistoryFragment
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.success.SendSuccessFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.transfer.TransferDetailFragment
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -140,7 +151,9 @@ class Navigator :
     WalletRouter,
     RootRouter,
     StakingRouter,
-    CrowdloanRouter {
+    CrowdloanRouter,
+    PolkaswapRouter,
+    SuccessRouter {
 
     private var navController: NavController? = null
     private var activity: AppCompatActivity? = null
@@ -394,6 +407,31 @@ class Navigator :
         }
     }
 
+    override fun backWithResult(vararg results: Pair<String, Any?>) {
+        val savedStateHandle = navController?.previousBackStackEntry?.savedStateHandle
+        if (savedStateHandle != null) {
+            results.forEach { (key, value) ->
+                savedStateHandle[key] = value
+            }
+        }
+        back()
+    }
+
+    override fun openTransactionSettingsDialog(initialSettings: TransactionSettingsModel) {
+        val bundle = TransactionSettingsFragment.getBundle(initialSettings)
+        navController?.navigate(R.id.transactionSettingsFragment, bundle)
+    }
+
+    override fun openSwapPreviewDialog(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel) {
+        val bundle = SwapPreviewFragment.getBundle(swapDetailsViewState, parcelModel)
+
+        navController?.navigate(R.id.swapPreviewFragment, bundle)
+    }
+
+    override fun openSelectMarketDialog() {
+        navController?.navigate(R.id.selectMarketFragment)
+    }
+
     override fun openCustomRebond() {
         navController?.navigate(R.id.action_stakingBalanceFragment_to_customRebondFragment)
     }
@@ -537,6 +575,10 @@ class Navigator :
         navController?.navigate(R.id.back_to_main)
     }
 
+    override fun returnToAssetDetails() {
+        navController?.navigate(R.id.back_to_asset_details)
+    }
+
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
         navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
@@ -555,6 +597,12 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
+    override fun openSwapTokensScreen(assetPayload: AssetPayload) {
+        val bundle = SwapTokensFragment.getBundle(assetPayload.chainAssetId, assetPayload.chainId)
+
+        navController?.navigate(R.id.swapTokensFragment, bundle)
+    }
+
     override fun openSelectChain(assetId: String, chooserMode: Boolean) {
         val bundle = ChainSelectFragment.getBundle(assetId = assetId, chooserMode = chooserMode)
         navController?.navigate(R.id.chainSelectFragment, bundle)
@@ -568,6 +616,19 @@ class Navigator :
     override fun openSelectAsset(selectedAssetId: String) {
         val bundle = AssetSelectFragment.getBundle(selectedAssetId)
         navController?.navigate(R.id.assetSelectFragment, bundle)
+    }
+
+    override fun openSelectAsset(chainId: ChainId, selectedAssetId: String?, excludeAssetId: String?) {
+        val bundle = AssetSelectFragment.getBundle(chainId, selectedAssetId, excludeAssetId)
+        navController?.navigate(R.id.assetSelectFragment, bundle)
+    }
+
+    override fun <T> observeResult(key: String): Flow<T> {
+        val savedStateHandle = navController?.currentBackStackEntry?.savedStateHandle
+        val resultFlow = savedStateHandle?.getStateFlow<T?>(key, null) ?: MutableStateFlow(null)
+        return resultFlow
+            .filter { it != null }
+            .onEach { savedStateHandle?.set<T>(key, null) } as Flow<T>
     }
 
     override fun openSelectChainAsset(chainId: ChainId) {
@@ -590,9 +651,9 @@ class Navigator :
     }
 
     override fun openOperationSuccess(operationHash: String?, chainId: ChainId, customMessage: String?) {
-        val bundle = SendSuccessFragment.getBundle(operationHash, chainId, customMessage)
+        val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage)
 
-        navController?.navigate(R.id.sendSuccessFragment, bundle)
+        navController?.navigate(R.id.successSheetFragment, bundle)
     }
 
     override fun finishSendFlow() {

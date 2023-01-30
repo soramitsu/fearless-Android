@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
-import jp.co.soramitsu.common.compose.component.AdvancedBlock
+import jp.co.soramitsu.common.compose.component.ExapandableText
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
@@ -88,10 +88,10 @@ fun CreatePoolSetupScreen(
                 MarginVertical(margin = 12.dp)
                 AmountInput(state = state.amountInputViewState, onInput = screenInterface::onTokenAmountInput)
                 MarginVertical(margin = 12.dp)
-                AdvancedBlock(
-                    modifier = Modifier,
+                ExapandableText(
+                    title = stringResource(id = R.string.common_advanced),
                     initialState = false,
-                    Content = {
+                    content = {
                         InactiveDropDown(state.poolId, R.string.pool_staking_pool_id)
                         MarginVertical(margin = 12.dp)
                         InactiveDropDown(state.depositor, R.string.pool_staking_depositor)

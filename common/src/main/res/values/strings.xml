@@ -879,6 +879,7 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="common_action_hide">Hide</string>
     <string name="common_action_show">Show</string>
     <string name="common_action_buy">Buy</string>
+    <string name="common_action_swap">Swap</string>
 
     <string name="common_title_wallet">Wallet</string>
     <string name="common_title_wallet_option">Wallet option</string>
@@ -994,4 +995,30 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="pool_depositor_unstake_polkadot_js_plus_button_text">Polkadot.js Plus</string>
     <string name="pool_create_success_message">Your pool has been successfully created. Now you should choose validators for the pool</string>
     <string name="same_address_transfer_warning_message">You\'re trying to make a transfer to the same account. The operation will charge a fee and doesn\'t make any sense</string>
+
+    <string name="common_min_received">Min received</string>
+    <string name="common_liquidity_provider_fee">Liquidity Provider Fee</string>
+    <string name="common_network_fee">Network Fee</string>
+    <string name="common_route">Route</string>
+
+    <string name="polkaswap_from">From</string>
+    <string name="polkaswap_to">To</string>
+    <string name="polkaswap_market">Market:</string>
+    <string name="polkaswap_market_title">Market</string>
+    <string name="polkaswap_swap_settings_title">Swap settings</string>
+    <string name="polkaswap_slippage_tolerance">Slippage Tolerance</string>
+    <string name="polkaswap_slippage_tolerance_description">Your transaction will revert if the price changes unfavorably by more than this percentage</string>
+    <string name="polkaswap_btn_reset_to_default">Reset to default</string>
+    <string name="polkaswap_btn_save">Save</string>
+    <string name="polkaswap_transaction_may_fail">Your transaction may fail</string>
+    <string name="polkaswap_transaction_may_frontrun">Your transaction may front-run</string>
+    <string name="polkaswap_market_algorithm_title">Market algorithm</string>
+    <string name="polkaswap_market_smart_description">SMART liquidity routing ensures the best price for any transaction by combining only the best price options from all available markets. When available, Token Bonding Curve (TBC) will be used for liquidity as long as the asset price is more affordable than from other sources, upon which the XYK pool is utilized.</string>
+    <string name="polkaswap_market_tbc_description">TBC — buying only from the Token Bonding Curve (Primary Market). There is a possibility that the price can become unfavorable compared to the XYK pool (Secondary Market), but the value received from the vested rewards might turn out to be much more favorable over time.</string>
+    <string name="polkaswap_market_xyk_description">XYK — buying only from the XYK pool (Secondary Market). Traditional XYK pool swap where anyone can buy or sell assets by shifting the market maker’s position on the x*y=k curve.</string>
+    <string name="polkaswap_preview_title">Preview</string>
+    <string name="polkaswap_swap_title">Swap</string>
+    <string name="polkaswap_path_unavailable_message">Unfortunately there is no such pair, but you can choose another one</string>
+    <string name="polkaswap_maximum_sold">Max Sold</string>
+    <string name="polkaswap_insufficient_liqudity">Insufficient liquidity</string>
 </resources>

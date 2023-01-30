@@ -51,7 +51,7 @@ fun SelectWalletContent(
             ToolbarBottomSheet(
                 title = stringResource(id = R.string.common_title_wallet),
                 navigationIconResId = R.drawable.ic_arrow_back_24dp,
-                onNavigationClicked = onBackClicked
+                onNavigationClick = onBackClicked
             )
             MarginVertical(margin = 20.dp)
             Box(contentAlignment = Alignment.BottomCenter) {

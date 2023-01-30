@@ -87,7 +87,7 @@ fun ConfirmSendContent(
                 ) {
                     ToolbarBottomSheet(
                         title = stringResource(id = R.string.preview),
-                        onNavigationClicked = callback::onNavigationClick
+                        onNavigationClick = callback::onNavigationClick
                     )
 
                     MarginVertical(margin = 24.dp)

@@ -10,9 +10,13 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 
 @Composable
-fun InfoTable(items: List<TitleValueViewState>, onItemClick: (Int) -> Unit = {}) {
+fun InfoTable(
+    items: List<TitleValueViewState>,
+    modifier: Modifier = Modifier,
+    onItemClick: (Int) -> Unit = {}
+) {
     BackgroundCorneredWithBorder(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
     ) {
         Column {
