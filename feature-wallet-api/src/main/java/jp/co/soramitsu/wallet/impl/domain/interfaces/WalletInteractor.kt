@@ -5,9 +5,12 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
+import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.coredb.model.AddressBookContact
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
+import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -67,8 +70,6 @@ interface WalletInteractor {
         tipInPlanks: BigInteger?
     ): Result<String>
 
-    suspend fun checkTransferValidityStatus(transfer: Transfer): Result<TransferValidityStatus>
-
     suspend fun getQrCodeSharingSoraString(chainId: ChainId, assetId: String): String
 
     suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File>
@@ -108,4 +109,7 @@ interface WalletInteractor {
     fun saveChainId(chainId: ChainId?)
 
     fun getSavedChainId(): ChainId?
+
+    suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo?
+    suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?>
 }

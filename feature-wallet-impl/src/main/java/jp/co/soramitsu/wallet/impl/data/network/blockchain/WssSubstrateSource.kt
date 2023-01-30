@@ -5,15 +5,20 @@ package jp.co.soramitsu.wallet.impl.data.network.blockchain
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.runtime.binding.AccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.network.runtime.binding.EventRecord
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.common.data.network.runtime.binding.OrmlTokensAccountData
 import jp.co.soramitsu.common.data.network.runtime.binding.Phase
+import jp.co.soramitsu.common.data.network.runtime.binding.bindEquilibriumAssetRates
 import jp.co.soramitsu.common.data.network.runtime.binding.bindExtrinsicStatusEventRecords
 import jp.co.soramitsu.common.data.network.runtime.binding.bindOrNull
 import jp.co.soramitsu.common.utils.Modules
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.system
 import jp.co.soramitsu.common.utils.tokens
+import jp.co.soramitsu.common.utils.u64ArgumentFromStorageKey
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
@@ -31,6 +36,7 @@ import jp.co.soramitsu.runtime.network.rpc.RpcCalls
 import jp.co.soramitsu.runtime.storage.source.StorageDataSource
 import jp.co.soramitsu.runtime.storage.source.queryNonNull
 import jp.co.soramitsu.wallet.api.data.cache.bindAccountInfoOrDefault
+import jp.co.soramitsu.wallet.api.data.cache.bindEquilibriumAccountData
 import jp.co.soramitsu.wallet.api.data.cache.bindOrmlTokensAccountDataOrDefault
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.bindings.bindTransferExtrinsic
 import jp.co.soramitsu.wallet.impl.data.repository.totalBalance
@@ -46,6 +52,7 @@ class WssSubstrateSource(
         return when (val info = getAccountInfo(chainAsset, accountId)) {
             is OrmlTokensAccountData -> info.free
             is AccountInfo -> info.data.free
+            is EqAccountInfo -> info.data.balances[chainAsset.currency].orZero()
             else -> BigInteger.ZERO
         }
     }
@@ -54,6 +61,7 @@ class WssSubstrateSource(
         return when (val info = getAccountInfo(chainAsset, accountId)) {
             is OrmlTokensAccountData -> info.totalBalance
             is AccountInfo -> info.totalBalance
+            is EqAccountInfo -> info.data.balances[chainAsset.currency].orZero()
             else -> BigInteger.ZERO
         }
     }
@@ -96,17 +104,28 @@ class WssSubstrateSource(
         )
     }
 
-    private suspend fun getEquilibriumAccountInfo(
+    override suspend fun getEquilibriumAccountInfo(
         asset: Chain.Asset,
         accountId: AccountId
-    ): AccountInfo {
+    ): EqAccountInfo? {
         return remoteStorageSource.query(
             chainId = asset.chainId,
             keyBuilder = {
-                it.metadata.module(Modules.EQBALANCES).storage("Account").storageKey(it, accountId, asset.currency)
+                it.metadata.system().storage("Account").storageKey(it, accountId)
             },
             binding = { scale, runtime ->
-                bindAccountInfoOrDefault(scale, runtime)
+                bindEquilibriumAccountData(scale, runtime)
+            }
+        )
+    }
+
+    override suspend fun getEquilibriumAssetRates(asset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?> {
+        return remoteStorageSource.queryByPrefix(
+            chainId = asset.chainId,
+            prefixKeyBuilder = { it.metadata.module(Modules.ORACLE).storage("PricePoints").storageKey(it) },
+            keyExtractor = { it.u64ArgumentFromStorageKey() },
+            binding = { scale, runtime, _ ->
+                bindEquilibriumAssetRates(scale, runtime)
             }
         )
     }

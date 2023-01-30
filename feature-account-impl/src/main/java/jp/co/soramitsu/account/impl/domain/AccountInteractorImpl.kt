@@ -202,6 +202,8 @@ class AccountInteractorImpl(
 
     override fun selectedMetaAccountFlow() = accountRepository.selectedMetaAccountFlow()
 
+    override suspend fun selectedMetaAccount() = accountRepository.getSelectedMetaAccount()
+
     override fun lightMetaAccountsFlow(): Flow<List<LightMetaAccount>> {
         return accountRepository.lightMetaAccountsFlow()
     }

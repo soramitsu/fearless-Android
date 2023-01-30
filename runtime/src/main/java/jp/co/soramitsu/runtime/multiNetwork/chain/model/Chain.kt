@@ -16,10 +16,12 @@ const val moonriverChainId = "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f6
 const val rococoChainId = "aaf2cd1b74b5f726895921259421b534124726263982522174147046b8827897"
 const val soraTestChainId = "3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17"
 const val soraKusamaChainId = "6d8d9f145c2177fa83512492cdd80a71e29f22473f4a8943a6292149ac319fb9"
+const val soraMainChainId = "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5"
 
 const val genshiroChainId = "9b8cefc0eb5c568b527998bdd76c184e2b76ae561be76e4667072230217ea243"
 
 private val STAKING_ORDER = arrayOf("DOT", "KSM", "WND", "GLMR", "MOVR", "DEV", "PDEX")
+private val SORA_WITH_XOR_TRANSFER_PALLET_ASSET = arrayOf(soraMainChainId, soraTestChainId)
 
 data class Chain(
     val id: ChainId,
@@ -82,7 +84,8 @@ data class Chain(
                 else -> order
             }
 
-        val typeExtra = if (isUtility && type == ChainAssetType.SoraAsset) ChainAssetType.SoraUtilityAsset else type
+        private val isSoraUtilityAsset = isUtility && chainId in SORA_WITH_XOR_TRANSFER_PALLET_ASSET
+        val typeExtra = if (isSoraUtilityAsset) ChainAssetType.SoraUtilityAsset else type
 
         @Suppress("IMPLICIT_CAST_TO_ANY")
         val currency = when (typeExtra) {
@@ -100,7 +103,7 @@ data class Chain(
                 val currencyHexList = currencyId?.fromHex()?.toList()?.map { it.toInt().toBigInteger() }.orEmpty()
                 Struct.Instance(mapOf("code" to currencyHexList))
             }
-            ChainAssetType.Equilibrium -> symbol.toBigInteger()
+            ChainAssetType.Equilibrium -> currencyId?.toBigInteger()
             ChainAssetType.Unknown -> error("Token $symbol not supported, chain $chainName")
         }
     }

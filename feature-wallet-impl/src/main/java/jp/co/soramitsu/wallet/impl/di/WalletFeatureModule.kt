@@ -1,7 +1,7 @@
 package jp.co.soramitsu.wallet.impl.di
 
-import com.google.gson.Gson
 import android.content.ContentResolver
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,8 +30,6 @@ import jp.co.soramitsu.coredb.dao.OperationDao
 import jp.co.soramitsu.coredb.dao.PhishingDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
-import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
-import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconSharedState
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.network.rpc.RpcCalls
@@ -58,12 +56,14 @@ import jp.co.soramitsu.wallet.impl.data.repository.WalletRepositoryImpl
 import jp.co.soramitsu.wallet.impl.data.storage.TransferCursorStorage
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
-import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
+import jp.co.soramitsu.wallet.impl.domain.ValidateTransferUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
+import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
+import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconSharedState
 import jp.co.soramitsu.wallet.impl.domain.implementations.ExistentialDepositUseCaseImpl
-import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
+import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor

@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -26,7 +27,8 @@ class ChainSelectViewModel @Inject constructor(
     private val walletInteractor: WalletInteractor,
     private val chainInteractor: ChainInteractor,
     savedStateHandle: SavedStateHandle,
-    private val sharedSendState: SendSharedState
+    private val sharedSendState: SendSharedState,
+    private val accountInteractor: AccountInteractor
 ) : BaseViewModel() {
 
     private val initialSelectedChainId: ChainId? = savedStateHandle[ChainSelectFragment.KEY_SELECTED_CHAIN_ID]
@@ -59,7 +61,16 @@ class ChainSelectViewModel @Inject constructor(
             }
         }
     }.map { chains ->
-        chains.map { it.toChainItemState() }
+        val meta = accountInteractor.selectedMetaAccount()
+        val ethBasedChainAccounts = meta.chainAccounts.filter { it.value.chain?.isEthereumBased == true }
+        val ethBasedChains = chains.filter { it.isEthereumBased }
+        val filtered = if (meta.ethereumPublicKey == null && ethBasedChains.size != ethBasedChainAccounts.size) {
+            val ethChainsWithNoAccounts = ethBasedChains.filter { it.id !in ethBasedChainAccounts.keys }
+            chains.filter { it !in ethChainsWithNoAccounts }
+        } else {
+            chains
+        }
+        filtered.map { it.toChainItemState() }
     }
 
     private val symbolFlow = chainInteractor.getChainsFlow().map { chains ->

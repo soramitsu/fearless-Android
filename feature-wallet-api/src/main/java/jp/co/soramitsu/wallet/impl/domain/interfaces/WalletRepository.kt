@@ -5,6 +5,8 @@ import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.data.network.config.AppConfigRemote
+import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.coredb.model.PhishingLocal
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -96,6 +98,10 @@ interface WalletRepository {
     suspend fun getPhishingInfo(address: String): PhishingLocal?
 
     suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId): BigInteger
+
+    suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?>
+
+    suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo?
 
     suspend fun updateAssets(newItems: List<AssetUpdateItem>)
 
