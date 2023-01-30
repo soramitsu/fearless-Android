@@ -36,6 +36,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
@@ -140,6 +141,11 @@ private fun SuccessPreview() {
                 title = "Hash",
                 value = "EBN4KURhvkEBN4KURhvkEBN4KURhvkEBN4KURhvk",
                 clickState = TitleValueViewState.ClickState(R.drawable.ic_copy_filled_24, 1)
+            ),
+            TitleValueViewState(
+                title = "Result",
+                value = "Success",
+                valueColor = greenText
             )
         ),
         true
