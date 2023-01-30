@@ -117,6 +117,6 @@ private object DiffCallback : BaseGroupedDiffCallback<TextHeader, AccountInChain
         return oldItem.chainName == newItem.chainName &&
             oldItem.chainIcon == newItem.chainIcon &&
             oldItem.address == newItem.address &&
-            oldItem.markedAsNotNeed == oldItem.markedAsNotNeed
+            oldItem.markedAsNotNeed == newItem.markedAsNotNeed
     }
 }

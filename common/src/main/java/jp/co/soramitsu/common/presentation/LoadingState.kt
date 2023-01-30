@@ -35,3 +35,7 @@ fun <T, V> Flow<LoadingState<T>>.flatMapLoading(mapper: (T) -> Flow<V>): Flow<Lo
 inline fun <T, V> Flow<LoadingState<T>>.mapLoading(crossinline mapper: suspend (T) -> V): Flow<LoadingState<V>> {
     return map { loadingState -> loadingState.map { mapper(it) } }
 }
+
+fun <T> LoadingState<T>.dataOrNull(): T? {
+    return (this as? LoadingState.Loaded)?.data
+}

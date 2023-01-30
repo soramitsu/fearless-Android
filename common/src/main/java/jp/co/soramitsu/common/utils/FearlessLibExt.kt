@@ -27,6 +27,7 @@ import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.dataType.DataType
 import jp.co.soramitsu.fearless_utils.scale.dataType.uint32
+import jp.co.soramitsu.fearless_utils.scale.dataType.uint64
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.pojo
@@ -143,8 +144,10 @@ fun RuntimeMetadata.hasModule(name: String) = moduleOrNull(name) != null
 
 private const val HEX_SYMBOLS_PER_BYTE = 2
 private const val UINT_32_BYTES = 4
+private const val UINT_64_BYTES = 8
 
 fun String.u32ArgumentFromStorageKey() = uint32.fromHex(takeLast(HEX_SYMBOLS_PER_BYTE * UINT_32_BYTES)).toLong().toBigInteger()
+fun String.u64ArgumentFromStorageKey() = uint64.fromHex(takeLast(HEX_SYMBOLS_PER_BYTE * UINT_64_BYTES))
 
 fun ByteArray.decodeToInt() = fromUnsignedBytes().toInt()
 
@@ -178,6 +181,7 @@ object Modules {
     const val EQBALANCES = "EqBalances"
     const val IDENTITY = "Identity"
     const val ASSETS = "Assets"
+    const val ORACLE = "Oracle"
 }
 
 object Calls {

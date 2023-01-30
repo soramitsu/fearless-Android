@@ -475,6 +475,12 @@ class WalletRepositoryImpl(
     override suspend fun getAccountFreeBalance(chainAsset: Chain.Asset, accountId: AccountId) =
         substrateSource.getAccountFreeBalance(chainAsset, accountId)
 
+    override suspend fun getEquilibriumAssetRates(chainAsset: Chain.Asset) =
+        substrateSource.getEquilibriumAssetRates(chainAsset)
+
+    override suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId) =
+        substrateSource.getEquilibriumAccountInfo(asset, accountId)
+
     override suspend fun updateAssets(newItems: List<AssetUpdateItem>) {
         assetCache.updateAsset(newItems)
     }

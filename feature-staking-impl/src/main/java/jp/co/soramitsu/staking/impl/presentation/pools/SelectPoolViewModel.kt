@@ -9,6 +9,8 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
+import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.presentation.map
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.feature_staking_impl.R
@@ -54,29 +56,34 @@ class SelectPoolViewModel @Inject constructor(
 
     private val poolsFlow =
         flowOf {
-            poolInteractor.getAllPools(chain)
+            val pools = poolInteractor.getAllPools(chain)
                 .filter { it.state != NominationPoolState.Blocked && it.state != NominationPoolState.Destroying }
+            LoadingState.Loaded(pools)
         }.stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
-            listOf()
+            LoadingState.Loading()
         )
 
     private val sortingFlow = MutableStateFlow(PoolSorting.TotalStake)
 
-    private val poolItemsFlow: Flow<List<SelectableListItemState<Int>>> =
+    private val poolItemsFlow: Flow<LoadingState<List<SelectableListItemState<Int>>>> =
         combine(poolsFlow, sortingFlow.distinctUntilChanged { old, new -> old == new }) { pools, sorting ->
-            pools.sortedByDescending {
-                when (sorting) {
-                    PoolSorting.TotalStake -> return@sortedByDescending it.stakedInPlanks
-                    PoolSorting.NumberOfMembers -> return@sortedByDescending it.members
-                }
-            }.map { it.toState(asset, it.poolId.toInt() == selectedItem.value?.id) }
+            pools.map { poolInfos ->
+                poolInfos.sortedByDescending { poolInfo ->
+                    when (sorting) {
+                        PoolSorting.TotalStake -> return@sortedByDescending poolInfo.stakedInPlanks
+                        PoolSorting.NumberOfMembers -> return@sortedByDescending poolInfo.members
+                    }
+                }.map { it.toState(asset, it.poolId.toInt() == selectedItem.value?.id) }
+            }
         }
 
     val viewState = combine(poolItemsFlow, selectedItem) { poolItems, selectedPool ->
-        SingleSelectListItemViewState(poolItems, selectedPool)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, SingleSelectListItemViewState(listOf(), null))
+        poolItems.map {
+            SingleSelectListItemViewState(it, selectedPool)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
 
     private fun PoolInfo.toState(asset: Asset, isSelected: Boolean): SelectableListItemState<Int> {
         val staked = asset.token.amountFromPlanks(stakedInPlanks)
@@ -104,14 +111,16 @@ class SelectPoolViewModel @Inject constructor(
 
     fun onInfoClick(item: SelectableListItemState<Int>) {
         val selectedPoolId = requireNotNull(item.id)
-        val pool = requireNotNull(poolsFlow.value.find { it.poolId == selectedPoolId.toBigInteger() })
+        val pools = (poolsFlow.value as? LoadingState.Loaded)?.data
+        val pool = requireNotNull(pools?.find { it.poolId == selectedPoolId.toBigInteger() })
         router.openPoolInfo(pool)
     }
 
     fun onNextClick() {
         val setupFlow = requireNotNull(stakingPoolSharedStateProvider.joinFlowState.get())
         val selectedPoolId = requireNotNull(selectedItem.value?.id)
-        val pool = requireNotNull(poolsFlow.value.find { it.poolId == selectedPoolId.toBigInteger() })
+        val pools = (poolsFlow.value as? LoadingState.Loaded)?.data
+        val pool = requireNotNull(pools?.find { it.poolId == selectedPoolId.toBigInteger() })
 
         stakingPoolSharedStateProvider.joinFlowState.set(setupFlow.copy(selectedPool = pool))
 

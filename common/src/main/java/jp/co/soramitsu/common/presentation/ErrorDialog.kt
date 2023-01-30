@@ -109,7 +109,7 @@ class ErrorDialog(
                             )
 
                             MarginVertical(margin = 8.dp)
-                            H3(text = title, modifier = Modifier.align(Alignment.CenterHorizontally))
+                            H3(text = title, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                             MarginVertical(margin = 8.dp)
                             Text(
                                 textAlign = TextAlign.Center,

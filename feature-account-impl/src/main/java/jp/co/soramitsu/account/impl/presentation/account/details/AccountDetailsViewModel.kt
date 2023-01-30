@@ -74,7 +74,7 @@ class AccountDetailsViewModel @Inject constructor(
     val chainAccountProjections = interactor.getChainProjectionsFlow(metaId)
         .map { groupedList ->
             groupedList.mapKeys { (from, _) -> mapFromToTextHeader(from) }
-                .mapValues { (_, accounts) -> accounts.map { mapChainAccountProjectionToUi(it) } }
+                .mapValues { (_, accounts) -> accounts.distinctBy { it.chain.id to it.projection?.address }.map { mapChainAccountProjectionToUi(it) } }
                 .toListWithHeaders()
         }
         .inBackground()

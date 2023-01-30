@@ -1,6 +1,8 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.data.network.runtime.binding.EqAccountInfo
+import jp.co.soramitsu.common.data.network.runtime.binding.EqOraclePricePoint
 import jp.co.soramitsu.common.data.network.runtime.binding.ExtrinsicStatusEvent
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -39,4 +41,7 @@ interface SubstrateRemoteSource {
         blockHash: String,
         accountId: ByteArray
     ): Result<List<TransferExtrinsicWithStatus>>
+
+    suspend fun getEquilibriumAssetRates(asset: Chain.Asset): Map<BigInteger, EqOraclePricePoint?>
+    suspend fun getEquilibriumAccountInfo(asset: Chain.Asset, accountId: AccountId): EqAccountInfo?
 }
