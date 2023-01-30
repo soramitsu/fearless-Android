@@ -1,6 +1,5 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
-import android.util.Log
 import androidx.compose.ui.focus.FocusState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -24,12 +23,15 @@ import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -58,6 +60,7 @@ class SwapTokensViewModel @Inject constructor(
     private val isToAmountFocused = MutableStateFlow(false)
 
     private val initFromAssetId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_ASSET_ID)
+    private val initFromChainId = savedStateHandle.get<String>(SwapTokensFragment.KEY_SELECTED_CHAIN_ID)
 
     private val fromAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
     private val toAmountInputViewState = MutableStateFlow(AmountInputViewState.default(resourceManager))
@@ -72,6 +75,7 @@ class SwapTokensViewModel @Inject constructor(
 
     private val dexes = flowOf { polkaswapInteractor.getAvailableDexes() }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
 
+    @OptIn(FlowPreview::class)
     private val poolReservesFlow = combine(fromAsset, toAsset, selectedMarket) { fromAsset, toAsset, selectedMarket ->
         if (fromAsset == null || toAsset == null) return@combine null
 
@@ -86,6 +90,7 @@ class SwapTokensViewModel @Inject constructor(
         polkaswapInteractor.observePoolReserves(fromAsset, toAsset, market)
     }
 
+    @OptIn(FlowPreview::class)
     private val swapDetails = combine(
         fromAmountInputViewState.debounce(200),
         toAmountInputViewState.debounce(200),
@@ -142,6 +147,7 @@ class SwapTokensViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private suspend fun getSwapDetails(
         fromAmountInputViewState: AmountInputViewState,
         toAmountInputViewState: AmountInputViewState,
@@ -152,8 +158,6 @@ class SwapTokensViewModel @Inject constructor(
         dexes: List<BigInteger>,
         reserves: Any
     ): SwapDetailsViewState? {
-        Log.d("&&&", "getSwapDetails from: ${fromAmountInputViewState.tokenAmount}")
-        Log.d("&&&", "getSwapDetails to: ${toAmountInputViewState.tokenAmount}")
         fromAsset ?: return null
         toAsset ?: return null
         desired ?: return null
@@ -187,31 +191,31 @@ class SwapTokensViewModel @Inject constructor(
 
                 var fromAmount = ""
                 var toAmount = ""
-                when {
-                    desired == WithDesired.INPUT -> {
+                var minMaxTitle: String? = null
+                var minMaxAmount: String? = null
+                var minMaxFiat: String? = null
+
+                when (desired) {
+                    WithDesired.INPUT -> {
                         enteredToAmountFlow.value = details.amount.format()
                         fromAmount = amount.formatTokenAmount(fromAsset.token.configuration)
                         toAmount = details.amount.formatTokenAmount(toAsset.token.configuration)
+
+                        minMaxTitle = resourceManager.getString(R.string.common_min_received)
+                        minMaxAmount = details.minMax.formatTokenAmount(toAsset.token.configuration)
+                        minMaxFiat = toAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(toAsset.token.fiatSymbol)
                     }
-                    desired == WithDesired.OUTPUT -> {
+                    WithDesired.OUTPUT -> {
                         enteredFromAmountFlow.value = details.amount.format()
                         fromAmount = details.amount.formatTokenAmount(fromAsset.token.configuration)
                         toAmount = amount.formatTokenAmount(toAsset.token.configuration)
+
+                        minMaxTitle = resourceManager.getString(R.string.polkaswap_maximum_sold)
+                        minMaxAmount = details.minMax.formatTokenAmount(fromAsset.token.configuration)
+                        minMaxFiat = fromAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(fromAsset.token.fiatSymbol)
                     }
+                    else -> Unit
                 }
-                val (minMaxTitle, minMax) = when (desired) {
-                    WithDesired.INPUT -> resourceManager.getString(R.string.common_min_received) to
-                        (details.minMax.formatTokenAmount(toAsset.token.configuration) to
-                            toAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(toAsset.token.fiatSymbol))
-
-                    WithDesired.OUTPUT ->
-                        resourceManager.getString(R.string.polkaswap_maximum_sold) to
-                            (details.minMax.formatTokenAmount(fromAsset.token.configuration) to
-                                fromAsset.token.fiatAmount(details.minMax)?.formatAsCurrency(fromAsset.token.fiatSymbol))
-
-                    null -> null to null
-                }
-
                 val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
                 val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
 
@@ -225,8 +229,8 @@ class SwapTokensViewModel @Inject constructor(
                     fromTokenAmount = fromAmount,
                     toTokenAmount = toAmount,
                     minmaxTitle = minMaxTitle.orEmpty(),
-                    toTokenMinReceived = minMax?.first.orEmpty(),
-                    toFiatMinReceived = minMax?.second.orEmpty(),
+                    toTokenMinReceived = minMaxAmount.orEmpty(),
+                    toFiatMinReceived = minMaxFiat.orEmpty(),
                     fromTokenOnToToken = details.fromTokenOnToToken.format(),
                     toTokenOnFromToken = details.toTokenOnFromToken.format(),
                     networkFee = SwapDetailsViewState.NetworkFee(
@@ -292,6 +296,7 @@ class SwapTokensViewModel @Inject constructor(
     private fun initFromAsset() {
         viewModelScope.launch {
             fromAsset.value = initFromAssetId?.let {
+                polkaswapInteractor.setChainId(initFromChainId)
                 polkaswapInteractor.getAsset(it)
             }
         }
@@ -341,8 +346,19 @@ class SwapTokensViewModel @Inject constructor(
 
     override fun onPreviewClick() {
         val swapDetailsValue = swapDetails.value ?: return
+        val amountInPlanks =
+            when (desired) {
+                WithDesired.INPUT -> fromAsset.value?.token?.configuration?.planksFromAmount(enteredFromAmountFlow.value.toBigDecimal())
+                WithDesired.OUTPUT -> toAsset.value?.token?.configuration?.planksFromAmount(enteredToAmountFlow.value.toBigDecimal())
+                null -> null
+            } ?: BigInteger.ZERO
 
-        polkaswapRouter.openSwapPreviewDialog(swapDetailsValue)
+        val detailsParcelModel = SwapDetailsParcelModel(
+            amountInPlanks,
+            selectedMarket.value,
+            requireNotNull(desired)
+        )
+        polkaswapRouter.openSwapPreviewDialog(swapDetailsValue, detailsParcelModel)
     }
 
     override fun onBackClick() {

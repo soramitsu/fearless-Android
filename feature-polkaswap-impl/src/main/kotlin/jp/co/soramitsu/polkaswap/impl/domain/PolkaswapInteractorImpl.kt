@@ -19,7 +19,9 @@ import jp.co.soramitsu.polkaswap.api.models.toFilters
 import jp.co.soramitsu.polkaswap.api.presentation.models.toModel
 import jp.co.soramitsu.runtime.ext.utilityAsset
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chainWithAsset
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
@@ -38,9 +40,13 @@ class PolkaswapInteractorImpl @Inject constructor(
     private val polkaswapRepository: PolkaswapRepository
 ) : PolkaswapInteractor {
 
-    override val polkaswapChainId = soraMainChainId
+    override var polkaswapChainId = soraMainChainId
     override val availableMarkets: MutableMap<Int, List<Market>> = mutableMapOf(0 to listOf(Market.SMART))
     override val bestDexIdFlow: MutableStateFlow<LoadingState<Int>> = MutableStateFlow(LoadingState.Loading())
+
+    override fun setChainId(chainId: ChainId?) {
+        chainId?.takeIf { it in listOf(soraMainChainId, soraTestChainId) }?.let { polkaswapChainId = chainId }
+    }
 
     override suspend fun getAsset(assetId: String): Asset? {
         val metaAccount = accountRepository.getSelectedMetaAccount()
@@ -209,5 +215,18 @@ class PolkaswapInteractorImpl @Inject constructor(
             val isAvailable = polkaswapRepository.isPairAvailable(polkaswapChainId, tokenFromId, tokenToId, it.toInt())
             it.toInt() to isAvailable
         }.filter { it.second }.map { it.first }
+    }
+
+    override suspend fun swap(
+        dexId: Int,
+        inputAssetId: String,
+        outputAssetId: String,
+        amount: BigInteger,
+        limit: BigInteger,
+        filter: String,
+        markets: List<String>,
+        desired: WithDesired
+    ): Result<String> {
+        return polkaswapRepository.swap(polkaswapChainId, dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
     }
 }

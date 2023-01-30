@@ -57,7 +57,8 @@ fun GradientIcon(
     color: Color,
     modifier: Modifier = Modifier,
     background: Color = transparent,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    tintImage: Boolean = true
 ) {
     val gradientBrush = Brush.radialGradient(
         colors = listOf(color, transparent)
@@ -72,7 +73,7 @@ fun GradientIcon(
         AsyncImage(
             model = getImageRequest(LocalContext.current, icon),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(color),
+            colorFilter = if (tintImage) ColorFilter.tint(color) else null,
             modifier = Modifier
                 .size(45.dp)
                 .align(Alignment.Center)

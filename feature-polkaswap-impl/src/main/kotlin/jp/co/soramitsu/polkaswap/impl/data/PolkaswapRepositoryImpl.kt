@@ -2,6 +2,7 @@ package jp.co.soramitsu.polkaswap.impl.data
 
 import java.math.BigInteger
 import javax.inject.Inject
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.config.PolkaswapRemoteConfig
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
@@ -34,6 +35,7 @@ class PolkaswapRepositoryImpl @Inject constructor(
     private val extrinsicService: ExtrinsicService,
     private val chainRegistry: ChainRegistry,
     private val rpcCalls: RpcCalls,
+    private val accountRepository: AccountRepository
 ) : PolkaswapRepository {
 
     override suspend fun getAvailableDexes(chainId: ChainId): List<BigInteger> {
@@ -131,6 +133,24 @@ class PolkaswapRepositoryImpl @Inject constructor(
     ): BigInteger {
         val chain = chainRegistry.getChain(chainId)
         return extrinsicService.estimateFee(chain) {
+            swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
+        }
+    }
+
+    override suspend fun swap(
+        chainId: ChainId,
+        dexId: Int,
+        inputAssetId: String,
+        outputAssetId: String,
+        amount: BigInteger,
+        limit: BigInteger,
+        filter: String,
+        markets: List<String>,
+        desired: WithDesired
+    ): Result<String> {
+        val chain = chainRegistry.getChain(chainId)
+        val accountId = accountRepository.getSelectedMetaAccount().substrateAccountId
+        return extrinsicService.submitExtrinsic(chain, accountId) {
             swap(dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
         }
     }

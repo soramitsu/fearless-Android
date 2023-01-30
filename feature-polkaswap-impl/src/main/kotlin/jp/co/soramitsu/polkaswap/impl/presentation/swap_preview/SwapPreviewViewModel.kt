@@ -1,34 +1,66 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
+import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.polkaswap.api.models.Market
+import jp.co.soramitsu.polkaswap.api.models.backStrings
+import jp.co.soramitsu.polkaswap.api.models.toFilters
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class SwapPreviewViewModel @Inject constructor(
     private val polkaswapRouter: PolkaswapRouter,
-    private val savedStateHandle: SavedStateHandle
+    private val polkaswapInteractor: PolkaswapInteractor,
+    savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), SwapPreviewCallbacks {
 
     private val swapDetailsViewState = savedStateHandle.get<SwapDetailsViewState>(SwapPreviewFragment.KEY_SWAP_DETAILS)!!
+    private val swapDetailsParcelModel = savedStateHandle.get<SwapDetailsParcelModel>(SwapPreviewFragment.KEY_SWAP_DETAILS_PARCEL)!!
 
-    val state = MutableStateFlow(SwapPreviewState(swapDetailsViewState = swapDetailsViewState)).asStateFlow()
+    val state = MutableStateFlow(SwapPreviewState(swapDetailsViewState = swapDetailsViewState, isLoading = false))
 
     override fun onBackClick() {
         polkaswapRouter.back()
     }
 
     override fun onConfirmClick() {
-        polkaswapRouter.openOperationSuccess(
-            "0x113afabc81e58aab0a15d8e4caa9068c1af903f96de51b14729262a9d54c2472",
-            chainId = soraMainChainId
-        )
-        // TODO: onConfirmClick
+        state.value = state.value.copy(isLoading = true)
+        val markets = if (swapDetailsParcelModel.selectedMarket == Market.SMART) emptyList() else listOf(swapDetailsParcelModel.selectedMarket)
+        viewModelScope.launch {
+            val swapResult = withContext(Dispatchers.Default) {
+                polkaswapInteractor.swap(
+                    dexId = 1,
+                    inputAssetId = swapDetailsViewState.fromTokenId,
+                    outputAssetId = swapDetailsViewState.toTokenId,
+                    amount = swapDetailsParcelModel.amount,
+                    limit = BigInteger.ZERO,
+                    filter = markets.toFilters(),
+                    markets = markets.backStrings(),
+                    desired = swapDetailsParcelModel.desired
+                )
+            }
+            swapResult.fold(
+                onSuccess = {
+                    polkaswapRouter.returnToAssetDetails()
+                    polkaswapRouter.openOperationSuccess(it, chainId = soraMainChainId)
+                },
+                onFailure = {
+                    state.value = state.value.copy(isLoading = false)
+                    showError(it)
+                }
+            )
+        }
     }
 }

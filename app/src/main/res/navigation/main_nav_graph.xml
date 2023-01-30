@@ -850,6 +850,14 @@
         app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
         app:popUpTo="@id/mainFragment" />
 
+    <action
+        android:id="@+id/back_to_asset_details"
+        app:enterAnim="?android:attr/fragmentCloseEnterAnimation"
+        app:exitAnim="?android:attr/fragmentCloseExitAnimation"
+        app:popEnterAnim="?android:attr/fragmentOpenEnterAnimation"
+        app:popExitAnim="?android:attr/fragmentOpenExitAnimation"
+        app:popUpTo="@id/balanceDetailFragment" />
+
     <fragment
         android:id="@+id/confirmStakingFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.confirm.ConfirmStakingFragment"

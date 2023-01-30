@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
@@ -277,7 +278,7 @@ class BalanceDetailViewModel @Inject constructor(
             ActionItemType.RECEIVE,
             ActionItemType.BUY
         )
-        if (selectedChainId == soraMainChainId) {
+        if (selectedChainId == soraMainChainId || selectedChainId == soraTestChainId) {
             if (!isBuyEnabled()) {
                 actionItems -= ActionItemType.BUY
             }

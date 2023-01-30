@@ -11,6 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 
 @AndroidEntryPoint
@@ -19,9 +20,11 @@ class SwapPreviewFragment : BaseComposeBottomSheetDialogFragment<SwapPreviewView
     companion object {
 
         const val KEY_SWAP_DETAILS = "KEY_SWAP_DETAILS"
+        const val KEY_SWAP_DETAILS_PARCEL = "KEY_SWAP_DETAILS_PARCEL"
 
-        fun getBundle(swapDetailsViewState: SwapDetailsViewState) = bundleOf(
-            KEY_SWAP_DETAILS to swapDetailsViewState
+        fun getBundle(swapDetailsViewState: SwapDetailsViewState, detailsParcelModel: SwapDetailsParcelModel) = bundleOf(
+            KEY_SWAP_DETAILS to swapDetailsViewState,
+            KEY_SWAP_DETAILS_PARCEL to detailsParcelModel
         )
     }
 

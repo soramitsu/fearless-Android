@@ -61,6 +61,7 @@ import jp.co.soramitsu.crowdloan.impl.presentation.contribute.select.parcel.Cont
 import jp.co.soramitsu.onboarding.impl.OnboardingRouter
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.swap_preview.SwapPreviewFragment
@@ -421,8 +422,8 @@ class Navigator :
         navController?.navigate(R.id.transactionSettingsFragment, bundle)
     }
 
-    override fun openSwapPreviewDialog(swapDetailsViewState: SwapDetailsViewState) {
-        val bundle = SwapPreviewFragment.getBundle(swapDetailsViewState)
+    override fun openSwapPreviewDialog(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel) {
+        val bundle = SwapPreviewFragment.getBundle(swapDetailsViewState, parcelModel)
 
         navController?.navigate(R.id.swapPreviewFragment, bundle)
     }
@@ -574,6 +575,10 @@ class Navigator :
         navController?.navigate(R.id.back_to_main)
     }
 
+    override fun returnToAssetDetails() {
+        navController?.navigate(R.id.back_to_asset_details)
+    }
+
     override fun openValidatorDetails(validatorDetails: ValidatorDetailsParcelModel) {
         navController?.navigate(R.id.validatorDetailsFragment, ValidatorDetailsFragment.getBundle(validatorDetails))
     }
@@ -592,8 +597,8 @@ class Navigator :
         navController?.navigate(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openSwapTokensScreen(assetPayload: AssetPayload?) {
-        val bundle = SwapTokensFragment.getBundle(assetPayload?.chainAssetId)
+    override fun openSwapTokensScreen(assetPayload: AssetPayload) {
+        val bundle = SwapTokensFragment.getBundle(assetPayload.chainAssetId, assetPayload.chainId)
 
         navController?.navigate(R.id.swapTokensFragment, bundle)
     }

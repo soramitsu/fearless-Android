@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.api.presentation
 
+import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -19,9 +20,11 @@ interface PolkaswapRouter {
 
     fun back()
 
+    fun returnToAssetDetails()
+
     fun openTransactionSettingsDialog(initialSettings: TransactionSettingsModel)
 
-    fun openSwapPreviewDialog(swapDetailsViewState: SwapDetailsViewState)
+    fun openSwapPreviewDialog(swapDetailsViewState: SwapDetailsViewState, parcelModel: SwapDetailsParcelModel)
 
     fun openSelectMarketDialog()
 

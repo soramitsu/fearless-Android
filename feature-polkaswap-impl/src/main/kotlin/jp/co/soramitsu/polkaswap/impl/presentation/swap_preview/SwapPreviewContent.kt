@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.InfoTable
@@ -41,7 +42,8 @@ import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 
 data class SwapPreviewState(
-    val swapDetailsViewState: SwapDetailsViewState
+    val swapDetailsViewState: SwapDetailsViewState,
+    val isLoading: Boolean
 )
 
 interface SwapPreviewCallbacks {
@@ -57,6 +59,7 @@ fun SwapPreviewContent(
     callbacks: SwapPreviewCallbacks,
     modifier: Modifier = Modifier
 ) {
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -89,121 +92,126 @@ fun SwapPreviewContent(
                 textAlign = TextAlign.Center
             )
         }
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            MarginVertical(margin = 16.dp)
-
-            Row {
-                GradientIcon(
-                    icon = state.swapDetailsViewState.fromTokenImage!!,
-                    color = colorAccentDark,
-                    background = backgroundBlack,
+        FullScreenLoading(isLoading = state.isLoading) {
+            Column {
+                Column(
                     modifier = Modifier
-                        .offset(x = 25.dp)
-                        .zIndex(1f),
-                    contentPadding = PaddingValues(10.dp)
-                )
-                GradientIcon(
-                    icon = state.swapDetailsViewState.toTokenImage!!,
-                    color = colorAccentDark,
-                    background = backgroundBlack,
-                    modifier = Modifier
-                        .offset(x = (-25).dp)
-                        .zIndex(0f),
-                    contentPadding = PaddingValues(10.dp)
-                )
-            }
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    MarginVertical(margin = 16.dp)
 
-            Text(
-                modifier = Modifier.padding(top = 16.dp),
-                text = stringResource(R.string.polkaswap_swap_title),
-                style = MaterialTheme.customTypography.header2,
-                color = MaterialTheme.customColors.white50
-            )
+                    Row {
+                        GradientIcon(
+                            icon = state.swapDetailsViewState.fromTokenImage!!,
+                            color = colorAccentDark,
+                            background = backgroundBlack,
+                            modifier = Modifier
+                                .offset(x = 25.dp)
+                                .zIndex(1f),
+                            contentPadding = PaddingValues(10.dp),
+                            tintImage = false
+                        )
+                        GradientIcon(
+                            icon = state.swapDetailsViewState.toTokenImage!!,
+                            color = colorAccentDark,
+                            background = backgroundBlack,
+                            modifier = Modifier
+                                .offset(x = (-25).dp)
+                                .zIndex(0f),
+                            contentPadding = PaddingValues(10.dp),
+                            tintImage = false
+                        )
+                    }
 
-            Row(
-                modifier = Modifier.padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    modifier = Modifier
-                        .weight(1f),
-                    text = state.swapDetailsViewState.fromTokenAmount.format(),
-                    style = MaterialTheme.customTypography.header3,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.End
-                )
-
-                MarginHorizontal(margin = 16.dp)
-
-                Icon(
-                    painter = painterResource(R.drawable.ic_arrow_right_24),
-                    contentDescription = null,
-                    tint = MaterialTheme.customColors.white
-                )
-
-                MarginHorizontal(margin = 16.dp)
-
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = state.swapDetailsViewState.toTokenAmount.format(),
-                    style = MaterialTheme.customTypography.header3,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start
-                )
-            }
-
-            val fromTokenName = state.swapDetailsViewState.fromTokenName
-            val toTokenName = state.swapDetailsViewState.toTokenName
-            InfoTable(
-                modifier = Modifier.padding(top = 24.dp),
-                items = listOf(
-                    TitleValueViewState(
-                        title = stringResource(R.string.common_min_received),
-                        value = "${state.swapDetailsViewState.toTokenMinReceived} $toTokenName",
-                        additionalValue = "~${state.swapDetailsViewState.toFiatMinReceived}"
-                    ),
-                    TitleValueViewState(
-                        title = stringResource(R.string.common_route),
-                        value = "$fromTokenName  ➝  $toTokenName"
-                    ),
-                    TitleValueViewState(
-                        title = "$fromTokenName / $toTokenName",
-                        value = state.swapDetailsViewState.fromTokenOnToToken.format()
-                    ),
-                    TitleValueViewState(
-                        title = "$toTokenName / $fromTokenName",
-                        value = state.swapDetailsViewState.toTokenOnFromToken.format()
-                    ),
-                    TitleValueViewState(
-                        title = stringResource(R.string.common_network_fee),
-                        value = "0.0007 XOR",
-                        additionalValue = "~\$ 0.32"
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp),
+                        text = stringResource(R.string.polkaswap_swap_title),
+                        style = MaterialTheme.customTypography.header2,
+                        color = MaterialTheme.customColors.white50
                     )
+
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .weight(1f),
+                            text = state.swapDetailsViewState.fromTokenAmount.format(),
+                            style = MaterialTheme.customTypography.header3,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.End
+                        )
+
+                        MarginHorizontal(margin = 16.dp)
+
+                        Icon(
+                            painter = painterResource(R.drawable.ic_arrow_right_24),
+                            contentDescription = null,
+                            tint = MaterialTheme.customColors.white
+                        )
+
+                        MarginHorizontal(margin = 16.dp)
+
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = state.swapDetailsViewState.toTokenAmount.format(),
+                            style = MaterialTheme.customTypography.header3,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+
+                    val fromTokenName = state.swapDetailsViewState.fromTokenName
+                    val toTokenName = state.swapDetailsViewState.toTokenName
+                    InfoTable(
+                        modifier = Modifier.padding(top = 24.dp),
+                        items = listOf(
+                            TitleValueViewState(
+                                title = state.swapDetailsViewState.minmaxTitle,
+                                value = state.swapDetailsViewState.toTokenMinReceived,
+                                additionalValue = state.swapDetailsViewState.toFiatMinReceived
+                            ),
+                            TitleValueViewState(
+                                title = stringResource(R.string.common_route),
+                                value = "$fromTokenName  ➝  $toTokenName"
+                            ),
+                            TitleValueViewState(
+                                title = "$fromTokenName / $toTokenName",
+                                value = state.swapDetailsViewState.fromTokenOnToToken
+                            ),
+                            TitleValueViewState(
+                                title = "$toTokenName / $fromTokenName",
+                                value = state.swapDetailsViewState.toTokenOnFromToken
+                            ),
+                            TitleValueViewState(
+                                title = stringResource(R.string.common_network_fee),
+                                value = state.swapDetailsViewState.networkFee.tokenAmount,
+                                additionalValue = state.swapDetailsViewState.networkFee.fiatAmount
+                            )
+                        )
+                    )
+                }
+
+                MarginVertical(margin = 24.dp)
+
+                AccentButton(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    text = stringResource(R.string.common_confirm),
+                    onClick = callbacks::onConfirmClick
                 )
-            )
+
+                MarginVertical(margin = 8.dp)
+            }
         }
-
-        MarginVertical(margin = 24.dp)
-
-        AccentButton(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth(),
-            text = stringResource(R.string.common_confirm),
-            onClick = callbacks::onConfirmClick
-        )
-
-        MarginVertical(margin = 8.dp)
     }
 }
 
@@ -236,7 +244,8 @@ fun SwapPreviewContentPreview() {
                 fromTokenOnToToken = "0",
                 toTokenOnFromToken = "0",
                 minmaxTitle = stringResource(id = R.string.common_min_received)
-            )
+            ),
+            false
         ),
         callbacks = object : SwapPreviewCallbacks {
             override fun onBackClick() {

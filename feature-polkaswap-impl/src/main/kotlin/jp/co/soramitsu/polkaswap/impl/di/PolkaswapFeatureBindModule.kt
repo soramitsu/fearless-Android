@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import javax.inject.Singleton
+import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.extrinsic.ExtrinsicService
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
@@ -40,8 +41,9 @@ class PolkaswapFeatureModule {
         @Named(REMOTE_STORAGE_SOURCE) remoteSource: StorageDataSource,
         extrinsicService: ExtrinsicService,
         chainRegistry: ChainRegistry,
-        rpcCalls: RpcCalls
+        rpcCalls: RpcCalls,
+        accountRepository: AccountRepository
     ): PolkaswapRepositoryImpl {
-        return PolkaswapRepositoryImpl(remoteConfigFetcher, remoteSource, extrinsicService, chainRegistry, rpcCalls)
+        return PolkaswapRepositoryImpl(remoteConfigFetcher, remoteSource, extrinsicService, chainRegistry, rpcCalls, accountRepository)
     }
 }

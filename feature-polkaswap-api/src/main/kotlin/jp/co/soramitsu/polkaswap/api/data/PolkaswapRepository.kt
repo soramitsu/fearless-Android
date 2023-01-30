@@ -42,4 +42,15 @@ interface PolkaswapRepository {
     ): Boolean
 
     suspend fun getAvailableSources(chainId: ChainId, tokenId1: String, tokenId2: String, dexes: List<Int>): Map<Int, List<Market>>
+    suspend fun swap(
+        chainId: ChainId,
+        dexId: Int,
+        inputAssetId: String,
+        outputAssetId: String,
+        amount: BigInteger,
+        limit: BigInteger,
+        filter: String,
+        markets: List<String>,
+        desired: WithDesired
+    ): Result<String>
 }
