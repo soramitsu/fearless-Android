@@ -517,7 +517,7 @@ class BalanceListViewModel @Inject constructor(
     }
 
     fun openSearchAssets() {
-        router.openSearchAssets(selectedChainId.value)
+        router.openSearchAssets()
     }
 
     fun openSelectChain() {

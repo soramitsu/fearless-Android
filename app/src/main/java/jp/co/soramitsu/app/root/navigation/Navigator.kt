@@ -114,7 +114,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.BalanceDetailFrag
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenTokensFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
-import jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets.SearchAssetsFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
 import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
@@ -903,9 +902,8 @@ class Navigator :
         navController?.navigate(R.id.alertFragment, bundle)
     }
 
-    override fun openSearchAssets(chainId: String?) {
-        val bundle = SearchAssetsFragment.getBundle(chainId)
-        navController?.navigate(R.id.searchAssetsFragment, bundle)
+    override fun openSearchAssets() {
+        navController?.navigate(R.id.searchAssetsFragment)
     }
 
     override fun openOptionsWallet(walletId: Long) {

@@ -7,8 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.asFlow
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
-import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.presentation.actions.AddAccountBottomSheet
 import jp.co.soramitsu.common.AlertViewState
@@ -40,6 +38,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import javax.inject.Inject
 
 @HiltViewModel
 class SearchAssetsViewModel @Inject constructor(
@@ -69,12 +69,10 @@ class SearchAssetsViewModel @Inject constructor(
         chainInteractor.getChainsFlow(),
         connectingChainIdsFlow
     ) { assets: List<AssetWithStatus>, chains: List<Chain>, chainConnectings: Set<ChainId> ->
-        val selectedChainId = savedStateHandle.get<String?>(SearchAssetsFragment.KEY_CHAIN_ID)
         val assetStates = mutableListOf<AssetListItemViewState>()
 
         assets
             .filter { it.hasAccount }
-            .filter { selectedChainId == null || selectedChainId == it.asset.token.configuration.chainId }
             .sortedWith(defaultAssetListSort())
             .map { assetWithStatus ->
                 val token = assetWithStatus.asset.token
@@ -123,11 +121,12 @@ class SearchAssetsViewModel @Inject constructor(
     ) { assetsListItemStates: List<AssetListItemViewState>,
         searchQuery ->
 
-        val assets = assetsListItemStates
-            .filter {
-                searchQuery.isEmpty() || it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true)
+        val assets = when {
+            searchQuery.isEmpty() -> emptyList()
+            else -> assetsListItemStates.filter {
+                it.displayName.contains(searchQuery, true) || it.assetChainName.contains(searchQuery, true)
             }
-
+        }
         SearchAssetState(
             assets = assets,
             searchQuery = searchQuery
