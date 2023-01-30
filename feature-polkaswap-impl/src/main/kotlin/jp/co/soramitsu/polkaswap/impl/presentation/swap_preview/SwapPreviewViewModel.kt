@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigInteger
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.backStrings
@@ -41,11 +42,11 @@ class SwapPreviewViewModel @Inject constructor(
         viewModelScope.launch {
             val swapResult = withContext(Dispatchers.Default) {
                 polkaswapInteractor.swap(
-                    dexId = 1,
+                    dexId = swapDetailsParcelModel.dexId,
                     inputAssetId = swapDetailsViewState.fromTokenId,
                     outputAssetId = swapDetailsViewState.toTokenId,
                     amount = swapDetailsParcelModel.amount,
-                    limit = BigInteger.ZERO,
+                    limit = swapDetailsParcelModel.minMax.orZero(),
                     filter = markets.toFilters(),
                     markets = markets.backStrings(),
                     desired = swapDetailsParcelModel.desired

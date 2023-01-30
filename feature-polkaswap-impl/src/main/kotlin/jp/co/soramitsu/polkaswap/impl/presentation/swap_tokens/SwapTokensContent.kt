@@ -22,9 +22,11 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,6 +35,7 @@ import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.FeeInfo
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
+import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
@@ -51,7 +54,8 @@ data class SwapTokensContentViewState(
     val fromAmountInputViewState: AmountInputViewState,
     val toAmountInputViewState: AmountInputViewState,
     val selectedMarket: Market,
-    val swapDetailsViewState: SwapDetailsViewState?
+    val swapDetailsViewState: SwapDetailsViewState?,
+    val isLoading: Boolean
 ) {
     companion object {
 
@@ -60,7 +64,8 @@ data class SwapTokensContentViewState(
                 fromAmountInputViewState = AmountInputViewState.default(resourceManager),
                 toAmountInputViewState = AmountInputViewState.default(resourceManager),
                 selectedMarket = Market.SMART,
-                swapDetailsViewState = null
+                swapDetailsViewState = null,
+                isLoading = false
             )
         }
     }
@@ -89,12 +94,19 @@ interface SwapTokensCallbacks {
     fun onToAmountFocusChange(focusState: FocusState)
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SwapTokensContent(
     state: SwapTokensContentViewState,
     callbacks: SwapTokensCallbacks,
     modifier: Modifier = Modifier
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val runCallback: (() -> Unit) -> Unit = { block ->
+        keyboardController?.hide()
+        block()
+    }
+
     Column(
         modifier = modifier
             .navigationBarsPadding()
@@ -128,69 +140,72 @@ fun SwapTokensContent(
             MarketLabel(
                 modifier = Modifier.padding(end = 16.dp),
                 market = state.selectedMarket,
-                onClick = callbacks::onMarketSettingsClick
+                onClick = { runCallback(callbacks::onMarketSettingsClick) }
             )
         }
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(top = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
+        FullScreenLoading(isLoading = state.isLoading) {
+            Column {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    AmountInput(
-                        state = state.fromAmountInputViewState,
-                        borderColorFocused = colorAccentDark,
-                        onInput = callbacks::onFromAmountChange,
-                        onTokenClick = callbacks::onFromTokenSelect,
-                        onInputFocusChange = callbacks::onFromAmountFocusChange
-                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        ) {
+                            AmountInput(
+                                state = state.fromAmountInputViewState,
+                                borderColorFocused = colorAccentDark,
+                                onInput = callbacks::onFromAmountChange,
+                                onTokenClick = { runCallback(callbacks::onFromTokenSelect) },
+                                onInputFocusChange = callbacks::onFromAmountFocusChange
+                            )
 
-                    MarginVertical(margin = 8.dp)
+                            MarginVertical(margin = 8.dp)
 
-                    AmountInput(
-                        state = state.toAmountInputViewState,
-                        borderColorFocused = colorAccentDark,
-                        onInput = callbacks::onToAmountChange,
-                        onTokenClick = callbacks::onToTokenSelect,
-                        onInputFocusChange = callbacks::onToAmountFocusChange
-                    )
+                            AmountInput(
+                                state = state.toAmountInputViewState,
+                                borderColorFocused = colorAccentDark,
+                                onInput = callbacks::onToAmountChange,
+                                onTokenClick = { runCallback(callbacks::onToTokenSelect) },
+                                onInputFocusChange = callbacks::onToAmountFocusChange
+                            )
+                        }
+
+                        Icon(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(grayButtonBackground)
+                                .border(width = 1.dp, color = white08, shape = CircleShape)
+                                .clickable { runCallback(callbacks::onChangeTokensClick) }
+                                .padding(8.dp),
+                            painter = painterResource(R.drawable.ic_exchange),
+                            contentDescription = null,
+                            tint = colorAccentDark
+                        )
+                    }
+
+                    if (state.swapDetailsViewState != null) {
+                        TransactionDescription(state.swapDetailsViewState)
+                    }
                 }
 
-                Icon(
+                AccentButton(
                     modifier = Modifier
-                        .clip(CircleShape)
-                        .background(grayButtonBackground)
-                        .border(width = 1.dp, color = white08, shape = CircleShape)
-                        .clickable { callbacks.onChangeTokensClick() }
-                        .padding(8.dp),
-                    painter = painterResource(R.drawable.ic_exchange),
-                    contentDescription = null,
-                    tint = colorAccentDark
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp, top = 16.dp),
+                    text = stringResource(R.string.common_continue),
+                    enabled = state.swapDetailsViewState != null,
+                    onClick = { runCallback(callbacks::onPreviewClick) }
                 )
             }
-
-            if (state.swapDetailsViewState != null) {
-                TransactionDescription(state.swapDetailsViewState)
-            }
         }
-
-        AccentButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp, top = 16.dp),
-            text = stringResource(R.string.common_continue),
-            enabled = state.swapDetailsViewState != null,
-            onClick = callbacks::onPreviewClick
-        )
     }
 }
 

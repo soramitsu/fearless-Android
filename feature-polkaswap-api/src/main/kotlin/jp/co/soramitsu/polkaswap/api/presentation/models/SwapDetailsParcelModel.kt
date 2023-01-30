@@ -10,5 +10,7 @@ import kotlinx.parcelize.Parcelize
 data class SwapDetailsParcelModel(
     val amount: BigInteger,
     val selectedMarket: Market,
-    val desired: WithDesired
+    val desired: WithDesired,
+    val dexId: Int,
+    val minMax: BigInteger?
 ) : Parcelable

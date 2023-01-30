@@ -10,6 +10,7 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
+import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
@@ -17,6 +18,10 @@ import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.common.utils.format
 import jp.co.soramitsu.common.utils.formatAsCurrency
 import jp.co.soramitsu.common.utils.orZero
+import jp.co.soramitsu.common.validation.ExistentialDepositCrossedException
+import jp.co.soramitsu.common.validation.SpendInsufficientBalanceException
+import jp.co.soramitsu.common.validation.UnableToPayFeeException
+import jp.co.soramitsu.common.validation.WaitForFeeCalculationException
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -27,9 +32,11 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsParcelModel
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 import jp.co.soramitsu.polkaswap.api.presentation.models.TransactionSettingsModel
 import jp.co.soramitsu.polkaswap.impl.presentation.transaction_settings.TransactionSettingsFragment
+import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatTokenAmount
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -50,6 +57,7 @@ class SwapTokensViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val polkaswapInteractor: PolkaswapInteractor,
     private val polkaswapRouter: PolkaswapRouter,
+    private val existentialDepositUseCase: ExistentialDepositUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), SwapTokensCallbacks {
 
@@ -74,6 +82,10 @@ class SwapTokensViewModel @Inject constructor(
     private var desired: WithDesired? = null
 
     private val dexes = flowOf { polkaswapInteractor.getAvailableDexes() }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
+    private var allFee: BigDecimal = BigDecimal.ZERO
+    private var minMax: BigDecimal? = null
+
+    private val isLoading = MutableStateFlow(false)
 
     @OptIn(FlowPreview::class)
     private val poolReservesFlow = combine(fromAsset, toAsset, selectedMarket) { fromAsset, toAsset, selectedMarket ->
@@ -101,7 +113,10 @@ class SwapTokensViewModel @Inject constructor(
         dexes,
         poolReservesFlow,
         transform = ::getSwapDetails
-    ).stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    ).catch {
+        showError(it)
+        emit(null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var assetResultJob: Job? = null
 
@@ -111,13 +126,15 @@ class SwapTokensViewModel @Inject constructor(
         fromAmountInputViewState,
         toAmountInputViewState,
         selectedMarket,
-        swapDetails
-    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails ->
+        swapDetails,
+        isLoading
+    ) { fromAmountInput, toAmountInput, selectedMarket, swapDetails, isLoading ->
         SwapTokensContentViewState(
             fromAmountInputViewState = fromAmountInput,
             toAmountInputViewState = toAmountInput,
             selectedMarket = selectedMarket,
-            swapDetailsViewState = swapDetails
+            swapDetailsViewState = swapDetails,
+            isLoading = isLoading
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, SwapTokensContentViewState.default(resourceManager))
 
@@ -142,7 +159,7 @@ class SwapTokensViewModel @Inject constructor(
             .onEach { assetFlow.value = it }
             .onEach { assetResultJob?.cancel() }
             .catch {
-                // TODO: Logging
+                showError(it)
             }
             .launchIn(viewModelScope)
     }
@@ -218,7 +235,8 @@ class SwapTokensViewModel @Inject constructor(
                 }
                 val tokenFromId = requireNotNull(fromAsset.token.configuration.currencyId)
                 val tokenToId = requireNotNull(toAsset.token.configuration.currencyId)
-
+                allFee = details.networkFee + details.liquidityProviderFee
+                minMax = details.minMax
                 SwapDetailsViewState(
                     fromTokenId = tokenFromId,
                     toTokenId = tokenToId,
@@ -345,20 +363,70 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     override fun onPreviewClick() {
-        val swapDetailsValue = swapDetails.value ?: return
-        val amountInPlanks =
-            when (desired) {
-                WithDesired.INPUT -> fromAsset.value?.token?.configuration?.planksFromAmount(enteredFromAmountFlow.value.toBigDecimal())
-                WithDesired.OUTPUT -> toAsset.value?.token?.configuration?.planksFromAmount(enteredToAmountFlow.value.toBigDecimal())
-                null -> null
-            } ?: BigInteger.ZERO
+        viewModelScope.launch {
+            isLoading.value = true
+            val swapDetailsValue = swapDetails.value ?: run {
+                isLoading.value = false
+                showError(WaitForFeeCalculationException(resourceManager))
+                return@launch
+            }
+            validate()?.let {
+                isLoading.value = false
+                showError(it)
+                return@launch
+            }
+            var amountInPlanks: BigInteger = BigInteger.ZERO
+            var minMaxInPlanks: BigInteger? = null
 
-        val detailsParcelModel = SwapDetailsParcelModel(
-            amountInPlanks,
-            selectedMarket.value,
-            requireNotNull(desired)
-        )
-        polkaswapRouter.openSwapPreviewDialog(swapDetailsValue, detailsParcelModel)
+            when (desired) {
+                WithDesired.INPUT -> {
+                    amountInPlanks = fromAsset.value?.token?.planksFromAmount(enteredFromAmountFlow.value.toBigDecimal()).orZero()
+                    minMaxInPlanks = toAsset.value?.token?.planksFromAmount(minMax.orZero())
+                }
+                WithDesired.OUTPUT -> {
+                    amountInPlanks = toAsset.value?.token?.planksFromAmount(enteredToAmountFlow.value.toBigDecimal()).orZero()
+                    minMaxInPlanks = fromAsset.value?.token?.planksFromAmount(minMax.orZero())
+                }
+                else -> Unit
+            }
+
+            val detailsParcelModel = SwapDetailsParcelModel(
+                amountInPlanks,
+                selectedMarket.value,
+                requireNotNull(desired),
+                requireNotNull((polkaswapInteractor.bestDexIdFlow.value as? LoadingState.Loaded)?.data),
+                minMaxInPlanks
+            )
+            isLoading.value = false
+            polkaswapRouter.openSwapPreviewDialog(swapDetailsValue, detailsParcelModel)
+        }
+    }
+
+    private suspend fun validate(): Throwable? {
+        val feeAsset = requireNotNull(polkaswapInteractor.getFeeAsset())
+        val ed = existentialDepositUseCase(feeAsset.token.configuration).let { feeAsset.token.configuration.amountFromPlanks(it) }
+        val amountToSwap = enteredFromAmountFlow.value.toBigDecimal()
+        val available = requireNotNull(fromAsset.value?.transferable)
+        val fee = allFee
+        return when {
+            amountToSwap >= available -> {
+                SpendInsufficientBalanceException(resourceManager)
+            }
+            fromAsset.value?.token?.configuration?.id == feeAsset.token.configuration.id && available <= amountToSwap + fee -> {
+                SpendInsufficientBalanceException(resourceManager)
+            }
+            feeAsset.transferable <= fee -> {
+                UnableToPayFeeException(resourceManager)
+            }
+            fromAsset.value?.token?.configuration?.id == feeAsset.token.configuration.id && (available - amountToSwap - fee) <= ed -> {
+                ExistentialDepositCrossedException(resourceManager)
+            }
+
+            (feeAsset.transferable - fee) <= ed -> {
+                ExistentialDepositCrossedException(resourceManager)
+            }
+            else -> null
+        }
     }
 
     override fun onBackClick() {

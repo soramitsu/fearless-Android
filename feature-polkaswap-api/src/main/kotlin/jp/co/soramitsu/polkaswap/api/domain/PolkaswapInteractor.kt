@@ -45,4 +45,5 @@ interface PolkaswapInteractor {
     ): Result<String>
 
     fun setChainId(chainId: ChainId?)
+    suspend fun getFeeAsset(): Asset?
 }

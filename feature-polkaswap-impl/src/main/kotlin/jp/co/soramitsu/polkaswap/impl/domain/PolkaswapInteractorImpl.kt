@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.domain
 
+import android.util.Log
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
@@ -46,6 +47,11 @@ class PolkaswapInteractorImpl @Inject constructor(
 
     override fun setChainId(chainId: ChainId?) {
         chainId?.takeIf { it in listOf(soraMainChainId, soraTestChainId) }?.let { polkaswapChainId = chainId }
+    }
+
+    override suspend fun getFeeAsset(): Asset? {
+        val chain = chainRegistry.getChain(polkaswapChainId)
+        return getAsset(chain.utilityAsset.id)
     }
 
     override suspend fun getAsset(assetId: String): Asset? {
@@ -97,7 +103,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         val tokenToId = requireNotNull(tokenTo.token.configuration.currencyId)
 
         val availableDexPaths = getAvailableDexesForPair(tokenFromId, tokenToId, dexes)
-
+        Log.d("&&&", "availableDexPaths: $availableDexPaths")
         if (availableDexPaths.isEmpty()) {
             return Result.failure(PathUnavailableException())
         }
@@ -144,14 +150,17 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val networkFee = feeAsset.token.configuration.amountFromPlanks(networkFeeInPlanks)
 
-        if (swapQuote.amount == BigDecimal.ZERO) return Result.success(null)
-        val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
-        val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
-        val liquidityFee = swapQuote.fee
+        val (per, liquidityFee) = synchronized(swapQuote) {
+            if (swapQuote.amount == BigDecimal.ZERO) return Result.success(null)
+            val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
+            val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
+            val liquidityFee = swapQuote.fee
+            (per1 to per2) to liquidityFee
+        }
 
         val (fromTokenOnToToken, toTokenOnFromToken) = when (desired) {
-            WithDesired.INPUT -> per1 to per2
-            WithDesired.OUTPUT -> per2 to per1
+            WithDesired.INPUT -> per
+            WithDesired.OUTPUT -> per.second to per.first
         }
 
         val details = SwapDetails(
@@ -184,7 +193,7 @@ class PolkaswapInteractorImpl @Inject constructor(
                 curMarkets = curMarkets,
                 dexId = dexId
             ) ?: return@mapNotNull null
-
+            Log.d("&&&", "gotQuote for dex $dexId, quote is ${quote.amount}")
             dexId to quote
         }
         return if (quotes.isEmpty()) {
@@ -213,6 +222,7 @@ class PolkaswapInteractorImpl @Inject constructor(
     private suspend fun getAvailableDexesForPair(tokenFromId: String, tokenToId: String, dexes: List<BigInteger>): List<Int> {
         return dexes.map {
             val isAvailable = polkaswapRepository.isPairAvailable(polkaswapChainId, tokenFromId, tokenToId, it.toInt())
+            Log.d("&&&", "dex path for $it isAvailable=$isAvailable")
             it.toInt() to isAvailable
         }.filter { it.second }.map { it.first }
     }
