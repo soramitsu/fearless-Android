@@ -38,6 +38,7 @@ import jp.co.soramitsu.common.mixin.api.UpdatesMixin
 import jp.co.soramitsu.common.mixin.api.UpdatesProviderUi
 import jp.co.soramitsu.common.model.AssetKey
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.format
@@ -56,6 +57,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.defaultChainSort
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
+import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
@@ -95,7 +97,9 @@ class BalanceListViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val updatesMixin: UpdatesMixin,
     private val networkStateMixin: NetworkStateMixin,
-    private val resourceManager: ResourceManager
+    private val resourceManager: ResourceManager,
+    private val clipboardManager: ClipboardManager,
+    private val currentAccountAddress: CurrentAccountAddressUseCase
 ) : BaseViewModel(), UpdatesProviderUi by updatesMixin, NetworkStateUi by networkStateMixin, WalletScreenInterface {
 
     private val accountAddressToChainIdMap = mutableMapOf<String, ChainId?>()
@@ -298,14 +302,20 @@ class BalanceListViewModel @Inject constructor(
     val state = combine(
         assetStates,
         assetTypeSelectorState,
-        balanceFlow
+        balanceFlow,
+        selectedChainId
     ) { assetsListItemStates: List<AssetListItemViewState>,
         multiToggleButtonState: MultiToggleButtonState<AssetType>,
-        balanceModel: BalanceModel ->
+        balanceModel: BalanceModel,
+        selectedChainId: ChainId? ->
+
+        val selectedChainAddress = selectedChainId?.let {
+            currentAccountAddress(chainId = it)
+        }.orEmpty()
 
         val balanceState = AssetBalanceViewState(
             balance = balanceModel.totalBalance?.formatAsCurrency(balanceModel.fiatSymbol).orEmpty(),
-            address = "",
+            address = selectedChainAddress,
             changeViewState = ChangeBalanceViewState(
                 percentChange = balanceModel.rate?.formatAsChange().orEmpty(),
                 fiatChange = balanceModel.totalBalanceChange.abs().formatAsCurrency(balanceModel.fiatSymbol)
@@ -473,6 +483,16 @@ class BalanceListViewModel @Inject constructor(
         router.openNetworkIssues()
     }
 
+    override fun onAddressClick() {
+        launch {
+            selectedChainId.value?.let {
+                currentAccountAddress(chainId = it)
+            }?.let { address ->
+                copyToClipboard(address)
+            }
+        }
+    }
+
     fun onFiatSelected(item: FiatCurrency) {
         viewModelScope.launch {
             selectedFiat.set(item.id)
@@ -522,5 +542,12 @@ class BalanceListViewModel @Inject constructor(
 
     fun openSelectChain() {
         router.openSelectChain(selectedChainId.value)
+    }
+
+    private fun copyToClipboard(text: String) {
+        clipboardManager.addToClipboard(text)
+
+        val message = resourceManager.getString(R.string.common_copied)
+        showMessage(message)
     }
 }

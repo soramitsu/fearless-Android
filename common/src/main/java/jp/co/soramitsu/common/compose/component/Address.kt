@@ -42,7 +42,7 @@ fun Address(
                 .padding(horizontal = 8.dp, vertical = 4.dp)
                 .clickable(onClick = onClick)
         ) {
-            val showAddressParts = remember { address.take(7) + "..." + address.takeLast(5) }
+            val showAddressParts = address.take(7) + "..." + address.takeLast(5)
             Text(
                 text = showAddressParts,
                 style = MaterialTheme.customTypography.body2,

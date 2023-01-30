@@ -31,6 +31,7 @@ import jp.co.soramitsu.wallet.impl.presentation.common.AssetsList
 import jp.co.soramitsu.wallet.impl.presentation.common.AssetsListInterface
 
 interface WalletScreenInterface : AssetsListInterface {
+    fun onAddressClick()
     fun onBalanceClicked()
     fun onNetworkIssuesClicked()
     fun assetTypeChanged(type: AssetType)
@@ -45,7 +46,7 @@ fun WalletScreen(
         MarginVertical(margin = 16.dp)
         AssetBalance(
             state = data.balance,
-            onAddressClick = emptyClick,
+            onAddressClick = callback::onAddressClick,
             onBalanceClick = callback::onBalanceClicked
         )
         if (data.hasNetworkIssues) {
@@ -77,6 +78,7 @@ fun WalletScreen(
 private fun PreviewWalletScreen() {
     @OptIn(ExperimentalMaterialApi::class)
     val emptyCallback = object : WalletScreenInterface {
+        override fun onAddressClick() {}
         override fun onBalanceClicked() {}
         override fun onNetworkIssuesClicked() {}
         override fun assetTypeChanged(type: AssetType) {}
