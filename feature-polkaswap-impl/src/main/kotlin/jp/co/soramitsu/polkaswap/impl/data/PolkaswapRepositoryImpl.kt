@@ -62,7 +62,6 @@ class PolkaswapRepositoryImpl @Inject constructor(
         return remoteStorage.observe(
             chainId = chainId,
             keyBuilder = {
-
                 val from = Struct.Instance(
                     mapOf("code" to fromTokenId.fromHex().toList().map { it.toInt().toBigInteger() })
                 )

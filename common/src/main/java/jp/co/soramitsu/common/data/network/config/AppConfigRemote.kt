@@ -29,5 +29,5 @@ data class AvailableDexId(
     @SerializedName("code")
     val code: BigInteger,
     @SerializedName("assetId")
-    val assetId: String,
+    val assetId: String
 )

@@ -15,7 +15,7 @@ fun ExtrinsicBuilder.swap(
     limit: BigInteger,
     filter: String,
     markets: List<String>,
-    desired: WithDesired,
+    desired: WithDesired
 ) =
     this.call(
         "LiquidityProxy",
@@ -34,7 +34,7 @@ fun ExtrinsicBuilder.swap(
                     (if (desired == WithDesired.INPUT) "desired_amount_in" to "min_amount_out" else "desired_amount_out" to "max_amount_in").let {
                         mapOf(
                             it.first to amount,
-                            it.second to limit,
+                            it.second to limit
                         )
                     }
                 )
@@ -43,6 +43,6 @@ fun ExtrinsicBuilder.swap(
             "filter_mode" to DictEnum.Entry(
                 name = filter,
                 value = null
-            ),
+            )
         )
     )

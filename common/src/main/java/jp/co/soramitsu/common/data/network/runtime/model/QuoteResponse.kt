@@ -6,5 +6,5 @@ import java.math.BigInteger
 @Keep
 data class QuoteResponse(
     val amount: BigInteger,
-    val fee: BigInteger,
+    val fee: BigInteger
 )

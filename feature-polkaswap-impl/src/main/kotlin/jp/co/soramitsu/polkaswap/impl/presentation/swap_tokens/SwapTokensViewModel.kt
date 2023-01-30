@@ -273,7 +273,8 @@ class SwapTokensViewModel @Inject constructor(
                 }
                 showError(error)
                 null
-            })
+            }
+        )
     }
 
     private fun getAmountInputViewState(

@@ -1,6 +1,5 @@
 package jp.co.soramitsu.polkaswap.impl.domain
 
-import android.util.Log
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
@@ -103,7 +102,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         val tokenToId = requireNotNull(tokenTo.token.configuration.currencyId)
 
         val availableDexPaths = getAvailableDexesForPair(tokenFromId, tokenToId, dexes)
-        Log.d("&&&", "availableDexPaths: $availableDexPaths")
+
         if (availableDexPaths.isEmpty()) {
             return Result.failure(PathUnavailableException())
         }
@@ -128,10 +127,11 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val minMax =
             (swapQuote.amount * BigDecimal.valueOf(slippageTolerance / 100)).let {
-                if (desired == WithDesired.INPUT)
+                if (desired == WithDesired.INPUT) {
                     swapQuote.amount - it
-                else
+                } else {
                     swapQuote.amount + it
+                }
             }
 
         val scale = max(swapQuote.amount.scale(), amount.scale())
@@ -181,7 +181,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         tokenToId: String,
         amount: BigInteger,
         desired: WithDesired,
-        curMarkets: List<Market>,
+        curMarkets: List<Market>
     ): Pair<Int, QuoteResponse>? {
         val quotes = dexes.mapNotNull { dexId ->
             val quote = polkaswapRepository.getSwapQuote(
@@ -193,7 +193,7 @@ class PolkaswapInteractorImpl @Inject constructor(
                 curMarkets = curMarkets,
                 dexId = dexId
             ) ?: return@mapNotNull null
-            Log.d("&&&", "gotQuote for dex $dexId, quote is ${quote.amount}")
+
             dexId to quote
         }
         return if (quotes.isEmpty()) {
@@ -222,7 +222,7 @@ class PolkaswapInteractorImpl @Inject constructor(
     private suspend fun getAvailableDexesForPair(tokenFromId: String, tokenToId: String, dexes: List<BigInteger>): List<Int> {
         return dexes.map {
             val isAvailable = polkaswapRepository.isPairAvailable(polkaswapChainId, tokenFromId, tokenToId, it.toInt())
-            Log.d("&&&", "dex path for $it isAvailable=$isAvailable")
+
             it.toInt() to isAvailable
         }.filter { it.second }.map { it.first }
     }

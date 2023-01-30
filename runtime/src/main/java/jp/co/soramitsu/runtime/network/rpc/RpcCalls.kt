@@ -131,7 +131,7 @@ class RpcCalls(
         swapVariant: String,
         market: List<String>,
         filter: String,
-        dexId: Int,
+        dexId: Int
     ): QuoteResponse? {
         val request = RuntimeRequest(
             method = "liquidityProxy_quote",
@@ -143,7 +143,7 @@ class RpcCalls(
                 swapVariant,
                 market,
                 filter
-            ),
+            )
         )
         return socketFor(chainId).executeAsync(request, mapper = pojo<QuoteResponse>()).result
     }
@@ -160,7 +160,7 @@ class RpcCalls(
         chainId: ChainId,
         tokenId1: String,
         tokenId2: String,
-        dexId: Int,
+        dexId: Int
     ): Boolean {
         val request = RuntimeRequest(
             method = "liquidityProxy_isPathAvailable",
@@ -168,7 +168,7 @@ class RpcCalls(
                 dexId,
                 tokenId1,
                 tokenId2
-            ),
+            )
         )
         return socketFor(chainId).executeAsync(request, mapper = pojo<Boolean>().nonNull())
     }

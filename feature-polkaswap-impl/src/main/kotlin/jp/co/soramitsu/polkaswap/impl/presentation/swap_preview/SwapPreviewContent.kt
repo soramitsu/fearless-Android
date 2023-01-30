@@ -59,7 +59,6 @@ fun SwapPreviewContent(
     callbacks: SwapPreviewCallbacks,
     modifier: Modifier = Modifier
 ) {
-
     Column(
         modifier = modifier
             .fillMaxSize()

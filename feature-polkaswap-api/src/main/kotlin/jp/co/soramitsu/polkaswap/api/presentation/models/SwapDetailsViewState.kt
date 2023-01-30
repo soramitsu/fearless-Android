@@ -32,12 +32,11 @@ data class SwapDetailsViewState(
         val tokenAmount: String,
         val fiatAmount: String?
     ) : Parcelable
-
 }
 
 data class SwapQuote(
     val amount: BigDecimal,
-    val fee: BigDecimal,
+    val fee: BigDecimal
 )
 
 fun QuoteResponse.toModel(chainAsset: Chain.Asset): SwapQuote {
