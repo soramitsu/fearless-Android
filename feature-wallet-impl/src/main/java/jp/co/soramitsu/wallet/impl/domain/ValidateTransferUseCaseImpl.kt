@@ -32,7 +32,8 @@ class ValidateTransferUseCaseImpl(
         asset: Asset,
         recipientAddress: String,
         ownAddress: String,
-        fee: BigInteger?
+        fee: BigInteger?,
+        confirmedValidations: List<TransferValidationResult>
     ): Result<TransferValidationResult> = kotlin.runCatching {
         fee ?: return Result.success(TransferValidationResult.WaitForFee)
         val chainId = asset.token.configuration.chainId
@@ -43,12 +44,13 @@ class ValidateTransferUseCaseImpl(
         val tip = if (chainAsset.isUtility) walletConstants.tip(chainId).orZero() else BigInteger.ZERO
 
         val validateAddressResult = kotlin.runCatching { chain.isValidAddress(recipientAddress) }
-        val initialCheck = when {
-            validateAddressResult.isFailure -> TransferValidationResult.InvalidAddress
-            validateAddressResult.getOrNull() == false -> TransferValidationResult.InvalidAddress
-            recipientAddress == ownAddress -> TransferValidationResult.TransferToTheSameAddress
-            else -> TransferValidationResult.Valid
-        }
+
+        val initialChecks = mapOf(
+            TransferValidationResult.InvalidAddress to (validateAddressResult.getOrNull() in listOf(null, false)),
+            TransferValidationResult.TransferToTheSameAddress to (recipientAddress == ownAddress)
+        )
+
+        val initialCheck = performChecks(initialChecks, confirmedValidations)
         if (initialCheck != TransferValidationResult.Valid) {
             return Result.success(initialCheck)
         }
@@ -59,30 +61,31 @@ class ValidateTransferUseCaseImpl(
 
         val result = when {
             chainAsset.type == ChainAssetType.Equilibrium -> {
-                getEquilibriumValidationResult(asset, recipientAccountId, chain, ownAddress, amountInPlanks, fee, tip)
+                getEquilibriumValidationResult(asset, recipientAccountId, chain, ownAddress, amountInPlanks, fee, tip, confirmedValidations)
             }
             chainAsset.isUtility -> {
                 val resultedBalance = (asset.freeInPlanks ?: transferable) - (amountInPlanks + fee + tip)
-                when {
-                    amountInPlanks + fee + tip > transferable -> TransferValidationResult.InsufficientBalance
-                    resultedBalance < assetExistentialDeposit -> TransferValidationResult.ExistentialDepositWarning
-                    totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit -> TransferValidationResult.DeadRecipient
-                    else -> TransferValidationResult.Valid
-                }
+
+                val utilityChecks = mapOf(
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks + fee + tip > transferable),
+                    TransferValidationResult.ExistentialDepositWarning to (resultedBalance < assetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                )
+                performChecks(utilityChecks, confirmedValidations)
             }
             else -> {
                 val utilityAsset = walletInteractor.getCurrentAsset(chainId, chain.utilityAsset.id)
                 val utilityAssetBalance = utilityAsset.transferableInPlanks
                 val utilityAssetExistentialDeposit = existentialDepositUseCase(chain.utilityAsset)
 
-                when {
-                    amountInPlanks > transferable -> TransferValidationResult.InsufficientBalance
-                    fee + tip > utilityAssetBalance -> TransferValidationResult.InsufficientUtilityAssetBalance
-                    transferable - amountInPlanks < assetExistentialDeposit -> TransferValidationResult.ExistentialDepositWarning
-                    utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit -> TransferValidationResult.UtilityExistentialDepositWarning
-                    totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit -> TransferValidationResult.DeadRecipient
-                    else -> TransferValidationResult.Valid
-                }
+                val ormlChecks = mapOf(
+                    TransferValidationResult.InsufficientBalance to (amountInPlanks > transferable),
+                    TransferValidationResult.InsufficientUtilityAssetBalance to (fee + tip > utilityAssetBalance),
+                    TransferValidationResult.ExistentialDepositWarning to (transferable - amountInPlanks < assetExistentialDeposit),
+                    TransferValidationResult.UtilityExistentialDepositWarning to (utilityAssetBalance - (fee + tip) < utilityAssetExistentialDeposit),
+                    TransferValidationResult.DeadRecipient to (totalRecipientBalanceInPlanks + amountInPlanks < assetExistentialDeposit)
+                )
+                performChecks(ormlChecks, confirmedValidations)
             }
         }
         return Result.success(result)
@@ -95,7 +98,8 @@ class ValidateTransferUseCaseImpl(
         ownAddress: String,
         amountInPlanks: BigInteger,
         fee: BigInteger,
-        tip: BigInteger
+        tip: BigInteger,
+        confirmedValidations: List<TransferValidationResult>
     ): TransferValidationResult {
         val chainAsset = asset.token.configuration
         val assetExistentialDeposit = existentialDepositUseCase(chainAsset)
@@ -146,10 +150,22 @@ class ValidateTransferUseCaseImpl(
         val recipientNewTotalInPlanks = asset.token.configuration.planksFromAmount(recipientNewTotal)
         val ownNewTotalInPlanks = asset.token.configuration.planksFromAmount(ownNewTotal)
 
-        return when {
-            ownNewTotalInPlanks < assetExistentialDeposit -> TransferValidationResult.ExistentialDepositWarning
-            recipientNewTotalInPlanks < assetExistentialDeposit -> TransferValidationResult.DeadRecipient
-            else -> TransferValidationResult.Valid
+        val equilibriumChecks = mapOf(
+            TransferValidationResult.ExistentialDepositWarning to (ownNewTotalInPlanks < assetExistentialDeposit),
+            TransferValidationResult.DeadRecipient to (recipientNewTotalInPlanks < assetExistentialDeposit)
+        )
+        return performChecks(equilibriumChecks, confirmedValidations)
+    }
+
+    private fun performChecks(
+        checks: Map<TransferValidationResult, Boolean>,
+        confirmedValidations: List<TransferValidationResult>
+    ): TransferValidationResult {
+        checks.filter { (result, _) ->
+            result !in confirmedValidations
+        }.forEach { (result, condition) ->
+            if (condition) return result
         }
+        return TransferValidationResult.Valid
     }
 }
