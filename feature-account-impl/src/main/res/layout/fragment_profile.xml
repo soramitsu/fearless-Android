@@ -53,7 +53,7 @@
             android:drawableStart="@drawable/ic_settings_wallets"
             android:drawablePadding="@dimen/x1_5"
             android:gravity="center_vertical"
-            android:text="@string/wallet_info_title"
+            android:text="@string/profile_wallets_title"
             android:textColor="@color/white" />
 
         <ImageView

@@ -109,7 +109,7 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openAlert(payload: AlertViewState, resultKey: String)
 
-    fun openSearchAssets(chainId: String?)
+    fun openSearchAssets()
 
     fun openOptionsWallet(walletId: Long)
 

@@ -30,16 +30,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 @AndroidEntryPoint
 class SearchAssetsFragment : BaseComposeFragment<SearchAssetsViewModel>() {
 
-    companion object {
-        const val KEY_CHAIN_ID = "id"
-
-        fun getBundle(chainId: String?): Bundle {
-            return Bundle().apply {
-                putString(KEY_CHAIN_ID, chainId)
-            }
-        }
-    }
-
     override val viewModel: SearchAssetsViewModel by viewModels()
 
     @OptIn(ExperimentalMaterialApi::class)
