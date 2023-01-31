@@ -28,6 +28,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlin.math.max
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -64,6 +65,7 @@ class PolkaswapInteractorImpl @Inject constructor(
         return polkaswapRepository.getAvailableDexes(polkaswapChainId)
     }
 
+    @OptIn(FlowPreview::class)
     override fun observePoolReserves(fromTokenId: String, toTokenId: String, market: Market): Flow<String> {
         val flows = mutableListOf<Flow<String>>()
         if (market == Market.XYK || market == Market.SMART) {
@@ -123,7 +125,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         bestDexIdFlow.emit(LoadingState.Loaded(bestDex))
 
-        if (swapQuote.amount == BigDecimal.ZERO) return Result.success(null)
+        if (swapQuote.amount.compareTo(BigDecimal.ZERO) == 0) return Result.success(null)
 
         val minMax =
             (swapQuote.amount * BigDecimal.valueOf(slippageTolerance / 100)).let {
@@ -150,17 +152,14 @@ class PolkaswapInteractorImpl @Inject constructor(
 
         val networkFee = feeAsset.token.configuration.amountFromPlanks(networkFeeInPlanks)
 
-        val (per, liquidityFee) = synchronized(swapQuote) {
-            if (swapQuote.amount == BigDecimal.ZERO) return Result.success(null)
-            val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
-            val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
-            val liquidityFee = swapQuote.fee
-            (per1 to per2) to liquidityFee
-        }
+        if (swapQuote.amount.compareTo(BigDecimal.ZERO) == 0) return Result.success(null)
+        val per1 = amount.divide(swapQuote.amount, scale, RoundingMode.HALF_EVEN)
+        val per2 = swapQuote.amount.divide(amount, scale, RoundingMode.HALF_EVEN)
+        val liquidityFee = swapQuote.fee
 
         val (fromTokenOnToToken, toTokenOnFromToken) = when (desired) {
-            WithDesired.INPUT -> per
-            WithDesired.OUTPUT -> per.second to per.first
+            WithDesired.INPUT -> per1 to per2
+            WithDesired.OUTPUT -> per2 to per1
         }
 
         val details = SwapDetails(

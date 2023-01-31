@@ -202,7 +202,7 @@ class SwapTokensViewModel @Inject constructor(
         } catch (e: java.lang.NumberFormatException) {
             return null
         }
-        if (amount == BigDecimal.ZERO) return null
+        if (amount.compareTo(BigDecimal.ZERO) == 0) return null
 
         val detailsCalcResult = polkaswapInteractor.calcDetails(dexes, fromAsset, toAsset, amount, desired!!, slippageTolerance, selectedMarket)
         return detailsCalcResult.fold(
