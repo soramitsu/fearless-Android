@@ -1,6 +1,8 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_tokens
 
 import androidx.compose.ui.focus.FocusState
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +14,7 @@ import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.flowOf
@@ -45,6 +48,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -60,6 +64,9 @@ class SwapTokensViewModel @Inject constructor(
     private val existentialDepositUseCase: ExistentialDepositUseCase,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel(), SwapTokensCallbacks {
+
+    private val _showMarketsWarningEvent = MutableLiveData<Event<Unit>>()
+    val showMarketsWarningEvent: LiveData<Event<Unit>> = _showMarketsWarningEvent
 
     private val enteredFromAmountFlow = MutableStateFlow("0")
     private val enteredToAmountFlow = MutableStateFlow("0")
@@ -150,6 +157,12 @@ class SwapTokensViewModel @Inject constructor(
                 slippageTolerance.value = it.slippageTolerance
             }
             .launchIn(viewModelScope)
+
+        viewModelScope.launch {
+            combine(fromAsset.filterNotNull(), toAsset.filterNotNull(), dexes) { fromAsset, toAsset, dexes ->
+                polkaswapInteractor.fetchAvailableSources(fromAsset, toAsset, dexes)
+            }.launchIn(viewModelScope)
+        }
     }
 
     private fun observeResultFor(assetFlow: MutableStateFlow<Asset?>) {
@@ -180,13 +193,11 @@ class SwapTokensViewModel @Inject constructor(
         desired ?: return null
         if (dexes.isEmpty()) return null
 
-        polkaswapInteractor.fetchAvailableSources(fromAsset, toAsset, dexes)
-
         val amount = try {
             when (desired) {
                 WithDesired.INPUT -> fromAmountInputViewState.tokenAmount
                 WithDesired.OUTPUT -> toAmountInputViewState.tokenAmount
-                null -> return null
+                else -> return null
             }.toBigDecimal()
         } catch (e: java.lang.NumberFormatException) {
             return null
@@ -443,6 +454,10 @@ class SwapTokensViewModel @Inject constructor(
     }
 
     override fun onMarketSettingsClick() {
+        if (fromAsset.value == null || toAsset.value == null) {
+            _showMarketsWarningEvent.value = Event(Unit)
+            return
+        }
         val initialSettings = TransactionSettingsModel(selectedMarket.value, slippageTolerance.value)
         polkaswapRouter.openTransactionSettingsDialog(initialSettings)
     }
@@ -481,5 +496,16 @@ class SwapTokensViewModel @Inject constructor(
             selectedAssetId = selectedAssetId,
             excludeAssetId = excludeAssetId
         )
+    }
+
+    fun marketAlertConfirmed() {
+        when {
+            fromAsset.value == null -> {
+                onFromTokenSelect()
+            }
+            toAsset.value == null -> {
+                onToTokenSelect()
+            }
+        }
     }
 }

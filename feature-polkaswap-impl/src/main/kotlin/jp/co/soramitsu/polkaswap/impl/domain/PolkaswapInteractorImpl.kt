@@ -42,7 +42,7 @@ class PolkaswapInteractorImpl @Inject constructor(
 
     override var polkaswapChainId = soraMainChainId
     override val availableMarkets: MutableMap<Int, List<Market>> = mutableMapOf(0 to listOf(Market.SMART))
-    override val bestDexIdFlow: MutableStateFlow<LoadingState<Int>> = MutableStateFlow(LoadingState.Loading())
+    override val bestDexIdFlow: MutableStateFlow<LoadingState<Int>> = MutableStateFlow(LoadingState.Loaded(0))
 
     override fun setChainId(chainId: ChainId?) {
         chainId?.takeIf { it in listOf(soraMainChainId, soraTestChainId) }?.let { polkaswapChainId = chainId }

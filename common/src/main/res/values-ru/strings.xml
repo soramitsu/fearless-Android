@@ -925,4 +925,7 @@
     <string name="polkaswap_path_unavailable_message">К сожалению, такой пары нет. Но вы можете выбрать другую</string>
     <string name="polkaswap_maximum_sold">Макс. продажа</string>
     <string name="polkaswap_insufficient_liqudity">Недостаточная ликвидность</string>
+    <string name="polkaswap_market_alert_title">Выбор маркета недоступен</string>
+    <string name="polkaswap_market_alert_message">Вы не завершили настройку свапа. Один или оба ассета не выбраны, поэтому выбор маркета недоступен.</string>
+    <string name="polkaswap_market_alert_positive_button">Выбрать ассет</string>
 </resources>
