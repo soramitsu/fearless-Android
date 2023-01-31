@@ -22,7 +22,6 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.NetworkIssuesBadge
 import jp.co.soramitsu.common.compose.component.NftStub
 import jp.co.soramitsu.common.compose.component.SwipeState
-import jp.co.soramitsu.common.compose.component.emptyClick
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
