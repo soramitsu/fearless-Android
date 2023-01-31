@@ -190,6 +190,11 @@ fun SwapPreviewContent(
                                 value = state.swapDetailsViewState.toTokenOnFromToken
                             ),
                             TitleValueViewState(
+                                title = stringResource(R.string.common_liquidity_provider_fee),
+                                value = state.swapDetailsViewState.liquidityProviderFee.tokenAmount,
+                                additionalValue = state.swapDetailsViewState.liquidityProviderFee.fiatAmount
+                            ),
+                            TitleValueViewState(
                                 title = stringResource(R.string.common_network_fee),
                                 value = state.swapDetailsViewState.networkFee.tokenAmount,
                                 additionalValue = state.swapDetailsViewState.networkFee.fiatAmount
