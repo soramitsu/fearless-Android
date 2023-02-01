@@ -9,6 +9,7 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
+import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
@@ -120,7 +121,7 @@ class PolkaswapInteractorImpl @Inject constructor(
             curMarkets = curMarkets
         )?.let { it.first to it.second.toModel(feeAsset.token.configuration) } ?: run {
             bestDexIdFlow.emit(previousBestDex)
-            return Result.success(null)
+            return Result.failure(InsufficientLiquidityException())
         }
 
         bestDexIdFlow.emit(LoadingState.Loaded(bestDex))
