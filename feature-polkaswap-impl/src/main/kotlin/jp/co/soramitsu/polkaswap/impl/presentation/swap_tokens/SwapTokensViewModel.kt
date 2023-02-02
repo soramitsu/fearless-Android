@@ -48,6 +48,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapConcat
@@ -97,6 +98,7 @@ class SwapTokensViewModel @Inject constructor(
     private val dexes = flowOf { polkaswapInteractor.getAvailableDexes() }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
 
     private val isLoading = MutableStateFlow(false)
+    private var initialFee = BigDecimal.ZERO
 
     @OptIn(FlowPreview::class)
     private val poolReservesFlow = combine(fromAsset, toAsset, selectedMarket) { fromAsset, toAsset, selectedMarket ->
@@ -200,6 +202,8 @@ class SwapTokensViewModel @Inject constructor(
             combine(fromAsset.filterNotNull(), toAsset.filterNotNull(), dexes) { fromAsset, toAsset, dexes ->
                 polkaswapInteractor.fetchAvailableSources(fromAsset, toAsset, dexes)
             }.launchIn(viewModelScope)
+
+            initialFee = polkaswapInteractor.calcFakeFee()
         }
     }
 
@@ -493,6 +497,43 @@ class SwapTokensViewModel @Inject constructor(
             }
             toAsset.value == null -> {
                 onToTokenSelect()
+            }
+        }
+    }
+
+    var awaitNewFeeJob: Job? = null
+
+    override fun onQuickAmountInput(value: Double) {
+        viewModelScope.launch {
+            desired ?: return@launch
+
+            val transferable = fromAsset.value?.transferable.orZero()
+            val details = swapDetails.value.getOrNull()
+
+            val isFeeAsset = fromAsset.value?.token?.configuration?.id == polkaswapInteractor.getFeeAsset()?.token?.configuration?.id
+            val amount = transferable.multiply(value.toBigDecimal())
+            val fee = if (details == null) {
+                val liquidityProviderFee = amount.multiply(BigDecimal.valueOf(0.003))
+                liquidityProviderFee + initialFee
+            } else {
+                details.networkFee + details.liquidityProviderFee
+            }
+            val result = if (isFeeAsset) amount.minus(fee) else amount
+            val formattedAmount = result.takeIf { it >= BigDecimal.ZERO }.orZero().format()
+
+            enteredFromAmountFlow.value = formattedAmount
+
+            if (isFeeAsset.not()) return@launch
+
+            awaitNewFeeJob?.cancel()
+            awaitNewFeeJob = viewModelScope.launch {
+                swapDetails.collectLatest { detailsResult ->
+                    val newDetails = detailsResult.getOrNull() ?: return@collectLatest
+
+                    val newResult = amount.minus(newDetails.networkFee).minus(newDetails.liquidityProviderFee).takeIf { it >= BigDecimal.ZERO }.orZero()
+                    enteredFromAmountFlow.value = newResult.format()
+                    awaitNewFeeJob?.cancel()
+                }
             }
         }
     }

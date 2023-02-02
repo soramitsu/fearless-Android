@@ -8,6 +8,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.network.runtime.model.QuoteResponse
 import jp.co.soramitsu.common.presentation.LoadingState
+import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.polkaswap.api.data.PolkaswapRepository
 import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
 import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
@@ -238,5 +239,33 @@ class PolkaswapInteractorImpl @Inject constructor(
         desired: WithDesired
     ): Result<String> {
         return polkaswapRepository.swap(polkaswapChainId, dexId, inputAssetId, outputAssetId, amount, limit, filter, markets, desired)
+    }
+
+    override suspend fun calcFakeFee(): BigDecimal {
+        val feeAsset = getFeeAsset() ?: return BigDecimal.ZERO
+        val feeAssetId = feeAsset.token.configuration.currencyId ?: return BigDecimal.ZERO
+        val markets = emptyList<Market>()
+        val liquidityProxyFee = polkaswapRepository.getSwapQuote(
+            chainId = polkaswapChainId,
+            tokenFromId = feeAssetId,
+            tokenToId = "0x0200080000000000000000000000000000000000000000000000000000000000",
+            amount = BigInteger.ONE,
+            desired = WithDesired.INPUT,
+            curMarkets = markets,
+            dexId = 0
+        )?.fee.orZero()
+
+        val fee = polkaswapRepository.estimateSwapFee(
+            polkaswapChainId,
+            0,
+            feeAssetId,
+            feeAssetId,
+            BigInteger.ONE,
+            BigInteger.ONE,
+            markets.toFilters(),
+            markets.backStrings(),
+            WithDesired.INPUT
+        )
+        return feeAsset.token.configuration.amountFromPlanks(fee) + feeAsset.token.configuration.amountFromPlanks(liquidityProxyFee)
     }
 }

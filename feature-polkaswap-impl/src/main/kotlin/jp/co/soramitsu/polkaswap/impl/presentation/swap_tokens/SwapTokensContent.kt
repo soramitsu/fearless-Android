@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -26,6 +28,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusState
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -39,6 +42,8 @@ import jp.co.soramitsu.common.compose.component.FullScreenLoading
 import jp.co.soramitsu.common.compose.component.Grip
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.NavigationIconButton
+import jp.co.soramitsu.common.compose.component.QuickAmountInput
+import jp.co.soramitsu.common.compose.component.QuickInput
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
@@ -98,6 +103,8 @@ interface SwapTokensCallbacks {
     fun liquidityProviderTooltipClick()
 
     fun networkFeeTooltipClick()
+
+    fun onQuickAmountInput(value: Double)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -112,6 +119,10 @@ fun SwapTokensContent(
         keyboardController?.hide()
         block()
     }
+    val isSoftKeyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+
+    val isFromFocused = state.fromAmountInputViewState.isFocused && !state.fromAmountInputViewState.tokenName.isNullOrEmpty()
+    val showQuickInput = isFromFocused && isSoftKeyboardOpen
 
     Column(
         modifier = modifier
@@ -210,6 +221,16 @@ fun SwapTokensContent(
                     enabled = state.swapDetailsViewState != null,
                     onClick = { runCallback(callbacks::onPreviewClick) }
                 )
+
+                if (showQuickInput) {
+                    QuickInput(
+                        values = QuickAmountInput.values(),
+                        onQuickAmountInput = {
+                            keyboardController?.hide()
+                            callbacks.onQuickAmountInput(it)
+                        }
+                    )
+                }
             }
         }
     }
