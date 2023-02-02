@@ -200,7 +200,7 @@ fun SwapTokensContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 8.dp, top = 16.dp),
-                    text = stringResource(R.string.common_continue),
+                    text = stringResource(R.string.common_preview),
                     enabled = state.swapDetailsViewState != null,
                     onClick = { runCallback(callbacks::onPreviewClick) }
                 )

@@ -123,6 +123,7 @@ operations\nwill appear here</string>
     <string name="choose_amount_fee">Transfer fee</string>
     <string name="choose_amount_tip">Tip</string>
     <string name="common_continue">Continue</string>
+    <string name="common_preview">Preview</string>
     <string name="common_amount">Amount</string>
     <string name="wallet_send_confirm_transfer">Confirm transfer</string>
     <string name="wallet_search_empty_title">Make sure that the address is

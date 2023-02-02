@@ -119,6 +119,7 @@
     <string name="choose_amount_fee">Комиссия</string>
     <string name="choose_amount_tip">Чаевые</string>
     <string name="common_continue">Продолжить</string>
+    <string name="common_preview">Предварительный просмотр</string>
     <string name="common_amount">Сумма</string>
     <string name="wallet_send_confirm_transfer">Подтвердить</string>
     <string name="wallet_search_empty_title">Убедитесь, что адрес
