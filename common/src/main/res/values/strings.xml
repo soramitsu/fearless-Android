@@ -1025,4 +1025,11 @@ Remember to make a backup of your key and keep it in a safe and private place (e
     <string name="polkaswap_market_alert_title">Market selection isn\'t available</string>
     <string name="polkaswap_market_alert_message">You haven\'t completed the swap adjustments. One or both assets haven\'t been chosen, so the market selection isn\'t available.</string>
     <string name="polkaswap_market_alert_positive_button">Choose asset</string>
+    <string name="polkaswap_maximum_sold_title">Maximum sold</string>
+    <string name="polkaswap_minimum_received_title">Minimum received</string>
+    <string name="polkaswap_maximum_sold_info">Your transaction will revert if there is a large, unfavorable price movement before it is confirmed.</string>
+    <string name="polkaswap_minimum_received_info">Your transaction will revert if there is a large, unfavorable price movement before it is confirmed.</string>
+    <string name="polkaswap_liqudity_fee_title">Liquidity provider fee</string>
+    <string name="polkaswap_liqudity_fee_info">A portion of each trade (0.3%) goes to liquidity providers as a protocol incentive.</string>
+    <string name="polkaswap_network_fee_info">Network fee is used to ensure SORA system\'s growth and stable performance.</string>
 </resources>

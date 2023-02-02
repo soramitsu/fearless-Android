@@ -57,6 +57,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+typealias TooltipEvent = Event<Pair<String, String>>
+
 @HiltViewModel
 class SwapTokensViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
@@ -68,6 +70,9 @@ class SwapTokensViewModel @Inject constructor(
 
     private val _showMarketsWarningEvent = MutableLiveData<Event<Unit>>()
     val showMarketsWarningEvent: LiveData<Event<Unit>> = _showMarketsWarningEvent
+
+    private val _showTooltipEvent = MutableLiveData<TooltipEvent>()
+    val showTooltipEvent: LiveData<TooltipEvent> = _showTooltipEvent
 
     private val enteredFromAmountFlow = MutableStateFlow("0")
     private val enteredToAmountFlow = MutableStateFlow("0")
@@ -132,27 +137,30 @@ class SwapTokensViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Result.success(null))
 
     private val swapDetailsViewState = swapDetails.map {
-        it.fold(onSuccess = { details ->
-            details ?: return@map null
-            val fromAsset = fromAsset.value ?: return@map null
-            val toAsset = toAsset.value ?: return@map null
-            fillSecondInputField(details.amount)
-            detailsToViewState(resourceManager, amountInput.value, fromAsset, toAsset, details, desired ?: return@map null)
-        }, onFailure = { throwable ->
-            val error = when (throwable) {
-                is PathUnavailableException -> ValidationException(
-                    resourceManager.getString(R.string.common_error_general_title),
-                    resourceManager.getString(R.string.polkaswap_path_unavailable_message)
-                )
-                is InsufficientLiquidityException -> ValidationException(
-                    resourceManager.getString(R.string.common_error_general_title),
-                    resourceManager.getString(R.string.polkaswap_insufficient_liqudity)
-                )
-                else -> throwable
+        it.fold(
+            onSuccess = { details ->
+                details ?: return@map null
+                val fromAsset = fromAsset.value ?: return@map null
+                val toAsset = toAsset.value ?: return@map null
+                fillSecondInputField(details.amount)
+                detailsToViewState(resourceManager, amountInput.value, fromAsset, toAsset, details, desired ?: return@map null)
+            },
+            onFailure = { throwable ->
+                val error = when (throwable) {
+                    is PathUnavailableException -> ValidationException(
+                        resourceManager.getString(R.string.common_error_general_title),
+                        resourceManager.getString(R.string.polkaswap_path_unavailable_message)
+                    )
+                    is InsufficientLiquidityException -> ValidationException(
+                        resourceManager.getString(R.string.common_error_general_title),
+                        resourceManager.getString(R.string.polkaswap_insufficient_liqudity)
+                    )
+                    else -> throwable
+                }
+                showError(error)
+                return@map null
             }
-            showError(error)
-            return@map null
-        })
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var assetResultJob: Job? = null
@@ -438,6 +446,30 @@ class SwapTokensViewModel @Inject constructor(
 
     override fun onToAmountFocusChange(focusState: FocusState) {
         isToAmountFocused.value = focusState.hasFocus
+    }
+
+    override fun minMaxToolTopClick() {
+        val tooltip = when (desired) {
+            WithDesired.INPUT -> R.string.polkaswap_minimum_received_title to R.string.polkaswap_minimum_received_info
+            WithDesired.OUTPUT -> R.string.polkaswap_maximum_sold_title to R.string.polkaswap_maximum_sold_info
+            null -> return
+        }
+
+        _showTooltipEvent.value = Event(resourceManager.getString(tooltip.first) to resourceManager.getString(tooltip.second))
+    }
+
+    override fun liquidityProviderTooltipClick() {
+        _showTooltipEvent.value = Event(
+            resourceManager.getString(R.string.polkaswap_liqudity_fee_title) to
+                resourceManager.getString(R.string.polkaswap_liqudity_fee_info)
+        )
+    }
+
+    override fun networkFeeTooltipClick() {
+        _showTooltipEvent.value = Event(
+            resourceManager.getString(R.string.network_fee) to
+                resourceManager.getString(R.string.polkaswap_network_fee_info)
+        )
     }
 
     private fun openSelectAsset(

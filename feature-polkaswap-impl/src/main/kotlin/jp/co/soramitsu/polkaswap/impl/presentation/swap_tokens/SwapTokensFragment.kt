@@ -14,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.presentation.ErrorDialog
+import jp.co.soramitsu.common.presentation.InfoDialog
 import jp.co.soramitsu.feature_polkaswap_impl.R
 
 @AndroidEntryPoint
@@ -53,6 +54,13 @@ class SwapTokensFragment : BaseComposeBottomSheetDialogFragment<SwapTokensViewMo
                 positiveButtonText = res.getString(R.string.polkaswap_market_alert_positive_button),
                 positiveClick = { viewModel.marketAlertConfirmed() },
                 negativeButtonText = res.getString(R.string.common_cancel)
+            ).show(childFragmentManager)
+        }
+
+        viewModel.showTooltipEvent.observeEvent {
+            InfoDialog(
+                title = it.first,
+                message = it.second
             ).show(childFragmentManager)
         }
     }

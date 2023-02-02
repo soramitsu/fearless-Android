@@ -92,6 +92,12 @@ interface SwapTokensCallbacks {
     fun onFromAmountFocusChange(focusState: FocusState)
 
     fun onToAmountFocusChange(focusState: FocusState)
+
+    fun minMaxToolTopClick()
+
+    fun liquidityProviderTooltipClick()
+
+    fun networkFeeTooltipClick()
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -191,7 +197,7 @@ fun SwapTokensContent(
                     }
 
                     if (state.swapDetailsViewState != null) {
-                        TransactionDescription(state.swapDetailsViewState)
+                        TransactionDescription(swapDetailsViewState = state.swapDetailsViewState, callbacks = callbacks)
                     }
                 }
 
@@ -212,7 +218,8 @@ fun SwapTokensContent(
 @Composable
 private fun TransactionDescription(
     swapDetailsViewState: SwapDetailsViewState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    callbacks: SwapTokensCallbacks
 ) {
     Column(
         modifier = modifier
@@ -222,8 +229,10 @@ private fun TransactionDescription(
             state = FeeInfoViewState(
                 caption = swapDetailsViewState.minmaxTitle,
                 feeAmount = swapDetailsViewState.toTokenMinReceived,
-                feeAmountFiat = swapDetailsViewState.toFiatMinReceived
-            )
+                feeAmountFiat = swapDetailsViewState.toFiatMinReceived,
+                tooltip = true
+            ),
+            tooltipClick = callbacks::minMaxToolTopClick
         )
 
         FeeInfo(
@@ -254,16 +263,20 @@ private fun TransactionDescription(
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_liquidity_provider_fee),
                 feeAmount = swapDetailsViewState.liquidityProviderFee.tokenAmount,
-                feeAmountFiat = swapDetailsViewState.liquidityProviderFee.fiatAmount
-            )
+                feeAmountFiat = swapDetailsViewState.liquidityProviderFee.fiatAmount,
+                tooltip = true
+            ),
+            tooltipClick = callbacks::liquidityProviderTooltipClick
         )
 
         FeeInfo(
             state = FeeInfoViewState(
                 caption = stringResource(R.string.common_network_fee),
                 feeAmount = swapDetailsViewState.networkFee.tokenAmount,
-                feeAmountFiat = swapDetailsViewState.networkFee.fiatAmount
-            )
+                feeAmountFiat = swapDetailsViewState.networkFee.fiatAmount,
+                tooltip = true
+            ),
+            tooltipClick = callbacks::networkFeeTooltipClick
         )
     }
 }
